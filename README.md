@@ -49,6 +49,9 @@ The great work began with MrChrisster building a MiSTer Attract feature for the 
 A Linux startup daemon runs in the background of your MiSTer's ARM CPU. It looks for any keyboard activity, mouse movement, or controller button presses via Linux. When it sees you aren't using the MiSTer for several minutes, it launches random games.
 
 MiSTer arcade cores are launched via a MiSTer command. For console games there is no official way to load individual games programmatically. SUper Attract Mode automates the process by sending simulated button presses to the MiSTer. This is done with a modified version of [pocomane's MiSTer Batch Control](https://github.com/pocomane/MiSTer_Batch_Control). 
+
+### Will this break my MiSTer? Will attract mode reduce the life of the MiSTer cycling between cores if left on long term?
+Short answer is No. FPGAs don't have a limited number of writes. They are solid state devices that are configured at boot up, or in this case, when a core is loaded.  
   
 If you would like to know what game is currently playing, you can check the file `/tmp/SAM_Game.txt`. Some folks even use this with OBS to automatically change the game name in their Twitch stream!  
   
