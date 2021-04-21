@@ -8,10 +8,13 @@
 Like a screen saver, MiSTer SAM monitors your MiSTer for activity. When the MiSTer is idle, SAM starts a random game. After a short time SAM starts another. And another. Games can be played in Attract Mode. When you push a button, press a key, or move the mouse SAM stops loading games until your MiSTer goes idle again.
 
 ## Installation
-If your MiSTer is connected to the internet simply copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`. You can update your installation the same way.
+- Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
+- Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`. You can update your installation the same way.
 
 ## Offline Installation  
-If your MiSTer is not connected to the internet, you should copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. Additionally copy the entire `MiSTer_SAM` directory to `/media/fat` on your MiSTer.
+If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
+- Copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. 
+- Additionally copy the entire `MiSTer_SAM` directory to `/media/fat` on your MiSTer.
   
 ## Configuration
 The script is highly customizable through the included ini file (details below).
