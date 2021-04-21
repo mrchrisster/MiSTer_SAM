@@ -183,7 +183,7 @@ config_init()
 
 	# Awaken daemon
 	echo "Adding launch daemon"
-	mv ${mrsampath}/MiSTer_SAM_init /etc/init.d/S93mistersam > /dev/null 2>&1
+	mv -f "${mrsamhome}/MiSTer_SAM_init" /etc/init.d/S93mistersam &>/dev/null
 	chmod +x /etc/init.d/S93mistersam
 
 	# Remove read-write if we were read-only
@@ -194,6 +194,7 @@ config_init()
 
 
 #======== DEPENDENCIES ========
+echo "Turning MiSTer SAM on"
 # Read INI
 basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 if [ -f ${basepath}/MiSTer_SAM.ini ]; then
@@ -233,10 +234,9 @@ elif [ -f /tmp/MiSTer_SAM_on.sh ]; then
 else
   echo "Unable to update - no Internet?"
 	config_helpers
-	config_init  
+	config_init
 fi
 
-echo "Starting MiSTer SAM"
+echo "MiSTer SAM daemon launch"
 /etc/init.d/S93mistersam start &
-
 exit 0
