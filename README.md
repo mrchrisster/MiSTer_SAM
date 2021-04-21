@@ -77,7 +77,7 @@ Make sure you use a bios that auto launches the game.
 **- Can I use a CIFS mount for my games?**  
 CIFS is supported.
 Here is an example of some values in `cifs_mount.sh` that should get you started. 
-The idea is to mount The SMB Games folder over the MiSTer SD card Games folder:
+The idea is to mount The SMB `Games` folder over the MiSTer SD card `Games` folder:
   
 ```
 SERVER="192.168.1.10"  
