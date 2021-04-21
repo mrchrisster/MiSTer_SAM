@@ -42,10 +42,7 @@ start()
 	done
 	
 	# Setup done
-	echo "OK"
-	
-	# Wait for system to fully startup
-	sleep 60
+	echo "DONE"
 	
 	# Check if system is idle for ${timeoutmins} - start Attract Mode if we are
 	while :; do
