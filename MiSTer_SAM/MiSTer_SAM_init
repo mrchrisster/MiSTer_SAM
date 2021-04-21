@@ -20,9 +20,9 @@ start()
 	fi
 	
 	# Kill old activity processes
-	killall -q -9 MiSTer_SAM_Joy.sh
-	killall -q -9 MiSTer_SAM_Mouse.sh
-	killall -q -9 MiSTer_SAM_Keyboard.sh
+	killall -q -9 MiSTer_SAM_joy.sh
+	killall -q -9 MiSTer_SAM_mouse.sh
+	killall -q -9 MiSTer_SAM_keyboard.sh
 	
 	# Reset activity logs
 	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
@@ -65,9 +65,9 @@ stop()
 {
 	echo -n "Stopping MiSTer SAM... "
 	# Kill old activity processes
-	killall -q -9 MiSTer_SAM_Joy.sh &>/dev/null
-	killall -q -9 MiSTer_SAM_Mouse.sh &>/dev/null
-	killall -q -9 MiSTer_SAM_Keyboard.sh &>/dev/null
+	killall -q -9 MiSTer_SAM_joy.sh &>/dev/null
+	killall -q -9 MiSTer_SAM_mouse.sh &>/dev/null
+	killall -q -9 MiSTer_SAM_keyboard.sh &>/dev/null
 	
 	# Kill running process
 	kill -9 $(pidof -o $$ $(basename ${0})) &>/dev/null
