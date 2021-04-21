@@ -96,7 +96,6 @@ curl_download() # curl_download ${filepath} ${URL}
 			--location \
 			-o "${1}" \
 			"${2}"
-			chmod +x "${1}"
 }
 	
 
@@ -108,7 +107,7 @@ get_mbc()
 	echo "Downloading mbc - a tool needed for launching roms"
 	echo "Created for MiSTer by pocomane"
 	echo "${REPOSITORY_URL}"
-	curl_download "${mrsamhome}" "${REPOSITORY_URL}/blob/master/mbc_v02?raw=true"
+	curl_download "${mrsamhome}/mbc" "${REPOSITORY_URL}/blob/master/mbc_v02?raw=true"
 }
 
 get_partun()
@@ -118,18 +117,19 @@ get_partun()
 	echo "Downloading partun - needed for unzipping roms from big archives."
 	echo "Created for MiSTer by woelper"
 	echo "${REPOSITORY_URL}"
-	curl_download "${mrsamhome}" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
+	curl_download "${mrsamhome}/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
 }
 
 get_samon()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	if [ "$(dirname -- ${0})" == "/tmp/MiSTer_SAM_on.sh"]; then
+	if [ "$(dirname -- "${0}")" == "/tmp" ]; then
 		echo "Updating MiSTer_SAM_on.sh"
-		curl_download "/media/fat/Scripts/" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
+		curl_download "/media/fat/Scripts/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
 	else
 		echo "Downloading MiSTer_SAM_on.sh"
-		curl_download "/tmp" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
+		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
+		chmod +x /tmp/MiSTer_SAM_on.sh
 	fi
 }
 
@@ -137,14 +137,14 @@ get_init()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM daemon"
-	curl_download "${mrsamhome}" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
+	curl_download "${mrsamhome}/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
 }
 
 get_off()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM off script"
-	curl_download "${mrsamhome}" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
+	curl_download "/media/fat/Scripts/MiSTer_SAM_off.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
 }
 
 get_ini()
@@ -152,7 +152,7 @@ get_ini()
 	if [ ! -f "/media/fat/Scripts/MiSTer_SAM.ini"]; then
 		REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 		echo "Downloading MiSTer SAM INI"
-		curl_download "/media/fat/Scripts" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.ini?raw=true"
+		curl_download "/media/fat/Scripts/MiSTer_SAM.ini" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.ini?raw=true"
 	else
 		echo "MiSTer SAM INI already exists - skipped!"
 	fi
@@ -162,23 +162,21 @@ get_joy()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM controller helper"
-	curl_download "${mrsamhome}" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy.sh?raw=true"
+	curl_download "${mrsamhome}/MiSTer_SAM_joy.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy.sh?raw=true"
 }
 
 get_keyboard()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM keyboard helper"
-	curl_download "${mrsamhome}" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_keyboard.sh?raw=true"
+	curl_download "${mrsamhome}/MiSTer_SAM_keyboard.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_keyboard.sh?raw=true"
 }
 
 get_mouse()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo ""
 	echo "Updating MiSTer SAM mouse helper"
-	echo "${REPOSITORY_URL}"
-	curl_download "${mrsamhome}" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_mouse.sh?raw=true"
+	curl_download "${mrsamhome}/MiSTer_SAM_mouse.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_mouse.sh?raw=true"
 }
 
 
@@ -209,12 +207,13 @@ config_helpers()
 
 #======== DEPENDENCIES ========
 parse_ini
-there_can_be_only_one
+there_can_be_only_one "$$" "${0}"
+curl_check
 get_samon
 
 
 # If we're running from /tmp update and proceed
-if [ "$(dirname -- ${0})" == "/tmp"]; then
+if [ "$(dirname -- ${0})" == "/tmp" ]; then
 	cp -f /tmp/MiSTer_SAM_on.sh /media/fat/Scripts
 	get_mbc
 	get_partun
