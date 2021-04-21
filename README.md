@@ -5,7 +5,7 @@
 **MiSTer SAM puts all your games on display to enjoy whenever your MiSTer is idle**
 
 ## About
-Like a screen saver, MiSTer SAM monitors your MiSTer for activity. When the MiSTer is idle, SAM starts a random game. After a short time SAM starts another. And another. Games can be played in Attract Mode. When you push a button, press a key, or move the mouse SAM stops loading games until your MiSTer goes idle again.
+Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. That's when SAM will launch a random game from your library. After a short time SAM starts another. And another. Games can be played in Attract Mode. When you push a button, press a key, or move the mouse SAM stops loading games until your MiSTer goes idle again.
 
 ## Installation
 - Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
