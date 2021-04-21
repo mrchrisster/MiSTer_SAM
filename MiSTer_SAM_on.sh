@@ -133,13 +133,6 @@ get_samoff()
 	curl_download "/media/fat/Scripts/MiSTer_SAM_off.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
 }
 
-get_init()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM daemon"
-	curl_download "${mrsamhome}/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
-}
-
 get_ini()
 {
 	if [ ! -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
@@ -149,6 +142,13 @@ get_ini()
 	else
 		echo "SKIPPED MiSTer SAM INI - already exists!"
 	fi
+}
+
+get_init()
+{
+	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
+	echo "Updating MiSTer SAM daemon"
+	curl_download "${mrsamhome}/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
 }
 
 get_joy()
@@ -227,9 +227,10 @@ if [ "$(dirname -- ${0})" == "/tmp" ]; then
 	cp -f /tmp/MiSTer_SAM_on.sh /media/fat/Scripts
 	get_mbc
 	get_partun
-	get_init
-	get_off
+	get_sam
+	get_samoff
 	get_ini
+	get_init
 	get_joy
 	get_keyboard
 	get_mouse
