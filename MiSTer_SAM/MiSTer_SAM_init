@@ -2,16 +2,27 @@
 trap "" HUP
 trap "" TERM
 
-#========= VARIABLES =========
-timeoutmins=10
-mrsamhome=/media/fat/MiSTer_SAM
-	
-
 start()
 {
 	#======== Start ========
 	echo -n "Starting MiSTer SAM... "
 	
+	#========= VARIABLES =========
+	samtimeout=10
+	mrsamhome="/media/fat/MiSTer_SAM"
+		
+	# Read INI
+	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+		. /media/fat/Scripts/MiSTer_SAM.ini
+		IFS=$'\n'
+	fi
+	
+	# Remove trailing slash from paths
+	for var in mrsamhome; do
+		declare -g ${var}="${!var%/}"
+	done
+
+
 	# Kill running process
 	if [ ! -z "$(pidof -o $$ $(basename ${0}))" ]; then
 		echo ""
@@ -47,7 +58,7 @@ start()
 	
 	# Check if system is idle for ${timeoutmins} - start Attract Mode if we are
 	while :; do
-		if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${timeoutmins})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${timeoutmins})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${timeoutmins})" ]; then
+		if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then
 			# Reset activity triggers
 			echo "" |>/tmp/.SAM_Joy_Activity
 			echo "" |>/tmp/.SAM_Mouse_Activity
