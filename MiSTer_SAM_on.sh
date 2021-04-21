@@ -26,23 +26,9 @@
 
 
 #======== DEFAULT VARIABLES ========
-mrsamhome="/media/fat/Scripts"
+mrsamhome="/media/fat/MiSTer_SAM"
 
 #======== BASIC FUNCTIONS ========
-parse_ini()
-{
-	basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-	if [ -f ${basepath}/MiSTer_SAM.ini ]; then
-		. ${basepath}/MiSTer_SAM.ini
-		IFS=$'\n'
-	fi
-
-	# Remove trailing slash from paths
-	for var in mrsamhome; do
-		declare -g ${var}="${!var%/}"
-	done
-}
-
 there_can_be_only_one() # there_can_be_only_one PID Process
 {
 	# If another attract process is running kill it
@@ -103,20 +89,20 @@ curl_download() # curl_download ${filepath} ${URL}
 get_mbc()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_Batch_Control"
-	echo ""
 	echo "Downloading mbc - a tool needed for launching roms"
 	echo "Created for MiSTer by pocomane"
 	echo "${REPOSITORY_URL}"
+	echo ""
 	curl_download "${mrsamhome}/mbc" "${REPOSITORY_URL}/blob/master/mbc_v02?raw=true"
 }
 
 get_partun()
 {
 	REPOSITORY_URL="https://github.com/woelper/partun"
-	echo ""
 	echo "Downloading partun - needed for unzipping roms from big archives."
 	echo "Created for MiSTer by woelper"
 	echo "${REPOSITORY_URL}"
+	echo ""
 	curl_download "${mrsamhome}/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
 }
 
@@ -152,9 +138,9 @@ get_ini()
 	if [ ! -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
 		REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 		echo "Downloading MiSTer SAM INI"
-		curl_download "/media/fat/Scripts/MiSTer_SAM.ini" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.ini?raw=true"
+		curl_download "/media/fat/Scripts/MiSTer_SAM.ini" "${REPOSITORY_URL}/blob/main/MiSTer_SAM.ini?raw=true"
 	else
-		echo "MiSTer SAM INI already exists - skipped!"
+		echo "SKIPPED MiSTer SAM INI - already exists!"
 	fi
 }
 
@@ -181,6 +167,14 @@ get_mouse()
 
 
 #======== CONFIGURATION ========
+config_helpers()
+{
+	echo "Configuring helpers"
+	chmod +x "${mrsamhome}/MiSTer_SAM_joy.sh"
+	chmod +x "${mrsamhome}/MiSTer_SAM_keyboard.sh"
+	chmod +x "${mrsamhome}/MiSTer_SAM_mouse.sh"
+}
+
 config_init()
 {
 	# Remount root as read-write if read-only so we can add our daemon
@@ -188,6 +182,7 @@ config_init()
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
 
 	# Awaken daemon
+	echo "Adding launch daemon"
 	mv ${mrsampath}/MiSTer_SAM_init /etc/init.d/S93mistersam > /dev/null 2>&1
 	chmod +x /etc/init.d/S93mistersam
 
@@ -197,20 +192,27 @@ config_init()
 	sync
 }
 
-config_helpers()
-{
-	chmod +x "${mrsamhome}/MiSTer_SAM_joy.sh"
-	chmod +x "${mrsamhome}/MiSTer_SAM_keyboard.sh"
-	chmod +x "${mrsamhome}/MiSTer_SAM_mouse.sh"
-}
-
 
 #======== DEPENDENCIES ========
-parse_ini
+# Read INI
+basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+if [ -f ${basepath}/MiSTer_SAM.ini ]; then
+	. ${basepath}/MiSTer_SAM.ini
+	IFS=$'\n'
+fi
+
+# Remove trailing slash from paths
+for var in mrsamhome; do
+	declare -g ${var}="${!var%/}"
+done
+
+# Ensure the MiSTer SAM home directory exists
+mkdir ${mrsamhome} &>/dev/null
+
 there_can_be_only_one "$$" "${0}"
 curl_check
-get_samon
 
+get_samon
 
 # If we're running from /tmp update and proceed
 if [ "$(dirname -- ${0})" == "/tmp" ]; then
@@ -234,7 +236,7 @@ else
 	config_init  
 fi
 
-# Gentlemen... start your engines!
+echo "Starting MiSTer SAM"
 /etc/init.d/S93mistersam start &
 
 exit 0
