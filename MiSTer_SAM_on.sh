@@ -26,7 +26,7 @@
 
 
 #======== DEFAULT VARIABLES ========
-mrsamhome="/media/fat/MiSTer_SAM"
+mrsampath="/media/fat/MiSTer_SAM"
 
 #======== BASIC FUNCTIONS ========
 there_can_be_only_one() # there_can_be_only_one PID Process
@@ -93,7 +93,7 @@ get_mbc()
 	echo "Created for MiSTer by pocomane"
 	echo "${REPOSITORY_URL}"
 	echo ""
-	curl_download "${mrsamhome}/mbc" "${REPOSITORY_URL}/blob/master/mbc_v02?raw=true"
+	curl_download "${mrsampath}/mbc" "${REPOSITORY_URL}/blob/master/mbc_v02?raw=true"
 }
 
 get_partun()
@@ -103,7 +103,7 @@ get_partun()
 	echo "Created for MiSTer by woelper"
 	echo "${REPOSITORY_URL}"
 	echo ""
-	curl_download "${mrsamhome}/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
+	curl_download "${mrsampath}/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
 }
 
 get_samon()
@@ -123,7 +123,7 @@ get_sam()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer Super Attract Mode"
-	curl_download "${mrsamhome}/MiSTer_SAM.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.sh?raw=true"
+	curl_download "${mrsampath}/MiSTer_SAM.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.sh?raw=true"
 }
 
 get_samoff()
@@ -148,28 +148,28 @@ get_init()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM daemon"
-	curl_download "${mrsamhome}/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
+	curl_download "${mrsampath}/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
 }
 
 get_joy()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM controller helper"
-	curl_download "${mrsamhome}/MiSTer_SAM_joy.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy.sh?raw=true"
+	curl_download "${mrsampath}/MiSTer_SAM_joy.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy.sh?raw=true"
 }
 
 get_keyboard()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM keyboard helper"
-	curl_download "${mrsamhome}/MiSTer_SAM_keyboard.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_keyboard.sh?raw=true"
+	curl_download "${mrsampath}/MiSTer_SAM_keyboard.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_keyboard.sh?raw=true"
 }
 
 get_mouse()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM mouse helper"
-	curl_download "${mrsamhome}/MiSTer_SAM_mouse.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_mouse.sh?raw=true"
+	curl_download "${mrsampath}/MiSTer_SAM_mouse.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_mouse.sh?raw=true"
 }
 
 
@@ -177,9 +177,9 @@ get_mouse()
 config_helpers()
 {
 	echo "Configuring helpers"
-	chmod +x "${mrsamhome}/MiSTer_SAM_joy.sh"
-	chmod +x "${mrsamhome}/MiSTer_SAM_keyboard.sh"
-	chmod +x "${mrsamhome}/MiSTer_SAM_mouse.sh"
+	chmod +x "${mrsampath}/MiSTer_SAM_joy.sh"
+	chmod +x "${mrsampath}/MiSTer_SAM_keyboard.sh"
+	chmod +x "${mrsampath}/MiSTer_SAM_mouse.sh"
 }
 
 config_init()
@@ -190,7 +190,7 @@ config_init()
 
 	# Awaken daemon
 	echo "Adding launch daemon"
-	mv -f "${mrsamhome}/MiSTer_SAM_init" /etc/init.d/S93mistersam &>/dev/null
+	mv -f "${mrsampath}/MiSTer_SAM_init" /etc/init.d/S93mistersam &>/dev/null
 	chmod +x /etc/init.d/S93mistersam
 
 	# Remove read-write if we were read-only
@@ -210,12 +210,12 @@ if [ -f ${basepath}/MiSTer_SAM.ini ]; then
 fi
 
 # Remove trailing slash from paths
-for var in mrsamhome; do
+for var in mrsampath; do
 	declare -g ${var}="${!var%/}"
 done
 
 # Ensure the MiSTer SAM home directory exists
-mkdir ${mrsamhome} &>/dev/null
+mkdir ${mrsampath} &>/dev/null
 
 there_can_be_only_one "$$" "${0}"
 curl_check
