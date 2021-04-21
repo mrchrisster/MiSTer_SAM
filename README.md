@@ -36,10 +36,10 @@ The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works g
 
 ## Attract Mode Configuration
 ### Arcade Horizontal or Vertical Only
-Change the "orientation" setting in the `Attract_Mode.ini` file to choose from only horizontal or vertical arcade games.
+Change the "orientation" setting in the `MiSTer_SAM.ini` file to choose from only horizontal or vertical arcade games.
 
 ### Exclude
-Want to exclude certain arcade games? Just add them to `mraexclude` in the `Attract_Mode.ini` file.
+Want to exclude certain arcade games? Just add them to `mraexclude` in the `MiSTer_SAM.ini` file.
 
 ## FAQs
 ### Where'd this come from? What happened to the other attract mode projects?
