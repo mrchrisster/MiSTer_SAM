@@ -113,10 +113,24 @@ get_samon()
 		echo "Updating MiSTer_SAM_on.sh"
 		curl_download "/media/fat/Scripts/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
 	else
-		echo "Downloading MiSTer_SAM_on.sh"
+		echo "Downloading MiSTer SAM on"
 		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
 		chmod +x /tmp/MiSTer_SAM_on.sh
 	fi
+}
+
+get_sam()
+{
+	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
+	echo "Updating MiSTer Super Attract Mode"
+	curl_download "${mrsamhome}/MiSTer_SAM.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.sh?raw=true"
+}
+
+get_samoff()
+{
+	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
+	echo "Updating MiSTer SAM off"
+	curl_download "/media/fat/Scripts/MiSTer_SAM_off.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
 }
 
 get_init()
@@ -124,13 +138,6 @@ get_init()
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM daemon"
 	curl_download "${mrsamhome}/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
-}
-
-get_off()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM off script"
-	curl_download "/media/fat/Scripts/MiSTer_SAM_off.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
 }
 
 get_ini()
