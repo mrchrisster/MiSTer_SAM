@@ -13,7 +13,7 @@ mbcpath="${mrsampath}/mbc"
 partunpath="${mrsampath}/partun"
 
 # ======== ARCADE OPTIONS ========
-mralist=/tmp/.Attract_Mode
+mralist=/tmp/.SAMmras
 mrapath=/media/fat/_Arcade
 mrapathvert="${misterpath}/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg"
 mrapathhoriz="${misterpath}/_Arcade/_Organized/_6 Rotation/_Horizontal"
