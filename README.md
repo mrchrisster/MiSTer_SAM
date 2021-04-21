@@ -52,7 +52,8 @@ MiSTer arcade cores are launched via a MiSTer command. For console games there i
 
 ### Will this break my MiSTer? Will attract mode reduce the life of the MiSTer cycling between cores if left on long term?
 Short answer is No. FPGAs don't have a limited number of writes. They are solid state devices that are configured at boot up, or in this case, when a core is loaded.  
-  
+
+### How do I know what game is on?  
 If you would like to know what game is currently playing, you can check the file `/tmp/SAM_Game.txt`. Some folks even use this with OBS to automatically change the game name in their Twitch stream!  
   
 ## Troubleshooting
