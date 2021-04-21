@@ -17,7 +17,7 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 - Additionally copy the entire `MiSTer_SAM` directory to `/media/fat` on your MiSTer.
   
 ## Configuration
-The script is highly customizable through the included ini file (details below).
+The script is highly customizable through the included ini file `MiSTer_SAM.ini` (details below).
 
 ## Supported Systems
 Currently supported MiSTer cores:
@@ -48,28 +48,34 @@ The great work began with MrChrisster building a MiSTer Attract feature for the 
 ### How does it work?
 A Linux startup daemon runs in the background of your MiSTer's ARM CPU. It looks for any keyboard activity, mouse movement, or controller button presses via Linux. When it sees you aren't using the MiSTer for several minutes, it launches random games.
 
-MiSTer arcade cores are launched via a MiSTer command. For console games there is no official way to load individual games programmatically. Attract Mode automates the process by sending simulated button presses to the MiSTer. This is done with a modified version of [pocomane's MiSTer Batch Control](https://github.com/pocomane/MiSTer_Batch_Control). 
+MiSTer arcade cores are launched via a MiSTer command. For console games there is no official way to load individual games programmatically. SUper Attract Mode automates the process by sending simulated button presses to the MiSTer. This is done with a modified version of [pocomane's MiSTer Batch Control](https://github.com/pocomane/MiSTer_Batch_Control). 
   
-If you would like to know what game is currently playing, you can either run the script through SSH or check the file `/tmp/SAM_Game.txt`. Some folks even use this with OBS to automatically change the game name in their Twitch stream!  
+If you would like to know what game is currently playing, you can check the file `/tmp/SAM_Game.txt`. Some folks even use this with OBS to automatically change the game name in their Twitch stream!  
   
 ## Troubleshooting
 **- Core is loaded but just hangs on the menu**  
-Sometimes this happens (even on our test setups) and it could be for a variety of reasons. Make sure you are using the recommended folder structure, such as /media/fat/Games/SNES/. The script supports zipped Everdrive packs or unzipped folders. For MegaCD and Turbografx16 CD games must be in CHD format. We noticed that some MegaCD games that the script is trying to load also won't work when loaded through the MiSTer interface.  
-  
-If you are still having trouble it could simply be that the rom failed to load, it seems to happen every now and then.
+Sometimes this happens (even on our test setups) and it could be for a variety of reasons.   
+- Neogeo and GBA seem to have the most issues while SNES, NES and Genesis work pretty reliably.  
+- We noticed that some MegaCD games that the script is trying to load also won't work when loaded through the MiSTer interface. 
+- Make sure you are using the recommended folder structure, such as /media/fat/Games/SNES/. 
+- The script supports zipped Everdrive packs or unzipped folders. For MegaCD and Turbografx16 CD games must be in CHD format.  
+ 
+If you are still having trouble it could simply be that the rom failed to load, it seems to happen every now and then.  
   
 **- Sometimes NeoGeo doesn't load a rom and hangs on the menu**   
 Still investigating why this is happening.
   
+**- Turbografx16 CD just showing Run button but not starting into the game**  
+Make sure you use a bios that auto launches the game.  
+
 **- USB Storage**  
 /media/usb is not well tested. Although care has been taken to use case-sensitive code, NTFS formatted drives may experience issues because (only) NTFS is case-sensitive on MiSTer.
 
-**- Turbografx16 CD just showing Run button but not starting into the game**  
-Make sure you use a bios that auto launches the game.
-
 **- Can I use a CIFS mount for my games?**  
 CIFS is supported.
-Here is an example of some values in `cifs_mount.sh` that should get you started:  
+Here is an example of some values in `cifs_mount.sh` that should get you started. 
+The idea is to mount The SMB Games folder over the MiSTer SD card Games folder:
+  
 ```
 SERVER="192.168.1.10"  
 SHARE="Games/Mister/Games"  
