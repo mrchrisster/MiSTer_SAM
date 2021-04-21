@@ -149,7 +149,7 @@ get_off()
 
 get_ini()
 {
-	if [ ! -f "/media/fat/Scripts/MiSTer_SAM.ini"]; then
+	if [ ! -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
 		REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 		echo "Downloading MiSTer SAM INI"
 		curl_download "/media/fat/Scripts/MiSTer_SAM.ini" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.ini?raw=true"
