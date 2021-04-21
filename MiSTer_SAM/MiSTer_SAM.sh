@@ -86,30 +86,6 @@ init_data()
 
 
 # ======== BASIC FUNCTIONS ========
-parse_ini()
-{
-	basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-	if [ -f ${basepath}/Attract_Mode.ini ]; then
-		. ${basepath}/Attract_Mode.ini
-		IFS=$'\n'
-	fi
-
-	# Remove trailing slash from paths
-	for var in mrsampath mrapath mrapathvert mrapathhoriz; do
-		declare -g ${var}="${!var%/}"
-	done
-
-	# Set mrapath based on orientation
-	if [ "${orientation,,}" == "vertical" ]; then
-		mrapath="${mrapathvert}"
-	elif [ "${orientation,,}" == "horizontal" ]; then
-		mrapath="${mrapathhoriz}"
-	fi
-	
-	# Setup corelist
-	corelist="$(echo ${corelist} | tr ',' ' ')"
-}
-
 there_can_be_only_one() # there_can_be_only_one PID Process
 {
 	# If another attract process is running kill it
@@ -354,7 +330,28 @@ load_core_arcade()
 
 # ======== MAIN ========
 echo "Starting up, please wait a minute..."
-parse_ini									# Overwrite default values from INI
+
+basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+if [ -f ${basepath}/Attract_Mode.ini ]; then
+	. ${basepath}/Attract_Mode.ini
+	IFS=$'\n'
+fi
+
+# Remove trailing slash from paths
+for var in mrsampath mrapath mrapathvert mrapathhoriz; do
+	declare -g ${var}="${!var%/}"
+done
+
+# Set mrapath based on orientation
+if [ "${orientation,,}" == "vertical" ]; then
+	mrapath="${mrapathvert}"
+elif [ "${orientation,,}" == "horizontal" ]; then
+	mrapath="${mrapathhoriz}"
+fi
+
+# Setup corelist
+corelist="$(echo ${corelist} | tr ',' ' ')"
+
 disable_bootrom									# Disable Bootrom until Reboot 
 build_mralist								# Generate list of MRAs
 init_data										# Setup data arrays
