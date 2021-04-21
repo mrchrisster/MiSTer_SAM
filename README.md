@@ -1,37 +1,20 @@
 ![alt text](https://i.ibb.co/DzjQDtH/Screenshot-22.png)
 
 
+# MiSTer Super Attract Mode (SAM)
+**MiSTer SAM puts all your games on display to enjoy whenever your MiSTer is idle**
 
-# MiSTer Attract Mode
-**Enjoy the wonderful pixel art and sounds from the games in your MiSTer library - automatically!**
-
-## Usage
-Attract Mode is a script which starts a random game on the MiSTer FPGA. The script is highly customizable through the included ini file (details below). Games can be played in Attract Mode, but the next game loads automatically after 2 minutes *unless you wiggle the mouse!* If you don't have a mouse connected to your MiSTer you'll need to ***cold reboot*** your MiSTer from the OSD (F12) menu, or use the power button.
+## About
+Like a screen saver, MiSTer SAM monitors your MiSTer for activity. When the MiSTer is idle, SAM starts a random game. After a short time SAM starts another. And another. Games can be played in Attract Mode. When you push a button, press a key, or move the mouse SAM stops loading games until your MiSTer goes idle again.
 
 ## Installation
-If your MiSTer is connected to the internet, the installation is straight forward:  
-- Copy `Attract_Mode.sh` and `Attract_Mode.ini` to `/media/fat/Scripts` Directory, *that's it.*  
-You will need no other files from here to get everything working.  
-  
+If your MiSTer is connected to the internet simply copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`. You can update your installation the same way.
 
 ## Offline Installation  
-If your MiSTer is not connected to the internet, you can install the two additional tools needed for correct operation of Attract Mode.  
-Go to the subfolder `Tools` on this Github page and download `mbc` and `partun`  
-Connect to your MiSTer's SD card and drop the two files into the `/media/fat/linux` directory.  
-Now open Attract_Mode.sh and find the following lines
+If your MiSTer is not connected to the internet, you should copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. Additionally copy the entire `MiSTer_SAM` directory to `/media/fat` on your MiSTer.
   
-```
-mbcpath=/tmp/mbc
-partunpath=/tmp/partun
-```
-  
-Change it to:  
-  
-```
-mbcpath=/media/fat/linux/mbc
-partunpath=/media/fat/linux/partun
-```
-  
+## Configuration
+The script is highly customizable through the included ini file (details below).
 
 ## Supported Systems
 Currently supported MiSTer cores:
@@ -49,25 +32,22 @@ Currently supported MiSTer cores:
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
 
 ## Attract Mode Configuration
-### Optional features
-Included in `/Optional/` are several additional scripts. These require `Attract_Mode.sh` to run.
-
-Each Attract_Mode_*system*.sh script cycles games from just that one system - not all of them.
-
-Also included is `Lucky_Mode.sh` and corresponding system-specific Lucky_Mode_*system*.sh scripts. Lucky mode picks a random game and loads it - no timer to worry about! This is a great way to explore and play your collection.
-
-To use these options just copy the optional script(s) you want into the same location as Attract_mode.sh - by default `/media/fat/Scripts/`.
-
 ### Arcade Horizontal or Vertical Only
 Change the "orientation" setting in the `Attract_Mode.ini` file to choose from only horizontal or vertical arcade games.
 
 ### Exclude
 Want to exclude certain arcade games? Just add them to `mraexclude` in the `Attract_Mode.ini` file.
 
-## How it works
+## FAQs
+### Where'd this come from? What happened to the other attract mode projects?
+The great work began with MrChrisster building a MiSTer Attract feature for the SNES core. This begat Attract_Arcade after Mellified ~~kept opening issues~~ started helping. Once MrChrisster worked with mbc it unlocked the power to load ROMs for more MiSTer cores, resulting in Attract_Mode. We wanted to bring the project to the next level by automating the process. From this collaboration and passion was born SAM - Super Attract Mode! Since MiSTer SAM does everything the old projects did - and lots more! - we wanted to create a new name on par with its superpowers.
+
+### How does it work?
+A Linux startup daemon runs in the background of your MiSTer's ARM CPU. It looks for any keyboard activity, mouse movement, or controller button presses via Linux. When it sees you aren't using the MiSTer for several minutes, it launches random games.
+
 MiSTer arcade cores are launched via a MiSTer command. For console games there is no official way to load individual games programmatically. Attract Mode automates the process by sending simulated button presses to the MiSTer. This is done with a modified version of [pocomane's MiSTer Batch Control](https://github.com/pocomane/MiSTer_Batch_Control). 
   
-If you would like to know what game is currently playing, you can either run the script through SSH or check the file `/tmp/Attract_Game.txt`. Some folks even use this with OBS to automatically change the game name in their Twitch stream!  
+If you would like to know what game is currently playing, you can either run the script through SSH or check the file `/tmp/SAM_Game.txt`. Some folks even use this with OBS to automatically change the game name in their Twitch stream!  
   
 ## Troubleshooting
 **- Core is loaded but just hangs on the menu**  
@@ -75,15 +55,14 @@ Sometimes this happens (even on our test setups) and it could be for a variety o
   
 If you are still having trouble it could simply be that the rom failed to load, it seems to happen every now and then.
   
-  
 **- Sometimes NeoGeo doesn't load a rom and hangs on the menu**   
 Still investigating why this is happening.
   
 **- USB Storage**  
-/media/usb is not well tested. NTFS formatted drives may experience issues because NTFS is case-sensitive on MiSTer.
+/media/usb is not well tested. Although care has been taken to use case-sensitive code, NTFS formatted drives may experience issues because (only) NTFS is case-sensitive on MiSTer.
 
 **- Turbografx16 CD just showing Run button but not starting into the game**  
-Make sure you use a bios that auto launches the game  
+Make sure you use a bios that auto launches the game.
 
 **- Can I use a CIFS mount for my games?**  
 CIFS is supported.
