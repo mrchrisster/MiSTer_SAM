@@ -9,7 +9,7 @@ start()
 	
 	#========= VARIABLES =========
 	samtimeout=10
-	mrsamhome="/media/fat/MiSTer_SAM"
+	mrsampath="/media/fat/MiSTer_SAM"
 		
 	# Read INI
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
@@ -18,7 +18,7 @@ start()
 	fi
 	
 	# Remove trailing slash from paths
-	for var in mrsamhome; do
+	for var in mrsampath; do
 		declare -g ${var}="${!var%/}"
 	done
 
@@ -42,15 +42,15 @@ start()
 	
 	# Spawn Joystick monitoring process per detected joystick device
 	for joystick in /dev/input/js*; do
-		${mrsamhome}/MiSTer_SAM_joy.sh "${joystick}" &
+		${mrsampath}/MiSTer_SAM_joy.sh "${joystick}" &
 	done
 	
 	# Spawn Mouse monitoring process
-	${mrsamhome}/MiSTer_SAM_mouse.sh &
+	${mrsampath}/MiSTer_SAM_mouse.sh &
 	
 	# Spawn Keyboard monitoring per detected keyboard device
 	for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
-		${mrsamhome}/MiSTer_SAM_keyboard.sh "${keyboard}" &
+		${mrsampath}/MiSTer_SAM_keyboard.sh "${keyboard}" &
 	done
 	
 	# Setup done
@@ -63,7 +63,7 @@ start()
 			echo "" |>/tmp/.SAM_Joy_Activity
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
-			"${mrsamhome}/MiSTer_SAM.sh"
+			"${mrsampath}/MiSTer_SAM.sh"
 			# Reset activity triggers
 			echo "" |>/tmp/.SAM_Joy_Activity
 			echo "" |>/tmp/.SAM_Mouse_Activity

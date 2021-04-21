@@ -3,19 +3,20 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 
 # ======== DEFAULT VARIABLES ========
 # Change these in the INI file
-mrsamhome=/media/fat/MiSTer_SAM
+mrsampath="/media/fat/MiSTer_SAM"
+misterpath="/media/fat/"
 corelist="Arcade,GBA,Genesis,MegaCD,NeoGeo,NES,SNES,TGFX16,TGFX16CD"
 timer=120
 
 # Path to tools. Change if you have another copy installed and want to share.
-mbcpath="${mrsamhome}/mbc"
-partunpath="${mrsamhome}/partun"
+mbcpath="${mrsampath}/mbc"
+partunpath="${mrsampath}/partun"
 
 # ======== ARCADE OPTIONS ========
 mralist=/tmp/.Attract_Mode
 mrapath=/media/fat/_Arcade
-mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg"
-mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
+mrapathvert="${misterpath}/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg"
+mrapathhoriz="${misterpath}/_Arcade/_Organized/_6 Rotation/_Horizontal"
 orientation=All
 
 # ======== CONSOLE OPTIONS ========
@@ -59,14 +60,14 @@ init_data()
 	# Core to path mappings
 	declare -gA CORE_PATH=( \
 		["arcade"]="${mrapath}" \
-		["gba"]="${pathfs}/games/GBA" \
-		["genesis"]="${pathfs}/games/Genesis" \
-		["megacd"]="${pathfs}/games/MegaCD" \
-		["neogeo"]="${pathfs}/games/NeoGeo" \
-		["nes"]="${pathfs}/games/NES" \
-		["snes"]="${pathfs}/games/SNES" \
-		["tgfx16"]="${pathfs}/games/TGFX16" \
-		["tgfx16cd"]="${pathfs}/games/TGFX16-CD" \
+		["gba"]="${misterpath}/games/GBA" \
+		["genesis"]="${misterpath}/games/Genesis" \
+		["megacd"]="${misterpath}/games/MegaCD" \
+		["neogeo"]="${misterpath}/games/NeoGeo" \
+		["nes"]="${misterpath}/games/NES" \
+		["snes"]="${misterpath}/games/SNES" \
+		["tgfx16"]="${misterpath}/games/TGFX16" \
+		["tgfx16cd"]="${misterpath}/games/TGFX16-CD" \
 		)
 	
 	# Can this core use ZIPped ROMs
@@ -94,7 +95,7 @@ parse_ini()
 	fi
 
 	# Remove trailing slash from paths
-	for var in mrsamhome mrapath mrapathvert mrapathhoriz; do
+	for var in mrsampath mrapath mrapathvert mrapathhoriz; do
 		declare -g ${var}="${!var%/}"
 	done
 
@@ -243,7 +244,7 @@ load_core() 	# load_core core /path/to/rom name_of_rom (countdown)
 	echo -n "Next up on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
 	echo -e "\e[1m${3}\e[0m"
-	echo "${3} (${1})" > /tmp/Attract_Game.txt
+	echo "${3} (${1})" > /tmp/SAM_Game.txt
 
 	if [ "${4}" == "countdown" ]; then
 		echo "Loading in..."
@@ -276,16 +277,16 @@ core_error() # core_error core /path/to/ROM
 disable_bootrom()
 {
 	if [ "${disablebootrom}" == "Yes" ]; then
-		if [ -d "${pathfs}/Bootrom" ]; then
-			mount --bind /mnt "${pathfs}/Bootrom"
+		if [ -d "${misterpath}/Bootrom" ]; then
+			mount --bind /mnt "${misterpath}/Bootrom"
 		fi
-		if [ -f "${pathfs}/Games/NES/boot0.rom" ]; then
+		if [ -f "${misterpath}/Games/NES/boot0.rom" ]; then
 			touch /tmp/brfake
-			mount --bind /tmp/brfake ${pathfs}/Games/NES/boot0.rom
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot0.rom
 		fi
-		if [ -f "${pathfs}/Games/NES/boot1.rom" ]; then
+		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
 			touch /tmp/brfake
-			mount --bind /tmp/brfake ${pathfs}/Games/NES/boot1.rom
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
 		fi
 	fi
 }
@@ -336,7 +337,7 @@ load_core_arcade()
 	echo -n "Next up at the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
 	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
-	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/Attract_Game.txt
+	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
 
 	if [ "${1}" == "countdown" ]; then
 		echo "Loading quarters in..."
