@@ -4,7 +4,7 @@ trap "" TERM
 
 #========= VARIABLES =========
 timeoutmins=10
-mrsampath=/media/fat/MiSTer_SAM
+mrsamhome=/media/fat/MiSTer_SAM
 	
 
 start()
@@ -20,9 +20,9 @@ start()
 	fi
 	
 	# Kill old activity processes
-	killall -q -9 .SAM_Joy.sh
-	killall -q -9 .SAM_Mouse.sh
-	killall -q -9 .SAM_Keyboard.sh
+	killall -q -9 MiSTer_SAM_Joy.sh
+	killall -q -9 MiSTer_SAM_Mouse.sh
+	killall -q -9 MiSTer_SAM_Keyboard.sh
 	
 	# Reset activity logs
 	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
@@ -30,15 +30,15 @@ start()
 	
 	# Spawn Joystick monitoring process per detected joystick device
 	for joystick in /dev/input/js*; do
-		${mrsampath}/MiSTer_SAM_joy.sh "${joystick}" &
+		${mrsamhome}/MiSTer_SAM_joy.sh "${joystick}" &
 	done
 	
 	# Spawn Mouse monitoring process
-	${mrsampath}/MiSTer_SAM_mouse.sh &
+	${mrsamhome}/MiSTer_SAM_mouse.sh &
 	
 	# Spawn Keyboard monitoring per detected keyboard device
 	for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
-		${mrsampath}/MiSTer_SAM_keyboard.sh "${keyboard}" &
+		${mrsamhome}/MiSTer_SAM_keyboard.sh "${keyboard}" &
 	done
 	
 	# Setup done
@@ -54,7 +54,7 @@ start()
 			echo "" |>/tmp/.SAM_Joy_Activity
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
-			"${mrsampath}/MiSTer_SAM.sh"
+			"${mrsamhome}/MiSTer_SAM.sh"
 			# Reset activity triggers
 			echo "" |>/tmp/.SAM_Joy_Activity
 			echo "" |>/tmp/.SAM_Mouse_Activity
@@ -68,9 +68,9 @@ stop()
 {
 	echo -n "Stopping MiSTer SAM... "
 	# Kill old activity processes
-	killall -q -9 .SAM_Joy.sh &>/dev/null
-	killall -q -9 .SAM_Mouse.sh &>/dev/null
-	killall -q -9 .SAM_Keyboard.sh &>/dev/null
+	killall -q -9 MiSTer_SAM_Joy.sh &>/dev/null
+	killall -q -9 MiSTer_SAM_Mouse.sh &>/dev/null
+	killall -q -9 MiSTer_SAM_Keyboard.sh &>/dev/null
 	
 	# Kill running process
 	kill -9 $(pidof -o $$ $(basename ${0})) &>/dev/null
