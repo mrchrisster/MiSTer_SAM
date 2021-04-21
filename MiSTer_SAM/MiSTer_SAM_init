@@ -1,1 +1,96 @@
+#!/bin/bash
+trap "" HUP
+trap "" TERM
 
+start()
+{
+#========= VARIABLES =========
+timeoutmins=1
+mrsampath=/media/fat/MiSTer_SAM
+
+#======== Start ========
+echo -n "Starting MiSTer SAM... "
+
+# Kill running process
+if [ ! -z "$(pidof -o $$ $(basename ${0}))" ]; then
+	echo ""
+	echo "Removing other running instances of daemon..."
+	kill -9 $(pidof -o $$ $(basename ${0})) &>/dev/null
+fi
+
+# Kill old activity processes
+killall -q -9 .SAM_Joy.sh
+killall -q -9 .SAM_Mouse.sh
+killall -q -9 .SAM_Keyboard.sh
+
+# Reset activity logs
+rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
+touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
+
+# Spawn Joystick monitoring process per detected joystick device
+for joystick in /dev/input/js*; do
+	${mrsampath}/MiSTer_SAM_joy.sh "${joystick}" &
+done
+
+# Spawn Mouse monitoring process
+${mrsampath}/MiSTer_SAM_mouse.sh &
+
+# Spawn Keyboard monitoring per detected keyboard device
+for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
+	${mrsampath}/MiSTer_SAM_keyboard.sh "${keyboard}" &
+done
+
+# Setup done
+echo "OK"
+
+# Wait for system to fully startup
+sleep 60
+
+# Check if system is idle for ${timeoutmins} - start Attract Mode if we are
+while :; do
+	if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${timeoutmins})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${timeoutmins})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${timeoutmins})" ]; then
+		# Reset activity triggers
+		echo "" |>/tmp/.SAM_Joy_Activity
+		echo "" |>/tmp/.SAM_Mouse_Activity
+		echo "" |>/tmp/.SAM_Keyboard_Activity
+		"${mrsampath}/MiSTer_SAM.sh"
+		# Reset activity triggers
+		echo "" |>/tmp/.SAM_Joy_Activity
+		echo "" |>/tmp/.SAM_Mouse_Activity
+		echo "" |>/tmp/.SAM_Keyboard_Activity
+	fi
+	sleep 3
+done
+}
+
+stop() 
+{
+        echo -n "Stopping MiSTer SAM... "
+        # Kill old activity processes
+				killall -q -9 .SAM_Joy.sh &>/dev/null
+				killall -q -9 .SAM_Mouse.sh &>/dev/null
+				killall -q -9 .SAM_Keyboard.sh &>/dev/null
+				
+				# Kill running process
+				kill -9 $(pidof -o $$ $(basename ${0})) &>/dev/null
+
+        echo "OK"
+        echo ""
+}
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: /etc/init.d/S93mistersam {start|stop|restart}"
+        exit 1
+        ;;
+esac
+exit 0
