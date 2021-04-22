@@ -5,13 +5,22 @@ trap "" TERM
 start()
 {
 	#======== Start ========
-	echo -n "Starting MiSTer SAM... "
+	echo -n "Starting MiSTer Super Attract Mode... "
 	
 	#========= VARIABLES =========
-	samtimeout=10
+	samtimeout=5
 	mrsampath="/media/fat/MiSTer_SAM"
 		
-	# Read INI
+	# Read INI, Check for mount point presence
+	while ! test -d /media/fat/
+	do
+		sleep 1
+		count=`expr $count + 1`
+		if test $count -eq 30; then
+			echo "Mount timed out!"
+        		exit 1
+   		fi
+	done
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 		. /media/fat/Scripts/MiSTer_SAM.ini
 		IFS=$'\n'
@@ -36,7 +45,8 @@ start()
 	killall -q -9 MiSTer_SAM_keyboard.sh
 	killall -q -9 xxd
 	
-	# Reset activity logs
+	# Reset activity logs, wait for system clock synchronization
+	sleep 60
 	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	
