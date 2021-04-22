@@ -201,7 +201,7 @@ config_init()
 
 
 #======== DEPENDENCIES ========
-echo "Turning Super Attract Mode on"
+echo "Turning MiSTer SAM on"
 # Read INI
 basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 if [ -f ${basepath}/MiSTer_SAM.ini ]; then
@@ -218,6 +218,9 @@ done
 mkdir ${mrsampath} &>/dev/null
 
 there_can_be_only_one "$$" "${0}"
+there_can_be_only_one "0" "S93mistersam"
+there_can_be_only_one "0" "MiSTer_SAM.sh"
+
 curl_check
 
 get_samon
