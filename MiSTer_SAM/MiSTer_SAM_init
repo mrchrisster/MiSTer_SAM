@@ -5,23 +5,13 @@ trap "" TERM
 start()
 {
 	#======== Start ========
-	echo -n "Starting MiSTer Super Attract Mode... "
+	echo -n "Starting MiSTer SAM... "
 	
 	#========= VARIABLES =========
-	samtimeout=5
+	samtimeout=10
 	mrsampath="/media/fat/MiSTer_SAM"
 		
-	# Read INI, Check for mount point presence
-	while ! test -d /media/fat/
-	do
-		sleep 1
-		count=`expr $count + 1`
-		if test $count -eq 30; then
-			echo "Mount timed out!"
-        		exit 1
-   		fi
-	done
-	
+	# Read INI
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 		. /media/fat/Scripts/MiSTer_SAM.ini
 		IFS=$'\n'
@@ -34,10 +24,10 @@ start()
 
 
 	# Kill running process
-	if [ ! -z "$(pidof -o $$ $(basename ${0}))" ]; then
+	if [ ! -z "$(pidof -o ${1} $(basename ${2}))" ]; then
 		echo ""
-		echo "Removing other running instances of daemon..."
-		kill -9 $(pidof -o $$ $(basename ${0})) &>/dev/null
+		echo "Removing other running instances of $(basename ${2})..."
+		kill -9 $(pidof -o ${1} $(basename ${2})) &>/dev/null
 	fi
 	
 	# Kill old activity processes
@@ -46,8 +36,7 @@ start()
 	killall -q -9 MiSTer_SAM_keyboard.sh
 	killall -q -9 xxd
 	
-	# Reset activity logs, wait for system clock synchronization
-	sleep 60
+	# Reset activity logs
 	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	
@@ -94,21 +83,25 @@ stop()
 	killall -q -9 xxd
 	
 	# Kill running process
-	kill -9 $(pidof -o $$ $(basename ${0})) &>/dev/null
+	if [ ! -z "$(pidof -o ${1} $(basename ${2}))" ]; then
+		echo ""
+		echo "Removing other running instances of $(basename ${2})..."
+		kill -9 $(pidof -o ${1} $(basename ${2})) &>/dev/null
+	fi
 	
 	echo "OK"
 	echo ""
 }
 case "$1" in
     start)
-        start
+        start $$ "${0}"
         ;;
     stop)
-        stop
+        stop $$ "${0}"
         ;;
     restart)
-        stop
-        start
+        stop $$ "${0}"
+        start $$ "${0}"
         ;;
     *)
         echo "Usage: /etc/init.d/S93mistersam {start|stop|restart}"

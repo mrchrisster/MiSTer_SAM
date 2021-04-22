@@ -86,8 +86,6 @@ init_data()
 
 
 # ======== BASIC FUNCTIONS ========
-
-
 there_can_be_only_one() # there_can_be_only_one PID Process
 {
 	# If another attract process is running kill it
@@ -333,9 +331,9 @@ load_core_arcade()
 # ======== MAIN ========
 echo "Starting up, please wait a minute..."
 
-
-if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
-	. /media/fat/Scripts/MiSTer_SAM.ini
+basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+if [ -f ${basepath}/Attract_Mode.ini ]; then
+	. ${basepath}/Attract_Mode.ini
 	IFS=$'\n'
 fi
 
