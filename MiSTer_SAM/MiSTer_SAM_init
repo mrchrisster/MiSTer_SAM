@@ -41,7 +41,7 @@ start()
 	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	
 	# Spawn Joystick monitoring process per detected joystick device
-	sleep 40
+	sleep 60
 	for joystick in /dev/input/js*; do
 		${mrsampath}/MiSTer_SAM_joy.sh "${joystick}" &
 	done
