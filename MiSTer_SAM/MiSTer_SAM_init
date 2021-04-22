@@ -11,7 +11,17 @@ start()
 	samtimeout=5
 	mrsampath="/media/fat/MiSTer_SAM"
 		
-	# Read INI
+	# Read INI, Check for mount point present
+	while ! test -d /media/fat/
+	do
+		sleep 1
+		count=`expr $count + 1`
+		if test $count -eq 30; then
+			echo "Mount timed out!"
+        		exit 1
+   		fi
+	done
+	
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 		. /media/fat/Scripts/MiSTer_SAM.ini
 		IFS=$'\n'
