@@ -333,7 +333,7 @@ load_core_arcade()
 # ======== MAIN ========
 echo "Starting up, please wait a minute..."
 
-basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
 if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 	. /media/fat/Scripts/MiSTer_SAM.ini
 	IFS=$'\n'
