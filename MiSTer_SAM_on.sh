@@ -201,7 +201,7 @@ config_init()
 
 
 #======== DEPENDENCIES ========
-echo "Turning MiSTer Super Attract Mode on"
+echo "Turning Super Attract Mode on"
 # Read INI
 basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 if [ -f ${basepath}/MiSTer_SAM.ini ]; then
