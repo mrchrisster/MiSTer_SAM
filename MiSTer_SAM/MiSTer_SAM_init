@@ -8,7 +8,7 @@ start()
 	echo -n "Starting MiSTer SAM... "
 	
 	#========= VARIABLES =========
-	samtimeout=10
+	samtimeout=5
 	mrsampath="/media/fat/MiSTer_SAM"
 		
 	# Read INI
@@ -57,6 +57,7 @@ start()
 	echo "DONE"
 	
 	# Check if system is idle for ${timeoutmins} - start Attract Mode if we are
+	sleep 40
 	while :; do
 		if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then
 			# Reset activity triggers
