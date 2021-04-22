@@ -11,7 +11,7 @@ start()
 	samtimeout=5
 	mrsampath="/media/fat/MiSTer_SAM"
 		
-	# Read INI, Check for mount point present
+	# Read INI, Check for mount point presence
 	while ! test -d /media/fat/
 	do
 		sleep 1
