@@ -46,7 +46,8 @@ start()
 	killall -q -9 MiSTer_SAM_keyboard.sh
 	killall -q -9 xxd
 	
-	# Reset activity logs
+	# Reset activity logs, wait for clock update
+	sleep 60
 	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	
