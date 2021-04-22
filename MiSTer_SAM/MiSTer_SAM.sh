@@ -87,23 +87,6 @@ init_data()
 
 # ======== BASIC FUNCTIONS ========
 
-parse_ini() # Read INI, Check for mount point presence
-{
-	while ! test -d /media/fat/
-	do
-		sleep 1
-		count=`expr $count + 1`
-		if test $count -eq 30; then
-			echo "Mount timed out!"
-        		exit 1
-   		fi
-	done
-	
-	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
-		. /media/fat/Scripts/MiSTer_SAM.ini
-		IFS=$'\n'
-	fi
-}
 
 there_can_be_only_one() # there_can_be_only_one PID Process
 {
@@ -351,8 +334,8 @@ load_core_arcade()
 echo "Starting up, please wait a minute..."
 
 basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-if [ -f ${basepath}/Attract_Mode.ini ]; then
-	. ${basepath}/Attract_Mode.ini
+if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+	. /media/fat/Scripts/MiSTer_SAM.ini
 	IFS=$'\n'
 fi
 
@@ -370,7 +353,7 @@ fi
 
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
-parse_ini
+
 disable_bootrom									# Disable Bootrom until Reboot 
 build_mralist								# Generate list of MRAs
 init_data										# Setup data arrays
