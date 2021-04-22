@@ -103,7 +103,7 @@ get_partun()
 	echo "Created for MiSTer by woelper"
 	echo "${REPOSITORY_URL}"
 	echo ""
-	curl_download "${mrsampath}/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
+	curl_download "${mrsampath}/partun" "${REPOSITORY_URL}/releases/download/0.1.6/partun_armv7"
 }
 
 get_samon()
