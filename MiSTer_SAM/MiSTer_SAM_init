@@ -5,7 +5,7 @@ trap "" TERM
 start()
 {
 	#======== Start ========
-	echo -n "Starting MiSTer SAM... "
+	echo -n "Starting MiSTer Super Attract Mode... "
 	
 	#========= VARIABLES =========
 	samtimeout=5
