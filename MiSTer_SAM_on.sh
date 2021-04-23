@@ -222,8 +222,8 @@ for var in mrsampath; do
 	declare -g ${var}="${!var%/}"
 done
 
-# Ensure the MiSTer SAM home directory exists
-mkdir ${mrsampath} &>/dev/null
+# Ensure the MiSTer SAM data directory exists
+mkdir "${mrsampath}" &>/dev/null
 
 there_can_be_only_one "$$" "${0}"
 there_can_be_only_one "0" "S93mistersam"
