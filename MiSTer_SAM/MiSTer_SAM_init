@@ -9,7 +9,7 @@ start()
 	
 	#========= VARIABLES =========
 	samtimeout=5
-	mrsampath="/media/fat/MiSTer_SAM"
+	mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 		
 	# Read INI, Check for mount point presence
 	while ! test -d /media/fat/
@@ -35,7 +35,7 @@ start()
 	# Kill running process
 	if [ ! -z "$(pidof -o ${1} $(basename ${2}))" ]; then
 		echo ""
-		echo "Removing other running instances of $(basename ${2})..."
+		echo -n "Removing other running instances of $(basename ${2})..."
 		kill -9 $(pidof -o ${1} $(basename ${2})) &>/dev/null
 	fi
 	
@@ -100,7 +100,6 @@ stop()
 	fi
 	
 	echo "OK"
-	echo ""
 }
 case "$1" in
     start)
@@ -118,4 +117,5 @@ case "$1" in
         exit 1
         ;;
 esac
+echo "Press ENTER to continue"
 exit 0
