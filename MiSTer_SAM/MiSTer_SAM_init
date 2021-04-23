@@ -45,8 +45,13 @@ start()
 	killall -q -9 MiSTer_SAM_keyboard.sh
 	killall -q -9 xxd
 	
-	# Reset activity logs, wait for system clock synchronization
+	# Setup done
+	echo "DONE"
+	echo "Press ENTER to continue"
+	
+	# Wait for system clock synchronization
 	sleep 60
+	# Reset activity logs
 	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	
@@ -62,9 +67,6 @@ start()
 	for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
 		${mrsampath}/MiSTer_SAM_keyboard.sh "${keyboard}" &
 	done
-	
-	# Setup done
-	echo "DONE"
 	
 	# Check if system is idle for ${timeoutmins} - start Attract Mode if we are
 	while :; do
@@ -100,7 +102,9 @@ stop()
 	fi
 	
 	echo "OK"
+	echo "Press ENTER to continue"
 }
+
 case "$1" in
     start)
         start $$ "${0}"
@@ -117,5 +121,4 @@ case "$1" in
         exit 1
         ;;
 esac
-echo "Press ENTER to continue"
 exit 0
