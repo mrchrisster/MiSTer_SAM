@@ -103,3 +103,7 @@ SHARE="Games/Mister/Games"
 LOCAL_DIR="*"  
 BASE_PATH="/media/fat/Games" 
 ```
+
+## Release History
+23 Apr 2021 - Updated INI and data directory - [Reset to defaults](https://github.com/mrchrisster/MiSTer_SAM#reset-to-defaults) recommended!
+21 Apr 2021 - Initial version
