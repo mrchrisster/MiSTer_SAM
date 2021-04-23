@@ -91,8 +91,7 @@ get_samon() #get_samon process_name
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	if [ "$(dirname -- "${1}")" == "/tmp" ]; then
 		echo "Updating MiSTer_SAM_on.sh"
-		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
-		mv -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
+		cp -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
 	else
 		echo "Downloading MiSTer SAM on"
 		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
