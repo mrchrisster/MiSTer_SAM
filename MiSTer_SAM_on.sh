@@ -93,17 +93,19 @@ get_mbc()
 	echo "Created for MiSTer by pocomane"
 	echo "${REPOSITORY_URL}"
 	echo ""
-	curl_download "${mrsampath}/mbc" "${REPOSITORY_URL}/blob/master/mbc_v02?raw=true"
+	curl_download "/tmp/mbc" "${REPOSITORY_URL}/blob/master/mbc_v02?raw=true"
+	mv -f "/tmp/mbc" "${mrsampath}/mbc"
 }
 
 get_partun()
 {
 	REPOSITORY_URL="https://github.com/woelper/partun"
 	echo "Downloading partun - needed for unzipping roms from big archives."
-	echo "Created for MiSTer by woelper"
+	echo "Created for MiSTer by woelper - who is allegedly not a spider"
 	echo "${REPOSITORY_URL}"
 	echo ""
-	curl_download "${mrsampath}/partun" "${REPOSITORY_URL}/releases/download/0.1.6/partun_armv7"
+	curl_download "/tmp/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
+	mv -f "/tmp/partun" "${mrsampath}/partun"
 }
 
 get_samon()
@@ -111,11 +113,13 @@ get_samon()
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	if [ "$(dirname -- "${0}")" == "/tmp" ]; then
 		echo "Updating MiSTer_SAM_on.sh"
-		curl_download "/media/fat/Scripts/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
+		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
+		mv -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
 	else
 		echo "Downloading MiSTer SAM on"
 		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
-		chmod +x /tmp/MiSTer_SAM_on.sh
+		mv -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
+		chmod +x "/tmp/MiSTer_SAM_on.sh"
 	fi
 }
 
@@ -123,14 +127,16 @@ get_sam()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer Super Attract Mode"
-	curl_download "${mrsampath}/MiSTer_SAM.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.sh?raw=true"
+	curl_download "/tmp/MiSTer_SAM.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.sh?raw=true"
+	mv -f "/tmp/MiSTer_SAM.sh" "${mrsampath}/MiSTer_SAM.sh"
 }
 
 get_samoff()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM off"
-	curl_download "/media/fat/Scripts/MiSTer_SAM_off.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
+	curl_download "/tmp/MiSTer_SAM_off.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
+	mv -f "/tmp/MiSTer_SAM_off.sh" "/media/fat/Scripts/MiSTer_SAM_off.sh"
 }
 
 get_ini()
@@ -148,28 +154,32 @@ get_init()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM daemon"
-	curl_download "${mrsampath}/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
+	curl_download "/tmp/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
+	mv -f "/tmp/MiSTer_SAM_init" "${mrsampath}/MiSTer_SAM_init"
 }
 
 get_joy()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM controller helper"
-	curl_download "${mrsampath}/MiSTer_SAM_joy.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy.sh?raw=true"
+	curl_download "/tmp/MiSTer_SAM_joy.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy.sh?raw=true"
+	mv -f "/tmp/MiSTer_SAM_joy.sh" "${mrsampath}/MiSTer_SAM_joy.sh"
 }
 
 get_keyboard()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM keyboard helper"
-	curl_download "${mrsampath}/MiSTer_SAM_keyboard.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_keyboard.sh?raw=true"
+	curl_download "/tmp/MiSTer_SAM_keyboard.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_keyboard.sh?raw=true"
+	mv -f "/tmp/MiSTer_SAM_keyboard.sh" "${mrsampath}/MiSTer_SAM_keyboard.sh"
 }
 
 get_mouse()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	echo "Updating MiSTer SAM mouse helper"
-	curl_download "${mrsampath}/MiSTer_SAM_mouse.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_mouse.sh?raw=true"
+	curl_download "/tmp/MiSTer_SAM_mouse.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_mouse.sh?raw=true"
+	mv -f "/tmp/MiSTer_SAM_mouse.sh" "${mrsampath}/MiSTer_SAM_mouse.sh"
 }
 
 
