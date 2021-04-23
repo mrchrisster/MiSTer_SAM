@@ -9,7 +9,13 @@ Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will
 
 ## Installation
 - Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
-- Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`. You can update your installation the same way.
+- From the main MiSTer menu open the OSD (F12 or your controller's menu button).
+- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
+- NOTE: Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`.
+
+## Updates
+- From the main MiSTer menu open the OSD (F12 or your controller's menu button).
+- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
 
 ## Offline Installation  
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
