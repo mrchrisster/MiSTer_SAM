@@ -5,7 +5,7 @@ trap "" TERM
 start()
 {
 	#======== Start ========
-	echo -n "Starting MiSTer Super Attract Mode... "
+	echo "Starting MiSTer Super Attract Mode... "
 	
 	#========= VARIABLES =========
 	samtimeout=5
@@ -31,34 +31,14 @@ start()
 		declare -g ${var}="${!var%/}"
 	done
 
-
-	# Kill running process
-	if [ ! -z "$(pidof -o ${1} $(basename ${2}))" ]; then
-		echo ""
-		echo -n "Removing other running instances of $(basename ${2})..."
-		kill -9 $(pidof -o ${1} $(basename ${2})) &>/dev/null
-	fi
-	
-	# Kill old activity processes
-	killall -q -9 MiSTer_SAM_joy.sh
-	killall -q -9 MiSTer_SAM_mouse.sh
-	killall -q -9 MiSTer_SAM_keyboard.sh
-	killall -q -9 xxd
-	
-	# Setup done
-	echo "DONE"
-	echo "Press ENTER to continue"
-	
-	# Wait for system clock synchronization
-	sleep 60
-	# Reset activity logs
-	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
-	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity
 	
 	# Spawn Joystick monitoring process per detected joystick device
 	for joystick in /dev/input/js*; do
 		${mrsampath}/MiSTer_SAM_joy.sh "${joystick}" &
 	done
+
+	# Detect joystick device changes
+	${mrsampath}/MiSTer_SAM_joy_change.sh &
 	
 	# Spawn Mouse monitoring process
 	${mrsampath}/MiSTer_SAM_mouse.sh &
@@ -67,17 +47,47 @@ start()
 	for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
 		${mrsampath}/MiSTer_SAM_keyboard.sh "${keyboard}" &
 	done
+	# Detect keyboard device changes
+	# TODO
+	
+	# Startup done
+	echo "DONE"
+	echo "Press ENTER to continue"
+
+
+	# Wait for system clock synchronization
+	#sleep 60
+	# Reset activity logs
+	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity /tmp/.SAM_Joy_Change
+	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity /tmp/.SAM_Joy_Change
 	
 	# Check if system is idle for ${timeoutmins} - start Attract Mode if we are
 	while :; do
+		# If we detected a change to connected joysticks, compare to running processes, make list of missing devices
+		# Does not remove stale device monitoring
+		if [ -s /tmp/.SAM_Joy_Change ]; then
+			jsdevices=""
+			jsmonitors=""
+			for jsdevice in /dev/input/js*; do jsdevices+="${jsdevice} "; done
+			for jsdevice in $(ps -o args | grep -oE 'js[0-9]' | sort -u); do jsmonitors+="/dev/input/${jsdevice} "; done
+			for jsdevice in ${jsmonitors}; do jsdevices="${jsdevices/${jsdevice}} "; done
+		fi
+
+		# Add newly detected joystick monitoring
+		for joystick in ${jsdevices}; do
+			${mrsampath}/MiSTer_SAM_joy.sh "${joystick}" &
+		done
+
 		if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then
 			# Reset activity triggers
 			echo "" |>/tmp/.SAM_Joy_Activity
+			echo "" |>/tmp/.SAM_Joy_Change
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
 			"${mrsampath}/MiSTer_SAM.sh"
 			# Reset activity triggers
 			echo "" |>/tmp/.SAM_Joy_Activity
+			echo "" |>/tmp/.SAM_Joy_Change
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
 		fi
@@ -88,33 +98,35 @@ start()
 stop() 
 {
 	echo -n "Stopping MiSTer SAM... "
-	# Kill old activity processes
-	killall -q -9 MiSTer_SAM_joy.sh &>/dev/null
-	killall -q -9 MiSTer_SAM_mouse.sh &>/dev/null
-	killall -q -9 MiSTer_SAM_keyboard.sh &>/dev/null
-	killall -q -9 xxd
-	
-	# Kill running process
-	if [ ! -z "$(pidof -o ${1} $(basename ${2}))" ]; then
-		echo ""
-		echo "Removing other running instances of $(basename ${2})..."
-		kill -9 $(pidof -o ${1} $(basename ${2})) &>/dev/null
-	fi
-	
 	echo "OK"
 	echo "Press ENTER to continue"
 }
 
+# Kill running process
+if [ ! -z "$(pidof -o $$ $(basename ${0}))" ]; then
+	echo ""
+	echo "Removing other running instances of $(basename ${0})..."
+	kill -9 $(pidof -o $$ $(basename ${0})) &>/dev/null
+fi
+
+# Kill old activity processes
+killall -q -9 MiSTer_SAM_joy.sh &>/dev/null
+killall -q -9 MiSTer_SAM_mouse.sh &>/dev/null
+killall -q -9 MiSTer_SAM_keyboard.sh &>/dev/null
+killall -q -9 xxd &>/dev/null
+killall -q -9 inotifywait &>/dev/null
+
+# Parse command line
 case "$1" in
     start)
-        start $$ "${0}"
+        start
         ;;
     stop)
-        stop $$ "${0}"
+        stop
         ;;
     restart)
-        stop $$ "${0}"
-        start $$ "${0}"
+        stop
+        start
         ;;
     *)
         echo "Usage: /etc/init.d/S93mistersam {start|stop|restart}"
