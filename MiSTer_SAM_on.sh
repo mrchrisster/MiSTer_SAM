@@ -86,10 +86,10 @@ curl_download() # curl_download ${filepath} ${URL}
 
 
 #======== UPDATER FUNCTIONS ========
-get_samon()
+get_samon() #get_samon process_name
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	if [ "$(dirname -- "${0}")" == "/tmp" ]; then
+	if [ "$(dirname -- "${1}")" == "/tmp" ]; then
 		echo "Updating MiSTer_SAM_on.sh"
 		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
 		mv -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
@@ -232,11 +232,10 @@ there_can_be_only_one "0" "MiSTer_SAM.sh"
 
 curl_check
 
-get_samon
+get_samon "${0}"
 
 # If we're running from /tmp update and proceed
 if [ "$(dirname -- ${0})" == "/tmp" ]; then
-	cp -f /tmp/MiSTer_SAM_on.sh /media/fat/Scripts
 	get_mbc
 	get_partun
 	get_sam
