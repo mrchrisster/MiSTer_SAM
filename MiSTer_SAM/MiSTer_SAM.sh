@@ -3,7 +3,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 
 # ======== DEFAULT VARIABLES ========
 # Change these in the INI file
-mrsampath="/media/fat/MiSTer_SAM"
+mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 misterpath="/media/fat/"
 corelist="Arcade,GBA,Genesis,MegaCD,NeoGeo,NES,SNES,TGFX16,TGFX16CD"
 timer=120
@@ -27,6 +27,17 @@ attractquit="Yes"
 # ======== INTERNAL VARIABLES ========
 declare -i coreretries=3
 declare -i romloadfails=0
+
+# ======== GAME PATHS ========
+arcadepath="${mrapath}"
+gbapath="${misterpath}/games/GBA"
+genesispath="${misterpath}/games/Genesis"
+megacdpath="${misterpath}/games/MegaCD"
+neogeopath="${misterpath}/games/NeoGeo"
+nespath="${misterpath}/games/NES"
+snespath="${misterpath}/games/SNES"
+tgfx16path="${misterpath}/games/TGFX16"
+tgfx16cdpath="${misterpath}/games/TGFX16-CD"
 
 # ======== CORE CONFIG DATA ========
 init_data()
@@ -59,15 +70,15 @@ init_data()
 	
 	# Core to path mappings
 	declare -gA CORE_PATH=( \
-		["arcade"]="${mrapath}" \
-		["gba"]="${misterpath}/games/GBA" \
-		["genesis"]="${misterpath}/games/Genesis" \
-		["megacd"]="${misterpath}/games/MegaCD" \
-		["neogeo"]="${misterpath}/games/NeoGeo" \
-		["nes"]="${misterpath}/games/NES" \
-		["snes"]="${misterpath}/games/SNES" \
-		["tgfx16"]="${misterpath}/games/TGFX16" \
-		["tgfx16cd"]="${misterpath}/games/TGFX16-CD" \
+		["arcade"]="${arcadepath}" \
+		["gba"]="${gbapath}" \
+		["genesis"]="${genesispath}" \
+		["megacd"]="${megacdpath}" \
+		["neogeo"]="${neogeopath}" \
+		["nes"]="${nespath}" \
+		["snes"]="${snespath}" \
+		["tgfx16"]="${tgfx16path}" \
+		["tgfx16cd"]="${tgfx16cdpath}" \
 		)
 	
 	# Can this core use ZIPped ROMs
@@ -331,6 +342,7 @@ load_core_arcade()
 # ======== MAIN ========
 echo "Starting up, please wait a minute..."
 
+# Parse INI
 basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 if [ -f ${basepath}/Attract_Mode.ini ]; then
 	. ${basepath}/Attract_Mode.ini
@@ -352,11 +364,12 @@ fi
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
-disable_bootrom									# Disable Bootrom until Reboot 
+disable_bootrom							# Disable Bootrom until Reboot 
 build_mralist								# Generate list of MRAs
 init_data										# Setup data arrays
 parse_cmdline ${@}					# Parse command line parameters for input
 there_can_be_only_one "$$" "${0}"	# Terminate any other running Attract Mode processes
 echo "Let Mortal Kombat begin!"
 loop_core										# Let Mortal Kombat begin!
+
 exit
