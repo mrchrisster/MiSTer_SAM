@@ -1,4 +1,4 @@
-![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/mister-sam-logo.jpg)
+![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/mister-sam-logo02.jpg)
 ![alt text](https://i.ibb.co/DzjQDtH/Screenshot-22.png)
 
 
