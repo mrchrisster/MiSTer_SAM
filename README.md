@@ -76,6 +76,11 @@ If you would like to know what game is currently playing, you can check the file
 The great work began with MrChrisster building a MiSTer Attract feature for the NES core. This begat Attract_Arcade after Mellified ~~kept opening issues~~ started helping. Once MrChrisster worked with mbc it unlocked the power to load ROMs for more MiSTer cores, resulting in Attract_Mode. We wanted to bring the project to the next level by automating the process. From this collaboration and passion was born SAM - Super Attract Mode! Since MiSTer SAM does everything the old projects did - and lots more! - we wanted to create a new name on par with its superpowers.
  
 ## Troubleshooting
+**- When I try to launch the script, it fails and says something about Document Type**  
+You most likely didn't download the "raw" file.  
+When downloading a file from github, click on the file, then click on "raw".  
+Now push Ctrl+S to save  
+  
 **- Core is loaded but just hangs on the menu**  
 Sometimes this happens (even on our test setups) and it could be for a variety of reasons.   
 - Neogeo and GBA seem to have the most issues while SNES, NES and Genesis work pretty reliably.  
