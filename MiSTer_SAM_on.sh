@@ -86,6 +86,20 @@ curl_download() # curl_download ${filepath} ${URL}
 
 
 #======== UPDATER FUNCTIONS ========
+get_samon()
+{
+	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
+	if [ "$(dirname -- "${0}")" == "/tmp" ]; then
+		echo "Updating MiSTer_SAM_on.sh"
+		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
+		mv -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
+	else
+		echo "Downloading MiSTer SAM on"
+		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
+		chmod +x "/tmp/MiSTer_SAM_on.sh"
+	fi
+}
+
 get_mbc()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_Batch_Control"
@@ -106,21 +120,6 @@ get_partun()
 	echo ""
 	curl_download "/tmp/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
 	mv -f "/tmp/partun" "${mrsampath}/partun"
-}
-
-get_samon()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	if [ "$(dirname -- "${0}")" == "/tmp" ]; then
-		echo "Updating MiSTer_SAM_on.sh"
-		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
-		mv -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
-	else
-		echo "Downloading MiSTer SAM on"
-		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
-		mv -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
-		chmod +x "/tmp/MiSTer_SAM_on.sh"
-	fi
 }
 
 get_sam()
