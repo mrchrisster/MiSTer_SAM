@@ -16,7 +16,7 @@ Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will
 ## Offline Installation  
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
 - Copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. 
-- Additionally copy the entire `MiSTer_SAM` directory to `/media/fat` on your MiSTer.
+- Additionally copy the entire `.MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
 
 ## Updates
 `MiSTer_SAM_on.sh` is not only enabling the script on your MiSTer but is also updating all your files to the latest release. It will overwrite all MiSTer_SAM files except your `MiSTer_SAM.ini`.
