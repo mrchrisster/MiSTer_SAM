@@ -343,9 +343,9 @@ load_core_arcade()
 echo "Starting up, please wait a minute..."
 
 # Parse INI
-basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-if [ -f ${basepath}/Attract_Mode.ini ]; then
-	. ${basepath}/Attract_Mode.ini
+
+if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+	. /media/fat/Scripts/MiSTer_SAM.ini
 	IFS=$'\n'
 fi
 
