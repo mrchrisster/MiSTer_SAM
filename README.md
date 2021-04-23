@@ -65,7 +65,9 @@ Want to exclude certain arcade games? Just add them to `mraexclude` in the `MiST
 A Linux startup daemon runs in the background of your MiSTer's ARM CPU. It looks for any keyboard activity, mouse movement, or controller button presses via Linux. This is being achieved by monitoring the hardware devices on your MiSTer without using barely any ressources and only with native tools (CPU load of >1%). When it sees you aren't using the MiSTer for several minutes, it launches random games.
 
 MiSTer arcade cores are launched via a MiSTer command. For console games there is no official way to load individual games programmatically. SUper Attract Mode automates the process by sending simulated button presses to the MiSTer. This is done with a modified version of [pocomane's MiSTer Batch Control](https://github.com/pocomane/MiSTer_Batch_Control). 
-
+  
+**No support for SNAC. If you play mainly with controllers connected through SNAC, you should diable the script**
+  
 ### Will this break my MiSTer? Will attract mode reduce the life of the MiSTer cycling between cores if left on long term?
 Short answer is no. FPGAs [don't have a limited number of writes](https://www.youtube.com/watch?v=gtxNu_BUL-w). They are solid state devices that are configured at boot up or - in the case of MiSTer - when a core is loaded. There is no wear from this configuration step.
 
