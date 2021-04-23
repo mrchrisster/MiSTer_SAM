@@ -26,7 +26,7 @@
 
 
 #======== DEFAULT VARIABLES ========
-mrsampath="/media/fat/MiSTer_SAM"
+mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 
 #======== BASIC FUNCTIONS ========
 there_can_be_only_one() # there_can_be_only_one PID Process
@@ -83,7 +83,7 @@ curl_download() # curl_download ${filepath} ${URL}
 			-o "${1}" \
 			"${2}"
 }
-	
+
 
 #======== UPDATER FUNCTIONS ========
 get_mbc()
