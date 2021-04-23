@@ -17,7 +17,7 @@ Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will
 - From the main MiSTer menu open the OSD (F12 or your controller's menu button).
 - Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
 
-## Force a clean Update
+## Reset to Defaults
 This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.
 - From the main MiSTer menu open the terminal (F9).
 - Login (default user: `root` default password: `1`).
