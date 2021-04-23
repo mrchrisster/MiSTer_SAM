@@ -350,9 +350,10 @@ if [ -f ${basepath}/Attract_Mode.ini ]; then
 fi
 
 # Remove trailing slash from paths
-for var in mrsampath mrapath mrapathvert mrapathhoriz; do
+for var in mrsampath mrapath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
 	declare -g ${var}="${!var%/}"
 done
+
 
 # Set mrapath based on orientation
 if [ "${orientation,,}" == "vertical" ]; then
