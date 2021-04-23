@@ -19,7 +19,7 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 - Additionally copy the entire `MiSTer_SAM` directory to `/media/fat` on your MiSTer.
 
 ## Updates
-`MiSTer_SAM_on.sh` is our Updater and you can get the newest version by just running it. It will overwrite all MiSTer_SAM files except your `MiSTer_SAM.ini`.
+`MiSTer_SAM_on.sh` is not only enabling the script on your MiSTer but is also updating all your files to the latest release. It will overwrite all MiSTer_SAM files except your `MiSTer_SAM.ini`.
   
 - From the main MiSTer menu open the OSD (F12 or your controller's menu button).
 - Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
