@@ -199,7 +199,8 @@ loop_core()
 				else
 					echo "Controller activity ignored!"
 					echo "" |>/tmp/.SAM_Joy_Activity
-				fi				
+				fi
+			fi
 		done
 	done
 }
