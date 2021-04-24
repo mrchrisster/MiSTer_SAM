@@ -382,7 +382,7 @@ fi
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
-if [ "${samquite,,}" == "no" ]; then
+if [ "${samquiet,,}" == "no" ]; then
 	echo "basepath: ${basepath}"
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
