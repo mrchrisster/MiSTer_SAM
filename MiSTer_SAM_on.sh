@@ -250,6 +250,7 @@ if [ "$(dirname -- ${0})" == "/tmp" ]; then
 	get_ini
 	get_init
 	get_joy
+	get_joy_change
 	get_keyboard
 	get_mouse
 	config_helpers
