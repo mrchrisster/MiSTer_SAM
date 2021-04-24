@@ -9,6 +9,7 @@ start()
 	
 	#========= VARIABLES =========
 	samtimeout=300
+	misterpath="/media/fat"
 	mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 	menuonly="Yes"
 	
@@ -22,8 +23,8 @@ start()
         		exit 1
    		fi
 	done
-	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
-		. /media/fat/Scripts/MiSTer_SAM.ini
+	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+		. "${misterpath}/Scripts/MiSTer_SAM.ini"
 		IFS=$'\n'
 	fi
 	
