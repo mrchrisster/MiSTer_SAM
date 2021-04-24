@@ -65,7 +65,10 @@ Want to exclude certain arcade games? Just add them to `mraexclude` in the `MiST
 A Linux startup daemon runs in the background of your MiSTer's ARM CPU. It looks for any keyboard activity, mouse movement, or controller button presses via Linux. This is being achieved by monitoring the hardware devices on your MiSTer while using minimal resources - with only native tools (CPU load of >1%). When SAM sees you are at the main menu and aren't using the MiSTer for several minutes, it launches random games.
 
 MiSTer arcade cores are launched via a MiSTer command. For console games there is no official way to load individual games programmatically. SUper Attract Mode automates the process by sending simulated button presses to the MiSTer. This is done with a modified version of [pocomane's MiSTer Batch Control](https://github.com/pocomane/MiSTer_Batch_Control). 
-
+ 
+### Do you support SNAC?  
+SNAC is not handled by the Linux kernel so unfortunately we wont be able to support SNAC devices.
+  
 ### I don't like how SAM does <something>
 MiSTer SAM is designed to be highly configurable. Please check the `/media/fat/Scripts/MiSTer_SAM.ini` file to see if the behavior you want is configurable. If not, please [open an issue](https://github.com/mrchrisster/MiSTer_SAM/issues/new/choose)! We love feedback and feature requests.
 
