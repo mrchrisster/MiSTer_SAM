@@ -159,7 +159,7 @@ start()
 					echo "" |>/tmp/.SAM_Joy_Change
 					echo "" |>/tmp/.SAM_Mouse_Activity
 					echo "" |>/tmp/.SAM_Keyboard_Activity
-					/bin/screen -dm -S SAM /bin/bash "${mrsampath}/MiSTer_SAM.sh"
+					"${mrsampath}/MiSTer_SAM.sh"
 					# Reset activity triggers
 					echo "" |>/tmp/.SAM_Joy_Activity
 					echo "" |>/tmp/.SAM_Joy_Change
@@ -175,7 +175,7 @@ start()
 				echo "" |>/tmp/.SAM_Joy_Change
 				echo "" |>/tmp/.SAM_Mouse_Activity
 				echo "" |>/tmp/.SAM_Keyboard_Activity
-				/bin/screen -dm -S SAM /bin/bash "${mrsampath}/MiSTer_SAM.sh"
+				"${mrsampath}/MiSTer_SAM.sh"
 				# Reset activity triggers
 				echo "" |>/tmp/.SAM_Joy_Activity
 				echo "" |>/tmp/.SAM_Joy_Change
