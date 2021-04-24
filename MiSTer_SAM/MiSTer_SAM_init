@@ -93,9 +93,6 @@ start()
 			jsadd=${jsdevices[@]}
 			jsdel=${jsmonitors[@]}
 			
-echo "jsdevices: ${jsdevices[@]}" >> /tmp/SAM.log
-echo "jsmonitors: ${jsmonitors[@]}" >> /tmp/SAM.log
-			
 			# Make list of additional devices to monitor
 			for joystick in ${jsmonitors[@]}; do
 				jsadd=${jsadd[@]/${joystick}} 
@@ -105,13 +102,10 @@ echo "jsmonitors: ${jsmonitors[@]}" >> /tmp/SAM.log
 			for joystick in ${jsdevices[@]}; do
 				jsdel=${jsdel[@]/${joystick}} 
 			done
-echo "jsadd: ${jsadd[@]}" >> /tmp/SAM.log
-echo "jsdel: ${jsdel[@]}" >> /tmp/SAM.log
 			
 			# Add newly detected joystick monitoring
 			if [ ! -z "${jsadd[@]//[[:blank:]]/}" ]; then
 				for joystick in ${jsadd[@]//[[:blank:]]/}; do
-echo "${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" >> /tmp/SAM.log
 					"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" &
 				done
 			fi
@@ -119,7 +113,6 @@ echo "${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" >> /tmp/SAM.log
 			# Stop removed joystick monitoring
 			if [ ! -z "${jsdel[@]//[[:blank:]]/}" ]; then
 				for joystick in ${jsdel[@]//[[:blank:]]/}; do
-echo "kill -9 $(ps -o pid,args | grep -e 'MiSTer_SAM_joy.sh' | grep -e "${joystick}" | awk '{ print $1 }')" >> /tmp/SAM.log
 					$(kill -9 $(ps -o pid,args | grep -e 'MiSTer_SAM_joy.sh' | grep -e "${joystick}" | awk '{ print $1 }'))
 				done
 			fi
