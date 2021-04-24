@@ -69,7 +69,7 @@ MiSTer arcade cores are launched via a MiSTer command. For console games there i
 ### Do you support SNAC?  
 SNAC is not handled by the Linux kernel so unfortunately we wont be able to support SNAC devices.
   
-### I don't like how SAM does <something>
+### I don't like how SAM does something!
 MiSTer SAM is designed to be highly configurable. Please check the `/media/fat/Scripts/MiSTer_SAM.ini` file to see if the behavior you want is configurable. If not, please [open an issue](https://github.com/mrchrisster/MiSTer_SAM/issues/new/choose)! We love feedback and feature requests.
 
 ### Will this break my MiSTer? Will attract mode reduce the life of the MiSTer cycling between cores if left on long term?
