@@ -1,39 +1,39 @@
 #!/bin/bash
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
-# ======== DEFAULT VARIABLES ========
+# ======== INI VARIABLES ========
 # Change these in the INI file
-mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-misterpath="/media/fat/"
-corelist="Arcade,GBA,Genesis,MegaCD,NeoGeo,NES,SNES,TGFX16,TGFX16CD"
+samtimeout=300
 gametimer=120
-
-# Path to tools. Change if you have another copy installed and want to share.
-mbcpath="${mrsampath}/mbc"
-partunpath="${mrsampath}/partun"
-
-# ======== ARCADE OPTIONS ========
-mralist=/tmp/.SAMmras
-mrapath=/media/fat/_Arcade
-mrapathvert="${misterpath}/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg"
-mrapathhoriz="${misterpath}/_Arcade/_Organized/_6 Rotation/_Horizontal"
-orientation=All
-
-# ======== CONSOLE OPTIONS ========
-ignorezip="No"
+menuonly="Yes"
+listenmouse="Yes"
+listenkeyboard="Yes"
+listenjoy="Yes"
+corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
+arcadepath="/media/fat/_arcade"
+gbapath="/media/fat/games/GBA"
+genesispath="/media/fat/games/Genesis"
+megacdpath="/media/fat/games/MegaCD"
+neogeopath="/media/fat/games/NeoGeo"
+nespath="/media/fat/games/NES"
+snespath="/media/fat/games/SNES"
+tgfx16path="/media/fat/games/TGFX16"
+tgfx16cdpath="/media/fat/games/TGFX16-CD"
+usezip="Yes"
 disablebootrom="Yes"
-saminterrupt="Yes"
+mrapath="/media/fat/_Arcade"
+orientation=All
+mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
+partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
+mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+misterpath="/media/fat"
+mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
+mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 
-# ======== GAME PATHS ========
-arcadepath="${mrapath}"
-gbapath="${misterpath}/games/GBA"
-genesispath="${misterpath}/games/Genesis"
-megacdpath="${misterpath}/games/MegaCD"
-neogeopath="${misterpath}/games/NeoGeo"
-nespath="${misterpath}/games/NES"
-snespath="${misterpath}/games/SNES"
-tgfx16path="${misterpath}/games/TGFX16"
-tgfx16cdpath="${misterpath}/games/TGFX16-CD"
+# ======== DEBUG VARIABLES ========
+startupsleep="Yes"
+samquiet="Yes"
+
 
 # ======== INTERNAL VARIABLES ========
 declare -i coreretries=3
@@ -168,42 +168,39 @@ loop_core()
 	while :; do
 		counter=${gametimer}
 		next_core
-		if [ "${saminterrupt,,}" == "yes" ]; then
-			while [ ${counter} -gt 0 ]; do
-				sleep 1
-				((counter--))
-				if [ -s /tmp/.SAM_Mouse_Activity ]; then
+		while [ ${counter} -gt 0 ]; do
+			sleep 1
+			((counter--))
+			
+			if [ -s /tmp/.SAM_Mouse_Activity ]; then
+				if [ "${listenmouse,,}" == "yes" ]; then
 					echo "Mouse activity detected!"
 					exit
-				fi
-				if [ -s /tmp/.SAM_Keyboard_Activity ]; then
-					echo "Keyboard activity detected!"
-					exit
-				fi
-				if [ -s /tmp/.SAM_Joy_Activity ]; then
-					echo "Controller activity detected!"
-					exit
-				fi
-			done
-		else
-			while [ ${counter} -gt 0 ]; do
-				sleep 1
-				((counter--))
-				if [ -s /tmp/.SAM_Mouse_Activity ]; then
+				else
 					echo "Mouse activity ignored!"
 					echo "" |>/tmp/.SAM_Mouse_Activity
 				fi
-				if [ -s /tmp/.SAM_Keyboard_Activity ]; then
+			fi
+			
+			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
+				if [ "${listenkeyboard,,}" == "yes" ]; then
+					echo "Keyboard activity detected!"
+					exit
+				else
 					echo "Keyboard activity ignored!"
 					echo "" |>/tmp/.SAM_Keyboard_Activity
 				fi
-				if [ -s /tmp/.SAM_Joy_Activity ]; then
+			fi
+			
+			if [ -s /tmp/.SAM_Joy_Activity ]; then
+				if [ "${listenjoy,,}" == "yes" ]; then
+					echo "Controller activity detected!"
+					exit
+				else
 					echo "Controller activity ignored!"
 					echo "" |>/tmp/.SAM_Joy_Activity
-				fi
-
-			done
-		fi
+				fi				
+		done
 	done
 }
 
@@ -225,7 +222,7 @@ next_core() # next_core (nextcore)
 		return
 	elif [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
 		# If not ZIP in game directory OR if ignoring ZIP
-		if [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${ignorezip,,}" == "yes" ]; then
+		if [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "yes" ]; then
 			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -name *BIOS* -o -name *Eu* -o -name *Other* -o -name *VGM* -o -name *NES2PCE* -o -name *FDS* -o -name *SPC* -o -name Unsupported \) -prune -false -o -name *.${CORE_EXT[${nextcore,,}]} | shuf -n 1)"
 			romname=$(basename "${rompath}")
 		else # Use ZIP
@@ -385,7 +382,7 @@ fi
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
-if [ "${samdebug,,}" == "yes" ]; then
+if [ "${samquite,,}" == "no" ]; then
 	echo "basepath: ${basepath}"
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
@@ -398,7 +395,7 @@ if [ "${samdebug,,}" == "yes" ]; then
 	echo "mrapathvert: ${mrapathvert}"
 	echo "mrapathhoriz: ${mrapathhoriz}"
 	echo "orientation: ${orientation}"
-	echo "ignorezip: ${ignorezip}"
+	echo "usezip: ${usezip}"
 	echo "disablebootrom: ${disablebootrom}"
 	echo "saminterrupt: ${saminterrupt}"
 	echo "arcadepath: ${arcadepath}"
