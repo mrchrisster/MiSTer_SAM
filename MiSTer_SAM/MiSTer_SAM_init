@@ -191,6 +191,7 @@ start()
 stop() 
 {
 	echo -n "Stopping MiSTer SAM... "
+	kill -9 $(ps aux|grep "MiSTer_SAM.sh"| awk '{ print $1}' |head -n 1)
 	echo "OK"
 	echo "Press ENTER to continue"
 }
