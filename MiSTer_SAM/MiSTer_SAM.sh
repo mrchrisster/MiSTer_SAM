@@ -29,6 +29,10 @@ mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 misterpath="/media/fat"
 mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
 mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
+mraexclude="
+Example Bad Game.mra
+Another Bad Game.mra
+"
 
 # ======== DEBUG VARIABLES ========
 startupsleep="Yes"
@@ -38,6 +42,7 @@ samquiet="Yes"
 # ======== INTERNAL VARIABLES ========
 declare -i coreretries=3
 declare -i romloadfails=0
+mralist="/tmp/.SAMmras"
 
 # ======== CORE CONFIG ========
 init_data()
