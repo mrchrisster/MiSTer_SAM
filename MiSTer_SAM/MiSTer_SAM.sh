@@ -1,12 +1,12 @@
 #!/bin/bash
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/MiSTer_SAM:.
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
 # ======== DEFAULT VARIABLES ========
 # Change these in the INI file
 mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 misterpath="/media/fat/"
 corelist="Arcade,GBA,Genesis,MegaCD,NeoGeo,NES,SNES,TGFX16,TGFX16CD"
-timer=120
+gametimer=120
 
 # Path to tools. Change if you have another copy installed and want to share.
 mbcpath="${mrsampath}/mbc"
@@ -22,7 +22,7 @@ orientation=All
 # ======== CONSOLE OPTIONS ========
 ignorezip="No"
 disablebootrom="Yes"
-attractquit="Yes"
+saminterrupt="Yes"
 
 # ======== INTERNAL VARIABLES ========
 declare -i coreretries=3
@@ -166,24 +166,31 @@ parse_cmdline()
 loop_core()
 {
 	while :; do
-		counter=${timer}
+		counter=${gametimer}
 		next_core
-		while [ ${counter} -gt 0 ]; do
-			sleep 1
-			((counter--))
-			if [ -s /tmp/.SAM_Joy_Activity ]; then
-				echo "Controller activity detected!"
-				exit
-			fi
-			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
-				echo "Keyboard activity detected!"
-				exit
-			fi
-			if [ -s /tmp/.SAM_Mouse_Activity ]; then
-				echo "Mouse activity detected!"
-				exit
-			fi
-		done
+		if [ "${saminterrupt,,}" == "yes" ]; then
+			while [ ${counter} -gt 0 ]; do
+				sleep 1
+				((counter--))
+				if [ -s /tmp/.SAM_Joy_Activity ]; then
+					echo "Controller activity detected!"
+					exit
+				fi
+				if [ -s /tmp/.SAM_Keyboard_Activity ]; then
+					echo "Keyboard activity detected!"
+					exit
+				fi
+				if [ -s /tmp/.SAM_Mouse_Activity ]; then
+					echo "Mouse activity detected!"
+					exit
+				fi
+			done
+		else
+			while [ ${counter} -gt 0 ]; do
+				sleep 1
+				((counter--))
+			done
+		fi
 	done
 }
 
@@ -343,9 +350,9 @@ load_core_arcade()
 echo "Starting up, please wait a minute..."
 
 # Parse INI
-
-if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
-	. /media/fat/Scripts/MiSTer_SAM.ini
+basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+if [ -f ${basepath}/Attract_Mode.ini ]; then
+	. ${basepath}/Attract_Mode.ini
 	IFS=$'\n'
 fi
 

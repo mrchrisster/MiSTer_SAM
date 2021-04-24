@@ -10,7 +10,8 @@ start()
 	#========= VARIABLES =========
 	samtimeout=5
 	mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-		
+	menuonly="Yes"
+	
 	# Read INI, Check for mount point presence
 	while ! test -d /media/fat/
 	do
@@ -47,8 +48,7 @@ start()
 	for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
 		${mrsampath}/MiSTer_SAM_keyboard.sh "${keyboard}" &
 	done
-	# Detect keyboard device changes
-	# TODO
+	# TODO - Detect keyboard device changes
 	
 	# Startup done
 	echo "DONE"
@@ -61,37 +61,78 @@ start()
 	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity /tmp/.SAM_Joy_Change
 	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity /tmp/.SAM_Joy_Change
 	
-	# Check if system is idle for ${timeoutmins} - start Attract Mode if we are
+	#======== MAIN LOOPS ========
 	while :; do
 		# If we detected a change to connected joysticks, compare to running processes, make list of missing devices
-		# Does not remove stale device monitoring
 		if [ -s /tmp/.SAM_Joy_Change ]; then
+			# Init lists
 			jsdevices=""
+			jsdevicesadd=""
 			jsmonitors=""
-			for jsdevice in /dev/input/js*; do jsdevices+="${jsdevice} "; done
-			for jsdevice in $(ps -o args | grep -oE 'js[0-9]' | sort -u); do jsmonitors+="/dev/input/${jsdevice} "; done
-			for jsdevice in ${jsmonitors}; do jsdevices="${jsdevices/${jsdevice}} "; done
+			jsmonitorsdel=""
+
+			# Make a list of all js devices on system
+			for joystick in /dev/input/js*; do jsdevices+="${joystick} "; done
+			# Make a list of all running js monitoring processes' jsdevices - so we don't have to track a list on disk somewhere
+			for joystick in $(ps -o args | grep -e 'MiSTer_SAM_joy.sh' | grep -oE '/dev/input/js[0-9]' | sort -u); do jsmonitors+="${joystick} "; done
+
+			# Copy lists
+			jsdevicesadd="${jsdevices}"
+			jsmonitorsdel="${jsmonitors}"
+			
+			# Make list of removed devices to stop monitoring
+			for joystick in ${jsdevices}; do jsmonitorsdel="${jsmonitorsdel/${joystick}} ";done
+
+			# Make list of additional devices to monitor
+			for joystick in ${jsmonitors}; do jsdevicesadd="${jsdevicesadd/${joystick}} "; done
+			
+			# Add newly detected joystick monitoring
+			for joystick in ${jsdevicesadd}; do
+				${mrsampath}/MiSTer_SAM_joy.sh "${joystick}" &
+			done
+
+			# Stop removed joystick monitoring
+			for joystick in ${jsmonitorsdel}; do
+				$(kill -9 $(ps -o pid,args | grep -e 'MiSTer_SAM_joy.sh' | grep -e "${joystick}" | awk '{ print $1 }'))
+			fi
 		fi
 
-		# Add newly detected joystick monitoring
-		for joystick in ${jsdevices}; do
-			${mrsampath}/MiSTer_SAM_joy.sh "${joystick}" &
-		done
-
-		if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then
-			# Reset activity triggers
-			echo "" |>/tmp/.SAM_Joy_Activity
-			echo "" |>/tmp/.SAM_Joy_Change
-			echo "" |>/tmp/.SAM_Mouse_Activity
-			echo "" |>/tmp/.SAM_Keyboard_Activity
-			"${mrsampath}/MiSTer_SAM.sh"
-			# Reset activity triggers
-			echo "" |>/tmp/.SAM_Joy_Activity
-			echo "" |>/tmp/.SAM_Joy_Change
-			echo "" |>/tmp/.SAM_Mouse_Activity
-			echo "" |>/tmp/.SAM_Keyboard_Activity
+		if [ "${menuonly,,}" == "yes" ]; then # Only start SAM from main menu
+			# Check if we're at the main menu, wait 1 minute before checking activity
+			if [ "$(cat /tmp/CORENAME)" == "MENU" ] && [ "$(/bin/find /tmp/CORENAME -mtime +60s)" ]; then
+				# Check activity files against timeout
+				if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mtime +${samtimeout}s)" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mtime +${samtimeout}s)" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mtime +${samtimeout}s)" ]; then
+					# Reset activity triggers
+					echo "" |>/tmp/.SAM_Joy_Activity
+					echo "" |>/tmp/.SAM_Joy_Change
+					echo "" |>/tmp/.SAM_Mouse_Activity
+					echo "" |>/tmp/.SAM_Keyboard_Activity
+					"${mrsampath}/MiSTer_SAM.sh"
+					# Reset activity triggers
+					echo "" |>/tmp/.SAM_Joy_Activity
+					echo "" |>/tmp/.SAM_Joy_Change
+					echo "" |>/tmp/.SAM_Mouse_Activity
+					echo "" |>/tmp/.SAM_Keyboard_Activity
+				fi
+			fi
+		else
+			# Check activity files against timeout
+			if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mtime +${samtimeout}s)" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mtime +${samtimeout}s)" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mtime +${samtimeout}s)" ]; then
+				# Reset activity triggers
+				echo "" |>/tmp/.SAM_Joy_Activity
+				echo "" |>/tmp/.SAM_Joy_Change
+				echo "" |>/tmp/.SAM_Mouse_Activity
+				echo "" |>/tmp/.SAM_Keyboard_Activity
+				"${mrsampath}/MiSTer_SAM.sh"
+				# Reset activity triggers
+				echo "" |>/tmp/.SAM_Joy_Activity
+				echo "" |>/tmp/.SAM_Joy_Change
+				echo "" |>/tmp/.SAM_Mouse_Activity
+				echo "" |>/tmp/.SAM_Keyboard_Activity
+			fi
 		fi
-		sleep 3
+
+	sleep 3
 	done
 }
 
