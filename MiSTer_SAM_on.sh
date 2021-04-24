@@ -164,6 +164,14 @@ get_joy()
 	mv -f "/tmp/MiSTer_SAM_joy.sh" "${mrsampath}/MiSTer_SAM_joy.sh"
 }
 
+get_joy_change()
+{
+	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
+	echo "Updating MiSTer SAM controller helper"
+	curl_download "/tmp/MiSTer_SAM_joy_change.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy_change.sh?raw=true"
+	mv -f "/tmp/MiSTer_SAM_joy_change.sh" "${mrsampath}/MiSTer_SAM_joy_change.sh"
+}
+
 get_keyboard()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
