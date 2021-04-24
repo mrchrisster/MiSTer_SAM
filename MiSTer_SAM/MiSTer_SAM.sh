@@ -24,10 +24,6 @@ ignorezip="No"
 disablebootrom="Yes"
 saminterrupt="Yes"
 
-# ======== INTERNAL VARIABLES ========
-declare -i coreretries=3
-declare -i romloadfails=0
-
 # ======== GAME PATHS ========
 arcadepath="${mrapath}"
 gbapath="${misterpath}/games/GBA"
@@ -39,7 +35,11 @@ snespath="${misterpath}/games/SNES"
 tgfx16path="${misterpath}/games/TGFX16"
 tgfx16cdpath="${misterpath}/games/TGFX16-CD"
 
-# ======== CORE CONFIG DATA ========
+# ======== INTERNAL VARIABLES ========
+declare -i coreretries=3
+declare -i romloadfails=0
+
+# ======== CORE CONFIG ========
 init_data()
 {
 	# Core to long name mappings
@@ -172,16 +172,16 @@ loop_core()
 			while [ ${counter} -gt 0 ]; do
 				sleep 1
 				((counter--))
-				if [ -s /tmp/.SAM_Joy_Activity ]; then
-					echo "Controller activity detected!"
+				if [ -s /tmp/.SAM_Mouse_Activity ]; then
+					echo "Mouse activity detected!"
 					exit
 				fi
 				if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 					echo "Keyboard activity detected!"
 					exit
 				fi
-				if [ -s /tmp/.SAM_Mouse_Activity ]; then
-					echo "Mouse activity detected!"
+				if [ -s /tmp/.SAM_Joy_Activity ]; then
+					echo "Controller activity detected!"
 					exit
 				fi
 			done
@@ -189,6 +189,19 @@ loop_core()
 			while [ ${counter} -gt 0 ]; do
 				sleep 1
 				((counter--))
+				if [ -s /tmp/.SAM_Mouse_Activity ]; then
+					echo "Mouse activity ignored!"
+					echo "" |>/tmp/.SAM_Mouse_Activity
+				fi
+				if [ -s /tmp/.SAM_Keyboard_Activity ]; then
+					echo "Keyboard activity ignored!"
+					echo "" |>/tmp/.SAM_Keyboard_Activity
+				fi
+				if [ -s /tmp/.SAM_Joy_Activity ]; then
+					echo "Controller activity ignored!"
+					echo "" |>/tmp/.SAM_Joy_Activity
+				fi
+
 			done
 		fi
 	done
@@ -351,8 +364,8 @@ echo "Starting up, please wait a minute..."
 
 # Parse INI
 basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-if [ -f ${basepath}/Attract_Mode.ini ]; then
-	. ${basepath}/Attract_Mode.ini
+if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	. "${misterpath}/Scripts/MiSTer_SAM.ini"
 	IFS=$'\n'
 fi
 
@@ -371,6 +384,33 @@ fi
 
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
+
+if [ "${samdebug,,}" == "yes" ]; then
+	echo "basepath: ${basepath}"
+	echo "mrsampath: ${mrsampath}"
+	echo "misterpath: ${misterpath}"
+	echo "corelist: ${corelist}"
+	echo "gametimer: ${gametimer}"
+	echo "mbcpath: ${mbcpath}"
+	echo "partunpath: ${partunpath}"
+	echo "mralist: ${mralist}"
+	echo "mrapath: ${mrapath}"
+	echo "mrapathvert: ${mrapathvert}"
+	echo "mrapathhoriz: ${mrapathhoriz}"
+	echo "orientation: ${orientation}"
+	echo "ignorezip: ${ignorezip}"
+	echo "disablebootrom: ${disablebootrom}"
+	echo "saminterrupt: ${saminterrupt}"
+	echo "arcadepath: ${arcadepath}"
+	echo "gbapath: ${gbapath}"
+	echo "genesispath: ${genesispath}"
+	echo "megacdpath: ${megacdpath}"
+	echo "neogeopath: ${neogeopath}"
+	echo "nespath: ${nespath}"
+	echo "snespath: ${snespath}"
+	echo "tgfx16path: ${tgfx16path}"
+	echo "tgfx16cdpath: ${tgfx16cdpath}"
+fi	
 
 disable_bootrom							# Disable Bootrom until Reboot 
 build_mralist								# Generate list of MRAs

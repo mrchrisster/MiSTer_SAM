@@ -167,7 +167,7 @@ get_joy()
 get_joy_change()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM controller helper"
+	echo "Updating MiSTer SAM controller hotplug monitor"
 	curl_download "/tmp/MiSTer_SAM_joy_change.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy_change.sh?raw=true"
 	mv -f "/tmp/MiSTer_SAM_joy_change.sh" "${mrsampath}/MiSTer_SAM_joy_change.sh"
 }
@@ -220,8 +220,8 @@ config_init()
 echo "Turning MiSTer SAM on"
 # Read INI
 basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-if [ -f ${basepath}/MiSTer_SAM.ini ]; then
-	. ${basepath}/MiSTer_SAM.ini
+if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	. "${misterpath}/Scripts/MiSTer_SAM.ini"
 	IFS=$'\n'
 fi
 
