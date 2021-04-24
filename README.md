@@ -122,6 +122,14 @@ LOCAL_DIR="*"
 BASE_PATH="/media/fat/Games" 
 ```
 
+## Advanced Usage
+For technical users here are a few handy tricks to observe and debug SAM.
+- To update the daemon from local files:
+    `cp /media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_init /etc/init.d/S93mistersam && /etc/init.d/S93mistersam start &`
+- To disable the daemon startup delay add to your INI: `startupsleep="No"`
+- To enable more console messages: `samquiet="No"`
+
+
 ## Release History
 - 24 Apr 2021 - Controller detection and removal, launch SAM only from the main menu (configurable), allow controller/keyboard/mouse interrupts (configurable), fixed INI parsing, added SAM now to launch instantly, more bugs squashed.
 - 23 Apr 2021 - Updated INI and data directory - [Reset to defaults](https://github.com/mrchrisster/MiSTer_SAM#reset-to-defaults) recommended!
