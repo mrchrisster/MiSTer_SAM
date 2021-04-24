@@ -137,6 +137,14 @@ get_samoff()
 	mv -f "/tmp/MiSTer_SAM_off.sh" "/media/fat/Scripts/MiSTer_SAM_off.sh"
 }
 
+get_samnow() # No relation to shamwow
+{
+	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
+	echo "Updating MiSTer SAM now"
+	curl_download "/tmp/MiSTer_SAM_now.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_now.sh?raw=true"
+	mv -f "/tmp/MiSTer_SAM_now.sh" "/media/fat/Scripts/MiSTer_SAM_now.sh"
+}
+
 get_ini()
 {
 	if [ ! -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
@@ -246,6 +254,7 @@ if [ "$(dirname -- ${0})" == "/tmp" ]; then
 	get_mbc
 	get_partun
 	get_sam
+	get_samnow
 	get_samoff
 	get_ini
 	get_init
