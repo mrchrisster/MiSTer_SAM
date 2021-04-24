@@ -20,6 +20,11 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 - Additionally copy the entire `MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
 - Make sure you don't forget about adding the `.` in front of the MiSTer_SAM directory
 
+## Usage
+Simply wait at the main MiSTer menu for 5 minutes without touching the mouse, keyboard, or controller and SAM will start.
+
+Don't want to wait? You can start SAM instantly with the `MiSTer_SAM_now.sh` script in your MiSTer's Scripts folder! Just be sure to run `MiSTer_SAM_on.sh` at least once.
+
 ## Updates
 `MiSTer_SAM_on.sh` is not only enabling the script on your MiSTer but is also updating all your files to the latest release. It will overwrite all MiSTer_SAM files except your `MiSTer_SAM.ini`.
   
