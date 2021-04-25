@@ -108,7 +108,7 @@ Still investigating why this is happening. It sometimes loads a game successfull
 Make sure you use a bios that auto launches the game.  
 
 **- USB Storage**  
-**/media/usb0 currently is not supported**. You can set the Game Path in the ini but it will cause mbc to fail loading the rom if the folder structure is different from `/media/fat/games`
+**/media/usb0 currently is not supported**. You can set the game path in the ini but it will cause mbc to fail loading the rom if the folder structure is different from `/media/fat/games`
 
 **- Can I use a CIFS mount for my games?**  
 CIFS is supported.
