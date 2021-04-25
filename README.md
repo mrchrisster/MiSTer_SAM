@@ -30,7 +30,8 @@ Don't want to wait? You can start SAM instantly with the `MiSTer_SAM_now.sh` scr
   
 - From the main MiSTer menu open the OSD (F12 or your controller's menu button).
 - Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
-
+- Backup `MiSTer_SAM.ini` and delete (recommended). Since we constantly add new features, it is advised to backup your custom settings and start with a fresh `MiSTer_SAM.ini`.   
+  
 ## Reset to Defaults
 This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.
 - From the main MiSTer menu open the terminal (F9).
