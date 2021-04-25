@@ -108,7 +108,7 @@ Still investigating why this is happening. It sometimes loads a game successfull
 Make sure you use a bios that auto launches the game.  
 
 **- USB Storage**  
-/media/usb is not well tested. Although care has been taken to use case-sensitive code, NTFS formatted drives may experience issues because (only) NTFS is case-sensitive on MiSTer.
+**/media/usb0 does currently not work**. You can set the Game Path in the ini but it will cause mbc to fail loading the rom if the folder structure is different from `/media/fat/games`
 
 **- Can I use a CIFS mount for my games?**  
 CIFS is supported.
