@@ -21,7 +21,7 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 - Make sure you don't forget about adding the `.` in front of the MiSTer_SAM directory
 
 ## Usage
-Simply wait at the main MiSTer menu for 5 minutes without touching the mouse, keyboard, or controller and SAM will start.
+Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
 
 Don't want to wait? You can start SAM instantly with the `MiSTer_SAM_now.sh` script in your MiSTer's Scripts folder! Just be sure to run `MiSTer_SAM_on.sh` at least once.
 
