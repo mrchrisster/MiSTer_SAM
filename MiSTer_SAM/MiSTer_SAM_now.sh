@@ -46,5 +46,5 @@ for var in mrsampath misterpath; do
 done
 
 #======== Launch MiSTer SAM ========
-"${mrsampath}/MiSTer_SAM.sh" &
+"${mrsampath}/MiSTer_SAM.sh" "$@" &
 exit 0
