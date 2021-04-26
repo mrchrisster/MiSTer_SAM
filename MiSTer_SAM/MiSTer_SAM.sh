@@ -298,6 +298,14 @@ disable_bootrom()
 			touch /tmp/brfake
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
 		fi
+		if [ -f "${misterpath}/Games/NES/boot2.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot2.rom
+		fi
+		if [ -f "${misterpath}/Games/NES/boot3.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot3.rom
+		fi
 	fi
 }
 
