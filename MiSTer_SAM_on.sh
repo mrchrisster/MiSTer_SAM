@@ -208,7 +208,7 @@ if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 	there_can_be_only_one "0" "MiSTer_SAM.sh"
 
 	# Download the newest MiSTer_SAM_on.sh to /tmp
-	get_samstuff MiSTer_SAM_on.sh /tmp
+	get_samstuff /tmp MiSTer_SAM_on.sh
 	if [ -f /tmp/MiSTer_SAM_on.sh ]; then
 		/tmp/MiSTer_SAM_on.sh &
 		exit 0
@@ -221,19 +221,19 @@ else # We're running from /tmp - download dependencies and proceed
 	cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
 	get_mbc
 	get_partun
-	get_samstuff MiSTer_SAM.sh "${mrsampath}"
-	get_samstuff MiSTer_SAM_init "${mrsampath}"
-	get_samstuff MiSTer_SAM_joy.sh "${mrsampath}"
-	get_samstuff MiSTer_SAM_joy_change.sh "${mrsampath}"
-	get_samstuff MiSTer_SAM_keyboard.sh "${mrsampath}"
-	get_samstuff MiSTer_SAM_mouse.sh "${mrsampath}"
+	get_samstuff "${mrsampath}" MiSTer_SAM.sh
+	get_samstuff "${mrsampath}" MiSTer_SAM_init
+	get_samstuff "${mrsampath}" MiSTer_SAM_joy.sh
+	get_samstuff "${mrsampath}" MiSTer_SAM_joy_change.sh
+	get_samstuff "${mrsampath}" MiSTer_SAM_keyboard.sh
+	get_samstuff "${mrsampath}" MiSTer_SAM_mouse.sh
 	
-	get_samstuff MiSTer_SAM_now.sh /media/fat/Scripts
-	get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
+	get_samstuff /media/fat/Scripts MiSTer_SAM_now.sh
+	get_samstuff /media/fat/Scripts MiSTer_SAM_off.sh
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 		echo "MiSTer SAM INI already exists - skipped!"
 	else
-		get_ini MiSTer_SAM.ini /media/fat/Scripts
+		get_ini /media/fat/Scripts MiSTer_SAM.ini
 	fi
 
 	echo "Turning MiSTer SAM on..."
