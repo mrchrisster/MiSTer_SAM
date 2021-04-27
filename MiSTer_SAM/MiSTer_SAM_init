@@ -2,67 +2,48 @@
 trap "" HUP
 trap "" TERM
 
+#======== INI VARIABLES ========
+# Change these in the INI file
+
+#======== GLOBAL VARIABLES =========
+mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+misterpath="/media/fat"
+
+#======== DEBUG VARIABLES ========
+samquiet="Yes"
+
+#======== LOCAL VARIABLES ========
+samtimeout=60
+startupsleep="Yes"
+menuonly="Yes"
+
+#========= PARSE INI =========
+# Read INI, Check for mount point presence
+while ! test -d /media/fat/
+do
+	sleep 1
+	count=`expr $count + 1`
+	if test $count -eq 30; then
+		echo "Mount timed out!"
+      		exit 1
+ 		fi
+done
+if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	. "${misterpath}/Scripts/MiSTer_SAM.ini"
+	IFS=$'\n'
+fi
+
+# Remove trailing slash from paths
+for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
+	declare -g ${var}="${!var%/}"
+done
+
+
+#======== Functions ========
 start()
 {
 	#======== Start ========
 	echo "Starting MiSTer Super Attract Mode... "
-	
-	# ======== INI VARIABLES ========
-	# Change these in the INI file
-	samtimeout=300
-	gametimer=120
-	menuonly="Yes"
-	listenmouse="Yes"
-	listenkeyboard="Yes"
-	listenjoy="Yes"
-	corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
-	arcadepath="/media/fat/_arcade"
-	gbapath="/media/fat/games/GBA"
-	genesispath="/media/fat/games/Genesis"
-	megacdpath="/media/fat/games/MegaCD"
-	neogeopath="/media/fat/games/NeoGeo"
-	nespath="/media/fat/games/NES"
-	snespath="/media/fat/games/SNES"
-	tgfx16path="/media/fat/games/TGFX16"
-	tgfx16cdpath="/media/fat/games/TGFX16-CD"
-	usezip="Yes"
-	disablebootrom="Yes"
-	mrapath="/media/fat/_Arcade"
-	orientation=All
-	mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
-	partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
-	mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-	misterpath="/media/fat"
-	mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
-	mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
-
-	# ======== DEBUG VARIABLES ========
-	startupsleep="Yes"
-	samquiet="Yes"
-
-	# Read INI, Check for mount point presence
-	while ! test -d /media/fat/
-	do
-		sleep 1
-		count=`expr $count + 1`
-		if test $count -eq 30; then
-			echo "Mount timed out!"
-        		exit 1
-   		fi
-	done
-	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-		. "${misterpath}/Scripts/MiSTer_SAM.ini"
-		IFS=$'\n'
-	fi
-	
-	# Remove trailing slash from paths
-	for var in mrsampath; do
-		declare -g ${var}="${!var%/}"
-	done
-	
-	# Convert seconds to minutes
-	samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
-
 	
 	# Spawn Joystick monitoring process per detected joystick device
 	for joystick in /dev/input/js*; do
@@ -193,7 +174,6 @@ stop()
 	echo -n "Stopping MiSTer SAM... "
 	kill -9 $(ps aux|grep "MiSTer_SAM.sh"| awk '{ print $1}' |head -n 1)
 	echo "OK"
-	echo "Press ENTER to continue"
 }
 
 # Kill running process
@@ -210,6 +190,22 @@ killall -q -9 MiSTer_SAM_mouse.sh &>/dev/null
 killall -q -9 MiSTer_SAM_keyboard.sh &>/dev/null
 killall -q -9 xxd &>/dev/null
 killall -q -9 inotifywait &>/dev/null
+
+# Convert seconds to minutes
+samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
+
+
+#======== DEBUG OUTPUT =========
+if [ "${samquiet,,}" == "no" ]; then
+	#======== GLOBAL VARIABLES =========
+	echo "mrsampath: ${mrsampath}"
+	echo "misterpath: ${misterpath}"
+
+	#======== LOCAL VARIABLES ========
+	echo "samtimeout: ${samtimeout}"
+	echo "startupsleep: ${startupsleep}"
+	echo "menuonly: ${menuonly}"
+fi
 
 # Parse command line
 case "$1" in
