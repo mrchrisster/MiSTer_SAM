@@ -125,7 +125,7 @@ get_samstuff() #get_samstuff path file
 		echo "Downloading ${1}/${2}..."
 		curl_download "/tmp/${2}" "${REPOSITORY_URL}/blob/${branch}/${2}?raw=true"
 
-		if [ ! "${1}" == "/tmp"
+		if [ ! "${1}" == "/tmp"; then
 			mv --force "/tmp/${2}" "${1}/${2}"
 		fi
 
