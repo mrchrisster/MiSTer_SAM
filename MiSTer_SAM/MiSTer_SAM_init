@@ -6,8 +6,8 @@ trap "" TERM
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
-misterpath="/media/fat"
+declare -g mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
+declare -g misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -204,6 +204,7 @@ samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
 
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
+	echo "****************************************"
 	#======== GLOBAL VARIABLES =========
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
@@ -212,6 +213,7 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo "samtimeout: ${samtimeout}"
 	echo "startupsleep: ${startupsleep}"
 	echo "menuonly: ${menuonly}"
+	echo "****************************************"
 fi
 
 # Parse command line

@@ -5,8 +5,8 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
-misterpath="/media/fat"
+declare -g mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
+declare -g misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -387,6 +387,7 @@ corelist="$(echo ${corelist} | tr ',' ' ')"
 
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
+	echo "****************************************"
 	#======== GLOBAL VARIABLES =========
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
@@ -415,6 +416,7 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo "snespath: ${snespath}"
 	echo "tgfx16path: ${tgfx16path}"
 	echo "tgfx16cdpath: ${tgfx16cdpath}"
+	echo "****************************************"
 fi	
 
 disable_bootrom							# Disable Bootrom until Reboot 

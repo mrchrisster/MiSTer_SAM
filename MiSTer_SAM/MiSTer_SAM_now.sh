@@ -4,8 +4,8 @@
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
-misterpath="/media/fat"
+declare -g mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
+declare -g misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -28,11 +28,13 @@ done
 
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
+	echo "****************************************"
 	#======== GLOBAL VARIABLES =========
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
 
 	#======== LOCAL VARIABLES ========
+	echo "****************************************"
 fi
 
 #======== NUCLEAR LAUNCH DETECTED ========
