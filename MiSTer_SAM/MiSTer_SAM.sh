@@ -5,7 +5,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
 misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========

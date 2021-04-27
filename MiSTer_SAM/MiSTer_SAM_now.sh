@@ -4,7 +4,7 @@
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
 misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
