@@ -254,7 +254,7 @@ fi
 
 if [ "${forcereboot,,}" == "yes" ]; then
 	echo "Rebooting..."
-	reboot
+	reboot -f
 else
 	echo -n "MiSTer SAM daemon launching... "
 	/etc/init.d/S93mistersam start &
