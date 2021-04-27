@@ -148,8 +148,8 @@ get_partun()
 	echo "Created for MiSTer by woelper - who is allegedly not a spider"
 	echo "${REPOSITORY_URL}"
 	echo ""
-	curl_download "/tmp/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
-	mv -f "/tmp/partun" "${mrsampath}/partun"
+	latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
+	curl_download "/tmp/partun" "${latest}"
 }
 
 get_sam()
