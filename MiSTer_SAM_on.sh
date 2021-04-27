@@ -29,7 +29,7 @@
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
 misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
@@ -119,17 +119,19 @@ curl_download() # curl_download ${filepath} ${URL}
 
 
 #======== UPDATER FUNCTIONS ========
-get_samon() #get_samon process_name
+get_samstuff() #get_samstuff path file
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	if [ "$(dirname -- "${1}")" == "/tmp" ]; then
-		echo "Updating MiSTer_SAM_on.sh"
-		cp -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
-	else
-		echo "Downloading MiSTer SAM on"
-		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM_on.sh?raw=true"
-		chmod +x "/tmp/MiSTer_SAM_on.sh"
-	fi
+		echo "Downloading ${1}/${2}..."
+		curl_download "/tmp/${2}" "${REPOSITORY_URL}/blob/${branch}/${2}?raw=true"
+
+		if [ ! "${1}" == "/tmp"
+			mv --force "/tmp/${2}" "${1}/${2}"
+		fi
+
+		if [ "${2##*.}" == "sh" ]; then
+			chmod +x "${1}/${2}"
+		fi
 }
 
 get_mbc()
@@ -140,7 +142,7 @@ get_mbc()
 	echo "${REPOSITORY_URL}"
 	echo ""
 	curl_download "/tmp/mbc" "${REPOSITORY_URL}/${mbcurl}?raw=true"
-	mv -f "/tmp/mbc" "${mrsampath}/mbc"
+	mv --force "/tmp/mbc" "${mrsampath}/mbc"
 }
 
 get_partun()
@@ -152,93 +154,11 @@ get_partun()
     echo ""
     latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
     curl_download "/tmp/partun" "${latest}"
-}
-
-get_sam()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer Super Attract Mode"
-	curl_download "/tmp/MiSTer_SAM.sh" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM/MiSTer_SAM.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM.sh" "${mrsampath}/MiSTer_SAM.sh"
-}
-
-get_samoff()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM off"
-	curl_download "/tmp/MiSTer_SAM_off.sh" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_off.sh" "/media/fat/Scripts/MiSTer_SAM_off.sh"
-}
-
-get_samnow() # No relation to shamwow
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM now"
-	curl_download "/tmp/MiSTer_SAM_now.sh" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM/MiSTer_SAM_now.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_now.sh" "/media/fat/Scripts/MiSTer_SAM_now.sh"
-}
-
-get_ini()
-{
-	if [ ! -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
-		REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-		echo "Downloading MiSTer SAM INI"
-		curl_download "/media/fat/Scripts/MiSTer_SAM.ini" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM.ini?raw=true"
-	else
-		echo "SKIPPED MiSTer SAM INI - already exists!"
-	fi
-}
-
-get_init()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM daemon"
-	curl_download "/tmp/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM/MiSTer_SAM_init?raw=true"
-	mv -f "/tmp/MiSTer_SAM_init" "${mrsampath}/MiSTer_SAM_init"
-}
-
-get_joy()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM controller helper"
-	curl_download "/tmp/MiSTer_SAM_joy.sh" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM/MiSTer_SAM_joy.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_joy.sh" "${mrsampath}/MiSTer_SAM_joy.sh"
-}
-
-get_joy_change()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM controller hotplug monitor"
-	curl_download "/tmp/MiSTer_SAM_joy_change.sh" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM/MiSTer_SAM_joy_change.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_joy_change.sh" "${mrsampath}/MiSTer_SAM_joy_change.sh"
-}
-
-get_keyboard()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM keyboard helper"
-	curl_download "/tmp/MiSTer_SAM_keyboard.sh" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM/MiSTer_SAM_keyboard.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_keyboard.sh" "${mrsampath}/MiSTer_SAM_keyboard.sh"
-}
-
-get_mouse()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM mouse helper"
-	curl_download "/tmp/MiSTer_SAM_mouse.sh" "${REPOSITORY_URL}/blob/${branch}/MiSTer_SAM/MiSTer_SAM_mouse.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_mouse.sh" "${mrsampath}/MiSTer_SAM_mouse.sh"
+   	mv --force "/tmp/partun" "${mrsampath}/partun"
 }
 
 
 #======== CONFIGURATION ========
-config_helpers()
-{
-	echo "Configuring helpers"
-	chmod +x "${mrsampath}/MiSTer_SAM_joy.sh"
-	chmod +x "${mrsampath}/MiSTer_SAM_keyboard.sh"
-	chmod +x "${mrsampath}/MiSTer_SAM_mouse.sh"
-}
-
 config_init()
 {
 	# Remount root as read-write if read-only so we can add our daemon
@@ -257,8 +177,12 @@ config_init()
 }
 
 
-#======== DEPENDENCIES ========
-echo "Turning MiSTer SAM on"
+#======== MAIN ========
+# Ensure the MiSTer SAM data directory exists
+mkdir "${mrsampath}" &>/dev/null
+
+# Prep curl
+curl_check
 
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
@@ -272,38 +196,45 @@ if [ "${samquiet,,}" == "no" ]; then
 fi	
 
 
-# Ensure the MiSTer SAM data directory exists
-mkdir "${mrsampath}" &>/dev/null
+if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
+	# Initial run - need to get updated MiSTer_SAM_on.sh
+	echo "Stopping MiSTer SAM processes..."
 
-there_can_be_only_one "$$" "${0}"
-there_can_be_only_one "0" "S93mistersam"
-there_can_be_only_one "0" "MiSTer_SAM.sh"
+	# Clean out existing processes to ensure we can update
+	there_can_be_only_one "$$" "${0}"
+	there_can_be_only_one "0" "S93mistersam"
+	there_can_be_only_one "0" "MiSTer_SAM.sh"
 
-curl_check
-
-get_samon "${0}"
-
-# If we're running from /tmp update and proceed
-if [ "$(dirname -- ${0})" == "/tmp" ]; then
+	# Download the newest MiSTer_SAM_on.sh to /tmp
+	get_samstuff MiSTer_SAM_on.sh /tmp
+	if [ -f /tmp/MiSTer_SAM_on.sh ]; then
+		/tmp/MiSTer_SAM_on.sh &
+		exit 0
+	else
+		# /tmp/MiSTer_SAM_on.sh isn't there!
+  	echo "MiSTer SAM update FAILED - no Internet?"
+		config_init
+	fi
+else # We're running from /tmp - download dependencies and proceed
+	cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
 	get_mbc
 	get_partun
-	get_sam
-	get_samnow
-	get_samoff
-	get_ini
-	get_init
-	get_joy
-	get_joy_change
-	get_keyboard
-	get_mouse
-	config_helpers
-	config_init
-elif [ -f /tmp/MiSTer_SAM_on.sh ]; then
-	/tmp/MiSTer_SAM_on.sh
-	exit 0
-else
-  echo "Unable to update - no Internet?"
-	config_helpers
+	get_samstuff MiSTer_SAM.sh "${mrsampath}"
+	get_samstuff MiSTer_SAM_init "${mrsampath}"
+	get_samstuff MiSTer_SAM_joy.sh "${mrsampath}"
+	get_samstuff MiSTer_SAM_joy_change.sh "${mrsampath}"
+	get_samstuff MiSTer_SAM_keyboard.sh "${mrsampath}"
+	get_samstuff MiSTer_SAM_mouse.sh "${mrsampath}"
+	
+	get_samstuff MiSTer_SAM_now.sh /media/fat/Scripts
+	get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
+	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+		echo "MiSTer SAM INI already exists - skipped!"
+	else
+		get_ini MiSTer_SAM.ini /media/fat/Scripts
+	fi
+
+	echo "Turning MiSTer SAM on..."
 	config_init
 fi
 
