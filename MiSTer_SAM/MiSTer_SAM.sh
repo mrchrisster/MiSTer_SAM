@@ -1,15 +1,24 @@
 #!/bin/bash
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
-# ======== INI VARIABLES ========
+#======== INI VARIABLES ========
 # Change these in the INI file
-samtimeout=60
+
+#======== GLOBAL VARIABLES =========
+mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+misterpath="/media/fat"
+
+#======== DEBUG VARIABLES ========
+samquiet="Yes"
+
+#======== LOCAL VARIABLES ========
+declare -i coreretries=3
+declare -i romloadfails=0
+mralist="/tmp/.SAMmras"
 gametimer=120
-menuonly="Yes"
 corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
 usezip="Yes"
 disablebootrom="Yes"
-mrapath="/media/fat/_Arcade"
 orientation=All
 mraexclude="
 Example Bad Game.mra
@@ -20,8 +29,6 @@ listenkeyboard="Yes"
 listenjoy="Yes"
 mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
 partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
-mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-misterpath="/media/fat"
 mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
 mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 arcadepath="/media/fat/_arcade"
@@ -34,13 +41,6 @@ snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
 
-#======== DEBUG VARIABLES ========
-samquiet="Yes"
-
-# ======== INTERNAL VARIABLES ========
-declare -i coreretries=3
-declare -i romloadfails=0
-mralist="/tmp/.SAMmras"
 
 # ======== CORE CONFIG ========
 init_data()
@@ -97,6 +97,18 @@ init_data()
 		["tgfx16cd"]="No" \
 		)
 }
+
+#========= PARSE INI =========
+# Read INI
+if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	. "${misterpath}/Scripts/MiSTer_SAM.ini"
+	IFS=$'\n'
+fi
+
+# Remove trailing slash from paths
+for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
+	declare -g ${var}="${!var%/}"
+done
 
 
 # ======== BASIC FUNCTIONS ========
@@ -252,8 +264,7 @@ load_core() 	# load_core core /path/to/rom name_of_rom (countdown)
 	echo -n "Next up on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
 	echo -e "\e[1m${3}\e[0m"
-	echo "${CORE_PRETTY[${1,,}]} - ${3}" >> /tmp/SAM_Game.txt
-	
+	echo "${3} (${1})" > /tmp/SAM_Game.txt
 
 	if [ "${4}" == "countdown" ]; then
 		echo "Loading in..."
@@ -305,9 +316,9 @@ disable_bootrom()
 build_mralist()
 {
 	# If no MRAs found - suicide!
-	find "${mrapath}" -maxdepth 1 -type f \( -iname "*.mra" \) &>/dev/null
+	find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
-		echo "The path ${mrapath} contains no MRA files!"
+		echo "The path ${arcadepath} contains no MRA files!"
 		loop_core
 	fi
 	
@@ -318,9 +329,9 @@ build_mralist()
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#mraexclude[@]} -eq 0 ]; then
-		find "${mrapath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#mrapath}) + 2 ))- >"${mralist}"
+		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
 	else
-		find "${mrapath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#mrapath}) + 2 ))- | grep -vFf <(printf '%s\n' ${mraexclude[@]})>"${mralist}"
+		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${mraexclude[@]})>"${mralist}"
 	fi
 }
 
@@ -332,21 +343,21 @@ load_core_arcade()
 	# If the mra variable is valid this is skipped, but if not we try 10 times
 	# Partially protects against typos from manual editing and strange character parsing problems
 	for i in {1..10}; do
-		if [ ! -f "${mrapath}/${mra}" ]; then
+		if [ ! -f "${arcadepath}/${mra}" ]; then
 			mra=$(shuf -n 1 ${mralist})
 		fi
 	done
 
 	# If the MRA is still not valid something is wrong - suicide
-	if [ ! -f "${mrapath}/${mra}" ]; then
-		echo "There is no valid file at ${mrapath}/${mra}!"
+	if [ ! -f "${arcadepath}/${mra}" ]; then
+		echo "There is no valid file at ${arcadepath}/${mra}!"
 		return
 	fi
 
 	echo -n "Next up at the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
 	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
-	echo "Arcade - $(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')" >> /tmp/SAM_Game.txt
+	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
 
 	if [ "${1}" == "countdown" ]; then
 		echo "Loading quarters in..."
@@ -357,52 +368,44 @@ load_core_arcade()
 	fi
 
   # Tell MiSTer to load the next MRA
-  echo "load_core ${mrapath}/${mra}" > /dev/MiSTer_cmd
+  echo "load_core ${arcadepath}/${mra}" > /dev/MiSTer_cmd
 }
 
 
 # ======== MAIN ========
 echo "Starting up, please wait a minute..."
 
-# Parse INI
-basepath="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-	. "${misterpath}/Scripts/MiSTer_SAM.ini"
-	IFS=$'\n'
-fi
-
-# Remove trailing slash from paths
-for var in mrsampath mrapath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
-	declare -g ${var}="${!var%/}"
-done
-
-
-# Set mrapath based on orientation
+# Set arcadepath based on orientation
 if [ "${orientation,,}" == "vertical" ]; then
-	mrapath="${mrapathvert}"
+	arcadepath="${mrapathvert}"
 elif [ "${orientation,,}" == "horizontal" ]; then
-	mrapath="${mrapathhoriz}"
+	arcadepath="${mrapathhoriz}"
 fi
 
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
+#======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
-	echo "basepath: ${basepath}"
+	#======== GLOBAL VARIABLES =========
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
-	echo "corelist: ${corelist}"
+
+	#======== LOCAL VARIABLES ========
 	echo "gametimer: ${gametimer}"
-	echo "mbcpath: ${mbcpath}"
-	echo "partunpath: ${partunpath}"
-	echo "mralist: ${mralist}"
-	echo "mrapath: ${mrapath}"
-	echo "mrapathvert: ${mrapathvert}"
-	echo "mrapathhoriz: ${mrapathhoriz}"
-	echo "orientation: ${orientation}"
+	echo "corelist: ${corelist}"
 	echo "usezip: ${usezip}"
 	echo "disablebootrom: ${disablebootrom}"
-	echo "saminterrupt: ${saminterrupt}"
+	echo "orientation: ${orientation}"
+	echo "mralist: ${mralist}"
+	echo "mraexclude: ${mraexclude}"
+	echo "listenmouse: ${listenmouse}"
+	echo "listenkeyboard: ${listenkeyboard}"
+	echo "listenjoy: ${listenjoy}"
+	echo "mbcpath: ${mbcpath}"
+	echo "partunpath: ${partunpath}"
+	echo "mrapathvert: ${mrapathvert}"
+	echo "mrapathhoriz: ${mrapathhoriz}"
 	echo "arcadepath: ${arcadepath}"
 	echo "gbapath: ${gbapath}"
 	echo "genesispath: ${genesispath}"
