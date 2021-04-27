@@ -5,7 +5,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.cache/MiSTer_SAM"
+declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
@@ -180,6 +180,9 @@ parse_cmdline()
 # ======== MISTER CORE FUNCTIONS ========
 loop_core()
 {
+	# Reset game log for this session
+	echo "" |> /tmp/SAM_Games.log
+
 	while :; do
 		counter=${gametimer}
 		next_core
