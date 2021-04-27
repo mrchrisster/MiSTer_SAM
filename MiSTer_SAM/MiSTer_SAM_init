@@ -6,7 +6,7 @@ trap "" TERM
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.cache/MiSTer_SAM"
+declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
@@ -46,12 +46,11 @@ start()
 	echo -n "Starting MiSTer Super Attract Mode... "
 	
 	# Spawn Joystick monitoring process per detected joystick device
-	jsdevices=$(ls /dev/input/js* 2> /dev/null | wc -l)
-	if [ "${jsdevices}" != "0" ]; then
-		for joystick in /dev/input/js*; do
-			"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" &
-		done
-	fi
+	shopt -s nullglob
+	for joystick in /dev/input/js*; do
+		"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" &
+	done
+	shopt -u nullglob
 
 	# Detect joystick device changes
 	"${mrsampath}/MiSTer_SAM_joy_change.sh" &
@@ -102,9 +101,12 @@ start()
 			declare -a jsdel=()
 
 			# Make a list of all js devices on system
+			shopt -s nullglob
 			for joystick in /dev/input/js*; do
 				jsdevices+=("${joystick}")
 			done
+			shopt -u nullglob
+
 			# Make a list of all running js monitoring processes' jsdevices - so we don't have to track a list on disk somewhere
 			for joystick in $(ps -o args | grep -e 'MiSTer_SAM_joy.sh' | grep -oE '/dev/input/js[0-9]' | sort -u); do
 				jsmonitors+=("${joystick}")
@@ -126,14 +128,16 @@ start()
 			
 			# Add newly detected joystick monitoring
 			if [ ! -z "${jsadd[@]//[[:blank:]]/}" ]; then
-				for joystick in ${jsadd[@]//[[:blank:]]/}; do
+				for joystick in ${jsadd[@]}; do
+					echo "Detected new joystick device: ${joystick}"
 					"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" &
 				done
 			fi
 			
 			# Stop removed joystick monitoring
 			if [ ! -z "${jsdel[@]//[[:blank:]]/}" ]; then
-				for joystick in ${jsdel[@]//[[:blank:]]/}; do
+				for joystick in ${jsdel[@]}; do
+					echo "Stop monitoring removed joystick device: ${joystick}"
 					$(kill -9 $(ps -o pid,args | grep -e 'MiSTer_SAM_joy.sh' | grep -e "${joystick}" | awk '{ print $1 }'))
 				done
 			fi
