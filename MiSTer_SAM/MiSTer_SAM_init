@@ -46,9 +46,12 @@ start()
 	echo "Starting MiSTer Super Attract Mode... "
 	
 	# Spawn Joystick monitoring process per detected joystick device
-	for joystick in /dev/input/js*; do
-		"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" &
-	done
+	jsdevices=$(ls /dev/input/js* 2> /dev/null | wc -l)
+	if [ "${jsdevices}" != "0" ]; then
+		for joystick in /dev/input/js*; do
+			"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" &
+		done
+	fi
 
 	# Detect joystick device changes
 	"${mrsampath}/MiSTer_SAM_joy_change.sh" &
