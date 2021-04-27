@@ -64,7 +64,6 @@ start()
 	
 	# Startup done
 	echo "DONE"
-	echo "Press ENTER to continue"
 
 
 	# Wait for system startup - clock synchronization
@@ -73,12 +72,17 @@ start()
 	fi
 	
 	# Reset activity logs
-	rm -f /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity /tmp/.SAM_Joy_Change
-	touch /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity /tmp/.SAM_Keyboard_Activity /tmp/.SAM_Joy_Change
+	echo "" |>/tmp/.SAM_Joy_Activity
+	echo "" |>/tmp/.SAM_Joy_Change
+	echo "" |>/tmp/.SAM_Mouse_Activity
+	echo "" |>/tmp/.SAM_Keyboard_Activity
+
 	
 	#======== MAIN LOOP ========
 	while :; do
-		# If we detect a change to connected joysticks, compare to running processes, make list of missing devices
+		# If we detect a change to connected joysticks:
+		# Compare devices and monitoring processes
+		# Make lists of what to add and what to stop monitoring
 		if [ -s /tmp/.SAM_Joy_Change ]; then
 			# Wait for devices to stabilize
 			sleep 3
