@@ -252,7 +252,8 @@ load_core() 	# load_core core /path/to/rom name_of_rom (countdown)
 	echo -n "Next up on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
 	echo -e "\e[1m${3}\e[0m"
-	echo "${3} (${1})" > /tmp/SAM_Game.txt
+	echo "${CORE_PRETTY[${1,,}]} - ${3}" >> /tmp/SAM_Game.txt
+	
 
 	if [ "${4}" == "countdown" ]; then
 		echo "Loading in..."
@@ -345,7 +346,7 @@ load_core_arcade()
 	echo -n "Next up at the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
 	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
-	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
+	echo "Arcade - $(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')" >> /tmp/SAM_Game.txt
 
 	if [ "${1}" == "countdown" ]; then
 		echo "Loading quarters in..."
