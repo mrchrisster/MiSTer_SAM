@@ -3,13 +3,27 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
-samtimeout=300
+samtimeout=60
 gametimer=120
 menuonly="Yes"
+corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
+usezip="Yes"
+disablebootrom="Yes"
+mrapath="/media/fat/_Arcade"
+orientation=All
+mraexclude="
+Example Bad Game.mra
+Another Bad Game.mra
+"
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
-corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
+mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
+partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
+mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+misterpath="/media/fat"
+mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
+mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 arcadepath="/media/fat/_arcade"
 gbapath="/media/fat/games/GBA"
 genesispath="/media/fat/games/Genesis"
@@ -19,25 +33,9 @@ nespath="/media/fat/games/NES"
 snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
-usezip="Yes"
-disablebootrom="Yes"
-mrapath="/media/fat/_Arcade"
-orientation=All
-mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
-partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
-mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-misterpath="/media/fat"
-mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
-mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
-mraexclude="
-Example Bad Game.mra
-Another Bad Game.mra
-"
 
-# ======== DEBUG VARIABLES ========
-startupsleep="Yes"
+#======== DEBUG VARIABLES ========
 samquiet="Yes"
-
 
 # ======== INTERNAL VARIABLES ========
 declare -i coreretries=3
@@ -297,14 +295,6 @@ disable_bootrom()
 		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
 			touch /tmp/brfake
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
-		fi
-		if [ -f "${misterpath}/Games/NES/boot2.rom" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot2.rom
-		fi
-		if [ -f "${misterpath}/Games/NES/boot3.rom" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot3.rom
 		fi
 	fi
 }
