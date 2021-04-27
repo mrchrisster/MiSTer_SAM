@@ -174,7 +174,7 @@ get_partun()
 #======== CONFIGURATION ========
 config_init()
 {
-	echo -n "Adding launch daemon..."
+	echo -n "Turning MiSTer SAM on..."
 	# Remount root as read-write if read-only so we can add our daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
@@ -248,9 +248,7 @@ else # We're running from /tmp - download dependencies and proceed
 		get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 	fi
 
-	echo -n "Turning MiSTer SAM on..."
 	config_init
-	echo "Done!"
 fi
 
 
