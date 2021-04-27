@@ -359,7 +359,7 @@ load_core_arcade()
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
 	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
 	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
-	echo "$(date +%H:%M:%S) - Arcade - $(echo $(basename "${mra}")" >> /tmp/SAM_Games.log
+	echo "$(date +%H:%M:%S) - Arcade - $(echo $(basename "${mra}"))" >> /tmp/SAM_Games.log
 
 	if [ "${1}" == "countdown" ]; then
 		echo "Loading quarters in..."
