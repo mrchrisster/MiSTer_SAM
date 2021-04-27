@@ -121,7 +121,7 @@ curl_download() # curl_download ${filepath} ${URL}
 
 
 #======== UPDATER FUNCTIONS ========
-get_samstuff() #get_samcore file (path)
+get_samstuff() #get_samstuff file (path)
 {
 	if [ -z "${1}" ]; then
 		return 1
@@ -221,7 +221,7 @@ if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 	there_can_be_only_one "0" "MiSTer_SAM.sh"
 
 	# Download the newest MiSTer_SAM_on.sh to /tmp
-	get_samcore MiSTer_SAM_on.sh /tmp
+	get_samstuff MiSTer_SAM_on.sh /tmp
 	if [ -f /tmp/MiSTer_SAM_on.sh ]; then
 		/tmp/MiSTer_SAM_on.sh
 		exit 0
