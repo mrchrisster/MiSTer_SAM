@@ -132,7 +132,7 @@ For technical users here are a few handy tricks to observe and debug SAM.
 
 
 ## Release History
-- 28 Apr 2021 - Test branch support, fixed confusing messages in on, fixed monitoring with no js devices
+- 28 Apr 2021 - Test branch support, added reboot to on to improve reliability, fixed confusing messages in on, fixed monitoring with no js devices
 - 24 Apr 2021 - Controller detection and removal, launch SAM only from the main menu (configurable), allow controller/keyboard/mouse interrupts (configurable), fixed INI parsing, added SAM now to launch instantly, more bugs squashed.
 - 23 Apr 2021 - Updated INI and data directory - [Reset to defaults](https://github.com/mrchrisster/MiSTer_SAM#reset-to-defaults) recommended!
 - 21 Apr 2021 - Initial version

@@ -38,7 +38,7 @@ samquiet="Yes"
 #======== LOCAL VARIABLES ========
 branch="main"
 mbcurl="blob/master/mbc_v02"
-
+forcereboot="Yes"
 
 #========= PARSE INI =========
 # Read INI
@@ -307,6 +307,13 @@ else
 	config_init
 fi
 
-echo "MiSTer SAM daemon launch"
-/etc/init.d/S93mistersam start &
+
+if [ "${forcereboot,,}" == "yes" ]; then
+	echo "Rebooting..."
+	reboot
+else
+	echo "MiSTer SAM daemon launch"
+	/etc/init.d/S93mistersam start &
+fi
+
 exit 0
