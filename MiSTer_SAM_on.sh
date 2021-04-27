@@ -66,10 +66,10 @@ there_can_be_only_one() # there_can_be_only_one PID Process
 {
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
-	if [ ! -z "$(pidof -o ${1} $(basename ${2}))" ]; then
+	if [ ! -z "$(pidof -o ${1} $(basename -- ${2}))" ]; then
 		echo ""
-		echo "Removing other running instances of $(basename ${2})..."
-		kill -9 $(pidof -o ${1} $(basename ${2})) &>/dev/null
+		echo "Removing other running instances of $(basename -- ${2})..."
+		kill -9 $(pidof -o ${1} $(basename -- ${2})) &>/dev/null
 	fi
 }
 
@@ -119,19 +119,29 @@ curl_download() # curl_download ${filepath} ${URL}
 
 
 #======== UPDATER FUNCTIONS ========
-get_samstuff() #get_samstuff path file
+get_samstuff() #get_samcore file (path)
 {
+	if [ -z "${1}" ]; then
+		return 1
+	fi
+	
+	filepath="${2}"
+	if [ -z "${filepath}" ]; then
+		filepath="${mrsampath}"
+	fi
+
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-		echo "Downloading ${1}/${2}..."
-		curl_download "/tmp/${2}" "${REPOSITORY_URL}/blob/${branch}/${2}?raw=true"
+	
+	echo "Downloading from ${REPOSITORY_URL}/blob/${branch}/${1} to ${filepath}..."
+	curl_download "/tmp/${1##*/}" "${REPOSITORY_URL}/blob/${branch}/${1}?raw=true"
 
-		if [ ! "${1}" == "/tmp" ]; then
-			mv --force "/tmp/${2}" "${1}/${2}"
-		fi
+	if [ ! "${filepath}" == "/tmp" ]; then
+		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
+	fi
 
-		if [ "${2##*.}" == "sh" ]; then
-			chmod +x "${1}/${2}"
-		fi
+	if [ "${1##*.}" == "sh" ]; then
+		chmod +x "${filepath}/${1##*/}"
+	fi
 }
 
 get_mbc()
@@ -208,7 +218,7 @@ if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 	there_can_be_only_one "0" "MiSTer_SAM.sh"
 
 	# Download the newest MiSTer_SAM_on.sh to /tmp
-	get_samstuff /tmp MiSTer_SAM_on.sh
+	get_samcore MiSTer_SAM_on.sh /tmp
 	if [ -f /tmp/MiSTer_SAM_on.sh ]; then
 		/tmp/MiSTer_SAM_on.sh
 		exit 0
@@ -221,19 +231,18 @@ else # We're running from /tmp - download dependencies and proceed
 	cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
 	get_mbc
 	get_partun
-	get_samstuff "${mrsampath}" MiSTer_SAM.sh
-	get_samstuff "${mrsampath}" MiSTer_SAM_init
-	get_samstuff "${mrsampath}" MiSTer_SAM_joy.sh
-	get_samstuff "${mrsampath}" MiSTer_SAM_joy_change.sh
-	get_samstuff "${mrsampath}" MiSTer_SAM_keyboard.sh
-	get_samstuff "${mrsampath}" MiSTer_SAM_mouse.sh
+	get_samstuff MiSTer_SAM/MiSTer_SAM.sh
+	get_samstuff MiSTer_SAM/MiSTer_SAM_init
+	get_samstuff MiSTer_SAM/MiSTer_SAM_joy.sh
+	get_samstuff MiSTer_SAM/MiSTer_SAM_joy_change.sh
+	get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
+	get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh /media/fat/Scripts
+	get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh /media/fat/Scripts
 	
-	get_samstuff /media/fat/Scripts MiSTer_SAM_now.sh
-	get_samstuff /media/fat/Scripts MiSTer_SAM_off.sh
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 		echo "MiSTer SAM INI already exists - skipped!"
 	else
-		get_ini /media/fat/Scripts MiSTer_SAM.ini
+		get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 	fi
 
 	echo "Turning MiSTer SAM on..."
