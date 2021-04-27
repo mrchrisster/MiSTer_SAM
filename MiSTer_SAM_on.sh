@@ -29,7 +29,7 @@
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.config/MiSTer_SAM"
+declare -g mrsampath="/media/fat/Scripts/.cache/MiSTer_SAM"
 declare -g misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
