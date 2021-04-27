@@ -131,6 +131,7 @@ start()
 			done
 			
 			# Add newly detected joystick monitoring
+			if [ "${samquiet,,}" == "no" ]; then echo "jsadd: ${jsadd[@]}"; fi
 			if [ ! -z "${jsadd[@]//[[:blank:]]/}" ]; then
 				for joystick in ${jsadd[@]}; do
 					echo "Detected new joystick device: ${joystick}"
@@ -139,9 +140,10 @@ start()
 			fi
 			
 			# Stop removed joystick monitoring
+			if [ "${samquiet,,}" == "no" ]; then echo "jsdel: ${jsdel[@]}"; fi
 			if [ ! -z "${jsdel[@]//[[:blank:]]/}" ]; then
 				for joystick in ${jsdel[@]}; do
-					echo "Stop monitoring removed joystick device: ${joystick}"
+					echo "Monitoring stopped for joystick device: ${joystick}"
 					$(kill -9 $(ps -o pid,args | grep -e 'MiSTer_SAM_joy.sh' | grep -e "${joystick}" | awk '{ print $1 }'))
 				done
 			fi
