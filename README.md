@@ -105,7 +105,7 @@ If you are still having trouble it could simply be that the rom failed to load, 
 **- Sometimes NeoGeo doesn't load a rom and hangs on the menu.**   
 Still investigating why this is happening. It sometimes loads a game successfully but then shows corrupted sprites. It has something to do with the bios but so far we don't know why. The NeoGeo core is special in a lot of ways and we haven't unlocked all it's mysteries yet.
   
-**- Turbografx16 CD just showing Run button but not starting into the game**  
+**- Turbografx16 CD and MegaCD just showing Run/Start button but not starting into the game**  
 Make sure you use a bios that auto launches the game.  
 
 **- USB Storage**  
