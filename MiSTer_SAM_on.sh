@@ -53,10 +53,13 @@ for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath gene
 done
 
 
+# Warn if using non-default branch
 if [ ! "${branch}" == "main" ]; then
 	echo ""
-	echo "!!RETRIEVING UPDATES FROM ${BRANCH} BRANCH!!"
+	echo "!! RETRIEVING UPDATES FROM ${branch} BRANCH !!"
 	echo ""
+fi
+
 
 #======== BASIC FUNCTIONS ========
 there_can_be_only_one() # there_can_be_only_one PID Process
@@ -265,7 +268,7 @@ if [ "${samquiet,,}" == "no" ]; then
 
 	#======== LOCAL VARIABLES ========
 	echo "branch: ${branch}"
-	echo "mbcurl: ${branch}"
+	echo "mbcurl: ${mbcurl}"
 fi	
 
 
