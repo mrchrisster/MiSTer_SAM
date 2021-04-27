@@ -264,6 +264,7 @@ load_core() 	# load_core core /path/to/rom name_of_rom (countdown)
 	echo -n "Next up on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
 	echo -e "\e[1m${3}\e[0m"
+	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
 	echo "${3} (${1})" > /tmp/SAM_Game.txt
 
 	if [ "${4}" == "countdown" ]; then
@@ -358,6 +359,7 @@ load_core_arcade()
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
 	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
 	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
+	echo "$(date +%H:%M:%S) - Arcade - $(echo $(basename "${mra}")" >> /tmp/SAM_Games.log
 
 	if [ "${1}" == "countdown" ]; then
 		echo "Loading quarters in..."
@@ -387,7 +389,7 @@ corelist="$(echo ${corelist} | tr ',' ' ')"
 
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
-	echo "****************************************"
+	echo "********************************************************************************"
 	#======== GLOBAL VARIABLES =========
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
@@ -416,7 +418,7 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo "snespath: ${snespath}"
 	echo "tgfx16path: ${tgfx16path}"
 	echo "tgfx16cdpath: ${tgfx16cdpath}"
-	echo "****************************************"
+	echo "********************************************************************************"
 fi	
 
 disable_bootrom							# Disable Bootrom until Reboot 

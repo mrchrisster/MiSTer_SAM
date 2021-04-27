@@ -43,7 +43,7 @@ done
 start()
 {
 	#======== Start ========
-	echo "Starting MiSTer Super Attract Mode... "
+	echo -n "Starting MiSTer Super Attract Mode... "
 	
 	# Spawn Joystick monitoring process per detected joystick device
 	jsdevices=$(ls /dev/input/js* 2> /dev/null | wc -l)
@@ -66,12 +66,14 @@ start()
 	# TODO - Detect keyboard device changes
 	
 	# Startup done
-	echo "DONE"
+	echo "Done!"
 
 
 	# Wait for system startup - clock synchronization
 	if [ "${startupsleep,,}" == "yes" ]; then
+		echo -n "Waiting 60 seconds for system startup... "
 		sleep 60
+		echo "Done!"
 	fi
 	
 	# Reset activity logs
@@ -204,16 +206,15 @@ samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
 
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
-	echo "****************************************"
+	echo "********************************************************************************"
 	#======== GLOBAL VARIABLES =========
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
-
 	#======== LOCAL VARIABLES ========
 	echo "samtimeout: ${samtimeout}"
 	echo "startupsleep: ${startupsleep}"
 	echo "menuonly: ${menuonly}"
-	echo "****************************************"
+	echo "********************************************************************************"
 fi
 
 # Parse command line
