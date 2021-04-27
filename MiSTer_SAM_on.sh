@@ -179,7 +179,7 @@ config_init()
 
 #======== MAIN ========
 # Ensure the MiSTer SAM data directory exists
-mkdir "${mrsampath}" &>/dev/null
+mkdir --parents "${mrsampath}" &>/dev/null
 
 # Prep curl
 curl_check
