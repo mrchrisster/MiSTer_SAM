@@ -239,6 +239,7 @@ else # We're running from /tmp - download dependencies and proceed
 	get_samstuff MiSTer_SAM/MiSTer_SAM_joy.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_joy_change.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
+	get_samstuff MiSTer_SAM/MiSTer_SAM_mouse.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh /media/fat/Scripts
 	get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh /media/fat/Scripts
 	
