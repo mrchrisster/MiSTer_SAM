@@ -210,7 +210,7 @@ if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 	# Download the newest MiSTer_SAM_on.sh to /tmp
 	get_samstuff /tmp MiSTer_SAM_on.sh
 	if [ -f /tmp/MiSTer_SAM_on.sh ]; then
-		/tmp/MiSTer_SAM_on.sh &
+		/tmp/MiSTer_SAM_on.sh
 		exit 0
 	else
 		# /tmp/MiSTer_SAM_on.sh isn't there!
