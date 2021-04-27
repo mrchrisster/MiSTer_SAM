@@ -56,7 +56,9 @@ done
 # Warn if using non-default branch
 if [ ! "${branch}" == "main" ]; then
 	echo ""
-	echo "!! RETRIEVING UPDATES FROM ${branch} BRANCH !!"
+	echo "***********************************************"
+	echo "!! DOWNLOADING UPDATES FROM ${branch} BRANCH !!"
+	echo "***********************************************"
 	echo ""
 fi
 
@@ -132,7 +134,7 @@ get_samstuff() #get_samcore file (path)
 
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
 	
-	echo "Downloading from ${REPOSITORY_URL}/blob/${branch}/${1} to ${filepath}..."
+	echo -n "Downloading from ${REPOSITORY_URL}/blob/${branch}/${1} to ${filepath}/... "
 	curl_download "/tmp/${1##*/}" "${REPOSITORY_URL}/blob/${branch}/${1}?raw=true"
 
 	if [ ! "${filepath}" == "/tmp" ]; then
@@ -142,12 +144,13 @@ get_samstuff() #get_samcore file (path)
 	if [ "${1##*.}" == "sh" ]; then
 		chmod +x "${filepath}/${1##*/}"
 	fi
+	echo "Done!"
 }
 
 get_mbc()
 {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_Batch_Control"
-	echo "Downloading mbc - a tool needed for launching roms"
+	echo "Downloading mbc - a tool needed for launching roms..."
 	echo "Created for MiSTer by pocomane"
 	echo "${REPOSITORY_URL}"
 	echo ""
@@ -158,7 +161,7 @@ get_mbc()
 get_partun()
 {
     REPOSITORY_URL="https://github.com/woelper/partun"
-    echo "Downloading partun - needed for unzipping roms from big archives."
+    echo "Downloading partun - needed for unzipping roms from big archives..."
     echo "Created for MiSTer by woelper - who is allegedly not a spider"
     echo "${REPOSITORY_URL}"
     echo ""
@@ -171,12 +174,12 @@ get_partun()
 #======== CONFIGURATION ========
 config_init()
 {
+	echo -n "Adding launch daemon..."
 	# Remount root as read-write if read-only so we can add our daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
 
 	# Awaken daemon
-	echo "Adding launch daemon"
 	mv -f "${mrsampath}/MiSTer_SAM_init" /etc/init.d/S93mistersam &>/dev/null
 	chmod +x /etc/init.d/S93mistersam
 
@@ -184,6 +187,7 @@ config_init()
 	sync
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
 	sync
+	echo "Done!"
 }
 
 
@@ -196,15 +200,14 @@ curl_check
 
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
-	echo "****************************************"
+	echo "********************************************************************************"
 	#======== GLOBAL VARIABLES =========
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
-
 	#======== LOCAL VARIABLES ========
 	echo "branch: ${branch}"
 	echo "mbcurl: ${mbcurl}"
-	echo "****************************************"
+	echo "********************************************************************************"
 fi	
 
 
@@ -240,13 +243,14 @@ else # We're running from /tmp - download dependencies and proceed
 	get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh /media/fat/Scripts
 	
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
-		echo "MiSTer SAM INI already exists - skipped!"
+		echo "MiSTer SAM INI already exists... SKIPPED!"
 	else
 		get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 	fi
 
-	echo "Turning MiSTer SAM on..."
+	echo -n "Turning MiSTer SAM on..."
 	config_init
+	echo "Done!"
 fi
 
 
@@ -254,8 +258,9 @@ if [ "${forcereboot,,}" == "yes" ]; then
 	echo "Rebooting..."
 	reboot
 else
-	echo "MiSTer SAM daemon launch"
+	echo -n "MiSTer SAM daemon launching... "
 	/etc/init.d/S93mistersam start &
+	echo "Done!"
 fi
 
 exit 0
