@@ -265,7 +265,7 @@ if [ "${doreboot,,}" == "yes" ]; then
 	fi
 else
 	echo -n "MiSTer SAM daemon launching... "
-	/etc/init.d/S93mistersam restart
+	/etc/init.d/S93mistersam start &
 	echo "Done!"
 fi
 
