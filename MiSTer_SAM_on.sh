@@ -38,13 +38,13 @@ samquiet="Yes"
 #======== LOCAL VARIABLES ========
 branch="main"
 mbcurl="blob/master/mbc_v02"
-forcereboot="Yes"
+doreboot="Yes"
+normalreboot="Yes"
 
 #========= PARSE INI =========
 # Read INI
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-	. "${misterpath}/Scripts/MiSTer_SAM.ini"
-	IFS=$'\n'
+	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 fi
 
 # Remove trailing slash from paths
@@ -236,7 +236,9 @@ else # We're running from /tmp - download dependencies and proceed
 	get_partun
 	get_samstuff MiSTer_SAM/MiSTer_SAM.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_init
+	get_samstuff MiSTer_SAM/MiSTer_SAM_MCP.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_joy.sh
+	get_samstuff MiSTer_SAM/MiSTer_SAM_joy.py
 	get_samstuff MiSTer_SAM/MiSTer_SAM_joy_change.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_mouse.sh
@@ -253,9 +255,14 @@ else # We're running from /tmp - download dependencies and proceed
 fi
 
 
-if [ "${forcereboot,,}" == "yes" ]; then
-	echo "Rebooting..."
-	reboot -f
+if [ "${doreboot,,}" == "yes" ]; then
+	if [ "${normalreboot,,}" == "yes" ]; then
+		echo "Rebooting..."
+		reboot
+	else
+		echo "Forcing reboot..."
+		reboot -f
+	fi
 else
 	echo -n "MiSTer SAM daemon launching... "
 	/etc/init.d/S93mistersam start &
