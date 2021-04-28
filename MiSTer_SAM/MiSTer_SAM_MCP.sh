@@ -174,6 +174,7 @@ while :; do
 					"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
 				else
 					"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" 2>/dev/null &
+				fi
 				echo "Done!"
 			fi
 		done
