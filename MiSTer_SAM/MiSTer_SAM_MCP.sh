@@ -80,10 +80,11 @@ echo "Starting MiSTer Super Attract Mode... "
 # Spawn Joystick monitoring process per detected joystick device
 shopt -s nullglob
 for joystick in /dev/input/js*; do
-	echo " Monitoring controller ${joystick}..."
 	if [ "${usepyjoy,,}" == "yes" ]; then
+		echo " Monitoring controller ${joystick} via python..."
 		"${mrsampath}/MiSTer_SAM_joy.py" 2>/dev/null &
 	else
+		echo " Monitoring controller ${joystick}..."
 		"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" 2>/dev/null &
 	fi
 done
