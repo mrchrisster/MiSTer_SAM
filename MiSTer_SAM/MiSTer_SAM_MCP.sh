@@ -80,7 +80,11 @@ echo "Starting MiSTer Super Attract Mode... "
 shopt -s nullglob
 for joystick in /dev/input/js*; do
 	echo " Monitoring controller ${joystick}..."
-	"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" 2>/dev/null &
+	if [ "${usepyjoy,,}" == "yes" ]; then
+		"${mrsampath}/MiSTer_SAM_joy.py" 2>/dev/null &
+	else
+		"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" 2>/dev/null &
+	fi
 done
 shopt -u nullglob
 
@@ -165,7 +169,10 @@ while :; do
 		for joystick in ${jsadd[@]}; do
 			if [ ! -z "${joystick}" ]; then
 				echo -n "Monitoring new joystick: ${joystick}... "
-				"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" 2>/dev/null &
+				if [ "${usepyjoy,,}" == "yes" ]; then
+					"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
+				else
+					"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" 2>/dev/null &
 				echo "Done!"
 			fi
 		done
