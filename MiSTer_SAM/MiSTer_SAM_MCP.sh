@@ -82,7 +82,7 @@ shopt -s nullglob
 for joystick in /dev/input/js*; do
 	if [ "${usepyjoy,,}" == "yes" ]; then
 		echo " Monitoring controller ${joystick} via python..."
-		"${mrsampath}/MiSTer_SAM_joy.py" 2>/dev/null &
+		"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
 	else
 		echo " Monitoring controller ${joystick}..."
 		"${mrsampath}/MiSTer_SAM_joy.sh" "${joystick}" 2>/dev/null &
