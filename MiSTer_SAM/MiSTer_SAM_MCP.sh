@@ -14,6 +14,7 @@ samquiet="Yes"
 samtimeout=60
 startupsleep="Yes"
 menuonly="Yes"
+usepyjoy="Yes"
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
