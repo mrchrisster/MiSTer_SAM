@@ -4,7 +4,7 @@
 # Change these in the INI file
 samtimeout=300
 gametimer=120
-menuonly="Yes"
+menuonly="No"
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
