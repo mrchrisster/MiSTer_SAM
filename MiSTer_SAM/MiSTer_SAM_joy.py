@@ -14,7 +14,6 @@ while True:
         file = open(infile_path, "rb")
         event = file.read(EVENT_SIZE)
         (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t) = struct.unpack(packstring, event)
-
         if b != 8454144 or d != 25231360 or f != 42008576 or h != 58785792 or n != 109117440 or p != 125894656 or r != 142671872 or t != 159449088:
            f = open("/tmp/.SAM_Joy_Activity", "w")
            f.write("Button pushed")
