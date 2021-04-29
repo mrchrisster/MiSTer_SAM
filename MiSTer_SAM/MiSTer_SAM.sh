@@ -185,8 +185,10 @@ loop_core()
 
 	while :; do
 		counter=${gametimer}
+
 		next_core
 		while [ ${counter} -gt 0 ]; do
+			echo -ne "Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
 			
@@ -264,16 +266,15 @@ next_core() # next_core (nextcore)
 
 load_core() 	# load_core core /path/to/rom name_of_rom (countdown)
 {	
-	echo -n "Next up on the "
+	echo -n "Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
 	echo -e "\e[1m${3}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
 	echo "${3} (${1})" > /tmp/SAM_Game.txt
 
 	if [ "${4}" == "countdown" ]; then
-		echo "Loading in..."
 		for i in {5..1}; do
-			echo "${i} seconds"
+			echo "Loading game in ${i}...\033[0K\r"
 			sleep 1
 		done
 	fi
@@ -358,16 +359,15 @@ load_core_arcade()
 		return
 	fi
 
-	echo -n "Next up at the "
+	echo -n "Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
 	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
 	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
 	echo "$(date +%H:%M:%S) - Arcade - $(echo $(basename "${mra}"))" >> /tmp/SAM_Games.log
 
 	if [ "${1}" == "countdown" ]; then
-		echo "Loading quarters in..."
 		for i in {5..1}; do
-			echo "${i} seconds"
+			echo "Loading game in ${i}...\033[0K\r"
 			sleep 1
 		done
 	fi
