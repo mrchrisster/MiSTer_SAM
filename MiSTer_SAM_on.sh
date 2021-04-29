@@ -22,7 +22,7 @@
 # Additional development by: Mellified
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, RetroDriven, woelper, LamerDeluxe
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe
 
 
 #======== INI VARIABLES ========
