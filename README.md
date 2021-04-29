@@ -89,9 +89,9 @@ The great work began with MrChrisster building a MiSTer Attract feature for the 
  
 ## Troubleshooting
 **- When I try to launch the script, it fails and says something about Document Type**  
-You most likely didn't download the "raw" file.  
-When downloading a file from github, click on the file, then click on "raw".  
-Now push Ctrl+S to save  
+- You most likely didn't download the "raw" file.  
+- When downloading a file from github, click on the file, then click on "raw".  
+- Now push Ctrl+S to save  
   
 **- Core is loaded but just hangs on the menu**  
 Sometimes this happens (even on our test setups) and it could be for a variety of reasons.   
