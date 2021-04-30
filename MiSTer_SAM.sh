@@ -177,7 +177,7 @@ get_sind()
 {
 	REPOSITORY_URL="https://github.com/l3laze/sind"
 	echo "Downloading sind - bash menu to the stars..."
-	echo "Public domain - maintained by lBlaze"
+	echo "Public domain - maintained by l3laze"
 	echo "${REPOSITORY_URL}"
 	echo ""
 	curl_download "/tmp/sind" "${REPOSITORY_URL}/${sindurl}?raw=true"
@@ -222,6 +222,7 @@ if [ "${samquiet,,}" == "no" ]; then
 	#======== LOCAL VARIABLES ========
 	echo "branch: ${branch}"
 	echo "mbcurl: ${mbcurl}"
+	echo "sindurl: ${sindurl}"
 	echo "********************************************************************************"
 fi	
 
@@ -232,23 +233,24 @@ if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 
 	# Clean out existing processes to ensure we can update
 	there_can_be_only_one "$$" "${0}"
-	there_can_be_only_one "$$" "S93mistersam"
+	there_can_be_only_one "0" "S93mistersam"
 	there_can_be_only_one "$$" "MiSTer_SAM.sh"
 
 	# Download the newest MiSTer_SAM.sh to /tmp
-	get_samstuff MiSTer_SAM.sh /tmp
-	if [ -f /tmp/MiSTer_SAM.sh ]; then
-		/tmp/MiSTer_SAM.sh
+	get_samstuff MiSTer_SAM.sh "/tmp"
+	if [ -f "/tmp/MiSTer_SAM.sh" ]; then
+		"/tmp/MiSTer_SAM.sh"
 		exit 0
 	else
 		# /tmp/MiSTer_SAM.sh isn't there!
   	echo "MiSTer SAM update FAILED - no Internet?"
-		#config_init
+		config_init
 	fi
 else # We're running from /tmp - download dependencies and proceed
 	cp --force "/tmp/MiSTer_SAM.sh" "/media/fat/Scripts/MiSTer_SAM.sh"
 	get_mbc
 	get_partun
+	get_sind
 	get_samstuff MiSTer_SAM/MiSTer_SAM.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_init
 	get_samstuff MiSTer_SAM/MiSTer_SAM_MCP.sh
@@ -257,18 +259,18 @@ else # We're running from /tmp - download dependencies and proceed
 	get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
 	#get_samstuff MiSTer_SAM/MiSTer_SAM_joy_change.sh
 	#get_samstuff MiSTer_SAM/MiSTer_SAM_mouse.sh
-	#get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh /media/fat/Scripts
-	#get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh /media/fat/Scripts
+	#get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh "/media/fat/Scripts"
+	#get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh "/media/fat/Scripts"
 	
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 		echo "MiSTer SAM INI already exists... SKIPPED!"
 	else
-		get_samstuff MiSTer_SAM.ini /media/fat/Scripts
+		get_samstuff MiSTer_SAM.ini "/media/fat/Scripts"
 	fi
-
-	config_init
+	echo "Here"
+	#config_init
 fi
-
+echo "not here"
 
 if [ "${doreboot,,}" == "yes" ]; then
 	if [ "${normalreboot,,}" == "yes" ]; then
@@ -280,7 +282,7 @@ if [ "${doreboot,,}" == "yes" ]; then
 	fi
 else
 	echo -n "MiSTer SAM daemon launching... "
-	/etc/init.d/S93mistersam start &
+	"/etc/init.d/S93mistersam" start &
 	echo "Done!"
 fi
 
