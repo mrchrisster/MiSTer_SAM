@@ -227,13 +227,13 @@ fi
 
 
 if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
-	# Initial run - need to get updated MiSTer_SAM_on.sh
+	# Initial run - need to get updated MiSTer_SAM.sh
 	echo "Stopping MiSTer SAM processes..."
 
 	# Clean out existing processes to ensure we can update
 	there_can_be_only_one "$$" "${0}"
-	there_can_be_only_one "0" "S93mistersam"
-	there_can_be_only_one "0" "MiSTer_SAM.sh"
+	there_can_be_only_one "$$" "S93mistersam"
+	there_can_be_only_one "$$" "MiSTer_SAM.sh"
 
 	# Download the newest MiSTer_SAM.sh to /tmp
 	get_samstuff MiSTer_SAM.sh /tmp
