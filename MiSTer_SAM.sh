@@ -235,18 +235,18 @@ if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 	there_can_be_only_one "0" "S93mistersam"
 	there_can_be_only_one "0" "MiSTer_SAM.sh"
 
-	# Download the newest MiSTer_SAM_on.sh to /tmp
-	get_samstuff MiSTer_SAM_on.sh /tmp
-	if [ -f /tmp/MiSTer_SAM_on.sh ]; then
-		/tmp/MiSTer_SAM_on.sh
+	# Download the newest MiSTer_SAM.sh to /tmp
+	get_samstuff MiSTer_SAM.sh /tmp
+	if [ -f /tmp/MiSTer_SAM.sh ]; then
+		/tmp/MiSTer_SAM.sh
 		exit 0
 	else
-		# /tmp/MiSTer_SAM_on.sh isn't there!
+		# /tmp/MiSTer_SAM.sh isn't there!
   	echo "MiSTer SAM update FAILED - no Internet?"
 		config_init
 	fi
 else # We're running from /tmp - download dependencies and proceed
-	cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
+	cp --force "/tmp/MiSTer_SAM.sh" "/media/fat/Scripts/MiSTer_SAM.sh"
 	get_mbc
 	get_partun
 	get_sind
