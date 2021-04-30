@@ -20,10 +20,6 @@ corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
 usezip="Yes"
 disablebootrom="Yes"
 orientation=All
-mraexclude="
-Example Bad Game.mra
-Another Bad Game.mra
-"
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
@@ -31,6 +27,8 @@ mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
 partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
 mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
 mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
+
+#======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
 gbapath="/media/fat/games/GBA"
 genesispath="/media/fat/games/Genesis"
@@ -41,6 +39,52 @@ snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
 
+#======== EXCLUDE LISTS ========
+arcadeexclude="
+First Bad Game.mra
+Second Bad Game.mra
+Third Bad Game.mra
+"
+gbaexclude="
+First Bad Game.gba
+Second Bad Game.gba
+Third Bad Game.gba
+"
+genesisexclude="
+First Bad Game.gen
+Second Bad Game.gen
+Third Bad Game.gen
+"
+megacdexclude="
+First Bad Game.chd
+Second Bad Game.chd
+Third Bad Game.chd
+"
+neogeoexclude="
+First Bad Game.neo
+Second Bad Game.neo
+Third Bad Game.neo
+"
+nesexclude="
+First Bad Game.nes
+Second Bad Game.nes
+Third Bad Game.nes
+"
+snesexclude="
+First Bad Game.sfc
+Second Bad Game.sfc
+Third Bad Game.sfc
+"
+tgfx16exclude="
+First Bad Game.pce
+Second Bad Game.pce
+Third Bad Game.pce
+"
+tgfx16cdexclude="
+First Bad Game.chd
+Second Bad Game.chd
+Third Bad Game.chd
+"
 
 # ======== CORE CONFIG ========
 init_data()
@@ -101,9 +145,30 @@ init_data()
 #========= PARSE INI =========
 # Read INI
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-	. "${misterpath}/Scripts/MiSTer_SAM.ini"
-	IFS=$'\n'
+	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 fi
+
+# Set arcadepath based on orientation
+if [ "${orientation,,}" == "vertical" ]; then
+	arcadepath="${mrapathvert}"
+elif [ "${orientation,,}" == "horizontal" ]; then
+	arcadepath="${mrapathhoriz}"
+fi
+
+# Setup corelist
+corelist="$(echo ${corelist} | tr ',' ' ')"
+
+# Create array of coreexclude list names
+declare -a coreexcludelist
+for core in ${corelist}; do
+	coreexcludelist+=( "${core}exclude" )
+done
+
+# Iterate through coreexclude lists and make list into array
+for excludelist in ${coreexcludelist[@]}; do
+	readarray -t ${excludelist} <<<${!excludelist}
+done
+
 
 # Remove trailing slash from paths
 for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
@@ -257,6 +322,18 @@ next_core() # next_core (nextcore)
 		romname=$(basename "${rompath}")
 	fi
 
+	# If there is an exclude list check it
+	declare -n excludelist="${nextcore,,}exclude"
+	if [ ${#excludelist[@]} -gt 0 ]; then
+		for excluded in "${excludelist[@]}"; do
+			if [ "${romname}" == "${excluded}" ]; then
+				echo "The game \"${romname}\" is on the exclusion list - SKIPPED"
+				next_core
+				return
+			fi
+		done
+	fi
+
 	if [ -z "${rompath}" ]; then
 		core_error "${nextcore}" "${rompath}"
 	else
@@ -333,10 +410,10 @@ build_mralist()
 	
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
-	if [ ${#mraexclude[@]} -eq 0 ]; then
+	if [ ${#arcadeexclude[@]} -eq 0 ]; then
 		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
 	else
-		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${mraexclude[@]})>"${mralist}"
+		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
 	fi
 }
 
@@ -380,16 +457,6 @@ load_core_arcade()
 # ======== MAIN ========
 echo "Starting up, please wait a minute..."
 
-# Set arcadepath based on orientation
-if [ "${orientation,,}" == "vertical" ]; then
-	arcadepath="${mrapathvert}"
-elif [ "${orientation,,}" == "horizontal" ]; then
-	arcadepath="${mrapathhoriz}"
-fi
-
-# Setup corelist
-corelist="$(echo ${corelist} | tr ',' ' ')"
-
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
 	echo "********************************************************************************"
@@ -404,7 +471,6 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo "disablebootrom: ${disablebootrom}"
 	echo "orientation: ${orientation}"
 	echo "mralist: ${mralist}"
-	echo "mraexclude: ${mraexclude}"
 	echo "listenmouse: ${listenmouse}"
 	echo "listenkeyboard: ${listenkeyboard}"
 	echo "listenjoy: ${listenjoy}"
@@ -412,6 +478,7 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo "partunpath: ${partunpath}"
 	echo "mrapathvert: ${mrapathvert}"
 	echo "mrapathhoriz: ${mrapathhoriz}"
+	echo ""
 	echo "arcadepath: ${arcadepath}"
 	echo "gbapath: ${gbapath}"
 	echo "genesispath: ${genesispath}"
@@ -421,6 +488,16 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo "snespath: ${snespath}"
 	echo "tgfx16path: ${tgfx16path}"
 	echo "tgfx16cdpath: ${tgfx16cdpath}"
+  echo ""
+	echo "arcadeexclude: ${arcadeexclude[@]}"
+	echo "gbaexclude: ${gbaexclude[@]}"
+	echo "genesisexclude: ${genesisexclude[@]}"
+	echo "megacdexclude: ${megacdexclude[@]}"
+	echo "neogeoexclude: ${neogeoexclude[@]}"
+	echo "nesexclude: ${nesexclude[@]}"
+	echo "snesexclude: ${snesexclude[@]}"
+	echo "tgfx16exclude: ${tgfx16exclude[@]}"
+	echo "tgfx16cdexclude: ${tgfx16cdexclude[@]}"
 	echo "********************************************************************************"
 fi	
 
