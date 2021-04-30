@@ -156,7 +156,7 @@ get_mbc()
 	echo "${REPOSITORY_URL}"
 	echo ""
 	curl_download "/tmp/mbc" "${REPOSITORY_URL}/${mbcurl}?raw=true"
-	chmod +x /tmp/mbc
+	chmod +x "/tmp/mbc"
 	mv --force "/tmp/mbc" "${mrsampath}/mbc"
 }
 
@@ -169,19 +169,19 @@ get_partun()
 	echo ""
 	latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
 	curl_download "/tmp/partun" "${latest}"
-	chmod +x /tmp/partun
+	chmod +x "/tmp/partun"
 	mv --force "/tmp/partun" "${mrsampath}/partun"
 }
 
 get_sind()
 {
 	REPOSITORY_URL="https://github.com/l3laze/sind"
-	echo "Downloading sind - menu system to the stars..."
-	echo "Public domain softare adapted by l3laze"
+	echo "Downloading sind - bash menu to the stars..."
+	echo "Public domain - maintained by lBlaze"
 	echo "${REPOSITORY_URL}"
 	echo ""
 	curl_download "/tmp/sind" "${REPOSITORY_URL}/${sindurl}?raw=true"
-	chmod +x /tmp/sind
+	chmod +x "/tmp/sind"
 	mv --force "/tmp/sind" "${mrsampath}/sind"
 }
 
@@ -243,23 +243,22 @@ if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 	else
 		# /tmp/MiSTer_SAM.sh isn't there!
   	echo "MiSTer SAM update FAILED - no Internet?"
-		config_init
+		#config_init
 	fi
 else # We're running from /tmp - download dependencies and proceed
 	cp --force "/tmp/MiSTer_SAM.sh" "/media/fat/Scripts/MiSTer_SAM.sh"
 	get_mbc
 	get_partun
-	get_sind
 	get_samstuff MiSTer_SAM/MiSTer_SAM.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_init
 	get_samstuff MiSTer_SAM/MiSTer_SAM_MCP.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_joy.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_joy.py
-	get_samstuff MiSTer_SAM/MiSTer_SAM_joy_change.sh
 	get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
-	get_samstuff MiSTer_SAM/MiSTer_SAM_mouse.sh
-	get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh /media/fat/Scripts
-	get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh /media/fat/Scripts
+	#get_samstuff MiSTer_SAM/MiSTer_SAM_joy_change.sh
+	#get_samstuff MiSTer_SAM/MiSTer_SAM_mouse.sh
+	#get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh /media/fat/Scripts
+	#get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh /media/fat/Scripts
 	
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 		echo "MiSTer SAM INI already exists... SKIPPED!"
