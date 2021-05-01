@@ -344,7 +344,7 @@ function sam_start() { #Start SAM
 	
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP.sh)" ]; then
-		${mrsampath}/MiSTer_SAM_MCP.sh monitoronly
+		${mrsampath}/MiSTer_SAM_MCP.sh monitoronly &
 	fi
 	
 	loop_core
@@ -397,7 +397,7 @@ function sam_update() {
 }
 
 function sam_enable() { # Enable screensaver
-	echo -n "Enabling MiSTer SAM Screensaver... "
+	echo -n "Enabling MiSTer SAM Screensaver..."
 	# Remount root as read-write if read-only so we can add our daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
@@ -410,11 +410,11 @@ function sam_enable() { # Enable screensaver
 	sync
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
 	sync
-	echo "Done!"
+	echo " Done!"
 
-	echo -n "MiSTer SAM starting... "
+	echo -n "MiSTer SAM starting..."
 	/etc/init.d/S93mistersam start &
-	echo "Done!"
+	echo " Done!"
 }
 
 function sam_disable() { # Disable screensaver
@@ -435,7 +435,7 @@ function sam_disable() { # Disable screensaver
 function there_can_be_only_one() { # there_can_be_only_one (pid) (process)
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
-	echo " Stopping other running instances of ${samprocess}..."
+	echo -n " Stopping other running instances of ${samprocess}..."
 	kill -9 $(pidof -o ${sampid} ${samprocess}) &>/dev/null
 	wait $(pidof -o ${sampid} ${samprocess}) &>/dev/null
 	echo " Done!"
@@ -529,7 +529,7 @@ function get_samstuff() { #get_samstuff file (path)
 	fi
 
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-		echo -n " Downloading from ${REPOSITORY_URL}/blob/${branch}/${1} to ${filepath}/... "
+		echo -n " Downloading from ${REPOSITORY_URL}/blob/${branch}/${1} to ${filepath}/..."
 	curl_download "/tmp/${1##*/}" "${REPOSITORY_URL}/blob/${branch}/${1}?raw=true"
 
 	if [ ! "${filepath}" == "/tmp" ]; then
@@ -540,7 +540,7 @@ function get_samstuff() { #get_samstuff file (path)
 		chmod +x "${filepath}/${1##*/}"
 	fi
 	
-	echo "Done!"
+	echo " Done!"
 }
 
 function get_mbc() {
@@ -903,6 +903,7 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo " samprocess: ${samprocess}"
 	echo ""
 	#======== LOCAL VARIABLES ========
+	echo "commandline: ${@}"
 	echo " branch: ${branch}"
 	echo " mbcurl: ${mbcurl}"
 	echo ""
