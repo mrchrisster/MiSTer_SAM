@@ -245,7 +245,7 @@ function sam_menu() {
 	echo " Monitor			Monitors output from Super Attract Mode in this terminal - use via ssh"
 	echo ""
 	echo -n " "
-	menuresponse=$(/media/fat/Scripts/.MiSTer_SAM/sind --line --options " Start " " Next " " Cancel " ${menulist[@]} " Update " " Enable " " Disable " " Monitor ")
+	menuresponse=$(/media/fat/Scripts/.MiSTer_SAM/sind --line --options " Start " " Next " " Stop " " Cancel " ${menulist[@]} " Update " " Enable " " Disable " " Monitor ")
 	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse,,}"; fi
 	parse_cmd ${menuresponse,,}
 }
