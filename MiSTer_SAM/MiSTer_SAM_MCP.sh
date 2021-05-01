@@ -205,7 +205,7 @@ while :; do
 				echo "" |>/tmp/.SAM_Keyboard_Activity
 
 				echo "No activity detected for ${samtimeout} minutes. SAM starting..."
-				"${mrsampath}/MiSTer_SAM.sh"
+				"${mrsampath}/MiSTer_SAM.sh" "start"
 				echo "Returned from SAM."
 
 				# Reset activity triggers
