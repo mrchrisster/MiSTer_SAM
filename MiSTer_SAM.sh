@@ -154,23 +154,21 @@ get_mbc()
 	echo "Downloading mbc - a tool needed for launching roms..."
 	echo "Created for MiSTer by pocomane"
 	echo "${REPOSITORY_URL}"
-	echo ""
+	echo "Done!"
 	curl_download "/tmp/mbc" "${REPOSITORY_URL}/${mbcurl}?raw=true"
-	chmod +x "/tmp/mbc"
 	mv --force "/tmp/mbc" "${mrsampath}/mbc"
 }
 
 get_partun()
 {
-	REPOSITORY_URL="https://github.com/woelper/partun"
-	echo "Downloading partun - needed for unzipping roms from big archives..."
-	echo "Created for MiSTer by woelper - who is allegedly not a spider"
-	echo "${REPOSITORY_URL}"
-	echo ""
-	latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
-	curl_download "/tmp/partun" "${latest}"
-	chmod +x "/tmp/partun"
-	mv --force "/tmp/partun" "${mrsampath}/partun"
+  REPOSITORY_URL="https://github.com/woelper/partun"
+  echo "Downloading partun - needed for unzipping roms from big archives..."
+  echo "Created for MiSTer by woelper - who is allegedly not a spider"
+  echo "${REPOSITORY_URL}"
+	echo "Done!"
+  latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
+  curl_download "/tmp/partun" "${latest}"
+ 	mv --force "/tmp/partun" "${mrsampath}/partun"
 }
 
 get_sind()
@@ -179,10 +177,9 @@ get_sind()
 	echo "Downloading sind - bash menu to the stars..."
 	echo "Public domain - maintained by l3laze"
 	echo "${REPOSITORY_URL}"
-	echo ""
 	curl_download "/tmp/sind" "${REPOSITORY_URL}/${sindurl}?raw=true"
-	chmod +x "/tmp/sind"
 	mv --force "/tmp/sind" "${mrsampath}/sind"
+	echo "Done!"
 }
 
 
@@ -222,13 +219,12 @@ if [ "${samquiet,,}" == "no" ]; then
 	#======== LOCAL VARIABLES ========
 	echo "branch: ${branch}"
 	echo "mbcurl: ${mbcurl}"
-	echo "sindurl: ${sindurl}"
 	echo "********************************************************************************"
 fi	
 
 
 if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
-	# Initial run - need to get updated MiSTer_SAM.sh
+	# Initial run - need to get updated MiSTer_SAM_on.sh
 	echo "Stopping MiSTer SAM processes..."
 
 	# Clean out existing processes to ensure we can update
@@ -237,12 +233,12 @@ if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 	there_can_be_only_one "$$" "MiSTer_SAM.sh"
 
 	# Download the newest MiSTer_SAM.sh to /tmp
-	get_samstuff MiSTer_SAM.sh "/tmp"
-	if [ -f "/tmp/MiSTer_SAM.sh" ]; then
-		"/tmp/MiSTer_SAM.sh"
+	get_samstuff MiSTer_SAM.sh /tmp
+	if [ -f /tmp/MiSTer_SAM.sh ]; then
+		/tmp/MiSTer_SAM.sh
 		exit 0
 	else
-		# /tmp/MiSTer_SAM.sh isn't there!
+		# /tmp/MiSTer_SAM_on.sh isn't there!
   	echo "MiSTer SAM update FAILED - no Internet?"
 		config_init
 	fi
@@ -259,18 +255,18 @@ else # We're running from /tmp - download dependencies and proceed
 	get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
 	#get_samstuff MiSTer_SAM/MiSTer_SAM_joy_change.sh
 	#get_samstuff MiSTer_SAM/MiSTer_SAM_mouse.sh
-	#get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh "/media/fat/Scripts"
-	#get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh "/media/fat/Scripts"
+	#get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh /media/fat/Scripts
+	#get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh /media/fat/Scripts
 	
 	if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 		echo "MiSTer SAM INI already exists... SKIPPED!"
 	else
-		get_samstuff MiSTer_SAM.ini "/media/fat/Scripts"
+		get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 	fi
-	echo "Here"
+
 	#config_init
 fi
-echo "not here"
+
 
 if [ "${doreboot,,}" == "yes" ]; then
 	if [ "${normalreboot,,}" == "yes" ]; then
@@ -282,7 +278,7 @@ if [ "${doreboot,,}" == "yes" ]; then
 	fi
 else
 	echo -n "MiSTer SAM daemon launching... "
-	"/etc/init.d/S93mistersam" start &
+	#/etc/init.d/S93mistersam start &
 	echo "Done!"
 fi
 
