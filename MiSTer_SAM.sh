@@ -258,6 +258,7 @@ function parse_cmd() {
 				;;
 			next) # Load next core - doesn't interrupt loop if running
 				gonext="next_core"
+				exit 0
 				;;
 			stop) # Stop SAM immediately
 				there_can_be_only_one
@@ -265,13 +266,19 @@ function parse_cmd() {
 				exit 0
 				;;
 			update) # Update SAM
-				gonext="sam_update"
+				sam_update
+				sam_reboot
+				exit 0
 				;;
 			enable) # Enable SAM screensaver mode
-				gonext="sam_enable"
+				sam_enable
+				sam_reboot
+				exit 0
 				;;
 			disable) # Disable SAM screensaver
-				gonext="sam_disable"
+				sam_disable
+				sam_reboot
+				exit 0
 				;;
 			monitor) # Attach output to terminal
 				gonext="sam_monitor"
@@ -391,9 +398,7 @@ function sam_update() {
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		fi
-	fi
-	
-	sam_reboot
+	fi	
 }
 
 function sam_enable() { # Enable screensaver
@@ -451,7 +456,10 @@ function env_check() {
 			sleep 1
 		done
 		echo ""
+		doreboot="No"
 		sam_update
+		sam_enable
+		sam_reboot
 	fi
 }
 
