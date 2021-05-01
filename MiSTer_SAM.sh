@@ -35,8 +35,8 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
 # Save our PID and process
-ourpid="$$"
-ourprocess="${0}"
+declare -g sampid="${$}"
+declare -g samprocess="$(basename -- ${0})"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -220,13 +220,31 @@ fi
 
 #======== SAM MENU ========
 function sam_menu() {
-	declare -a menulist=( "Start Now" "Next Game" "Cancel" "--------" )
 	for core in ${corelist}; do
-		menulist+=( "${core^}" )
+		menulist+=( " ${core^^} " )
 	done
-	menulist+=( "--------" "Update and Reboot" "Enable Screensaver" "Disable Screensaver" "Monitor Messages" )
 	clear
-	menuresponse=$(/media/fat/Scripts/.MiSTer_SAM/sind --title "MiSTer Super Attract Mode" --options ${menulist[@]})
+	echo " +-------------------------------------------------+"
+	echo " | Welcome to MiSTer FPGA Super Attract Mode (SAM) |"
+	echo " +-------------------------------------------------+"
+	echo ""
+	echo " Your options are:"
+	echo " -----------------"
+	echo " Start			Start Super Attract Mode now"
+	echo " Next			Move to the next random game - does not reset the timer!"
+	echo " Cancel			Do nothing and exit"
+	echo ""
+	for item in ${menulist[@]}; do
+		echo " ${item^^}			Start SAM with only ${CORE_PRETTY[${item,,}]} games"
+	done
+	echo ""
+	echo " Update			Updates Super Attract Mode and reboots"
+	echo " Enable			Enables the Super Attract Mode screen saver"
+	echo " Disable			Disables the Super Attract Mode screen saver"
+	echo " Monitor			Monitors output from Super Attract Mode in this terminal - only useful via ssh!"
+	echo ""
+	menuresponse=$(/media/fat/Scripts/.MiSTer_SAM/sind --line --options " Start " " Next " " Cancel " ${menulist[@]} " Update " " Enable " " Disable " " Monitor ")
+	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse,,}"; fi
 	parse_cmd ${menuresponse,,}
 }
 
@@ -296,6 +314,12 @@ function parse_cmd() {
 				declare -g corelist="TGFX16"
 				gonext="sam_start"
 				;;
+			cancel) # Exit
+				exit 0
+				;;
+			*)
+				gonext="sam_menu"
+				;;
 		esac
 	done
 
@@ -326,7 +350,7 @@ function sam_update() {
 	
 		# Clean out existing processes to ensure we can update
 		there_can_be_only_one
-		there_can_be_only_one "0" "S93mistersam"
+		/etc/init.d/S93mistersam stop
 	
 		# Download the newest MiSTer_SAM.sh to /tmp
 		get_samstuff MiSTer_SAM.sh /tmp
@@ -343,16 +367,12 @@ function sam_update() {
 		get_mbc
 		get_partun
 		get_sind
-		#get_samstuff MiSTer_SAM/MiSTer_SAM.sh
 		get_samstuff MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff MiSTer_SAM/MiSTer_SAM_MCP.sh
 		get_samstuff MiSTer_SAM/MiSTer_SAM_joy.sh
 		get_samstuff MiSTer_SAM/MiSTer_SAM_joy.py
 		get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
 		get_samstuff MiSTer_SAM/MiSTer_SAM_mouse.sh
-		#get_samstuff MiSTer_SAM/MiSTer_SAM_joy_change.sh
-		#get_samstuff MiSTer_SAM/MiSTer_SAM_now.sh /media/fat/Scripts
-		#get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh /media/fat/Scripts
 		
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 			echo "MiSTer SAM INI already exists... SKIPPED!"
@@ -404,19 +424,10 @@ function sam_disable() { # Disable screensaver
 function there_can_be_only_one() { # there_can_be_only_one (pid) (process)
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
-	if [ -z "${1}" ]; then
-		ourpid=${1}
-	fi
-
-	if [ -z "${2}" ]; then
-		ourprocess=${2}
-	fi
-	
-	if [ ! -z "$(pidof -o ${ourpid} $(basename -- ${ourprocess}))" ]; then
-		echo ""
-		echo "Removing other running instances of $(basename -- ${ourprocess})..."
-		kill -9 $(pidof -o ${ourpid} $(basename -- ${ourprocess})) &>/dev/null
-	fi
+	echo ""
+	echo "Stopping other running instances of ${samprocess}..."
+	kill -9 $(pidof -o ${sampid} ${samprocess}) &>/dev/null
+	wait $(pidof -o ${sampid} ${samprocess}) &>/dev/null
 }
 
 function sam_reboot() {
@@ -429,6 +440,13 @@ function sam_reboot() {
 			reboot -f
 		fi
 	fi
+}
+
+function sam_jsmonitor() {
+	# Monitor joystick devices for changes
+	inotifywait --quiet --monitor --event create --event moved_to --event close_write /dev/input/ | while read path action file; do
+		echo "Device change" >> /tmp/.SAM_Joy_Change
+	done
 }
 
 #======== DOWNLOAD FUNCTIONS ========
@@ -531,9 +549,10 @@ function get_sind() {
 }
 
 
-#========= SAM LISTEN =========
-function sam_listen() {
-	PID=$(ps aux |grep MiSTer_SAM.sh |grep -v grep |awk '{print $1}')
+#========= SAM MONITOR =========
+function sam_monitor() {
+	
+	PID=$(pidof -s -o ${sampid} ${samprocess})
 
 	if [ $PID ]; then
 		echo "Attaching MiSTer SAM to current shell"
@@ -574,7 +593,7 @@ function sam_listen() {
 			fi
 		fi
 	
-		PID=$(ps aux |grep MiSTer_SAM.sh |grep -v grep |awk '{print $1}')
+		PID=$(pidof -s -o ${sampid} ${samprocess})
 	
 		gdb_cmds() {
 			local _name=$1
@@ -645,8 +664,7 @@ function loop_core() {
 	# Reset game log for this session
 	echo "" |> /tmp/SAM_Games.log
 	
-	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event moved_to --event close_write /dev/input/ | while read path action file; do echo "Device change" >> /tmp/.SAM_Joy_Change; done
+	sam_jsmonitor &
 
 	while :; do
 		counter=${gametimer}
@@ -855,7 +873,9 @@ if [ "${samquiet,,}" == "no" ]; then
 	#======== GLOBAL VARIABLES =========
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
-
+	echo "sampid: ${sampid}"
+	echo "samprocess: ${samprocess}"
+	echo ""
 	#======== LOCAL VARIABLES ========
 	echo "branch: ${branch}"
 	echo "mbcurl: ${mbcurl}"
@@ -894,6 +914,7 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo "tgfx16exclude: ${tgfx16exclude[@]}"
 	echo "tgfx16cdexclude: ${tgfx16cdexclude[@]}"
 	echo "********************************************************************************"
+	read -p "Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
 fi	
 
 disable_bootrom							# Disable Bootrom until Reboot 
