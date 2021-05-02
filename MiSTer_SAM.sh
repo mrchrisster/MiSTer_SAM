@@ -220,34 +220,108 @@ fi
 
 #======== SAM MENU ========
 function sam_menu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Main Menu ]" \
+	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+	Start "Start SAM now" \
+	Next "Next game (ssh only)" \
+	Stop "Stop SAM (ssh only)" \
+	Single "Games from only one core" \
+	Utility "Update and Monitor" \
+	Screensaver "Screensaver Configuration" \
+	Cancel "Exit now" 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	
+	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_singlemenu() {
+	declare -a menulist=()
 	for core in ${corelist}; do
-		menulist+=( " ${core^^} " )
+		menulist+=( "${core^^}" )
+		menulist+=( "${CORE_PRETTY[${core,,}]} games only" )
+	done
+
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Single System Menu ]" \
+	--menu "Which system?" 0 0 0 \
+	"${menulist[@]}" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	
+	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_utilitymenu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Utilities Menu ]" \
+	--menu "Select an option" 0 0 0 \
+	Update "Update SAM and Reboot" \
+	Monitor "Display info (ssh only)" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	
+	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_screensavermenu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Utilities Menu ]" \
+	--menu "Select an option" 0 0 0 \
+	Enable "Enable Screensaver" \
+	Disable "Disable Screensaver" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	clear
+	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_oldmenu() {
+	for core in ${corelist}; do
+		menulist+=( "${core^^}" )
 	done
 	clear
-	echo " +-------------------------------------------------+"
-	echo " | Welcome to MiSTer FPGA Super Attract Mode (SAM) |"
-	echo " +-------------------------------------------------+"
+	echo "+---------------------------+"
+	echo "| MiSTer Super Attract Mode |"
+	echo "+---------------------------+"
 	echo ""
-	echo " Your options are:"
-	echo " -----------------"
-	echo " Start				Start Super Attract Mode now - does not enable screensaver"
-	echo " Next				Move to the next random game - does not reset the timer"
-	echo " Stop				Stop Super Attract Mode now - does not disable screensaver"
-	echo " Cancel				Do nothing and exit"
+	echo " ----------------------------"
+	echo " Start    Start SAM now"
+	echo " Next     Next game (ssh)"
+	echo " Stop     Stop SAM (ssh)"
+	echo " Cancel   Exit"
 	echo ""
+
+	# Dynamic spacing for core options
 	for item in ${menulist[@]}; do
-		echo " ${item^^}			Start SAM with only games from the ${CORE_PRETTY[${item,,}]}"
+		echo -n " ${item^^}"
+		spacer=$(( 9 - ${#item} ))
+		for (( c=1; c<=${spacer}; c++ )); do
+			echo -n " "
+		done
+		echo "${item^^} games only"
 	done
+	
 	echo ""
-	echo " Update				Updates Super Attract Mode and reboots"
-	echo " Enable				Enables the Super Attract Mode screen saver"
-	echo " Disable			Disables the Super Attract Mode screen saver"
-	echo " Monitor			Monitors output from Super Attract Mode in this terminal - use via ssh"
-	echo ""
+	echo " Update   Update SAM (reboot)"
+	echo " Enable   Enable screensaver"
+	echo " Disable  Disable screensaver"
+	echo " Monitor  Display info (ssh)"
+	echo " ----------------------------"
 	echo -n " "
 	menuresponse=$(/media/fat/Scripts/.MiSTer_SAM/sind --line --options " Start " " Next " " Stop " " Cancel " ${menulist[@]} " Update " " Enable " " Disable " " Monitor ")
-	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse,,}"; fi
-	parse_cmd ${menuresponse,,}
+
+	clear
+	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
 }
 
 function parse_cmd() {
@@ -328,6 +402,18 @@ function parse_cmd() {
 				declare -g corelist="TGFX16"
 				gonext="sam_start"
 				;;
+			single)
+				gonext="sam_singlemenu"
+				;;
+			utility)
+				gonext="sam_utilitymenu"
+				;;
+			screensaver)
+				gonext="sam_screensavermenu"
+				;;
+			back)
+				gonext="sam_menu"
+				;;
 			cancel) # Exit
 				exit 0
 				;;
@@ -366,9 +452,9 @@ function sam_update() {
 	
 	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 		# Initial run - need to get updated MiSTer_SAM.sh
-		echo " Stopping MiSTer SAM processes..."
-	
+		
 		# Clean out existing processes to ensure we can update
+		echo -n " Stopping MiSTer SAM processes..."
 		there_can_be_only_one
 		killall -q -9 S93mistersam
 		killall -q -9 MiSTer_SAM_MCP.sh
@@ -377,6 +463,7 @@ function sam_update() {
 		killall -q -9 MiSTer_SAM_keyboard.sh
 		killall -q -9 xxd
 		killall -q -9 inotifywait
+		echo " Done!"
 		
 		# Download the newest MiSTer_SAM.sh to /tmp
 		get_samstuff MiSTer_SAM.sh /tmp
