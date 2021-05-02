@@ -370,8 +370,9 @@ function sam_update() {
 	
 		# Clean out existing processes to ensure we can update
 		there_can_be_only_one
-		/etc/init.d/S93mistersam stop
-	
+		killall -9 S93mistersam
+		killall -9 MiSTer_SAM_MCP.sh
+		
 		# Download the newest MiSTer_SAM.sh to /tmp
 		get_samstuff MiSTer_SAM.sh /tmp
 		if [ -f /tmp/MiSTer_SAM.sh ]; then
@@ -437,7 +438,7 @@ function sam_disable() { # Disable screensaver
 
 
 #======== UTILITY FUNCTIONS ========
-function there_can_be_only_one() { # there_can_be_only_one (pid) (process)
+function there_can_be_only_one() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
