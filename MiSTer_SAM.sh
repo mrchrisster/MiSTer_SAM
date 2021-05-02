@@ -211,14 +211,41 @@ done
 # Warn if using non-default branch for updates
 if [ ! "${branch}" == "main" ]; then
 	echo ""
-	echo " ***********************************************"
-	echo " !! DOWNLOADING UPDATES FROM ${branch} BRANCH !!"
-	echo " ***********************************************"
+	echo "*******************************"
+	echo " Updating from ${branch}"
+	echo "*******************************"
 	echo ""
 fi
 
 
 #======== SAM MENU ========
+function sam_premenu() {
+	echo "+---------------------------+"
+	echo "| MiSTer Super Attract Mode |"
+	echo "+---------------------------+"
+	echo ""
+	if [ -f /etc/init.d/S93mistersam ]; then
+		echo " SAM screensaver ENABLED"
+	else
+		echo " SAM screensaver DISABLED"
+	fi
+	echo " Press UP to open menu"
+	echo " Press DOWN to start SAM now"
+	for i in {5..1}; do
+		echo -ne " Starting SAM in ${i}...\033[0K\r"
+		premenu="Start"
+		read -r -s -N 1 -t 1 key
+		if [[ "${key}" == "A" ]]; then
+			premenu="Menu"
+			break
+		elif [[ "${key}" == "B" ]]; then
+			premenu="Start"
+			break
+		fi
+	done
+	parse_cmd ${premenu}
+}
+
 function sam_menu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
 	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Main Menu ]" \
@@ -298,24 +325,24 @@ function sam_oldmenu() {
 	echo " Next     Next game (ssh)"
 	echo " Stop     Stop SAM (ssh)"
 	echo " Cancel   Exit"
-	echo ""
-
-	# Dynamic spacing for core options
-	for item in ${menulist[@]}; do
-		echo -n " ${item^^}"
-		spacer=$(( 9 - ${#item} ))
-		for (( c=1; c<=${spacer}; c++ )); do
-			echo -n " "
-		done
-		echo "${item^^} games only"
-	done
-	
-	echo ""
-	echo " Update   Update SAM (reboot)"
-	echo " Enable   Enable screensaver"
-	echo " Disable  Disable screensaver"
-	echo " Monitor  Display info (ssh)"
-	echo " ----------------------------"
+	#echo ""
+  #
+	## Dynamic spacing for core options
+	#for item in ${menulist[@]}; do
+	#	echo -n " ${item^^}"
+	#	spacer=$(( 9 - ${#item} ))
+	#	for (( c=1; c<=${spacer}; c++ )); do
+	#		echo -n " "
+	#	done
+	#	echo "${item^^} games only"
+	#done
+	#
+	#echo ""
+	#echo " Update   Update SAM (reboot)"
+	#echo " Enable   Enable screensaver"
+	#echo " Disable  Disable screensaver"
+	#echo " Monitor  Display info (ssh)"
+	#echo " ----------------------------"
 	echo -n " "
 	menuresponse=$(/media/fat/Scripts/.MiSTer_SAM/sind --line --options " Start " " Next " " Stop " " Cancel " ${menulist[@]} " Update " " Enable " " Disable " " Monitor ")
 
@@ -412,6 +439,9 @@ function parse_cmd() {
 				gonext="sam_screensavermenu"
 				;;
 			back)
+				gonext="sam_menu"
+				;;
+			menu)
 				gonext="sam_menu"
 				;;
 			cancel) # Exit
@@ -1050,5 +1080,5 @@ build_mralist								# Generate list of MRAs
 init_data										# Setup data arrays
 env_check										# Check that we've been installed
 parse_cmd ${@}							# Parse command line parameters for input
-sam_menu										# What are we doing today?
+sam_premenu									# What are we doing today?
 exit
