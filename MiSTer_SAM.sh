@@ -370,8 +370,13 @@ function sam_update() {
 	
 		# Clean out existing processes to ensure we can update
 		there_can_be_only_one
-		killall -9 S93mistersam
-		killall -9 MiSTer_SAM_MCP.sh
+		killall -q -9 S93mistersam
+		killall -q -9 MiSTer_SAM_MCP.sh
+		killall -q -9 MiSTer_SAM_joy.sh
+		killall -q -9 MiSTer_SAM_mouse.sh
+		killall -q -9 MiSTer_SAM_keyboard.sh
+		killall -q -9 xxd
+		killall -q -9 inotifywait
 		
 		# Download the newest MiSTer_SAM.sh to /tmp
 		get_samstuff MiSTer_SAM.sh /tmp
