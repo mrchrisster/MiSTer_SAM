@@ -295,7 +295,8 @@ function parse_cmd() {
 	for arg in "${@}"; do
 		case ${arg,,} in
 			start) # Start SAM immediately
-				gonext="sam_start"
+				sam_start
+				exit 0
 				;;
 			skip) # Load next game - doesn't interrupt loop if running
 				echo " Skipping to next game..."
