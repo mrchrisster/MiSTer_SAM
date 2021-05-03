@@ -32,7 +32,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g mrsampath="/media/fat/Scripts/MiSTer_SAM"
 declare -g misterpath="/media/fat"
 # Save our PID and process
 declare -g sampid="${$}"
@@ -59,7 +59,6 @@ mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg"
 mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 branch="main"
 mbcurl="blob/master/mbc_v02"
-sindurl="blob/master/sind.sh"
 doreboot="Yes"
 normalreboot="Yes"
 
@@ -426,8 +425,8 @@ function sam_start() { #Start SAM
 	there_can_be_only_one # Terminate any other running SAM processes
 	
 	# If the MCP isn't running we need to start it in monitoring only mode
-	if [ -z "$(pidof MiSTer_SAM_MCP.sh)" ]; then
-		${mrsampath}/MiSTer_SAM_MCP.sh monitoronly &
+	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
+		${mrsampath}/MiSTer_SAM_MCP monitoronly &
 	fi
 	
 	loop_core
@@ -447,7 +446,7 @@ function sam_update() {
 		echo -n " Stopping MiSTer SAM processes..."
 		there_can_be_only_one
 		killall -q -9 S93mistersam
-		killall -q -9 MiSTer_SAM_MCP.sh
+		killall -q -9 MiSTer_SAM_MCP
 		killall -q -9 MiSTer_SAM_joy.sh
 		killall -q -9 MiSTer_SAM_mouse.sh
 		killall -q -9 MiSTer_SAM_keyboard.sh
@@ -468,9 +467,8 @@ function sam_update() {
 		cp --force "/tmp/MiSTer_SAM.sh" "/media/fat/Scripts/MiSTer_SAM.sh"
 		get_mbc
 		get_partun
-		get_sind
 		get_samstuff MiSTer_SAM/MiSTer_SAM_init
-		get_samstuff MiSTer_SAM/MiSTer_SAM_MCP.sh
+		get_samstuff MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff MiSTer_SAM/MiSTer_SAM_joy.sh
 		get_samstuff MiSTer_SAM/MiSTer_SAM_joy.py
 		get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
@@ -532,7 +530,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 function env_check() {
 	# Check if we've been installed
-	if [ ! -f "${mbcpath}" ] || [ ! -f "${partunpath}" ] || [ ! -f "${mrsampath}/sind" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP.sh" ]; then
+	if [ ! -f "${mbcpath}" ] || [ ! -f "${partunpath}" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
 		echo " MiSTer Super Attract Mode support files not found."
 		echo " If this is unexpected check your INI settings."
 		for i in {5..1}; do
@@ -640,9 +638,9 @@ function get_mbc() {
 	echo " Downloading mbc - a tool needed for launching roms..."
 	echo " Created for MiSTer by pocomane"
 	echo " ${REPOSITORY_URL}"
-	echo " Done!"
 	curl_download "/tmp/mbc" "${REPOSITORY_URL}/${mbcurl}?raw=true"
 	mv --force "/tmp/mbc" "${mrsampath}/mbc"
+	echo " Done!"
 }
 
 function get_partun() {
@@ -650,19 +648,9 @@ function get_partun() {
   echo " Downloading partun - needed for unzipping roms from big archives..."
   echo " Created for MiSTer by woelper - who is allegedly not a spider"
   echo " ${REPOSITORY_URL}"
-	echo " Done!"
   latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
   curl_download "/tmp/partun" "${latest}"
  	mv --force "/tmp/partun" "${mrsampath}/partun"
-}
-
-function get_sind() {
-	REPOSITORY_URL="https://github.com/l3laze/sind"
-	echo " Downloading sind - bash menu to the stars..."
-	echo " Public domain - maintained by l3laze"
-	echo " ${REPOSITORY_URL}"
-	curl_download "/tmp/sind" "${REPOSITORY_URL}/${sindurl}?raw=true"
-	mv --force "/tmp/sind" "${mrsampath}/sind"
 	echo " Done!"
 }
 
