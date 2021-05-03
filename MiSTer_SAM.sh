@@ -74,51 +74,41 @@ tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
 
 #======== EXCLUDE LISTS ========
-arcadeexclude="
-First Bad Game.mra
+arcadeexclude="First Bad Game.mra
 Second Bad Game.mra
-Third Bad Game.mra
-"
-gbaexclude="
-First Bad Game.gba
+Third Bad Game.mra"
+
+gbaexclude="First Bad Game.gba
 Second Bad Game.gba
-Third Bad Game.gba
-"
-genesisexclude="
-First Bad Game.gen
+Third Bad Game.gba"
+
+genesisexclude="First Bad Game.gen
 Second Bad Game.gen
-Third Bad Game.gen
-"
-megacdexclude="
-First Bad Game.chd
+Third Bad Game.gen"
+
+megacdexclude="First Bad Game.chd
 Second Bad Game.chd
-Third Bad Game.chd
-"
-neogeoexclude="
-First Bad Game.neo
+Third Bad Game.chd"
+
+neogeoexclude="First Bad Game.neo
 Second Bad Game.neo
-Third Bad Game.neo
-"
-nesexclude="
-First Bad Game.nes
+Third Bad Game.neo"
+
+nesexclude="First Bad Game.nes
 Second Bad Game.nes
-Third Bad Game.nes
-"
-snesexclude="
-First Bad Game.sfc
+Third Bad Game.nes"
+
+snesexclude="First Bad Game.sfc
 Second Bad Game.sfc
-Third Bad Game.sfc
-"
-tgfx16exclude="
-First Bad Game.pce
+Third Bad Game.sfc"
+
+tgfx16exclude="First Bad Game.pce
 Second Bad Game.pce
-Third Bad Game.pce
-"
-tgfx16cdexclude="
-First Bad Game.chd
+Third Bad Game.pce"
+
+tgfx16cdexclude="First Bad Game.chd
 Second Bad Game.chd
-Third Bad Game.chd
-"
+Third Bad Game.chd"
 
 # ======== CORE CONFIG ========
 function init_data() {
@@ -207,15 +197,6 @@ for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath gene
 	declare -g ${var}="${!var%/}"
 done
 
-# Warn if using non-default branch for updates
-if [ ! "${branch}" == "main" ]; then
-	echo ""
-	echo "*******************************"
-	echo " Updating from ${branch}"
-	echo "*******************************"
-	echo ""
-fi
-
 
 #======== SAM MENU ========
 function sam_premenu() {
@@ -250,7 +231,7 @@ function sam_menu() {
 	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Main Menu ]" \
 	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 	Start "Start SAM now" \
-	Next "Next game (ssh only)" \
+	Skip "Skip game (ssh only)" \
 	Stop "Stop SAM (ssh only)" \
 	Single "Games from only one core" \
 	Utility "Update and Monitor" \
@@ -316,8 +297,9 @@ function parse_cmd() {
 			start) # Start SAM immediately
 				gonext="sam_start"
 				;;
-			next) # Load next core - doesn't interrupt loop if running
-				gonext="next_core"
+			skip) # Load next game - doesn't interrupt loop if running
+				echo " Skipping to next game..."
+				next_core
 				exit 0
 				;;
 			stop) # Stop SAM immediately
@@ -433,6 +415,15 @@ function sam_start() { #Start SAM
 }
 	
 function sam_update() {
+	# Warn if using non-default branch for updates
+	if [ ! "${branch}" == "main" ]; then
+		echo ""
+		echo "*******************************"
+		echo " Updating from ${branch}"
+		echo "*******************************"
+		echo ""
+	fi
+	
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
 	
