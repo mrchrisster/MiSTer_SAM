@@ -15,6 +15,7 @@ samtimeout=60
 startupsleep="Yes"
 menuonly="Yes"
 usepyjoy="Yes"
+monitoronly="No"
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
@@ -23,7 +24,7 @@ do
 	sleep 1
 	count=`expr $count + 1`
 	if test $count -eq 30; then
-		echo "Mount timed out!"
+		echo " Mount timed out!"
       		exit 1
  		fi
 done
@@ -36,6 +37,12 @@ fi
 for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
 	declare -g ${var}="${!var%/}"
 done
+
+# This is triggered by MiSTer_SAM.sh when we're not running in screen saver mode
+if [ "${1,,}" == "monitoronly" ]; then
+	monitoronly="Yes"
+	startupsleep="No"
+fi
 
 
 #======== Start ========
@@ -69,14 +76,15 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo "mrsampath: ${mrsampath}"
 	echo "misterpath: ${misterpath}"
 	#======== LOCAL VARIABLES ========
+	echo "commandline: ${@}"
 	echo "samtimeout: ${samtimeout}"
 	echo "startupsleep: ${startupsleep}"
 	echo "menuonly: ${menuonly}"
+	echo "monitoronly: ${monitoronly}"
 	echo "********************************************************************************"
 fi
 
 echo "Starting MiSTer Super Attract Mode... "
-
 # Spawn Joystick monitoring process per detected joystick device
 shopt -s nullglob
 for joystick in /dev/input/js*; do
@@ -181,16 +189,16 @@ while :; do
 		done
 
 		# Stop removed joystick monitoring
-			for joystick in ${jsdel[@]}; do
-				if [ ! -z "${joystick}" ]; then
-					echo -n "Monitoring stopping for joystick: ${joystick}... "
-						for otherpid in $(ps -o pid,args | grep -e 'MiSTer_SAM_joy.sh' | grep -e "${joystick}" | awk '{ print $1 }'); do
-							kill -9 ${otherpid}
-							wait ${otherpid} &>/dev/null
-						done
-					echo "Done!"
-				fi
-			done
+		for joystick in ${jsdel[@]}; do
+			if [ ! -z "${joystick}" ]; then
+				echo -n "Monitoring stopping for joystick: ${joystick}... "
+					for otherpid in $(ps -o pid,args | grep -e 'MiSTer_SAM_joy.sh' | grep -e "${joystick}" | awk '{ print $1 }'); do
+						kill -9 ${otherpid}
+						wait ${otherpid} &>/dev/null
+					done
+				echo "Done!"
+			fi
+		done
 	fi
 
 	if [ "${menuonly,,}" == "yes" ]; then # Only start SAM from main menu
@@ -204,9 +212,11 @@ while :; do
 				echo "" |>/tmp/.SAM_Mouse_Activity
 				echo "" |>/tmp/.SAM_Keyboard_Activity
 
-				echo "No activity detected for ${samtimeout} minutes. SAM starting..."
-				"${mrsampath}/MiSTer_SAM.sh"
-				echo "Returned from SAM."
+				if [ "${monitoronly,,}" == "No" ]; then
+					echo "No activity detected for ${samtimeout} minutes. SAM starting..."
+					"${mrsampath}/MiSTer_SAM.sh" "start"
+					echo "Returned from SAM."
+				fi
 
 				# Reset activity triggers
 				echo "" |>/tmp/.SAM_Joy_Activity
@@ -224,9 +234,11 @@ while :; do
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
 
-			echo "No activity detected for ${samtimeout} minutes. SAM starting..."
-			"${mrsampath}/MiSTer_SAM.sh"
-			echo "Returned from SAM."
+			if [ "${monitoronly,,}" == "No" ]; then
+				echo "No activity detected for ${samtimeout} minutes. SAM starting..."
+				"${mrsampath}/MiSTer_SAM.sh"
+				echo "Returned from SAM."
+			fi
 
 			# Reset activity triggers
 			echo "" |>/tmp/.SAM_Joy_Activity
