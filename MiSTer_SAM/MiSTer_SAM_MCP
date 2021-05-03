@@ -215,7 +215,7 @@ while :; do
 
 				if [ "${monitoronly,,}" == "No" ]; then
 					echo "No activity detected for ${samtimeout} minutes. SAM starting..."
-					"/media/fat/Scripts/MiSTer_SAM.sh" "start"
+					"/media/fat/Scripts/MiSTer_SAM.sh" start
 					echo "Returned from SAM."
 				fi
 
@@ -237,7 +237,7 @@ while :; do
 
 			if [ "${monitoronly,,}" == "No" ]; then
 				echo "No activity detected for ${samtimeout} minutes. SAM starting..."
-				"/media/fat/Scripts/MiSTer_SAM.sh"
+				"/media/fat/Scripts/MiSTer_SAM.sh" start
 				echo "Returned from SAM."
 			fi
 
