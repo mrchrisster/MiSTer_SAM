@@ -441,19 +441,6 @@ function sam_update() {
 	
 	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 		# Initial run - need to get updated MiSTer_SAM.sh
-		
-		# Clean out existing processes to ensure we can update
-		echo -n " Stopping MiSTer SAM processes..."
-		there_can_be_only_one
-		killall -q -9 S93mistersam
-		killall -q -9 MiSTer_SAM_MCP
-		killall -q -9 MiSTer_SAM_joy.sh
-		killall -q -9 MiSTer_SAM_mouse.sh
-		killall -q -9 MiSTer_SAM_keyboard.sh
-		killall -q -9 xxd
-		killall -q -9 inotifywait
-		echo " Done!"
-		
 		# Download the newest MiSTer_SAM.sh to /tmp
 		get_samstuff MiSTer_SAM.sh /tmp
 		if [ -f /tmp/MiSTer_SAM.sh ]; then
@@ -481,6 +468,10 @@ function sam_update() {
 			echo " MiSTer SAM INI already exists... SKIPPED!"
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
+		fi
+		
+		if [ -f /etc/init.d/S93mistersam ]; then
+			sam_enable
 		fi
 	fi	
 }
