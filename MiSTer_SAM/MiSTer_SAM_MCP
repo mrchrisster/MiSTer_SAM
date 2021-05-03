@@ -58,6 +58,7 @@ fi
 # Kill old activity processes
 echo -n "Stopping activity monitoring... "
 killall -q -2 MiSTer_SAM_joy.sh
+killall -q -2 MiSTer_SAM_joy.py
 killall -q -2 MiSTer_SAM_joy_change.sh
 killall -q -2 MiSTer_SAM_mouse.sh
 killall -q -2 MiSTer_SAM_keyboard.sh
@@ -214,7 +215,7 @@ while :; do
 
 				if [ "${monitoronly,,}" == "No" ]; then
 					echo "No activity detected for ${samtimeout} minutes. SAM starting..."
-					"${mrsampath}/MiSTer_SAM.sh" "start"
+					"/media/fat/Scripts/MiSTer_SAM.sh" "start"
 					echo "Returned from SAM."
 				fi
 
@@ -236,7 +237,7 @@ while :; do
 
 			if [ "${monitoronly,,}" == "No" ]; then
 				echo "No activity detected for ${samtimeout} minutes. SAM starting..."
-				"${mrsampath}/MiSTer_SAM.sh"
+				"/media/fat/Scripts/MiSTer_SAM.sh"
 				echo "Returned from SAM."
 			fi
 
