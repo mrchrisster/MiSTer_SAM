@@ -213,7 +213,7 @@ while :; do
 				echo "" |>/tmp/.SAM_Mouse_Activity
 				echo "" |>/tmp/.SAM_Keyboard_Activity
 
-				if [ "${monitoronly,,}" == "No" ]; then
+				if [ "${monitoronly,,}" == "no" ]; then
 					echo "No activity detected for ${samtimeout} minutes. SAM starting..."
 					"/media/fat/Scripts/MiSTer_SAM.sh" start
 					echo "Returned from SAM."
@@ -235,7 +235,7 @@ while :; do
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
 
-			if [ "${monitoronly,,}" == "No" ]; then
+			if [ "${monitoronly,,}" == "no" ]; then
 				echo "No activity detected for ${samtimeout} minutes. SAM starting..."
 				"/media/fat/Scripts/MiSTer_SAM.sh" start
 				echo "Returned from SAM."
