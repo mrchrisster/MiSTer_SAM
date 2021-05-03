@@ -225,9 +225,9 @@ function sam_premenu() {
 	echo "+---------------------------+"
 	echo ""
 	if [ -f /etc/init.d/S93mistersam ]; then
-		echo " SAM screensaver ENABLED"
+		echo " SAM autoplay ENABLED"
 	else
-		echo " SAM screensaver DISABLED"
+		echo " SAM autoplay DISABLED"
 	fi
 	echo " Press UP to open menu"
 	echo " Press DOWN to start SAM now"
@@ -255,7 +255,7 @@ function sam_menu() {
 	Stop "Stop SAM (ssh only)" \
 	Single "Games from only one core" \
 	Utility "Update and Monitor" \
-	Screensaver "Screensaver Configuration" \
+	Autoplay "Autoplay Configuration" \
 	Cancel "Exit now" 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -297,55 +297,15 @@ function sam_utilitymenu() {
 	parse_cmd ${menuresponse}
 }
 
-function sam_screensavermenu() {
+function sam_autoplaymenu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Utilities Menu ]" \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Autoplay Menu ]" \
 	--menu "Select an option" 0 0 0 \
-	Enable "Enable Screensaver" \
-	Disable "Disable Screensaver" \
+	Enable "Enable Autoplay" \
+	Disable "Disable Autoplay" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	
-	clear
-	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
-	parse_cmd ${menuresponse}
-}
-
-function sam_oldmenu() {
-	for core in ${corelist}; do
-		menulist+=( "${core^^}" )
-	done
-	clear
-	echo "+---------------------------+"
-	echo "| MiSTer Super Attract Mode |"
-	echo "+---------------------------+"
-	echo ""
-	echo " ----------------------------"
-	echo " Start    Start SAM now"
-	echo " Next     Next game (ssh)"
-	echo " Stop     Stop SAM (ssh)"
-	echo " Cancel   Exit"
-	#echo ""
-  #
-	## Dynamic spacing for core options
-	#for item in ${menulist[@]}; do
-	#	echo -n " ${item^^}"
-	#	spacer=$(( 9 - ${#item} ))
-	#	for (( c=1; c<=${spacer}; c++ )); do
-	#		echo -n " "
-	#	done
-	#	echo "${item^^} games only"
-	#done
-	#
-	#echo ""
-	#echo " Update   Update SAM (reboot)"
-	#echo " Enable   Enable screensaver"
-	#echo " Disable  Disable screensaver"
-	#echo " Monitor  Display info (ssh)"
-	#echo " ----------------------------"
-	echo -n " "
-	menuresponse=$(/media/fat/Scripts/.MiSTer_SAM/sind --line --options " Start " " Next " " Stop " " Cancel " ${menulist[@]} " Update " " Enable " " Disable " " Monitor ")
-
 	clear
 	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
@@ -371,12 +331,12 @@ function parse_cmd() {
 				sam_reboot
 				exit 0
 				;;
-			enable) # Enable SAM screensaver mode
+			enable) # Enable SAM autoplay mode
 				sam_enable
 				sam_reboot
 				exit 0
 				;;
-			disable) # Disable SAM screensaver
+			disable) # Disable SAM autoplay
 				sam_disable
 				sam_reboot
 				exit 0
@@ -435,8 +395,8 @@ function parse_cmd() {
 			utility)
 				gonext="sam_utilitymenu"
 				;;
-			screensaver)
-				gonext="sam_screensavermenu"
+			autoplay)
+				gonext="sam_autoplaymenu"
 				;;
 			back)
 				gonext="sam_menu"
@@ -524,14 +484,15 @@ function sam_update() {
 	fi	
 }
 
-function sam_enable() { # Enable screensaver
-	echo -n "Enabling MiSTer SAM Screensaver..."
+function sam_enable() { # Enable autoplay
+	echo -n "Enabling MiSTer SAM Autoplay..."
 	# Remount root as read-write if read-only so we can add our daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
 
 	# Awaken daemon
-	mv -f "${mrsampath}/MiSTer_SAM_init" /etc/init.d/S93mistersam &>/dev/null
+	cp -f "${mrsampath}/MiSTer_SAM_init" /etc/init.d/_S93mistersam &>/dev/null
+	mv -f /etc/init.d/_S93mistersam /etc/init.d/S93mistersam &>/dev/null
 	chmod +x /etc/init.d/S93mistersam
 
 	# Remove read-write if we were read-only
@@ -545,7 +506,8 @@ function sam_enable() { # Enable screensaver
 	echo " Done!"
 }
 
-function sam_disable() { # Disable screensaver
+function sam_disable() { # Disable autoplay
+	echo -n " Disabling SAM autoplay..."
 	/etc/init.d/S93mistersam stop
 	
 	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
@@ -554,8 +516,7 @@ function sam_disable() { # Disable screensaver
 	sync
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
 	sync
-	
-	echo " MiSTer Super Attract Mode is off and inactive at startup."
+	echo " Done!"
 }
 
 
