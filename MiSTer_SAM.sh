@@ -473,6 +473,9 @@ function sam_update() {
 		get_samstuff MiSTer_SAM/MiSTer_SAM_joy.py
 		get_samstuff MiSTer_SAM/MiSTer_SAM_keyboard.sh
 		get_samstuff MiSTer_SAM/MiSTer_SAM_mouse.sh
+		get_samstuff MiSTer_SAM/MiSTer_SAM_on.sh
+		get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh
+		get_samstuff MiSTer_SAM/MiSTer_SAM_update.sh
 		
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 			echo " MiSTer SAM INI already exists... SKIPPED!"
@@ -506,8 +509,16 @@ function sam_enable() { # Enable autoplay
 
 function sam_disable() { # Disable autoplay
 	echo -n " Disabling SAM autoplay..."
-	/etc/init.d/S93mistersam stop
-	
+	# Clean out existing processes to ensure we can update
+	there_can_be_only_one
+	killall -q -9 S93mistersam
+	killall -q -9 MiSTer_SAM_MCP
+	killall -q -9 MiSTer_SAM_joy.sh
+	killall -q -9 MiSTer_SAM_mouse.sh
+	killall -q -9 MiSTer_SAM_keyboard.sh
+	killall -q -9 xxd
+	killall -q -9 inotifywait
+
 	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
 	rm -f /etc/init.d/S93mistersam > /dev/null 2>&1
