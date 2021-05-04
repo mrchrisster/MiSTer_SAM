@@ -58,7 +58,7 @@ partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
 mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
 mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 branch="main"
-mbcurl="blob/master/mbc_v02"
+mbcurl="blob/master/mbc_v03"
 doreboot="Yes"
 normalreboot="Yes"
 
