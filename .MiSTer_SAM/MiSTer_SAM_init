@@ -1,1 +1,115 @@
+#!/bin/bash
+trap "" HUP
+trap "" TERM
 
+#======== INI VARIABLES ========
+# Change these in the INI file
+
+#======== GLOBAL VARIABLES =========
+declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g misterpath="/media/fat"
+
+#======== DEBUG VARIABLES ========
+samquiet="Yes"
+
+#======== LOCAL VARIABLES ========
+
+#========= PARSE INI =========
+# Read INI, Check for mount point presence
+while ! test -d /media/fat/
+do
+	sleep 1
+	count=`expr $count + 1`
+	if test $count -eq 30; then
+		echo " Mount timed out!"
+      		exit 1
+ 		fi
+done
+
+if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+fi
+
+# Remove trailing slash from paths
+for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
+	declare -g ${var}="${!var%/}"
+done
+
+
+#======== Functions ========
+start()
+{
+	#======== Start ========
+	echo " Starting MiSTer Super Attract Mode... "
+	${mrsampath}/MiSTer_SAM_MCP &
+}
+
+stop() 
+{
+	echo -n " Stopping MiSTer SAM MCP..."
+	pids=$(pidof MiSTer_SAM_MCP)
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
+
+	echo -n " Stopping MiSTer SAM..."
+	pids=$(pidof MiSTer_SAM_on.sh)
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
+}
+
+# Kill running process
+pids=$(pidof -o $$ $(basename -- ${0}))
+if [ ! -z "pids" ]; then
+	echo -n " Removing other instances of $(basename -- ${0})..."
+	kill -9 ${pids} &>/dev/null
+	wait ${pids} &>/dev/null
+	echo " Done!"
+fi
+
+# Kill old activity processes
+echo -n " Stopping activity monitoring..."
+killall -q -9 MiSTer_SAM_joy.py
+killall -q -9 MiSTer_SAM_mouse.sh
+killall -q -9 MiSTer_SAM_keyboard.sh
+killall -q -9 xxd
+killall -q -9 inotifywait
+echo " Done!"
+
+
+#======== DEBUG OUTPUT =========
+if [ "${samquiet,,}" == "no" ]; then
+	echo "********************************************************************************"
+	#======== GLOBAL VARIABLES =========
+	echo " mrsampath: ${mrsampath}"
+	echo " misterpath: ${misterpath}"
+	#======== LOCAL VARIABLES ========
+	echo " samtimeout: ${samtimeout}"
+	echo " startupsleep: ${startupsleep}"
+	echo " menuonly: ${menuonly}"
+	echo "********************************************************************************"
+fi
+
+# Parse command line
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo " Usage: /etc/init.d/S93mistersam {start|stop|restart}"
+        exit 1
+        ;;
+esac
+exit 0
