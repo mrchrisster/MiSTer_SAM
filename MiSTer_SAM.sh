@@ -652,7 +652,7 @@ function get_partun() {
 #========= SAM MONITOR =========
 function sam_monitor() {
 	
-	PID=$(pidof -s -o ${sampid} ${samprocess})
+	PID=$(ps aux |grep MiSTer_SAM.sh |grep -v grep |awk '{print $1}' | head -n 1)
 
 	if [ $PID ]; then
 		echo " Attaching MiSTer SAM to current shell"
@@ -693,8 +693,6 @@ function sam_monitor() {
 			fi
 		fi
 		
-		PID=$(ps aux |grep MiSTer_SAM.sh |grep -v grep |awk '{print $1}')
-		#PID=$(pidof -s -o ${sampid} ${samprocess})
 	
 		gdb_cmds() {
 			local _name=$1
