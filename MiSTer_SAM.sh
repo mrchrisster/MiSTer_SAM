@@ -692,8 +692,9 @@ function sam_monitor() {
 			exit 1
 			fi
 		fi
-	
-		PID=$(pidof -s -o ${sampid} ${samprocess})
+		
+		PID=$(ps aux |grep MiSTer_SAM.sh |grep -v grep |awk '{print $1}')
+		#PID=$(pidof -s -o ${sampid} ${samprocess})
 	
 		gdb_cmds() {
 			local _name=$1
