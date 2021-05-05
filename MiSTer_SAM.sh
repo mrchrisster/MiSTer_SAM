@@ -240,7 +240,7 @@ function sam_menu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 	
-	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
 
@@ -259,7 +259,7 @@ function sam_singlemenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 	
-	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
 
@@ -273,7 +273,7 @@ function sam_utilitymenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 	
-	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
 
@@ -287,7 +287,7 @@ function sam_autoplaymenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	
 	clear
-	if [ "${samquiet,,}" == "no" ]; then echo "menuresponse: ${menuresponse}"; fi
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
 
@@ -469,7 +469,7 @@ function sam_update() {
 }
 
 function sam_enable() { # Enable autoplay
-	echo -n "Enabling MiSTer SAM Autoplay..."
+	echo -n " Enabling MiSTer SAM Autoplay..."
 	# Remount root as read-write if read-only so we can add our daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
@@ -485,7 +485,7 @@ function sam_enable() { # Enable autoplay
 	sync
 	echo " Done!"
 
-	echo -n "MiSTer SAM starting..."
+	echo -n " MiSTer SAM starting..."
 	/etc/init.d/S93mistersam start &
 	echo " Done!"
 }
@@ -770,7 +770,7 @@ function loop_core() {
 
 		next_core
 		while [ ${counter} -gt 0 ]; do
-			echo -ne "Next game in ${counter}...\033[0K\r"
+			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
 			
@@ -843,7 +843,7 @@ function next_core() { # next_core (nextcore)
 	if [ ${#excludelist[@]} -gt 0 ]; then
 		for excluded in "${excludelist[@]}"; do
 			if [ "${romname}" == "${excluded}" ]; then
-				echo " The game \"${romname}\" is on the exclusion list - SKIPPED"
+				echo " ${romname} is excluded - SKIPPED"
 				next_core
 				return
 			fi
@@ -853,12 +853,13 @@ function next_core() { # next_core (nextcore)
 	if [ -z "${rompath}" ]; then
 		core_error "${nextcore}" "${rompath}"
 	else
+		declare -g romloadfails=0
 		load_core "${nextcore}" "${rompath}" "${romname%.*}" "${1}"
 	fi
 }
 
 function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
-	echo -n "Starting now on the "
+	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
 	echo -e "\e[1m${3}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
@@ -866,7 +867,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
-			echo -ne "Loading game in ${i}...\033[0K\r"
+			echo -ne " Loading game in ${i}...\033[0K\r"
 			sleep 1
 		done
 	fi
