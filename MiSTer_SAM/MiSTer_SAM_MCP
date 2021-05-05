@@ -123,6 +123,8 @@ if [ "${startupsleep,,}" == "yes" ]; then
 	echo -n "Waiting 60 seconds for system startup... "
 	sleep 60
 	echo "Done!"
+	echo "MiSTer SAM enabled!"
+	echo "Please wait for startup"
 fi
 
 # Reset activity triggers
