@@ -32,7 +32,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/MiSTer_SAM"
+declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
 # Save our PID and process
 declare -g sampid="${$}"
@@ -209,11 +209,17 @@ function sam_premenu() {
 	else
 		echo " SAM autoplay DISABLED"
 	fi
+	echo ""
+	echo " Please wait to update,"
+	echo " enable autoplay, and"
+	echo " start SAM."
+	echo ""
+	echo " Otherwise, you may"
 	echo " Press UP to open menu"
-	echo " Press DOWN to start SAM now"
+	echo " Press DOWN to start SAM"
 	for i in {5..1}; do
-		echo -ne " Starting SAM in ${i}...\033[0K\r"
-		premenu="Start"
+		echo -ne " Updating SAM in ${i}...\033[0K\r"
+		premenu="Default"
 		read -r -s -N 1 -t 1 key
 		if [[ "${key}" == "A" ]]; then
 			premenu="Menu"
@@ -294,6 +300,13 @@ function sam_autoplaymenu() {
 function parse_cmd() {
 	for arg in "${@}"; do
 		case ${arg,,} in
+			default)
+				sam_update
+				sam_enable
+				#sam_reboot
+				sam_start
+				exit 0
+				;;
 			start) # Start SAM immediately
 				sam_start
 				exit 0
@@ -310,21 +323,21 @@ function parse_cmd() {
 				;;
 			update) # Update SAM
 				sam_update
-				sam_reboot
 				exit 0
 				;;
 			enable) # Enable SAM autoplay mode
 				sam_enable
-				sam_reboot
+				#sam_reboot
 				exit 0
 				;;
 			disable) # Disable SAM autoplay
 				sam_disable
-				sam_reboot
+				#sam_reboot
 				exit 0
 				;;
 			monitor) # Attach output to terminal
-				gonext="sam_monitor"
+				sam_monitor
+				exit 0
 				;;
 			arcade)
 				echo " ${CORE_PRETTY[${arg,,}]} selected!"
@@ -443,7 +456,7 @@ function sam_update() {
 	  	echo " MiSTer SAM update FAILED - no Internet?"
 		fi
 	else # We're running from /tmp - download dependencies and proceed
-		cp --force "/tmp/MiSTer_SAM.sh" "/media/fat/Scripts/MiSTer_SAM.sh"
+		cp --force "/tmp/MiSTer_SAM.sh" "/media/fat/Scripts/.MiSTer_SAM.sh"
 		get_mbc
 		get_partun
 		get_samstuff MiSTer_SAM/MiSTer_SAM_init
@@ -456,7 +469,7 @@ function sam_update() {
 		get_samstuff MiSTer_SAM/MiSTer_SAM_off.sh
 		get_samstuff MiSTer_SAM/MiSTer_SAM_update.sh
 		
-		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+		if [ -f /media/fat/Scripts/.MiSTer_SAM.ini ]; then
 			echo " MiSTer SAM INI already exists... SKIPPED!"
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
@@ -535,7 +548,7 @@ function env_check() {
 		doreboot="No"
 		sam_update
 		sam_enable
-		sam_reboot
+		#sam_reboot
 	fi
 }
 
