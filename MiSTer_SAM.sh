@@ -872,6 +872,10 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 
 	"${mbcpath}" load_rom ${1^^} "${2}" > /dev/null 2>&1
+	sleep 1
+	echo "" |>/tmp/.SAM_Joy_Change
+	echo "" |>/tmp/.SAM_Mouse_Activity
+	echo "" |>/tmp/.SAM_Keyboard_Activity
 }
 
 function core_error() { # core_error core /path/to/ROM
@@ -962,6 +966,10 @@ function load_core_arcade() {
 
   # Tell MiSTer to load the next MRA
   echo "load_core ${arcadepath}/${mra}" > /dev/MiSTer_cmd
+ 	sleep 1
+	echo "" |>/tmp/.SAM_Joy_Change
+	echo "" |>/tmp/.SAM_Mouse_Activity
+	echo "" |>/tmp/.SAM_Keyboard_Activity
 }
 
 
