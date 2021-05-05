@@ -21,7 +21,7 @@ do
 	sleep 1
 	count=`expr $count + 1`
 	if test $count -eq 30; then
-		echo "Mount timed out!"
+		echo " Mount timed out!"
       		exit 1
  		fi
 done
@@ -40,59 +40,59 @@ done
 start()
 {
 	#======== Start ========
-	echo "Starting MiSTer Super Attract Mode... "
+	echo " Starting MiSTer Super Attract Mode... "
 	${mrsampath}/MiSTer_SAM_MCP &
 }
 
 stop() 
 {
-	echo -n "Stopping MiSTer SAM MCP... "
+	echo -n " Stopping MiSTer SAM MCP..."
 	pids=$(pidof MiSTer_SAM_MCP)
 	if [ ! -z "${pids}" ]; then
 		kill -9 ${pids} &>/dev/null
 		wait ${pids} &>/dev/null
 	fi
-	echo "Done!"
+	echo " Done!"
 
-	echo -n "Stopping MiSTer SAM... "
+	echo -n " Stopping MiSTer SAM..."
 	pids=$(pidof MiSTer_SAM.sh)
 	if [ ! -z "${pids}" ]; then
 		kill -9 ${pids} &>/dev/null
 		wait ${pids} &>/dev/null
 	fi
-	echo "Done!"
+	echo " Done!"
 }
 
 # Kill running process
 pids=$(pidof -o $$ $(basename -- ${0}))
 if [ ! -z "pids" ]; then
-	echo -n "Removing other instances of $(basename -- ${0})... "
+	echo -n " Removing other instances of $(basename -- ${0})..."
 	kill -9 ${pids} &>/dev/null
 	wait ${pids} &>/dev/null
-	echo "Done!"
+	echo " Done!"
 fi
 
 # Kill old activity processes
-echo -n "Stopping activity monitoring... "
+echo -n " Stopping activity monitoring..."
 killall -q -2 MiSTer_SAM_joy.sh
 killall -q -2 MiSTer_SAM_joy_change.sh
 killall -q -2 MiSTer_SAM_mouse.sh
 killall -q -2 MiSTer_SAM_keyboard.sh
 killall -q -2 xxd
 killall -q -2 inotifywait
-echo "Done!"
+echo " Done!"
 
 
 #======== DEBUG OUTPUT =========
 if [ "${samquiet,,}" == "no" ]; then
 	echo "********************************************************************************"
 	#======== GLOBAL VARIABLES =========
-	echo "mrsampath: ${mrsampath}"
-	echo "misterpath: ${misterpath}"
+	echo " mrsampath: ${mrsampath}"
+	echo " misterpath: ${misterpath}"
 	#======== LOCAL VARIABLES ========
-	echo "samtimeout: ${samtimeout}"
-	echo "startupsleep: ${startupsleep}"
-	echo "menuonly: ${menuonly}"
+	echo " samtimeout: ${samtimeout}"
+	echo " startupsleep: ${startupsleep}"
+	echo " menuonly: ${menuonly}"
 	echo "********************************************************************************"
 fi
 
@@ -109,7 +109,7 @@ case "$1" in
         start
         ;;
     *)
-        echo "Usage: /etc/init.d/S93mistersam {start|stop|restart}"
+        echo " Usage: /etc/init.d/S93mistersam {start|stop|restart}"
         exit 1
         ;;
 esac
