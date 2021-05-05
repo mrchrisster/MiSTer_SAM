@@ -49,20 +49,20 @@ fi
 # Kill running process
 pids=$(pidof -o $$ $(basename -- ${0}))
 if [ ! -z "pids" ]; then
-	echo -n "Removing other instances of $(basename -- ${0})... "
+	echo -n " Removing other instances of $(basename -- ${0})..."
 	kill -9 ${pids} &>/dev/null
 	wait ${pids} &>/dev/null
-	echo "Done!"
+	echo " Done!"
 fi
 
 # Kill old activity processes
-echo -n "Stopping activity monitoring... "
+echo -n "Stopping activity monitoring..."
 killall -q -9 MiSTer_SAM_joy.py
 killall -q -9 MiSTer_SAM_mouse.sh
 killall -q -9 MiSTer_SAM_keyboard.sh
 killall -q -9 xxd
 killall -q -9 inotifywait
-echo "Done!"
+echo " Done!"
 
 # Convert seconds to minutes
 samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
@@ -72,18 +72,18 @@ samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
 if [ "${samquiet,,}" == "no" ]; then
 	echo "********************************************************************************"
 	#======== GLOBAL VARIABLES =========
-	echo "mrsampath: ${mrsampath}"
-	echo "misterpath: ${misterpath}"
+	echo " mrsampath: ${mrsampath}"
+	echo " misterpath: ${misterpath}"
 	#======== LOCAL VARIABLES ========
-	echo "commandline: ${@}"
-	echo "samtimeout: ${samtimeout}"
-	echo "startupsleep: ${startupsleep}"
-	echo "menuonly: ${menuonly}"
-	echo "monitoronly: ${monitoronly}"
+	echo " commandline: ${@}"
+	echo " samtimeout: ${samtimeout}"
+	echo " startupsleep: ${startupsleep}"
+	echo " menuonly: ${menuonly}"
+	echo " monitoronly: ${monitoronly}"
 	echo "********************************************************************************"
 fi
 
-echo "Starting MiSTer Super Attract Mode... "
+echo " Starting MiSTer Super Attract Mode..."
 # Spawn Joystick monitoring process per detected joystick device
 shopt -s nullglob
 for joystick in /dev/input/js*; do
@@ -104,16 +104,16 @@ done
 # TODO - Detect keyboard device changes
 
 # Startup done
-echo "Done!"
+echo " Done!"
 
 
 # Wait for system startup - clock synchronization
 if [ "${startupsleep,,}" == "yes" ]; then
-	echo -n "Waiting 60 seconds for system startup... "
+	echo -n " Waiting 60 seconds for system startup..."
 	sleep 60
-	echo "Done!"
-	echo "MiSTer SAM enabled!"
-	echo "Please wait for startup"
+	echo " Done!"
+	echo " MiSTer SAM enabled!"
+	echo " Please wait for startup"
 
 fi
 
@@ -171,21 +171,21 @@ while :; do
 		# Add newly detected joystick monitoring
 		for joystick in ${jsadd[@]}; do
 			if [ ! -z "${joystick}" ]; then
-				echo -n "Monitoring new joystick: ${joystick}... "
+				echo -n " Monitoring new joystick: ${joystick}..."
 				"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
-				echo "Done!"
+				echo " Done!"
 			fi
 		done
 
 		# Stop removed joystick monitoring
 		for joystick in ${jsdel[@]}; do
 			if [ ! -z "${joystick}" ]; then
-				echo -n "Monitoring stopping for joystick: ${joystick}... "
+				echo -n " Monitoring stopping for joystick: ${joystick}..."
 					for otherpid in $(ps -o pid,args | grep -e 'MiSTer_SAM_joy.py' | grep -e "${joystick}" | awk '{ print $1 }'); do
 						kill -9 ${otherpid}
 						wait ${otherpid} &>/dev/null
 					done
-				echo "Done!"
+				echo " Done!"
 			fi
 		done
 	fi
@@ -201,10 +201,10 @@ while :; do
 				echo "" |>/tmp/.SAM_Mouse_Activity
 				echo "" |>/tmp/.SAM_Keyboard_Activity
 
-				if [ "${monitoronly,,}" == "no" ]; then
-					echo "No activity detected for ${samtimeout} minutes. SAM starting..."
+				if [ "${monitoronly,,}" == "no" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ] && [ "$(ps aux | grep -v grep | grep -c -e '{MiSTer_SAM.sh}')" == "0" ]; then
+					echo " No activity detected for ${samtimeout} minutes. SAM starting..."
 					"/media/fat/Scripts/MiSTer_SAM.sh" start
-					echo "Returned from SAM."
+					echo " Returned from SAM."
 				fi
 
 				# Reset activity triggers
@@ -223,10 +223,10 @@ while :; do
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
 
-			if [ "${monitoronly,,}" == "no" ]; then
-				echo "No activity detected for ${samtimeout} minutes. SAM starting..."
+			if [ "${monitoronly,,}" == "no" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ] && [ "$(ps aux | grep -v grep | grep -c -e '{MiSTer_SAM.sh}')" == "0" ]; then
+				echo " No activity detected for ${samtimeout} minutes. SAM starting..."
 				"/media/fat/Scripts/MiSTer_SAM.sh" start
-				echo "Returned from SAM."
+				echo " Returned from SAM."
 			fi
 
 			# Reset activity triggers
