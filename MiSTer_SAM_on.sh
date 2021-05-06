@@ -304,147 +304,100 @@ function sam_autoplaymenu() {
 }
 
 function parse_cmd() {
-	if [ ${#} -eq 0 ]; then
-		gonext=""
+	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
+		sam_help
+	elif [ ${#} -eq 0 ]; then # No options - show the pre-menu
 		sam_premenu
 	else
-		gonext="sam_start"
-		if [ "${samquiet,,}" == "no" ]; then echo " Menu commands: ${@}"; fi
+		# If we're given a core name then we need to set it first
+		nextcore=""
+		for arg in ${@}; do
+			case ${arg,,} in
+				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd)
+				echo " ${CORE_PRETTY[${arg,,}]} selected!"
+				nextcore="${arg}"
+				;;
+			esac
+		done
+
 		while [ ${#} -gt 0 ]; do
-			if [ "${samquiet,,}" == "no" ]; then echo " Parse command: ${1}"; fi
 			case ${1,,} in
-				default)
-					gonext=""
+				default) # Default is split because sam_update relaunches itself
 					sam_update defaultb
+					break
 					;;
 				defaultb)
-					gonext=""
 					sam_enable quickstart
-					gonext="sam_start"
+					sam_start
+					break
 					;;
 				start) # Start SAM immediately
-					env_check start
-					gonext="sam_start"
+					env_check ${1,,}
+					sam_start ${nextcore}
+					break
 					;;
-				skip) # Load next game - doesn't interrupt loop if running
+				skip | next) # Load next game - doesn't interrupt loop if running
 					echo " Skipping to next game..."
-					env_check skip
-					gonext="next_core"
+					env_check ${1,,}
+					next_core ${nextcore}
+					break
 					;;
 				stop) # Stop SAM immediately
-					gonext=""
 					there_can_be_only_one
 					echo " Thanks for playing!"
 					break
 					;;
 				update) # Update SAM
-					gonext=""
 					sam_update
+					break
 					;;
 				enable) # Enable SAM autoplay mode
-					gonext=""
-					env_check enable
+					env_check ${1,,}
 					sam_enable quickstart
 					#sam_reboot
 					break
 					;;
 				disable) # Disable SAM autoplay
-					gonext=""
 					sam_disable
 					#sam_reboot
 					break
 					;;
 				monitor) # Attach output to terminal
-					gonext=""
 					sam_monitor
 					break
 					;;
-				arcade)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="Arcade"
-					;;
-				gba)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="GBA"
-					;;
-				genesis)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="Genesis"
-					;;
-				megacd)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="MegaCD"
-					;;
-				neogeo)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="NeoGeo"
-					;;
-				nes)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="NES"
-					;;
-				snes)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="SNES"
-					;;
-				tgfx16cd)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="TGFX16CD"
-					;;
-				tgfx16)
-					echo " ${CORE_PRETTY[${1,,}]} selected!"
-					declare -g corelist="TGFX16"
+				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd)
+					: # Placeholder since we parsed these above
 					;;
 				single)
-					gonext=""
 					sam_singlemenu
 					break
 					;;
 				utility)
-					gonext=""
 					sam_utilitymenu
 					break
 					;;
 				autoplay)
-					gonext=""
 					sam_autoplaymenu
 					break
 					;;
 				back)
-					gonext=""
 					sam_menu
 					break
 					;;
 				menu)
-					gonext=""
 					sam_menu
 					break
 					;;
 				cancel) # Exit
-					gonext=""
-					echo " It's Pitch Dark; You are likely to be eaten by a Grue."
+					echo " It's pitch dark; You are likely to be eaten by a Grue."
 					break
 					;;
 				help)
-					gonext=""
-					echo " start - start immediately"
-					echo " skip - skip to the next game"
-					echo " stop - stop immediately"
-					echo ""
-					echo " update - self-update"
-					echo " monitor - monitor SAM output"
-					echo ""
-					echo " enable - enable autoplay"
-					echo " disable - disable autoplay"
-					echo ""
-					echo " menu - load to menu"
-					echo ""
-					echo " arcade, genesis, gba..."
-					echo " single system games only"
+					sam_help
 					break
 					;;
 				*)
-					gonext=""
 					echo " ERROR! ${1} is unknown."
 					echo " Try $(basename -- ${0}) help"
 					echo " Or check the Github readme."
@@ -452,20 +405,13 @@ function parse_cmd() {
 					;;
 			esac
 			shift
-			if [ "${samquiet,,}" == "no" ]; then echo " Shifted command: ${1}"; fi
 		done
-	fi
-
-	# If we need to go somewhere special - do it here
-	if [ ! -z "${gonext}" ]; then
-		${gonext}
-		exit 0
 	fi
 }
 
 
 #======== SAM COMMANDS ========
-function sam_start() {
+function sam_start() { # sam_start (core)
 	# Terminate any other running SAM processes
 	there_can_be_only_one
 	
@@ -475,7 +421,7 @@ function sam_start() {
 	fi
 	
 	# Start SAM looping through cores and games
-	loop_core
+	loop_core ${1}
 }
 	
 function sam_update() {
@@ -576,6 +522,23 @@ function sam_disable() { # Disable autoplay
 	echo " Done!"
 }
 
+function sam_help() { # sam_help
+	echo " start - start immediately"
+	echo " skip - skip to the next game"
+	echo " stop - stop immediately"
+	echo ""
+	echo " update - self-update"
+	echo " monitor - monitor SAM output"
+	echo ""
+	echo " enable - enable autoplay"
+	echo " disable - disable autoplay"
+	echo ""
+	echo " menu - load to menu"
+	echo ""
+	echo " arcade, genesis, gba..."
+	echo " games from one system only"
+	exit 2
+}
 
 #======== UTILITY FUNCTIONS ========
 function there_can_be_only_one() { # there_can_be_only_one
@@ -817,7 +780,7 @@ function sam_monitor() {
 
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
-function loop_core() {
+function loop_core() { # loop_core (core)
 	echo " Let Mortal Kombat begin!"
 	# Reset game log for this session
 	echo "" |> /tmp/SAM_Games.log
@@ -827,7 +790,7 @@ function loop_core() {
 	while :; do
 		counter=${gametimer}
 
-		next_core
+		next_core ${1}
 		while [ ${counter} -gt 0 ]; do
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
@@ -866,7 +829,7 @@ function loop_core() {
 	done
 }
 
-function next_core() { # next_core (nextcore)
+function next_core() { # next_core (core)
 	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
 		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
 		exit 1
@@ -878,23 +841,18 @@ function next_core() { # next_core (nextcore)
 		nextcore="${1}"
 	fi
 
-	if [ "${nextcore,,}" == "arcade" ]; then
+	if [ "${nextcore,,}" == "arcade" ]; then # Use arcade specific code
 		load_core_arcade
 		return
-	elif [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
-		# If not ZIP in game directory OR if ignoring ZIP
-		if [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
-			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -name *BIOS* -o -name *Eu* -o -name *Other* -o -name *VGM* -o -name *NES2PCE* -o -name *FDS* -o -name *SPC* -o -name Unsupported \) -prune -false -o -name *.${CORE_EXT[${nextcore,,}]} | shuf -n 1)"
-			romname=$(basename "${rompath}")
-		else # Use ZIP
-			romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf -n 1)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-			# Partun returns the actual rom name to us so we need a special case here
-			romname=$(basename "${romname}")
-			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-		fi
-	else
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) | shuf -n 1)"
+	elif [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ] || [ "${usezip,,}" == "no" ]; then
+		# Either not dealing with a zipped core or ignoring zips
+		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -name *BIOS* -o -name *Eu* -o -name *Other* -o -name *VGM* -o -name *NES2PCE* -o -name *FDS* -o -name *SPC* -o -name Unsupported \) -prune -false -o -name *.${CORE_EXT[${nextcore,,}]} | shuf -n 1)"
 		romname=$(basename "${rompath}")
+	else # Using zipped roms
+		romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf -n 1)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+		# Partun returns the actual rom name to us so we need a special case here
+		romname=$(basename "${romname}")
+		rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
 	fi
 
 	# If there is an exclude list check it
