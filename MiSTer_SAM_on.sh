@@ -22,18 +22,47 @@
 # Additional development by: Mellified
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, RetroDriven, woelper, LamerDeluxe
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe
 
 
-# ======== INI VARIABLES ========
+#!/bin/bash
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
+
+#======== INI VARIABLES ========
 # Change these in the INI file
-samtimeout=300
+
+#======== GLOBAL VARIABLES =========
+declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g misterpath="/media/fat"
+# Save our PID and process
+declare -g sampid="${$}"
+declare -g samprocess="$(basename -- ${0})"
+
+#======== DEBUG VARIABLES ========
+samquiet="Yes"
+
+#======== LOCAL VARIABLES ========
+declare -i coreretries=3
+declare -i romloadfails=0
+mralist="/tmp/.SAMmras"
 gametimer=120
-menuonly="Yes"
+corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
+usezip="Yes"
+disablebootrom="Yes"
+orientation=All
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
-corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
+mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
+partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
+mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
+mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
+branch="main"
+mbcurl="blob/master/mbc_v03"
+doreboot="Yes"
+normalreboot="Yes"
+
+#======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
 gbapath="/media/fat/games/GBA"
 genesispath="/media/fat/games/Genesis"
@@ -43,38 +72,554 @@ nespath="/media/fat/games/NES"
 snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
-usezip="Yes"
-disablebootrom="Yes"
-mrapath="/media/fat/_Arcade"
-orientation=All
-mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
-partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
-mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-misterpath="/media/fat"
-mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
-mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 
-# ======== DEBUG VARIABLES ========
-startupsleep="Yes"
-samquiet="Yes"
+#======== EXCLUDE LISTS ========
+arcadeexclude="First Bad Game.mra
+Second Bad Game.mra
+Third Bad Game.mra"
+
+gbaexclude="First Bad Game.gba
+Second Bad Game.gba
+Third Bad Game.gba"
+
+genesisexclude="First Bad Game.gen
+Second Bad Game.gen
+Third Bad Game.gen"
+
+megacdexclude="First Bad Game.chd
+Second Bad Game.chd
+Third Bad Game.chd"
+
+neogeoexclude="First Bad Game.neo
+Second Bad Game.neo
+Third Bad Game.neo"
+
+nesexclude="First Bad Game.nes
+Second Bad Game.nes
+Third Bad Game.nes"
+
+snesexclude="First Bad Game.sfc
+Second Bad Game.sfc
+Third Bad Game.sfc"
+
+tgfx16exclude="First Bad Game.pce
+Second Bad Game.pce
+Third Bad Game.pce"
+
+tgfx16cdexclude="First Bad Game.chd
+Second Bad Game.chd
+Third Bad Game.chd"
+
+# ======== CORE CONFIG ========
+function init_data() {
+	# Core to long name mappings
+	declare -gA CORE_PRETTY=( \
+		["arcade"]="MiSTer Arcade" \
+		["gba"]="Nintendo Game Boy Advance" \
+		["genesis"]="Sega Genesis / Megadrive" \
+		["megacd"]="Sega CD / Mega CD" \
+		["neogeo"]="SNK NeoGeo" \
+		["nes"]="Nintendo Entertainment System" \
+		["snes"]="Super Nintendo Entertainment System" \
+		["tgfx16"]="NEC TurboGrafx-16 / PC Engine" \
+		["tgfx16cd"]="NEC TurboGrafx-16 CD / PC Engine CD" \
+		)
+	
+	# Core to file extension mappings
+	declare -gA CORE_EXT=( \
+		["arcade"]="mra" \
+		["gba"]="gba" \
+		["genesis"]="md" \
+		["megacd"]="chd" \
+		["neogeo"]="neo" \
+		["nes"]="nes" \
+		["snes"]="sfc" \
+		["tgfx16"]="pce" \
+		["tgfx16cd"]="chd" \
+		)
+	
+	# Core to path mappings
+	declare -gA CORE_PATH=( \
+		["arcade"]="${arcadepath}" \
+		["gba"]="${gbapath}" \
+		["genesis"]="${genesispath}" \
+		["megacd"]="${megacdpath}" \
+		["neogeo"]="${neogeopath}" \
+		["nes"]="${nespath}" \
+		["snes"]="${snespath}" \
+		["tgfx16"]="${tgfx16path}" \
+		["tgfx16cd"]="${tgfx16cdpath}" \
+		)
+	
+	# Can this core use ZIPped ROMs
+	declare -gA CORE_ZIPPED=( \
+		["arcade"]="No" \
+		["gba"]="Yes" \
+		["genesis"]="Yes" \
+		["megacd"]="No" \
+		["neogeo"]="Yes" \
+		["nes"]="Yes" \
+		["snes"]="Yes" \
+		["tgfx16"]="Yes" \
+		["tgfx16cd"]="No" \
+		)
+}
+
+#========= PARSE INI =========
+# Read INI
+if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+fi
+
+# Set arcadepath based on orientation
+if [ "${orientation,,}" == "vertical" ]; then
+	arcadepath="${mrapathvert}"
+elif [ "${orientation,,}" == "horizontal" ]; then
+	arcadepath="${mrapathhoriz}"
+fi
+
+# Setup corelist
+corelist="$(echo ${corelist} | tr ',' ' ')"
+
+# Create array of coreexclude list names
+declare -a coreexcludelist
+for core in ${corelist}; do
+	coreexcludelist+=( "${core}exclude" )
+done
+
+# Iterate through coreexclude lists and make list into array
+for excludelist in ${coreexcludelist[@]}; do
+	readarray -t ${excludelist} <<<${!excludelist}
+done
+
+# Remove trailing slash from paths
+for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
+	declare -g ${var}="${!var%/}"
+done
 
 
-#======== BASIC FUNCTIONS ========
-there_can_be_only_one() # there_can_be_only_one PID Process
-{
-	# If another attract process is running kill it
-	# This can happen if the script is started multiple times
-	if [ ! -z "$(pidof -o ${1} $(basename ${2}))" ]; then
-		echo ""
-		echo "Removing other running instances of $(basename ${2})..."
-		kill -9 $(pidof -o ${1} $(basename ${2})) &>/dev/null
+#======== SAM MENU ========
+function sam_premenu() {
+	echo "+---------------------------+"
+	echo "| MiSTer Super Attract Mode |"
+	echo "+---------------------------+"
+	echo " SAM Configuration:"
+	if [ -f /etc/init.d/S93mistersam ]; then
+		echo " -SAM autoplay ENABLED"
+	else
+		echo " -SAM autoplay DISABLED"
+	fi
+	echo " -Start after ${samtimeout} sec. idle"
+	echo " -Start only on the menu: ${menuonly^}"
+	echo " -Show each game for ${gametimer} sec."
+	echo "" 
+	echo " Press UP to open menu"
+	echo " Press DOWN to start SAM"
+	echo ""	
+	echo " Or wait for"
+	echo " auto-configuration"
+	echo ""
+
+	for i in {10..1}; do
+		echo -ne " Updating SAM in ${i}...\033[0K\r"
+		premenu="Default"
+		read -r -s -N 1 -t 1 key
+		if [[ "${key}" == "A" ]]; then
+			premenu="Menu"
+			break
+		elif [[ "${key}" == "B" ]]; then
+			premenu="Start"
+			break
+		elif [[ "${key}" == "C" ]]; then
+			premenu="Default"
+			break
+		fi
+	done
+	parse_cmd ${premenu}
+}
+
+function sam_menu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Main Menu ]" \
+	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+	Start "Start SAM now" \
+	Skip "Skip game (ssh only)" \
+	Stop "Stop SAM (ssh only)" \
+	Single "Games from only one core" \
+	Utility "Update and Monitor" \
+	Autoplay "Autoplay Configuration" \
+	Cancel "Exit now" 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_singlemenu() {
+	declare -a menulist=()
+	for core in ${corelist}; do
+		menulist+=( "${core^^}" )
+		menulist+=( "${CORE_PRETTY[${core,,}]} games only" )
+	done
+
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Single System Menu ]" \
+	--menu "Which system?" 0 0 0 \
+	"${menulist[@]}" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_utilitymenu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Utilities Menu ]" \
+	--menu "Select an option" 0 0 0 \
+	Update "Update SAM and Reboot" \
+	Monitor "Display info (ssh only)" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_autoplaymenu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Autoplay Menu ]" \
+	--menu "Select an option" 0 0 0 \
+	Enable "Enable Autoplay" \
+	Disable "Disable Autoplay" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	clear
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function parse_cmd() {
+	if [ ${#} -eq 0 ]; then
+		gonext=""
+		sam_premenu
+	else
+		gonext="sam_start"
+		if [ "${samquiet,,}" == "no" ]; then echo " Menu commands: ${@}"; fi
+		while [ ${#} -gt 0 ]; do
+			if [ "${samquiet,,}" == "no" ]; then echo " Parse command: ${1}"; fi
+			case ${1,,} in
+				default)
+					gonext=""
+					sam_update defaultb
+					;;
+				defaultb)
+					gonext=""
+					sam_enable quickstart
+					gonext="sam_start"
+					;;
+				start) # Start SAM immediately
+					env_check start
+					gonext="sam_start"
+					;;
+				skip) # Load next game - doesn't interrupt loop if running
+					echo " Skipping to next game..."
+					env_check skip
+					gonext="next_core"
+					;;
+				stop) # Stop SAM immediately
+					gonext=""
+					there_can_be_only_one
+					echo " Thanks for playing!"
+					break
+					;;
+				update) # Update SAM
+					gonext=""
+					sam_update
+					;;
+				enable) # Enable SAM autoplay mode
+					gonext=""
+					env_check enable
+					sam_enable quickstart
+					#sam_reboot
+					break
+					;;
+				disable) # Disable SAM autoplay
+					gonext=""
+					sam_disable
+					#sam_reboot
+					break
+					;;
+				monitor) # Attach output to terminal
+					gonext=""
+					sam_monitor
+					break
+					;;
+				arcade)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="Arcade"
+					;;
+				gba)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="GBA"
+					;;
+				genesis)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="Genesis"
+					;;
+				megacd)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="MegaCD"
+					;;
+				neogeo)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="NeoGeo"
+					;;
+				nes)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="NES"
+					;;
+				snes)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="SNES"
+					;;
+				tgfx16cd)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="TGFX16CD"
+					;;
+				tgfx16)
+					echo " ${CORE_PRETTY[${1,,}]} selected!"
+					declare -g corelist="TGFX16"
+					;;
+				single)
+					gonext=""
+					sam_singlemenu
+					break
+					;;
+				utility)
+					gonext=""
+					sam_utilitymenu
+					break
+					;;
+				autoplay)
+					gonext=""
+					sam_autoplaymenu
+					break
+					;;
+				back)
+					gonext=""
+					sam_menu
+					break
+					;;
+				menu)
+					gonext=""
+					sam_menu
+					break
+					;;
+				cancel) # Exit
+					gonext=""
+					echo " It's Pitch Dark; You are likely to be eaten by a Grue."
+					break
+					;;
+				help)
+					gonext=""
+					echo " start - start immediately"
+					echo " skip - skip to the next game"
+					echo " stop - stop immediately"
+					echo ""
+					echo " update - self-update"
+					echo " monitor - monitor SAM output"
+					echo ""
+					echo " enable - enable autoplay"
+					echo " disable - disable autoplay"
+					echo ""
+					echo " menu - load to menu"
+					echo ""
+					echo " arcade, genesis, gba..."
+					echo " single system games only"
+					break
+					;;
+				*)
+					gonext=""
+					echo " ERROR! ${1} is unknown."
+					echo " Try $(basename -- ${0}) help"
+					echo " Or check the Github readme."
+					break
+					;;
+			esac
+			shift
+			if [ "${samquiet,,}" == "no" ]; then echo " Shifted command: ${1}"; fi
+		done
+	fi
+
+	# If we need to go somewhere special - do it here
+	if [ ! -z "${gonext}" ]; then
+		${gonext}
+		exit 0
 	fi
 }
 
 
+#======== SAM COMMANDS ========
+function sam_start() {
+	# Terminate any other running SAM processes
+	there_can_be_only_one
+	
+	# If the MCP isn't running we need to start it in monitoring only mode
+	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
+		${mrsampath}/MiSTer_SAM_MCP monitoronly &
+	fi
+	
+	# Start SAM looping through cores and games
+	loop_core
+}
+	
+function sam_update() {
+	# Ensure the MiSTer SAM data directory exists
+	mkdir --parents "${mrsampath}" &>/dev/null
+	
+	# Prep curl
+	curl_check
+	
+	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
+		# Warn if using non-default branch for updates
+		if [ ! "${branch}" == "main" ]; then
+			echo ""
+			echo "*******************************"
+			echo " Updating from ${branch}"
+			echo "*******************************"
+			echo ""
+		fi
+		
+		# Download the newest MiSTer_SAM_on.sh to /tmp
+		get_samstuff MiSTer_SAM_on.sh /tmp
+		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
+			/tmp/MiSTer_SAM_on.sh update ${1}
+			exit 0
+		else
+			# /tmp/MiSTer_SAM_on.sh isn't there!
+	  	echo " SAM update FAILED"
+	  	echo " No Internet?"
+	  	exit 1
+		fi
+	else # We're running from /tmp - download dependencies and proceed
+		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
+		get_mbc
+		get_partun
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.sh
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.sh
+		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
+		
+		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+			echo " MiSTer SAM INI already exists... SKIPPED!"
+		else
+			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
+		fi
+	fi	
+	echo " Update complete!"
+	return
+}
+
+function sam_enable() { # Enable autoplay
+	echo -n " Enabling MiSTer SAM Autoplay..."
+	# Remount root as read-write if read-only so we can add our daemon
+	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
+	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
+
+	# Awaken daemon
+	cp -f "${mrsampath}/MiSTer_SAM_init" /etc/init.d/_S93mistersam &>/dev/null
+	mv -f /etc/init.d/_S93mistersam /etc/init.d/S93mistersam &>/dev/null
+	chmod +x /etc/init.d/S93mistersam
+
+	# Remove read-write if we were read-only
+	sync
+	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
+	sync
+	echo " Done!"
+
+	echo -n " MiSTer SAM starting..."
+
+	if [ "${1,,}" == "quickstart" ]; then
+		/etc/init.d/S93mistersam quickstart &
+	else
+		/etc/init.d/S93mistersam start &
+	fi
+
+	echo " Done!"
+	return
+}
+
+function sam_disable() { # Disable autoplay
+	echo -n " Disabling SAM autoplay..."
+	# Clean out existing processes to ensure we can update
+	there_can_be_only_one
+	killall -q -9 S93mistersam
+	killall -q -9 MiSTer_SAM_MCP
+	killall -q -9 MiSTer_SAM_mouse.sh
+	killall -q -9 MiSTer_SAM_keyboard.sh
+	killall -q -9 xxd
+	killall -q -9 inotifywait
+
+	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
+	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
+	rm -f /etc/init.d/S93mistersam > /dev/null 2>&1
+	sync
+	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
+	sync
+	echo " Done!"
+}
+
+
+#======== UTILITY FUNCTIONS ========
+function there_can_be_only_one() { # there_can_be_only_one
+	# If another attract process is running kill it
+	# This can happen if the script is started multiple times
+	echo -n " Stopping other running instances of ${samprocess}..."
+	kill -9 $(pidof -o ${sampid} ${samprocess}) &>/dev/null
+	wait $(pidof -o ${sampid} ${samprocess}) &>/dev/null
+	echo " Done!"
+}
+
+function env_check() {
+	# Check if we've been installed
+	if [ ! -f "${mbcpath}" ] || [ ! -f "${partunpath}" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
+		echo " SAM required files not found."
+		echo " Surprised? Check your INI."
+		sam_update ${1}
+		echo " Setup complete."
+	fi
+	
+}
+
+function sam_reboot() {
+	# Reboot
+	if [ "${doreboot,,}" == "yes" ]; then
+		if [ "${normalreboot,,}" == "yes" ]; then
+			echo " Rebooting..."
+			reboot
+		else
+			echo " Forcing reboot..."
+			reboot -f
+		fi
+	fi
+}
+
+function sam_jsmonitor() {
+	# Monitor joystick devices for changes
+	inotifywait --quiet --monitor --event create --event moved_to --event close_write /dev/input/ | while read path action file; do
+		echo "Device change" >> /tmp/.SAM_Joy_Change
+	done
+}
+
 #======== DOWNLOAD FUNCTIONS ========
-curl_check()
-{
+function curl_check() {
 	ALLOW_INSECURE_SSL="true"
 	SSL_SECURITY_OPTION=""
 	curl --connect-timeout 15 --max-time 600 --retry 3 --retry-delay 5 \
@@ -104,8 +649,7 @@ curl_check()
 	set -e
 }
 
-curl_download() # curl_download ${filepath} ${URL}
-{
+function curl_download() { # curl_download ${filepath} ${URL}
 		curl \
 			--connect-timeout 15 --max-time 600 --retry 3 --retry-delay 5 --silent --show-error \
 			${SSL_SECURITY_OPTION} \
@@ -117,192 +661,432 @@ curl_download() # curl_download ${filepath} ${URL}
 
 
 #======== UPDATER FUNCTIONS ========
-get_samon() #get_samon process_name
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	if [ "$(dirname -- "${1}")" == "/tmp" ]; then
-		echo "Updating MiSTer_SAM_on.sh"
-		cp -f "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
-	else
-		echo "Downloading MiSTer SAM on"
-		curl_download "/tmp/MiSTer_SAM_on.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM_on.sh?raw=true"
-		chmod +x "/tmp/MiSTer_SAM_on.sh"
+function get_samstuff() { #get_samstuff file (path)
+	if [ -z "${1}" ]; then
+		return 1
 	fi
+	
+	filepath="${2}"
+	if [ -z "${filepath}" ]; then
+		filepath="${mrsampath}"
+	fi
+
+	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
+		echo -n " Downloading from ${REPOSITORY_URL}/blob/${branch}/${1} to ${filepath}/..."
+	curl_download "/tmp/${1##*/}" "${REPOSITORY_URL}/blob/${branch}/${1}?raw=true"
+
+	if [ ! "${filepath}" == "/tmp" ]; then
+		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
+	fi
+
+	if [ "${1##*.}" == "sh" ]; then
+		chmod +x "${filepath}/${1##*/}"
+	fi
+	
+	echo " Done!"
 }
 
-get_mbc()
-{
+function get_mbc() {
 	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_Batch_Control"
-	echo "Downloading mbc - a tool needed for launching roms"
-	echo "Created for MiSTer by pocomane"
-	echo "${REPOSITORY_URL}"
-	echo ""
-	curl_download "/tmp/mbc" "${REPOSITORY_URL}/blob/master/mbc_v02?raw=true"
-	mv -f "/tmp/mbc" "${mrsampath}/mbc"
+	echo " Downloading mbc - a tool needed for launching roms..."
+	echo " Created for MiSTer by pocomane"
+	echo " ${REPOSITORY_URL}"
+	curl_download "/tmp/mbc" "${REPOSITORY_URL}/${mbcurl}?raw=true"
+	mv --force "/tmp/mbc" "${mrsampath}/mbc"
+	echo " Done!"
 }
 
-get_partun()
-{
-	REPOSITORY_URL="https://github.com/woelper/partun"
-	echo "Downloading partun - needed for unzipping roms from big archives."
-	echo "Created for MiSTer by woelper - who is allegedly not a spider"
-	echo "${REPOSITORY_URL}"
-	echo ""
-	curl_download "/tmp/partun" "${REPOSITORY_URL}/releases/download/0.1.5/partun_armv7"
-	mv -f "/tmp/partun" "${mrsampath}/partun"
+function get_partun() {
+  REPOSITORY_URL="https://github.com/woelper/partun"
+  echo " Downloading partun - needed for unzipping roms from big archives..."
+  echo " Created for MiSTer by woelper - who is allegedly not a spider"
+  echo " ${REPOSITORY_URL}"
+  latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
+  curl_download "/tmp/partun" "${latest}"
+ 	mv --force "/tmp/partun" "${mrsampath}/partun"
+	echo " Done!"
 }
 
-get_sam()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer Super Attract Mode"
-	curl_download "/tmp/MiSTer_SAM.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM.sh" "${mrsampath}/MiSTer_SAM.sh"
-}
 
-get_samoff()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM off"
-	curl_download "/tmp/MiSTer_SAM_off.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_off.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_off.sh" "/media/fat/Scripts/MiSTer_SAM_off.sh"
-}
+#========= SAM MONITOR =========
+function sam_monitor() {
+	
+	PID=$(ps aux |grep MiSTer_SAM_on.sh |grep -v grep |awk '{print $1}' | head -n 1)
 
-get_samnow() # No relation to shamwow
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM now"
-	curl_download "/tmp/MiSTer_SAM_now.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_now.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_now.sh" "/media/fat/Scripts/MiSTer_SAM_now.sh"
-}
+	if [ $PID ]; then
+		echo -n " Attaching MiSTer SAM to current shell..."
+		THIS=$0
+		ARGS=$@
+		name=$(basename $THIS)
+		quiet="no"
+		nopt=""
+		shift $((OPTIND-1))
+		fds=""
+		
+		if [ -n "$nopt" ]; then
+			for n_f in $nopt; do
+			n=${n_f%%:*}
+			f=${n_f##*:}
+			if [ -n "${n//[0-9]/}" ] || [ -z "$f" ]; then 
+				warn "Error parsing descriptor (-n $n_f)"
+				exit 1
+			fi
 
-get_ini()
-{
-	if [ ! -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
-		REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-		echo "Downloading MiSTer SAM INI"
-		curl_download "/media/fat/Scripts/MiSTer_SAM.ini" "${REPOSITORY_URL}/blob/main/MiSTer_SAM.ini?raw=true"
+			if ! 2>/dev/null : >> $f; then
+				warn "Cannot write to (-n $n_f) $f"
+				exit 1
+			fi
+			fds="$fds $n"
+			fns[$n]=$f
+			done
+		fi
+		
+		if [ -z "$stdout" ] && [ -z "$stderr" ] && [ -z "$stdin" ] && [ -z "$nopt" ]; then
+			#second invocation form: dup to my own in/err/out
+			[ -e /proc/$$/fd/0 ] &&  stdin=$(readlink /proc/$$/fd/0)
+			[ -e /proc/$$/fd/1 ] && stdout=$(readlink /proc/$$/fd/1)
+			[ -e /proc/$$/fd/2 ] && stderr=$(readlink /proc/$$/fd/2)
+			if [ -z "$stdout" ] && [ -z "$stderr" ] && [ -z "$stdin" ]; then
+			warn "Could not determine current standard in/out/err"
+			exit 1
+			fi
+		fi
+		
+	
+		gdb_cmds() {
+			local _name=$1
+			local _mode=$2
+			local _desc=$3
+			local _msgs=$4
+			local _len
+	
+			[ -w "/proc/$PID/fd/$_desc" ] || _msgs=""
+			if [ -d "/proc/$PID/fd" ] && ! [ -e "/proc/$PID/fd/$_desc" ]; then
+			warn "Attempting to remap non-existent fd $n of PID ($PID)"
+			fi
+	
+			[ -z "$_name" ] && return
+	
+			echo "set \$fd=open(\"$_name\", $_mode)"
+			echo "set \$xd=dup($_desc)"
+			echo "call dup2(\$fd, $_desc)"
+			echo "call close(\$fd)"
+
+			if  [ $((_mode & 3)) ] && [ -n "$_msgs" ]; then
+				_len=$(echo -en "$_msgs" | wc -c)
+				echo "call write(\$xd, \"$_msgs\", $_len)"
+			fi
+
+			echo "call close(\$xd)"
+		}
+	
+		trap '/bin/rm -f $GDBCMD' EXIT
+		GDBCMD=$(mktemp /tmp/gdbcmd.XXXX)
+		{
+			#Linux file flags (from /usr/include/bits/fcntl.sh)
+			O_RDONLY=00
+			O_WRONLY=01
+			O_RDWR=02 
+			O_CREAT=0100
+			O_APPEND=02000
+			echo "#gdb script generated by running '$0 $ARGS'"
+			echo "attach $PID"
+			gdb_cmds "$stdin"  $((O_RDONLY)) 0 "$msg_stdin"
+			gdb_cmds "$stdout" $((O_WRONLY|O_CREAT|O_APPEND)) 1 "$msg_stdout"
+			gdb_cmds "$stderr" $((O_WRONLY|O_CREAT|O_APPEND)) 2 "$msg_stderr"
+
+			for n in $fds; do
+				msg="Descriptor $n of $PID is remapped to ${fns[$n]}\n"
+				gdb_cmds ${fns[$n]} $((O_RDWR|O_CREAT|O_APPEND)) $n "$msg"
+			done
+			#echo "quit"
+		} > $GDBCMD
+	
+		if gdb -batch -n -x $GDBCMD >/dev/null </dev/null; then
+			[ "$quiet" != "yes" ] && echo " Done!" >&2
+		else
+			warn " Failed!"
+		fi
+		
+		#cp $GDBCMD /tmp/gdbcmd
+		rm -f $GDBCMD
 	else
-		echo "SKIPPED MiSTer SAM INI - already exists!"
+		echo " Couldn't detect MiSTer_SAM_on.sh running"
 	fi
 }
 
-get_init()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM daemon"
-	curl_download "/tmp/MiSTer_SAM_init" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_init?raw=true"
-	mv -f "/tmp/MiSTer_SAM_init" "${mrsampath}/MiSTer_SAM_init"
+
+# ======== SAM OPERATIONAL FUNCTIONS ========
+function loop_core() {
+	echo " Let Mortal Kombat begin!"
+	# Reset game log for this session
+	echo "" |> /tmp/SAM_Games.log
+	
+	sam_jsmonitor &
+
+	while :; do
+		counter=${gametimer}
+
+		next_core
+		while [ ${counter} -gt 0 ]; do
+			echo -ne " Next game in ${counter}...\033[0K\r"
+			sleep 1
+			((counter--))
+			
+			if [ -s /tmp/.SAM_Mouse_Activity ]; then
+				if [ "${listenmouse,,}" == "yes" ]; then
+					echo " Mouse activity detected!"
+					exit
+				else
+					echo " Mouse activity ignored!"
+					echo "" |>/tmp/.SAM_Mouse_Activity
+				fi
+			fi
+			
+			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
+				if [ "${listenkeyboard,,}" == "yes" ]; then
+					echo " Keyboard activity detected!"
+					exit
+				else
+					echo " Keyboard activity ignored!"
+					echo "" |>/tmp/.SAM_Keyboard_Activity
+				fi
+			fi
+			
+			if [ -s /tmp/.SAM_Joy_Activity ]; then
+				if [ "${listenjoy,,}" == "yes" ]; then
+					echo " Controller activity detected!"
+					exit
+				else
+					echo " Controller activity ignored!"
+					echo "" |>/tmp/.SAM_Joy_Activity
+				fi
+			fi
+		done
+	done
 }
 
-get_joy()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM controller helper"
-	curl_download "/tmp/MiSTer_SAM_joy.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_joy.sh" "${mrsampath}/MiSTer_SAM_joy.sh"
+function next_core() { # next_core (nextcore)
+	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
+		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
+		exit 1
+	fi
+
+	if [ -z "${1}" ]; then
+		nextcore="$(echo ${corelist}| xargs shuf -n1 -e)"
+	else
+		nextcore="${1}"
+	fi
+
+	if [ "${nextcore,,}" == "arcade" ]; then
+		load_core_arcade
+		return
+	elif [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
+		# If not ZIP in game directory OR if ignoring ZIP
+		if [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
+			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -name *BIOS* -o -name *Eu* -o -name *Other* -o -name *VGM* -o -name *NES2PCE* -o -name *FDS* -o -name *SPC* -o -name Unsupported \) -prune -false -o -name *.${CORE_EXT[${nextcore,,}]} | shuf -n 1)"
+			romname=$(basename "${rompath}")
+		else # Use ZIP
+			romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf -n 1)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+			# Partun returns the actual rom name to us so we need a special case here
+			romname=$(basename "${romname}")
+			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+		fi
+	else
+		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) | shuf -n 1)"
+		romname=$(basename "${rompath}")
+	fi
+
+	# If there is an exclude list check it
+	declare -n excludelist="${nextcore,,}exclude"
+	if [ ${#excludelist[@]} -gt 0 ]; then
+		for excluded in "${excludelist[@]}"; do
+			if [ "${romname}" == "${excluded}" ]; then
+				echo " ${romname} is excluded - SKIPPED"
+				next_core
+				return
+			fi
+		done
+	fi
+
+	if [ -z "${rompath}" ]; then
+		core_error "${nextcore}" "${rompath}"
+	else
+		declare -g romloadfails=0
+		load_core "${nextcore}" "${rompath}" "${romname%.*}" "${1}"
+	fi
 }
 
-get_joy_change()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM controller hotplug monitor"
-	curl_download "/tmp/MiSTer_SAM_joy_change.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_joy_change.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_joy_change.sh" "${mrsampath}/MiSTer_SAM_joy_change.sh"
+function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
+	echo -n " Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
+	echo -e "\e[1m${3}\e[0m"
+	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
+	echo "${3} (${1})" > /tmp/SAM_Game.txt
+
+	if [ "${4}" == "countdown" ]; then
+		for i in {5..1}; do
+			echo -ne " Loading game in ${i}...\033[0K\r"
+			sleep 1
+		done
+	fi
+
+	"${mbcpath}" load_rom ${1^^} "${2}" > /dev/null 2>&1
+	sleep 1
+	echo "" |>/tmp/.SAM_Joy_Change
+	echo "" |>/tmp/.SAM_Mouse_Activity
+	echo "" |>/tmp/.SAM_Keyboard_Activity
 }
 
-get_keyboard()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM keyboard helper"
-	curl_download "/tmp/MiSTer_SAM_keyboard.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_keyboard.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_keyboard.sh" "${mrsampath}/MiSTer_SAM_keyboard.sh"
+function core_error() { # core_error core /path/to/ROM
+	if [ ${romloadfails} -lt ${coreretries} ]; then
+		declare -g romloadfails=$((romloadfails+1))
+		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+		echo " Trying to find another rom..."
+		next_core ${1}
+	else
+		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+		echo " ERROR: Core ${1} is blacklisted!"
+		declare -g corelist=("${corelist[@]/${1}}")
+		echo " List of cores is now: ${corelist[@]}"
+		declare -g romloadfails=0
+		next_core
+	fi	
 }
 
-get_mouse()
-{
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-	echo "Updating MiSTer SAM mouse helper"
-	curl_download "/tmp/MiSTer_SAM_mouse.sh" "${REPOSITORY_URL}/blob/main/MiSTer_SAM/MiSTer_SAM_mouse.sh?raw=true"
-	mv -f "/tmp/MiSTer_SAM_mouse.sh" "${mrsampath}/MiSTer_SAM_mouse.sh"
-}
-
-
-#======== CONFIGURATION ========
-config_helpers()
-{
-	echo "Configuring helpers"
-	chmod +x "${mrsampath}/MiSTer_SAM_joy.sh"
-	chmod +x "${mrsampath}/MiSTer_SAM_keyboard.sh"
-	chmod +x "${mrsampath}/MiSTer_SAM_mouse.sh"
-}
-
-config_init()
-{
-	# Remount root as read-write if read-only so we can add our daemon
-	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
-	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
-
-	# Awaken daemon
-	echo "Adding launch daemon"
-	mv -f "${mrsampath}/MiSTer_SAM_init" /etc/init.d/S93mistersam &>/dev/null
-	chmod +x /etc/init.d/S93mistersam
-
-	# Remove read-write if we were read-only
-	sync
-	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
-	sync
+function disable_bootrom() {
+	if [ "${disablebootrom}" == "Yes" ]; then
+		if [ -d "${misterpath}/Bootrom" ]; then
+			mount --bind /mnt "${misterpath}/Bootrom"
+		fi
+		if [ -f "${misterpath}/Games/NES/boot0.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot0.rom
+		fi
+		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
+		fi
+	fi
 }
 
 
-#======== DEPENDENCIES ========
-echo "Turning MiSTer SAM on"
-# Read INI
-if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-	. "${misterpath}/Scripts/MiSTer_SAM.ini"
-	IFS=$'\n'
-fi
+# ======== ARCADE MODE ========
+function build_mralist() {
+	# If no MRAs found - suicide!
+	find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) &>/dev/null
+	if [ ! ${?} == 0 ]; then
+		echo " The path ${arcadepath} contains no MRA files!"
+		loop_core
+	fi
+	
+	# This prints the list of MRA files in a path,
+	# Cuts the string to just the file name,
+	# Then saves it to the mralist file.
+	
+	# If there is an empty exclude list ignore it
+	# Otherwise use it to filter the list
+	if [ ${#arcadeexclude[@]} -eq 0 ]; then
+		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
+	else
+		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+	fi
+}
 
-# Remove trailing slash from paths
-for var in mrsampath; do
-	declare -g ${var}="${!var%/}"
-done
+function load_core_arcade() {
+	# Get a random game from the list
+	mra="$(shuf -n 1 ${mralist})"
 
-# Ensure the MiSTer SAM data directory exists
-mkdir "${mrsampath}" &>/dev/null
+	# If the mra variable is valid this is skipped, but if not we try 10 times
+	# Partially protects against typos from manual editing and strange character parsing problems
+	for i in {1..10}; do
+		if [ ! -f "${arcadepath}/${mra}" ]; then
+			mra=$(shuf -n 1 ${mralist})
+		fi
+	done
 
-there_can_be_only_one "$$" "${0}"
-there_can_be_only_one "0" "S93mistersam"
-there_can_be_only_one "0" "MiSTer_SAM.sh"
+	# If the MRA is still not valid something is wrong - suicide
+	if [ ! -f "${arcadepath}/${mra}" ]; then
+		echo " There is no valid file at ${arcadepath}/${mra}!"
+		return
+	fi
 
-curl_check
+	echo -n "Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
+	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
+	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
+	echo "$(date +%H:%M:%S) - Arcade - $(echo $(basename "${mra}"))" >> /tmp/SAM_Games.log
 
-get_samon "${0}"
+	if [ "${1}" == "countdown" ]; then
+		for i in {5..1}; do
+			echo " Loading game in ${i}...\033[0K\r"
+			sleep 1
+		done
+	fi
 
-# If we're running from /tmp update and proceed
-if [ "$(dirname -- ${0})" == "/tmp" ]; then
-	get_mbc
-	get_partun
-	get_sam
-	get_samnow
-	get_samoff
-	get_ini
-	get_init
-	get_joy
-	get_joy_change
-	get_keyboard
-	get_mouse
-	config_helpers
-	config_init
-elif [ -f /tmp/MiSTer_SAM_on.sh ]; then
-	/tmp/MiSTer_SAM_on.sh
-	exit 0
-else
-  echo "Unable to update - no Internet?"
-	config_helpers
-	config_init
-fi
+  # Tell MiSTer to load the next MRA
+  echo "load_core ${arcadepath}/${mra}" > /dev/MiSTer_cmd
+ 	sleep 1
+	echo "" |>/tmp/.SAM_Joy_Change
+	echo "" |>/tmp/.SAM_Mouse_Activity
+	echo "" |>/tmp/.SAM_Keyboard_Activity
+}
 
-echo "MiSTer SAM daemon launch"
-/etc/init.d/S93mistersam start &
-exit 0
+
+#========= MAIN =========
+#======== DEBUG OUTPUT =========
+if [ "${samquiet,,}" == "no" ]; then
+	echo " ********************************************************************************"
+	#======== GLOBAL VARIABLES =========
+	echo " mrsampath: ${mrsampath}"
+	echo " misterpath: ${misterpath}"
+	echo " sampid: ${sampid}"
+	echo " samprocess: ${samprocess}"
+	echo ""
+	#======== LOCAL VARIABLES ========
+	echo " commandline: ${@}"
+	echo " branch: ${branch}"
+	echo " mbcurl: ${mbcurl}"
+	echo ""
+	echo " gametimer: ${gametimer}"
+	echo " corelist: ${corelist}"
+	echo " usezip: ${usezip}"
+	echo " disablebootrom: ${disablebootrom}"
+	echo " orientation: ${orientation}"
+	echo " mralist: ${mralist}"
+	echo " listenmouse: ${listenmouse}"
+	echo " listenkeyboard: ${listenkeyboard}"
+	echo " listenjoy: ${listenjoy}"
+	echo " mbcpath: ${mbcpath}"
+	echo " partunpath: ${partunpath}"
+	echo " mrapathvert: ${mrapathvert}"
+	echo " mrapathhoriz: ${mrapathhoriz}"
+	echo ""
+	echo " arcadepath: ${arcadepath}"
+	echo " gbapath: ${gbapath}"
+	echo " genesispath: ${genesispath}"
+	echo " megacdpath: ${megacdpath}"
+	echo " neogeopath: ${neogeopath}"
+	echo " nespath: ${nespath}"
+	echo " snespath: ${snespath}"
+	echo " tgfx16path: ${tgfx16path}"
+	echo " tgfx16cdpath: ${tgfx16cdpath}"
+  echo ""
+	echo " arcadeexclude: ${arcadeexclude[@]}"
+	echo " gbaexclude: ${gbaexclude[@]}"
+	echo " genesisexclude: ${genesisexclude[@]}"
+	echo " megacdexclude: ${megacdexclude[@]}"
+	echo " neogeoexclude: ${neogeoexclude[@]}"
+	echo " nesexclude: ${nesexclude[@]}"
+	echo " snesexclude: ${snesexclude[@]}"
+	echo " tgfx16exclude: ${tgfx16exclude[@]}"
+	echo " tgfx16cdexclude: ${tgfx16cdexclude[@]}"
+	echo " ********************************************************************************"
+	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
+fi	
+
+disable_bootrom							# Disable Bootrom until Reboot 
+build_mralist								# Generate list of MRAs
+init_data										# Setup data arrays
+parse_cmd ${@}							# Parse command line parameters for input
+exit
