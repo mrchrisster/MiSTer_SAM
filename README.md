@@ -25,6 +25,24 @@ Simply wait at the main MiSTer menu for 2 minutes (default setting) without touc
 
 Don't want to wait? You can start SAM instantly with the `MiSTer_SAM_now.sh` script in your MiSTer's Scripts folder! Just be sure to run `MiSTer_SAM_on.sh` at least once.
 
+## Features
+- **Autoplay** - MiSTer SAM autostarts by default when your MiSTer is idle in the main menu. You can change SAM's behaviour by changing "menuonly" setting in the ini.
+
+- **Controller Detection** - MiSTer SAM will only start when no input has been received from your controllers for the amount of time set in `MiSTer_SAM.ini`  
+
+- **Options Menu** - All options of SAM can be configured from a menu when launching `MiSTer_SAM_on.sh`. 
+**NOTE** The menu does not work out of the box on CRT's . Please try adding the following settings to your `/media/fat/MiSTer.ini` and see if it will make the menu work for your CRT setup:  
+```
+[Menu]
+vga_scaler=0
+fb_terminal=0
+vsync_adjust=1
+video_mode=512,38,66,64,224,12,20,6,10689
+```
+
+- **Exclusion Lists** - You can exclude any amount of games in the ini that you don't want to have displayed.  
+  
+  
 ## Updates
 `MiSTer_SAM_on.sh` is not only enabling the script on your MiSTer but is also updating all your files to the latest release. It will overwrite all MiSTer_SAM files except your `MiSTer_SAM.ini`.
   
@@ -89,9 +107,9 @@ The great work began with MrChrisster building a MiSTer Attract feature for the 
  
 ## Troubleshooting
 **- When I try to launch the script, it fails and says something about Document Type**  
-- You most likely didn't download the "raw" file.  
-- When downloading a file from github, click on the file, then click on "raw".  
-- Now push Ctrl+S to save  
+You most likely didn't download the "raw" file.  
+When downloading a file from github, click on the file, then click on "raw".  
+Now push Ctrl+S to save  
   
 **- Core is loaded but just hangs on the menu**  
 Sometimes this happens (even on our test setups) and it could be for a variety of reasons.   
@@ -132,6 +150,7 @@ For technical users here are a few handy tricks to observe and debug SAM.
 
 
 ## Release History
+- 28 Apr 2021 - Test branch support, added reboot to on to improve reliability, fixed confusing messages in on, fixed monitoring with no js devices
 - 24 Apr 2021 - Controller detection and removal, launch SAM only from the main menu (configurable), allow controller/keyboard/mouse interrupts (configurable), fixed INI parsing, added SAM now to launch instantly, more bugs squashed.
 - 23 Apr 2021 - Updated INI and data directory - [Reset to defaults](https://github.com/mrchrisster/MiSTer_SAM#reset-to-defaults) recommended!
 - 21 Apr 2021 - Initial version
