@@ -893,7 +893,7 @@ function next_core() { # next_core (nextcore)
 			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
 		fi
 	else
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) | shuf -n 1)"
+		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type f -name "*.${CORE_EXT[${nextcore,,}]}" | shuf -n 1)"
 		romname=$(basename "${rompath}")
 	fi
 
