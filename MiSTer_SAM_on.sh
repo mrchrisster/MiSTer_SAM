@@ -194,7 +194,7 @@ done
 
 #Create folder exclude list
 fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
-
+	
 # Remove trailing slash from paths
 for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
 	declare -g ${var}="${!var%/}"
@@ -322,6 +322,15 @@ function parse_cmd() {
 				;;
 			esac
 		done
+		
+		# If the one command was a core then we need to call in again with "start" specified
+		if [ ${nextcore} ] && [ ${#} -eq 1 ]; then
+			# Move cursor up a line to avoid duplicate message
+			echo -n -e "\033[A"
+			# Re-enter this function with start added
+			parse_cmd ${nextcore} start
+			return
+		fi
 
 		while [ ${#} -gt 0 ]; do
 			case ${1,,} in
