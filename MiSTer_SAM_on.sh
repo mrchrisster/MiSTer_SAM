@@ -177,7 +177,6 @@ if [ "${orientation,,}" == "vertical" ]; then
 elif [ "${orientation,,}" == "horizontal" ]; then
 	arcadepath="${mrapathhoriz}"
 fi
-fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
@@ -192,6 +191,9 @@ done
 for excludelist in ${coreexcludelist[@]}; do
 	readarray -t ${excludelist} <<<${!excludelist}
 done
+
+#Create folder exclude list
+fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 
 # Remove trailing slash from paths
 for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
