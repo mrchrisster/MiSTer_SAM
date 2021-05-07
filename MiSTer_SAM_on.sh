@@ -854,7 +854,7 @@ function next_core() { # next_core (core)
 		# The core we're using supports zipped roms
 		if [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
 			# If we find no zipped files in the path or we're ignoring them
-			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -name *BIOS* $fldrex \) -prune -false -o -name "*.${CORE_EXT[${nextcore,,}]}" | shuf -n 1)"
+			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* $fldrex \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf -n 1)"
 			romname=$(basename "${rompath}")
 		else # Use ZIP
 			romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf -n 1)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
