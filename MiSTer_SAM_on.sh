@@ -837,22 +837,33 @@ function next_core() { # next_core (core)
 
 	if [ -z "${1}" ]; then
 		nextcore="$(echo ${corelist}| xargs shuf -n1 -e)"
-	else
+	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
+		countdown="countdown"
+		nextcore="${2}"
+	elif [ "${2,,}" == "countdown" ]; then
 		nextcore="${1}"
+		countdown="countdown"
 	fi
 
-	if [ "${nextcore,,}" == "arcade" ]; then # Use arcade specific code
+	if [ "${nextcore,,}" == "arcade" ]; then
+		# If this is an arcade core we go to special code
 		load_core_arcade
 		return
-	elif [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ] || [ "${usezip,,}" == "no" ]; then
-		# Either not dealing with a zipped core or ignoring zips
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -name *BIOS* -o -name *Eu* -o -name *Other* -o -name *VGM* -o -name *NES2PCE* -o -name *FDS* -o -name *SPC* -o -name Unsupported \) -prune -false -o -name *.${CORE_EXT[${nextcore,,}]} | shuf -n 1)"
+	elif [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
+		# The core we're using supports zipped roms
+		if [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
+			# If we find no zipped files in the path or we're ignoring them
+			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -name *BIOS* -o -name *Eu* -o -name *Other* -o -name *VGM* -o -name *NES2PCE* -o -name *FDS* -o -name *SPC* -o -name Unsupported \) -prune -false -o -name *.${CORE_EXT[${nextcore,,}]} | shuf -n 1)"
+			romname=$(basename "${rompath}")
+		else # Use ZIP
+			romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf -n 1)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+			# Partun returns the actual rom name to us so we need a special case here
+			romname=$(basename "${romname}")
+			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+		fi
+	else # We're using a core without zip support
+		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) | shuf -n 1)"
 		romname=$(basename "${rompath}")
-	else # Using zipped roms
-		romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf -n 1)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-		# Partun returns the actual rom name to us so we need a special case here
-		romname=$(basename "${romname}")
-		rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
 	fi
 
 	# If there is an exclude list check it
@@ -871,7 +882,7 @@ function next_core() { # next_core (core)
 		core_error "${nextcore}" "${rompath}"
 	else
 		declare -g romloadfails=0
-		load_core "${nextcore}" "${rompath}" "${romname%.*}" "${1}"
+		load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
 	fi
 }
 
