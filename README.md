@@ -25,6 +25,7 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
   
 ## Usage
 Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
+- ** NOTE ** When you set the startup time to 60 seconds, it will actually wait 2 minutes since there is a default 60 second wait after boot (to let all processes start up).
 
 Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` script in your MiSTer's Scripts folder! 
 
