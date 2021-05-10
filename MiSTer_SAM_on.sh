@@ -339,6 +339,7 @@ function parse_cmd() {
 					break
 					;;
 				defaultb)
+					sam_update
 					sam_enable quickstart
 					sam_start
 					break
