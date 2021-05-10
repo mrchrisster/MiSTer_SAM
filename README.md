@@ -7,7 +7,7 @@
 **MiSTer SAM puts all your games on display to enjoy whenever your MiSTer is idle!**
 
 ## What is it?
-Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will launch a random game from your library every few minutes. If you like a game that's currently playing, just pick up your controller and push a button, press a key, or move the mouse. SAM will wait until your MiSTer goes idle again. Then the gaming tour begins again!
+Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will launch a random game from your library every few minutes. If you like a game that's currently playing, just pick up your controller and push a button, press a key, or move the mouse. SAM will wait until your **MiSTer goes idle in the menu** again. Then the gaming tour begins again!
 
 ## Installation
 - Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
