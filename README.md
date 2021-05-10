@@ -1,5 +1,6 @@
 ![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/mister-sam-logo02.jpg)
 ![alt text](https://i.ibb.co/DzjQDtH/Screenshot-22.png)
+![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/SAM_menu.png)
 
 
 # MiSTer Super Attract Mode (SAM)
@@ -10,8 +11,7 @@ Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will
 
 ## Installation
 - Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
-- From the main MiSTer menu open the OSD (F12 or your controller's menu button).
-- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
+- From the main MiSTer menu navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
 - NOTE: Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`.
   
 ## Offline Installation  
@@ -20,13 +20,17 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 - Additionally copy the entire `MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
 - Make sure you don't forget about adding the `.` in front of the MiSTer_SAM directory
 
+## Update  
+- Running `MiSTer_SAM_on.sh` will update your exisiting version to the newest version.
+- Backup `MiSTer_SAM.ini` and delete (recommended). Since we constantly add new features, it is advised to backup your custom settings and start with a fresh `MiSTer_SAM.ini`. 
+  
 ## Usage
 Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
 
-Don't want to wait? You can start SAM instantly with the `MiSTer_SAM_now.sh` script in your MiSTer's Scripts folder! Just be sure to run `MiSTer_SAM_on.sh` at least once.
+Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` script in your MiSTer's Scripts folder! 
 
 ## Features
-- **Autoplay** - MiSTer SAM autostarts by default when your MiSTer is idle in the main menu. You can change SAM's behaviour by changing "menuonly" setting in the ini.
+- **Autoplay** - MiSTer SAM autostarts by default when your MiSTer is idle in the main menu. If you want SAM to always autostart, no matter if in the main menu or not, you can do that by changing "menuonly" setting in `MiSTer_SAM.ini` .
 
 - **Controller Detection** - MiSTer SAM will only start when no input has been received from your controllers for the amount of time set in `MiSTer_SAM.ini`  
 
@@ -39,16 +43,12 @@ fb_terminal=0
 vsync_adjust=1
 video_mode=512,38,66,64,224,12,20,6,10689
 ```
-
+  
 - **Exclusion Lists** - You can exclude any amount of games in the ini that you don't want to have displayed.  
   
+- **Custom Game Directory Support** - You can set a custom directory for your games in `MiSTer_SAM.ini` like `/media/usb0`.
   
-## Updates
-`MiSTer_SAM_on.sh` is not only enabling the script on your MiSTer but is also updating all your files to the latest release. It will overwrite all MiSTer_SAM files except your `MiSTer_SAM.ini`.
   
-- From the main MiSTer menu open the OSD (F12 or your controller's menu button).
-- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
-- Backup `MiSTer_SAM.ini` and delete (recommended). Since we constantly add new features, it is advised to backup your custom settings and start with a fresh `MiSTer_SAM.ini`.   
   
 ## Reset to Defaults
 This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.
@@ -147,8 +147,8 @@ For technical users here are a few handy tricks to observe and debug SAM.
     `cp /media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_init /etc/init.d/S93mistersam && /etc/init.d/S93mistersam start &`
 - To disable the daemon startup delay add to your INI: `startupsleep="No"`
 - To enable more console messages: `samquiet="No"`
-
-
+  
+   
 ## Release History
 - 10 May 2021 - "2.0" release! Menu, per-core exclusions, directory exclusion, timer until next game (ssh), custom game dir support (usb0), expanded controller detection, NeoGeo compatiblity improvements
 - 28 Apr 2021 - Test branch support, added reboot to on to improve reliability, fixed confusing messages in on, fixed monitoring with no js devices
