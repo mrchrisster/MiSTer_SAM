@@ -110,7 +110,7 @@ tgfx16cdexclude="First Bad Game.chd
 Second Bad Game.chd
 Third Bad Game.chd"
 
-becau# ======== CORE CONFIG ========
+# ======== CORE CONFIG ========
 function init_data() {
 	# Core to long name mappings
 	declare -gA CORE_PRETTY=( \
