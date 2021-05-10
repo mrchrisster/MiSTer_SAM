@@ -339,6 +339,7 @@ function parse_cmd() {
 					break
 					;;
 				defaultb)
+					sam_update
 					sam_enable quickstart
 					sam_start
 					break
@@ -436,7 +437,7 @@ function sam_start() { # sam_start (core)
 	loop_core ${1}
 }
 	
-function sam_update() {
+function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
 	
@@ -456,8 +457,13 @@ function sam_update() {
 		# Download the newest MiSTer_SAM_on.sh to /tmp
 		get_samstuff MiSTer_SAM_on.sh /tmp
 		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
-			/tmp/MiSTer_SAM_on.sh update ${1}
+			if [ ${1} ]; then
+				/tmp/MiSTer_SAM_on.sh ${1}
+				exit 0
+			else
+				/tmp/MiSTer_SAM_on.sh update
 			exit 0
+			fi
 		else
 			# /tmp/MiSTer_SAM_on.sh isn't there!
 	  	echo " SAM update FAILED"
