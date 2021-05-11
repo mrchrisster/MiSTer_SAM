@@ -458,9 +458,13 @@ function sam_update() { # sam_update (next command)
 		get_samstuff MiSTer_SAM_on.sh /tmp
 		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
 			if [ ${1} ]; then
+				echo " Continuing setup with latest"
+				echo " MiSTer_SAM_on.sh..."
 				/tmp/MiSTer_SAM_on.sh ${1}
 				exit 0
 			else
+				echo " Launching latest"
+				echo " MiSTer_SAM_on.sh..."
 				/tmp/MiSTer_SAM_on.sh update
 			exit 0
 			fi
@@ -854,7 +858,7 @@ function next_core() { # next_core (core)
 	fi
 
 	if [ -z "${1}" ]; then
-		nextcore="$(echo ${corelist}| xargs shuf -n1 -e)"
+		nextcore="$(echo ${corelist}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
@@ -867,21 +871,61 @@ function next_core() { # next_core (core)
 		# If this is an arcade core we go to special code
 		load_core_arcade
 		return
-	elif [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
-		# The core we're using supports zipped roms
-		if [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
-			# If we find no zipped files in the path or we're ignoring them
-			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* $fldrex \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf -n 1)"
+	fi
+
+	# Check how many ZIP and ROM files in core path	
+	zipcount=$(find ${CORE_PATH[${nextcore,,}]} -type f -iname "*.zip" -print | wc -l)
+	if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
+	romcount=$(find ${CORE_PATH[${nextcore,,}]} -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
+	if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
+
+	# Core doesn't use zips - get on with it
+	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use zips."; fi
+		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) | shuf --head-count=1 --random-source=/dev/urandom)"
+		romname=$(basename "${rompath}")
+	
+	# We might be using ZIPs
+	else
+		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0] && [ "${usezip,,}" == "yes" ]; then
+			# We've found ZIPs AND ROMs AND we're using zips
+			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
+
+			# We found at least one large ZIP file - use it
+			if [ $(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -type f -size +500M -iname "*.zip" -print | wc -l) -gt 0 ]; then
+				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
+				romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f \( -iname "*.zip" \) | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+				# Partun returns the actual rom name to us so we need a special case here
+				romname=$(basename "${romname}")
+				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+
+			# We see more zip files than ROMs - individually zipped roms?
+			elif [ ${zipcount} -gt ${romcount} ]; then
+				if [ "${samquiet,,}" == "no" ]; then echo " Using ZIPs."; fi
+				romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+				# Partun returns the actual rom name to us so we need a special case here
+				romname=$(basename "${romname}")
+				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+				
+			# I guess we use the ROMs!
+			else
+				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
+				rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+				romname=$(basename "${rompath}")
+			fi
+
+		# Found no ZIPs or we're ignoring them
+		elif [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
+			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
 			romname=$(basename "${rompath}")
-		else # Use ZIP
-			romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf -n 1)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+
+		# Use the ZIP Luke!
+		else
+			romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
 			# Partun returns the actual rom name to us so we need a special case here
 			romname=$(basename "${romname}")
 			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
 		fi
-	else # We're using a core without zip support
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) | shuf -n 1)"
-		romname=$(basename "${rompath}")
 	fi
 
 	# If there is an exclude list check it
@@ -982,13 +1026,13 @@ function build_mralist() {
 
 function load_core_arcade() {
 	# Get a random game from the list
-	mra="$(shuf -n 1 ${mralist})"
+	mra="$(shuf --head-count=1 --random-source=/dev/urandom ${mralist})"
 
 	# If the mra variable is valid this is skipped, but if not we try 10 times
 	# Partially protects against typos from manual editing and strange character parsing problems
 	for i in {1..10}; do
 		if [ ! -f "${arcadepath}/${mra}" ]; then
-			mra=$(shuf -n 1 ${mralist})
+			mra=$(shuf --head-count=1 --random-source=/dev/urandom ${mralist})
 		fi
 	done
 
@@ -998,7 +1042,7 @@ function load_core_arcade() {
 		return
 	fi
 
-	echo -n "Starting now on the "
+	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
 	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
 	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
