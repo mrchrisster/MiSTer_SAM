@@ -874,9 +874,9 @@ function next_core() { # next_core (core)
 	fi
 
 	# Check how many ZIP and ROM files in core path	
-	zipcount=$(find ${CORE_PATH[${nextcore,,}]} -type f -iname "*.zip" -print | wc -l)
+	zipcount=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \) -print | wc -l)
 	if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
-	romcount=$(find ${CORE_PATH[${nextcore,,}]} -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
+	romcount=$(find ${CORE_PATH[${nextcore,,}]} -type f \( -iname "*.${CORE_EXT[${nextcore,,}]} \)" -print | wc -l)
 	if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
 
 	# Core doesn't use zips - get on with it
@@ -892,7 +892,7 @@ function next_core() { # next_core (core)
 			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
 			# We found at least one large ZIP file - use it
-			if [ $(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -type f -size +500M -iname "*.zip" -print | wc -l) -gt 0 ]; then
+			if [ $(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
 				romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f \( -iname "*.zip" \) | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
 				# Partun returns the actual rom name to us so we need a special case here
