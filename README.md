@@ -1,5 +1,5 @@
 ![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/mister-sam-logo02.jpg)
-![alt text](https://i.ibb.co/DzjQDtH/Screenshot-22.png)
+![MiSTer_SAM](https://user-images.githubusercontent.com/81110968/117765392-8024d980-b1f3-11eb-8ecd-18f5e7c95bff.gif)
 ![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/SAM_menu.png)
 
 
