@@ -882,7 +882,7 @@ function next_core() { # next_core (core)
 	# Core doesn't use zips - get on with it
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use zips."; fi
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) | shuf --head-count=1 --random-source=/dev/urandom)"
+		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) | shuf --head-count=1 --random-source=/dev/urandom)"
 		romname=$(basename "${rompath}")
 	
 	# We might be using ZIPs
