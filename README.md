@@ -64,14 +64,14 @@ The script is highly customizable through the included ini file `MiSTer_SAM.ini`
 ## Supported Systems
 Currently supported MiSTer cores:
 * Arcade
-* Game Boy Advance
-* Genesis
-* MegaCD AKA SegaCD
-* NeoGeo
-* NES
-* SNES
-* TurboGrafx-16 AKA PC Engine
-* TurboGrafx-16 CD AKA PC Engine CD
+* Game Boy Advance (.gba)
+* Genesis (.md)
+* MegaCD AKA SegaCD (.chd)
+* NeoGeo (.neo)
+* NES (.nes)
+* SNES (.sfc)
+* TurboGrafx-16 AKA PC Engine (.pce)
+* TurboGrafx-16 CD AKA PC Engine CD (only .chd)
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
