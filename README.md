@@ -18,6 +18,7 @@ Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
 - Copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. 
 - Additionally copy the entire `.MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
+- To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu.
 
 ## Update  
 - Running `MiSTer_SAM_on.sh` will update your exisiting version to the newest version.
