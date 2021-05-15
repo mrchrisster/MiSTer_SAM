@@ -8,4 +8,4 @@ I'm using Antonio Villena's S-Video adapter and some cores don't display well on
 - Excluded all Neo Geo Games that are not in the World Folder   
 This improves the amount of games loading successfully through SAM on the Neo Geo core  
 
-To use this ini instead of the default, rename to `MiSTer_SAM.ini`
+To use this ini instead as the default, rename to `MiSTer_SAM.ini`
