@@ -28,41 +28,48 @@
 #!/bin/bash
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
-#======== INI VARIABLES ========
-# Change these in the INI file
-
-#======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-declare -g misterpath="/media/fat"
 # Save our PID and process
 declare -g sampid="${$}"
 declare -g samprocess="$(basename -- ${0})"
 
-#======== DEBUG VARIABLES ========
-samquiet="Yes"
-
 #======== LOCAL VARIABLES ========
 declare -i coreretries=3
 declare -i romloadfails=0
-mralist="/tmp/.SAMmras"
+
+#======== INI VARIABLES ========
+# Change these in the menu
+
+#======== INI TOGGLES ========
+initoggles=( "samquiet" "usezip" "disablebootrom" "listenmouse" "listenkeyboard" "listenjoy" )
+samquiet="On"
+usezip="On"
+disablebootrom="On"
+listenmouse="On"
+listenkeyboard="On"
+listenjoy="On"
+
+#======== INI VARIABLES ========
+iniother=( "gametimer" "orientation" "branch" "mbcurl" "corelist" )
 gametimer=120
-corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
-usezip="Yes"
-disablebootrom="Yes"
 orientation=All
-listenmouse="Yes"
-listenkeyboard="Yes"
-listenjoy="Yes"
-mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
-partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
-mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
-mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 branch="main"
 mbcurl="blob/master/mbc_v03"
-doreboot="Yes"
-normalreboot="Yes"
+corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
 
-#======== CORE PATHS ========
+#======== INI SYSTEM FILES ========
+inisysfiles=( "mralist" "mbcpath" "partunpath" )
+mralist="/tmp/.SAMmras"
+mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
+partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
+
+#======== INI SYSTEM DIRS ========
+inisysdirs=( "mrsampath" "misterpath" "mrapathvert" "mrapathhoriz" )
+declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g misterpath="/media/fat"
+mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
+mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
+
+#======== INI CORE PATHS ========
 arcadepath="/media/fat/_arcade"
 gbapath="/media/fat/games/GBA"
 genesispath="/media/fat/games/Genesis"
@@ -73,7 +80,7 @@ snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
 
-#======== EXCLUDE LISTS ========
+#======== INI EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
 Second Bad Game.mra
 Third Bad Game.mra"
@@ -153,15 +160,15 @@ function init_data() {
 	
 	# Can this core use ZIPped ROMs
 	declare -gA CORE_ZIPPED=( \
-		["arcade"]="No" \
-		["gba"]="Yes" \
-		["genesis"]="Yes" \
-		["megacd"]="No" \
-		["neogeo"]="Yes" \
-		["nes"]="Yes" \
-		["snes"]="Yes" \
-		["tgfx16"]="Yes" \
-		["tgfx16cd"]="No" \
+		["arcade"]="Off" \
+		["gba"]="On" \
+		["genesis"]="On" \
+		["megacd"]="Off" \
+		["neogeo"]="On" \
+		["nes"]="On" \
+		["snes"]="On" \
+		["tgfx16"]="On" \
+		["tgfx16cd"]="Off" \
 		)
 }
 
@@ -194,7 +201,7 @@ done
 
 #Create folder exclude list
 fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
-	
+
 # Remove trailing slash from paths
 for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
 	declare -g ${var}="${!var%/}"
@@ -243,7 +250,7 @@ function sam_premenu() {
 
 function sam_menu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Main Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 	Start "Start SAM now" \
 	Skip "Skip game (ssh only)" \
@@ -255,7 +262,7 @@ function sam_menu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 	
-	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	if [ "${samquiet,,}" == "Off" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
 
@@ -267,20 +274,20 @@ function sam_singlemenu() {
 	done
 
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Single System Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ Single System ]" \
 	--menu "Which system?" 0 0 0 \
 	"${menulist[@]}" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 	
-	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	if [ "${samquiet,,}" == "Off" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
 
 function sam_utilitymenu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Utilities Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ Utilities ]" \
 	--menu "Select an option" 0 0 0 \
 	Update "Update SAM and Reboot" \
 	Monitor "Display info (ssh only)" \
@@ -288,13 +295,13 @@ function sam_utilitymenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 	
-	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	if [ "${samquiet,,}" == "Off" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
 
 function sam_autoplaymenu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Autoplay Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ Autoplay ]" \
 	--menu "Select an option" 0 0 0 \
 	Enable "Enable Autoplay" \
 	Disable "Disable Autoplay" \
@@ -302,8 +309,69 @@ function sam_autoplaymenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	
 	clear
-	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	if [ "${samquiet,,}" == "Off" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
+}
+
+function sam_configmenu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ Configuration ]" \
+	--menu "Select an option" 0 0 0 \
+	Toggle "Change basic settings" \
+	Other "Change other settings" \
+	Excludes "Change exclude file lists" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	clear
+	if [ "${samquiet,,}" == "Off" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_togglemenu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags --separate-output \
+	--backtitle "Super Attract Mode" --title "[ Basic Configuration ]" \
+	--checklist "Select an option" 0 0 0 \
+	samquiet "Show less output" ${samquiet} \
+	usezip "Select games from inside ZIPs" ${usezip} \
+	disablebootrom "Skip bootroms when possible" ${disablebootrom} \
+	listenkeyboard "Use keyboards to interrupt" ${listenkeyboard} \
+	listenmouse "Use mice to interrupt" ${listenmouse} \
+	listenjoy "Use controllers to interrupt" ${listenjoy} 2>"/tmp/.SAMmenu"
+
+	for toggle in initoggles; do
+		printf -v "${toggle}" '%s' "Off"
+	done
+	
+	for menuopt in /tmp/.SAMmenu; do
+		for toggle in initoggles; do
+			if [ "${menuopt}" == "${toggle}" ]; then
+				printf -v "${toggle}" '%s' "On"
+			fi
+		done
+	done
+	
+	dialog --clear --no-cancel --ascii-lines --timeout 3 \
+	--backtitle "Super Attract Mode" --title "[ Configuration ]" \
+	--msgbox "Settings saved!" 0 0
+}
+
+function sam_othermenu() {
+	dialog --clear --no-cancel --ascii-lines --timeout 3 \
+	--backtitle "Super Attract Mode" --title "[ Configuration ]" \
+	--msgbox "Not Implemented" 0 0
+	
+	clear
+	sam_configmenu
+}
+
+function sam_excludesmenu() {
+	dialog --clear --no-cancel --ascii-lines \
+	--backtitle "Super Attract Mode" --title "[ Exclude ROMs ]" \
+	
+	
+	clear
+	sam_configmenu
 }
 
 function parse_cmd() {
@@ -400,6 +468,22 @@ function parse_cmd() {
 					;;
 				menu)
 					sam_menu
+					break
+					;;
+				config)
+					sam_configmenu
+					break
+					;;
+				toggle)
+					sam_togglemenu
+					break
+					;;
+				other)
+					sam_othermenu
+					break
+					;;
+				excludes)
+					sam_excludesmenu
 					break
 					;;
 				cancel) # Exit
@@ -585,8 +669,8 @@ function env_check() {
 
 function sam_reboot() {
 	# Reboot
-	if [ "${doreboot,,}" == "yes" ]; then
-		if [ "${normalreboot,,}" == "yes" ]; then
+	if [ "${doreboot,,}" == "On" ]; then
+		if [ "${normalreboot,,}" == "On" ]; then
 			echo " Rebooting..."
 			reboot
 		else
@@ -703,7 +787,7 @@ function sam_monitor() {
 		THIS=$0
 		ARGS=$@
 		name=$(basename $THIS)
-		quiet="no"
+		quiet="Off"
 		nopt=""
 		shift $((OPTIND-1))
 		fds=""
@@ -788,7 +872,7 @@ function sam_monitor() {
 		} > $GDBCMD
 	
 		if gdb -batch -n -x $GDBCMD >/dev/null </dev/null; then
-			[ "$quiet" != "yes" ] && echo " Done!" >&2
+			[ "$quiet" != "On" ] && echo " Done!" >&2
 		else
 			warn " Failed!"
 		fi
@@ -819,7 +903,7 @@ function loop_core() { # loop_core (core)
 			((counter--))
 			
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
-				if [ "${listenmouse,,}" == "yes" ]; then
+				if [ "${listenmouse,,}" == "On" ]; then
 					echo " Mouse activity detected!"
 					exit
 				else
@@ -829,7 +913,7 @@ function loop_core() { # loop_core (core)
 			fi
 			
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
-				if [ "${listenkeyboard,,}" == "yes" ]; then
+				if [ "${listenkeyboard,,}" == "On" ]; then
 					echo " Keyboard activity detected!"
 					exit
 				else
@@ -839,7 +923,7 @@ function loop_core() { # loop_core (core)
 			fi
 			
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
-				if [ "${listenjoy,,}" == "yes" ]; then
+				if [ "${listenjoy,,}" == "On" ]; then
 					echo " Controller activity detected!"
 					exit
 				else
@@ -874,8 +958,8 @@ function next_core() { # next_core (core)
 	fi
 
 	# Core doesn't use zips - get on with it
-	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
+	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "Off" ]; then
+		if [ "${samquiet,,}" == "Off" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
 		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
 		romname=$(basename "${rompath}")
 	
@@ -883,17 +967,17 @@ function next_core() { # next_core (core)
 	else
 		# Check how many ZIP and ROM files in core path	
 		zipcount=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
+		if [ "${samquiet,,}" == "Off" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
 		romcount=$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
+		if [ "${samquiet,,}" == "Off" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
 
-		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
+		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0 ] && [ "${usezip,,}" == "On" ]; then
 			# We've found ZIPs AND ROMs AND we're using zips
-			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
+			if [ "${samquiet,,}" == "Off" ]; then echo " Both ROMs and ZIPs found!"; fi
 
 			# We found at least one large ZIP file - use it
 			if [ $(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
+				if [ "${samquiet,,}" == "Off" ]; then echo " Using 500MB+ ZIP(s)."; fi
 				romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
 				# Partun returns the actual rom name to us so we need a special case here
 				romname=$(basename "${romname}")
@@ -901,7 +985,7 @@ function next_core() { # next_core (core)
 
 			# We see more zip files than ROMs - individually zipped roms?
 			elif [ ${zipcount} -gt ${romcount} ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
+				if [ "${samquiet,,}" == "Off" ]; then echo " Fewer ROMs - using ZIPs."; fi
 				romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
 				# Partun returns the actual rom name to us so we need a special case here
 				romname=$(basename "${romname}")
@@ -909,13 +993,13 @@ function next_core() { # next_core (core)
 				
 			# I guess we use the ROMs!
 			else
-				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
+				if [ "${samquiet,,}" == "Off" ]; then echo " Using ROMs."; fi
 				rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
 				romname=$(basename "${rompath}")
 			fi
 
 		# Found no ZIPs or we're ignoring them
-		elif [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
+		elif [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "Off" ]; then
 			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
 			romname=$(basename "${rompath}")
 
@@ -986,7 +1070,7 @@ function core_error() { # core_error core /path/to/ROM
 }
 
 function disable_bootrom() {
-	if [ "${disablebootrom}" == "Yes" ]; then
+	if [ "${disablebootrom}" == "On" ]; then
 		if [ -d "${misterpath}/Bootrom" ]; then
 			mount --bind /mnt "${misterpath}/Bootrom"
 		fi
@@ -1066,7 +1150,7 @@ function load_core_arcade() {
 
 #========= MAIN =========
 #======== DEBUG OUTPUT =========
-if [ "${samquiet,,}" == "no" ]; then
+if [ "${samquiet,,}" == "Off" ]; then
 	echo " ********************************************************************************"
 	#======== GLOBAL VARIABLES =========
 	echo " mrsampath: ${mrsampath}"
