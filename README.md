@@ -121,14 +121,8 @@ Sometimes this happens (even on our test setups) and it could be for a variety o
  
 If you are still having trouble it could simply be that the rom failed to load, it seems to happen every now and then.  
   
-**- Sometimes NeoGeo doesn't load a rom and hangs on the menu.**   
-Still investigating why this is happening. It sometimes loads a game successfully but then shows corrupted sprites. It has something to do with the bios but so far we don't know why. The NeoGeo core is special in a lot of ways and we haven't unlocked all it's mysteries yet.
-  
 **- Turbografx16 CD and MegaCD just showing Run/Start button but not starting into the game**  
 Make sure you use a bios that auto launches the game.  
-
-**- USB Storage**  
-**/media/usb0 currently is not supported**. You can set the game path in the ini but it will cause mbc to fail loading the rom if the folder structure is different from `/media/fat/games`
 
 **- Can I use a CIFS mount for my games?**  
 CIFS is supported.
