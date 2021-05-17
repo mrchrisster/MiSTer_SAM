@@ -134,7 +134,7 @@ while :; do
 	# Compare devices and monitoring processes
 	# Make lists of what to add and what to stop monitoring
 	if [ -s /tmp/.SAM_Joy_Change ]; then
-		echo " Device change(s) detected!"
+		#echo " Device change(s) detected!"
 		# Wait for devices to stabilize
 		sleep 1
 		
