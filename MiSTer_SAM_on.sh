@@ -49,25 +49,21 @@ listenkeyboard="On"
 listenjoy="On"
 
 #======== INI VARIABLES ========
-iniother=( "gametimer" "orientation" "branch" "mbcurl" "corelist" )
+iniother=( "gametimer" "samtimeout" "branch" "mbcurl" "corelist" )
 gametimer=120
-orientation=All
+samtimeout=60
 branch="main"
 mbcurl="blob/master/mbc_v03"
 corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
 
 #======== INI SYSTEM FILES ========
-inisysfiles=( "mralist" "mbcpath" "partunpath" )
+inisysfiles=( "mralist" )
 mralist="/tmp/.SAMmras"
-mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
-partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
 
 #======== INI SYSTEM DIRS ========
-inisysdirs=( "mrsampath" "misterpath" "mrapathvert" "mrapathhoriz" )
+inisysdirs=( "mrsampath" "misterpath" )
 declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
-mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
-mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 
 #======== INI CORE PATHS ========
 arcadepath="/media/fat/_arcade"
@@ -203,7 +199,7 @@ done
 fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 
 # Remove trailing slash from paths
-for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
+for var in mrsampath misterpath arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
 	declare -g ${var}="${!var%/}"
 done
 
