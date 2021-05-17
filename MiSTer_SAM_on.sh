@@ -40,6 +40,8 @@ declare -g samprocess="$(basename -- ${0})"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
+samdebug="No"
+samtrace="No"
 
 #======== LOCAL VARIABLES ========
 declare -i coreretries=3
@@ -49,18 +51,11 @@ gametimer=120
 corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
 usezip="Yes"
 disablebootrom="Yes"
-orientation=All
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
-mbcpath="/media/fat/Scripts/.MiSTer_SAM/mbc"
-partunpath="/media/fat/Scripts/.MiSTer_SAM/partun"
-mrapathvert="/media/fat/_Arcade/_Organized/_6 Rotation/_Vertical CW 90 Deg" 
-mrapathhoriz="/media/fat/_Arcade/_Organized/_6 Rotation/_Horizontal"
 branch="main"
 mbcurl="blob/master/mbc_v03"
-doreboot="Yes"
-normalreboot="Yes"
 
 #======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
@@ -171,13 +166,6 @@ if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 fi
 
-# Set arcadepath based on orientation
-if [ "${orientation,,}" == "vertical" ]; then
-	arcadepath="${mrapathvert}"
-elif [ "${orientation,,}" == "horizontal" ]; then
-	arcadepath="${mrapathhoriz}"
-fi
-
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
@@ -243,13 +231,14 @@ function sam_premenu() {
 
 function sam_menu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Main Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 	Start "Start SAM now" \
 	Skip "Skip game (ssh only)" \
 	Stop "Stop SAM (ssh only)" \
 	Single "Games from only one core" \
 	Utility "Update and Monitor" \
+	Config "Configure INI Settings" \
 	Autoplay "Autoplay Configuration" \
 	Cancel "Exit now" 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -267,7 +256,7 @@ function sam_singlemenu() {
 	done
 
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Single System Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ Single System Select ]" \
 	--menu "Which system?" 0 0 0 \
 	"${menulist[@]}" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
@@ -280,10 +269,10 @@ function sam_singlemenu() {
 
 function sam_utilitymenu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Utilities Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ Utilities ]" \
 	--menu "Select an option" 0 0 0 \
-	Update "Update SAM and Reboot" \
-	Monitor "Display info (ssh only)" \
+	Update "Update SAM to latest" \
+	Monitor "Display messages (ssh only)" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -294,7 +283,7 @@ function sam_utilitymenu() {
 
 function sam_autoplaymenu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "MiSTer FPGA Super Attract Mode" --title "[ SAM Autoplay Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ Configure Autoplay ]" \
 	--menu "Select an option" 0 0 0 \
 	Enable "Enable Autoplay" \
 	Disable "Disable Autoplay" \
@@ -304,6 +293,25 @@ function sam_autoplaymenu() {
 	clear
 	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
+}
+
+function sam_configmenu() {
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
+	--msgbox "Here you can configure the INI settings for SAM.\n\nUse TAB to switch between editing, the OK and Cancel buttons." 0 0
+	
+	dialog --clear --ascii-lines \
+	--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
+	--editbox "${misterpath}/Scripts/MiSTer_SAM.ini" 0 0 2>"/tmp/.SAMmenu"
+	
+	if [ -s "/tmp/.SAMmenu" ] && [ "$(diff -wq "/tmp/.SAMmenu" "${misterpath}/Scripts/MiSTer_SAM.ini")" ]; then
+		cp -f "/tmp/.SAMmenu" "${misterpath}/Scripts/MiSTer_SAM.ini"
+		dialog --clear --ascii-lines --no-cancel \
+		--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
+		--msgbox "Changes saved!" 0 0
+	fi
+	
+	parse_cmd menu
 }
 
 function parse_cmd() {
@@ -357,6 +365,7 @@ function parse_cmd() {
 					;;
 				stop) # Stop SAM immediately
 					there_can_be_only_one
+					killall -q -9 inotifywait
 					echo " Thanks for playing!"
 					break
 					;;
@@ -392,6 +401,10 @@ function parse_cmd() {
 					;;
 				autoplay)
 					sam_autoplaymenu
+					break
+					;;
+				config)
+					sam_configmenu
 					break
 					;;
 				back)
@@ -574,34 +587,21 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 function env_check() {
 	# Check if we've been installed
-	if [ ! -f "${mbcpath}" ] || [ ! -f "${partunpath}" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
+	if [ ! -f "${mrsampath}/mbc" ] || [ ! -f "${mrsampath}/partun" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
 		echo " SAM required files not found."
 		echo " Surprised? Check your INI."
 		sam_update ${1}
 		echo " Setup complete."
 	fi
-	
-}
-
-function sam_reboot() {
-	# Reboot
-	if [ "${doreboot,,}" == "yes" ]; then
-		if [ "${normalreboot,,}" == "yes" ]; then
-			echo " Rebooting..."
-			reboot
-		else
-			echo " Forcing reboot..."
-			reboot -f
-		fi
-	fi
 }
 
 function sam_jsmonitor() {
+	# Reset trigger file
+	echo "" |>/tmp/.SAM_Joy_Change
 	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event moved_to --event close_write /dev/input/ | while read path action file; do
-		echo "Device change" >> /tmp/.SAM_Joy_Change
-	done
+	inotifywait --quiet --monitor --event create --event delete /dev/input/ --outfile /tmp/.SAM_Joy_Change &
 }
+
 
 #======== DOWNLOAD FUNCTIONS ========
 function curl_check() {
@@ -807,7 +807,9 @@ function loop_core() { # loop_core (core)
 	# Reset game log for this session
 	echo "" |> /tmp/SAM_Games.log
 	
-	sam_jsmonitor &
+	if [ "${samquiet,,}" == "no" ]; then echo -n " Starting joystick change monitor..."; fi
+	sam_jsmonitor
+	if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 
 	while :; do
 		counter=${gametimer}
@@ -894,7 +896,7 @@ function next_core() { # next_core (core)
 			# We found at least one large ZIP file - use it
 			if [ $(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+				romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
 				# Partun returns the actual rom name to us so we need a special case here
 				romname=$(basename "${romname}")
 				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
@@ -902,7 +904,7 @@ function next_core() { # next_core (core)
 			# We see more zip files than ROMs - individually zipped roms?
 			elif [ ${zipcount} -gt ${romcount} ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
-				romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+				romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
 				# Partun returns the actual rom name to us so we need a special case here
 				romname=$(basename "${romname}")
 				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
@@ -921,7 +923,7 @@ function next_core() { # next_core (core)
 
 		# Use the ZIP Luke!
 		else
-			romname=$("${partunpath}" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
+			romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
 			# Partun returns the actual rom name to us so we need a special case here
 			romname=$(basename "${romname}")
 			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
@@ -962,9 +964,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		done
 	fi
 
-	"${mbcpath}" load_rom ${1^^} "${2}" > /dev/null 2>&1
+	"${mrsampath}/mbc" load_rom ${1^^} "${2}" > /dev/null 2>&1
 	sleep 1
-	echo "" |>/tmp/.SAM_Joy_Change
+	echo "" |>/tmp/.SAM_Joy_Activity
 	echo "" |>/tmp/.SAM_Mouse_Activity
 	echo "" |>/tmp/.SAM_Keyboard_Activity
 }
@@ -1058,7 +1060,7 @@ function load_core_arcade() {
   # Tell MiSTer to load the next MRA
   echo "load_core ${arcadepath}/${mra}" > /dev/MiSTer_cmd
  	sleep 1
-	echo "" |>/tmp/.SAM_Joy_Change
+	echo "" |>/tmp/.SAM_Joy_Activity
 	echo "" |>/tmp/.SAM_Mouse_Activity
 	echo "" |>/tmp/.SAM_Keyboard_Activity
 }
@@ -1066,7 +1068,7 @@ function load_core_arcade() {
 
 #========= MAIN =========
 #======== DEBUG OUTPUT =========
-if [ "${samquiet,,}" == "no" ]; then
+if [ "${samtrace,,}" == "yes" ]; then
 	echo " ********************************************************************************"
 	#======== GLOBAL VARIABLES =========
 	echo " mrsampath: ${mrsampath}"
@@ -1083,15 +1085,10 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo " corelist: ${corelist}"
 	echo " usezip: ${usezip}"
 	echo " disablebootrom: ${disablebootrom}"
-	echo " orientation: ${orientation}"
 	echo " mralist: ${mralist}"
 	echo " listenmouse: ${listenmouse}"
 	echo " listenkeyboard: ${listenkeyboard}"
 	echo " listenjoy: ${listenjoy}"
-	echo " mbcpath: ${mbcpath}"
-	echo " partunpath: ${partunpath}"
-	echo " mrapathvert: ${mrapathvert}"
-	echo " mrapathhoriz: ${mrapathhoriz}"
 	echo ""
 	echo " arcadepath: ${arcadepath}"
 	echo " gbapath: ${gbapath}"

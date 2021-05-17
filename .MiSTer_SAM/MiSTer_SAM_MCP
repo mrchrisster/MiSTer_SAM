@@ -9,6 +9,8 @@ declare -g misterpath="/media/fat"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
+samdebug="No"
+samtrace="No"
 
 #======== LOCAL VARIABLES ========
 samtimeout=60
@@ -33,7 +35,7 @@ if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 fi
 
 # Remove trailing slash from paths
-for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
+for var in mrsampath misterpath arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
 	declare -g ${var}="${!var%/}"
 done
 
@@ -66,7 +68,6 @@ killall -q -9 MiSTer_SAM_joy.py
 killall -q -9 MiSTer_SAM_mouse.sh
 killall -q -9 MiSTer_SAM_keyboard.sh
 killall -q -9 xxd
-killall -q -9 inotifywait
 echo " Done!"
 
 # Convert seconds to minutes
@@ -74,7 +75,7 @@ samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
 
 
 #======== DEBUG OUTPUT =========
-if [ "${samquiet,,}" == "no" ]; then
+if [ "${samtrace,,}" == "yes" ]; then
 	echo "********************************************************************************"
 	#======== GLOBAL VARIABLES =========
 	echo " mrsampath: ${mrsampath}"
@@ -123,7 +124,6 @@ fi
 
 # Reset activity triggers
 echo "" |>/tmp/.SAM_Joy_Activity
-echo "" |>/tmp/.SAM_Joy_Change
 echo "" |>/tmp/.SAM_Mouse_Activity
 echo "" |>/tmp/.SAM_Keyboard_Activity
 
@@ -134,12 +134,10 @@ while :; do
 	# Compare devices and monitoring processes
 	# Make lists of what to add and what to stop monitoring
 	if [ -s /tmp/.SAM_Joy_Change ]; then
+		#echo " Device change(s) detected!"
 		# Wait for devices to stabilize
 		sleep 1
 		
-		# Reset trigger
-		echo "" |>/tmp/.SAM_Joy_Change
-
 		# Init arrays
 		declare -a jsdevices=()
 		declare -a jsadd=()
@@ -153,12 +151,21 @@ while :; do
 			jsadd+=( "${joystick}" )
 		done
 		shopt -u nullglob
-
+		
+		if [ "${samtrace,,}" = "yes" ]; then
+			echo "jsdevices: ${jsdevices[@]}"
+			echo "jsadd: ${jsadd[@]}"
+		fi
+		
 		# Make a list of all running js monitoring processes' jsdevices - so we don't have to track a list on disk somewhere
 		for joystick in $(ps -o args | grep -e 'MiSTer_SAM_joy.py' | grep -oE '/dev/input/js[0-9]' | sort -u); do
 			jsmonitors+=( "${joystick}" )
 			jsdel+=( "${joystick}" )
 		done
+		if [ "${samtrace,,}" = "yes" ]; then
+			echo "jsmonitors: ${jsmonitors[@]}"
+			echo "jsdel: ${jsdel[@]}"
+		fi
 
 		# Make list of additional devices to monitor
 		for joystick in ${jsmonitors[@]}; do
@@ -171,6 +178,10 @@ while :; do
 			jsdel=( "${jsdel[@]/${joystick}}" )
 		done
 		jsdel=( "${jsdel[@]//[[:space:]]/}" )
+		if [ "${samtrace,,}" = "yes" ]; then
+			echo "jsadd: ${jsadd[@]}"
+			echo "jsdel: ${jsdel[@]}"
+		fi
 		
 		# Add newly detected joystick monitoring
 		for joystick in ${jsadd[@]}; do
@@ -192,6 +203,9 @@ while :; do
 				echo " Done!"
 			fi
 		done
+
+		# Reset trigger
+		echo "" |>/tmp/.SAM_Joy_Change
 	fi
 
 	if [ "${menuonly,,}" == "yes" ]; then # Only start SAM from main menu
@@ -201,7 +215,6 @@ while :; do
 			if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then
 				# Reset activity triggers
 				echo "" |>/tmp/.SAM_Joy_Activity
-				echo "" |>/tmp/.SAM_Joy_Change
 				echo "" |>/tmp/.SAM_Mouse_Activity
 				echo "" |>/tmp/.SAM_Keyboard_Activity
 
@@ -213,7 +226,6 @@ while :; do
 
 				# Reset activity triggers
 				echo "" |>/tmp/.SAM_Joy_Activity
-				echo "" |>/tmp/.SAM_Joy_Change
 				echo "" |>/tmp/.SAM_Mouse_Activity
 				echo "" |>/tmp/.SAM_Keyboard_Activity
 			fi
@@ -223,7 +235,6 @@ while :; do
 		if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then
 			# Reset activity triggers
 			echo "" |>/tmp/.SAM_Joy_Activity
-			echo "" |>/tmp/.SAM_Joy_Change
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
 
@@ -235,7 +246,6 @@ while :; do
 
 			# Reset activity triggers
 			echo "" |>/tmp/.SAM_Joy_Activity
-			echo "" |>/tmp/.SAM_Joy_Change
 			echo "" |>/tmp/.SAM_Mouse_Activity
 			echo "" |>/tmp/.SAM_Keyboard_Activity
 		fi
