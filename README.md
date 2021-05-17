@@ -142,7 +142,20 @@ For technical users here are a few handy tricks to observe and debug SAM.
     `cp /media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_init /etc/init.d/S93mistersam && /etc/init.d/S93mistersam start &`
 - To disable the daemon startup delay add to your INI: `startupsleep="No"`
 - To enable more console messages: `samquiet="No"`
+
+## SSH fetures  
+
+Some commands to control SAM from the command line  
   
+- `MiSTer_SAM_on.sh monitor` - this will attach MiSTer SAM to current shell.
+- `MiSTer_SAM_on.sh start` - Start SAM immediately
+- `MiSTer_SAM_on.sh skip | next` - Load next game - doesn't interrupt loop if running
+- `MiSTer_SAM_on.sh stop` - Stop SAM immediately
+- `MiSTer_SAM_on.sh update` - Update SAM
+- `MiSTer_SAM_on.sh enable` - Enable SAM autoplay mode
+- `MiSTer_SAM_on.sh disable` - Disable SAM autoplay
+- `MiSTer_SAM_on.sh arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd` - Only launch specific system
+   
    
 ## Release History
 - 16 May 2021 - Fixed hotplug detection, added ini editing feature through menu
