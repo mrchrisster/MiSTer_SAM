@@ -365,7 +365,6 @@ function parse_cmd() {
 					;;
 				stop) # Stop SAM immediately
 					there_can_be_only_one
-					killall -q -9 inotifywait
 					echo " Thanks for playing!"
 					break
 					;;
@@ -595,13 +594,6 @@ function env_check() {
 	fi
 }
 
-function sam_jsmonitor() {
-	# Reset trigger file
-	echo "" |>/tmp/.SAM_Joy_Change
-	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event delete /dev/input/ --outfile /tmp/.SAM_Joy_Change &
-}
-
 
 #======== DOWNLOAD FUNCTIONS ========
 function curl_check() {
@@ -807,10 +799,6 @@ function loop_core() { # loop_core (core)
 	# Reset game log for this session
 	echo "" |> /tmp/SAM_Games.log
 	
-	if [ "${samquiet,,}" == "no" ]; then echo -n " Starting joystick change monitor..."; fi
-	sam_jsmonitor
-	if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
-
 	while :; do
 		counter=${gametimer}
 
