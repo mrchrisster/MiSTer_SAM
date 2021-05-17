@@ -1,7 +1,7 @@
 ![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/mister-sam-logo02.jpg)
-![alt text](https://i.ibb.co/DzjQDtH/Screenshot-22.png)
+![MiSTer_SAM](https://user-images.githubusercontent.com/81110968/117765392-8024d980-b1f3-11eb-8ecd-18f5e7c95bff.gif)
 ![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/SAM_menu.png)
-
+(Thanks to [@HendrixTrog](https://twitter.com/HendrixTrog) for the video!)
 
 # MiSTer Super Attract Mode (SAM)
 **MiSTer SAM puts all your games on display to enjoy whenever your MiSTer is idle!**
@@ -18,6 +18,7 @@ Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
 - Copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. 
 - Additionally copy the entire `.MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
+- To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu.
 
 ## Update  
 - Running `MiSTer_SAM_on.sh` will update your exisiting version to the newest version.
@@ -64,14 +65,14 @@ The script is highly customizable through the included ini file `MiSTer_SAM.ini`
 ## Supported Systems
 Currently supported MiSTer cores:
 * Arcade
-* Game Boy Advance
-* Genesis
-* MegaCD AKA SegaCD
-* NeoGeo
-* NES
-* SNES
-* TurboGrafx-16 AKA PC Engine
-* TurboGrafx-16 CD AKA PC Engine CD
+* Game Boy Advance (.gba)
+* Genesis (.md)
+* MegaCD AKA SegaCD (.chd)
+* NeoGeo (.neo)
+* NES (.nes)
+* SNES (.sfc)
+* TurboGrafx-16 AKA PC Engine (.pce)
+* TurboGrafx-16 CD AKA PC Engine CD (only .chd)
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
@@ -120,14 +121,8 @@ Sometimes this happens (even on our test setups) and it could be for a variety o
  
 If you are still having trouble it could simply be that the rom failed to load, it seems to happen every now and then.  
   
-**- Sometimes NeoGeo doesn't load a rom and hangs on the menu.**   
-Still investigating why this is happening. It sometimes loads a game successfully but then shows corrupted sprites. It has something to do with the bios but so far we don't know why. The NeoGeo core is special in a lot of ways and we haven't unlocked all it's mysteries yet.
-  
 **- Turbografx16 CD and MegaCD just showing Run/Start button but not starting into the game**  
 Make sure you use a bios that auto launches the game.  
-
-**- USB Storage**  
-**/media/usb0 currently is not supported**. You can set the game path in the ini but it will cause mbc to fail loading the rom if the folder structure is different from `/media/fat/games`
 
 **- Can I use a CIFS mount for my games?**  
 CIFS is supported.
