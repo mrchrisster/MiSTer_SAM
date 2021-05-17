@@ -147,7 +147,7 @@ For technical users here are a few handy tricks to observe and debug SAM.
 
 Some commands to control SAM from the command line  
   
-- `MiSTer_SAM_on.sh monitor` - this will attach MiSTer SAM to current shell.
+- `MiSTer_SAM_on.sh monitor` - This will attach MiSTer SAM to current shell (only works while autoplay is running)
 - `MiSTer_SAM_on.sh start` - Start SAM immediately
 - `MiSTer_SAM_on.sh skip | next` - Load next game - doesn't interrupt loop if running
 - `MiSTer_SAM_on.sh stop` - Stop SAM immediately
