@@ -52,6 +52,15 @@ if [ "${1,,}" == "quickstart" ]; then
 fi
 
 
+#======== FUNCTIONS ========
+function sam_jsmonitor() {
+	# Reset trigger file
+	echo "" |>/tmp/.SAM_Joy_Change
+	# Monitor joystick devices for changes
+	inotifywait --quiet --monitor --event create --event delete /dev/input/ --outfile /tmp/.SAM_Joy_Change &
+}
+
+
 #======== Start ========
 # Kill running process
 pids=$(pidof -o $$ $(basename -- ${0}))
@@ -68,6 +77,7 @@ killall -q -9 MiSTer_SAM_joy.py
 killall -q -9 MiSTer_SAM_mouse.sh
 killall -q -9 MiSTer_SAM_keyboard.sh
 killall -q -9 xxd
+killall -q -9 inotifywait
 echo " Done!"
 
 # Convert seconds to minutes
@@ -90,6 +100,11 @@ if [ "${samtrace,,}" == "yes" ]; then
 fi
 
 echo " Starting MiSTer Super Attract Mode..."
+# Start monitoring for device changes
+if [ "${samquiet,,}" == "no" ]; then echo -n " Starting joystick change monitor..."; fi
+sam_jsmonitor
+if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
+
 # Spawn Joystick monitoring process per detected joystick device
 shopt -s nullglob
 for joystick in /dev/input/js*; do
