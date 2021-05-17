@@ -8,6 +8,6 @@ I'm using Antonio Villena's S-Video adapter and some cores don't display well on
 - Excluded all Neo Geo Games that are not in the World Folder   
 This improves the amount of games loading successfully through SAM on the Neo Geo core  
 
-- menuonly is set to 0. This means if I stop playing a game, SAM will load a new one, not just from the main menu.
+- menuonly is set to "No". This means if I stop playing a game, SAM will load a new one, not just from the main menu.
 
 To use this ini instead as the default, rename to `MiSTer_SAM.ini`
