@@ -56,6 +56,7 @@ branch="main"
 mbcurl="blob/master/mbc_v03"
 corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
 
+
 #======== INI SYSTEM FILES ========
 inisysfiles=( "mralist" )
 mralist="/tmp/.SAMmras"
