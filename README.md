@@ -12,7 +12,7 @@ Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will
 ## Installation
 - Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
 - From the main MiSTer menu navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
-- NOTE: Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`.
+- **NOTE** Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`.
   
 ## Offline Installation  
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
@@ -26,7 +26,7 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
   
 ## Usage
 Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
-- ** NOTE ** When you set the startup time to 60 seconds, it will actually wait 2 minutes since there is a default 60 second wait after boot (to let all processes start up).
+- **NOTE** When you set the startup time to 60 seconds, it will actually wait 2 minutes since there is a default 60 second wait after boot (to let all processes start up).
 
 Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` script in your MiSTer's Scripts folder! 
 
