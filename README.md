@@ -35,7 +35,7 @@ Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` 
 
 - **Controller Detection** - MiSTer SAM will only start when no input has been received from your controllers for the amount of time set in `MiSTer_SAM.ini`  
 
-- **Options Menu** - All options of SAM can be configured from a menu when launching `MiSTer_SAM_on.sh`. 
+- **Options Menu** - All options of SAM can be configured from a menu when launching `MiSTer_SAM_on.sh`.  
 **NOTE** The menu does not work out of the box on CRT's . Please try adding the following settings to your `/media/fat/MiSTer.ini` and see if it will make the menu work for your CRT setup:  
 ```
 [Menu]
