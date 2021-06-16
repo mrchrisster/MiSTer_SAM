@@ -57,6 +57,10 @@ listenjoy="Yes"
 branch="main"
 mbcurl="blob/master/mbc_v03"
 
+# ======== TTY2OLED =======
+ttyenable="No"
+ttydevice="/dev/ttyUSB0"
+
 #======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
 gbapath="/media/fat/games/GBA"
@@ -180,13 +184,44 @@ for excludelist in ${coreexcludelist[@]}; do
 	readarray -t ${excludelist} <<<${!excludelist}
 done
 
-#Create folder exclude list
+# Create folder exclude list
 fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 	
 # Remove trailing slash from paths
 for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
 	declare -g ${var}="${!var%/}"
 done
+
+# tty2oled initialization
+if [ "${ttyenable,,}" == "yes" ]; then
+	/etc/init.d/S60tty2oled stop
+	echo "cls" > "${ttydevice}"
+	echo "att" > "${ttydevice}"
+	echo "TEXTOUTXY" > "${ttydevice}"
+	echo "000,9,0, Welcome to..." > "${ttydevice}"
+	sleep 0.2
+	echo "cls" > "${ttydevice}"
+	echo "att" > "${ttydevice}"
+	echo "TEXTOUTXY" > "${ttydevice}"
+	echo "000,9,0, Welcome to..." > "${ttydevice}"
+	sleep 0.2
+	echo "cls" > "${ttydevice}"
+	echo "att" > "${ttydevice}"
+	echo "TEXTOUTXY" > "${ttydevice}"
+	echo "000,9,0, Welcome to..." > "${ttydevice}"
+	sleep 0.2
+	echo "att" > "${ttydevice}"
+	echo "TEXTOUTXY" > "${ttydevice}"
+	echo "047,27,2,  Super" > "${ttydevice}"
+	sleep 0.2
+	echo "att" > "${ttydevice}"
+	echo "TEXTOUTXY" > "${ttydevice}"
+	echo "047,45,2,      Attract" > "${ttydevice}"
+	sleep 0.2
+	echo "att" > "${ttydevice}"
+	echo "TEXTOUTXY" > "${ttydevice}"
+	echo "047,61,2,          Mode!" > "${ttydevice}"
+fi
 
 
 #======== SAM MENU ========
@@ -350,11 +385,13 @@ function parse_cmd() {
 					sam_update
 					sam_enable quickstart
 					sam_start
+					pre_exit
 					break
 					;;
 				start) # Start SAM immediately
 					env_check ${1,,}
 					sam_start ${nextcore}
+					pre_exit
 					break
 					;;
 				skip | next) # Load next game - doesn't interrupt loop if running
@@ -366,6 +403,7 @@ function parse_cmd() {
 				stop) # Stop SAM immediately
 					there_can_be_only_one
 					echo " Thanks for playing!"
+					pre_exit
 					break
 					;;
 				update) # Update SAM
@@ -375,12 +413,10 @@ function parse_cmd() {
 				enable) # Enable SAM autoplay mode
 					env_check ${1,,}
 					sam_enable quickstart
-					#sam_reboot
 					break
 					;;
 				disable) # Disable SAM autoplay
 					sam_disable
-					#sam_reboot
 					break
 					;;
 				monitor) # Attach output to terminal
@@ -594,6 +630,31 @@ function env_check() {
 	fi
 }
 
+function tty_update() { # tty_update core game
+	if [ "${ttyenable,,}" == "yes" ]; then
+		echo "cls" > "${ttydevice}"
+		echo "att" > "${ttydevice}"
+		echo "TEXTOUTXY" > "${ttydevice}"
+		echo "000,9,1, ${1}" > "${ttydevice}"
+		if [ ${#2} -gt 22 ]; then
+			echo "att" > "${ttydevice}"
+			echo "TEXTOUTXY" > "${ttydevice}"
+			echo "000,35,2,${2:0:19}..." > "${ttydevice}"
+			echo "att" > "${ttydevice}"
+			echo "TEXTOUTXY" > "${ttydevice}"
+			echo "000,55,2, ${2:19}" > "${ttydevice}"
+		else
+			echo "att" > "${ttydevice}"
+			echo "TEXTOUTXY" > "${ttydevice}"
+			echo "000,35,2,${2}" > "${ttydevice}"
+		fi
+	fi
+}
+
+function pre_exit() { # pre_exit
+	if [ "${usetty,,}" == "yes" ]; then /etc/init.d/S60tty2oled start; fi
+}
+	
 
 #======== DOWNLOAD FUNCTIONS ========
 function curl_check() {
@@ -944,6 +1005,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -e "\e[1m${3}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
 	echo "${3} (${1})" > /tmp/SAM_Game.txt
+	tty_update "${CORE_PRETTY[${1,,}]}" "${3}"
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
@@ -1032,11 +1094,13 @@ function load_core_arcade() {
 		return
 	fi
 
+	mraname="$(echo "$(basename "${mra}")" | sed -e 's/\.[^.]*$//')"
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
-	echo -e "\e[1m$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')\e[0m"
-	echo "$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//') (${nextcore})" > /tmp/SAM_Game.txt
-	echo "$(date +%H:%M:%S) - Arcade - $(echo $(basename "${mra}"))" >> /tmp/SAM_Games.log
+	echo -e "\e[1m${mraname}\e[0m"
+	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >> /tmp/SAM_Games.log
+	echo "${mraname} (${nextcore})" > /tmp/SAM_Game.txt
+	tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}"
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
@@ -1101,8 +1165,9 @@ if [ "${samtrace,,}" == "yes" ]; then
 	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
 fi	
 
-disable_bootrom							# Disable Bootrom until Reboot 
-build_mralist								# Generate list of MRAs
-init_data										# Setup data arrays
-parse_cmd ${@}							# Parse command line parameters for input
+disable_bootrom	# Disable Bootrom until Reboot 
+build_mralist		# Generate list of MRAs
+init_data				# Setup data arrays
+parse_cmd ${@}	# Parse command line parameters for input
+pre_exit				# Shutdown routine	
 exit
