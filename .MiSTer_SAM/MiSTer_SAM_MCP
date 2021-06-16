@@ -77,7 +77,7 @@ killall -q -9 MiSTer_SAM_joy.py
 killall -q -9 MiSTer_SAM_mouse.sh
 killall -q -9 MiSTer_SAM_keyboard.sh
 killall -q -9 xxd
-killall -q -9 inotifywait
+kill -9 $(ps -ef | grep inotifywait | grep /dev/input | cut --fields=2 --delimiter=' ')
 echo " Done!"
 
 # Convert seconds to minutes
