@@ -81,6 +81,13 @@ The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works g
 ### Arcade Horizontal or Vertical Only
 Change the "orientation" setting in the `MiSTer_SAM.ini` file to choose from only horizontal or vertical arcade games.
 
+### Enhanced tty2oled output
+![IMG_1029](https://user-images.githubusercontent.com/81110968/122233384-a3414980-ce81-11eb-93bc-300413af6dc1.gif)
+
+[tty2oled](https://github.com/venice1200/MiSTer_tty2oled/) adds a 3" OLED screen to your MiSTer! By default, tty2oled displays the current core name. With SAM's enhanced tty2oled support you can see the core and game name!
+
+Simply edit the `MiSTer_SAM.ini` and change the `ttyenable` setting to `ttyenable="Yes"`. If you need to use a non-standard device change it with `ttydevice="/dev/ttyUSB0"`.
+
 ### Exclude
 Want to exclude certain arcade games? Just add them to `mraexclude` in the `MiSTer_SAM.ini` file.
 
