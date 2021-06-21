@@ -81,7 +81,7 @@ killall -q -9 MiSTer_SAM_joy.py
 killall -q -9 MiSTer_SAM_mouse.sh
 killall -q -9 MiSTer_SAM_keyboard.sh
 killall -q -9 xxd
-kill -9 $(ps -ef | grep inotifywait | grep /dev/input | cut --fields=2 --delimiter=' ')
+kill -9 $(ps aux | grep "inotifywait" | grep "SAM_Joy_Change" | cut --fields=2 --only-delimited --delimiter=' ')
 echo " Done!"
 
 

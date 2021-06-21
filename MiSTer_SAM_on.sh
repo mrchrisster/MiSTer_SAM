@@ -551,7 +551,7 @@ function sam_disable() { # Disable autoplay
 	killall -q -9 MiSTer_SAM_mouse.sh
 	killall -q -9 MiSTer_SAM_keyboard.sh
 	killall -q -9 xxd
-	killall -q -9 inotifywait
+	kill -9 $(ps | grep "inotifywait" | grep "SAM_Joy_Change" | cut --fields=2 --only-delimited --delimiter=' ')
 
 	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
@@ -600,8 +600,7 @@ function env_check() {
 	fi
 }
 
-function tty_init
-	() { # tty_init
+function tty_init() { # tty_init
 	# tty2oled initialization
 	if [ "${ttyenable,,}" == "yes" ]; then
 		echo " Stopping tty2oled daemon..."
