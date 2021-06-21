@@ -192,37 +192,6 @@ for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath gene
 	declare -g ${var}="${!var%/}"
 done
 
-# tty2oled initialization
-if [ "${ttyenable,,}" == "yes" ]; then
-	/etc/init.d/S60tty2oled stop
-	echo "cls" > "${ttydevice}"
-	echo "att" > "${ttydevice}"
-	echo "TEXTOUTXY" > "${ttydevice}"
-	echo "000,9,0, Welcome to..." > "${ttydevice}"
-	sleep 0.2
-	echo "cls" > "${ttydevice}"
-	echo "att" > "${ttydevice}"
-	echo "TEXTOUTXY" > "${ttydevice}"
-	echo "000,9,0, Welcome to..." > "${ttydevice}"
-	sleep 0.2
-	echo "cls" > "${ttydevice}"
-	echo "att" > "${ttydevice}"
-	echo "TEXTOUTXY" > "${ttydevice}"
-	echo "000,9,0, Welcome to..." > "${ttydevice}"
-	sleep 0.2
-	echo "att" > "${ttydevice}"
-	echo "TEXTOUTXY" > "${ttydevice}"
-	echo "047,27,2,  Super" > "${ttydevice}"
-	sleep 0.2
-	echo "att" > "${ttydevice}"
-	echo "TEXTOUTXY" > "${ttydevice}"
-	echo "047,45,2,      Attract" > "${ttydevice}"
-	sleep 0.2
-	echo "att" > "${ttydevice}"
-	echo "TEXTOUTXY" > "${ttydevice}"
-	echo "047,61,2,          Mode!" > "${ttydevice}"
-fi
-
 
 #======== SAM MENU ========
 function sam_premenu() {
@@ -385,11 +354,11 @@ function parse_cmd() {
 					sam_update
 					sam_enable quickstart
 					sam_start
-					pre_exit
 					break
 					;;
 				start) # Start SAM immediately
 					env_check ${1,,}
+					tty_init
 					sam_start ${nextcore}
 					pre_exit
 					break
@@ -397,6 +366,7 @@ function parse_cmd() {
 				skip | next) # Load next game - doesn't interrupt loop if running
 					echo " Skipping to next game..."
 					env_check ${1,,}
+					tty_init
 					next_core ${nextcore}
 					break
 					;;
@@ -560,7 +530,7 @@ function sam_enable() { # Enable autoplay
 	sync
 	echo " Done!"
 
-	echo -n " MiSTer SAM starting..."
+	echo -n " SAM autoplay daemon starting..."
 
 	if [ "${1,,}" == "quickstart" ]; then
 		/etc/init.d/S93mistersam quickstart &
@@ -627,6 +597,43 @@ function env_check() {
 		echo " Surprised? Check your INI."
 		sam_update ${1}
 		echo " Setup complete."
+	fi
+}
+
+function tty_init
+	() { # tty_init
+	# tty2oled initialization
+	if [ "${ttyenable,,}" == "yes" ]; then
+		echo " Stopping tty2oled daemon..."
+		/etc/init.d/S60tty2oled stop
+		echo " Done!"
+		
+		echo "cls" > "${ttydevice}"
+		echo "att" > "${ttydevice}"
+		echo "TEXTOUTXY" > "${ttydevice}"
+		echo "000,9,0, Welcome to..." > "${ttydevice}"
+		sleep 0.2
+		echo "cls" > "${ttydevice}"
+		echo "att" > "${ttydevice}"
+		echo "TEXTOUTXY" > "${ttydevice}"
+		echo "000,9,0, Welcome to..." > "${ttydevice}"
+		sleep 0.2
+		echo "cls" > "${ttydevice}"
+		echo "att" > "${ttydevice}"
+		echo "TEXTOUTXY" > "${ttydevice}"
+		echo "000,9,0, Welcome to..." > "${ttydevice}"
+		sleep 0.2
+		echo "att" > "${ttydevice}"
+		echo "TEXTOUTXY" > "${ttydevice}"
+		echo "047,27,2,  Super" > "${ttydevice}"
+		sleep 0.2
+		echo "att" > "${ttydevice}"
+		echo "TEXTOUTXY" > "${ttydevice}"
+		echo "047,45,2,      Attract" > "${ttydevice}"
+		sleep 0.2
+		echo "att" > "${ttydevice}"
+		echo "TEXTOUTXY" > "${ttydevice}"
+		echo "047,61,2,          Mode!" > "${ttydevice}"
 	fi
 }
 
