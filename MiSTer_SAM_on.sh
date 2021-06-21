@@ -641,7 +641,7 @@ function tty_update() { # tty_update core game
 		echo "cls" > "${ttydevice}"
 		echo "att" > "${ttydevice}"
 		echo "TEXTOUTXY" > "${ttydevice}"
-		echo "000,9,1, ${1}" > "${ttydevice}"
+		echo "000,11,1,${1}" > "${ttydevice}"
 		if [ ${#2} -gt 22 ]; then
 			echo "att" > "${ttydevice}"
 			echo "TEXTOUTXY" > "${ttydevice}"
