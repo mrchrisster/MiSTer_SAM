@@ -603,62 +603,65 @@ function env_check() {
 function tty_init() { # tty_init
 	# tty2oled initialization
 	if [ "${ttyenable,,}" == "yes" ]; then
-		echo " Stopping tty2oled daemon..."
-		/etc/init.d/S60tty2oled stop
-		echo " Done!"
+		#echo " Stopping tty2oled daemon..."
+		#/etc/init.d/S60tty2oled stop
+		#echo " Done!"
 		
-		echo "cls" > "${ttydevice}"
-		echo "att" > "${ttydevice}"
-		echo "TEXTOUTXY" > "${ttydevice}"
-		echo "000,9,0, Welcome to..." > "${ttydevice}"
+		echo "CMDCLS" > "${ttydevice}"
+		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
 		sleep 0.2
-		echo "cls" > "${ttydevice}"
-		echo "att" > "${ttydevice}"
-		echo "TEXTOUTXY" > "${ttydevice}"
-		echo "000,9,0, Welcome to..." > "${ttydevice}"
+		echo "CMDCLS" > "${ttydevice}"
+		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
 		sleep 0.2
-		echo "cls" > "${ttydevice}"
-		echo "att" > "${ttydevice}"
-		echo "TEXTOUTXY" > "${ttydevice}"
-		echo "000,9,0, Welcome to..." > "${ttydevice}"
+		echo "CMDCLS" > "${ttydevice}"
+		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
 		sleep 0.2
-		echo "att" > "${ttydevice}"
-		echo "TEXTOUTXY" > "${ttydevice}"
-		echo "047,27,2,  Super" > "${ttydevice}"
+		echo "CMDTXT,2,1,47,27,  Super" > "${ttydevice}"
 		sleep 0.2
-		echo "att" > "${ttydevice}"
-		echo "TEXTOUTXY" > "${ttydevice}"
-		echo "047,45,2,      Attract" > "${ttydevice}"
+		echo "CMDTXT,2,1,47,45,      Attract" > "${ttydevice}"
 		sleep 0.2
-		echo "att" > "${ttydevice}"
-		echo "TEXTOUTXY" > "${ttydevice}"
-		echo "047,61,2,          Mode!" > "${ttydevice}"
+		echo "CMDTXT,2,1,47,61,          Mode!" > "${ttydevice}"
 	fi
 }
 
 function tty_update() { # tty_update core game
 	if [ "${ttyenable,,}" == "yes" ]; then
-		echo "cls" > "${ttydevice}"
-		echo "att" > "${ttydevice}"
-		echo "TEXTOUTXY" > "${ttydevice}"
-		echo "000,11,1,${1}" > "${ttydevice}"
-		if [ ${#2} -gt 22 ]; then
-			echo "att" > "${ttydevice}"
-			echo "TEXTOUTXY" > "${ttydevice}"
-			echo "000,35,2,${2:0:19}..." > "${ttydevice}"
-			echo "att" > "${ttydevice}"
-			echo "TEXTOUTXY" > "${ttydevice}"
-			echo "000,55,2, ${2:19}" > "${ttydevice}"
+		# Wait for tty2oled daemon to show the core logo
+		inotifywait -e modify /tmp/CORENAME
+		sleep 10
+		
+		# Transition effect
+		echo "CMDGEO,8,1,126,30,31,15,0" > "${ttydevice}"
+		sleep 0.2                                        
+		echo "CMDGEO,8,1,126,30,63,31,0" > "${ttydevice}"
+		sleep 0.2                                        
+		echo "CMDGEO,8,1,126,30,127,63,0" > "${ttydevice}"
+		sleep 0.2                                        
+		echo "CMDGEO,8,1,126,30,255,127,0" > "${ttydevice}"
+		sleep 0.2
+		echo "CMDGEO,8,0,126,30,31,15,0" > "${ttydevice}"
+		sleep 0.2                                        
+		echo "CMDGEO,8,0,126,30,63,31,0" > "${ttydevice}"
+		sleep 0.2                                        
+		echo "CMDGEO,8,0,126,30,127,63,0" > "${ttydevice}"
+		sleep 0.2                                        
+		echo "CMDGEO,8,0,126,30,255,127,0" > "${ttydevice}"
+		sleep 0.2                                        
+		
+		# Split long lines - length is approximate since fonts are variable width!
+		if [ ${#2} -gt 23 ]; then
+			echo "CMDTXT,2,1,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,2,1,0,40, ${2:20}" > "${ttydevice}"
 		else
-			echo "att" > "${ttydevice}"
-			echo "TEXTOUTXY" > "${ttydevice}"
-			echo "000,35,2,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,1,0,20,${2}" > "${ttydevice}"
 		fi
+		echo "CMDTXT,1,1,0,60,on ${1}" > "${ttydevice}"
 	fi
 }
 
 function pre_exit() { # pre_exit
-	if [ "${usetty,,}" == "yes" ]; then /etc/init.d/S60tty2oled start; fi
+	#if [ "${usetty,,}" == "yes" ]; then /etc/init.d/S60tty2oled start; fi
+	echo
 }
 	
 
@@ -1011,7 +1014,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -e "\e[1m${3}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
 	echo "${3} (${1})" > /tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${1,,}]}" "${3}"
+	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" &
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
