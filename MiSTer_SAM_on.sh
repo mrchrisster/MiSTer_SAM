@@ -1003,6 +1003,10 @@ function next_core() { # next_core (core)
 	if [ -z "${rompath}" ]; then
 		core_error "${nextcore}" "${rompath}"
 	else
+		if [ -f "${rompath}.sam" ]; then
+			source "${rompath}.sam"
+		fi
+		
 		declare -g romloadfails=0
 		load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
 	fi
