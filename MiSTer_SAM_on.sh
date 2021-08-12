@@ -55,7 +55,7 @@ listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
 branch="main"
-mbcurl="blob/master/mbc_v03"
+mbcurl="blob/master/mbc_v05"
 
 # ======== TTY2OLED =======
 ttyenable="No"
