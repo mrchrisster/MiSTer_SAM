@@ -79,7 +79,7 @@ The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works g
 
 ## Attract Mode Configuration
 ### Arcade Horizontal or Vertical Only
-Change the "orientation" setting in the `MiSTer_SAM.ini` file to choose from only horizontal or vertical arcade games.
+Uncomment one of the "arcadepath" settings in the `MiSTer_SAM.ini` file to choose from only horizontal or vertical arcade games.
 
 ### Enhanced tty2oled output
 ![IMG_1029](https://user-images.githubusercontent.com/81110968/122233384-a3414980-ce81-11eb-93bc-300413af6dc1.gif)
