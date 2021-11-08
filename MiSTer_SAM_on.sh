@@ -1075,6 +1075,11 @@ function build_mralist() {
 		echo " The path ${arcadepath} contains no MRA files!"
 		loop_core
 	fi
+
+	# Check if the MRA list already exists - if so, leave it alone
+	if [ -f ${mralist} ]; then
+		return
+	fi
 	
 	# This prints the list of MRA files in a path,
 	# Cuts the string to just the file name,
