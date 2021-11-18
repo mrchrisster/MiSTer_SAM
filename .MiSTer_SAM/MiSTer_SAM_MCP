@@ -235,7 +235,7 @@ while :; do
 
                                 if [ "${monitoronly,,}" == "no" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ] && [ "$(ps aux | grep -v grep | grep -c -e '{MiSTer_SAM_on.sh}')" == "0" ]; then
                                         echo " No activity detected for ${samtimeout} minutes. SAM starting..."
-                                        "/media/fat/Scripts/MiSTer_SAM_on.sh" start | tee /tmp/.SAMshell
+                                        "/media/fat/Scripts/MiSTer_SAM_on.sh" start | tee >(split -d -b 100000 - /tmp/.SAMshell)
                                         echo " Returned from SAM."
                                 fi
 
@@ -255,7 +255,7 @@ while :; do
 
                         if [ "${monitoronly,,}" == "no" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ] && [ "$(ps aux | grep -v grep | grep -c -e '{MiSTer_SAM_on.sh}')" == "0" ]; then
                                 echo " No activity detected for ${samtimeout} minutes. SAM starting..."
-                                "/media/fat/Scripts/MiSTer_SAM_on.sh" start | tee /tmp/.SAMshell
+                                "/media/fat/Scripts/MiSTer_SAM_on.sh" start | tee >(split -d -b 100000 - /tmp/.SAMshell)
                                 echo " Returned from SAM."
                         fi
 
