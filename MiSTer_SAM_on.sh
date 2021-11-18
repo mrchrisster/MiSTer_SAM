@@ -758,7 +758,8 @@ function get_partun() {
 #========= SAM MONITOR =========
 function sam_monitor() {
 
-tail -f /tmp/.SAMshell
+tail -f /tmp/.SAMshell*
+
 }
 
 
@@ -912,7 +913,6 @@ function next_core() { # next_core (core)
 }
 
 function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
-        echo -n " Starting now on the "
         echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
         echo -e "\e[1m${3}\e[0m"
         echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
