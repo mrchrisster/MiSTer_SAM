@@ -124,6 +124,18 @@ for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --
 done
 # TODO - Detect keyboard device changes
 
+# Spawn Log deletion process to make sure we don't run out of space in /tmp
+echo "Log deletion process starting..."
+
+cat <<\EOF > /tmp/logdelete.sh
+while :; do
+sleep 3600
+rm `ls -at /tmp/.SAMshell* | tail -n +2`
+done
+EOF
+chmod +x /tmp/logdelete.sh
+"/tmp/logdelete.sh" 2>/dev/null &
+
 # Startup done
 echo " Done!"
 
