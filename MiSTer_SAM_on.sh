@@ -758,7 +758,11 @@ function get_partun() {
 #========= SAM MONITOR =========
 function sam_monitor() {
 
-tail -f /tmp/.SAMshell*
+if [ -f /tmp/.SAMshell* ]; then
+        tail -f /tmp/.SAMshell*
+else
+        echo "SAM is not started yet."
+fi
 
 }
 
