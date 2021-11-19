@@ -1012,7 +1012,6 @@ function load_core_arcade() {
         fi
 
         mraname="$(echo "$(basename "${mra}")" | sed -e 's/\.[^.]*$//')"
-        echo -n " Starting now on the "
         echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
         echo -e "\e[1m${mraname}\e[0m"
         echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >> /tmp/SAM_Games.log
