@@ -22,7 +22,7 @@
 # Additional development by: Mellified
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder
 
 
 #!/bin/bash
@@ -54,6 +54,7 @@ disablebootrom="Yes"
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
+repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 branch="main"
 mbcurl="blob/master/mbc_v06"
 
@@ -71,6 +72,16 @@ nespath="/media/fat/games/NES"
 snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
+
+# ======== CONSOLE WHITELISTS ========
+gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"
+genesiswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_genesis.txt"
+megacdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_megacd.txt"
+neogeowhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_neogeo.txt"
+neswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_nes.txt"
+sneswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_snes.txt"
+tgfx16whitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16.txt"
+tgfx16cdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16cd.txt"
 
 #======== EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
@@ -718,9 +729,8 @@ function get_samstuff() { #get_samstuff file (path)
 		filepath="${mrsampath}"
 	fi
 
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-		echo -n " Downloading from ${REPOSITORY_URL}/blob/${branch}/${1} to ${filepath}/..."
-	curl_download "/tmp/${1##*/}" "${REPOSITORY_URL}/blob/${branch}/${1}?raw=true"
+	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
+	curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
 
 	if [ ! "${filepath}" == "/tmp" ]; then
 		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
@@ -988,6 +998,18 @@ function next_core() { # next_core (core)
 		fi
 	fi
 
+	# If there is a whitelist check it
+	declare -n whitelist="${nextcore,,}list"
+	# Possible exit statuses:
+	# 0: found
+	# 1: not found
+	# 2: error (e.g. file not found)
+	if [ $(grep -Fqsx "${romname}" "${whitelist}"; echo "$?") -eq 1 ]; then
+		echo " ${romname} is not in ${whitelist} - SKIPPED"
+		next_core
+		return
+	fi
+
 	# If there is an exclude list check it
 	declare -n excludelist="${nextcore,,}exclude"
 	if [ ${#excludelist[@]} -gt 0 ]; then
@@ -1148,6 +1170,7 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo ""
 	#======== LOCAL VARIABLES ========
 	echo " commandline: ${@}"
+	echo " repository_url: ${repository_url}"
 	echo " branch: ${branch}"
 	echo " mbcurl: ${mbcurl}"
 	echo ""
@@ -1169,7 +1192,16 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo " snespath: ${snespath}"
 	echo " tgfx16path: ${tgfx16path}"
 	echo " tgfx16cdpath: ${tgfx16cdpath}"
-  echo ""
+	echo ""
+	echo " gbalist: ${gbalist}"
+	echo " genesislist: ${genesislist}"
+	echo " megacdlist: ${megacdlist}"
+	echo " neogeolist: ${neogeolist}"
+	echo " neslist: ${neslist}"
+	echo " sneslist: ${sneslist}"
+	echo " tgfx16list: ${tgfx16list}"
+	echo " tgfx16cdlist: ${tgfx16cdlist}"
+	echo ""
 	echo " arcadeexclude: ${arcadeexclude[@]}"
 	echo " gbaexclude: ${gbaexclude[@]}"
 	echo " genesisexclude: ${genesisexclude[@]}"
