@@ -946,75 +946,36 @@ function next_core() { # next_core (core)
 	declare -n whitelist="${nextcore,,}whitelist"
 	# Use the whitelist
 	if [ -s "${whitelist}" ]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " Using whitelist: ${whitelist}"; fi
 		local zipwhitelisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Fiqxf '"${whitelist}" ';' )
 		local zipwhitelistfilter=( grep -Fixf "${whitelist}" )
 		local romwhitelisttest=( -exec bash -c 'rom=$(basename "{}"); grep -Fqx "${rom}" '"${whitelist}" ';' )
 	else
 	# No whitelist present
+		if [ "${samquiet,,}" == "no" ]; then echo " No whitelist found for ${nextcore}"; fi
 		local zipwhitelisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Eiqx '".*\\.${CORE_EXT[${nextcore,,}]}" ';' )
 		local zipwhitelistfilter=( grep -Eix ".*\\.${CORE_EXT[${nextcore,,}]}" )
 		local romwhitelisttest=( -true )
 	fi
 
-	# Core doesn't use zips - get on with it
-	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" -print | shuf --head-count=1 --random-source=/dev/urandom)"
-		romname=$(basename "${rompath}")
-	
-	# We might be using ZIPs
+	local folderexcludetest=( -type d '(' -iname *BIOS* ${fldrex} ')' -prune -false -o )
+	local romtest=( -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" )
+	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ] && [ "${usezip,,}" == "yes" ]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " Ignoring zip files."; fi
+		local ziptest=( -name '*.zip' "${zipwhitelisttest[@]}" )
 	else
-		# Check how many ZIP and ROM files in core path	
-		zipcount=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
-		romcount=$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
+		if [ "${samquiet,,}" == "no" ]; then echo " Allowing zip files."; fi
+		local ziptest=( -false )
+	fi
 
-		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
-			# We've found ZIPs AND ROMs AND we're using zips
-			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
-
-			# We found at least one large ZIP file - use it
-			if [ $(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) "${zipwhitelisttest[@]}" -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				zipname=$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" "${zipwhitelisttest[@]}" -print | shuf --head-count=1 --random-source=/dev/urandom)
-				zippedrom=$(unzip -Z1 "${zipname}" | "${zipwhitelistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
-				romname=$("${mrsampath}/partun" "${zipname}" -i -f "${zippedrom}" --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-				# Partun returns the actual rom name to us so we need a special case here
-				romname=$(basename "${romname}")
-				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-
-			# We see more zip files than ROMs - individually zipped roms?
-			elif [ ${zipcount} -gt ${romcount} ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
-				zipname=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" "${zipwhitelisttest[@]}" -print | shuf --head-count=1 --random-source=/dev/urandom)
-				zippedrom=$(unzip -Z1 "${zipname}" | "${zipwhitelistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
-				romname=$("${mrsampath}/partun" "${zipname}" -i -f "${zippedrom}" --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-				# Partun returns the actual rom name to us so we need a special case here
-				romname=$(basename "${romname}")
-				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-				
-			# I guess we use the ROMs!
-			else
-				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
-				rompath=$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" -print | shuf --head-count=1 --random-source=/dev/urandom)
-				romname=$(basename "${rompath}")
-			fi
-
-		# Found no ZIPs or we're ignoring them
-		elif [ ${zipcount} -eq 0 ] || [ "${usezip,,}" == "no" ]; then
-			rompath=$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" -print | shuf --head-count=1 --random-source=/dev/urandom)
-			romname=$(basename "${rompath}")
-
-		# Use the ZIP Luke!
-		else
-			zipname=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" "${zipwhitelisttest[@]}" -print | shuf --head-count=1 --random-source=/dev/urandom)
-			zippedrom=$(unzip -Z1 "${zipname}" | "${zipwhitelistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
-			romname=$("${mrsampath}/partun" "${zipname}" -i -f "${zippedrom}" --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-			# Partun returns the actual rom name to us so we need a special case here
-			romname=$(basename "${romname}")
-			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-		fi
+	local filepath=$(find ${CORE_PATH[${nextcore,,}]} "${folderexcludetest[@]}" \( "${romtest[@]}" -o "${ziptest[@]}" \) -print | shuf --head-count=1 --random-source=/dev/urandom)
+	if [[ "${filepath}" == *.zip ]]; then
+		romname=$(unzip -Z1 "${filepath}" | "${zipwhitelistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
+		rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+		"${mrsampath}/partun" "${filepath}" -i -f "${romname}" --rename "/tmp/Extracted.${CORE_EXT[${nextcore,,}]}" >/dev/null
+	else
+		romname=$(basename "${filepath}")
+		rompath=${filepath}
 	fi
 
 	# If there is an exclude list check it
