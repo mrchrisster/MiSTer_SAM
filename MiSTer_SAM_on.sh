@@ -958,7 +958,7 @@ function next_core() { # next_core (core)
 		local romwhitelisttest=( -true )
 	fi
 
-	local folderexcludetest=( -type d '(' -iname *BIOS* ${fldrex} ')' -prune -false -o )
+	local folderexcludetest=( -type d '(' -iname *BIOS* -o -iname ' !MBC' ${fldrex} ')' -prune -false -o )
 	local romtest=( -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" )
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ] && [ "${usezip,,}" == "yes" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " Ignoring zip files."; fi
