@@ -165,6 +165,7 @@ Some commands to control SAM from the command line
    
    
 ## Release History
+- 30 Nov 2021 - @InquisitiveCoder added Whitelist support
 - 16 May 2021 - Fixed hotplug detection, added ini editing feature through menu
 - 10 May 2021 - "2.0" release! Menu, per-core exclusions, directory exclusion, timer until next game (ssh), custom game dir support (usb0), expanded controller detection, NeoGeo compatiblity improvements
 - 28 Apr 2021 - Test branch support, added reboot to on to improve reliability, fixed confusing messages in on, fixed monitoring with no js devices
