@@ -184,15 +184,10 @@ fi
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
-# Create array of coreexclude list names
-declare -a coreexcludelist
+# Iterate through core exclude lists and write them to files
 for core in ${corelist}; do
-	coreexcludelist+=( "${core}exclude" )
-done
-
-# Iterate through coreexclude lists and make list into array
-for excludelist in ${coreexcludelist[@]}; do
-	readarray -t ${excludelist} <<<${!excludelist}
+	excludelist="${core}exclude"
+	printf '%s' "${!excludelist}" >"/tmp/MiSTer_SAM_blacklist_${core}.txt"
 done
 
 # Create folder exclude list
@@ -951,43 +946,46 @@ function next_core() { # next_core (core)
 		local zipwhitelistfilter=( grep -Fixf "${whitelist}" )
 		local romwhitelisttest=( -exec bash -c 'rom=$(basename "{}"); grep -Fqx "${rom}" '"${whitelist}" ';' )
 	else
-	# No whitelist present
+	# No whitelist present; only check file extension
 		if [ "${samquiet,,}" == "no" ]; then echo " No whitelist found for ${nextcore}"; fi
 		local zipwhitelisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Eiqx '".*\\.${CORE_EXT[${nextcore,,}]}" ';' )
 		local zipwhitelistfilter=( grep -Eix ".*\\.${CORE_EXT[${nextcore,,}]}" )
 		local romwhitelisttest=( -true )
 	fi
 
-	local folderexcludetest=( -type d '(' -iname *BIOS* -o -iname ' !MBC' ${fldrex} ')' -prune -false -o )
-	local romtest=( -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" )
-	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ] && [ "${usezip,,}" == "yes" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " Ignoring zip files."; fi
-		local ziptest=( -name '*.zip' "${zipwhitelisttest[@]}" )
+	# If there is an exclude list check it
+	local blacklist="/tmp/MiSTer_SAM_blacklist_${nextcore,,}.txt"
+	if [ -s "${blacklist}" ]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " Using blacklist: ${blacklist}"; fi
+		local zipblacklisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Fiqvxf '"${blacklist}" ';' )
+		local zipblacklistfilter=( grep -Fivxf "${blacklist}" )
+		local romblacklisttest=( -exec bash -c 'rom=$(basename "{}"); grep -Fqvx "${rom}" '"${blacklist}" ';' )
 	else
+	# No-ops
+		local zipblacklisttest=( -true )
+		local zipblacklistfilter=( cat )
+		local romblacklisttest=( -true )
+	fi
+
+	local folderexcludetest=( -type d '(' -iname *BIOS* -o -iname ' !MBC' ${fldrex} ')' -prune -false -o )
+	local romtest=( -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" "${romblacklisttest[@]}" )
+	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ] && [ "${usezip,,}" == "yes" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " Allowing zip files."; fi
+		local ziptest=( -name '*.zip' "${zipwhitelisttest[@]}" "${zipblacklisttest[@]}" )
+	else
+		if [ "${samquiet,,}" == "no" ]; then echo " Ignoring zip files."; fi
 		local ziptest=( -false )
 	fi
 
 	local filepath=$(find ${CORE_PATH[${nextcore,,}]} "${folderexcludetest[@]}" \( "${romtest[@]}" -o "${ziptest[@]}" \) -print | shuf --head-count=1 --random-source=/dev/urandom)
+	if [ "${samquiet,,}" == "no" ]; then echo " Randomly selected file: ${filepath}"; fi
 	if [[ "${filepath}" == *.zip ]]; then
-		romname=$(unzip -Z1 "${filepath}" | "${zipwhitelistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
+		romname=$(unzip -Z1 "${filepath}" | "${zipwhitelistfilter[@]}" | "${zipblacklistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
 		rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
 		"${mrsampath}/partun" "${filepath}" -i -f "${romname}" --rename "/tmp/Extracted.${CORE_EXT[${nextcore,,}]}" >/dev/null
 	else
 		romname=$(basename "${filepath}")
 		rompath=${filepath}
-	fi
-
-	# If there is an exclude list check it
-	declare -n excludelist="${nextcore,,}exclude"
-	if [ ${#excludelist[@]} -gt 0 ]; then
-		for excluded in "${excludelist[@]}"; do
-			if [ "${romname}" == "${excluded}" ]; then
-				echo " ${romname} is excluded - SKIPPED"
-				next_core
-				return
-			fi
-		done
 	fi
 
 	if [ -z "${rompath}" ]; then
