@@ -22,7 +22,7 @@
 # Additional development by: Mellified
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder
 
 
 #!/bin/bash
@@ -54,6 +54,7 @@ disablebootrom="Yes"
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
+repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 branch="main"
 mbcurl="blob/master/mbc_v06"
 
@@ -71,6 +72,16 @@ nespath="/media/fat/games/NES"
 snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
+
+# ======== CONSOLE WHITELISTS ========
+gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"
+genesiswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_genesis.txt"
+megacdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_megacd.txt"
+neogeowhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_neogeo.txt"
+neswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_nes.txt"
+sneswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_snes.txt"
+tgfx16whitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16.txt"
+tgfx16cdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16cd.txt"
 
 #======== EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
@@ -173,15 +184,10 @@ fi
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
-# Create array of coreexclude list names
-declare -a coreexcludelist
+# Iterate through core exclude lists and write them to files
 for core in ${corelist}; do
-	coreexcludelist+=( "${core}exclude" )
-done
-
-# Iterate through coreexclude lists and make list into array
-for excludelist in ${coreexcludelist[@]}; do
-	readarray -t ${excludelist} <<<${!excludelist}
+	excludelist="${core}exclude"
+	printf '%s' "${!excludelist}" >"/tmp/MiSTer_SAM_blacklist_${core}.txt"
 done
 
 # Create folder exclude list
@@ -718,9 +724,8 @@ function get_samstuff() { #get_samstuff file (path)
 		filepath="${mrsampath}"
 	fi
 
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_SAM"
-		echo -n " Downloading from ${REPOSITORY_URL}/blob/${branch}/${1} to ${filepath}/..."
-	curl_download "/tmp/${1##*/}" "${REPOSITORY_URL}/blob/${branch}/${1}?raw=true"
+	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
+	curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
 
 	if [ ! "${filepath}" == "/tmp" ]; then
 		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
@@ -933,71 +938,54 @@ function next_core() { # next_core (core)
 		return
 	fi
 
-	# Core doesn't use zips - get on with it
-	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-		romname=$(basename "${rompath}")
-	
-	# We might be using ZIPs
+	declare -n whitelist="${nextcore,,}whitelist"
+	# Use the whitelist
+	if [ -s "${whitelist}" ]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " Using whitelist: ${whitelist}"; fi
+		local zipwhitelisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Fiqxf '"${whitelist}" ';' )
+		local zipwhitelistfilter=( grep -Fixf "${whitelist}" )
+		local romwhitelisttest=( -exec bash -c 'rom=$(basename "{}"); grep -Fqx "${rom}" '"${whitelist}" ';' )
 	else
-		# Check how many ZIP and ROM files in core path	
-		zipcount=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
-		romcount=$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
-
-		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
-			# We've found ZIPs AND ROMs AND we're using zips
-			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
-
-			# We found at least one large ZIP file - use it
-			if [ $(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-				# Partun returns the actual rom name to us so we need a special case here
-				romname=$(basename "${romname}")
-				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-
-			# We see more zip files than ROMs - individually zipped roms?
-			elif [ ${zipcount} -gt ${romcount} ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
-				romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-				# Partun returns the actual rom name to us so we need a special case here
-				romname=$(basename "${romname}")
-				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-				
-			# I guess we use the ROMs!
-			else
-				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
-				rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-				romname=$(basename "${rompath}")
-			fi
-
-		# Found no ZIPs or we're ignoring them
-		elif [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
-			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-			romname=$(basename "${rompath}")
-
-		# Use the ZIP Luke!
-		else
-			romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-			# Partun returns the actual rom name to us so we need a special case here
-			romname=$(basename "${romname}")
-			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-		fi
+	# No whitelist present; only check file extension
+		if [ "${samquiet,,}" == "no" ]; then echo " No whitelist found for ${nextcore}"; fi
+		local zipwhitelisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Eiqx '".*\\.${CORE_EXT[${nextcore,,}]}" ';' )
+		local zipwhitelistfilter=( grep -Eix ".*\\.${CORE_EXT[${nextcore,,}]}" )
+		local romwhitelisttest=( -true )
 	fi
 
 	# If there is an exclude list check it
-	declare -n excludelist="${nextcore,,}exclude"
-	if [ ${#excludelist[@]} -gt 0 ]; then
-		for excluded in "${excludelist[@]}"; do
-			if [ "${romname}" == "${excluded}" ]; then
-				echo " ${romname} is excluded - SKIPPED"
-				next_core
-				return
-			fi
-		done
+	local blacklist="/tmp/MiSTer_SAM_blacklist_${nextcore,,}.txt"
+	if [ -s "${blacklist}" ]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " Using blacklist: ${blacklist}"; fi
+		local zipblacklisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Fiqvxf '"${blacklist}" ';' )
+		local zipblacklistfilter=( grep -Fivxf "${blacklist}" )
+		local romblacklisttest=( -exec bash -c 'rom=$(basename "{}"); grep -Fqvx "${rom}" '"${blacklist}" ';' )
+	else
+	# No-ops
+		local zipblacklisttest=( -true )
+		local zipblacklistfilter=( cat )
+		local romblacklisttest=( -true )
+	fi
+
+	local folderexcludetest=( -type d '(' -iname *BIOS* -o -iname ' !MBC' ${fldrex} ')' -prune -false -o )
+	local romtest=( -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" "${romblacklisttest[@]}" )
+	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ] && [ "${usezip,,}" == "yes" ]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " Allowing zip files."; fi
+		local ziptest=( -name '*.zip' "${zipwhitelisttest[@]}" "${zipblacklisttest[@]}" )
+	else
+		if [ "${samquiet,,}" == "no" ]; then echo " Ignoring zip files."; fi
+		local ziptest=( -false )
+	fi
+
+	local filepath=$(find ${CORE_PATH[${nextcore,,}]} "${folderexcludetest[@]}" \( "${romtest[@]}" -o "${ziptest[@]}" \) -print | shuf --head-count=1 --random-source=/dev/urandom)
+	if [ "${samquiet,,}" == "no" ]; then echo " Randomly selected file: ${filepath}"; fi
+	if [[ "${filepath}" == *.zip ]]; then
+		romname=$(unzip -Z1 "${filepath}" | "${zipwhitelistfilter[@]}" | "${zipblacklistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
+		rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+		"${mrsampath}/partun" "${filepath}" -i -f "${romname}" --rename "/tmp/Extracted.${CORE_EXT[${nextcore,,}]}" >/dev/null
+	else
+		romname=$(basename "${filepath}")
+		rompath=${filepath}
 	fi
 
 	if [ -z "${rompath}" ]; then
@@ -1148,6 +1136,7 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo ""
 	#======== LOCAL VARIABLES ========
 	echo " commandline: ${@}"
+	echo " repository_url: ${repository_url}"
 	echo " branch: ${branch}"
 	echo " mbcurl: ${mbcurl}"
 	echo ""
@@ -1169,7 +1158,16 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo " snespath: ${snespath}"
 	echo " tgfx16path: ${tgfx16path}"
 	echo " tgfx16cdpath: ${tgfx16cdpath}"
-  echo ""
+	echo ""
+	echo " gbalist: ${gbalist}"
+	echo " genesislist: ${genesislist}"
+	echo " megacdlist: ${megacdlist}"
+	echo " neogeolist: ${neogeolist}"
+	echo " neslist: ${neslist}"
+	echo " sneslist: ${sneslist}"
+	echo " tgfx16list: ${tgfx16list}"
+	echo " tgfx16cdlist: ${tgfx16cdlist}"
+	echo ""
 	echo " arcadeexclude: ${arcadeexclude[@]}"
 	echo " gbaexclude: ${gbaexclude[@]}"
 	echo " genesisexclude: ${genesisexclude[@]}"
