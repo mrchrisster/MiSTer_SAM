@@ -980,9 +980,12 @@ function next_core() { # next_core (core)
 	local filepath=$(find ${CORE_PATH[${nextcore,,}]} "${folderexcludetest[@]}" \( "${romtest[@]}" -o "${ziptest[@]}" \) -print | shuf --head-count=1 --random-source=/dev/urandom)
 	if [ "${samquiet,,}" == "no" ]; then echo " Randomly selected file: ${filepath}"; fi
 	if [[ "${filepath}" == *.zip ]]; then
+		local tmpdir="/tmp/MiSTer_SAM";
+		# clean up previous unzips
+		rm -rf "${tmpdir}" && mkdir -p "${tmpdir}"
 		romname=$(unzip -Z1 "${filepath}" | "${zipwhitelistfilter[@]}" | "${zipblacklistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
-		rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-		"${mrsampath}/partun" "${filepath}" -i -f "${romname}" --rename "/tmp/Extracted.${CORE_EXT[${nextcore,,}]}" >/dev/null
+		rompath="${tmpdir}/${romname}"
+		"${mrsampath}/partun" "${filepath}" -i -f "${romname}" --rename "${rompath}" >/dev/null
 	else
 		romname=$(basename "${filepath}")
 		rompath=${filepath}
