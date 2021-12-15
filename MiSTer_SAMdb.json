@@ -6,8 +6,8 @@
     "default_options": {},
     "files": {
 	"Scripts/update_MiSTer_SAM.sh": {
-	    "hash": "71dea4c852abb9e5444f861fb0b5f8e2",
-	    "size": 34941,
+	    "hash": "317932fc1de58a138c7b5904ff6fcdfe",
+	    "size": 34384,
 	    "url": "https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/main/MiSTer_SAM_on.sh"
 	}
     },
