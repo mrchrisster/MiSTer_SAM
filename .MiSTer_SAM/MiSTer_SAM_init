@@ -81,7 +81,7 @@ killall -q -9 MiSTer_SAM_joy.py
 killall -q -9 MiSTer_SAM_mouse.sh
 killall -q -9 MiSTer_SAM_keyboard.sh
 killall -q -9 xxd
-kill -9 $(ps aux | grep "inotifywait" | grep "SAM_Joy_Change" | cut --fields=2 --only-delimited --delimiter=' ')
+kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; })
 echo " Done!"
 
 
