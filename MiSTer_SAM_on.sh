@@ -184,10 +184,17 @@ fi
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
-# Iterate through core exclude lists and write them to files
+# Iterate through core exclude lists and convert them into
+# associative arrays for efficient lookups later
 for core in ${corelist}; do
-	excludelist="${core}exclude"
-	printf '%s' "${!excludelist}" >"/tmp/MiSTer_SAM_blacklist_${core}.txt"
+	declare -n excludelist=${core}exclude
+	declare -n blacklist=${core}blacklist
+	declare -A blacklist
+	while read -r game || [[ ! -z ${game} ]]; do
+		if [[ ! -z ${game} ]]; then
+			blacklist[${game}]=1
+		fi
+	done <<<"${excludelist}"
 done
 
 # Create folder exclude list
@@ -913,12 +920,13 @@ function loop_core() { # loop_core (core)
 				fi
 			fi
 		done
+		echo
 	done
 }
 
 function next_core() { # next_core (core)
 	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
-		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
+		echo " ERROR: FATAL - List of cores is empty. Nothing to do!" >&2
 		exit 1
 	fi
 
@@ -932,60 +940,132 @@ function next_core() { # next_core (core)
 		countdown="countdown"
 	fi
 
+	if [[ ${samquiet,,} == no ]]; then
+		echo " Next core: ${nextcore}"
+	fi
+
 	if [ "${nextcore,,}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
 		load_core_arcade
 		return
 	fi
 
-	declare -n whitelist="${nextcore,,}whitelist"
-	# Use the whitelist
-	if [ -s "${whitelist}" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " Using whitelist: ${whitelist}"; fi
-		local zipwhitelisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Fiqxf '"${whitelist}" ';' )
-		local zipwhitelistfilter=( grep -Fixf "${whitelist}" )
-		local romwhitelisttest=( -exec bash -c 'rom=$(basename "{}"); grep -Fqx "${rom}" '"${whitelist}" ';' )
-	else
-	# No whitelist present; only check file extension
-		if [ "${samquiet,,}" == "no" ]; then echo " No whitelist found for ${nextcore}"; fi
-		local zipwhitelisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Eiqx '".*\\.${CORE_EXT[${nextcore,,}]}" ';' )
-		local zipwhitelistfilter=( grep -Eix ".*\\.${CORE_EXT[${nextcore,,}]}" )
-		local romwhitelisttest=( -true )
+	# Capture the script's stdout so debug messages can be written to
+	# in the middle of pipelines.
+	exec 3>&1
+
+	local ext=${CORE_EXT[${nextcore,,}]}
+	local previous=${romname}
+
+	# Print all eligible file/game pairs and choose one at random.
+	# This approach allows all games to be chosen with equal probability even
+	# when they're in distributed unevenly inside zip files. It also allows the
+	# whitelist and blacklist files to be read only once, rather than for every
+	# zip file.
+	# 
+	# Process substitution is required since variables created in a subshell
+	# (e.g. at the end of a pipeline) will be lost.
+	local filepath
+	IFS=$'\037' read -r filepath romname < <(
+
+
+		function listfiles() {
+			local excludedirs=( -type d \( -iname '*BIOS*' -o -iname ' !MBC' ${fldrex} \) -prune -false -o )
+			if [[ ${CORE_ZIPPED[${nextcore,,}],,} == yes && ${usezip,,} == yes ]]; then
+				local zips=1
+			fi
+			local files=( -type f \( -iname "*.${ext}" ${zips:+ -o -iname '*.zip'} \) )
+			find "${CORE_PATH[${nextcore,,}]}" "${excludedirs[@]}" "${files[@]}" -print
+		}
+
+		function listfilegamepairs() {
+			local filepath
+			while read -r filepath; do
+				if [[ ${filepath} == *.zip ]]; then
+					partun --list "${filepath}" | grep -i ".${ext}\$"
+				else
+					echo "${filepath}"
+				fi \
+				| xargs -d'\n' -n1 basename \
+				| xargs -d'\n' -n1 printf '%s\037%s\n' "${filepath}"
+			done
+		}
+
+		function printcandidates() {
+			if [[ ${samdebug,,} == yes ]]; then
+				echo " Candidates:" >&3
+				tee >(
+					local filepath game
+					while IFS=$'\037' read -r filepath game; do
+						if [[ ! -z ${game} ]]; then
+							echo " * ${game%.${ext}}"
+						fi
+					done | sort >&3
+				)
+			fi
+		}
+
+		function applywhitelist() {
+			declare -n whitelistfile=${nextcore,,}whitelist
+			if [[ -s ${whitelistfile} ]]; then
+				grep -F -f <(
+					local game
+					while read -r game; do
+						printf '\037%s\n' "${game}"
+					done <"${whitelistfile}"
+				)
+			else
+				cat
+			fi
+		}
+
+		function applyblacklist() {
+			declare -n blacklist=${core}blacklist
+			local line filepath game
+			while read -r line; do
+				IFS=$'\037' read -r filepath game <<<"${line}"
+				if [[ -z ${blacklist[${game}]} ]]; then
+					echo "${line}"
+				fi
+			done
+		}
+
+		function excludeprevious() {
+			if [[ -z ${previous} ]]; then
+				cat
+			else
+				grep -Fv $'\037'"${previous}"
+			fi
+		}
+
+		listfiles \
+		| listfilegamepairs \
+		| applywhitelist \
+		| applyblacklist \
+		| excludeprevious \
+		| printcandidates \
+		| shuf --head-count=1 --random-source=/dev/urandom
+	)
+
+	if [[ ${samquiet,,} == no ]]; then
+		echo " Shuffle result:"
+		echo " * ${romname%.${ext}}"
 	fi
 
-	# If there is an exclude list check it
-	local blacklist="/tmp/MiSTer_SAM_blacklist_${nextcore,,}.txt"
-	if [ -s "${blacklist}" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " Using blacklist: ${blacklist}"; fi
-		local zipblacklisttest=( -exec bash -c 'unzip -Z1 "{}" | grep -Fiqvxf '"${blacklist}" ';' )
-		local zipblacklistfilter=( grep -Fivxf "${blacklist}" )
-		local romblacklisttest=( -exec bash -c 'rom=$(basename "{}"); grep -Fqvx "${rom}" '"${blacklist}" ';' )
-	else
-	# No-ops
-		local zipblacklisttest=( -true )
-		local zipblacklistfilter=( cat )
-		local romblacklisttest=( -true )
-	fi
-
-	local folderexcludetest=( -type d '(' -iname *BIOS* -o -iname ' !MBC' ${fldrex} ')' -prune -false -o )
-	local romtest=( -iname "*.${CORE_EXT[${nextcore,,}]}" "${romwhitelisttest[@]}" "${romblacklisttest[@]}" )
-	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ] && [ "${usezip,,}" == "yes" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " Allowing zip files."; fi
-		local ziptest=( -name '*.zip' "${zipwhitelisttest[@]}" "${zipblacklisttest[@]}" )
-	else
-		if [ "${samquiet,,}" == "no" ]; then echo " Ignoring zip files."; fi
-		local ziptest=( -false )
-	fi
-
-	local filepath=$(find ${CORE_PATH[${nextcore,,}]} "${folderexcludetest[@]}" \( "${romtest[@]}" -o "${ziptest[@]}" \) -print | shuf --head-count=1 --random-source=/dev/urandom)
-	if [ "${samquiet,,}" == "no" ]; then echo " Randomly selected file: ${filepath}"; fi
-	if [[ "${filepath}" == *.zip ]]; then
-		romname=$(unzip -Z1 "${filepath}" | "${zipwhitelistfilter[@]}" | "${zipblacklistfilter[@]}" | shuf --head-count=1 --random-source=/dev/urandom)
-		rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
-		"${mrsampath}/partun" "${filepath}" -i -f "${romname}" --rename "/tmp/Extracted.${CORE_EXT[${nextcore,,}]}" >/dev/null
-	else
-		romname=$(basename "${filepath}")
+	if [[ ${filepath} != *.zip ]]; then
 		rompath=${filepath}
+	else
+		if [[ ${samquiet,,} == no ]]; then
+			echo " Cleaning up previously unzipped ROMs..." 
+		fi
+		local tmpdir="/tmp/MiSTer_SAM";
+		# clean up previous unzips
+		rm -rf "${tmpdir}" && mkdir -p "${tmpdir}"
+		rompath=${tmpdir}/${romname}
+		if [[ ${samquiet,,} == no ]]; then
+			echo " Extracting to ${rompath}..." 
+		fi
+		"${mrsampath}"/partun "${filepath}" -i -f "${romname}" --rename "${rompath}" >/dev/null
 	fi
 
 	if [ -z "${rompath}" ]; then
