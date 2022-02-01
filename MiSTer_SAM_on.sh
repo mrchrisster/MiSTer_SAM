@@ -982,7 +982,7 @@ function next_core() { # next_core (core)
 			local filepath
 			while read -r filepath; do
 				if [[ ${filepath} == *.zip ]]; then
-					unzip -Z1 "${filepath}" | grep -i ".${ext}\$"
+					partun --list "${filepath}" | grep -i ".${ext}\$"
 				else
 					echo "${filepath}"
 				fi \
