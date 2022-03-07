@@ -57,6 +57,7 @@ listenjoy="Yes"
 repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 branch="main"
 mbcurl="blob/master/mbc_v06"
+counter=0
 
 # ======== TTY2OLED =======
 ttyenable="No"
@@ -367,9 +368,31 @@ function parse_cmd() {
 					sam_start
 					break
 					;;
-				start) # Start SAM immediately
+				softstart) # Start as from init
+					env_check ${1,,}
+					echo "Starting SAM in the background."
+					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
+					break
+					;;
+				start) # Start as a detached tmux session for monitoring
+					env_check ${1,,}
+					# Terminate any other running SAM processes
+					there_can_be_only_one
+					echo "Starting SAM in the background."
+					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real
+					break
+					;;
+				start_real) # Start SAM immediately
 					env_check ${1,,}
 					tty_init
+					sam_start ${nextcore}
+					pre_exit
+					break
+					;;
+				softstart_real) # Start SAM immediately
+					env_check ${1,,}
+					tty_init
+					counter=${samtimeout}
 					sam_start ${nextcore}
 					pre_exit
 					break
@@ -400,8 +423,12 @@ function parse_cmd() {
 					sam_disable
 					break
 					;;
-				monitor) # Attach output to terminal
+				monitor) # Warn user of changes
 					sam_monitor
+					break
+					;;
+				monitor_new) # Attach output to terminal
+					sam_monitor_new
 					break
 					;;
 				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd)
@@ -454,8 +481,6 @@ function parse_cmd() {
 
 #======== SAM COMMANDS ========
 function sam_start() { # sam_start (core)
-	# Terminate any other running SAM processes
-	there_can_be_only_one
 	
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
@@ -557,12 +582,13 @@ function sam_disable() { # Disable autoplay
 	echo -n " Disabling SAM autoplay..."
 	# Clean out existing processes to ensure we can update
 	there_can_be_only_one
-	killall -q -9 S93mistersam
-	killall -q -9 MiSTer_SAM_MCP
-	killall -q -9 MiSTer_SAM_mouse.sh
-	killall -q -9 MiSTer_SAM_keyboard.sh
-	killall -q -9 xxd
-	kill -9 $(ps | grep "inotifywait" | grep "SAM_Joy_Change" | cut --fields=2 --only-delimited --delimiter=' ')
+#	killall -q -9 S93mistersam
+#	killall -q -9 MiSTer_SAM_MCP
+#	killall -q -9 MiSTer_SAM_mouse.sh
+#	killall -q -9 MiSTer_SAM_keyboard.sh
+#	killall -q -9 xxd
+#	kill -9 $(ps | grep "inotifywait" | grep "SAM_Joy_Change" | cut --fields=2 --only-delimited --delimiter=' ')
+#	-- We JUST DID THIS. there_can_be_only_one is the only thing called when we ask to stop, we need to be consistent. 
 
 	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
@@ -596,8 +622,22 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
-	kill -9 $(pidof -o ${sampid} ${samprocess}) &>/dev/null
-	wait $(pidof -o ${sampid} ${samprocess}) &>/dev/null
+
+	# -- SAM's {soft,}start_real tmux instance
+	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}') &> /dev/null
+	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh softstart_real' | awk '{print $1}') &> /dev/null
+	# -- Everything executable in mrsampath
+	kill -9 $(ps -o pid,args | grep ${mrsampath} | grep -v grep | awk '{print $1}') &> /dev/null
+	# -- inotifywait but only if it involves SAM
+	kill -9 $(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}') &> /dev/null
+	# -- xxd since that's launched, no better way to see which ones to kill
+	killall -9 xxd &> /dev/null
+
+	#wait $(pidof -o ${sampid} ${samprocess}) &>/dev/null
+	# -- can't wait PID-wise which is admittedly better, but we know the processes requested will close if running
+	# -- instead we sleep one second which seems more than fair. Alternatives, while loop, grep against ps -o args for SAM?
+	sleep 1
+
 	echo " Done!"
 }
 
@@ -767,6 +807,21 @@ function get_partun() {
 
 #========= SAM MONITOR =========
 function sam_monitor() {
+	echo "!! Monitor has changed - to exit press Ctrl-b d -- Hold ctrl, tap b, release b, tap d !!"
+	echo "Re-run as monitor_new after reading and remembering this message!"
+}
+
+function sam_monitor_new() {
+	# We can omit -r here. Tradeoff; 
+
+	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
+	#tmux attach-session -t SAM
+
+	# window size will be wrong/too small, but ctrl-c nonfunctional instead of killing/disconnecting
+	tmux attach-session -r -t SAM
+}
+
+function sam_monitor_broken() {
 	
 	PID=$(ps aux |grep MiSTer_SAM_on.sh |grep -v grep |awk '{print $1}' | head -n 1)
 
@@ -880,9 +935,6 @@ function loop_core() { # loop_core (core)
 	echo "" |> /tmp/SAM_Games.log
 	
 	while :; do
-		counter=${gametimer}
-
-		next_core ${1}
 		while [ ${counter} -gt 0 ]; do
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
@@ -918,6 +970,8 @@ function loop_core() { # loop_core (core)
 				fi
 			fi
 		done
+		counter=${gametimer}
+		next_core ${1}
 	done
 }
 

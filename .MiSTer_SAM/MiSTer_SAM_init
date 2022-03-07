@@ -40,12 +40,12 @@ done
 function start() {
 	#======== Start ========
 	echo -n " Starting SAM..."
-	${mrsampath}/MiSTer_SAM_MCP &
+	${misterpath}/Scripts/MiSTer_SAM_on.sh softstart
 }
 
 function quickstart() {
 	echo -n " Quickstarting SAM..."
-	${mrsampath}/MiSTer_SAM_MCP quickstart &
+	${misterpath}/Scripts/MiSTer_SAM_on.sh start
 }
 
 function stop() {
