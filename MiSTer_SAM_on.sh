@@ -57,6 +57,7 @@ listenjoy="Yes"
 repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 branch="main"
 mbcurl="blob/master/mbc_v06"
+counter=0
 
 # ======== TTY2OLED =======
 ttyenable="No"
@@ -367,6 +368,12 @@ function parse_cmd() {
 					sam_start
 					break
 					;;
+				softstart) # Start as from init
+					env_check ${1,,}
+					echo "Starting SAM in the background."
+					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
+					break
+					;;
 				start) # Start as a detached tmux session for monitoring
 					env_check ${1,,}
 					# Terminate any other running SAM processes
@@ -378,6 +385,14 @@ function parse_cmd() {
 				start_real) # Start SAM immediately
 					env_check ${1,,}
 					tty_init
+					sam_start ${nextcore}
+					pre_exit
+					break
+					;;
+				softstart_real) # Start SAM immediately
+					env_check ${1,,}
+					tty_init
+					counter=${samtimeout}
 					sam_start ${nextcore}
 					pre_exit
 					break
@@ -608,8 +623,9 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
 
-	# -- SAM's start_real tmux instance
+	# -- SAM's {soft,}start_real tmux instance
 	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}') &> /dev/null
+	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh softstart_real' | awk '{print $1}') &> /dev/null
 	# -- Everything executable in mrsampath
 	kill -9 $(ps -o pid,args | grep ${mrsampath} | grep -v grep | awk '{print $1}') &> /dev/null
 	# -- inotifywait but only if it involves SAM
@@ -919,9 +935,6 @@ function loop_core() { # loop_core (core)
 	echo "" |> /tmp/SAM_Games.log
 	
 	while :; do
-		counter=${gametimer}
-
-		next_core ${1}
 		while [ ${counter} -gt 0 ]; do
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
@@ -957,6 +970,8 @@ function loop_core() { # loop_core (core)
 				fi
 			fi
 		done
+		counter=${gametimer}
+		next_core ${1}
 	done
 }
 
