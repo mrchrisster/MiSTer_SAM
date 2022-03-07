@@ -614,6 +614,8 @@ function there_can_be_only_one() { # there_can_be_only_one
 	kill -9 $(ps -o pid,args | grep ${mrsampath} | grep -v grep | awk '{print $1}') &> /dev/null
 	# -- inotifywait but only if it involves SAM
 	kill -9 $(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}') &> /dev/null
+	# -- xxd since that's launched, no better way to see which ones to kill
+	killall -9 xxd
 
 	#wait $(pidof -o ${sampid} ${samprocess}) &>/dev/null
 	# -- can't wait PID-wise which is admittedly better, but we know the processes requested will close if running
