@@ -48,7 +48,7 @@ declare -i coreretries=3
 declare -i romloadfails=0
 mralist="/tmp/.SAMmras"
 gametimer=120
-corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
+corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
 usezip="Yes"
 listenmouse="Yes"
 listenkeyboard="Yes"
@@ -72,6 +72,7 @@ nespath="/media/fat/games/NES"
 snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
+psxpath="/media/fat/games/PSX"
 
 # ======== CONSOLE WHITELISTS ========
 gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"
@@ -82,6 +83,7 @@ neswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_nes.txt"
 sneswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_snes.txt"
 tgfx16whitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16.txt"
 tgfx16cdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16cd.txt"
+psxwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_psx.txt"
 
 #======== EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
@@ -120,6 +122,10 @@ tgfx16cdexclude="First Bad Game.chd
 Second Bad Game.chd
 Third Bad Game.chd"
 
+psxexclude="First Bad Game.chd
+Second Bad Game.chd
+Third Bad Game.chd"
+
 # ======== CORE CONFIG ========
 function init_data() {
 	# Core to long name mappings
@@ -133,6 +139,7 @@ function init_data() {
 		["snes"]="Super Nintendo Entertainment System" \
 		["tgfx16"]="NEC TurboGrafx-16 / PC Engine" \
 		["tgfx16cd"]="NEC TurboGrafx-16 CD / PC Engine CD" \
+		["psx"]="Sony Playstation" \
 		)
 	
 	# Core to file extension mappings
@@ -146,6 +153,7 @@ function init_data() {
 		["snes"]="sfc" \
 		["tgfx16"]="pce" \
 		["tgfx16cd"]="chd" \
+		["psx"]="chd" \
 		)
 	
 	# Core to path mappings
@@ -159,6 +167,7 @@ function init_data() {
 		["snes"]="${snespath}" \
 		["tgfx16"]="${tgfx16path}" \
 		["tgfx16cd"]="${tgfx16cdpath}" \
+		["psx"]="${psxpath}" \
 		)
 	
 	# Can this core use ZIPped ROMs
@@ -172,6 +181,7 @@ function init_data() {
 		["snes"]="Yes" \
 		["tgfx16"]="Yes" \
 		["tgfx16cd"]="No" \
+		["psx"]="No" \
 		)
 }
 
@@ -990,9 +1000,17 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			sleep 1
 		done
 	fi
+	
 
+	
+	
+	
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
-	echo "<rbf>_console/${1}</rbf>" >> /tmp/SAM_game.mgl
+		
+		if [ "${1}" == "tgfx16" ] || [ "${1}" == "tgfx16cd" ]; then
+			set -- "turbografx16"
+		fi
+	echo "<rbf>_console/${1}</rbf>" >> /tmp/SAM_game.mgl	
 	echo "<file delay="2" type="f" index="0" path="${rompath}"/>" >> /tmp/SAM_game.mgl
 	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
 
