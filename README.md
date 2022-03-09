@@ -72,7 +72,7 @@ Currently supported MiSTer cores:
 * NES (.nes)
 * SNES (.sfc)
 * TurboGrafx-16 AKA PC Engine (.pce)
-* TurboGrafx-16 CD AKA PC Engine CD (only .chd)
+* TurboGrafx-16 CD AKA PC Engine CD (only .chd) (currently not working with mgl)
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
@@ -89,7 +89,7 @@ Want to exclude certain arcade games? Just add them to `mraexclude` in the `MiST
 ### How does it work?
 A Linux startup daemon runs in the background of your MiSTer's ARM CPU. It looks for any keyboard activity, mouse movement, or controller button presses via Linux. This is being achieved by monitoring the hardware devices on your MiSTer while using minimal resources - with only native tools (CPU load of >1%). When SAM sees you are at the main menu and aren't using the MiSTer for several minutes, it launches random games.
 
-MiSTer arcade cores are launched via a MiSTer command. For console games there is no official way to load individual games programmatically. SUper Attract Mode automates the process by sending simulated button presses to the MiSTer. This is done with a modified version of [pocomane's MiSTer Batch Control](https://github.com/pocomane/MiSTer_Batch_Control). 
+MiSTer arcade cores are launched via a MiSTer command. For console games we are using .mgl files. For arcade games, we're using mra files.
  
 ### Do you support SNAC?  
 SNAC is not handled by the Linux kernel so unfortunately we wont be able to support SNAC devices.
