@@ -884,7 +884,8 @@ function next_core() { # next_core (core)
 	# Some cores don't use zips - get on with it
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+		rompath=\"$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)\"
+		rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
 		romname=$(basename "${rompath}")
 	
 	# We might be using ZIPs
@@ -920,7 +921,6 @@ function next_core() { # next_core (core)
 				rompath=\"$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)\"
 				rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
 				romname=$(basename "${rompath}")
-				echo "${rompath}"
 			fi
 
 		# Found no ZIPs or we're ignoring them
@@ -931,7 +931,9 @@ function next_core() { # next_core (core)
 
 		# Use the ZIP Luke!
 		else
-			romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -l -r -f ${CORE_EXT[${nextcore,,}]})
+			romfind=$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+			rompath=\"$(basename "${romfind}")/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})\"
+			romname=$(basename "${rompath}")
 		fi
 	fi
 
@@ -990,7 +992,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
-	echo "<rbf>_console/${nextcore}</rbf>" >> /tmp/SAM_game.mgl
+	echo "<rbf>_console/${1}</rbf>" >> /tmp/SAM_game.mgl
 	echo "<file delay="2" type="f" index="0" path="${rompath}"/>" >> /tmp/SAM_game.mgl
 	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
 
