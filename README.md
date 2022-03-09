@@ -73,6 +73,7 @@ Currently supported MiSTer cores:
 * SNES (.sfc)
 * TurboGrafx-16 AKA PC Engine (.pce)
 * TurboGrafx-16 CD AKA PC Engine CD (only .chd) (currently not working with mgl)
+* PSX (.chd)
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
@@ -113,13 +114,7 @@ When downloading a file from github, click on the file, then click on "raw".
 Now push Ctrl+S to save  
   
 **- Core is loaded but just hangs on the menu**  
-Sometimes this happens (even on our test setups) and it could be for a variety of reasons.   
-- Neogeo and GBA seem to have the most issues while SNES, NES and Genesis work pretty reliably.  
-- We noticed that some MegaCD games that the script is trying to load also won't work when loaded through the MiSTer interface. 
-- Make sure you are using the recommended folder structure, such as /media/fat/Games/SNES/. 
-- The script supports zipped Everdrive packs or unzipped folders. For MegaCD and Turbografx16 CD games must be in CHD format.  
- 
-If you are still having trouble it could simply be that the rom failed to load, it seems to happen every now and then.  
+This used to be a problem with the original version of SAM. SInce we now have official game loading support, this shouldn't be an issue anymore.
   
 **- Turbografx16 CD and MegaCD just showing Run/Start button but not starting into the game**  
 Make sure you use a bios that auto launches the game.  
@@ -145,6 +140,7 @@ For technical users here are a few handy tricks to observe and debug SAM.
   
    
 ## Release History
+- 9 March 2022 - Implemented the new and exciting mgl file loading technique which makes mbc obsolete. Thanks to pocomane for providing a tool to load games while there was no official way of doing so. We're very excited that there is now a way to load games directly from command line officially.
 - 10 May 2021 - "2.0" release! Menu, per-core exclusions, directory exclusion, timer until next game (ssh), custom game dir support (usb0), expanded controller detection, NeoGeo compatiblity improvements
 - 28 Apr 2021 - Test branch support, added reboot to on to improve reliability, fixed confusing messages in on, fixed monitoring with no js devices
 - 24 Apr 2021 - Controller detection and removal, launch SAM only from the main menu (configurable), allow controller/keyboard/mouse interrupts (configurable), fixed INI parsing, added SAM now to launch instantly, more bugs squashed.
