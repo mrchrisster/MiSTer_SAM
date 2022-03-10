@@ -209,7 +209,7 @@ done
 fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 	
 # Remove trailing slash from paths
-for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
+for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath psxpath; do
 	declare -g ${var}="${!var%/}"
 done
 
@@ -436,7 +436,7 @@ function parse_cmd() {
 					sam_monitor_new
 					break
 					;;
-				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd)
+				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
 					: # Placeholder since we parsed these above
 					;;
 				single)
