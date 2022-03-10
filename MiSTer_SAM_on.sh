@@ -894,16 +894,16 @@ function next_core() { # next_core (core)
 	# Some cores don't use zips - get on with it
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-		rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
+		rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+		#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
 		romname=$(basename "${rompath}")
 	
 	# We might be using ZIPs
 	else
 		# Check how many ZIP and ROM files in core path	(Case 4)
-		zipcount=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
+		zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
 		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
-		romcount=$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
+		romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
 		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
 
 		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
@@ -911,38 +911,39 @@ function next_core() { # next_core (core)
 			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
 			# We found at least one large ZIP file - use it (Case 2)
-			if [ $(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+			if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				romfind=$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath=\"$(basename "${romfind}")/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})\"
+				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})"
 				romname=$(basename "${rompath}")
 
 
 			# We see more zip files than ROMs, we're probably dealing with individually zipped roms (Case 3)
 			elif [ ${zipcount} -gt ${romcount} ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
-				romfind=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				romname=$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})
+				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})"
+				romname=$(basename "${rompath}")
 
 				
 			# I guess we use the ROMs! (Case 1)
 			else
 				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
-				rompath=\"$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)\"
-				rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
+				rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+				#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
 				romname=$(basename "${rompath}")
 			fi
 
 		# Found no ZIPs or we're ignoring them
-		elif [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
-			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-			rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
+		elif [ -z "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
+			rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+			#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
 			romname=$(basename "${rompath}")
 
 		# Use the ZIP Luke!
 		else
-			romfind=$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-			rompath=\"$(basename "${romfind}")/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})\"
+			romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})"
 			romname=$(basename "${rompath}")
 		fi
 	fi
@@ -1007,11 +1008,18 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
 		
-		if [ "${1}" == "tgfx16" ] || [ "${1}" == "tgfx16cd" ]; then
+		if [ "${1}" == "tgfx16" ]; then
 			set -- "turbografx16"
 		fi
 	echo "<rbf>_console/${1}</rbf>" >> /tmp/SAM_game.mgl	
-	echo "<file delay="2" type="f" index="0" path="${rompath}"/>" >> /tmp/SAM_game.mgl
+	
+		if [ "${1}" == "tgfx16cd" ]; then
+			echo "<mistergamedescription>" > /tmp/SAM_game.mgl
+			echo "<rbf>_console/turbografx16</rbf>" >> /tmp/SAM_game.mgl	
+			echo "<file delay="2" type="s" index="0" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl
+		else
+			echo "<file delay="2" type="f" index="0" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl
+		fi
 	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
 
 	echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd
