@@ -183,6 +183,63 @@ function init_data() {
 		["tgfx16cd"]="No" \
 		["psx"]="No" \
 		)
+		
+	# MGL core name settings
+	declare -gA MGL_CORE=( \
+		["arcade"]="arcade" \
+		["gba"]="gba" \
+		["genesis"]="genesis" \
+		["megacd"]="megacd" \
+		["neogeo"]="neogeo" \
+		["nes"]="nes" \
+		["snes"]="snes" \
+		["tgfx16"]="turbografx16" \
+		["tgfx16cd"]="turbografx16" \
+		["psx"]="psx" \
+		)	
+	
+	# MGL delay settings
+	declare -gA MGL_DELAY=( \
+		["arcade"]="2" \
+		["gba"]="2" \
+		["genesis"]="1" \
+		["megacd"]="1" \
+		["neogeo"]="1" \
+		["nes"]="1" \
+		["snes"]="2" \
+		["tgfx16"]="1" \
+		["tgfx16cd"]="1" \
+		["psx"]="1" \
+		)	
+		
+	# MGL index settings
+	declare -gA MGL_INDEX=( \
+		["arcade"]="0" \
+		["gba"]="0" \
+		["genesis"]="0" \
+		["megacd"]="0" \
+		["neogeo"]="1" \
+		["nes"]="0" \
+		["snes"]="0" \
+		["tgfx16"]="0" \
+		["tgfx16cd"]="0" \
+		["psx"]="0" \
+		)	
+		
+	# MGL type settings
+	declare -gA MGL_TYPE=( \
+		["arcade"]="f" \
+		["gba"]="f" \
+		["genesis"]="f" \
+		["megacd"]="s" \
+		["neogeo"]="f" \
+		["nes"]="f" \
+		["snes"]="f" \
+		["tgfx16"]="f" \
+		["tgfx16cd"]="s" \
+		["psx"]="s" \
+		)	
+		
 }
 
 #========= PARSE INI =========
@@ -1003,29 +1060,17 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 	
 
-	
+	#Create mgl file and launch game
 	
 	
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
-		
-		if [ "${1}" == "tgfx16" ]; then
-			set -- "turbografx16"
-		fi
-	echo "<rbf>_console/${1}</rbf>" >> /tmp/SAM_game.mgl	
-	
-		if [ "${1}" == "tgfx16cd" ]; then
-			echo "<mistergamedescription>" > /tmp/SAM_game.mgl
-			echo "<rbf>_console/turbografx16</rbf>" >> /tmp/SAM_game.mgl	
-			echo "<file delay="2" type="s" index="0" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl
-		else
-			echo "<file delay="2" type="f" index="0" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl
-		fi
+	echo "<rbf>_console/${MGL_CORE[${nextcore}]}</rbf>" >> /tmp/SAM_game.mgl	
+	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl		
 	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
-
+	
+	
 	echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd
 	
-
-
 
 	#"${mrsampath}/mbc" load_rom ${1^^} "${2}" > /dev/null 2>&1
 	sleep 1
