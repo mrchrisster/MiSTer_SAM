@@ -349,7 +349,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@}; do
 			case ${arg,,} in
-				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd)
+				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg,,}]} selected!"
 				nextcore="${arg}"
 				;;
@@ -388,7 +388,7 @@ function parse_cmd() {
 					# Terminate any other running SAM processes
 					there_can_be_only_one
 					echo "Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real
+					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
 					break
 					;;
 				start_real) # Start SAM immediately
