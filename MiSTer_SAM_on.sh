@@ -223,7 +223,7 @@ function init_data() {
 		["snes"]="0" \
 		["tgfx16"]="0" \
 		["tgfx16cd"]="0" \
-		["psx"]="0" \
+		["psx"]="1" \
 		)	
 		
 	# MGL type settings
@@ -715,19 +715,19 @@ function tty_init() { # tty_init
 		#echo " Done!"
 		
 		echo "CMDCLS" > "${ttydevice}"
-		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
+		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
-		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
+		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
-		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
+		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
 		sleep 0.2
-		echo "CMDTXT,2,1,47,27,  Super" > "${ttydevice}"
+		echo "CMDTXT,3,15,0,47,27, Super" > "${ttydevice}"
 		sleep 0.2
-		echo "CMDTXT,2,1,47,45,      Attract" > "${ttydevice}"
+		echo "CMDTXT,3,15,0,47,45, Attract" > "${ttydevice}"
 		sleep 0.2
-		echo "CMDTXT,2,1,47,61,          Mode!" > "${ttydevice}"
+		echo "CMDTXT,3,15,0,47,61, Mode!" > "${ttydevice}"
 	fi
 }
 
@@ -737,32 +737,78 @@ function tty_update() { # tty_update core game
 		inotifywait -e modify /tmp/CORENAME
 		sleep 10
 		
+		#Random clear transition
+		echo "CMDCLST,0,0" > "${ttydevice}"
+		sleep 1
+
 		# Transition effect
-		echo "CMDGEO,8,1,126,30,31,15,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,1,126,30,63,31,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,1,126,30,127,63,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,1,126,30,255,127,0" > "${ttydevice}"
-		sleep 0.2
-		echo "CMDGEO,8,0,126,30,31,15,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,0,126,30,63,31,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,0,126,30,127,63,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,0,126,30,255,127,0" > "${ttydevice}"
-		sleep 0.2                                        
+		#echo "CMDGEO,6,4,127,31,31,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,8,127,31,63,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,12,127,31,127,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,15,127,31,255,0,0,0" > "${ttydevice}"
+		#sleep 0.2
+		#echo "CMDGEO,6,14,127,31,31,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,10,127,31,63,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,6,127,31,127,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,0,127,31,255,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                      
+		                                       
 		
 		# Split long lines - length is approximate since fonts are variable width!
+
 		if [ ${#2} -gt 23 ]; then
-			echo "CMDTXT,2,1,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,2,1,0,40, ${2:20}" > "${ttydevice}"
+
+			echo "CMDTXT,103,3,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,3,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,1,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,6,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,6,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,2,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,9,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,9,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,3,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,12,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,12,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,4,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,15,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,15,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,5,0,0,60,${1}" > "${ttydevice}"
+
 		else
-			echo "CMDTXT,2,1,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,103,3,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,1,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,6,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,2,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,9,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,3,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,12,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,4,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,15,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,5,0,0,60,${1}" > "${ttydevice}"
 		fi
-		echo "CMDTXT,1,1,0,60,on ${1}" > "${ttydevice}"
+												 
 	fi
 }
 
