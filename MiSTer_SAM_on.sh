@@ -1047,7 +1047,7 @@ function next_core() { # next_core (core)
 		
 		# Sanity check that we have a valid rom in var
 		if [[ ${rompath} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
-			next_core ${nextcore}
+			next_core 
 			return
 		fi
 	
