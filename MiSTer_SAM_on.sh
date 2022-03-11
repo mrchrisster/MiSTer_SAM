@@ -22,7 +22,7 @@
 # Additional development by: Mellified
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond0
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder
 
 
 #!/bin/bash
@@ -452,7 +452,6 @@ function parse_cmd() {
 					env_check ${1,,}
 					tty_init
 					sam_start ${nextcore}
-					pre_exit
 					break
 					;;
 				softstart_real) # Start SAM immediately
@@ -460,12 +459,12 @@ function parse_cmd() {
 					tty_init
 					counter=${samtimeout}
 					sam_start ${nextcore}
-					pre_exit
 					break
 					;;
 				skip | next) # Load next game - doesn't interrupt loop if running
 					echo " Skipping to next game..."
 					env_check ${1,,}
+					there_can_be_only_one
 					tty_init
 					next_core ${nextcore}
 					break
@@ -473,7 +472,6 @@ function parse_cmd() {
 				stop) # Stop SAM immediately
 					there_can_be_only_one
 					echo " Thanks for playing!"
-					pre_exit
 					break
 					;;
 				update) # Update SAM
@@ -812,10 +810,6 @@ function tty_update() { # tty_update core game
 	fi
 }
 
-function pre_exit() { # pre_exit
-	#if [ "${usetty,,}" == "yes" ]; then /etc/init.d/S60tty2oled start; fi
-	echo
-}
 	
 
 #======== DOWNLOAD FUNCTIONS ========
@@ -1027,6 +1021,7 @@ function next_core() { # next_core (core)
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
 				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})"
 				romname=$(basename "${rompath}")
+					
 
 				
 			# I guess we use the ROMs! (Case 1)
@@ -1049,6 +1044,13 @@ function next_core() { # next_core (core)
 			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})"
 			romname=$(basename "${rompath}")
 		fi
+		
+		# Sanity check that we have a valid rom in var
+		if [[ ${rompath} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
+			next_core ${nextcore}
+			return
+		fi
+	
 	fi
 
 	# If there is a whitelist check it
@@ -1271,5 +1273,4 @@ fi
 build_mralist		# Generate list of MRAs
 init_data				# Setup data arrays
 parse_cmd ${@}	# Parse command line parameters for input
-pre_exit				# Shutdown routine	
 exit
