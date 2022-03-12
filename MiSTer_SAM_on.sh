@@ -705,6 +705,16 @@ function env_check() {
 	fi
 }
 
+function waitforttyack() {
+  #echo -n "Waiting for tty2oled Acknowledge... "
+  read -d ";" ttyresponse < ${ttydevice}                # The "read" command at this position simulates an "do..while" loop
+  while [ "${ttyresponse}" != "ttyack" ]; do
+    read -d ";" ttyresponse < ${ttydevice}              # Read Serial Line until delimiter ";"
+  done
+  #echo -e "${fgreen}${ttyresponse}${freset}"
+  ttyresponse=""
+}
+
 function tty_init() { # tty_init
 	# tty2oled initialization
 	if [ "${ttyenable,,}" == "yes" ]; then
@@ -713,19 +723,28 @@ function tty_init() { # tty_init
 		#echo " Done!"
 		
 		echo "CMDCLS" > "${ttydevice}"
+		waitforttyack
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
+		waitforttyack
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
+		waitforttyack
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
 		echo "CMDTXT,3,15,0,47,27, Super" > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
-		echo "CMDTXT,3,15,0,47,45, Attract" > "${ttydevice}"
+		echo "CMDTXT,3,15,0,97,45, Attract" > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
-		echo "CMDTXT,3,15,0,47,61, Mode!" > "${ttydevice}"
+		echo "CMDTXT,3,15,0,147,61, Mode!" > "${ttydevice}"
+		waitforttyack
 	fi
 }
 
@@ -733,80 +752,39 @@ function tty_update() { # tty_update core game
 	if [ "${ttyenable,,}" == "yes" ]; then
 		# Wait for tty2oled daemon to show the core logo
 		inotifywait -e modify /tmp/CORENAME
-		sleep 10
+		sleep 7
 		
 		#Random clear transition
-		echo "CMDCLST,0,0" > "${ttydevice}"
-		sleep 1
-
-		# Transition effect
-		#echo "CMDGEO,6,4,127,31,31,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,8,127,31,63,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,12,127,31,127,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,15,127,31,255,0,0,0" > "${ttydevice}"
-		#sleep 0.2
-		#echo "CMDGEO,6,14,127,31,31,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,10,127,31,63,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,6,127,31,127,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,0,127,31,255,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                      
-		                                       
+		echo "CMDCLST,19,15" > "${ttydevice}"
+		waitforttyack
+		sleep 0.2
+		#echo "CMDCLST,19,0" > "${ttydevice}"
+		echo "CMDCLST,-1,0" > "${ttydevice}"
+		waitforttyack
+		sleep 0.5
+		
 		
 		# Split long lines - length is approximate since fonts are variable width!
 
 		if [ ${#2} -gt 23 ]; then
-
-			echo "CMDTXT,103,3,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,3,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,1,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,6,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,6,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,2,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,9,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,9,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,3,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,12,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,12,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,4,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,15,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,15,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,5,0,0,60,${1}" > "${ttydevice}"
-
+			for l in {1..15}; do
+				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." > "${ttydevice}"
+				waitforttyack
+				echo "CMDTXT,103,${l},0,0,40, ${2:20}" > "${ttydevice}"
+				waitforttyack
+				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
+				waitforttyack
+				sleep 0.1
+			done
 		else
-			echo "CMDTXT,103,3,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,1,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,6,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,2,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,9,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,3,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,12,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,4,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,15,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,5,0,0,60,${1}" > "${ttydevice}"
+			for l in {1..15}; do
+				echo "CMDTXT,103,${l},0,0,20,${2}" > "${ttydevice}"
+				waitforttyack
+				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
+				waitforttyack
+				sleep 0.1
+			done
 		fi
-												 
 	fi
 }
 
