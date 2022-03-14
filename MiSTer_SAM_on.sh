@@ -205,7 +205,7 @@ function init_data() {
 		["genesis"]="1" \
 		["megacd"]="1" \
 		["neogeo"]="1" \
-		["nes"]="1" \
+		["nes"]="2" \
 		["snes"]="2" \
 		["tgfx16"]="1" \
 		["tgfx16cd"]="1" \
