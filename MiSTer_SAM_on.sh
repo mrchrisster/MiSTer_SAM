@@ -48,9 +48,8 @@ declare -i coreretries=3
 declare -i romloadfails=0
 mralist="/tmp/.SAMmras"
 gametimer=120
-corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd"
+corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
 usezip="Yes"
-disablebootrom="Yes"
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
@@ -73,6 +72,7 @@ nespath="/media/fat/games/NES"
 snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
+psxpath="/media/fat/games/PSX"
 
 # ======== CONSOLE WHITELISTS ========
 gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"
@@ -83,6 +83,7 @@ neswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_nes.txt"
 sneswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_snes.txt"
 tgfx16whitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16.txt"
 tgfx16cdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16cd.txt"
+psxwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_psx.txt"
 
 #======== EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
@@ -121,6 +122,10 @@ tgfx16cdexclude="First Bad Game.chd
 Second Bad Game.chd
 Third Bad Game.chd"
 
+psxexclude="First Bad Game.chd
+Second Bad Game.chd
+Third Bad Game.chd"
+
 # ======== CORE CONFIG ========
 function init_data() {
 	# Core to long name mappings
@@ -134,6 +139,7 @@ function init_data() {
 		["snes"]="Super Nintendo Entertainment System" \
 		["tgfx16"]="NEC TurboGrafx-16 / PC Engine" \
 		["tgfx16cd"]="NEC TurboGrafx-16 CD / PC Engine CD" \
+		["psx"]="Sony Playstation" \
 		)
 	
 	# Core to file extension mappings
@@ -147,6 +153,7 @@ function init_data() {
 		["snes"]="sfc" \
 		["tgfx16"]="pce" \
 		["tgfx16cd"]="chd" \
+		["psx"]="chd" \
 		)
 	
 	# Core to path mappings
@@ -160,6 +167,7 @@ function init_data() {
 		["snes"]="${snespath}" \
 		["tgfx16"]="${tgfx16path}" \
 		["tgfx16cd"]="${tgfx16cdpath}" \
+		["psx"]="${psxpath}" \
 		)
 	
 	# Can this core use ZIPped ROMs
@@ -173,7 +181,65 @@ function init_data() {
 		["snes"]="Yes" \
 		["tgfx16"]="Yes" \
 		["tgfx16cd"]="No" \
+		["psx"]="No" \
 		)
+		
+	# MGL core name settings
+	declare -gA MGL_CORE=( \
+		["arcade"]="arcade" \
+		["gba"]="gba" \
+		["genesis"]="genesis" \
+		["megacd"]="megacd" \
+		["neogeo"]="neogeo" \
+		["nes"]="nes" \
+		["snes"]="snes" \
+		["tgfx16"]="turbografx16" \
+		["tgfx16cd"]="turbografx16" \
+		["psx"]="psx" \
+		)	
+	
+	# MGL delay settings
+	declare -gA MGL_DELAY=( \
+		["arcade"]="2" \
+		["gba"]="2" \
+		["genesis"]="1" \
+		["megacd"]="1" \
+		["neogeo"]="1" \
+		["nes"]="2" \
+		["snes"]="2" \
+		["tgfx16"]="1" \
+		["tgfx16cd"]="1" \
+		["psx"]="1" \
+		)	
+		
+	# MGL index settings
+	declare -gA MGL_INDEX=( \
+		["arcade"]="0" \
+		["gba"]="0" \
+		["genesis"]="0" \
+		["megacd"]="0" \
+		["neogeo"]="1" \
+		["nes"]="0" \
+		["snes"]="0" \
+		["tgfx16"]="0" \
+		["tgfx16cd"]="0" \
+		["psx"]="1" \
+		)	
+		
+	# MGL type settings
+	declare -gA MGL_TYPE=( \
+		["arcade"]="f" \
+		["gba"]="f" \
+		["genesis"]="f" \
+		["megacd"]="s" \
+		["neogeo"]="f" \
+		["nes"]="f" \
+		["snes"]="f" \
+		["tgfx16"]="f" \
+		["tgfx16cd"]="s" \
+		["psx"]="s" \
+		)	
+		
 }
 
 #========= PARSE INI =========
@@ -198,9 +264,11 @@ done
 
 # Create folder exclude list
 fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
+# Create folder exclude list for zips
+fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
 	
 # Remove trailing slash from paths
-for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
+for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath psxpath; do
 	declare -g ${var}="${!var%/}"
 done
 
@@ -340,9 +408,9 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@}; do
 			case ${arg,,} in
-				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd)
+				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg,,}]} selected!"
-				nextcore="${arg}"
+				nextcore="${arg,,}"
 				;;
 			esac
 		done
@@ -379,14 +447,13 @@ function parse_cmd() {
 					# Terminate any other running SAM processes
 					there_can_be_only_one
 					echo "Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real
+					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
 					break
 					;;
 				start_real) # Start SAM immediately
 					env_check ${1,,}
 					tty_init
 					sam_start ${nextcore}
-					pre_exit
 					break
 					;;
 				softstart_real) # Start SAM immediately
@@ -394,12 +461,12 @@ function parse_cmd() {
 					tty_init
 					counter=${samtimeout}
 					sam_start ${nextcore}
-					pre_exit
 					break
 					;;
 				skip | next) # Load next game - doesn't interrupt loop if running
 					echo " Skipping to next game..."
 					env_check ${1,,}
+					there_can_be_only_one
 					tty_init
 					next_core ${nextcore}
 					break
@@ -407,7 +474,6 @@ function parse_cmd() {
 				stop) # Stop SAM immediately
 					there_can_be_only_one
 					echo " Thanks for playing!"
-					pre_exit
 					break
 					;;
 				update) # Update SAM
@@ -427,7 +493,7 @@ function parse_cmd() {
 					sam_monitor_new
 					break
 					;;
-				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd)
+				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
 					: # Placeholder since we parsed these above
 					;;
 				single)
@@ -578,13 +644,7 @@ function sam_disable() { # Disable autoplay
 	echo -n " Disabling SAM autoplay..."
 	# Clean out existing processes to ensure we can update
 	there_can_be_only_one
-#	killall -q -9 S93mistersam
-#	killall -q -9 MiSTer_SAM_MCP
-#	killall -q -9 MiSTer_SAM_mouse.sh
-#	killall -q -9 MiSTer_SAM_keyboard.sh
-#	killall -q -9 xxd
-#	kill -9 $(ps | grep "inotifywait" | grep "SAM_Joy_Change" | cut --fields=2 --only-delimited --delimiter=' ')
-#	-- We JUST DID THIS. there_can_be_only_one is the only thing called when we ask to stop, we need to be consistent. 
+
 
 	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
@@ -647,6 +707,16 @@ function env_check() {
 	fi
 }
 
+function waitforttyack() {
+  #echo -n "Waiting for tty2oled Acknowledge... "
+  read -d ";" ttyresponse < ${ttydevice}                # The "read" command at this position simulates an "do..while" loop
+  while [ "${ttyresponse}" != "ttyack" ]; do
+    read -d ";" ttyresponse < ${ttydevice}              # Read Serial Line until delimiter ";"
+  done
+  #echo -e "${fgreen}${ttyresponse}${freset}"
+  ttyresponse=""
+}
+
 function tty_init() { # tty_init
 	# tty2oled initialization
 	if [ "${ttyenable,,}" == "yes" ]; then
@@ -655,19 +725,28 @@ function tty_init() { # tty_init
 		#echo " Done!"
 		
 		echo "CMDCLS" > "${ttydevice}"
-		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
+		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
-		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
+		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
-		echo "CMDTXT,0,1,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
+		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
-		echo "CMDTXT,2,1,47,27,  Super" > "${ttydevice}"
+		echo "CMDTXT,3,15,0,47,27, Super" > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
-		echo "CMDTXT,2,1,47,45,      Attract" > "${ttydevice}"
+		echo "CMDTXT,3,15,0,97,45, Attract" > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
-		echo "CMDTXT,2,1,47,61,          Mode!" > "${ttydevice}"
+		echo "CMDTXT,3,15,0,147,61, Mode!" > "${ttydevice}"
+		waitforttyack
 	fi
 }
 
@@ -675,41 +754,42 @@ function tty_update() { # tty_update core game
 	if [ "${ttyenable,,}" == "yes" ]; then
 		# Wait for tty2oled daemon to show the core logo
 		inotifywait -e modify /tmp/CORENAME
-		sleep 10
+		sleep 7
 		
-		# Transition effect
-		echo "CMDGEO,8,1,126,30,31,15,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,1,126,30,63,31,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,1,126,30,127,63,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,1,126,30,255,127,0" > "${ttydevice}"
+		#Random clear transition
+		echo "CMDCLST,19,15" > "${ttydevice}"
+		waitforttyack
 		sleep 0.2
-		echo "CMDGEO,8,0,126,30,31,15,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,0,126,30,63,31,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,0,126,30,127,63,0" > "${ttydevice}"
-		sleep 0.2                                        
-		echo "CMDGEO,8,0,126,30,255,127,0" > "${ttydevice}"
-		sleep 0.2                                        
+		#echo "CMDCLST,19,0" > "${ttydevice}"
+		echo "CMDCLST,-1,0" > "${ttydevice}"
+		waitforttyack
+		sleep 0.5
+		
 		
 		# Split long lines - length is approximate since fonts are variable width!
+
 		if [ ${#2} -gt 23 ]; then
-			echo "CMDTXT,2,1,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,2,1,0,40, ${2:20}" > "${ttydevice}"
+			for l in {1..15}; do
+				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." > "${ttydevice}"
+				waitforttyack
+				echo "CMDTXT,103,${l},0,0,40, ${2:20}" > "${ttydevice}"
+				waitforttyack
+				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
+				waitforttyack
+				sleep 0.1
+			done
 		else
-			echo "CMDTXT,2,1,0,20,${2}" > "${ttydevice}"
+			for l in {1..15}; do
+				echo "CMDTXT,103,${l},0,0,20,${2}" > "${ttydevice}"
+				waitforttyack
+				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
+				waitforttyack
+				sleep 0.1
+			done
 		fi
-		echo "CMDTXT,1,1,0,60,on ${1}" > "${ttydevice}"
 	fi
 }
 
-function pre_exit() { # pre_exit
-	#if [ "${usetty,,}" == "yes" ]; then /etc/init.d/S60tty2oled start; fi
-	echo
-}
 	
 
 #======== DOWNLOAD FUNCTIONS ========
@@ -882,59 +962,75 @@ function next_core() { # next_core (core)
 		return
 	fi
 
-	# Core doesn't use zips - get on with it
+# Mister SAM tries to determine how the user has set up their rom collection. There are 4 possible cases:
+# 1. Roms are all unzipped
+# 2. Roms are in one big zip archive - like Everdrive
+# 3. Roms are zipped individually
+# 4. There are some zipped roms and some unzipped roms in the same dir
+
+	# Some cores don't use zips - get on with it
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
-		rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+		rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+		#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
 		romname=$(basename "${rompath}")
 	
 	# We might be using ZIPs
 	else
-		# Check how many ZIP and ROM files in core path	
-		zipcount=$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
+		# Check how many ZIP and ROM files in core path	(Case 4)
+		zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
 		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
-		romcount=$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
+		romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
 		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
 
 		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
 			# We've found ZIPs AND ROMs AND we're using zips
 			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
-			# We found at least one large ZIP file - use it
-			if [ $(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+			# We found at least one large ZIP file - use it (Case 2)
+			if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-				# Partun returns the actual rom name to us so we need a special case here
-				romname=$(basename "${romname}")
-				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+				romname=$(basename "${rompath}")
 
-			# We see more zip files than ROMs - individually zipped roms?
+
+			# We see more zip files than ROMs, we're probably dealing with individually zipped roms (Case 3)
 			elif [ ${zipcount} -gt ${romcount} ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
-				romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-				# Partun returns the actual rom name to us so we need a special case here
-				romname=$(basename "${romname}")
-				rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+				romname=$(basename "${rompath}")
+					
+
 				
-			# I guess we use the ROMs!
+			# I guess we use the ROMs! (Case 1)
 			else
 				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
-				rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+				rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+				#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
 				romname=$(basename "${rompath}")
 			fi
 
 		# Found no ZIPs or we're ignoring them
-		elif [ -z "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
-			rompath="$(find ${CORE_PATH[${nextcore,,}]} -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+		elif [ -z "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
+			rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
+			#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
 			romname=$(basename "${rompath}")
 
 		# Use the ZIP Luke!
 		else
-			romname=$("${mrsampath}/partun" "$(find ${CORE_PATH[${nextcore,,}]} -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)" -i -r -f ${CORE_EXT[${nextcore,,}]} --rename /tmp/Extracted.${CORE_EXT[${nextcore,,}]})
-			# Partun returns the actual rom name to us so we need a special case here
-			romname=$(basename "${romname}")
-			rompath="/tmp/Extracted.${CORE_EXT[${nextcore,,}]}"
+			romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+			romname=$(basename "${rompath}")
 		fi
+		
+		# Sanity check that we have a valid rom in var
+		if [[ ${rompath} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
+			next_core 
+			return
+		fi
+	
 	fi
 
 	# If there is a whitelist check it
@@ -973,13 +1069,16 @@ function next_core() { # next_core (core)
 	fi
 }
 
-function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
+function load_core() { # load_core core /path/to/rom name_of_rom (countdown)	
+	
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
 	echo -e "\e[1m${3}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
 	echo "${3} (${1})" > /tmp/SAM_Game.txt
 	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" &
+	
+
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
@@ -987,8 +1086,21 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			sleep 1
 		done
 	fi
+	
 
-	"${mrsampath}/mbc" load_rom ${1^^} "${2}" > /dev/null 2>&1
+	#Create mgl file and launch game
+	
+	
+	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
+	echo "<rbf>_console/${MGL_CORE[${nextcore}]}</rbf>" >> /tmp/SAM_game.mgl	
+	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl		
+	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
+	
+	
+	echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd
+	
+
+	#"${mrsampath}/mbc" load_rom ${1^^} "${2}" > /dev/null 2>&1
 	sleep 1
 	echo "" |>/tmp/.SAM_Joy_Activity
 	echo "" |>/tmp/.SAM_Mouse_Activity
@@ -1011,21 +1123,6 @@ function core_error() { # core_error core /path/to/ROM
 	fi	
 }
 
-function disable_bootrom() {
-	if [ "${disablebootrom}" == "Yes" ]; then
-		if [ -d "${misterpath}/Bootrom" ]; then
-			mount --bind /mnt "${misterpath}/Bootrom"
-		fi
-		if [ -f "${misterpath}/Games/NES/boot0.rom" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot0.rom
-		fi
-		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
-		fi
-	fi
-}
 
 
 # ======== ARCADE MODE ========
@@ -1116,7 +1213,6 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo " gametimer: ${gametimer}"
 	echo " corelist: ${corelist}"
 	echo " usezip: ${usezip}"
-	echo " disablebootrom: ${disablebootrom}"
 	echo " mralist: ${mralist}"
 	echo " listenmouse: ${listenmouse}"
 	echo " listenkeyboard: ${listenkeyboard}"
@@ -1154,9 +1250,7 @@ if [ "${samtrace,,}" == "yes" ]; then
 	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
 fi	
 
-disable_bootrom	# Disable Bootrom until Reboot 
 build_mralist		# Generate list of MRAs
 init_data				# Setup data arrays
 parse_cmd ${@}	# Parse command line parameters for input
-pre_exit				# Shutdown routine	
 exit
