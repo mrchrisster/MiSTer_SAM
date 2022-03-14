@@ -55,7 +55,6 @@ listenkeyboard="Yes"
 listenjoy="Yes"
 repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 branch="main"
-mbcurl="blob/master/mbc_v06"
 counter=0
 
 # ======== TTY2OLED =======
@@ -295,7 +294,7 @@ function sam_premenu() {
 	echo " auto-configuration"
 	echo ""
 
-	for i in {10..1}; do
+	for i in {5..1}; do
 		echo -ne " Updating SAM in ${i}...\033[0K\r"
 		premenu="Default"
 		read -r -s -N 1 -t 1 key
@@ -318,11 +317,12 @@ function sam_menu() {
 	--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 	Start "Start SAM now" \
-	Skip "Skip game (ssh only)" \
-	Stop "Stop SAM (ssh only)" \
+	Skip "Skip game" \
+	Stop "Stop SAM" \
 	Single "Games from only one core" \
 	Utility "Update and Monitor" \
 	Config "Configure INI Settings" \
+	Reset "Reset or uninstall SAM" \
 	Autoplay "Autoplay Configuration" \
 	Cancel "Exit now" 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -357,6 +357,20 @@ function sam_utilitymenu() {
 	--menu "Select an option" 0 0 0 \
 	Update "Update SAM to latest" \
 	Monitor "Display messages (ssh only)" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_resetmenu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ Reset ]" \
+	--menu "Select an option" 0 0 0 \
+	Deleteall "Reset/Delete all files" \
+	Update "Reinstall/Update SAM" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -508,6 +522,10 @@ function parse_cmd() {
 					sam_autoplaymenu
 					break
 					;;
+				reset)
+					sam_resetmenu
+					break
+					;;
 				config)
 					sam_configmenu
 					break
@@ -522,6 +540,10 @@ function parse_cmd() {
 					;;
 				cancel) # Exit
 					echo " It's pitch dark; You are likely to be eaten by a Grue."
+					break
+					;;
+				deleteall)
+					deleteall
 					break
 					;;
 				help)
@@ -592,7 +614,6 @@ function sam_update() { # sam_update (next command)
 		fi
 	else # We're running from /tmp - download dependencies and proceed
 		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
-		get_mbc
 		get_partun
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
@@ -699,12 +720,32 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 function env_check() {
 	# Check if we've been installed
-	if [ ! -f "${mrsampath}/mbc" ] || [ ! -f "${mrsampath}/partun" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
+	if [ ! -f "${mrsampath}/partun" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
 		echo " SAM required files not found."
 		echo " Surprised? Check your INI."
 		sam_update ${1}
 		echo " Setup complete."
 	fi
+}
+
+function deleteall() {
+	# In case of issues, reset SAM
+	if [ -d "${mrsampath}" ]; then
+		echo "Deleting MiSTer_SAM folder"
+		rm -rf "${mrsampath}"
+	fi
+	if [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
+		echo "Deleting MiSTer_SAM.ini"
+		rm /media/fat/Scripts/MiSTer_SAM.ini
+	fi
+	if [ -f "/media/fat/Scripts/MiSTer_SAM_off.sh" ]; then
+		echo "Deleting MiSTer_SAM_off.sh"
+		rm /media/fat/Scripts/MiSTer_SAM_off.sh
+	fi
+	
+	echo "MiSTer_SAM_on.sh needs to be deleted manually."
+	sleep 3
+	sam_resetmenu
 }
 
 function waitforttyack() {
@@ -859,15 +900,6 @@ function get_samstuff() { #get_samstuff file (path)
 	echo " Done!"
 }
 
-function get_mbc() {
-	REPOSITORY_URL="https://github.com/mrchrisster/MiSTer_Batch_Control"
-	echo " Downloading mbc - a tool needed for launching roms..."
-	echo " Created for MiSTer by pocomane"
-	echo " ${REPOSITORY_URL}"
-	curl_download "/tmp/mbc" "${REPOSITORY_URL}/${mbcurl}?raw=true"
-	mv --force "/tmp/mbc" "${mrsampath}/mbc"
-	echo " Done!"
-}
 
 function get_partun() {
   REPOSITORY_URL="https://github.com/woelper/partun"
@@ -1100,7 +1132,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd
 	
 
-	#"${mrsampath}/mbc" load_rom ${1^^} "${2}" > /dev/null 2>&1
 	sleep 1
 	echo "" |>/tmp/.SAM_Joy_Activity
 	echo "" |>/tmp/.SAM_Mouse_Activity
@@ -1208,7 +1239,6 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo " commandline: ${@}"
 	echo " repository_url: ${repository_url}"
 	echo " branch: ${branch}"
-	echo " mbcurl: ${mbcurl}"
 	echo ""
 	echo " gametimer: ${gametimer}"
 	echo " corelist: ${corelist}"
