@@ -72,13 +72,12 @@ if [ ! -z "pids" ]; then
 fi
 
 # Kill old activity processes
-echo -n " Stopping activity monitoring..."
-killall -q -9 MiSTer_SAM_joy.py
-killall -q -9 MiSTer_SAM_mouse.sh
-killall -q -9 MiSTer_SAM_keyboard.sh
-killall -q -9 xxd
-kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; })
-echo " Done!"
+#echo -n " Stopping activity monitoring..."
+killall -q -9 MiSTer_SAM_joy.py 2>/dev/null
+killall -q -9 MiSTer_SAM_mouse.sh 2>/dev/null
+killall -q -9 MiSTer_SAM_keyboard.sh 2>/dev/null
+killall -q -9 xxd 2>/dev/null
+kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; }) 2>/dev/null
 
 # Convert seconds to minutes
 samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
