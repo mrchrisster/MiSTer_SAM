@@ -264,6 +264,8 @@ done
 
 # Create folder exclude list
 fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
+# Create folder exclude list for zips
+fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
 	
 # Remove trailing slash from paths
 for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath psxpath; do
@@ -408,7 +410,7 @@ function parse_cmd() {
 			case ${arg,,} in
 				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg,,}]} selected!"
-				nextcore="${arg}"
+				nextcore="${arg,,}"
 				;;
 			esac
 		done
@@ -989,7 +991,7 @@ function next_core() { # next_core (core)
 			if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})"
+				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
 				romname=$(basename "${rompath}")
 
 
@@ -997,7 +999,7 @@ function next_core() { # next_core (core)
 			elif [ ${zipcount} -gt ${romcount} ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})"
+				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
 				romname=$(basename "${rompath}")
 					
 
@@ -1019,7 +1021,7 @@ function next_core() { # next_core (core)
 		# Use the ZIP Luke!
 		else
 			romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -f ${CORE_EXT[${nextcore,,}]})"
+			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
 			romname=$(basename "${rompath}")
 		fi
 		
