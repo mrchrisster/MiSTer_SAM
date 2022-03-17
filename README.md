@@ -60,7 +60,9 @@ This process can be used if you want to return MiSTer SAM to default settings or
 - `rm -fr /media/fat/Scripts/.MiSTer_SAM /media/fat/MiSTer_SAM /media/fat/Scripts/MiSTer_SAM.ini`
 - Open the OSD (F12 or your controller's menu button).
 - Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.  
+  
   **Or**
+  
 - Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.  
 - Press **Up Button** to open SAM's menu and select reset.  
   
