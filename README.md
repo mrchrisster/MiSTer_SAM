@@ -81,7 +81,7 @@ Currently supported MiSTer cores:
 * SNES (.sfc)
 * PSX (.chd)
 * TurboGrafx-16 AKA PC Engine (.pce)
-* TurboGrafx-16 CD AKA PC Engine CD (.chd)
+* TurboGrafx-16 CD AKA PC Engine CD (.chd) - Make sure you use an auto start bios
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
