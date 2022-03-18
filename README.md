@@ -79,9 +79,9 @@ Currently supported MiSTer cores:
 * NeoGeo (.neo)
 * NES (.nes)
 * SNES (.sfc)
-* PSX (.CHD)
+* PSX (.chd)
 * TurboGrafx-16 AKA PC Engine (.pce)
-* TurboGrafx-16 CD AKA PC Engine CD (only .chd)
+* TurboGrafx-16 CD AKA PC Engine CD (.chd)
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
