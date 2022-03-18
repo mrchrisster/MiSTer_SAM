@@ -157,6 +157,7 @@ For technical users here are a few handy tricks to observe and debug SAM.
     `cp /media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_init /etc/init.d/S93mistersam && /etc/init.d/S93mistersam start &`
 - To disable the daemon startup delay add to your INI: `startupsleep="No"`
 - To enable more console messages: `samquiet="No"`
+- Check the generated MGL file under `/tmp/SAM_game.mgl`. 
 
 ## SSH fetures  
 
