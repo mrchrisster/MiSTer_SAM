@@ -130,7 +130,6 @@ Now push Ctrl+S to save
   
 **- Core is loaded but just hangs on the menu**  
 Sometimes this happens (even on our test setups) and it could be for a variety of reasons.   
-- Neogeo and GBA seem to have the most issues while SNES, NES and Genesis work pretty reliably.  
 - We noticed that some MegaCD games that the script is trying to load also won't work when loaded through the MiSTer interface. 
 - Make sure you are using the recommended folder structure, such as /media/fat/Games/SNES/. 
 - The script supports zipped Everdrive packs or unzipped folders. For MegaCD and Turbografx16 CD games must be in CHD format.  
