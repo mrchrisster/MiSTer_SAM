@@ -721,6 +721,7 @@ function tty_init() { # tty_init
 		#echo " Stopping tty2oled daemon..."
 		#/etc/init.d/S60tty2oled stop
 		#echo " Done!"
+		echo "CMDSAVER,0,0,0" > "${ttydevice}" # Disable screen saver
 		
 		echo "CMDCLS" > "${ttydevice}"
 		waitforttyack
