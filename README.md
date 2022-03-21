@@ -116,6 +116,8 @@ MiSTer SAM is designed to be highly configurable. Please check the `/media/fat/S
 ### Will this break my MiSTer? Will attract mode reduce the life of the MiSTer cycling between cores if left on long term?
 Short answer is no. FPGAs [don't have a limited number of writes](https://www.youtube.com/watch?v=gtxNu_BUL-w). They are solid state devices that are configured at boot up or - in the case of MiSTer - when a core is loaded. There is no wear from this configuration step.
 
+Also, all files that SAM creates (with the exception of the startup file during first install) are written to RAM mounted storage so you don't need to worry about wearing out your SD card when using SAM.  
+  
 ### How do I know what game is on?  
 If you would like to know what game is currently playing, you can check the file `/tmp/SAM_Game.txt`. Some folks even use this with OBS to automatically change the game name for their Twitch stream!  
   
