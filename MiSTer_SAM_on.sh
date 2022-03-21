@@ -615,6 +615,7 @@ function sam_update() { # sam_update (next command)
 	else # We're running from /tmp - download dependencies and proceed
 		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
 		get_partun
+		get_mbc
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
@@ -627,6 +628,7 @@ function sam_update() { # sam_update (next command)
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		fi
+
 	fi	
 	echo " Update complete!"
 	return
@@ -742,9 +744,25 @@ function deleteall() {
 		echo "Deleting MiSTer_SAM_off.sh"
 		rm /media/fat/Scripts/MiSTer_SAM_off.sh
 	fi
+	# Remount root as read-write if read-only so we can remove daemon
+	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
+	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
+
+	# Delete daemon
+	echo "Deleting Auto boot Daemon"
+	rm /etc/init.d/_S93mistersam  &>/dev/null
+	rm /etc/init.d/S93mistersam  &>/dev/null
+
+	# Remove read-write if we were read-only
+	sync
+	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
+	sync
 	
-	echo "MiSTer_SAM_on.sh needs to be deleted manually."
-	sleep 3
+	printf "\n\n\n\n\n\nAll files deleted except for MiSTer_SAM_on.sh\n\n\n\n\n\n"
+	for i in {5..1}; do
+		echo -ne "Returning to menu in ${i}...\033[0K\r"
+		sleep 1
+	done
 	sam_resetmenu
 }
 
@@ -904,7 +922,7 @@ function get_samstuff() { #get_samstuff file (path)
 function get_partun() {
   REPOSITORY_URL="https://github.com/woelper/partun"
   echo " Downloading partun - needed for unzipping roms from big archives..."
-  echo " Created for MiSTer by woelper - who is allegedly not a spider"
+  echo " Created for MiSTer by woelper - Talk to him at this year's partun con"
   echo " ${REPOSITORY_URL}"
   latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
   curl_download "/tmp/partun" "${latest}"
@@ -912,6 +930,12 @@ function get_partun() {
 	echo " Done!"
 }
 
+function get_mbc() {
+
+  echo " Downloading mbc - Control MiSTer from cmd..."
+  echo " Created for MiSTer by pocomane"
+ get_samstuff .MiSTer_SAM/mbc
+}
 
 #========= SAM MONITOR =========
 
