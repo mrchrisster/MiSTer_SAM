@@ -173,9 +173,11 @@ Some commands to control SAM from the command line
 - `MiSTer_SAM_on.sh enable` - Enable SAM autoplay mode
 - `MiSTer_SAM_on.sh disable` - Disable SAM autoplay
 - `MiSTer_SAM_on.sh arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd` - Only launch specific system
+- `MiSTer_SAM_on.sh favorite` - Copy the current game to "_Favorites" folder
    
    
 ## Release History
+- 22 Mar 2022 - Added support for Famicom Disk System and `MiSTer_SAM_on.sh favorite`
 - 17 Mar 2022 - SAM is now using MGL to launch games. Also added PSX support
 - 30 Nov 2021 - @InquisitiveCoder added Whitelist support
 - 16 May 2021 - Fixed hotplug detection, added ini editing feature through menu
