@@ -73,6 +73,7 @@ The script is highly customizable through the included ini file `MiSTer_SAM.ini`
 ## Supported Systems
 Currently supported MiSTer cores:
 * Arcade
+* Famicom Disk System (.fds)
 * Game Boy Advance (.gba)
 * Genesis (.md)
 * MegaCD AKA SegaCD (.chd)
