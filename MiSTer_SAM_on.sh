@@ -48,7 +48,8 @@ declare -i coreretries=3
 declare -i romloadfails=0
 mralist="/tmp/.SAMmras"
 gametimer=120
-corelist="arcade,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
+corelist="arcade,fds,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
+skipmessage="Yes"
 usezip="Yes"
 listenmouse="Yes"
 listenkeyboard="Yes"
@@ -63,6 +64,7 @@ ttydevice="/dev/ttyUSB0"
 
 #======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
+fdspath="/media/fat/games/NES"
 gbapath="/media/fat/games/GBA"
 genesispath="/media/fat/games/Genesis"
 megacdpath="/media/fat/games/MegaCD"
@@ -74,6 +76,7 @@ tgfx16cdpath="/media/fat/games/TGFX16-CD"
 psxpath="/media/fat/games/PSX"
 
 # ======== CONSOLE WHITELISTS ========
+fdswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_fds.txt"
 gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"
 genesiswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_genesis.txt"
 megacdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_megacd.txt"
@@ -88,6 +91,10 @@ psxwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_psx.txt"
 arcadeexclude="First Bad Game.mra
 Second Bad Game.mra
 Third Bad Game.mra"
+
+fdsexclude="First Bad Game.gba
+Second Bad Game.gba
+Third Bad Game.gba"
 
 gbaexclude="First Bad Game.gba
 Second Bad Game.gba
@@ -130,6 +137,7 @@ function init_data() {
 	# Core to long name mappings
 	declare -gA CORE_PRETTY=( \
 		["arcade"]="MiSTer Arcade" \
+		["fds"]="Nintendo Disk System" \
 		["gba"]="Nintendo Game Boy Advance" \
 		["genesis"]="Sega Genesis / Megadrive" \
 		["megacd"]="Sega CD / Mega CD" \
@@ -144,6 +152,7 @@ function init_data() {
 	# Core to file extension mappings
 	declare -gA CORE_EXT=( \
 		["arcade"]="mra" \
+		["fds"]="fds" \
 		["gba"]="gba" \
 		["genesis"]="md" \
 		["megacd"]="chd" \
@@ -158,6 +167,7 @@ function init_data() {
 	# Core to path mappings
 	declare -gA CORE_PATH=( \
 		["arcade"]="${arcadepath}" \
+		["fds"]="${fdspath}" \
 		["gba"]="${gbapath}" \
 		["genesis"]="${genesispath}" \
 		["megacd"]="${megacdpath}" \
@@ -172,6 +182,7 @@ function init_data() {
 	# Can this core use ZIPped ROMs
 	declare -gA CORE_ZIPPED=( \
 		["arcade"]="No" \
+		["fds"]="Yes" \
 		["gba"]="Yes" \
 		["genesis"]="Yes" \
 		["megacd"]="No" \
@@ -183,9 +194,40 @@ function init_data() {
 		["psx"]="No" \
 		)
 		
+	# Can this core skip Bios/Safety warning messages
+	declare -gA CORE_SKIP=( \
+		["arcade"]="No" \
+		["fds"]="Yes" \
+		["gba"]="No" \
+		["genesis"]="No" \
+		["megacd"]="No" \
+		["neogeo"]="No" \
+		["nes"]="No" \
+		["snes"]="No" \
+		["tgfx16"]="No" \
+		["tgfx16cd"]="No" \
+		["psx"]="No" \
+		)
+
+	# WHat core is launching games
+	declare -gA CORE_LAUNCH=( \
+		["arcade"]="arcade" \
+		["fds"]="nes" \
+		["gba"]="gba" \
+		["genesis"]="genesis" \
+		["megacd"]="megacd" \
+		["neogeo"]="neogeo" \
+		["nes"]="nes" \
+		["snes"]="snes" \
+		["tgfx16"]="tgfx16" \
+		["tgfx16cd"]="tgfx16" \
+		["psx"]="psx" \
+		)
+		
 	# MGL core name settings
 	declare -gA MGL_CORE=( \
 		["arcade"]="arcade" \
+		["fds"]="nes" \
 		["gba"]="gba" \
 		["genesis"]="genesis" \
 		["megacd"]="megacd" \
@@ -200,6 +242,7 @@ function init_data() {
 	# MGL delay settings
 	declare -gA MGL_DELAY=( \
 		["arcade"]="2" \
+		["fds"]="2" \
 		["gba"]="2" \
 		["genesis"]="1" \
 		["megacd"]="1" \
@@ -214,6 +257,7 @@ function init_data() {
 	# MGL index settings
 	declare -gA MGL_INDEX=( \
 		["arcade"]="0" \
+		["fds"]="2" \
 		["gba"]="0" \
 		["genesis"]="0" \
 		["megacd"]="0" \
@@ -228,6 +272,7 @@ function init_data() {
 	# MGL type settings
 	declare -gA MGL_TYPE=( \
 		["arcade"]="f" \
+		["fds"]="f" \
 		["gba"]="f" \
 		["genesis"]="f" \
 		["megacd"]="s" \
@@ -267,7 +312,7 @@ fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
 	
 # Remove trailing slash from paths
-for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath psxpath; do
+for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath fdspath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath psxpath; do
 	declare -g ${var}="${!var%/}"
 done
 
@@ -320,6 +365,7 @@ function sam_menu() {
 	Skip "Skip game" \
 	Stop "Stop SAM" \
 	Single "Games from only one core" \
+	Favorite "Favorite Game. Copy current game to _Favorites folder" \
 	Utility "Update and Monitor" \
 	Config "Configure INI Settings" \
 	Reset "Reset or uninstall SAM" \
@@ -370,7 +416,7 @@ function sam_resetmenu() {
 	--backtitle "Super Attract Mode" --title "[ Reset ]" \
 	--menu "Select an option" 0 0 0 \
 	Deleteall "Reset/Delete all files" \
-	Update "Reinstall/Update SAM" \
+	Update "Reinstall SAM. No Autostart" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -422,7 +468,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@}; do
 			case ${arg,,} in
-				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
+				arcade | fds | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg,,}]} selected!"
 				nextcore="${arg,,}"
 				;;
@@ -507,7 +553,7 @@ function parse_cmd() {
 					sam_monitor_new
 					break
 					;;
-				arcade | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
+				arcade | fds | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
 					: # Placeholder since we parsed these above
 					;;
 				single)
@@ -520,6 +566,10 @@ function parse_cmd() {
 					;;
 				autoplay)
 					sam_autoplaymenu
+					break
+					;;
+				favorite)
+					mglfavorite
 					break
 					;;
 				reset)
@@ -578,9 +628,6 @@ function sam_start() { # sam_start (core)
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
-	
-	# Prep curl
-	curl_check
 	
 	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 		# Warn if using non-default branch for updates
@@ -766,6 +813,26 @@ function deleteall() {
 	sam_resetmenu
 }
 
+function skipmessage() {
+	#Skip past bios/safety warnings
+
+	if [ ! -f "${misterpath}"/Config/inputs/"${CORE_LAUNCH[${nextcore,,}]^^}"_input_1234_5678_v3.map ]; then
+		echo "getting file"
+		get_samstuff .MiSTer_SAM/inputs/"${CORE_LAUNCH[${nextcore,,}]^^}"_input_1234_5678_v3.map "${misterpath}"/Config/inputs
+	fi
+			sleep 5 && "${mrsampath}"/mbc raw_seq :2C
+}	
+			
+function mglfavorite() {
+	#Add current game to _Favorites folder
+	
+	if [ ! -d "${misterpath}"/_Favorites ]; then
+		mkdir "${misterpath}"/_Favorites
+	fi
+	cp /tmp/SAM_game.mgl "${misterpath}"/_Favorites/"$(cat /tmp/SAM_Game.txt)".mgl
+	
+}
+
 function waitforttyack() {
   #echo -n "Waiting for tty2oled Acknowledge... "
   read -d ";" ttyresponse < ${ttydevice}                # The "read" command at this position simulates an "do..while" loop
@@ -852,40 +919,11 @@ function tty_update() { # tty_update core game
 	
 
 #======== DOWNLOAD FUNCTIONS ========
-function curl_check() {
-	ALLOW_INSECURE_SSL="true"
-	SSL_SECURITY_OPTION=""
-	curl --connect-timeout 15 --max-time 600 --retry 3 --retry-delay 5 \
-	 --silent --show-error "https://github.com" > /dev/null 2>&1
-	case $? in
-		0)
-			;;
-		60)
-			if [[ "${ALLOW_INSECURE_SSL}" == "true" ]]
-			then
-				declare -g SSL_SECURITY_OPTION="--insecure"
-			else
-				echo "CA certificates need"
-				echo "to be fixed for"
-				echo "using SSL certificate"
-				echo "verification."
-				echo "Please fix them i.e."
-				echo "using security_fixes.sh"
-				exit 2
-			fi
-			;;
-		*)
-			echo "No Internet connection"
-			exit 1
-			;;
-	esac
-	set -e
-}
-
 function curl_download() { # curl_download ${filepath} ${URL}
+
 		curl \
 			--connect-timeout 15 --max-time 600 --retry 3 --retry-delay 5 --silent --show-error \
-			${SSL_SECURITY_OPTION} \
+			--insecure \
 			--fail \
 			--location \
 			-o "${1}" \
@@ -922,7 +960,7 @@ function get_samstuff() { #get_samstuff file (path)
 function get_partun() {
   REPOSITORY_URL="https://github.com/woelper/partun"
   echo " Downloading partun - needed for unzipping roms from big archives..."
-  echo " Created for MiSTer by woelper - Talk to him at this year's partun con"
+  echo " Created for MiSTer by woelper - Talk to him at this year's PartunCon"
   echo " ${REPOSITORY_URL}"
   latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
   curl_download "/tmp/partun" "${latest}"
@@ -934,7 +972,7 @@ function get_mbc() {
 
   echo " Downloading mbc - Control MiSTer from cmd..."
   echo " Created for MiSTer by pocomane"
- get_samstuff .MiSTer_SAM/mbc
+  get_samstuff .MiSTer_SAM/mbc
 }
 
 #========= SAM MONITOR =========
@@ -1153,13 +1191,19 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
 	
 	
-	echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd
-	
+	echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd	
 
 	sleep 1
 	echo "" |>/tmp/.SAM_Joy_Activity
 	echo "" |>/tmp/.SAM_Mouse_Activity
 	echo "" |>/tmp/.SAM_Keyboard_Activity
+	
+	if [ "${skipmessage,,}" == "yes" ] && [ "${CORE_SKIP[${nextcore,,}],,}" == "yes" ]; then
+	
+	skipmessage
+	
+	fi
+	
 }
 
 function core_error() { # core_error core /path/to/ROM
