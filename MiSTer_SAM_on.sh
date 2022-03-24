@@ -200,16 +200,16 @@ function init_data() {
 		["fds"]="Yes" \
 		["gba"]="No" \
 		["genesis"]="No" \
-		["megacd"]="No" \
+		["megacd"]="Yes" \
 		["neogeo"]="No" \
 		["nes"]="No" \
 		["snes"]="No" \
 		["tgfx16"]="No" \
-		["tgfx16cd"]="No" \
+		["tgfx16cd"]="Yes" \
 		["psx"]="No" \
 		)
 
-	# WHat core is launching games
+	# Core to folder mapping
 	declare -gA CORE_LAUNCH=( \
 		["arcade"]="arcade" \
 		["fds"]="nes" \
@@ -820,7 +820,7 @@ function skipmessage() {
 		echo "getting file"
 		get_samstuff .MiSTer_SAM/inputs/"${CORE_LAUNCH[${nextcore,,}]^^}"_input_1234_5678_v3.map "${misterpath}"/Config/inputs
 	fi
-			sleep 5 && "${mrsampath}"/mbc raw_seq :2C
+			sleep 3 && "${mrsampath}"/mbc raw_seq :31
 }	
 			
 function mglfavorite() {
