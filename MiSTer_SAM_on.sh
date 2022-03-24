@@ -51,6 +51,7 @@ gametimer=120
 corelist="arcade,fds,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
 usezip="Yes"
+					
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
@@ -514,6 +515,7 @@ function parse_cmd() {
 					env_check ${1,,}
 					tty_init
 					sam_start ${nextcore}
+			 
 					break
 					;;
 				softstart_real) # Start SAM immediately
@@ -534,6 +536,7 @@ function parse_cmd() {
 				stop) # Stop SAM immediately
 					there_can_be_only_one
 					echo " Thanks for playing!"
+			 
 					break
 					;;
 				update) # Update SAM
@@ -615,6 +618,8 @@ function parse_cmd() {
 
 #======== SAM COMMANDS ========
 function sam_start() { # sam_start (core)
+											
+					  
 	
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
@@ -629,6 +634,9 @@ function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
 	
+			
+		   
+ 
 	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 		# Warn if using non-default branch for updates
 		if [ ! "${branch}" == "main" ]; then
@@ -661,6 +669,7 @@ function sam_update() { # sam_update (next command)
 		fi
 	else # We're running from /tmp - download dependencies and proceed
 		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
+		 
 		get_partun
 		get_mbc
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
@@ -715,6 +724,11 @@ function sam_disable() { # Disable autoplay
 	# Clean out existing processes to ensure we can update
 	there_can_be_only_one
 
+							 
+								  
+									 
+				  
+																											 
 
 	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
@@ -851,28 +865,28 @@ function tty_init() { # tty_init
 		#echo " Done!"
 		
 		echo "CMDCLS" > "${ttydevice}"
-		waitforttyack
+			   
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-		waitforttyack
+			   
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
-		waitforttyack
+			   
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-		waitforttyack
+			   
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
-		waitforttyack
+			   
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-		waitforttyack
+			   
 		sleep 0.2
 		echo "CMDTXT,3,15,0,47,27, Super" > "${ttydevice}"
-		waitforttyack
+			   
 		sleep 0.2
-		echo "CMDTXT,3,15,0,97,45, Attract" > "${ttydevice}"
-		waitforttyack
+		echo "CMDTXT,3,15,0,47,45, Attract" > "${ttydevice}"
+			   
 		sleep 0.2
-		echo "CMDTXT,3,15,0,147,61, Mode!" > "${ttydevice}"
-		waitforttyack
+		echo "CMDTXT,3,15,0,47,61, Mode!" > "${ttydevice}"
+			   
 	fi
 }
 
@@ -880,45 +894,122 @@ function tty_update() { # tty_update core game
 	if [ "${ttyenable,,}" == "yes" ]; then
 		# Wait for tty2oled daemon to show the core logo
 		inotifywait -e modify /tmp/CORENAME
-		sleep 7
+		sleep 10
 		
 		#Random clear transition
-		echo "CMDCLST,19,15" > "${ttydevice}"
-		waitforttyack
-		sleep 0.2
-		#echo "CMDCLST,19,0" > "${ttydevice}"
-		echo "CMDCLST,-1,0" > "${ttydevice}"
-		waitforttyack
-		sleep 0.5
+		echo "CMDCLST,0,0" > "${ttydevice}"
+		sleep 1
+
+		# Transition effect
+		#echo "CMDGEO,6,4,127,31,31,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,8,127,31,63,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,12,127,31,127,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,15,127,31,255,0,0,0" > "${ttydevice}"
+		#sleep 0.2
+		#echo "CMDGEO,6,14,127,31,31,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,10,127,31,63,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,6,127,31,127,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                        
+		#echo "CMDGEO,6,0,127,31,255,0,0,0" > "${ttydevice}"
+		#sleep 0.2                                      
 		
-		
+  
 		# Split long lines - length is approximate since fonts are variable width!
 
 		if [ ${#2} -gt 23 ]; then
-			for l in {1..15}; do
-				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." > "${ttydevice}"
-				waitforttyack
-				echo "CMDTXT,103,${l},0,0,40, ${2:20}" > "${ttydevice}"
-				waitforttyack
-				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
-				waitforttyack
-				sleep 0.1
-			done
+
+			echo "CMDTXT,103,3,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,3,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,1,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,6,0,0,20,${2:0:20}..." > "${ttydevice}"
+				 
+			echo "CMDTXT,103,6,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,2,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,9,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,9,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,3,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,12,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,12,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,4,0,0,60,${1}" > "${ttydevice}"
+				 
+			sleep 0.1
+
+			echo "CMDTXT,103,15,0,0,20,${2:0:20}..." > "${ttydevice}"
+			echo "CMDTXT,103,15,0,0,40, ${2:20}" > "${ttydevice}"
+			echo "CMDTXT,2,5,0,0,60,${1}" > "${ttydevice}"
+
 		else
-			for l in {1..15}; do
-				echo "CMDTXT,103,${l},0,0,20,${2}" > "${ttydevice}"
-				waitforttyack
-				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
-				waitforttyack
-				sleep 0.1
-			done
+			echo "CMDTXT,103,3,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,1,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,6,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,2,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,9,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,3,0,0,60,${1}" > "${ttydevice}"
+			sleep 0.1
+
+			echo "CMDTXT,103,12,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,4,0,0,60,${1}" > "${ttydevice}"
+				 
+			sleep 0.1
+
+			echo "CMDTXT,103,15,0,0,20,${2}" > "${ttydevice}"
+			echo "CMDTXT,2,5,0,0,60,${1}" > "${ttydevice}"
 		fi
 	fi
 }
 
+								
+																	   
+	 
+ 
 	
 
 #======== DOWNLOAD FUNCTIONS ========
+					   
+						  
+					   
+																	 
+															 
+		   
+	
+	 
+	 
+											 
+	   
+											   
+	   
+							   
+						  
+								
+						
+							   
+								  
+		  
+	 
+	 
+	
+								
+		 
+	 
+	 
+	   
+ 
+
 function curl_download() { # curl_download ${filepath} ${URL}
 
 		curl \
@@ -956,6 +1047,15 @@ function get_samstuff() { #get_samstuff file (path)
 	echo " Done!"
 }
 
+					
+																	 
+															  
+									   
+						  
+																
+										 
+			  
+ 
 
 function get_partun() {
   REPOSITORY_URL="https://github.com/woelper/partun"
@@ -969,23 +1069,113 @@ function get_partun() {
 }
 
 function get_mbc() {
+								
+						
+ 
+																				 
 
   echo " Downloading mbc - Control MiSTer from cmd..."
   echo " Created for MiSTer by pocomane"
   get_samstuff .MiSTer_SAM/mbc
 }
+						
+			
+		 
+					 
+		
+  
+						 
+					   
+			   
+			   
+												 
+											 
+		  
+	 
 
 #========= SAM MONITOR =========
+									   
+		  
+	 
+				
+			 
+	   
+	
+  
+																					
+													
+														   
+														   
+														   
+																   
+														 
+		 
+	 
+	
+  
+ 
+			  
+				 
+				 
+				 
+				 
+			 
+ 
+											
+																	 
+															  
+	 
+ 
+							
+ 
+										   
+							  
+								 
+						  
 
 function sam_monitor_new() {
 	# We can omit -r here. Tradeoff; 
+											  
+	 
 
 	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
 	#tmux attach-session -t SAM
+ 
+								
+								   
+   
+													  
+			  
+			  
+			 
+			   
+				 
+													 
+					 
+												  
+																	
+																	
 
 	# window size will be wrong/too small, but ctrl-c nonfunctional instead of killing/disconnecting
 	tmux attach-session -r -t SAM
+															  
+	   
+			   
+			 
+ 
+														 
+											 
+	  
+				  
+	
+  
+						 
+			   
+	 
+												  
+   
 }
+
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
 function loop_core() { # loop_core (core)
@@ -994,6 +1184,9 @@ function loop_core() { # loop_core (core)
 	echo "" |> /tmp/SAM_Games.log
 	
 	while :; do
+					  
+
+				
 		while [ ${counter} -gt 0 ]; do
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
@@ -1061,8 +1254,18 @@ function next_core() { # next_core (core)
 # 2. Roms are in one big zip archive - like Everdrive
 # 3. Roms are zipped individually
 # 4. There are some zipped roms and some unzipped roms in the same dir
+														
+																										
+	 
+												  
+																					 
+																											  
+																		  
+								  
+   
 
 	# Some cores don't use zips - get on with it
+															  
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
 		rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
@@ -1222,6 +1425,21 @@ function core_error() { # core_error core /path/to/ROM
 	fi	
 }
 
+							
+										  
+										 
+											
+	
+													 
+					
+															 
+	
+													 
+					
+															 
+	
+   
+ 
 
 
 # ======== ARCADE MODE ========
@@ -1307,10 +1525,12 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo " commandline: ${@}"
 	echo " repository_url: ${repository_url}"
 	echo " branch: ${branch}"
+						  
 	echo ""
 	echo " gametimer: ${gametimer}"
 	echo " corelist: ${corelist}"
 	echo " usezip: ${usezip}"
+										  
 	echo " mralist: ${mralist}"
 	echo " listenmouse: ${listenmouse}"
 	echo " listenkeyboard: ${listenkeyboard}"
@@ -1348,7 +1568,9 @@ if [ "${samtrace,,}" == "yes" ]; then
 	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
 fi	
 
+											   
 build_mralist		# Generate list of MRAs
 init_data				# Setup data arrays
 parse_cmd ${@}	# Parse command line parameters for input
+							   
 exit
