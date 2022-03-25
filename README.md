@@ -73,7 +73,7 @@ The script is highly customizable through the included ini file `MiSTer_SAM.ini`
 ## Supported Systems
 Currently supported MiSTer cores:
 * Arcade
-* Famicom Disk System (.fds) (Currently needs latest MiSTer Main Unstable. You can use [this handy updater](https://github.com/Akuma-Git/misterfpga/blob/main/unstable-update_main-nightlies.sh) to make FDS work)  
+* Famicom Disk System (.fds) (Currently needs latest MiSTer Main beta. You can use [this handy updater](https://github.com/Akuma-Git/misterfpga/blob/main/unstable-update_main-nightlies.sh) to make FDS work)  
 * Game Boy Advance (.gba)
 * Genesis (.md)
 * MegaCD AKA SegaCD (.chd)
