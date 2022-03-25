@@ -19,7 +19,7 @@
 
 # ======== Credits ========
 # Original concept and implementation by: mrchrisster
-# Additional development by: Mellified
+# Additional development and script layout: Mellified
 #
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice
