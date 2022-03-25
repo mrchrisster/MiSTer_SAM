@@ -724,13 +724,7 @@ function sam_enable() { # Enable autoplay
 function sam_disable() { # Disable autoplay
 	echo -n " Disabling SAM autoplay..."
 	# Clean out existing processes to ensure we can update
-	there_can_be_only_one
-
-							 
-								  
-									 
-				  
-																											 
+	there_can_be_only_one																											 
 
 	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
@@ -806,6 +800,10 @@ function deleteall() {
 	if [ -f "/media/fat/Scripts/MiSTer_SAM_off.sh" ]; then
 		echo "Deleting MiSTer_SAM_off.sh"
 		rm /media/fat/Scripts/MiSTer_SAM_off.sh
+	fi
+	if ls /media/fat/Config/inputs/*_input_1234_5678_v3.map 1> /dev/null 2>&1; then
+		echo "Deleting Keyboard mapping files"
+		rm /media/fat/Config/inputs/*_input_1234_5678_v3.map
 	fi
 	# Remount root as read-write if read-only so we can remove daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
@@ -978,16 +976,7 @@ function tty_update() { # tty_update core game
 		
 		#Random clear transition
 		#echo "CMDCLST,19,15" > "${ttydevice}"
-		#tty_waitforack
-
-					 
-													 
-													
-													 
-													
-													   
-													
-													   
+		#tty_waitforack													   
 		#sleep 0.2
 		#echo "CMDCLST,19,0" > "${ttydevice}"
 													
@@ -1003,46 +992,18 @@ function tty_update() { # tty_update core game
 
 		if [ ${#2} -gt 23 ]; then
 			for l in {1..15}; do
-														   
-													   
-												 
-			
-
 				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." > "${ttydevice}"
 				tty_waitforack
 				echo "CMDTXT,103,${l},0,0,40, ${2:20}" > "${ttydevice}"
-				tty_waitforack
-			
-
-														   
-													   
-												 
-			
-
-															
-														
+				tty_waitforack																											
 				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
 				tty_waitforack
 				sleep 0.1
 			done
-															
-														
-												 
-
 		else
 			for l in {1..15}; do
-												 
-			
-
 				echo "CMDTXT,103,${l},0,0,20,${2}" > "${ttydevice}"
 				tty_waitforack
-			
-
-												   
-												 
-			
-
-													
 				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
 				tty_waitforack
 				sleep 0.1
@@ -1054,39 +1015,8 @@ function tty_update() { # tty_update core game
 }
 
 
-	
 
 #======== DOWNLOAD FUNCTIONS ========
-					   
-						  
-					   
-																	 
-															 
-		   
-	
-	 
-	 
-											 
-	   
-											   
-	   
-							   
-						  
-								
-						
-							   
-								  
-		  
-	 
-	 
-	
-								
-		 
-	 
-	 
-	   
- 
-
 function curl_download() { # curl_download ${filepath} ${URL}
 
 		curl \
@@ -1124,16 +1054,6 @@ function get_samstuff() { #get_samstuff file (path)
 	echo " Done!"
 }
 
-					
-																	 
-															  
-									   
-						  
-																
-										 
-			  
- 
-
 function get_partun() {
   REPOSITORY_URL="https://github.com/woelper/partun"
   echo " Downloading partun - needed for unzipping roms from big archives..."
@@ -1146,110 +1066,18 @@ function get_partun() {
 }
 
 function get_mbc() {
-								
-						
- 
-																				 
-
   echo " Downloading mbc - Control MiSTer from cmd..."
   echo " Created for MiSTer by pocomane"
   get_samstuff .MiSTer_SAM/mbc
-}
-						
-			
-		 
-					 
-		
-  
-						 
-					   
-			   
-			   
-												 
-											 
-		  
-	 
+} 
 
 #========= SAM MONITOR =========
-									   
-		  
-	 
-				
-			 
-	   
-	
-  
-																					
-													
-														   
-														   
-														   
-																   
-														 
-		 
-	 
-	
-  
- 
-			  
-				 
-				 
-				 
-				 
-			 
- 
-											
-																	 
-															  
-	 
- 
-							
- 
-										   
-							  
-								 
-						  
-
 function sam_monitor_new() {
 	# We can omit -r here. Tradeoff; 
-											  
-	 
-
 	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
-	#tmux attach-session -t SAM
- 
-								
-								   
-   
-													  
-			  
-			  
-			 
-			   
-				 
-													 
-					 
-												  
-																	
-																	
-
+	#tmux attach-session -t SAM															
 	# window size will be wrong/too small, but ctrl-c nonfunctional instead of killing/disconnecting
-	tmux attach-session -r -t SAM
-															  
-	   
-			   
-			 
- 
-														 
-											 
-	  
-				  
-	
-  
-						 
-			   
-	 
-												  
+	tmux attach-session -r -t SAM												  
    
 }
 
@@ -1330,16 +1158,7 @@ function next_core() { # next_core (core)
 # 1. Roms are all unzipped
 # 2. Roms are in one big zip archive - like Everdrive
 # 3. Roms are zipped individually
-# 4. There are some zipped roms and some unzipped roms in the same dir
-														
-																										
-	 
-												  
-																					 
-																											  
-																		  
-								  
-   
+# 4. There are some zipped roms and some unzipped roms in the same dir 
 
 	# Some cores don't use zips - get on with it
 															  
@@ -1501,23 +1320,6 @@ function core_error() { # core_error core /path/to/ROM
 		next_core
 	fi	
 }
-
-							
-										  
-										 
-											
-	
-													 
-					
-															 
-	
-													 
-					
-															 
-	
-   
- 
-
 
 # ======== ARCADE MODE ========
 function build_mralist() {
