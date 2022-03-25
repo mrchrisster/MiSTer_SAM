@@ -62,6 +62,8 @@ counter=0
 # ======== TTY2OLED =======
 ttyenable="No"
 ttydevice="/dev/ttyUSB0"
+ttypicture="/media/fat/tty2oled/pics"          
+ttypicture_pri="/media/fat/tty2oled/pics_pri" 
 
 #======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
