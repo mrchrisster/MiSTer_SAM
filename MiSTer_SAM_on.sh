@@ -18,7 +18,7 @@
 # Games are randomly pulled from their respective folders
 
 # ======== Credits ========
-# Original concept and implementation by: mrchrisster
+# Original concept and implementation: mrchrisster
 # Additional development and script layout: Mellified
 #
 # Thanks for the contributions and support:
