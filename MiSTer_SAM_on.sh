@@ -847,7 +847,7 @@ function mglfavorite() {
 	
 }
 
-function waitforttyack() {
+function tty_waitforack() {
   #echo -n "Waiting for tty2oled Acknowledge... "
   read -d ";" ttyresponse < ${ttydevice}                # The "read" command at this position simulates an "do..while" loop
   while [ "${ttyresponse}" != "ttyack" ]; do
@@ -857,126 +857,201 @@ function waitforttyack() {
   ttyresponse=""
 }
 
+# USB Send-Picture-Data function
+function tty_senddata() {
+  newcore="${1}"
+  unset picfnam
+  if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then			# Check for _pri pictures
+     picfnam="${ttypicture_pri}/${newcore}.gsc"
+  elif [ -e "${ttypicture_pri}/${newcore}.xbm" ]; then
+     picfnam="${ttypicture_pri}/${newcore}.xbm"
+  else
+    picfolders="gsc_us xbm_us gsc xbm xbm_text"				# If no _pri picture found, try all the others
+    [ "${USE_US_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us xbm_us/}"
+    [ "${USE_GSC_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us/}" && picfolders="${picfolders//gsc/}"
+    [ "${USE_TEXT_PICTURE}" = "no" ] && picfolders="${picfolders//xbm_text/}"
+    for picfolder in ${picfolders}; do
+      for (( c="${#newcore}"; c>=1; c-- )); do					# Manipulate string...
+        picfnam="${ttypicture}/${picfolder^^}/${newcore:0:$c}.${picfolder:0:3}"	# ...until it matches something
+	    [ -e "${picfnam}" ] && break
+      done
+	  [ -e "${picfnam}" ] && break
+    done
+  fi
+  if [ -e "${picfnam}" ]; then							# Exist?
+	# Testing
+	echo "-------------------------------------------"
+    echo " tty2oled sending Corename: ${1} "
+	echo " tty2oled sending Picture : ${picfnam} "
+	echo "-------------------------------------------"
+    echo "CMDCOR,${1}" > ${ttydevice}					# Send CORECHANGE" Command and Corename
+    sleep 0.02											# sleep needed here ?!
+    tail -n +4 "${picfnam}" | xxd -r -p > ${ttydevice}	# The Magic, send the Picture-Data up from Line 4 and proces
+  else													# No Picture available!
+    echo "${1}" > ${ttydevice}							# Send just the CORENAME
+  fi													# End if Picture check
+}
+
 function tty_init() { # tty_init
 	# tty2oled initialization
 	if [ "${ttyenable,,}" == "yes" ]; then
-		#echo " Stopping tty2oled daemon..."
-		#/etc/init.d/S60tty2oled stop
+
+		echo " Init tty2oled... "
+		
+		# Clear Serial input buffer first
+		echo " Clear tty2oled Serial Input Buffer "
+		while read -t 0 sdummy < ${ttydevice}; do continue; done
+		echo " Done!"
+		sleep 2
+
+		# Stopping ScreenSaver
+		echo " Stopping tty2oled Screensaver..."
+		echo "CMDSAVER,0,0,0" > "${ttydevice}"
+		tty_waitforack
+		echo " Done!"
+		sleep 2
+
+		# Stopping tty2oled daemon
+		echo " Stopping tty2oled daemon..."
+		/media/fat/tty2oled/S60tty2oled stop
+		echo " Done!"
+		sleep 2
+
+		# Clear Serial input buffer again, needed?
+		#echo " Clear  tty2oled Serial Input Buffer"
+		#while read -t 0 sdummy < ${ttydevice}; do continue; done
 		#echo " Done!"
+		#sleep 2
 		
 		echo "CMDCLS" > "${ttydevice}"
-			   
+		tty_waitforack
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-			   
+		tty_waitforack
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
-			   
+		tty_waitforack
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-			   
+		tty_waitforack
 		sleep 0.2
 		echo "CMDCLS" > "${ttydevice}"
-			   
+		tty_waitforack
 		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-			   
+		tty_waitforack
 		sleep 0.2
 		echo "CMDTXT,3,15,0,47,27, Super" > "${ttydevice}"
-			   
+		tty_waitforack
 		sleep 0.2
-		echo "CMDTXT,3,15,0,47,45, Attract" > "${ttydevice}"
-			   
+		echo "CMDTXT,3,15,0,97,45, Attract" > "${ttydevice}"
+		tty_waitforack
 		sleep 0.2
-		echo "CMDTXT,3,15,0,47,61, Mode!" > "${ttydevice}"
-			   
+		echo "CMDTXT,3,15,0,147,61, Mode!" > "${ttydevice}"
+		tty_waitforack
 	fi
 }
 
 function tty_update() { # tty_update core game
 	if [ "${ttyenable,,}" == "yes" ]; then
+	
 		# Wait for tty2oled daemon to show the core logo
-		inotifywait -e modify /tmp/CORENAME
-		sleep 10
+		#inotifywait -e modify /tmp/CORENAME
+		
+		# Testing
+		echo "-------------------------------------------"
+		echo " Loaded Core: ${3} "
+		echo "-------------------------------------------"
+		
+		# Wait for tty2oled to show the core logo
+		echo " Send Picture to tty2oled... "
+		tty_senddata ${3}
+		tty_waitforack
+		
+		# Show Core-Logo for 7 Secs
+		sleep 7
+		
+		
+		# Testing
+		#echo " Clear Serial Input Buffer"
+		#while read -t 0 sdummy < ${ttydevice}; do continue; done
+		#echo " Done!"
 		
 		#Random clear transition
-		echo "CMDCLST,0,0" > "${ttydevice}"
-		sleep 1
+		#echo "CMDCLST,19,15" > "${ttydevice}"
+		#tty_waitforack
 
-		# Transition effect
-		#echo "CMDGEO,6,4,127,31,31,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,8,127,31,63,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,12,127,31,127,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,15,127,31,255,0,0,0" > "${ttydevice}"
+					 
+													 
+													
+													 
+													
+													   
+													
+													   
 		#sleep 0.2
-		#echo "CMDGEO,6,14,127,31,31,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,10,127,31,63,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,6,127,31,127,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                        
-		#echo "CMDGEO,6,0,127,31,255,0,0,0" > "${ttydevice}"
-		#sleep 0.2                                      
+		#echo "CMDCLST,19,0" > "${ttydevice}"
+													
+		echo "CMDCLST,-1,0" > "${ttydevice}"
+		tty_waitforack
+													  
+		sleep 0.5
+													  
+												  
 		
-  
+		
 		# Split long lines - length is approximate since fonts are variable width!
 
 		if [ ${#2} -gt 23 ]; then
+			for l in {1..15}; do
+														   
+													   
+												 
+			
 
-			echo "CMDTXT,103,3,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,3,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,1,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
+				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." > "${ttydevice}"
+				tty_waitforack
+				echo "CMDTXT,103,${l},0,0,40, ${2:20}" > "${ttydevice}"
+				tty_waitforack
+			
 
-			echo "CMDTXT,103,6,0,0,20,${2:0:20}..." > "${ttydevice}"
-				 
-			echo "CMDTXT,103,6,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,2,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
+														   
+													   
+												 
+			
 
-			echo "CMDTXT,103,9,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,9,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,3,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
-
-			echo "CMDTXT,103,12,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,12,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,4,0,0,60,${1}" > "${ttydevice}"
-				 
-			sleep 0.1
-
-			echo "CMDTXT,103,15,0,0,20,${2:0:20}..." > "${ttydevice}"
-			echo "CMDTXT,103,15,0,0,40, ${2:20}" > "${ttydevice}"
-			echo "CMDTXT,2,5,0,0,60,${1}" > "${ttydevice}"
+															
+														
+				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
+				tty_waitforack
+				sleep 0.1
+			done
+															
+														
+												 
 
 		else
-			echo "CMDTXT,103,3,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,1,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
+			for l in {1..15}; do
+												 
+			
 
-			echo "CMDTXT,103,6,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,2,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
+				echo "CMDTXT,103,${l},0,0,20,${2}" > "${ttydevice}"
+				tty_waitforack
+			
 
-			echo "CMDTXT,103,9,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,3,0,0,60,${1}" > "${ttydevice}"
-			sleep 0.1
+												   
+												 
+			
 
-			echo "CMDTXT,103,12,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,4,0,0,60,${1}" > "${ttydevice}"
-				 
-			sleep 0.1
-
-			echo "CMDTXT,103,15,0,0,20,${2}" > "${ttydevice}"
-			echo "CMDTXT,2,5,0,0,60,${1}" > "${ttydevice}"
+													
+				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
+				tty_waitforack
+				sleep 0.1
+			done
+													
+												 
 		fi
 	fi
 }
 
-								
-																	   
-	 
- 
+
 	
 
 #======== DOWNLOAD FUNCTIONS ========
@@ -1373,7 +1448,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -e "\e[1m${3}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
 	echo "${3} (${1})" > /tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" &
+	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${1}"&
 	
 
 
@@ -1493,7 +1568,7 @@ function load_core_arcade() {
 	echo -e "\e[1m${mraname}\e[0m"
 	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >> /tmp/SAM_Games.log
 	echo "${mraname} (${nextcore})" > /tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}"
+	tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}" "${nextcore}"
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
