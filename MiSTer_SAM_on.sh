@@ -536,6 +536,7 @@ function parse_cmd() {
 					break
 					;;
 				stop) # Stop SAM immediately
+					tty_exit
 					there_can_be_only_one
 					echo " Thanks for playing!"
 			 
@@ -892,11 +893,26 @@ function tty_senddata() {
   fi													# End if Picture check
 }
 
+function tty_exit() { # tty_exit
+	if [ "${ttyenable,,}" == "yes" ]; then
+		# Starting tty2oled daemon
+		echo " Starting tty2oled daemon..."
+		/media/fat/tty2oled/S60tty2oled start
+		echo " Done!"
+		sleep 2
+	fi
+}
+
 function tty_init() { # tty_init
 	# tty2oled initialization
 	if [ "${ttyenable,,}" == "yes" ]; then
 
-		echo " Init tty2oled... "
+		echo " Init tty2oled, loading variables... "
+		source ${ttysystemini}
+		source ${ttyuserini}
+		ttydevice=${TTYDEV}
+		ttypicture=${picturefolder}
+		ttypicture_pri=${picturefolder_pri}
 		
 		# Clear Serial input buffer first
 		echo " Clear tty2oled Serial Input Buffer "
@@ -946,6 +962,7 @@ function tty_init() { # tty_init
 		sleep 0.2
 		echo "CMDTXT,3,15,0,147,61, Mode!" > "${ttydevice}"
 		tty_waitforack
+		sleep 3
 	fi
 }
 
@@ -1269,7 +1286,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -e "\e[1m${3}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
 	echo "${3} (${1})" > /tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${1}"&
+	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}" &
 	
 
 
@@ -1372,7 +1389,7 @@ function load_core_arcade() {
 	echo -e "\e[1m${mraname}\e[0m"
 	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >> /tmp/SAM_Games.log
 	echo "${mraname} (${nextcore})" > /tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}" "${nextcore}"
+	tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}" "${CORE_LAUNCH[${nextcore},,}]}"
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
