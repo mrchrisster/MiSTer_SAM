@@ -62,8 +62,8 @@ counter=0
 # ======== TTY2OLED =======
 ttyenable="No"
 ttydevice="/dev/ttyUSB0"
-ttypicture="/media/fat/tty2oled/pics"          
-ttypicture_pri="/media/fat/tty2oled/pics_pri" 
+ttypicture="/media/fat/tty2oled/pics"
+ttypicture_pri="/media/fat/tty2oled/pics_pri"
 
 #======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
@@ -536,8 +536,8 @@ function parse_cmd() {
 					break
 					;;
 				stop) # Stop SAM immediately
-					tty_exit
 					there_can_be_only_one
+					tty_exit
 					echo " Thanks for playing!"
 			 
 					break
@@ -863,9 +863,9 @@ function tty_senddata() {
   newcore="${1}"
   unset picfnam
   if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then			# Check for _pri pictures
-     picfnam="${ttypicture_pri}/${newcore}.gsc"
+	picfnam="${ttypicture_pri}/${newcore}.gsc"
   elif [ -e "${ttypicture_pri}/${newcore}.xbm" ]; then
-     picfnam="${ttypicture_pri}/${newcore}.xbm"
+    picfnam="${ttypicture_pri}/${newcore}.xbm"
   else
     picfolders="gsc_us xbm_us gsc xbm xbm_text"				# If no _pri picture found, try all the others
     [ "${USE_US_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us xbm_us/}"
@@ -880,11 +880,13 @@ function tty_senddata() {
     done
   fi
   if [ -e "${picfnam}" ]; then							# Exist?
-	# Testing
-	echo "-------------------------------------------"
-    echo " tty2oled sending Corename: ${1} "
-	echo " tty2oled sending Picture : ${picfnam} "
-	echo "-------------------------------------------"
+	# For testing...
+	if [ "${samdebug,,}" == "yes" ]; then
+		echo "-------------------------------------------"
+		echo " tty2oled sending Corename: ${1} "
+		echo " tty2oled found/send Picture : ${picfnam} "
+		echo "-------------------------------------------"
+	fi
     echo "CMDCOR,${1}" > ${ttydevice}					# Send CORECHANGE" Command and Corename
     sleep 0.02											# sleep needed here ?!
     tail -n +4 "${picfnam}" | xxd -r -p > ${ttydevice}	# The Magic, send the Picture-Data up from Line 4 and proces
@@ -895,11 +897,21 @@ function tty_senddata() {
 
 function tty_exit() { # tty_exit
 	if [ "${ttyenable,,}" == "yes" ]; then
+		# Clear Display	with Random effect
+		echo "CMDCLST,-1,0" > "${ttydevice}"
+		tty_waitforack
+		sleep 1 
+		# Show GAME OVER! for 3 secs
+		echo "CMDTXT,5,15,0,15,45,GAME OVER!" > "${ttydevice}"
+		tty_waitforack
+		sleep 3 
+		# Set CORENAME for tty2oled Daemon start
+		echo "MENU" > /tmp/CORENAME
 		# Starting tty2oled daemon
 		echo " Starting tty2oled daemon..."
 		/media/fat/tty2oled/S60tty2oled start
 		echo " Done!"
-		sleep 2
+		#sleep 2
 	fi
 }
 
@@ -918,51 +930,40 @@ function tty_init() { # tty_init
 		echo " Clear tty2oled Serial Input Buffer "
 		while read -t 0 sdummy < ${ttydevice}; do continue; done
 		echo " Done!"
-		sleep 2
+		#sleep 2
 
 		# Stopping ScreenSaver
-		echo " Stopping tty2oled Screensaver..."
+		echo " Stopping tty2oled ScreenSaver..."
 		echo "CMDSAVER,0,0,0" > "${ttydevice}"
 		tty_waitforack
 		echo " Done!"
-		sleep 2
+		#sleep 2
 
-		# Stopping tty2oled daemon
-		echo " Stopping tty2oled daemon..."
+		# Stopping tty2oled Daemon
+		echo " Stopping tty2oled Daemon..."
 		/media/fat/tty2oled/S60tty2oled stop
 		echo " Done!"
-		sleep 2
-
-		# Clear Serial input buffer again, needed?
-		#echo " Clear  tty2oled Serial Input Buffer"
-		#while read -t 0 sdummy < ${ttydevice}; do continue; done
-		#echo " Done!"
 		#sleep 2
 		
-		echo "CMDCLS" > "${ttydevice}"
-		tty_waitforack
-		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-		tty_waitforack
-		sleep 0.2
-		echo "CMDCLS" > "${ttydevice}"
-		tty_waitforack
-		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-		tty_waitforack
-		sleep 0.2
-		echo "CMDCLS" > "${ttydevice}"
-		tty_waitforack
-		echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-		tty_waitforack
-		sleep 0.2
+		# Small loop for Welcome...
+		for l in {1..4}; do
+			echo "CMDCLS" > "${ttydevice}"
+			tty_waitforack
+			sleep 0.2
+			echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
+			tty_waitforack
+			sleep 0.2
+		done
+		sleep 2
 		echo "CMDTXT,3,15,0,47,27, Super" > "${ttydevice}"
 		tty_waitforack
-		sleep 0.2
+		sleep 0.8
 		echo "CMDTXT,3,15,0,97,45, Attract" > "${ttydevice}"
 		tty_waitforack
-		sleep 0.2
-		echo "CMDTXT,3,15,0,147,61, Mode!" > "${ttydevice}"
+		sleep 0.8
+		echo "CMDTXT,3,15,0,153,63, Mode!" > "${ttydevice}"
 		tty_waitforack
-		sleep 3
+		sleep 1
 	fi
 }
 
@@ -972,38 +973,19 @@ function tty_update() { # tty_update core game
 		# Wait for tty2oled daemon to show the core logo
 		#inotifywait -e modify /tmp/CORENAME
 		
-		# Testing
-		echo "-------------------------------------------"
-		echo " Loaded Core: ${3} "
-		echo "-------------------------------------------"
-		
 		# Wait for tty2oled to show the core logo
-		echo " Send Picture to tty2oled... "
-		tty_senddata ${3}
+		if [ "${samdebug,,}" == "yes" ]; then
+			echo "-------------------------------------------"
+			echo " tty_update got Corename: ${3} "
+		fi
+		tty_senddata "${3}"
 		tty_waitforack
-		
 		# Show Core-Logo for 7 Secs
 		sleep 7
-		
-		
-		# Testing
-		#echo " Clear Serial Input Buffer"
-		#while read -t 0 sdummy < ${ttydevice}; do continue; done
-		#echo " Done!"
-		
-		#Random clear transition
-		#echo "CMDCLST,19,15" > "${ttydevice}"
-		#tty_waitforack													   
-		#sleep 0.2
-		#echo "CMDCLST,19,0" > "${ttydevice}"
-													
+		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" > "${ttydevice}"
 		tty_waitforack
-													  
-		sleep 0.5
-													  
-												  
-		
+		#sleep 0.5
 		
 		# Split long lines - length is approximate since fonts are variable width!
 
@@ -1286,7 +1268,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -e "\e[1m${3}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
 	echo "${3} (${1})" > /tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}" &
+	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}" &  # Non blocking Version
+	#tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}"    # Blocking Version
 	
 
 
@@ -1389,7 +1372,11 @@ function load_core_arcade() {
 	echo -e "\e[1m${mraname}\e[0m"
 	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >> /tmp/SAM_Games.log
 	echo "${mraname} (${nextcore})" > /tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}" "${CORE_LAUNCH[${nextcore},,}]}"
+	
+	# Get Setname from MRA needed for tty2oled, thx to RealLarry
+	mrasetname=$(grep "<setname>" "${arcadepath}/${mra}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
+	#tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}" "${mrasetname}" &  # Non-Blocking
+	tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}" "${mrasetname}"    # Blocking
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
