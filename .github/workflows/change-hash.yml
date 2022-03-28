@@ -1,0 +1,34 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Hash and file size corrector for Update-all
+
+on:
+  push:
+    paths: 'MiSTer_SAM_on.sh'
+
+jobs:
+  change-hash:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: Run the update script
+      run: |
+        dbsize=$(ls -l MiSTer_SAM_on.sh | nawk '{print $5}')
+        dbmd5=$(md5sum MiSTer_SAM_on.sh | nawk '{print $1}')
+        dbtime=$(date +%s)
+        sed -i 's/hash.*/hash": "'"$dbmd5"'",/g' MiSTer_SAMdb.json
+        sed -i 's/size.*/size": '"$dbsize"',/g' MiSTer_SAMdb.json
+        sed -i 's/timestamp.*/timestamp": '"$dbtime"',/g' MiSTer_SAMdb.json
+    - name: Commit files # transfer the new html files back into the repository
+      run: |
+        git config --local user.name "mrchrisster"
+        git add ./docs
+        git commit -m "Updating the db file for update all"
+    - name: Push changes # push the output folder to your repo
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        force: true
