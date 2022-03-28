@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Hash and file size corrector for Update-all
+name: Hash, file sizeand timestamp corrector for Update-all
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    - name: Run the update script
+    - name: Change hash, size and timestamp
       run: |
         dbsize=$(ls -l MiSTer_SAM_on.sh | nawk '{print $5}')
         dbmd5=$(md5sum MiSTer_SAM_on.sh | nawk '{print $1}')
