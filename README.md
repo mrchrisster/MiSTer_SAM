@@ -23,6 +23,7 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 ## Update  
 - Running `MiSTer_SAM_on.sh` will update your exisiting version to the newest version.
 - Backup `MiSTer_SAM.ini` and delete (recommended). Since we constantly add new features, it is advised to backup your custom settings and start with a fresh `MiSTer_SAM.ini`. 
+- We recommend using the latest MiSTer Main which will be retrieved by update-all.  
   
 ## Usage
 Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
@@ -73,7 +74,7 @@ The script is highly customizable through the included ini file `MiSTer_SAM.ini`
 ## Supported Systems
 Currently supported MiSTer cores:
 * Arcade
-* Famicom Disk System (.fds) (Currently needs latest MiSTer Main beta. You can use [this handy updater](https://github.com/Akuma-Git/misterfpga/blob/main/unstable-update_main-nightlies.sh) to make FDS work)  
+* Famicom Disk System (.fds)   
 * Game Boy Advance (.gba)
 * Genesis (.md)
 * MegaCD AKA SegaCD (.chd)
