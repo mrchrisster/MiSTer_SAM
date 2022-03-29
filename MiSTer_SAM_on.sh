@@ -260,7 +260,7 @@ function init_data() {
 	# MGL index settings
 	declare -gA MGL_INDEX=( \
 		["arcade"]="0" \
-		["fds"]="2" \
+		["fds"]="0" \
 		["gba"]="0" \
 		["genesis"]="0" \
 		["megacd"]="0" \
