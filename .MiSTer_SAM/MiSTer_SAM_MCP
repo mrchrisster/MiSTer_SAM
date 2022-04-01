@@ -65,10 +65,10 @@ function sam_jsmonitor() {
 # Kill running process
 pids=$(pidof -o $$ $(basename -- ${0}))
 if [ ! -z "pids" ]; then
-	echo -n " Removing other instances of $(basename -- ${0})..."
+	if [ "${samquiet,,}" == "no" ]; then echo -n " Removing other instances of $(basename -- ${0})..."; fi
 	kill -9 ${pids} &>/dev/null
 	wait ${pids} &>/dev/null
-	echo " Done!"
+	if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 fi
 
 # Kill old activity processes
@@ -98,7 +98,6 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo "********************************************************************************"
 fi
 
-echo " Starting MiSTer Super Attract Mode..."
 # Start monitoring for device changes
 if [ "${samquiet,,}" == "no" ]; then echo -n " Starting joystick change monitor..."; fi
 sam_jsmonitor
@@ -107,24 +106,21 @@ if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 # Spawn Joystick monitoring process per detected joystick device
 shopt -s nullglob
 for joystick in /dev/input/js*; do
-	echo " Monitoring controller ${joystick}..."
+	if [ "${samquiet,,}" == "no" ]; then echo " Monitoring controller ${joystick}..."; fi
 	"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
 done
 shopt -u nullglob
 
 # Spawn Mouse monitoring process
-echo " Monitoring mouse activity..."
+if [ "${samquiet,,}" == "no" ]; then echo " Monitoring mouse activity..."; fi
 "${mrsampath}/MiSTer_SAM_mouse.sh" 2>/dev/null &
 
 # Spawn Keyboard monitoring per detected keyboard device
 for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
-	echo " Monitoring keyboard ${keyboard}..."
+	if [ "${samquiet,,}" == "no" ]; then echo " Monitoring keyboard ${keyboard}..."; fi
 	"${mrsampath}/MiSTer_SAM_keyboard.sh" "${keyboard}" 2>/dev/null &
 done
 # TODO - Detect keyboard device changes
-
-# Startup done
-echo " Done!"
 
 
 # Wait for system startup - clock synchronization
