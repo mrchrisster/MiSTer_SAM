@@ -502,7 +502,7 @@ function parse_cmd() {
 				softstart) # Start as from init
 					env_check ${1,,}
 					echo "Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
+					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
 					break
 					;;
 				start) # Start as a detached tmux session for monitoring
@@ -510,14 +510,13 @@ function parse_cmd() {
 					# Terminate any other running SAM processes
 					there_can_be_only_one
 					echo "Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-=  MisterSAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
+					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
 					break
 					;;
 				start_real) # Start SAM immediately
 					env_check ${1,,}
-					tty_init
-					sam_start ${nextcore}
-			 
+					tty_init					
+					sam_start ${nextcore}					
 					break
 					;;
 				softstart_real) # Start SAM immediately
@@ -527,13 +526,10 @@ function parse_cmd() {
 					sam_start ${nextcore}
 					break
 					;;
-				skip | next) # Load next game - doesn't interrupt loop if running
+				skip | next) # Load next game - stops monitor
 					echo " Skipping to next game..."
-					env_check ${1,,}
-					there_can_be_only_one
-					tty_init
-					next_core ${nextcore}
-					break
+					tmux send-keys -t SAM C-c ENTER
+					#break
 					;;
 				stop) # Stop SAM immediately
 					there_can_be_only_one
@@ -767,7 +763,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 	kill -9 $(ps -o pid,args | grep ${mrsampath} | grep -v grep | awk '{print $1}') &> /dev/null
 	# -- inotifywait but only if it involves SAM
 	kill -9 $(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}') &> /dev/null
-	# -- xxd since that's launched, no better way to see which ones to kill
+	# -- hexdump since that's launched, no better way to see which ones to kill
 	killall -9 hexdump &> /dev/null
 
 	#wait $(pidof -o ${sampid} ${samprocess}) &>/dev/null
@@ -1083,14 +1079,14 @@ function sam_monitor_new() {
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
 function loop_core() { # loop_core (core)
-	echo " Let Mortal Kombat begin!"
+	echo -e " Starting Super Attract Mode...\n Let Mortal Kombat begin!\n"
 	# Reset game log for this session
 	echo "" |> /tmp/SAM_Games.log
 	
 	while :; do
 					  
-
-				
+	trap break INT #Break out of loop for skip & next command
+	
 		while [ ${counter} -gt 0 ]; do
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
@@ -1100,6 +1096,9 @@ function loop_core() { # loop_core (core)
 				if [ "${listenmouse,,}" == "yes" ]; then
 					echo " Mouse activity detected!"
 					exit
+					if [ "${ttyenable,,}" == "yes" ]; then
+						/media/fat/tty2oled/S60tty2oled start
+					fi
 				else
 					echo " Mouse activity ignored!"
 					echo "" |>/tmp/.SAM_Mouse_Activity
@@ -1110,6 +1109,9 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard,,}" == "yes" ]; then
 					echo " Keyboard activity detected!"
 					exit
+					if [ "${ttyenable,,}" == "yes" ]; then
+						/media/fat/tty2oled/S60tty2oled start
+					fi
 				else
 					echo " Keyboard activity ignored!"
 					echo "" |>/tmp/.SAM_Keyboard_Activity
@@ -1120,15 +1122,22 @@ function loop_core() { # loop_core (core)
 				if [ "${listenjoy,,}" == "yes" ]; then
 					echo " Controller activity detected!"
 					exit
+					if [ "${ttyenable,,}" == "yes" ]; then
+						/media/fat/tty2oled/S60tty2oled start
+					fi
 				else
 					echo " Controller activity ignored!"
 					echo "" |>/tmp/.SAM_Joy_Activity
 				fi
 			fi
+			
 		done
 		counter=${gametimer}
 		next_core ${1}
+
 	done
+	trap - INT
+	sleep 1
 }
 
 function next_core() { # next_core (core)
@@ -1160,27 +1169,63 @@ function next_core() { # next_core (core)
 # 4. There are some zipped roms and some unzipped roms in the same dir 
 
 	# Some cores don't use zips - get on with it
-															  
+								
+	#Setting up file lists
+	mkdir -p /tmp/.SAMcount
+	mkdir -p /tmp/.SAMlist
+								
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
-		rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-		#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
+		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore^^} does not use ZIPs."; fi
+		if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
+			romlist="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)"
+		fi
+		rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
 		romname=$(basename "${rompath}")
 	
 	# We might be using ZIPs
 	else
-		# Check how many ZIP and ROM files in core path	(Case 4)
-		zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
-		romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
+		########## Check how many ZIP and ROM files in core path	(Case 4)
+	
+		if [ ! -f /tmp/.SAMcount/${nextcore}_zipcount ]; then
+			zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" -print | wc -l)
+			echo ${zipcount} > /tmp/.SAMcount/${nextcore}_zipcount
+		else
+			zipcount=$(cat /tmp/.SAMcount/${nextcore}_zipcount)
+		fi
+		
+		if [ ! -f /tmp/.SAMcount/${nextcore}_romcount ]; then
+			romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
+			echo ${romcount} > /tmp/.SAMcount/${nextcore}_romcount
+		else
+			romcount=$(cat /tmp/.SAMcount/${nextcore}_romcount)
+		fi
 
-		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
+		#How many roms and zips did we find
+		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
+		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi		
+
+		#Compare roms vs zips
+		if [ "${zipcount}" -gt 0 ] && [ "${romcount}" -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
+		
+		############ Zip to Rom Compare completed #############
+				
+				
 			# We've found ZIPs AND ROMs AND we're using zips
-			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
+			#if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
 			# We found at least one large ZIP file - use it (Case 2)
-			if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+			#if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+			#	if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
+			#	romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+
+			#	if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
+			#		"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]} > /tmp/.SAMlist/${nextcore}_romlist
+			#	fi
+			#	rompath="${romfind}/$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
+			#	romname=$(basename "${rompath}")
+				
+			# We found at least one large ZIP file - use it (Case 2)
+			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
 				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
@@ -1199,30 +1244,39 @@ function next_core() { # next_core (core)
 			# I guess we use the ROMs! (Case 1)
 			else
 				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
-				rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-				#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
+				if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
+					romlist="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)"
+				fi
+				rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
 				romname=$(basename "${rompath}")
 			fi
 
 		# Found no ZIPs or we're ignoring them
-		elif [ -z "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
-			rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-			#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
-			romname=$(basename "${rompath}")
+		
+		elif [ $zipcount = 0 ] || [ "${usezip,,}" == "no" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Found no zips or ignoring them."; fi
+			if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
+				romlist="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)"
+			fi
+		rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
+		romname=$(basename "${rompath}")
 
 		# Use the ZIP Luke!
 		else
-			romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+			if [ "${samquiet,,}" == "no" ]; then echo " Using zip"; fi
+			romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
 			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
 			romname=$(basename "${rompath}")
 		fi
 		
-		# Sanity check that we have a valid rom in var
-		if [[ ${rompath} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
-			next_core 
-			return
-		fi
+
+	fi
 	
+	
+	# Sanity check that we have a valid rom in var
+	if [[ ${rompath} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
+		next_core 
+		return
 	fi
 
 	# If there is a whitelist check it
@@ -1303,6 +1357,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	
 	fi
 	
+	
+	
+	
 }
 
 function core_error() { # core_error core /path/to/ROM
@@ -1324,7 +1381,7 @@ function core_error() { # core_error core /path/to/ROM
 # ======== ARCADE MODE ========
 function build_mralist() {
 	# If no MRAs found - suicide!
-	find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) &>/dev/null
+	find "${arcadepath}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
 		echo " The path ${arcadepath} contains no MRA files!"
 		loop_core
@@ -1342,9 +1399,9 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
+		find "${arcadepath}" -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
 	else
-		find "${arcadepath}" -maxdepth 1 -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+		find "${arcadepath}" -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
 	fi
 }
 
