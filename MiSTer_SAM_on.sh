@@ -1091,8 +1091,6 @@ function get_inputmap() {
 	echo " Downloading input maps - needed to skip past BIOS for some systems..."
 	for i in "${CORE_LAUNCH[@]}"; do 
 		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then  
-			echo "Getting input map for ${CORE_LAUNCH[$i]^^}"
-			#echo -n " Downloading from ${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map to "${misterpath}"/Config/inputs/..."
 			curl_download "/tmp/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" "${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map?raw=true" &>/dev/null
 			mv --force "/tmp/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" &>/dev/null	
 		fi
