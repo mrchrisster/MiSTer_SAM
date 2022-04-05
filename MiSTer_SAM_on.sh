@@ -1091,7 +1091,7 @@ function get_inputmap() {
 			echo "Getting input map for ${CORE_LAUNCH[$i^^]}"
 			#echo -n " Downloading from ${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map to "${misterpath}"/Config/inputs/..."
 			curl_download "/tmp/${CORE_LAUNCH[$i^^]}_input_1234_5678_v3.map" "${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/"${CORE_LAUNCH[$i^^]}"_input_1234_5678_v3.map?raw=true"
-			mv --force "/tmp/${CORE_LAUNCH[$i^^]}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i^^]}_input_1234_5678_v3.map"
+			mv --force "/tmp/${CORE_LAUNCH[$i^^]}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i^^]}_input_1234_5678_v3.map" >/dev/null
 		else
 			echo -n " "${CORE_LAUNCH[$i^^]}"_input_1234_5678_v3.map exists."
 	echo " Done!"
