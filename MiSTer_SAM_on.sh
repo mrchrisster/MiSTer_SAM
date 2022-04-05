@@ -674,6 +674,7 @@ function sam_update() { # sam_update (next command)
 		 
 		get_partun
 		get_mbc
+		get_inputmap
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
@@ -847,10 +848,7 @@ function deleteall() {
 function skipmessage() {
 	#Skip past bios/safety warnings
 
-	if [ ! -f "${misterpath}"/Config/inputs/"${CORE_LAUNCH[${nextcore,,}]^^}"_input_1234_5678_v3.map ]; then
-		echo "getting file"
-		get_samstuff .MiSTer_SAM/inputs/"${CORE_LAUNCH[${nextcore,,}]^^}"_input_1234_5678_v3.map "${misterpath}"/Config/inputs
-	fi
+
 			sleep 3 && "${mrsampath}"/mbc raw_seq {31!s}31
 }	
 			
@@ -1085,6 +1083,17 @@ function get_mbc() {
   echo " Created for MiSTer by pocomane"
   get_samstuff .MiSTer_SAM/mbc
 } 
+
+function get_inputmap() {
+	echo " Downloading input maps - needed to skip past BIOS for some systems..."
+	for i in "${CORE_LAUNCH[@]}"; do 
+		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then  
+			echo "Getting input map for $i"
+			get_samstuff .MiSTer_SAM/inputs/{$i^^}_input_1234_5678_v3.map "${misterpath}"/Config/inputs
+		fi
+	done
+}
+
 
 #========= SAM MONITOR =========
 function sam_monitor_new() {
