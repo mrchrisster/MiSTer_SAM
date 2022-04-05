@@ -1088,8 +1088,8 @@ function get_inputmap() {
 	echo " Downloading input maps - needed to skip past BIOS for some systems..."
 	for i in "${CORE_LAUNCH[@]}"; do 
 		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then  
-			echo "Getting input map for $i"
-			get_samstuff .MiSTer_SAM/inputs/{$i^^}_input_1234_5678_v3.map "${misterpath}"/Config/inputs
+			echo "Getting input map for ${CORE_LAUNCH[$i]}"
+			get_samstuff .MiSTer_SAM/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map "${misterpath}"/Config/inputs
 		fi
 	done
 }
