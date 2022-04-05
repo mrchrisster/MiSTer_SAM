@@ -915,11 +915,11 @@ function tty_exit() { # tty_exit
 	if [ "${ttyenable,,}" == "yes" ]; then
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" > "${ttydevice}"
-		tty_waitforack
+		#tty_waitforack
 		sleep 1 
 		# Show GAME OVER! for 3 secs
 		echo "CMDTXT,5,15,0,15,45,GAME OVER!" > "${ttydevice}"
-		tty_waitforack
+		#tty_waitforack
 		sleep 3 
 		# Set CORENAME for tty2oled Daemon start
 		echo "MENU" > /tmp/CORENAME
@@ -951,7 +951,7 @@ function tty_init() { # tty_init
 		# Stopping ScreenSaver
 		echo " Stopping tty2oled ScreenSaver..."
 		echo "CMDSAVER,0,0,0" > "${ttydevice}"
-		tty_waitforack
+		#tty_waitforack
 		echo " Done!"
 		#sleep 2
 
@@ -964,21 +964,21 @@ function tty_init() { # tty_init
 		# Small loop for Welcome...
 		for l in {1..4}; do
 			echo "CMDCLS" > "${ttydevice}"
-			tty_waitforack
+			#tty_waitforack
 			sleep 0.2
 			echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-			tty_waitforack
+			#tty_waitforack
 			sleep 0.2
 		done
 		sleep 2
 		echo "CMDTXT,3,15,0,47,27, Super" > "${ttydevice}"
-		tty_waitforack
+		#tty_waitforack
 		sleep 0.8
 		echo "CMDTXT,3,15,0,97,45, Attract" > "${ttydevice}"
-		tty_waitforack
+		#tty_waitforack
 		sleep 0.8
 		echo "CMDTXT,3,15,0,153,63, Mode!" > "${ttydevice}"
-		tty_waitforack
+		#tty_waitforack
 		sleep 1
 	fi
 }
@@ -995,12 +995,12 @@ function tty_update() { # tty_update core game
 			echo " tty_update got Corename: ${3} "
 		fi
 		tty_senddata "${3}"
-		tty_waitforack
+		#tty_waitforack
 		# Show Core-Logo for 7 Secs
 		sleep 7
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" > "${ttydevice}"
-		tty_waitforack
+		#tty_waitforack
 		#sleep 0.5
 		
 		# Split long lines - length is approximate since fonts are variable width!
@@ -1008,19 +1008,19 @@ function tty_update() { # tty_update core game
 		if [ ${#2} -gt 23 ]; then
 			for l in {1..15}; do
 				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." > "${ttydevice}"
-				tty_waitforack
+				#tty_waitforack
 				echo "CMDTXT,103,${l},0,0,40, ${2:20}" > "${ttydevice}"
-				tty_waitforack																											
+				#tty_waitforack																											
 				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
-				tty_waitforack
+				#tty_waitforack
 				sleep 0.1
 			done
 		else
 			for l in {1..15}; do
 				echo "CMDTXT,103,${l},0,0,20,${2}" > "${ttydevice}"
-				tty_waitforack
+				#tty_waitforack
 				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
-				tty_waitforack
+				#tty_waitforack
 				sleep 0.1
 			done
 													
