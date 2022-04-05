@@ -423,7 +423,7 @@ function sam_resetmenu() {
 	--backtitle "Super Attract Mode" --title "[ Reset ]" \
 	--menu "Select an option" 0 0 0 \
 	Deleteall "Reset/Delete all files" \
-	Update "Reinstall SAM. No Autostart" \
+	Updateenable "Reinstall SAM. No Autoplay" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -546,10 +546,14 @@ function parse_cmd() {
 					sam_update
 					break
 					;;
+				updateenable) # Update SAM and enable Autostart
+					sam_update
+					sam_enable quickstart
+					break
+					;;
 				enable) # Enable SAM autoplay mode
 					env_check ${1,,}
-					#sam_enable quickstart
-					sam_enable
+					sam_enable quickstart
 					break
 					;;
 				disable) # Disable SAM autoplay
@@ -696,8 +700,8 @@ function sam_update() { # sam_update (next command)
 }
 
 function sam_enable() { # Enable autoplay
-	echo -n " Enabling MiSTer SAM Autoplay..."
-	
+	echo -n " Enabling SAM Autoplay..."
+
 	# Awaken daemon
 	# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
 	# (https://misterfpga.org/viewtopic.php?p=32159#p32159)
@@ -729,11 +733,12 @@ function sam_enable() { # Enable autoplay
 	fi
 
 	echo -n " SAM autoplay daemon starting..."
-
+	
+	there_can_be_only_one
 	if [ "${1,,}" == "quickstart" ]; then
-		${mrsampath}/MiSTer_SAM_init quickstart &
+		${mrsampath}/MiSTer_SAM_init quickstart
 	else
-		${mrsampath}/MiSTer_SAM_init start &
+		${mrsampath}/MiSTer_SAM_init start
 	fi
 
 	echo " Done!"
