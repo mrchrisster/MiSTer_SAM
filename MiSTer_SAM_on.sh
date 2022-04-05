@@ -51,13 +51,15 @@ gametimer=120
 corelist="arcade,fds,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
 usezip="Yes"
-					
+disablebootrom="Yes"					
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
 repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 branch="main"
 counter=0
+userstartup="/media/fat/linux/user-startup.sh"
+userstartuptpl="/media/fat/linux/_user-startup.sh"
 
 # ======== TTY2OLED =======
 ttyenable="No"
@@ -326,10 +328,10 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ -f /etc/init.d/S93mistersam ]; then
-		echo " -SAM autoplay ENABLED"
-	else
+	if [ $(grep -c "mistersam" ${userstartup}) = "0" ]; then
 		echo " -SAM autoplay DISABLED"
+	else
+		echo " -SAM autoplay ENABLED"
 	fi
 	echo " -Start after ${samtimeout} sec. idle"
 	echo " -Start only on the menu: ${menuonly^}"
@@ -544,7 +546,8 @@ function parse_cmd() {
 					;;
 				enable) # Enable SAM autoplay mode
 					env_check ${1,,}
-					sam_enable quickstart
+					#sam_enable quickstart
+					sam_enable
 					break
 					;;
 				disable) # Disable SAM autoplay
@@ -691,27 +694,43 @@ function sam_update() { # sam_update (next command)
 
 function sam_enable() { # Enable autoplay
 	echo -n " Enabling MiSTer SAM Autoplay..."
-	# Remount root as read-write if read-only so we can add our daemon
-	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
-	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
-
+	
 	# Awaken daemon
-	cp -f "${mrsampath}/MiSTer_SAM_init" /etc/init.d/_S93mistersam &>/dev/null
-	mv -f /etc/init.d/_S93mistersam /etc/init.d/S93mistersam &>/dev/null
-	chmod +x /etc/init.d/S93mistersam
+	# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
+	# (https://misterfpga.org/viewtopic.php?p=32159#p32159)
+	
+	if [ -f /etc/init.d/S93mistersam ] || [ -f /etc/init.d/_S93mistersam ]; then
+		mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
+		[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
+		sync
+		rm /etc/init.d/S93mistersam &>/dev/null
+		rm /etc/init.d/_S93mistersam &>/dev/null
+		sync
+		[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
+	fi
 
-	# Remove read-write if we were read-only
-	sync
-	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
-	sync
-	echo " Done!"
+	
+	# Add new startup way
+	if [ ! -e ${userstartup} ] && [ -e /etc/init.d/S99user ]; then
+	  if [ -e ${userstartuptpl} ]; then
+		echo "Copying ${userstartuptpl} to ${userstartup}"
+		cp ${userstartuptpl} ${userstartup}
+	  else
+		echo "Building ${userstartup}"
+	  fi
+	fi
+	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ]; then
+	  echo -e "Add mistersam to ${userstartup}\n"
+	  echo -e "\n# Startup Super Attract Mode" >> ${userstartup}
+	  echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1" >> ${userstartup}
+	fi
 
 	echo -n " SAM autoplay daemon starting..."
 
 	if [ "${1,,}" == "quickstart" ]; then
-		/etc/init.d/S93mistersam quickstart &
+		${mrsampath}/MiSTer_SAM_init quickstart &
 	else
-		/etc/init.d/S93mistersam start &
+		${mrsampath}/MiSTer_SAM_init start &
 	fi
 
 	echo " Done!"
@@ -722,12 +741,7 @@ function sam_disable() { # Disable autoplay
 	echo -n " Disabling SAM autoplay..."
 	# Clean out existing processes to ensure we can update
 	there_can_be_only_one																											 
-
-	mount | grep -q "on / .*[(,]ro[,$]" && RO_ROOT="true"
-	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
-	rm -f /etc/init.d/S93mistersam > /dev/null 2>&1
-	sync
-	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
+	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sync
 	echo " Done!"
 }
@@ -807,14 +821,20 @@ function deleteall() {
 	[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
 
 	# Delete daemon
-	echo "Deleting Auto boot Daemon"
-	rm /etc/init.d/_S93mistersam  &>/dev/null
-	rm /etc/init.d/S93mistersam  &>/dev/null
-
-	# Remove read-write if we were read-only
-	sync
-	[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
-	sync
+	echo "Deleting Auto boot Daemon..."
+	if [ -f /etc/init.d/S93mistersam ] || [ -f /etc/init.d/_S93mistersam ]; then
+		mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
+		[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
+		sync
+		rm /etc/init.d/S93mistersam &>/dev/null
+		rm /etc/init.d/_S93mistersam &>/dev/null
+		sync
+		[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
+	fi
+	echo "Done."
+	
+	sed -i '/MiSTer_SAM/d' ${userstartup}
+	sed -i '/Super Attract/d' ${userstartup}
 	
 	printf "\n\n\n\n\n\nAll files deleted except for MiSTer_SAM_on.sh\n\n\n\n\n\n"
 	for i in {5..1}; do
@@ -831,7 +851,7 @@ function skipmessage() {
 		echo "getting file"
 		get_samstuff .MiSTer_SAM/inputs/"${CORE_LAUNCH[${nextcore,,}]^^}"_input_1234_5678_v3.map "${misterpath}"/Config/inputs
 	fi
-			sleep 3 && "${mrsampath}"/mbc raw_seq :31
+			sleep 3 && "${mrsampath}"/mbc raw_seq {31!s}31
 }	
 			
 function mglfavorite() {
@@ -1096,9 +1116,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenmouse,,}" == "yes" ]; then
 					echo " Mouse activity detected!"
 					exit
-					if [ "${ttyenable,,}" == "yes" ]; then
-						tty_exit
-					fi
+
 				else
 					echo " Mouse activity ignored!"
 					echo "" |>/tmp/.SAM_Mouse_Activity
@@ -1109,9 +1127,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard,,}" == "yes" ]; then
 					echo " Keyboard activity detected!"
 					exit
-					if [ "${ttyenable,,}" == "yes" ]; then
-						tty_exit
-					fi
+
 				else
 					echo " Keyboard activity ignored!"
 					echo "" |>/tmp/.SAM_Keyboard_Activity
@@ -1122,9 +1138,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenjoy,,}" == "yes" ]; then
 					echo " Controller activity detected!"
 					exit
-					if [ "${ttyenable,,}" == "yes" ]; then
-						tty_exit
-					fi
+
 				else
 					echo " Controller activity ignored!"
 					echo "" |>/tmp/.SAM_Joy_Activity
@@ -1378,6 +1392,22 @@ function core_error() { # core_error core /path/to/ROM
 	fi	
 }
 
+function disable_bootrom() {
+	if [ "${disablebootrom}" == "Yes" ]; then
+		if [ -d "${misterpath}/Bootrom" ]; then
+			mount --bind /mnt "${misterpath}/Bootrom"
+		fi
+		if [ -f "${misterpath}/Games/NES/boot0.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot0.rom
+		fi
+		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
+		fi
+	fi
+}
+
 # ======== ARCADE MODE ========
 function build_mralist() {
 	# If no MRAs found - suicide!
@@ -1508,9 +1538,10 @@ if [ "${samtrace,,}" == "yes" ]; then
 	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
 fi	
 
-											   
+disable_bootrom	# Disable Bootrom until Reboot 										   
 build_mralist		# Generate list of MRAs
 init_data				# Setup data arrays
 parse_cmd ${@}	# Parse command line parameters for input
-							   
+
+
 exit
