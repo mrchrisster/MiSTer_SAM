@@ -51,6 +51,7 @@ gametimer=120
 corelist="arcade,fds,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
 usezip="Yes"
+loopall="Yes"
 disablebootrom="Yes"					
 listenmouse="Yes"
 listenkeyboard="Yes"
@@ -60,6 +61,7 @@ branch="main"
 counter=0
 userstartup="/media/fat/linux/user-startup.sh"
 userstartuptpl="/media/fat/linux/_user-startup.sh"
+
 
 # ======== TTY2OLED =======
 ttyenable="No"
@@ -1085,13 +1087,14 @@ function get_mbc() {
 } 
 
 function get_inputmap() {
+	#schlampig
 	echo " Downloading input maps - needed to skip past BIOS for some systems..."
 	for i in "${CORE_LAUNCH[@]}"; do 
 		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then  
+			echo "Getting input map for ${CORE_LAUNCH[$i]^^}"
+			#echo -n " Downloading from ${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map to "${misterpath}"/Config/inputs/..."
 			curl_download "/tmp/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" "${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map?raw=true" &>/dev/null
-			mv --force "/tmp/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" &>/dev/null
-		else
-			echo -e " ${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map exists - skipping...\n"			
+			mv --force "/tmp/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" &>/dev/null	
 		fi
 	done
 	echo " Done!"
@@ -1166,6 +1169,7 @@ function loop_core() { # loop_core (core)
 	sleep 1
 }
 
+
 function next_core() { # next_core (core)
 	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
 		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
@@ -1199,14 +1203,30 @@ function next_core() { # next_core (core)
 	#Setting up file lists
 	mkdir -p /tmp/.SAMcount
 	mkdir -p /tmp/.SAMlist
+	
+	function use_roms() {
+		#Create list
+		if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
+			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)
+		fi
+		
+		#Delete played game from list	
+		
+		if [ -s /tmp/.SAMlist/${nextcore}_romlist ]; then
+			rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
+			if [ "${loopall,,}" == "yes" ]; then
+				sed -i "/${rompath//\//\\/}/d" /tmp/.SAMlist/${nextcore}_romlist
+			fi
+		else
+			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)
+		fi
+			
+		romname=$(basename "${rompath}")
+	}
 								
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore^^} does not use ZIPs."; fi
-		if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
-			romlist="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)"
-		fi
-		rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
-		romname=$(basename "${rompath}")
+		use_roms
 	
 	# We might be using ZIPs
 	else
@@ -1270,22 +1290,14 @@ function next_core() { # next_core (core)
 			# I guess we use the ROMs! (Case 1)
 			else
 				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
-				if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
-					romlist="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)"
-				fi
-				rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
-				romname=$(basename "${rompath}")
+				use_roms
 			fi
 
 		# Found no ZIPs or we're ignoring them
 		
 		elif [ $zipcount = 0 ] || [ "${usezip,,}" == "no" ]; then
 			if [ "${samquiet,,}" == "no" ]; then echo " Found no zips or ignoring them."; fi
-			if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
-				romlist="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)"
-			fi
-		rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
-		romname=$(basename "${rompath}")
+			use_roms
 
 		# Use the ZIP Luke!
 		else
