@@ -505,7 +505,7 @@ function parse_cmd() {
 					;;
 				softstart) # Start as from init
 					env_check ${1,,}
-					echo "Starting SAM in the background."
+					echo " Starting SAM in the background."
 					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real ${nextcore}
 					break
 					;;
@@ -1200,12 +1200,13 @@ function next_core() { # next_core (core)
 	#Setting up file lists
 	mkdir -p /tmp/.SAMcount
 	mkdir -p /tmp/.SAMlist
+	romlist="/tmp/.SAMlist/${nextcore}_romlist"
 	
 	function use_roms() {
-		romlist="/tmp/.SAMlist/${nextcore}_romlist"
+		
 		#Create list
 		if [ ! -f ${romlist} ]; then
-			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
+			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
 		fi
 		
 		#Delete played game from list	
@@ -1216,7 +1217,7 @@ function next_core() { # next_core (core)
 				sed -i "/${rompath//\//\\/}/d" ${romlist}
 			fi
 		else
-			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
+			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
 		fi
 			
 		romname=$(basename "${rompath}")
@@ -1257,14 +1258,27 @@ function next_core() { # next_core (core)
 		if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
 			#We found at least one large ZIP file - use it (Case 2)
-			if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-
-				if [ ! -s ${romlist} ]; then
+			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 500MB+ )"; fi
+				#find biggest zip file over 500MB
+				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +500M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+				
+				#Create list
+				if [ ! -f ${romlist} ]; then
 					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]} > ${romlist}
 				fi
-				rompath="${romfind}/$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
+				
+				#Delete rom from list
+				if [ -s ${romlist} ]; then
+					romselect="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
+					rompath="${romfind}/${romselect}"
+					if [ "${norepeat,,}" == "yes" ]; then
+						sed -i "/${romselect//\//\\/}/d" ${romlist}
+					fi
+				else
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]} > ${romlist}
+				fi
+				
 				romname=$(basename "${rompath}")
 				
 			# We found at least one large ZIP file - use it (Case 2)
