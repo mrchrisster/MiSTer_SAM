@@ -51,7 +51,7 @@ gametimer=120
 corelist="arcade,fds,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
 usezip="Yes"
-shuffleall="Yes"
+norepeat="Yes"
 disablebootrom="Yes"					
 listenmouse="Yes"
 listenkeyboard="Yes"
@@ -1217,7 +1217,7 @@ function next_core() { # next_core (core)
 		
 		if [ -s /tmp/.SAMlist/${nextcore}_romlist ]; then
 			rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
-			if [ "${shuffleall,,}" == "yes" ]; then
+			if [ "${norepeat,,}" == "yes" ]; then
 				sed -i "/${rompath//\//\\/}/d" /tmp/.SAMlist/${nextcore}_romlist
 			fi
 		else
