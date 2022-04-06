@@ -1458,8 +1458,9 @@ function build_mralist() {
 
 function load_core_arcade() {
 
-	# Check if the MRA list already exists - if so, leave it alone. If it's empty, make a new one
-	if [ ! -f ${mralist} ] || [ ! -s ${mralist} ]; then
+	# Check if the MRA list is empty or doesn't exist - if so, make a new list
+	
+	if [ ! -s ${mralist} ]; then
 		build_mralist	
 	fi
 	
