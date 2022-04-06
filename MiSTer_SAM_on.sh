@@ -47,7 +47,6 @@ samtrace="No"
 declare -i coreretries=3
 declare -i romloadfails=0
 mralist="/tmp/.SAMlist/arcade_romlist"
-romlist="${romlist}"
 gametimer=120
 corelist="arcade,fds,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
@@ -320,7 +319,7 @@ fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
 	
 # Remove trailing slash from paths
-for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath fdspath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath psxpath; do
+for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
 	declare -g ${var}="${!var%/}"
 done
 
@@ -507,7 +506,7 @@ function parse_cmd() {
 				softstart) # Start as from init
 					env_check ${1,,}
 					echo "Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
+					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real ${nextcore}
 					break
 					;;
 				start) # Start as a detached tmux session for monitoring
@@ -851,7 +850,6 @@ function deleteall() {
 function skipmessage() {
 	#Skip past bios/safety warnings
 
-
 			sleep 3 && "${mrsampath}"/mbc raw_seq {31!s}31
 }	
 			
@@ -936,7 +934,7 @@ function tty_init() { # tty_init
 	# tty2oled initialization
 	if [ "${ttyenable,,}" == "yes" ]; then
 
-		echo " Init tty2oled, loading variables... "
+		if [ "${samquiet,,}" == "no" ]; then echo " Init tty2oled, loading variables... "; fi
 		source ${ttysystemini}
 		source ${ttyuserini}
 		ttydevice=${TTYDEV}
@@ -945,22 +943,22 @@ function tty_init() { # tty_init
 		
 		
 		# Clear Serial input buffer first
-		echo " Clear tty2oled Serial Input Buffer "
+		if [ "${samquiet,,}" == "no" ]; then echo " Clear tty2oled Serial Input Buffer "; fi
 		while read -t 0 sdummy < ${ttydevice}; do continue; done
-		echo " Done!"
+		if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 		#sleep 2
 
 		# Stopping ScreenSaver
-		echo " Stopping tty2oled ScreenSaver..."
+		if [ "${samquiet,,}" == "no" ]; then echo " Stopping tty2oled ScreenSaver..."; fi
 		echo "CMDSAVER,0,0,0" > "${ttydevice}"
 		tty_waitforack
-		echo " Done!"
+		if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 		#sleep 2
 
 		# Stopping tty2oled Daemon
-		echo " Stopping tty2oled Daemon..."
+		if [ "${samquiet,,}" == "no" ]; then echo " Stopping tty2oled Daemon..."; fi
 		/media/fat/tty2oled/S60tty2oled stop
-		echo " Done!"
+		if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 		#sleep 2
 		
 		# Small loop for Welcome...
@@ -1169,7 +1167,6 @@ function loop_core() { # loop_core (core)
 	sleep 1
 }
 
-
 function next_core() { # next_core (core)
 	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
 		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
@@ -1205,24 +1202,25 @@ function next_core() { # next_core (core)
 	mkdir -p /tmp/.SAMlist
 	
 	function use_roms() {
-		#Create list
-		if [ ! -f ${romlist} ]; then
-			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
+	romlist="/tmp/.SAMlist/${nextcore}_romlist"
+	#Create list
+	if [ ! -f ${romlist} ]; then
+		romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
+	fi
+	
+	#Delete played game from list	
+	
+	if [ -s ${romlist} ]; then
+		rompath="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
+		if [ "${loopall,,}" == "yes" ]; then
+			sed -i "/${rompath//\//\\/}/d" ${romlist}
 		fi
+	else
+		romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
+	fi
 		
-		#Delete played game from list	
-		
-		if [ -s ${romlist} ]; then
-			rompath="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
-			if [ "${loopall,,}" == "yes" ]; then
-				sed -i "/${rompath//\//\\/}/d" ${romlist}
-			fi
-		else
-			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
-		fi
-			
-		romname=$(basename "${rompath}")
-	}
+	romname=$(basename "${rompath}")
+	}				  
 								
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore^^} does not use ZIPs."; fi
@@ -1389,15 +1387,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "" |>/tmp/.SAM_Mouse_Activity
 	echo "" |>/tmp/.SAM_Keyboard_Activity
 	
-	if [ "${skipmessage,,}" == "yes" ] && [ "${CORE_SKIP[${nextcore,,}],,}" == "yes" ]; then
-	
-	skipmessage
-	
+	if [ "${skipmessage,,}" == "yes" ] && [ "${CORE_SKIP[${nextcore,,}],,}" == "yes" ]; then	
+		skipmessage	
 	fi
-	
-	
-	
-	
 }
 
 function core_error() { # core_error core /path/to/ROM
