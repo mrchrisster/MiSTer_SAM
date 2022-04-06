@@ -1202,24 +1202,24 @@ function next_core() { # next_core (core)
 	mkdir -p /tmp/.SAMlist
 	
 	function use_roms() {
-	romlist="/tmp/.SAMlist/${nextcore}_romlist"
-	#Create list
-	if [ ! -f ${romlist} ]; then
-		romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
-	fi
-	
-	#Delete played game from list	
-	
-	if [ -s ${romlist} ]; then
-		rompath="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
-		if [ "${loopall,,}" == "yes" ]; then
-			sed -i "/${rompath//\//\\/}/d" ${romlist}
+		romlist="/tmp/.SAMlist/${nextcore}_romlist"
+		#Create list
+		if [ ! -f ${romlist} ]; then
+			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
 		fi
-	else
-		romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
-	fi
 		
-	romname=$(basename "${rompath}")
+		#Delete played game from list	
+		
+		if [ -s ${romlist} ]; then
+			rompath="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
+			if [ "${norepeat,,}" == "yes" ]; then
+				sed -i "/${rompath//\//\\/}/d" ${romlist}
+			fi
+		else
+			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist})
+		fi
+			
+		romname=$(basename "${rompath}")
 	}				  
 								
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
@@ -1252,28 +1252,27 @@ function next_core() { # next_core (core)
 		if [ "${zipcount}" -gt 0 ] && [ "${romcount}" -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
 		
 		############ Zip to Rom Compare completed #############
-				
-				
-			# We've found ZIPs AND ROMs AND we're using zips
-			#if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
+								
+		#We've found ZIPs AND ROMs AND we're using zips
+		if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
-			# We found at least one large ZIP file - use it (Case 2)
-			#if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-			#	if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-			#	romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-
-			#	if [ ! -f ${romlist} ]; then
-			#		"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]} > ${romlist}
-			#	fi
-			#	rompath="${romfind}/$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
-			#	romname=$(basename "${rompath}")
-				
-			# We found at least one large ZIP file - use it (Case 2)
-			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+			#We found at least one large ZIP file - use it (Case 2)
+			if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+
+				if [ ! -s ${romlist} ]; then
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]} > ${romlist}
+				fi
+				rompath="${romfind}/$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
 				romname=$(basename "${rompath}")
+				
+			# We found at least one large ZIP file - use it (Case 2)
+			#if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+			#	if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
+			#	romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+			#	rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+			#	romname=$(basename "${rompath}")
 
 
 			# We see more zip files than ROMs, we're probably dealing with individually zipped roms (Case 3)
