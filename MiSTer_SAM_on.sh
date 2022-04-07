@@ -1214,7 +1214,8 @@ function next_core() { # next_core (core)
 		if [ -s ${romlist} ]; then
 			rompath="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
 			if [ "${norepeat,,}" == "yes" ]; then
-				sed -i "/${rompath//\//\\/}/d" ${romlist}
+				#sed -i "/${rompath//\//\\/}/d" ${romlist}
+				awk -vLine="$rompath" '!index($0,Line)' "${romlist}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlist}"
 			fi
 		else
 			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
@@ -1265,7 +1266,7 @@ function next_core() { # next_core (core)
 				
 				#Create list
 				if [ ! -f ${romlist} ]; then
-					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]} > ${romlist}
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
 				fi
 				
 				#Delete rom from list
@@ -1273,10 +1274,10 @@ function next_core() { # next_core (core)
 					romselect="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
 					rompath="${romfind}/${romselect}"
 					if [ "${norepeat,,}" == "yes" ]; then
-						sed -i "/${romselect//\//\\/}/d" ${romlist}
+						awk -vLine="$romselect" '!index($0,Line)' "${romlist}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlist}"
 					fi
 				else
-					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]} > ${romlist}
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
 				fi
 				
 				romname=$(basename "${rompath}")
