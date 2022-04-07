@@ -741,8 +741,20 @@ function sam_enable() { # Enable autoplay
 }
 
 function sam_disable() { # Disable autoplay
+
 	echo -n " Disabling SAM autoplay..."
 	# Clean out existing processes to ensure we can update
+	
+	if [ -f /etc/init.d/S93mistersam ] || [ -f /etc/init.d/_S93mistersam ]; then
+		mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
+		[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
+		sync
+		rm /etc/init.d/S93mistersam &>/dev/null
+		rm /etc/init.d/_S93mistersam &>/dev/null
+		sync
+		[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
+	fi
+
 	there_can_be_only_one																											 
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sync
