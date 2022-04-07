@@ -1150,8 +1150,9 @@ function loop_core() { # loop_core (core)
 			
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard,,}" == "yes" ]; then
-					echo " Keyboard activity detected!"
+					echo " Keyboard activity detected!"					
 					exit
+					tty_exit
 
 				else
 					echo " Keyboard activity ignored!"
@@ -1439,13 +1440,17 @@ function disable_bootrom() {
 		if [ -d "${misterpath}/Bootrom" ]; then
 			mount --bind /mnt "${misterpath}/Bootrom"
 		fi
-		if [ -f "${misterpath}/Games/NES/boot0.rom" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot0.rom
-		fi
 		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
 			touch /tmp/brfake
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
+		fi
+		if [ -f "${misterpath}/Games/NES/boot2.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot2.rom
+		fi
+		if [ -f "${misterpath}/Games/NES/boot3.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot3.rom
 		fi
 	fi
 }
