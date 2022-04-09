@@ -627,7 +627,7 @@ function sam_start() { # sam_start (core)
 	
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-		${mrsampath}/MiSTer_SAM_MCP monitoronly &
+		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP monitoronly"
 	fi
 	
 	# Start SAM looping through cores and games
@@ -1128,11 +1128,10 @@ function loop_core() { # loop_core (core)
 	# Reset game log for this session
 	echo "" |> /tmp/SAM_Games.log
 	
-	while :; do
-					  
-	trap break INT #Break out of loop for skip & next command
+	while :; do					  
 	
 		while [ ${counter} -gt 0 ]; do
+			trap 'counter=0' INT #Break out of loop for skip & next command
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
@@ -1152,7 +1151,6 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard,,}" == "yes" ]; then
 					echo " Keyboard activity detected!"					
 					exit
-					tty_exit
 
 				else
 					echo " Keyboard activity ignored!"
@@ -1162,9 +1160,8 @@ function loop_core() { # loop_core (core)
 			
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
 				if [ "${listenjoy,,}" == "yes" ]; then
-					echo " Controller activity detected!"
+					echo " Controller activity detected!" > /tmp/sanity
 					exit
-
 				else
 					echo " Controller activity ignored!"
 					echo "" |>/tmp/.SAM_Joy_Activity
@@ -1501,9 +1498,9 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${arcadepath}" -type f \( -iname "*.mra" \) -not -path '*/.*'  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
+		find "${arcadepath}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
 	else
-		find "${arcadepath}" -type f \( -iname "*.mra" \) -not -path '*/.*'  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+		find "${arcadepath}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
 	fi
 }
 
