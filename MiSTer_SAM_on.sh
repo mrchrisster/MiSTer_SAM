@@ -46,7 +46,7 @@ samtrace="No"
 #======== LOCAL VARIABLES ========
 declare -i coreretries=3
 declare -i romloadfails=0
-mralist="/tmp/.SAMmras"
+mralist="/tmp/.SAMlist/arcade_romlist"
 gametimer=120
 corelist="arcade,fds,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
@@ -319,7 +319,7 @@ fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
 	
 # Remove trailing slash from paths
-for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath fdspath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath psxpath; do
+for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
 	declare -g ${var}="${!var%/}"
 done
 
@@ -423,7 +423,7 @@ function sam_resetmenu() {
 	--backtitle "Super Attract Mode" --title "[ Reset ]" \
 	--menu "Select an option" 0 0 0 \
 	Deleteall "Reset/Delete all files" \
-	Updateenable "Reinstall SAM. No Autoplay" \
+	Update "Reinstall SAM. No Autostart" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -505,7 +505,7 @@ function parse_cmd() {
 					;;
 				softstart) # Start as from init
 					env_check ${1,,}
-					echo "Starting SAM in the background."
+					echo " Starting SAM in the background."
 					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
 					break
 					;;
@@ -546,14 +546,10 @@ function parse_cmd() {
 					sam_update
 					break
 					;;
-				updateenable) # Update SAM and enable Autostart
-					sam_update
-					sam_enable quickstart
-					break
-					;;
 				enable) # Enable SAM autoplay mode
 					env_check ${1,,}
-					sam_enable quickstart
+					#sam_enable quickstart
+					sam_enable
 					break
 					;;
 				disable) # Disable SAM autoplay
@@ -700,8 +696,8 @@ function sam_update() { # sam_update (next command)
 }
 
 function sam_enable() { # Enable autoplay
-	echo -n " Enabling SAM Autoplay..."
-
+	echo -n " Enabling MiSTer SAM Autoplay..."
+	
 	# Awaken daemon
 	# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
 	# (https://misterfpga.org/viewtopic.php?p=32159#p32159)
@@ -733,12 +729,11 @@ function sam_enable() { # Enable autoplay
 	fi
 
 	echo -n " SAM autoplay daemon starting..."
-	
-	there_can_be_only_one
+
 	if [ "${1,,}" == "quickstart" ]; then
-		${mrsampath}/MiSTer_SAM_init quickstart
+		${mrsampath}/MiSTer_SAM_init quickstart &
 	else
-		${mrsampath}/MiSTer_SAM_init start
+		${mrsampath}/MiSTer_SAM_init start &
 	fi
 
 	echo " Done!"
@@ -746,8 +741,20 @@ function sam_enable() { # Enable autoplay
 }
 
 function sam_disable() { # Disable autoplay
+
 	echo -n " Disabling SAM autoplay..."
 	# Clean out existing processes to ensure we can update
+	
+	if [ -f /etc/init.d/S93mistersam ] || [ -f /etc/init.d/_S93mistersam ]; then
+		mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
+		[ "$RO_ROOT" == "true" ] && mount / -o remount,rw
+		sync
+		rm /etc/init.d/S93mistersam &>/dev/null
+		rm /etc/init.d/_S93mistersam &>/dev/null
+		sync
+		[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
+	fi
+
 	there_can_be_only_one																											 
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sync
@@ -855,7 +862,6 @@ function deleteall() {
 function skipmessage() {
 	#Skip past bios/safety warnings
 
-
 			sleep 3 && "${mrsampath}"/mbc raw_seq {31!s}31
 }	
 			
@@ -940,30 +946,31 @@ function tty_init() { # tty_init
 	# tty2oled initialization
 	if [ "${ttyenable,,}" == "yes" ]; then
 
-		echo " Init tty2oled, loading variables... "
+		if [ "${samquiet,,}" == "no" ]; then echo " Init tty2oled, loading variables... "; fi
 		source ${ttysystemini}
 		source ${ttyuserini}
 		ttydevice=${TTYDEV}
 		ttypicture=${picturefolder}
 		ttypicture_pri=${picturefolder_pri}
 		
+		
 		# Clear Serial input buffer first
-		echo " Clear tty2oled Serial Input Buffer "
+		if [ "${samquiet,,}" == "no" ]; then echo " Clear tty2oled Serial Input Buffer "; fi
 		while read -t 0 sdummy < ${ttydevice}; do continue; done
-		echo " Done!"
+		if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 		#sleep 2
 
 		# Stopping ScreenSaver
-		echo " Stopping tty2oled ScreenSaver..."
+		if [ "${samquiet,,}" == "no" ]; then echo " Stopping tty2oled ScreenSaver..."; fi
 		echo "CMDSAVER,0,0,0" > "${ttydevice}"
 		tty_waitforack
-		echo " Done!"
+		if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 		#sleep 2
 
 		# Stopping tty2oled Daemon
-		echo " Stopping tty2oled Daemon..."
+		if [ "${samquiet,,}" == "no" ]; then echo " Stopping tty2oled Daemon..."; fi
 		/media/fat/tty2oled/S60tty2oled stop
-		echo " Done!"
+		if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 		#sleep 2
 		
 		# Small loop for Welcome...
@@ -1143,8 +1150,9 @@ function loop_core() { # loop_core (core)
 			
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard,,}" == "yes" ]; then
-					echo " Keyboard activity detected!"
+					echo " Keyboard activity detected!"					
 					exit
+					tty_exit
 
 				else
 					echo " Keyboard activity ignored!"
@@ -1174,6 +1182,7 @@ function loop_core() { # loop_core (core)
 
 
 function next_core() { # next_core (core)
+
 	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
 		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
 		exit 1
@@ -1200,33 +1209,53 @@ function next_core() { # next_core (core)
 # 2. Roms are in one big zip archive - like Everdrive
 # 3. Roms are zipped individually
 # 4. There are some zipped roms and some unzipped roms in the same dir 
-
-	# Some cores don't use zips - get on with it
-								
+							
 	#Setting up file lists
 	mkdir -p /tmp/.SAMcount
 	mkdir -p /tmp/.SAMlist
-	
+	mkdir -p "${mrsampath}"/SAMlist
+	romlist=""${mrsampath}"/SAMlist/${nextcore}_romlist"
+	romlisttmp="/tmp/.SAMlist/${nextcore}_romlist"
+
+	if [ ! -f ${romlisttmp} ]; then
+		cp "${romlist}" "${romlisttmp}"
+	fi
+
+	# Simple case: We have unzipped roms. Life is dandy.
 	function use_roms() {
+		
+		#Find Roms
+		function find_roms() {
+			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
+		}
+		
 		#Create list
-		if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
-			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)
+		if [ ! -f ${romlist} ]; then
+			find_roms
 		fi
 		
-		#Delete played game from list	
-		
-		if [ -s /tmp/.SAMlist/${nextcore}_romlist ]; then
-			rompath="$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
+		#Delete played game from list and repopulate if empty		
+		if [ -s ${romlisttmp} ]; then
+			
+			#Pick the actual game
+			rompath="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"
+			
+			#Make sure file exists since we're reading from a static list
+			if [ ! -f "${rompath}" ]; then
+				find_roms
+			fi
+			
 			if [ "${norepeat,,}" == "yes" ]; then
-				sed -i "/${rompath//\//\\/}/d" /tmp/.SAMlist/${nextcore}_romlist
+				awk -vLine="$rompath" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
 			fi
 		else
-			romlist=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > /tmp/.SAMlist/${nextcore}_romlist)
+			find_roms
 		fi
 			
 		romname=$(basename "${rompath}")
-	}
-								
+	}				  
+	
+	# Some cores don't use zips, they might use chds for example - get on with it					
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore^^} does not use ZIPs."; fi
 		use_roms
@@ -1257,30 +1286,33 @@ function next_core() { # next_core (core)
 		if [ "${zipcount}" -gt 0 ] && [ "${romcount}" -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
 		
 		############ Zip to Rom Compare completed #############
-				
-				
-			# We've found ZIPs AND ROMs AND we're using zips
-			#if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
+								
+		#We've found ZIPs AND ROMs AND we're using zips
+		if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
-			# We found at least one large ZIP file - use it (Case 2)
-			#if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-			#	if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-			#	romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-
-			#	if [ ! -f /tmp/.SAMlist/${nextcore}_romlist ]; then
-			#		"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]} > /tmp/.SAMlist/${nextcore}_romlist
-			#	fi
-			#	rompath="${romfind}/$(cat /tmp/.SAMlist/${nextcore}_romlist | shuf --head-count=1 --random-source=/dev/urandom)"
-			#	romname=$(basename "${rompath}")
-				
-			# We found at least one large ZIP file - use it (Case 2)
+			#We found at least one large ZIP file - use it (Case 2)
 			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 500MB+ )"; fi
+				#find biggest zip file over 500MB
+				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +500M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+				
+				#Create a list of all valid roms for core in zip
+				if [ ! -f ${romlist} ]; then
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlisttmp}
+				fi
+				
+				#Delete rom from list so we don't have repeats
+				if [ -s ${romlisttmp} ]; then
+					romselect="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"
+					rompath="${romfind}/${romselect}"
+					if [ "${norepeat,,}" == "yes" ]; then
+						awk -vLine="$romselect" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
+					fi
+				else
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlisttmp}
+				fi				
 				romname=$(basename "${rompath}")
-
-
+				
 			# We see more zip files than ROMs, we're probably dealing with individually zipped roms (Case 3)
 			elif [ ${zipcount} -gt ${romcount} ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
@@ -1356,6 +1388,8 @@ function next_core() { # next_core (core)
 	fi
 }
 
+
+
 function load_core() { # load_core core /path/to/rom name_of_rom (countdown)	
 	
 	echo -n " Starting now on the "
@@ -1366,7 +1400,11 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}" &  # Non blocking Version
 	#tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}"    # Blocking Version
 	
+	
 
+	if [ ! -f "$(head -1 ${romlist} | awk -F '.zip' '{print $1".zip"}')" ]; then
+		use_roms
+	fi
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
@@ -1375,6 +1413,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		done
 	fi
 	
+
 
 	#Create mgl file and launch game
 	
@@ -1392,15 +1431,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "" |>/tmp/.SAM_Mouse_Activity
 	echo "" |>/tmp/.SAM_Keyboard_Activity
 	
-	if [ "${skipmessage,,}" == "yes" ] && [ "${CORE_SKIP[${nextcore,,}],,}" == "yes" ]; then
-	
-	skipmessage
-	
+	if [ "${skipmessage,,}" == "yes" ] && [ "${CORE_SKIP[${nextcore,,}],,}" == "yes" ]; then	
+		skipmessage	
 	fi
-	
-	
-	
-	
 }
 
 function core_error() { # core_error core /path/to/ROM
@@ -1421,16 +1454,22 @@ function core_error() { # core_error core /path/to/ROM
 
 function disable_bootrom() {
 	if [ "${disablebootrom}" == "Yes" ]; then
+	#Make Bootrom folder inaccessible until restart
 		if [ -d "${misterpath}/Bootrom" ]; then
 			mount --bind /mnt "${misterpath}/Bootrom"
 		fi
-		if [ -f "${misterpath}/Games/NES/boot0.rom" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot0.rom
-		fi
+		#Disable Nes bootroms except for FDS Bios (boot0.rom)
 		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
 			touch /tmp/brfake
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
+		fi
+		if [ -f "${misterpath}/Games/NES/boot2.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot2.rom
+		fi
+		if [ -f "${misterpath}/Games/NES/boot3.rom" ]; then
+			touch /tmp/brfake
+			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot3.rom
 		fi
 	fi
 }
@@ -1443,7 +1482,9 @@ function build_mralist() {
 		echo " The path ${arcadepath} contains no MRA files!"
 		loop_core
 	fi
-	
+
+	mkdir -p /tmp/.SAMlist
+
 	# This prints the list of MRA files in a path,
 	# Cuts the string to just the file name,
 	# Then saves it to the mralist file.
@@ -1459,15 +1500,12 @@ function build_mralist() {
 
 function load_core_arcade() {
 
-	#Generate MRA list
+	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 	
-	# Check if the MRA list already exists - if so, leave it alone. If it's empty, make a new one
-	if [ ! -f ${mralist} ] || [ -s ${mralist} ]; then
+	if [ ! -s ${mralist} ]; then
 		build_mralist	
 	fi
-
 	
-		
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 --random-source=/dev/urandom ${mralist})"
 
