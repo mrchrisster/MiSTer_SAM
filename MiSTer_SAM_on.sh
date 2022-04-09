@@ -1128,11 +1128,10 @@ function loop_core() { # loop_core (core)
 	# Reset game log for this session
 	echo "" |> /tmp/SAM_Games.log
 	
-	while :; do
-					  
-	trap break INT #Break out of loop for skip & next command
+	while :; do					  
 	
 		while [ ${counter} -gt 0 ]; do
+			trap 'counter=0' INT #Break out of loop for skip & next command
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
@@ -1152,7 +1151,6 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard,,}" == "yes" ]; then
 					echo " Keyboard activity detected!"					
 					exit
-					tty_exit
 
 				else
 					echo " Keyboard activity ignored!"
@@ -1180,7 +1178,9 @@ function loop_core() { # loop_core (core)
 	sleep 1
 }
 
+
 function next_core() { # next_core (core)
+
 	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
 		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
 		exit 1
@@ -1207,36 +1207,51 @@ function next_core() { # next_core (core)
 # 2. Roms are in one big zip archive - like Everdrive
 # 3. Roms are zipped individually
 # 4. There are some zipped roms and some unzipped roms in the same dir 
-
-	# Some cores don't use zips - get on with it
-								
+							
 	#Setting up file lists
 	mkdir -p /tmp/.SAMcount
 	mkdir -p /tmp/.SAMlist
-	romlist="/tmp/.SAMlist/${nextcore}_romlist"
-	
+	mkdir -p "${mrsampath}"/SAMlist
+	romlist=""${mrsampath}"/SAMlist/${nextcore}_romlist"
+	romlisttmp="/tmp/.SAMlist/${nextcore}_romlist"
+
+
+	# Simple case: We have unzipped roms. Life is dandy.
 	function use_roms() {
+		
+		#Find Roms
+		function find_roms() {
+			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
+		}
 		
 		#Create list
 		if [ ! -f ${romlist} ]; then
-			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
+			find_roms
 		fi
 		
 		#Delete played game from list	
-		
-		if [ -s ${romlist} ]; then
-			rompath="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
+		if [ -s ${romlisttmp} ]; then
+			
+			#Pick the actual game
+			rompath="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"
+			
+			#Make sure file exists since we're reading from a static list
+			if [ ! -f "${rompath}" ]; then
+				find_roms
+			fi
+			
 			if [ "${norepeat,,}" == "yes" ]; then
-				#sed -i "/${rompath//\//\\/}/d" ${romlist}
-				awk -vLine="$rompath" '!index($0,Line)' "${romlist}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlist}"
+				awk -vLine="$rompath" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
 			fi
 		else
-			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
+			#Repopulate list
+			cp "${romlist}" "${romlisttmp}" &>/dev/null
 		fi
 			
 		romname=$(basename "${rompath}")
 	}				  
-								
+	
+	# Some cores don't use zips, they might use chds for example - get on with it					
 	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
 		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore^^} does not use ZIPs."; fi
 		use_roms
@@ -1272,37 +1287,43 @@ function next_core() { # next_core (core)
 		if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
 			#We found at least one large ZIP file - use it (Case 2)
-			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 500MB+ )"; fi
-				#find biggest zip file over 500MB
-				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +500M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +300M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
 				
-				#Create list
-				if [ ! -f ${romlist} ]; then
+				function findzip_roms() {
+					#find biggest zip file over 300MB
+					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
-				fi
+				}			
 				
-				#Delete rom from list
-				if [ -s ${romlist} ]; then
-					romselect="$(cat ${romlist} | shuf --head-count=1 --random-source=/dev/urandom)"
+				#Create a list of all valid roms in zip
+				if [ ! -f ${romlist} ]; then
+					findzip_roms
+				fi			
+				
+				if [ -s ${romlisttmp} ]; then
+				
+					#Pick the actual game
+					romselect="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"		
+							
+					#Check if zip file is still there
+					if [ ! -f "$(head -1 ${romlist} | awk -F '.zip' '{print $1".zip"}')" ]; then
+						findzip_roms
+					fi
+					
 					rompath="${romfind}/${romselect}"
+					
+					#Delete rom from list so we don't have repeats
 					if [ "${norepeat,,}" == "yes" ]; then
-						awk -vLine="$romselect" '!index($0,Line)' "${romlist}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlist}"
+						awk -vLine="$romselect" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
 					fi
 				else
-					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
+					#Repopulate list
+					cp "${romlist}" "${romlisttmp}" &>/dev/null
 				fi
-				
+								
 				romname=$(basename "${rompath}")
 				
-			# We found at least one large ZIP file - use it (Case 2)
-			#if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-			#	if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-			#	romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-			#	rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
-			#	romname=$(basename "${rompath}")
-
-
 			# We see more zip files than ROMs, we're probably dealing with individually zipped roms (Case 3)
 			elif [ ${zipcount} -gt ${romcount} ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
@@ -1378,6 +1399,8 @@ function next_core() { # next_core (core)
 	fi
 }
 
+
+
 function load_core() { # load_core core /path/to/rom name_of_rom (countdown)	
 	
 	echo -n " Starting now on the "
@@ -1397,6 +1420,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		done
 	fi
 	
+
 
 	#Create mgl file and launch game
 	
@@ -1437,9 +1461,11 @@ function core_error() { # core_error core /path/to/ROM
 
 function disable_bootrom() {
 	if [ "${disablebootrom}" == "Yes" ]; then
+	#Make Bootrom folder inaccessible until restart
 		if [ -d "${misterpath}/Bootrom" ]; then
 			mount --bind /mnt "${misterpath}/Bootrom"
 		fi
+		#Disable Nes bootroms except for FDS Bios (boot0.rom)
 		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
 			touch /tmp/brfake
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
@@ -1473,9 +1499,9 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${arcadepath}" -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
+		find "${arcadepath}" -type f \( -iname "*.mra" \) -not -path '*/.*'  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
 	else
-		find "${arcadepath}" -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+		find "${arcadepath}" -type f \( -iname "*.mra" \) -not -path '*/.*'  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
 	fi
 }
 
