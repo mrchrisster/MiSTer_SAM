@@ -1234,7 +1234,7 @@ function next_core() { # next_core (core)
 			find_roms
 		fi
 		
-		#Delete played game from list and repopulate if empty		
+		#Delete played game from list	
 		if [ -s ${romlisttmp} ]; then
 			
 			#Pick the actual game
@@ -1249,6 +1249,7 @@ function next_core() { # next_core (core)
 				awk -vLine="$rompath" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
 			fi
 		else
+			#Repopulate list
 			find_roms
 		fi
 			
@@ -1291,26 +1292,40 @@ function next_core() { # next_core (core)
 		if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
 			#We found at least one large ZIP file - use it (Case 2)
-			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 500MB+ )"; fi
-				#find biggest zip file over 500MB
-				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +500M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +300M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
+				
+				function findzip_roms() {
+					#find biggest zip file over 300MB
+					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
+				}			
 				
 				#Create a list of all valid roms for core in zip
 				if [ ! -f ${romlist} ]; then
-					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlisttmp}
-				fi
+					findzip_roms
+				fi			
 				
-				#Delete rom from list so we don't have repeats
 				if [ -s ${romlisttmp} ]; then
-					romselect="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"
+				
+					#Pick the actual game
+					romselect="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"		
+							
+					if [ ! -f "$(head -1 ${romlist} | awk -F '.zip' '{print $1".zip"}')" ]; then
+						findzip_roms
+					fi
+					
 					rompath="${romfind}/${romselect}"
+					
+					#Delete rom from list so we don't have repeats
 					if [ "${norepeat,,}" == "yes" ]; then
 						awk -vLine="$romselect" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
 					fi
 				else
-					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlisttmp}
-				fi				
+					#Repopulate list
+					findzip_roms
+				fi
+								
 				romname=$(basename "${rompath}")
 				
 			# We see more zip files than ROMs, we're probably dealing with individually zipped roms (Case 3)
@@ -1400,11 +1415,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}" &  # Non blocking Version
 	#tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}"    # Blocking Version
 	
-	
 
-	if [ ! -f "$(head -1 ${romlist} | awk -F '.zip' '{print $1".zip"}')" ]; then
-		use_roms
-	fi
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
