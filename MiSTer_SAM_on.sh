@@ -1499,9 +1499,9 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${arcadepath}" -type f \( -iname "*.mra" \) -not -path '*/.*'  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
+		find "${arcadepath}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
 	else
-		find "${arcadepath}" -type f \( -iname "*.mra" \) -not -path '*/.*'  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+		find "${arcadepath}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
 	fi
 }
 
