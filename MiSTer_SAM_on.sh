@@ -506,7 +506,7 @@ function parse_cmd() {
 				softstart) # Start as from init
 					env_check ${1,,}
 					echo " Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real ${nextcore}
+					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
 					break
 					;;
 				start) # Start as a detached tmux session for monitoring
