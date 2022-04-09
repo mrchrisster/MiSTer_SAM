@@ -1217,9 +1217,6 @@ function next_core() { # next_core (core)
 	romlist=""${mrsampath}"/SAMlist/${nextcore}_romlist"
 	romlisttmp="/tmp/.SAMlist/${nextcore}_romlist"
 
-	if [ ! -f ${romlisttmp} ]; then
-		cp "${romlist}" "${romlisttmp}"
-	fi
 
 	# Simple case: We have unzipped roms. Life is dandy.
 	function use_roms() {
@@ -1250,7 +1247,7 @@ function next_core() { # next_core (core)
 			fi
 		else
 			#Repopulate list
-			find_roms
+			cp "${romlist}" "${romlisttmp}" &>/dev/null
 		fi
 			
 		romname=$(basename "${rompath}")
@@ -1301,7 +1298,7 @@ function next_core() { # next_core (core)
 					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
 				}			
 				
-				#Create a list of all valid roms for core in zip
+				#Create a list of all valid roms in zip
 				if [ ! -f ${romlist} ]; then
 					findzip_roms
 				fi			
@@ -1311,6 +1308,7 @@ function next_core() { # next_core (core)
 					#Pick the actual game
 					romselect="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"		
 							
+					#Check if zip file is still there
 					if [ ! -f "$(head -1 ${romlist} | awk -F '.zip' '{print $1".zip"}')" ]; then
 						findzip_roms
 					fi
@@ -1323,7 +1321,7 @@ function next_core() { # next_core (core)
 					fi
 				else
 					#Repopulate list
-					findzip_roms
+					cp "${romlist}" "${romlisttmp}" &>/dev/null
 				fi
 								
 				romname=$(basename "${rompath}")
@@ -1503,9 +1501,9 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${arcadepath}" -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
+		find "${arcadepath}" -type f \( -iname "*.mra" \) -not -path '*/.*'  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
 	else
-		find "${arcadepath}" -type f \( -iname "*.mra" \) | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+		find "${arcadepath}" -type f \( -iname "*.mra" \) -not -path '*/.*'  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
 	fi
 }
 
