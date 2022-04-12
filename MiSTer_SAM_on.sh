@@ -826,6 +826,10 @@ function deleteall() {
 		echo "Deleting MiSTer_SAM_off.sh"
 		rm /media/fat/Scripts/MiSTer_SAM_off.sh
 	fi
+	if [ -f "/media/fat/Scripts/MiSTer_SAMdb.json" ]; then
+		echo "Deleting MiSTer_SAMdb.json"
+		rm /media/fat/Scripts/MiSTer_SAMdb.json
+	fi
 	if ls /media/fat/Config/inputs/*_input_1234_5678_v3.map 1> /dev/null 2>&1; then
 		echo "Deleting Keyboard mapping files"
 		rm /media/fat/Config/inputs/*_input_1234_5678_v3.map
