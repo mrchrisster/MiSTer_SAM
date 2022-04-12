@@ -499,7 +499,7 @@ function parse_cmd() {
 				defaultb)
 					sam_update
 					sam_enable 
-					sam_start
+					start
 					break
 					;;
 				softstart) # Start as from init
