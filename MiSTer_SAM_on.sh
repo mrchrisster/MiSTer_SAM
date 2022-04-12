@@ -813,6 +813,7 @@ function env_check() {
 }
 
 function deleteall() {
+        there_can_be_only_one
 	# In case of issues, reset SAM
 	if [ -d "${mrsampath}" ]; then
 		echo "Deleting MiSTer_SAM folder"
