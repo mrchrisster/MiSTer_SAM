@@ -14,9 +14,7 @@ samtrace="No"
 
 #======== LOCAL VARIABLES ========
 samtimeout=60
-startupsleep="Yes"
 menuonly="Yes"
-monitoronly="No"
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
@@ -39,18 +37,6 @@ for var in mrsampath misterpath arcadepath gbapath genesispath megacdpath neogeo
 	declare -g ${var}="${!var%/}"
 done
 
-# This is triggered by MiSTer_SAM_on.sh when we're not running in screen saver mode
-if [ "${1,,}" == "monitoronly" ]; then
-	monitoronly="Yes"
-	startupsleep="No"
-fi
-
-
-# This is triggered by MiSTer_SAM_on.sh when we're doing initial installation
-if [ "${1,,}" == "quickstart" ]; then
-	startupsleep="No"
-fi
-
 
 #======== FUNCTIONS ========
 function sam_jsmonitor() {
@@ -60,6 +46,20 @@ function sam_jsmonitor() {
 	inotifywait --quiet --monitor --event create --event delete /dev/input/ --outfile /tmp/.SAM_Joy_Change &
 }
 
+function sam_trigger() {
+	if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then				
+		if [ "$(ps aux | grep -v grep | grep -c -e "SAM Monitor")" != "1" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ]; then
+			echo " No activity detected for ${samtimeout} minutes. SAM starting..."
+			/media/fat/Scripts/MiSTer_SAM_on.sh start
+			echo " Returned from SAM."
+		fi
+
+		# Reset activity triggers
+		echo "" |>/tmp/.SAM_Joy_Activity
+		echo "" |>/tmp/.SAM_Mouse_Activity
+		echo "" |>/tmp/.SAM_Keyboard_Activity
+	fi
+}
 
 #======== Start ========
 # Kill running process
@@ -92,9 +92,6 @@ if [ "${samtrace,,}" == "yes" ]; then
 	#======== LOCAL VARIABLES ========
 	echo " commandline: ${@}"
 	echo " samtimeout: ${samtimeout}"
-	echo " startupsleep: ${startupsleep}"
-	echo " menuonly: ${menuonly}"
-	echo " monitoronly: ${monitoronly}"
 	echo "********************************************************************************"
 fi
 
@@ -122,15 +119,6 @@ for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --
 done
 # TODO - Detect keyboard device changes
 
-
-# Wait for system startup - clock synchronization
-if [ "${startupsleep,,}" == "yes" ]; then
-	echo -n " Waiting 60 seconds for system startup..."
-	sleep 60
-	echo " Done!"
-	echo " MiSTer SAM enabled!"
-	echo " Please wait for startup"
-fi
 
 # Reset activity triggers
 echo "" |>/tmp/.SAM_Joy_Activity
@@ -217,48 +205,18 @@ while :; do
 		# Reset trigger
 		echo "" |>/tmp/.SAM_Joy_Change
 	fi
-
+	
+	
+#Start SAM after input event
 	if [ "${menuonly,,}" == "yes" ]; then # Only start SAM from main menu
 		# Check if we're at the main menu, wait 1 minute before checking activity
 		if [ "$(cat /tmp/CORENAME)" == "MENU" ] && [ "$(/bin/find /tmp/CORENAME -mmin +1)" ]; then
 			# Check activity files against timeout
-			if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then
-				# Reset activity triggers
-				echo "" |>/tmp/.SAM_Joy_Activity
-				echo "" |>/tmp/.SAM_Mouse_Activity
-				echo "" |>/tmp/.SAM_Keyboard_Activity
-
-				if [ "${monitoronly,,}" == "no" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ] && [ "$(ps aux | grep -v grep | grep -c -e '{MiSTer_SAM_on.sh}')" == "0" ]; then
-					echo " No activity detected for ${samtimeout} minutes. SAM starting..."
-					"/media/fat/Scripts/MiSTer_SAM_on.sh" start
-					echo " Returned from SAM."
-				fi
-
-				# Reset activity triggers
-				echo "" |>/tmp/.SAM_Joy_Activity
-				echo "" |>/tmp/.SAM_Mouse_Activity
-				echo "" |>/tmp/.SAM_Keyboard_Activity
-			fi
+			sam_trigger
 		fi
 	else
 		# Check activity files against timeout
-		if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then
-			# Reset activity triggers
-			echo "" |>/tmp/.SAM_Joy_Activity
-			echo "" |>/tmp/.SAM_Mouse_Activity
-			echo "" |>/tmp/.SAM_Keyboard_Activity
-
-			if [ "${monitoronly,,}" == "no" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ] && [ "$(ps aux | grep -v grep | grep -c -e '{MiSTer_SAM_on.sh}')" == "0" ]; then
-				echo " No activity detected for ${samtimeout} minutes. SAM starting..."
-				"/media/fat/Scripts/MiSTer_SAM_on.sh" start
-				echo " Returned from SAM."
-			fi
-
-			# Reset activity triggers
-			echo "" |>/tmp/.SAM_Joy_Activity
-			echo "" |>/tmp/.SAM_Mouse_Activity
-			echo "" |>/tmp/.SAM_Keyboard_Activity
-		fi
+		sam_trigger
 	fi
 sleep 3
 done
