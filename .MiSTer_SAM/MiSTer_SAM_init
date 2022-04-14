@@ -40,11 +40,6 @@ done
 function start() {
 	#======== Start ========
 	echo -n " Starting SAM..."
-	${misterpath}/Scripts/MiSTer_SAM_on.sh softstart
-}
-
-function quickstart() {
-	echo -n " Quickstarting SAM..."
 	${misterpath}/Scripts/MiSTer_SAM_on.sh start
 }
 
@@ -93,7 +88,6 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo " misterpath: ${misterpath}"
 	#======== LOCAL VARIABLES ========
 	echo " samtimeout: ${samtimeout}"
-	echo " startupsleep: ${startupsleep}"
 	echo " menuonly: ${menuonly}"
 	echo "********************************************************************************"
 fi
