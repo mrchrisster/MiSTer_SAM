@@ -494,17 +494,18 @@ function parse_cmd() {
 		while [ ${#} -gt 0 ]; do
 			case ${1,,} in
 				default) # Default is split because sam_update relaunches itself
-					sam_update defaultb
+					sam_update autoconfig
 					break
 					;;
-				defaultb)
+				autoconfig)
 					sam_update
-					sam_enable quickstart
-					sam_start
+					sam_enable start
+					loop_core
 					break
 					;;
 				softstart) # Start as from init
 					env_check ${1,,}
+					mcp_start
 					echo " Starting SAM in the background."
 					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
 					break
@@ -513,6 +514,7 @@ function parse_cmd() {
 					env_check ${1,,}
 					# Terminate any other running SAM processes
 					there_can_be_only_one
+					mcp_start
 					echo "Starting SAM in the background."
 					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
 					break
@@ -520,14 +522,14 @@ function parse_cmd() {
 				start_real) # Start SAM immediately
 					env_check ${1,,}
 					tty_init					
-					sam_start ${nextcore}					
+					loop_core ${nextcore}					
 					break
 					;;
 				softstart_real) # Start SAM immediately
 					env_check ${1,,}
 					tty_init
 					counter=${samtimeout}
-					sam_start ${nextcore}
+					loop_core ${nextcore}
 					break
 					;;
 				skip | next) # Load next game - stops monitor
@@ -548,8 +550,7 @@ function parse_cmd() {
 					;;
 				enable) # Enable SAM autoplay mode
 					env_check ${1,,}
-					#sam_enable quickstart
-					sam_enable
+					sam_enable start
 					break
 					;;
 				disable) # Disable SAM autoplay
@@ -621,17 +622,14 @@ function parse_cmd() {
 
 
 #======== SAM COMMANDS ========
-function sam_start() { # sam_start (core)
-											
-					  
+function mcp_start() {
 	
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP monitoronly"
+		#${mrsampath}/MiSTer_SAM_MCP monitoronly &
+		${mrsampath}/MiSTer_SAM_MCP &
 	fi
 	
-	# Start SAM looping through cores and games
-	loop_core ${1}
 }
 	
 function sam_update() { # sam_update (next command)
@@ -730,11 +728,8 @@ function sam_enable() { # Enable autoplay
 
 	echo -n " SAM autoplay daemon starting..."
 
-	if [ "${1,,}" == "quickstart" ]; then
-		${mrsampath}/MiSTer_SAM_init quickstart &
-	else
 		${mrsampath}/MiSTer_SAM_init start &
-	fi
+
 
 	echo " Done!"
 	return
@@ -1625,3 +1620,4 @@ parse_cmd ${@}	# Parse command line parameters for input
 
 
 exit
+
