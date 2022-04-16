@@ -48,7 +48,7 @@ declare -i coreretries=3
 declare -i romloadfails=0
 mralist="/tmp/.SAMlist/arcade_romlist"
 gametimer=120
-corelist="arcade,fds,gba,genesis,megacd,neogeo,nes,snes,tgfx16,tgfx16cd,psx"
+corelist="arcade,fds,gba,genesis,gg,megacd,neogeo,nes,sms,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
 usezip="Yes"
 norepeat="Yes"
@@ -74,9 +74,11 @@ arcadepath="/media/fat/_arcade"
 fdspath="/media/fat/games/NES"
 gbapath="/media/fat/games/GBA"
 genesispath="/media/fat/games/Genesis"
+ggpath="/media/fat/Games/SMS"
 megacdpath="/media/fat/games/MegaCD"
 neogeopath="/media/fat/games/NeoGeo"
 nespath="/media/fat/games/NES"
+smspath="/media/fat/Games/SMS"
 snespath="/media/fat/games/SNES"
 tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
@@ -86,9 +88,11 @@ psxpath="/media/fat/games/PSX"
 fdswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_fds.txt"
 gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"
 genesiswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_genesis.txt"
+ggwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gg.txt"
 megacdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_megacd.txt"
 neogeowhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_neogeo.txt"
 neswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_nes.txt"
+smswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_sms.txt"
 sneswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_snes.txt"
 tgfx16whitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16.txt"
 tgfx16cdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16cd.txt"
@@ -107,9 +111,13 @@ gbaexclude="First Bad Game.gba
 Second Bad Game.gba
 Third Bad Game.gba"
 
-genesisexclude="First Bad Game.gen
-Second Bad Game.gen
-Third Bad Game.gen"
+genesisexclude="First Bad Game.md
+Second Bad Game.md
+Third Bad Game.md"
+
+ggexclude="First Bad Game.gg
+Second Bad Game.gg
+Third Bad Game.gg"
 
 megacdexclude="First Bad Game.chd
 Second Bad Game.chd
@@ -122,6 +130,10 @@ Third Bad Game.neo"
 nesexclude="First Bad Game.nes
 Second Bad Game.nes
 Third Bad Game.nes"
+
+smsexclude="First Bad Game.sms
+Second Bad Game.sms
+Third Bad Game.sms"
 
 snesexclude="First Bad Game.sfc
 Second Bad Game.sfc
@@ -147,9 +159,11 @@ function init_data() {
 		["fds"]="Nintendo Disk System" \
 		["gba"]="Nintendo Game Boy Advance" \
 		["genesis"]="Sega Genesis / Megadrive" \
+		["gg"]="Sega Game Gear" \
 		["megacd"]="Sega CD / Mega CD" \
 		["neogeo"]="SNK NeoGeo" \
 		["nes"]="Nintendo Entertainment System" \
+		["sms"]="Sega Master System" \
 		["snes"]="Super Nintendo Entertainment System" \
 		["tgfx16"]="NEC TurboGrafx-16 / PC Engine" \
 		["tgfx16cd"]="NEC TurboGrafx-16 CD / PC Engine CD" \
@@ -162,9 +176,11 @@ function init_data() {
 		["fds"]="fds" \
 		["gba"]="gba" \
 		["genesis"]="md" \
+		["gg"]="gg" \
 		["megacd"]="chd" \
 		["neogeo"]="neo" \
 		["nes"]="nes" \
+		["sms"]="sms" \
 		["snes"]="sfc" \
 		["tgfx16"]="pce" \
 		["tgfx16cd"]="chd" \
@@ -177,9 +193,11 @@ function init_data() {
 		["fds"]="${fdspath}" \
 		["gba"]="${gbapath}" \
 		["genesis"]="${genesispath}" \
+		["gg"]="${ggpath}" \
 		["megacd"]="${megacdpath}" \
 		["neogeo"]="${neogeopath}" \
 		["nes"]="${nespath}" \
+		["sms"]="${smspath}" \
 		["snes"]="${snespath}" \
 		["tgfx16"]="${tgfx16path}" \
 		["tgfx16cd"]="${tgfx16cdpath}" \
@@ -192,9 +210,11 @@ function init_data() {
 		["fds"]="Yes" \
 		["gba"]="Yes" \
 		["genesis"]="Yes" \
+		["gg"]="Yes" \
 		["megacd"]="No" \
 		["neogeo"]="Yes" \
 		["nes"]="Yes" \
+		["sms"]="Yes" \
 		["snes"]="Yes" \
 		["tgfx16"]="Yes" \
 		["tgfx16cd"]="No" \
@@ -207,9 +227,11 @@ function init_data() {
 		["fds"]="Yes" \
 		["gba"]="No" \
 		["genesis"]="No" \
+		["gg"]="No" \
 		["megacd"]="Yes" \
 		["neogeo"]="No" \
 		["nes"]="No" \
+		["sms"]="No" \
 		["snes"]="No" \
 		["tgfx16"]="No" \
 		["tgfx16cd"]="Yes" \
@@ -222,9 +244,11 @@ function init_data() {
 		["fds"]="nes" \
 		["gba"]="gba" \
 		["genesis"]="genesis" \
+		["gg"]="sms" \
 		["megacd"]="megacd" \
 		["neogeo"]="neogeo" \
 		["nes"]="nes" \
+		["sms"]="sms" \
 		["snes"]="snes" \
 		["tgfx16"]="tgfx16" \
 		["tgfx16cd"]="tgfx16" \
@@ -237,9 +261,11 @@ function init_data() {
 		["fds"]="nes" \
 		["gba"]="gba" \
 		["genesis"]="genesis" \
+		["gg"]="gg" \
 		["megacd"]="megacd" \
 		["neogeo"]="neogeo" \
 		["nes"]="nes" \
+		["sms"]="sms" \
 		["snes"]="snes" \
 		["tgfx16"]="turbografx16" \
 		["tgfx16cd"]="turbografx16" \
@@ -252,9 +278,11 @@ function init_data() {
 		["fds"]="2" \
 		["gba"]="2" \
 		["genesis"]="1" \
+		["gg"]="1" \
 		["megacd"]="1" \
 		["neogeo"]="1" \
 		["nes"]="2" \
+		["sms"]="1" \
 		["snes"]="2" \
 		["tgfx16"]="1" \
 		["tgfx16cd"]="1" \
@@ -267,9 +295,11 @@ function init_data() {
 		["fds"]="0" \
 		["gba"]="0" \
 		["genesis"]="0" \
+		["gg"]="2" \
 		["megacd"]="0" \
 		["neogeo"]="1" \
 		["nes"]="0" \
+		["sms"]="1" \
 		["snes"]="0" \
 		["tgfx16"]="0" \
 		["tgfx16cd"]="0" \
@@ -282,9 +312,11 @@ function init_data() {
 		["fds"]="f" \
 		["gba"]="f" \
 		["genesis"]="f" \
+		["gg"]="f" \
 		["megacd"]="s" \
 		["neogeo"]="f" \
 		["nes"]="f" \
+		["sms"]="f" \
 		["snes"]="f" \
 		["tgfx16"]="f" \
 		["tgfx16cd"]="s" \
@@ -475,7 +507,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@}; do
 			case ${arg,,} in
-				arcade | fds | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
+				arcade | fds | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg,,}]} selected!"
 				nextcore="${arg,,}"
 				;;
@@ -561,7 +593,7 @@ function parse_cmd() {
 					sam_monitor_new
 					break
 					;;
-				arcade | fds | gba | genesis | megacd | neogeo | nes | snes | tgfx16 | tgfx16cd | psx)
+				arcade | fds | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
 					: # Placeholder since we parsed these above
 					;;
 				single)
@@ -857,7 +889,7 @@ function deleteall() {
 function skipmessage() {
 	#Skip past bios/safety warnings
 
-			sleep 3 && "${mrsampath}"/mbc raw_seq {31!s}31
+			sleep 3 && "${mrsampath}"/mbc raw_seq :31
 }	
 			
 function mglfavorite() {
@@ -1094,7 +1126,7 @@ function get_mbc() {
 } 
 
 function get_inputmap() {
-	#schlampig
+	#Ok, this is messy. Try to download every map file and just disable errors if they don't exist.
 	echo " Downloading input maps - needed to skip past BIOS for some systems..."
 	for i in "${CORE_LAUNCH[@]}"; do 
 		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then  
@@ -1210,7 +1242,7 @@ function next_core() { # next_core (core)
 	romlisttmp="/tmp/.SAMlist/${nextcore}_romlist"
 
 
-	# Simple case: We have unzipped roms. Life is dandy.
+	# Simple case: We have unzipped roms. Pretty straight forward.
 	function use_roms() {
 		
 		#Find Roms
@@ -1526,7 +1558,8 @@ function load_core_arcade() {
 	
 	#Delete mra from list so it doesn't repeat
 	if [ "${norepeat,,}" == "yes" ]; then
-		sed -i "/${mra//\//\\/}/d" ${mralist}
+		awk -vLine="$mra" '!index($0,Line)' "${mralist}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${mralist}"
+
 	fi
 
 	mraname="$(echo "$(basename "${mra}")" | sed -e 's/\.[^.]*$//')"
@@ -1615,9 +1648,8 @@ if [ "${samtrace,,}" == "yes" ]; then
 fi	
 
 disable_bootrom	# Disable Bootrom until Reboot 										   
-init_data				# Setup data arrays
+init_data		# Setup data arrays
 parse_cmd ${@}	# Parse command line parameters for input
 
 
 exit
-
