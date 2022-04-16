@@ -1213,7 +1213,14 @@ function next_core() { # next_core (core)
 	fi
 
 	if [ -z "${1}" ]; then
+		# Don't repeat same core twice
+		if [ ! -z ${nextcore} ]; then
+			corelisttmp=$(echo $corelist | sed "s/${nextcore} //")
+			nextcore="$(echo ${corelisttmp}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
+		else		
 		nextcore="$(echo ${corelist}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
+		fi
+		
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
