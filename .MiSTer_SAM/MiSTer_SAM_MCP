@@ -43,7 +43,7 @@ function sam_jsmonitor() {
 	# Reset trigger file
 	echo "" |>/tmp/.SAM_Joy_Change
 	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event delete /dev/input/ --outfile /tmp/.SAM_Joy_Change &
+	inotifywait --quiet --monitor --event create --event delete /dev/input --include js0 --outfile /tmp/.SAM_Joy_Change &
 }
 
 function input_clear() {
@@ -113,7 +113,9 @@ if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 #shopt -u nullglob
 
 #Problem with BT creating js1 device that always fires. Let's only monitor js0 for now
-"${mrsampath}/MiSTer_SAM_joy.py" /dev/input/js0 2>/dev/null &
+if [ -f /dev/input/js0 ]; then
+	"${mrsampath}/MiSTer_SAM_joy.py" /dev/input/js0 2>/dev/null &
+fi
 
 # Spawn Mouse monitoring process
 if [ "${samquiet,,}" == "no" ]; then echo " Monitoring mouse activity..."; fi
@@ -133,8 +135,6 @@ input_clear
 #======== MAIN LOOP ========
 while :; do
 	# If we detect a change to connected joysticks:
-	# Compare devices and monitoring processes
-	# Make lists of what to add and what to stop monitoring
 	if [ -s /tmp/.SAM_Joy_Change ]; then
 		#echo " Device change(s) detected!"
 		# Wait for devices to stabilize
