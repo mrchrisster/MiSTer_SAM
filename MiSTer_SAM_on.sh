@@ -708,7 +708,7 @@ function sam_update() { # sam_update (next command)
 		get_partun
 		get_mbc
 		get_inputmap
-		get_samstuff .MiSTer_SAM/vol/Volume.dat
+		get_samstuff .MiSTer_SAM/vol/Volume.dat vol
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
@@ -1531,6 +1531,7 @@ function disable_bootrom() {
 
 function disable_volume() {
 
+	touch "${misterpath}"/config/Volume.dat
 	mount --bind "${mrsampath}/vol/Volume.dat" "${misterpath}"/config/Volume.dat
 	trap 'umount ${mrsampath}/vol/Volume.dat' EXIT
 	
