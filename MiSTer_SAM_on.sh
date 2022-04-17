@@ -1129,7 +1129,7 @@ function get_mbc() {
 
 function get_inputmap() {
 	#Ok, this is messy. Try to download every map file and just disable errors if they don't exist.
-	echo " Downloading input maps - needed to skip past BIOS for some systems..."
+	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
 	for i in "${CORE_LAUNCH[@]}"; do 
 		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then  
 			curl_download "/tmp/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" "${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map?raw=true" &>/dev/null
