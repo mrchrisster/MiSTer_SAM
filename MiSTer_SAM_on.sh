@@ -85,18 +85,18 @@ tgfx16cdpath="/media/fat/games/TGFX16-CD"
 psxpath="/media/fat/games/PSX"
 
 # ======== CONSOLE WHITELISTS ========
-fdswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_fds.txt"
-gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"
-genesiswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_genesis.txt"
-ggwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gg.txt"
-megacdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_megacd.txt"
-neogeowhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_neogeo.txt"
-neswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_nes.txt"
-smswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_sms.txt"
-sneswhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_snes.txt"
-tgfx16whitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16.txt"
-tgfx16cdwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_tgfx16cd.txt"
-psxwhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_psx.txt"
+fdswhitelist="/media/fat/Scripts/SAM_whitelist_fds.txt"
+gbawhitelist="/media/fat/Scripts/SAM_whitelist_gba.txt"
+genesiswhitelist="/media/fat/Scripts/SAM_whitelist_genesis.txt"
+ggwhitelist="/media/fat/Scripts/SAM_whitelist_gg.txt"
+megacdwhitelist="/media/fat/Scripts/SAM_whitelist_megacd.txt"
+neogeowhitelist="/media/fat/Scripts/SAM_whitelist_neogeo.txt"
+neswhitelist="/media/fat/Scripts/SAM_whitelist_nes.txt"
+smswhitelist="/media/fat/Scripts/SAM_whitelist_sms.txt"
+sneswhitelist="/media/fat/Scripts/SAM_whitelist_snes.txt"
+tgfx16whitelist="/media/fat/Scripts/SAM_whitelist_tgfx16.txt"
+tgfx16cdwhitelist="/media/fat/Scripts/SAM_whitelist_tgfx16cd.txt"
+psxwhitelist="/media/fat/Scripts/SAM_whitelist_psx.txt"
 
 #======== EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
@@ -667,6 +667,7 @@ function mcp_start() {
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
+	mkdir --parents "${mrsampath}"/vol &>/dev/null
 	
 			
 		   
@@ -707,6 +708,7 @@ function sam_update() { # sam_update (next command)
 		get_partun
 		get_mbc
 		get_inputmap
+		get_samstuff .MiSTer_SAM/vol/Volume.dat
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
@@ -1244,26 +1246,32 @@ function next_core() { # next_core (core)
 	#Setting up file lists
 	mkdir -p /tmp/.SAMcount
 	mkdir -p /tmp/.SAMlist
-	mkdir -p "${mrsampath}"/SAMlist
-	romlist=""${mrsampath}"/SAMlist/${nextcore}_romlist"
-	romlisttmp="/tmp/.SAMlist/${nextcore}_romlist"
+	mkdir -p "${misterpath}"/Scripts/SAM_GameLists
+	romlist=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_romlist"
+	romlisttmp="/tmp/.SAMlist/${nextcore,,}_romlist"
 
 
 	# Simple case: We have unzipped roms. Pretty straight forward.
 	function use_roms() {
 		
-		#Find Roms
+		# Find Roms
 		function find_roms() {
 			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
+			cp "${romlist}" "${romlisttmp}" &>/dev/null
 		}
 		
 		#Create list
-		if [ ! -f ${romlist} ]; then
+		if [ ! -f "${romlist}" ]; then
+			find_roms
+		fi
+		
+		#If dir changed
+		if [ "${CORE_PATH[${nextcore,,}]}" != "$(cat ${romlist} |  head -1 | sed 's:^\(.*\)/.*$:\1:')" ]; then
 			find_roms
 		fi
 		
 		#Delete played game from list	
-		if [ -s ${romlisttmp} ]; then
+		if [ -s "${romlisttmp}" ]; then
 			
 			#Pick the actual game
 			rompath="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"
@@ -1327,12 +1335,18 @@ function next_core() { # next_core (core)
 					#find biggest zip file over 300MB
 					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
+					cp "${romlist}" "${romlisttmp}" &>/dev/null
 				}			
 				
 				#Create a list of all valid roms in zip
 				if [ ! -f ${romlist} ]; then
 					findzip_roms
-				fi			
+				fi		
+					
+				#If dir changed
+				if [ "${CORE_PATH[${nextcore,,}]}" != "$(cat ${romlist} |  head -1 | sed 's:^\(.*\)/.*$:\1:')" ]; then
+					findzip_roms
+				fi
 				
 				if [ -s ${romlisttmp} ]; then
 				
@@ -1414,6 +1428,7 @@ function next_core() { # next_core (core)
 		for excluded in "${excludelist[@]}"; do
 			if [ "${romname}" == "${excluded}" ]; then
 				echo " ${romname} is excluded - SKIPPED"
+				awk -vLine="${romname}" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
 				next_core
 				return
 			fi
@@ -1512,6 +1527,13 @@ function disable_bootrom() {
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot3.rom
 		fi
 	fi
+}
+
+function disable_volume() {
+
+	mount --bind "${mrsampath}/vol/Volume.dat" "${misterpath}"/config/Volume.dat
+	trap 'umount ${mrsampath}/vol/Volume.dat' EXIT
+	
 }
 
 # ======== ARCADE MODE ========
@@ -1654,7 +1676,8 @@ if [ "${samtrace,,}" == "yes" ]; then
 	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
 fi	
 
-disable_bootrom	# Disable Bootrom until Reboot 										   
+disable_bootrom	# Disable Bootrom until Reboot 	
+disable_volume									   
 init_data		# Setup data arrays
 parse_cmd ${@}	# Parse command line parameters for input
 
