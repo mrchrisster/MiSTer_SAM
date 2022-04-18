@@ -1543,7 +1543,7 @@ function unmute() {
 	if [ "${mute,,}" == "yes" ]; then
 			#Unmute and reload core
 			echo -e "\0000\c" > /media/fat/config/Volume.dat
-			#echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd	
+			echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd	
 	fi
 }
 		
