@@ -113,7 +113,7 @@ if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 #shopt -u nullglob
 
 #Problem with BT creating js1 device that always fires. Let's only monitor js0 for now
-if [ -f /dev/input/js0 ]; then
+if [ -e /dev/input/js0 ]; then
 	"${mrsampath}/MiSTer_SAM_joy.py" /dev/input/js0 2>/dev/null &
 fi
 
