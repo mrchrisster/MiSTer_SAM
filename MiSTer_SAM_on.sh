@@ -668,10 +668,7 @@ function mcp_start() {
 	
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
-	mkdir --parents "${mrsampath}" &>/dev/null
-	mkdir --parents "${mrsampath}"/vol &>/dev/null
-	
-			
+	mkdir --parents "${mrsampath}" &>/dev/null	
 		   
  
 	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
@@ -845,6 +842,7 @@ function env_check() {
 }
 
 function deleteall() {
+	there_can_be_only_one
 	# In case of issues, reset SAM
 	if [ -d "${mrsampath}" ]; then
 		echo "Deleting MiSTer_SAM folder"
