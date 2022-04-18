@@ -456,7 +456,7 @@ function sam_resetmenu() {
 	--backtitle "Super Attract Mode" --title "[ Reset ]" \
 	--menu "Select an option" 0 0 0 \
 	Deleteall "Reset/Delete all files" \
-	Update "Reinstall SAM. No Autostart" \
+	Autoconfig "Reinstall SAM and enable Autostart" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -787,6 +787,7 @@ function sam_disable() { # Disable autoplay
 	there_can_be_only_one																											 
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sync
+	unmute
 	echo " Done!"
 }
 
