@@ -578,6 +578,13 @@ function parse_cmd() {
 					echo " Thanks for playing!" 
 					break
 					;;
+				restart)
+					there_can_be_only_one
+					echo " Restarting SAM..."
+					mcp_start
+					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
+					break
+					;;
 				update) # Update SAM
 					sam_update
 					break
@@ -823,9 +830,6 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# -- hexdump since that's launched, no better way to see which ones to kill
 	killall -9 hexdump &> /dev/null
 
-	#wait $(pidof -o ${sampid} ${samprocess}) &>/dev/null
-	# -- can't wait PID-wise which is admittedly better, but we know the processes requested will close if running
-	# -- instead we sleep one second which seems more than fair. Alternatives, while loop, grep against ps -o args for SAM?
 	sleep 1
 
 	echo " Done!"
@@ -842,8 +846,9 @@ function env_check() {
 }
 
 function deleteall() {
-	there_can_be_only_one
 	# In case of issues, reset SAM
+
+	there_can_be_only_one
 	if [ -d "${mrsampath}" ]; then
 		echo "Deleting MiSTer_SAM folder"
 		rm -rf "${mrsampath}"
@@ -1221,10 +1226,11 @@ function next_core() { # next_core (core)
 	if [ -z "${1}" ]; then
 		# Don't repeat same core twice
 		if [ ! -z ${nextcore} ]; then
+			echo exclude
 			corelisttmp=$(echo $corelist | sed "s/${nextcore} //")
 			nextcore="$(echo ${corelisttmp}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
 		else		
-		nextcore="$(echo ${corelist}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
+			nextcore="$(echo ${corelist}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
 		fi
 		
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
