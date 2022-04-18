@@ -53,7 +53,8 @@ skipmessage="Yes"
 usezip="Yes"
 norepeat="Yes"
 disablebootrom="Yes"
-mute="Yes"					
+mute="Yes"
+playcurrentgame="No"					
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
@@ -544,7 +545,7 @@ function parse_cmd() {
 					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
 					break
 					;;
-				start) # Start as a detached tmux session for monitoring
+				start | restart) # Start as a detached tmux session for monitoring
 					env_check ${1,,}
 					# Terminate any other running SAM processes
 					there_can_be_only_one
@@ -576,13 +577,6 @@ function parse_cmd() {
 					tty_exit
 					unmute
 					echo " Thanks for playing!" 
-					break
-					;;
-				restart)
-					there_can_be_only_one
-					echo " Restarting SAM..."
-					mcp_start
-					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
 					break
 					;;
 				update) # Update SAM
@@ -1550,7 +1544,11 @@ function unmute() {
 	if [ "${mute,,}" == "yes" ]; then
 			#Unmute and reload core
 			echo -e "\0000\c" > /media/fat/config/Volume.dat
-			echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd	
+			if [ "${playcurrentgame,,}" == "yes" ]; then
+				echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd
+			else
+				echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+			fi	
 	fi
 }
 		
