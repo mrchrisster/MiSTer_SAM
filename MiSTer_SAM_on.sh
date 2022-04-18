@@ -851,6 +851,7 @@ function deleteall() {
 	fi
 	if [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
 		echo "Deleting MiSTer_SAM.ini"
+		cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak
 		rm /media/fat/Scripts/MiSTer_SAM.ini
 	fi
 	if [ -f "/media/fat/Scripts/MiSTer_SAM_off.sh" ]; then
