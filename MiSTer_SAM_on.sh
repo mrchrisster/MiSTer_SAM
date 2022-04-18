@@ -330,6 +330,10 @@ function init_data() {
 # Read INI
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+	# Remove trailing slash from paths
+	for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
+		declare -g ${var}="${!var%/}"
+	done
 fi
 
 # Setup corelist
@@ -351,10 +355,7 @@ fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 # Create folder exclude list for zips
 fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
 	
-# Remove trailing slash from paths
-for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
-	declare -g ${var}="${!var%/}"
-done
+
 
 
 #======== SAM MENU ========
@@ -532,10 +533,8 @@ function parse_cmd() {
 					;;
 				autoconfig)
 					sam_update
-					sam_enable start
 					mcp_start
-					echo "Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
+					sam_enable start
 					break
 					;;
 				softstart) # Start as from init
@@ -689,8 +688,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff MiSTer_SAM_on.sh /tmp
 		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
 			if [ ${1} ]; then
-				echo " Continuing setup with latest"
-				echo " MiSTer_SAM_on.sh..."
+				echo " Continuing setup with latest MiSTer_SAM_on.sh..."
 				/tmp/MiSTer_SAM_on.sh ${1}
 				exit 0
 			else
