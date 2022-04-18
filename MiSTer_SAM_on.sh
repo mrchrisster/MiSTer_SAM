@@ -533,7 +533,9 @@ function parse_cmd() {
 				autoconfig)
 					sam_update
 					sam_enable start
-					loop_core
+					mcp_start
+					echo "Starting SAM in the background."
+					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
 					break
 					;;
 				softstart) # Start as from init
@@ -818,6 +820,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# -- SAM's {soft,}start_real tmux instance
 	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}') &> /dev/null
 	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh softstart_real' | awk '{print $1}') &> /dev/null
+	#kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh' | awk '{print $1}') &> /dev/null
 	# -- Everything executable in mrsampath
 	kill -9 $(ps -o pid,args | grep ${mrsampath} | grep -v grep | awk '{print $1}') &> /dev/null
 	# -- inotifywait but only if it involves SAM
