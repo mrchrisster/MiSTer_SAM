@@ -52,7 +52,8 @@ corelist="arcade,fds,gba,genesis,gg,megacd,neogeo,nes,sms,snes,tgfx16,tgfx16cd,p
 skipmessage="Yes"
 usezip="Yes"
 norepeat="Yes"
-disablebootrom="Yes"					
+disablebootrom="Yes"
+mute="Yes"					
 listenmouse="Yes"
 listenkeyboard="Yes"
 listenjoy="Yes"
@@ -572,8 +573,8 @@ function parse_cmd() {
 				stop) # Stop SAM immediately
 					there_can_be_only_one
 					tty_exit
-					echo " Thanks for playing!"
-			 
+					unmute
+					echo " Thanks for playing!" 
 					break
 					;;
 				update) # Update SAM
@@ -708,7 +709,6 @@ function sam_update() { # sam_update (next command)
 		get_partun
 		get_mbc
 		get_inputmap
-		get_samstuff .MiSTer_SAM/vol/Volume.dat "${mrsampath}"/vol
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
@@ -1168,6 +1168,7 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse,,}" == "yes" ]; then
 					echo " Mouse activity detected!"
+					unmute
 					exit
 
 				else
@@ -1178,7 +1179,8 @@ function loop_core() { # loop_core (core)
 			
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard,,}" == "yes" ]; then
-					echo " Keyboard activity detected!"					
+					echo " Keyboard activity detected!"
+					unmute					
 					exit
 
 				else
@@ -1189,7 +1191,8 @@ function loop_core() { # loop_core (core)
 			
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
 				if [ "${listenjoy,,}" == "yes" ]; then
-					echo " Controller activity detected!" > /tmp/sanity
+					echo " Controller activity detected!"
+					unmute
 					exit
 				else
 					echo " Controller activity ignored!"
@@ -1529,17 +1532,21 @@ function disable_bootrom() {
 	fi
 }
 
-function disable_volume() {
-
-	touch "${misterpath}"/config/Volume.dat
-	
-	if [ -f "${mrsampath}/vol/Volume.dat" ]; then
-		mount --bind "${mrsampath}/vol/Volume.dat" "${misterpath}"/config/Volume.dat
+function mute() {
+	if [ "${mute,,}" == "yes" ]; then
+			#Mute Global Volume
+			echo -e "\0020\c" > /media/fat/config/Volume.dat
 	fi
-	
-	trap 'umount ${mrsampath}/vol/Volume.dat' EXIT
-	
 }
+
+function unmute() {
+	if [ "${mute,,}" == "yes" ]; then
+			#Unmute and reload core
+			echo -e "\0000\c" > /media/fat/config/Volume.dat
+			#echo "load_core /tmp/SAM_game.mgl" > /dev/MiSTer_cmd	
+	fi
+}
+		
 
 # ======== ARCADE MODE ========
 function build_mralist() {
@@ -1682,9 +1689,9 @@ if [ "${samtrace,,}" == "yes" ]; then
 fi	
 
 disable_bootrom	# Disable Bootrom until Reboot 	
-disable_volume									   
+mute									   
 init_data		# Setup data arrays
 parse_cmd ${@}	# Parse command line parameters for input
 
 
-exit
+#exit
