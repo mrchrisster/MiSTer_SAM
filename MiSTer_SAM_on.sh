@@ -1237,8 +1237,8 @@ function next_core() { # next_core (core)
 	mkdir -p /tmp/.SAMlist
 	mkdir -p "${misterpath}"/Scripts/SAM_GameLists
 	romlist=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
-	excludefiles=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_exclude.txt"
-	romlisttmp="/tmp/.SAMlist/${nextcore,,}_romlist"
+	excludefiles=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
+	romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
 
 
 	# Simple case: We have unzipped roms. Pretty straight forward.
