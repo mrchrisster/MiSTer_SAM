@@ -1678,7 +1678,9 @@ fi
 disable_bootrom	# Disable Bootrom until Reboot 	
 mute									   
 init_data		# Setup data arrays
-parse_cmd ${@}	# Parse command line parameters for input
+if [ "${1}" != "--source-only" ]; then
+    parse_cmd ${@} # Parse command line parameters for input
+fi	
 
 
 #exit
