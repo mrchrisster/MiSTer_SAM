@@ -893,25 +893,6 @@ function mglfavorite() {
 
 #======== tty2oled FUNCTIONS ========
 
-function tty_exit() { # tty_exit
-	if [ "${ttyenable,,}" == "yes" ]; then
-		# Clear Display	with Random effect
-		echo "CMDCLST,-1,0" > "${ttydevice}"
-		tty_waitfor
-		sleep 1 
-		# Show GAME OVER! for 3 secs
-		echo "CMDTXT,5,15,0,15,45,GAME OVER!" > "${ttydevice}"
-		tty_waitfor
-		sleep 3 
-		# Set CORENAME for tty2oled Daemon start
-		echo "MENU" > /tmp/CORENAME
-		# Starting tty2oled daemon
-		echo " Starting tty2oled daemon..."
-		/media/fat/tty2oled/S60tty2oled start
-		echo " Done!"
-		#sleep 2
-	fi
-}
 
 function tty_init() { # tty_init
 	# tty2oled initialization
@@ -1204,6 +1185,7 @@ function loop_core() { # loop_core (core)
 					echo " Keyboard activity detected!"
 					unmute					
 					exit
+					tty_exit
 
 				else
 					echo " Keyboard activity ignored!"
@@ -1215,7 +1197,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenjoy,,}" == "yes" ]; then
 					echo " Controller activity detected!"
 					unmute
-					exit
+					tty_exit
 				else
 					echo " Controller activity ignored!"
 					echo "" |>/tmp/.SAM_Joy_Activity
@@ -1269,9 +1251,11 @@ function next_core() { # next_core (core)
 # 4. There are some zipped roms and some unzipped roms in the same dir 
 							
 	#Setting up file lists
-	mkdir -p /tmp/.SAMcount
+	mkdir -p "${mrsampath}"/.SAMcount
 	mkdir -p /tmp/.SAMlist
 	mkdir -p "${misterpath}"/Scripts/SAM_GameLists
+	romcountpath="${mrsampath}/.SAMcount"
+	zipcountpath="${mrsampath}/.SAMcount"
 	romlist=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
 	excludefiles=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
 	romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
@@ -1327,18 +1311,19 @@ function next_core() { # next_core (core)
 	else
 		########## Check how many ZIP and ROM files in core path	(Case 4)
 	
-		if [ ! -f /tmp/.SAMcount/${nextcore}_zipcount ]; then
+		if [ ! -f "${zipcountpath}/${nextcore}_zipcount" ]; then
+			echo " Please wait... Creating game list for the first time."
 			zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" -print | wc -l)
-			echo ${zipcount} > /tmp/.SAMcount/${nextcore}_zipcount
+			echo ${zipcount} > "${zipcountpath}/${nextcore}_zipcount"
 		else
-			zipcount=$(cat /tmp/.SAMcount/${nextcore}_zipcount)
+			zipcount=$(cat "${zipcountpath}/${nextcore}_zipcount")
 		fi
 		
-		if [ ! -f /tmp/.SAMcount/${nextcore}_romcount ]; then
+		if [ ! -f "${romcountpath}/${nextcore}_romcount" ]; then
 			romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-			echo ${romcount} > /tmp/.SAMcount/${nextcore}_romcount
+			echo ${romcount} > "${romcountpath}/${nextcore}_romcount"
 		else
-			romcount=$(cat /tmp/.SAMcount/${nextcore}_romcount)
+			romcount=$(cat "${romcountpath}/${nextcore}_romcount")
 		fi
 
 		#How many roms and zips did we find
