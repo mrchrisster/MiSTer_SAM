@@ -86,20 +86,6 @@ tgfx16path="/media/fat/games/TGFX16"
 tgfx16cdpath="/media/fat/games/TGFX16-CD"
 psxpath="/media/fat/games/PSX"
 
-# ======== CONSOLE WHITELISTS ========
-fdswhitelist="/media/fat/Scripts/SAM_whitelist_fds.txt"
-gbawhitelist="/media/fat/Scripts/SAM_whitelist_gba.txt"
-genesiswhitelist="/media/fat/Scripts/SAM_whitelist_genesis.txt"
-ggwhitelist="/media/fat/Scripts/SAM_whitelist_gg.txt"
-megacdwhitelist="/media/fat/Scripts/SAM_whitelist_megacd.txt"
-neogeowhitelist="/media/fat/Scripts/SAM_whitelist_neogeo.txt"
-neswhitelist="/media/fat/Scripts/SAM_whitelist_nes.txt"
-smswhitelist="/media/fat/Scripts/SAM_whitelist_sms.txt"
-sneswhitelist="/media/fat/Scripts/SAM_whitelist_snes.txt"
-tgfx16whitelist="/media/fat/Scripts/SAM_whitelist_tgfx16.txt"
-tgfx16cdwhitelist="/media/fat/Scripts/SAM_whitelist_tgfx16cd.txt"
-psxwhitelist="/media/fat/Scripts/SAM_whitelist_psx.txt"
-
 #======== EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
 Second Bad Game.mra
@@ -575,7 +561,7 @@ function parse_cmd() {
 				stop) # Stop SAM immediately
 					there_can_be_only_one
 					tty_exit
-					unmute
+					echo -e "\0000\c" > /media/fat/config/Volume.dat # Reset Volume
 					echo " Thanks for playing!" 
 					break
 					;;
@@ -1220,8 +1206,7 @@ function next_core() { # next_core (core)
 	if [ -z "${1}" ]; then
 		# Don't repeat same core twice
 		if [ ! -z ${nextcore} ]; then
-			echo exclude
-			corelisttmp=$(echo $corelist | sed "s/${nextcore} //")
+			corelisttmp=$(echo "$corelist" | sed "s/${nextcore}//" | tr -s ' ')
 			nextcore="$(echo ${corelisttmp}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
 		else		
 			nextcore="$(echo ${corelist}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
@@ -1251,7 +1236,8 @@ function next_core() { # next_core (core)
 	mkdir -p /tmp/.SAMcount
 	mkdir -p /tmp/.SAMlist
 	mkdir -p "${misterpath}"/Scripts/SAM_GameLists
-	romlist=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_romlist"
+	romlist=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
+	excludefiles=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_exclude.txt"
 	romlisttmp="/tmp/.SAMlist/${nextcore,,}_romlist"
 
 
@@ -1414,18 +1400,6 @@ function next_core() { # next_core (core)
 		return
 	fi
 
-	# If there is a whitelist check it
-	declare -n whitelist="${nextcore,,}list"
-	# Possible exit statuses:
-	# 0: found
-	# 1: not found
-	# 2: error (e.g. file not found)
-	if [ $(grep -Fqsx "${romname}" "${whitelist}"; echo "$?") -eq 1 ]; then
-		echo " ${romname} is not in ${whitelist} - SKIPPED"
-		next_core
-		return
-	fi
-
 	# If there is an exclude list check it
 	declare -n excludelist="${nextcore,,}exclude"
 	if [ ${#excludelist[@]} -gt 0 ]; then
@@ -1438,6 +1412,14 @@ function next_core() { # next_core (core)
 			fi
 		done
 	fi
+	
+	if [ -f "${excludefiles}" ]; then
+		cat "${excludefiles}" | while IFS='\n' read line; do
+		echo " Found exclusion list for core $nextcore"
+		awk -vLine="$line" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}" 
+		done
+	fi
+		
 
 	if [ -z "${rompath}" ]; then
 		core_error "${nextcore}" "${rompath}"
