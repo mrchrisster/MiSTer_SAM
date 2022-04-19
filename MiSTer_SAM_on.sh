@@ -68,8 +68,9 @@ userstartuptpl="/media/fat/linux/_user-startup.sh"
 # ======== TTY2OLED =======
 ttyenable="No"
 ttydevice="/dev/ttyUSB0"
-ttypicture="/media/fat/tty2oled/pics"
-ttypicture_pri="/media/fat/tty2oled/pics_pri"
+ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
+ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
+ttyuseack="No"		  
 
 #======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
@@ -249,7 +250,7 @@ function init_data() {
 		["fds"]="nes" \
 		["gba"]="gba" \
 		["genesis"]="genesis" \
-		["gg"]="gg" \
+		["gg"]="sms" \
 		["megacd"]="megacd" \
 		["neogeo"]="neogeo" \
 		["nes"]="nes" \
@@ -890,62 +891,17 @@ function mglfavorite() {
 	
 }
 
-function tty_waitforack() {
-  #echo -n "Waiting for tty2oled Acknowledge... "
-  read -d ";" ttyresponse < ${ttydevice}                # The "read" command at this position simulates an "do..while" loop
-  while [ "${ttyresponse}" != "ttyack" ]; do
-    read -d ";" ttyresponse < ${ttydevice}              # Read Serial Line until delimiter ";"
-  done
-  #echo -e "${fgreen}${ttyresponse}${freset}"
-  ttyresponse=""
-}
-
-# USB Send-Picture-Data function
-function tty_senddata() {
-  newcore="${1}"
-  unset picfnam
-  if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then			# Check for _pri pictures
-	picfnam="${ttypicture_pri}/${newcore}.gsc"
-  elif [ -e "${ttypicture_pri}/${newcore}.xbm" ]; then
-    picfnam="${ttypicture_pri}/${newcore}.xbm"
-  else
-    picfolders="gsc_us xbm_us gsc xbm xbm_text"				# If no _pri picture found, try all the others
-    [ "${USE_US_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us xbm_us/}"
-    [ "${USE_GSC_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us/}" && picfolders="${picfolders//gsc/}"
-    [ "${USE_TEXT_PICTURE}" = "no" ] && picfolders="${picfolders//xbm_text/}"
-    for picfolder in ${picfolders}; do
-      for (( c="${#newcore}"; c>=1; c-- )); do					# Manipulate string...
-        picfnam="${ttypicture}/${picfolder^^}/${newcore:0:$c}.${picfolder:0:3}"	# ...until it matches something
-	    [ -e "${picfnam}" ] && break
-      done
-	  [ -e "${picfnam}" ] && break
-    done
-  fi
-  if [ -e "${picfnam}" ]; then							# Exist?
-	# For testing...
-	if [ "${samdebug,,}" == "yes" ]; then
-		echo "-------------------------------------------"
-		echo " tty2oled sending Corename: ${1} "
-		echo " tty2oled found/send Picture : ${picfnam} "
-		echo "-------------------------------------------"
-	fi
-    echo "CMDCOR,${1}" > ${ttydevice}					# Send CORECHANGE" Command and Corename
-    sleep 0.02											# sleep needed here ?!
-    tail -n +4 "${picfnam}" | xxd -r -p > ${ttydevice}	# The Magic, send the Picture-Data up from Line 4 and proces
-  else													# No Picture available!
-    echo "${1}" > ${ttydevice}							# Send just the CORENAME
-  fi													# End if Picture check
-}
+#======== tty2oled FUNCTIONS ========
 
 function tty_exit() { # tty_exit
 	if [ "${ttyenable,,}" == "yes" ]; then
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" > "${ttydevice}"
-		tty_waitforack
+		tty_waitfor
 		sleep 1 
 		# Show GAME OVER! for 3 secs
 		echo "CMDTXT,5,15,0,15,45,GAME OVER!" > "${ttydevice}"
-		tty_waitforack
+		tty_waitfor
 		sleep 3 
 		# Set CORENAME for tty2oled Daemon start
 		echo "MENU" > /tmp/CORENAME
@@ -977,78 +933,101 @@ function tty_init() { # tty_init
 
 		# Stopping ScreenSaver
 		if [ "${samquiet,,}" == "no" ]; then echo " Stopping tty2oled ScreenSaver..."; fi
-		echo "CMDSAVER,0,0,0" > "${ttydevice}"
-		tty_waitforack
+		echo "CMDSAVER,0,0,0" > ${ttydevice}
+		tty_waitfor
 		if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 		#sleep 2
 
 		# Stopping tty2oled Daemon
-		if [ "${samquiet,,}" == "no" ]; then echo " Stopping tty2oled Daemon..."; fi
-		/media/fat/tty2oled/S60tty2oled stop
-		if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
+		if [ "${ttyuseack,,}" == "yes" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Stopping tty2oled Daemon..."; fi
+			/media/fat/tty2oled/S60tty2oled stop
+			if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
+		fi
 		#sleep 2
 		
 		# Small loop for Welcome...
 		for l in {1..4}; do
-			echo "CMDCLS" > "${ttydevice}"
-			tty_waitforack
+			echo "CMDCLS" > ${ttydevice}
+			tty_waitfor
 			sleep 0.2
-			echo "CMDTXT,1,15,0,0,9, Welcome to..." > "${ttydevice}"
-			tty_waitforack
+			echo "CMDTXT,1,15,0,0,9, Welcome to..." > ${ttydevice}
+			tty_waitfor
 			sleep 0.2
 		done
 		sleep 2
-		echo "CMDTXT,3,15,0,47,27, Super" > "${ttydevice}"
-		tty_waitforack
+		echo "CMDTXT,3,15,0,47,27, Super" > ${ttydevice}
+		tty_waitfor
 		sleep 0.8
-		echo "CMDTXT,3,15,0,97,45, Attract" > "${ttydevice}"
-		tty_waitforack
+		echo "CMDTXT,3,15,0,97,45, Attract" > ${ttydevice}
+		tty_waitfor
 		sleep 0.8
-		echo "CMDTXT,3,15,0,153,63, Mode!" > "${ttydevice}"
-		tty_waitforack
+		echo "CMDTXT,3,15,0,153,63, Mode!" > ${ttydevice}
+		tty_waitfor
 		sleep 1
 	fi
+}
+
+function tty_waitfor() {
+  if [ "${ttyuseack,,}" == "yes" ]; then
+    if [ "${samquiet,,}" == "no" ]; then echo -n "Waiting for tty2oled Acknowledge... "; fi
+    read -d ";" ttyresponse < ${ttydevice}                # The "read" command at this position simulates an "do..while" loop
+    while [ "${ttyresponse}" != "ttyack" ]; do
+      read -d ";" ttyresponse < ${ttydevice}              # Read Serial Line until delimiter ";"
+    done
+    #echo -e "${fgreen}${ttyresponse}${freset}"
+    ttyresponse=""
+  else
+    if [ "${samquiet,,}" == "no" ]; then echo -n "Little sleep... "; fi
+    #sleep 0.2
+    #sleep 0.1
+    sleep 0.05
+  fi
 }
 
 function tty_update() { # tty_update core game
 	if [ "${ttyenable,,}" == "yes" ]; then
 	
 		# Wait for tty2oled daemon to show the core logo
-		#inotifywait -e modify /tmp/CORENAME
+		if [ "${ttyuseack,,}" != "yes" ]; then
+			inotifywait -q -e modify /tmp/CORENAME &>/dev/null
+		fi
 		
 		# Wait for tty2oled to show the core logo
 		if [ "${samdebug,,}" == "yes" ]; then
 			echo "-------------------------------------------"
 			echo " tty_update got Corename: ${3} "
 		fi
-		tty_senddata "${3}"
-		tty_waitforack
+		if [ "${ttyuseack,,}" == "yes" ]; then
+			tty_senddata "${3}"
+		fi
+		tty_waitfor
 		# Show Core-Logo for 7 Secs
 		sleep 7
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" > "${ttydevice}"
-		tty_waitforack
+		tty_waitfor
 		#sleep 0.5
 		
 		# Split long lines - length is approximate since fonts are variable width!
 
 		if [ ${#2} -gt 23 ]; then
 			for l in {1..15}; do
-				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." > "${ttydevice}"
-				tty_waitforack
-				echo "CMDTXT,103,${l},0,0,40, ${2:20}" > "${ttydevice}"
-				tty_waitforack																											
-				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
-				tty_waitforack
-				sleep 0.1
+				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." > ${ttydevice}
+				tty_waitfor
+				echo "CMDTXT,103,${l},0,0,40, ${2:20}" > ${ttydevice}
+				tty_waitfor																											
+				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > ${ttydevice}
+				tty_waitfor
+				sleep 0.05
 			done
 		else
 			for l in {1..15}; do
-				echo "CMDTXT,103,${l},0,0,20,${2}" > "${ttydevice}"
-				tty_waitforack
-				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > "${ttydevice}"
-				tty_waitforack
-				sleep 0.1
+				echo "CMDTXT,103,${l},0,0,20,${2}" > ${ttydevice}
+				tty_waitfor
+				echo "CMDTXT,2,$(( ${l}/3 )),0,0,60,${1}" > ${ttydevice}
+				tty_waitfor
+				sleep 0.05
 			done
 													
 												 
@@ -1056,7 +1035,64 @@ function tty_update() { # tty_update core game
 	fi
 }
 
+# USB Send-Picture-Data function
+function tty_senddata() {
+  newcore="${1}"
+  unset picfnam
+  if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then			# Check for _pri pictures
+	picfnam="${ttypicture_pri}/${newcore}.gsc"
+  elif [ -e "${ttypicture_pri}/${newcore}.xbm" ]; then
+    picfnam="${ttypicture_pri}/${newcore}.xbm"
+  else
+    picfolders="gsc_us xbm_us gsc xbm xbm_text"				# If no _pri picture found, try all the others
+    [ "${USE_US_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us xbm_us/}"
+    [ "${USE_GSC_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us/}" && picfolders="${picfolders//gsc/}"
+    [ "${USE_TEXT_PICTURE}" = "no" ] && picfolders="${picfolders//xbm_text/}"
+    for picfolder in ${picfolders}; do
+      for (( c="${#newcore}"; c>=1; c-- )); do					# Manipulate string...
+        picfnam="${ttypicture}/${picfolder^^}/${newcore:0:$c}.${picfolder:0:3}"	# ...until it matches something
+	    [ -e "${picfnam}" ] && break
+      done
+	  [ -e "${picfnam}" ] && break
+    done
+  fi
+  if [ -e "${picfnam}" ]; then							# Exist?
+	# For testing...
+	if [ "${samdebug,,}" == "yes" ]; then
+		echo "-------------------------------------------"
+		echo " tty2oled sending Corename: ${1} "
+		echo " tty2oled found/send Picture : ${picfnam} "
+		echo "-------------------------------------------"
+	fi
+    echo "CMDCOR,${1}" > "${ttydevice}"					# Send CORECHANGE" Command and Corename
+    sleep 0.02											# sleep needed here ?!
+    tail -n +4 "${picfnam}" | xxd -r -p > ${ttydevice}	# The Magic, send the Picture-Data up from Line 4 and proces
+  else													# No Picture available!
+    echo "${1}" > "${ttydevice}"							# Send just the CORENAME
+  fi													# End if Picture check
+}
 
+function tty_exit() { # tty_exit
+	if [ "${ttyenable,,}" == "yes" ]; then
+		# Clear Display	with Random effect
+		echo "CMDCLST,-1,0" > ${ttydevice}
+		tty_waitfor
+		sleep 1 
+		# Show GAME OVER! for 3 secs
+		echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
+		tty_waitfor
+		sleep 3
+		# Set CORENAME for tty2oled Daemon start
+		echo "MENU" > /tmp/CORENAME
+		# Starting tty2oled daemon only if needed
+		if [ "${ttyuseack,,}" == "yes" ]; then
+			echo " Starting tty2oled daemon..."
+			/media/fat/tty2oled/S60tty2oled start
+			echo " Done!"
+			#sleep 2
+		fi
+	fi
+}
 
 #======== DOWNLOAD FUNCTIONS ========
 function curl_download() { # curl_download ${filepath} ${URL}
@@ -1156,7 +1192,7 @@ function loop_core() { # loop_core (core)
 					echo " Mouse activity detected!"
 					unmute
 					exit
-
+					tty_exit
 				else
 					echo " Mouse activity ignored!"
 					echo "" |>/tmp/.SAM_Mouse_Activity
@@ -1321,20 +1357,21 @@ function next_core() { # next_core (core)
 			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +300M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
 				
+				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+
 				function findzip_roms() {
 					#find biggest zip file over 300MB
-					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
 					cp "${romlist}" "${romlisttmp}" &>/dev/null
 				}			
 				
 				#Create a list of all valid roms in zip
-				if [ ! -f ${romlist} ]; then
+				if [ ! -f "${romfind}" ]; then
 					findzip_roms
 				fi		
 					
 				#If dir changed
-				if [ "${CORE_PATH[${nextcore,,}]}" != "$(cat ${romlist} |  head -1 | sed 's:^\(.*\)/.*$:\1:')" ]; then
+				if [ "${CORE_PATH[${nextcore,,}]}" != "$(echo "${romfind}" |  head -1 | sed 's:^\(.*\)/.*$:\1:')" ]; then
 					findzip_roms
 				fi
 				
@@ -1344,7 +1381,7 @@ function next_core() { # next_core (core)
 					romselect="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"		
 							
 					#Check if zip file is still there
-					if [ ! -f "$(head -1 ${romlist} | awk -F '.zip' '{print $1".zip"}')" ]; then
+					if [ ! -f "$(echo ${romfind})" ]; then
 						findzip_roms
 					fi
 					
