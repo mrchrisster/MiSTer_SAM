@@ -1,0 +1,103 @@
+#!/bin/bash
+# Game List Editor
+
+#if [ -f /media/fat/Scripts/MiSTer_SAM_on.sh ]; then
+#	source /media/fat/Scripts/MiSTer_SAM_on.sh
+#fi
+
+set -a
+. /media/fat/Scripts/MiSTer_SAM_on.sh
+set +a
+
+
+corelist="$(echo ${corelist} | tr ',' ' ')"
+		
+
+gamelist="/media/fat/Scripts/SAM_GameLists/tgfx16cd_gamelist.txt"
+excludelist="/media/fat/Scripts/SAM_GameLists/tgfx16cd_exclude.txt"
+me=`basename "$0"`
+
+function samedit_instructions() {
+dialog --clear --ascii-lines --no-cancel \
+--backtitle "Super Attract Mode" --title "SAM Game List Editor" \
+--msgbox "The following editor will let you exlude any number of games from your game list.
+All lines with an indent (a space in the beginning) will be put into an exclusion list. \n 
+\n
+With a Joypad, simply use the top of the four buttons to indent a line. \n
+When you are finished, push the bottom of the four buttons and then the right button to confirm. \n
+\n
+On a keyboard, you can use the Tab key and then push F10 to exit." 0 0
+	clear
+	samedit_menu
+}
+
+
+
+function samedit_menu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
+	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+	Edit "Edit Exclusion Lists" \
+	Regenerate "Regenerate file lists" 2>"/tmp/.SAMmenu"
+	
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	parse_cmd ${menuresponse}
+	
+}
+
+function samedit_cores() {
+	declare -a menulist=()
+	for core in ${corelist}; do
+		menulist+=( "${core^^}" )
+		menulist+=( "${CORE_PRETTY[${core,,}]} games only" )
+	done
+
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ Which file to edit? ]" \
+	--menu "Which system?" 0 0 0 \
+	"${menulist[@]}" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	parse_cmd ${menuresponse}
+}
+
+function parse_cmd() {
+	while [ ${#} -gt 0 ]; do
+	case ${1,,} in
+        back)
+            samedit_menu
+            ;;
+            #break
+        edit)
+            samedit_cores
+            ;;
+            #break
+        regenerate)
+            samedit_menu
+            ;;
+        4)
+            echo "Fourth Option"
+            ;;
+    esac
+    shift
+	done
+}
+
+
+samedit_instructions
+
+# Start editor
+#mcedit "${gamelist}"
+
+
+#cat "${gamelist}" | grep '^[[:blank:]]' | awk '$1=$1' > "${excludelist}"
+#while IFS= read -r line; do
+#    basename "$line"
+#done < "${excludelist}" > /tmp/tmpfile && mv /tmp/tmpfile "${excludelist}"
+
+# Reset file by deleting indents/empty lines
+#cat "${gamelist}" | awk '$1=$1' | grep "\S" > /tmp/tmpfile && mv /tmp/tmpfile "${gamelist}"
+#cat "${gamelist}" | grep "\S" | grep -v '^[[:blank:]]' > /tmp/tmpfile && mv /tmp/tmpfile "${gamelist}"
+
