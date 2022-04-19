@@ -1058,11 +1058,11 @@ function tty_exit() { # tty_exit
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" > ${ttydevice}
 		tty_waitfor
-		sleep 1 
+		#sleep 1 
 		# Show GAME OVER! for 3 secs
-		echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
-		tty_waitfor
-		sleep 3
+		#echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
+		#tty_waitfor
+		#sleep 3
 		# Set CORENAME for tty2oled Daemon start
 		echo "MENU" > /tmp/CORENAME
 		# Starting tty2oled daemon only if needed
@@ -1172,8 +1172,8 @@ function loop_core() { # loop_core (core)
 				if [ "${listenmouse,,}" == "yes" ]; then
 					echo " Mouse activity detected!"
 					unmute
-					exit
 					tty_exit
+					exit
 				else
 					echo " Mouse activity ignored!"
 					echo "" |>/tmp/.SAM_Mouse_Activity
@@ -1184,8 +1184,8 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard,,}" == "yes" ]; then
 					echo " Keyboard activity detected!"
 					unmute					
-					exit
 					tty_exit
+					exit
 
 				else
 					echo " Keyboard activity ignored!"
@@ -1198,6 +1198,7 @@ function loop_core() { # loop_core (core)
 					echo " Controller activity detected!"
 					unmute
 					tty_exit
+					exit
 				else
 					echo " Controller activity ignored!"
 					echo "" |>/tmp/.SAM_Joy_Activity
@@ -1223,13 +1224,16 @@ function next_core() { # next_core (core)
 
 	if [ -z "${1}" ]; then
 		# Don't repeat same core twice
+		# Choose the actual core
 		if [ ! -z ${nextcore} ]; then
 			corelisttmp=$(echo "$corelist" | sed "s/${nextcore}//" | tr -s ' ')
 			nextcore="$(echo ${corelisttmp}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
 		else		
 			nextcore="$(echo ${corelist}| xargs shuf --head-count=1 --random-source=/dev/urandom --echo)"
 		fi
-		
+	
+	if [ "${samquiet,,}" == "no" ]; then echo " Selected core: ${nextcore^^}."; fi
+	
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
@@ -1257,8 +1261,9 @@ function next_core() { # next_core (core)
 	romcountpath="${mrsampath}/.SAMcount"
 	zipcountpath="${mrsampath}/.SAMcount"
 	romlist=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
-	excludefiles=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
 	romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
+	excludefiles="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
+
 
 
 	# Simple case: We have unzipped roms. Pretty straight forward.
