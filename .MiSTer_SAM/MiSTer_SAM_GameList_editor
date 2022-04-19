@@ -1,20 +1,14 @@
 #!/bin/bash
 # Game List Editor
 
-#if [ -f /media/fat/Scripts/MiSTer_SAM_on.sh ]; then
-#	source /media/fat/Scripts/MiSTer_SAM_on.sh
-#fi
+if [ -f /media/fat/Scripts/MiSTer_SAM_on.sh ]; then
+	source /media/fat/Scripts/MiSTer_SAM_on.sh --source-only
+fi
 
-set -a
-. /media/fat/Scripts/MiSTer_SAM_on.sh
-set +a
-
-
+# Change corelist to use spaces
 corelist="$(echo ${corelist} | tr ',' ' ')"
-		
-
 gamelist="/media/fat/Scripts/SAM_GameLists/tgfx16cd_gamelist.txt"
-excludelist="/media/fat/Scripts/SAM_GameLists/tgfx16cd_exclude.txt"
+excludelist="/media/fat/Scripts/SAM_GameLists/tgfx16cd_excludelist.txt"
 me=`basename "$0"`
 
 function samedit_instructions() {
@@ -35,7 +29,7 @@ On a keyboard, you can use the Tab key and then push F10 to exit." 0 0
 
 function samedit_menu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
+	--backtitle "Super Attract Mode" --title "[ MAIN MENU ]" \
 	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 	Edit "Edit Exclusion Lists" \
 	Regenerate "Regenerate file lists" 2>"/tmp/.SAMmenu"
@@ -50,11 +44,11 @@ function samedit_cores() {
 	declare -a menulist=()
 	for core in ${corelist}; do
 		menulist+=( "${core^^}" )
-		menulist+=( "${CORE_PRETTY[${core,,}]} games only" )
+		menulist+=( "${CORE_PRETTY[${core,,}]} Game List Editor" )
 	done
 
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "Super Attract Mode" --title "[ Which file to edit? ]" \
+	--backtitle "Super Attract Mode" --title "[ EXCLUSION EDITOR ]" \
 	--menu "Which system?" 0 0 0 \
 	"${menulist[@]}" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
@@ -62,6 +56,25 @@ function samedit_cores() {
 	clear
 	parse_cmd ${menuresponse}
 }
+
+function samedit_regenerate() {
+	declare -a menulist=()
+	for core in ${corelist}; do
+		menulist+=( "${core^^}" )
+		menulist+=( "${CORE_PRETTY[${core,,}]} - Regenerate File List" )
+	done
+
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ EXCLUSION EDITOR ]" \
+	--menu "Which system?" 0 0 0 \
+	"${menulist[@]}" \
+	RegenerateAll 'Regenerate All lists'
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	parse_cmd ${menuresponse}
+}
+
 
 function parse_cmd() {
 	while [ ${#} -gt 0 ]; do
@@ -75,10 +88,11 @@ function parse_cmd() {
             ;;
             #break
         regenerate)
-            samedit_menu
+            samedit_regenerate
             ;;
-        4)
-            echo "Fourth Option"
+        regenerateall)
+            for f in $corelist; do
+             
             ;;
     esac
     shift
@@ -89,7 +103,7 @@ function parse_cmd() {
 samedit_instructions
 
 # Start editor
-#mcedit "${gamelist}"
+#
 
 
 #cat "${gamelist}" | grep '^[[:blank:]]' | awk '$1=$1' > "${excludelist}"
