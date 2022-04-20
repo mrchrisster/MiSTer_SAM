@@ -1411,9 +1411,9 @@ function next_core() { # next_core (core)
 			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +300M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
 			
-				#Prefer Everdrive zips if found. Select this zip if found.
+				#Prefer Everdrive zips if found. To avoid bios zip files, let's make minimum file size 15MB (Colecovision is 17Mb). Select this zip if found.
 				
-				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
+				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
 					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 				else
 					#Find biggest zip file over 300MB. If system name is in file name, use that file
