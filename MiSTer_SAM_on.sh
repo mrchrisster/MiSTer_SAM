@@ -166,8 +166,8 @@ function init_data() {
 		["nes"]="Nintendo Entertainment System" \
 		["sms"]="Sega Master System" \
 		["snes"]="Super Nintendo Entertainment System" \
-		["tgfx16"]="NEC TurboGrafx-16 / PC Engine" \
-		["tgfx16cd"]="NEC TurboGrafx-16 CD / PC Engine CD" \
+		["tgfx16"]="NEC PC Engine / TurboGrafx-16 " \
+		["tgfx16cd"]="NEC PC Engine CD / TurboGrafx-16 CD" \
 		["psx"]="Sony Playstation" \
 		)
 	
@@ -341,6 +341,24 @@ function init_data() {
 		["tgfx16cd"]="s" \
 		["psx"]="s" \
 		)	
+		
+	#Everdrive Zip naming convention
+	declare -gA CORE_EVERDRIVE=( \
+		["fds"]="Famicom Disk System" \
+		["gb"]="Game Boy" \
+		["gbc"]="Game Boy Color" \
+		["gba"]="Game Boy Advance" \
+		["genesis"]="Genesis" \
+		["gg"]="Game Gear" \
+		["megacd"]="Sega CD" \
+		["neogeo"]="NeoGeo" \
+		["nes"]="NES" \
+		["sms"]="Master System" \
+		["snes"]="SNES" \
+		["tgfx16"]="PC-Engine" \
+		["tgfx16cd"]="PC-Engine CD" \
+		["psx"]="Playstation" \
+		)
 		
 }
 
@@ -1313,6 +1331,11 @@ function next_core() { # next_core (core)
 			find_roms
 		fi
 		
+		#If folder changed, make new list
+		if [ "${CORE_PATH[${nextcore,,}]}" != "$(cat ${romlist} |  head -1 | awk -F "/" 'BEGIN { OFS = "/" } {print $1,$2,$3,$4,$5}')" ]; then
+			find_roms
+		fi
+		
 		#If rom doesn't exist
 		if [ ! -f "$(cat ${romlist} |  head -1)" ]; then
 			if [ "${samquiet,,}" == "no" ]; then echo " Directory changed."; fi
@@ -1388,12 +1411,12 @@ function next_core() { # next_core (core)
 			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +300M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
 			
-				#Find biggest zip file over 300MB. If system name is in file name, use that file
-				sysname=$(echo ${CORE_PRETTY[${nextcore,,}]} | awk -F ' ' '{print $2,$3}')
+				#Prefer Everdrive zips if found. Select this zip if found.
 				
-				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -iname "*${sysname}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
-					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -iname "*${sysname}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
+					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 				else
+					#Find biggest zip file over 300MB. If system name is in file name, use that file
 					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 				fi
 						
@@ -1420,6 +1443,11 @@ function next_core() { # next_core (core)
 				if [ ! -s "${romlistzip}" ]; then
 					findzip_roms
 				fi		
+				
+				#If folder changed, make new list
+				if [ "${CORE_PATH[${nextcore,,}]}" != "$(cat "${romlistzip}" | awk -F".zip" '{print $1}/.zip/' | head -1).zip" ]; then
+					findzip_roms
+				fi
 					
 				#Check if zip still exists
 				if [ "${romfind}" != "$(cat "${romlistzip}" | awk -F".zip" '{print $1}/.zip/' | head -1).zip" ]; then
