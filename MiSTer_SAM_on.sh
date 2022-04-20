@@ -1387,14 +1387,17 @@ function next_core() { # next_core (core)
 			#We found at least one large ZIP file - use it (Case 2)
 			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +300M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
+			
+				#Find biggest zip file over 300MB. If system name is in file name, use that file
+				sysname=$(echo ${CORE_PRETTY[${nextcore,,}]} | awk -F ' ' '{print $2,$3}')
 				
-				#Find biggest zip file over 300MB
-				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
-				
-				
+				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -iname "*${sysname}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
+					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -iname "*${sysname}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+				else
+					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+				fi
+						
 				if [ "${samquiet,,}" == "no" ]; then echo " Searching for files with extension ."${CORE_EXT[${nextcore,,}]}" in $romfind"; fi
-				
-
 
 				function findzip_roms() {
 					# Use partun to create zip game list
