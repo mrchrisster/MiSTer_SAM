@@ -48,7 +48,7 @@ declare -i coreretries=3
 declare -i romloadfails=0
 mralist="/tmp/.SAMlist/arcade_romlist"
 gametimer=120
-corelist="arcade,fds,gba,genesis,gg,megacd,neogeo,nes,sms,snes,tgfx16,tgfx16cd,psx"
+corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,sms,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
 usezip="Yes"
 norepeat="Yes"
@@ -74,18 +74,20 @@ ttyuseack="No"
 
 #======== CORE PATHS ========
 arcadepath="/media/fat/_arcade"
-fdspath="/media/fat/games/NES"
-gbapath="/media/fat/games/GBA"
-genesispath="/media/fat/games/Genesis"
+fdspath="/media/fat/Games/NES"
+gbpath="/media/fat/Games/Gameboy"
+gbcpath="/media/fat/Games/Gameboy"
+gbapath="/media/fat/Games/GBA"
+genesispath="/media/fat/Games/Genesis"
 ggpath="/media/fat/Games/SMS"
-megacdpath="/media/fat/games/MegaCD"
-neogeopath="/media/fat/games/NeoGeo"
-nespath="/media/fat/games/NES"
+megacdpath="/media/fat/Games/MegaCD"
+neogeopath="/media/fat/Games/NeoGeo"
+nespath="/media/fat/Games/NES"
 smspath="/media/fat/Games/SMS"
-snespath="/media/fat/games/SNES"
-tgfx16path="/media/fat/games/TGFX16"
-tgfx16cdpath="/media/fat/games/TGFX16-CD"
-psxpath="/media/fat/games/PSX"
+snespath="/media/fat/Games/SNES"
+tgfx16path="/media/fat/Games/TGFX16"
+tgfx16cdpath="/media/fat/Games/TGFX16-CD"
+psxpath="/media/fat/Games/PSX"
 
 #======== EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
@@ -95,6 +97,14 @@ Third Bad Game.mra"
 fdsexclude="First Bad Game.gba
 Second Bad Game.gba
 Third Bad Game.gba"
+
+gbexclude="First Bad Game.gb
+Second Bad Game.gb
+Third Bad Game.gb"
+
+gbcexclude="First Bad Game.gbc
+Second Bad Game.gbc
+Third Bad Game.gbc"
 
 gbaexclude="First Bad Game.gba
 Second Bad Game.gba
@@ -146,6 +156,8 @@ function init_data() {
 	declare -gA CORE_PRETTY=( \
 		["arcade"]="MiSTer Arcade" \
 		["fds"]="Nintendo Disk System" \
+		["gb"]="Nintendo Game Boy" \
+		["gbc"]="Nintendo Game Boy Color" \
 		["gba"]="Nintendo Game Boy Advance" \
 		["genesis"]="Sega Genesis / Megadrive" \
 		["gg"]="Sega Game Gear" \
@@ -163,6 +175,8 @@ function init_data() {
 	declare -gA CORE_EXT=( \
 		["arcade"]="mra" \
 		["fds"]="fds" \
+		["gb"]="gb" \
+		["gbc"]="gbc" \
 		["gba"]="gba" \
 		["genesis"]="md" \
 		["gg"]="gg" \
@@ -180,6 +194,8 @@ function init_data() {
 	declare -gA CORE_PATH=( \
 		["arcade"]="${arcadepath}" \
 		["fds"]="${fdspath}" \
+		["gb"]="${gbpath}" \
+		["gbc"]="${gbcpath}" \
 		["gba"]="${gbapath}" \
 		["genesis"]="${genesispath}" \
 		["gg"]="${ggpath}" \
@@ -197,6 +213,8 @@ function init_data() {
 	declare -gA CORE_ZIPPED=( \
 		["arcade"]="No" \
 		["fds"]="Yes" \
+		["gb"]="Yes" \
+		["gbc"]="Yes" \
 		["gba"]="Yes" \
 		["genesis"]="Yes" \
 		["gg"]="Yes" \
@@ -214,6 +232,8 @@ function init_data() {
 	declare -gA CORE_SKIP=( \
 		["arcade"]="No" \
 		["fds"]="Yes" \
+		["gb"]="No" \
+		["gbc"]="No" \
 		["gba"]="No" \
 		["genesis"]="No" \
 		["gg"]="No" \
@@ -231,6 +251,8 @@ function init_data() {
 	declare -gA CORE_LAUNCH=( \
 		["arcade"]="arcade" \
 		["fds"]="nes" \
+		["gb"]="gameboy" \
+		["gbc"]="gameboy" \
 		["gba"]="gba" \
 		["genesis"]="genesis" \
 		["gg"]="sms" \
@@ -248,6 +270,8 @@ function init_data() {
 	declare -gA MGL_CORE=( \
 		["arcade"]="arcade" \
 		["fds"]="nes" \
+		["gb"]="gameboy" \
+		["gbc"]="gameboy" \
 		["gba"]="gba" \
 		["genesis"]="genesis" \
 		["gg"]="sms" \
@@ -265,6 +289,8 @@ function init_data() {
 	declare -gA MGL_DELAY=( \
 		["arcade"]="2" \
 		["fds"]="2" \
+		["gb"]="2" \
+		["gbc"]="2" \
 		["gba"]="2" \
 		["genesis"]="1" \
 		["gg"]="1" \
@@ -282,6 +308,8 @@ function init_data() {
 	declare -gA MGL_INDEX=( \
 		["arcade"]="0" \
 		["fds"]="0" \
+		["gb"]="0" \
+		["gbc"]="0" \
 		["gba"]="0" \
 		["genesis"]="0" \
 		["gg"]="2" \
@@ -299,6 +327,8 @@ function init_data() {
 	declare -gA MGL_TYPE=( \
 		["arcade"]="f" \
 		["fds"]="f" \
+		["gb"]="f" \
+		["gbc"]="f" \
 		["gba"]="f" \
 		["genesis"]="f" \
 		["gg"]="f" \
@@ -497,7 +527,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@}; do
 			case ${arg,,} in
-				arcade | fds | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
+				arcade | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg,,}]} selected!"
 				nextcore="${arg,,}"
 				;;
@@ -583,7 +613,7 @@ function parse_cmd() {
 					sam_monitor_new
 					break
 					;;
-				arcade | fds | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
+				arcade | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
 					: # Placeholder since we parsed these above
 					;;
 				single)
@@ -1058,12 +1088,12 @@ function tty_exit() { # tty_exit
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" > ${ttydevice}
 		tty_waitfor
-		#sleep 1 
+		sleep 1 
 		# Show GAME OVER! for 3 secs
 		#echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
 		#tty_waitfor
 		#sleep 3
-		# Set CORENAME for tty2oled Daemon start
+		#Set CORENAME for tty2oled Daemon start
 		echo "MENU" > /tmp/CORENAME
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack,,}" == "yes" ]; then
@@ -1314,7 +1344,10 @@ function next_core() { # next_core (core)
 	
 	# We might be using ZIPs
 	else
-		########## Check how many ZIP and ROM files in core path	(Case 4)
+	
+	
+########## Check how many ZIP and ROM files in core path	(Case 4)
+	
 	
 		if [ ! -f "${zipcountpath}/${nextcore}_zipcount" ]; then
 			echo " Please wait... Creating game list for the first time."
@@ -1337,8 +1370,12 @@ function next_core() { # next_core (core)
 
 		#Compare roms vs zips
 		if [ "${zipcount}" -gt 0 ] && [ "${romcount}" -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
-		
-		############ Zip to Rom Compare completed #############
+	
+
+	
+############ Zip to Rom Compare completed #############
+
+
 								
 		#We've found ZIPs AND ROMs AND we're using zips
 		if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
@@ -1348,15 +1385,17 @@ function next_core() { # next_core (core)
 				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
 				
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+				if [ "${samquiet,,}" == "no" ]; then echo " Filename: $romfind"; fi
 
 				function findzip_roms() {
 					#find biggest zip file over 300MB
-					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${romlist}
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > "${romlist}"
+					grep ".*\.${CORE_EXT[${nextcore,,}]}$" "${romlist}" > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlist}"
 					cp "${romlist}" "${romlisttmp}" &>/dev/null
 				}			
 				
 				#Create a list of all valid roms in zip
-				if [ ! -f "${romfind}" ]; then
+				if [ ! -f "${romlist}" ]; then
 					findzip_roms
 				fi		
 					
@@ -1369,6 +1408,7 @@ function next_core() { # next_core (core)
 				
 					#Pick the actual game
 					romselect="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"		
+					if [ "${samquiet,,}" == "no" ]; then echo " Game selected: ${romselect}"; fi	
 							
 					#Check if zip file is still there
 					if [ ! -f "$(echo ${romfind})" ]; then
