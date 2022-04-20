@@ -1291,6 +1291,8 @@ function next_core() { # next_core (core)
 	romcountpath="${mrsampath}/.SAMcount"
 	zipcountpath="${mrsampath}/.SAMcount"
 	romlist="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
+	romlistzip="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist_zipped.txt"
+	romlistziptmp="/tmp/.SAMlist/${nextcore,,}_gamelist_zipped.txt"
 	romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
 	excludefiles="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
 
@@ -1386,56 +1388,56 @@ function next_core() { # next_core (core)
 			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -type f -size +300M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
 				
+				#Find biggest zip file over 300MB
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 				
 				
-				if [ "${samquiet,,}" == "no" ]; then echo " Filename: $romfind"; fi
+				if [ "${samquiet,,}" == "no" ]; then echo " Searching for files with extension ."${CORE_EXT[${nextcore,,}]}" in $romfind"; fi
 				
 
 
 				function findzip_roms() {
-					#find biggest zip file over 300MB
-					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > "${romlist}"
+					# Use partun to create zip game list
+					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > "${romlistzip}"
 					
-					if [ -s "${romlist}" ]; then
+					#We picked the wrong zip, try another one (head -1)
+					if [ ! -s "${romlistzip}" ]; then
 						romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | head -1 | cut -d ' ' -f 2- )
-						"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > "${romlist}"
+						if [ "${samquiet,,}" == "no" ]; then echo " Trying new file: $romfind"; fi
+						"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > "${romlistzip}"
 					fi
 					
-					grep ".*\.${CORE_EXT[${nextcore,,}]}$" "${romlist}" > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlist}"
-					cp "${romlist}" "${romlisttmp}" &>/dev/null
+					# Add zip location to file and delete roms with wrong extension (eg partuns's filter won't filter out ".gbc" extension when ".gb" is given in filter options) 
+					awk -v prefix="${romfind}/" '{print prefix $0}' "${romlistzip}" > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlistzip}"
+					grep ".*\.${CORE_EXT[${nextcore,,}]}$" "${romlistzip}" > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlistzip}"
+					cp "${romlistzip}" "${romlistziptmp}" &>/dev/null
 				}			
 				
 				#Create a list of all valid roms in zip
-				if [ ! -f "${romlist}" ]; then
+				if [ ! -s "${romlistzip}" ]; then
 					findzip_roms
 				fi		
 					
-				#If dir changed
-				if [ "${CORE_PATH[${nextcore,,}]}" != "$(echo "${romfind}" |  head -1 | sed 's:^\(.*\)/.*$:\1:')" ]; then
+				#Check if zip still exists
+				if [ "${romfind}" != "$(cat "${romlistzip}" | awk -F".zip" '{print $1}/.zip/' | head -1).zip" ]; then
 					findzip_roms
 				fi
 				
-				if [ -s ${romlisttmp} ]; then
+				if [ -s ${romlistziptmp} ]; then
 				
 					#Pick the actual game
-					romselect="$(cat ${romlisttmp} | shuf --head-count=1 --random-source=/dev/urandom)"		
-					if [ "${samquiet,,}" == "no" ]; then echo " Game selected: ${romselect}"; fi	
-							
-					#Check if zip file is still there
-					if [ ! -f "$(echo ${romfind})" ]; then
-						findzip_roms
-					fi
+					romselect="$(cat ${romlistziptmp} | shuf --head-count=1 --random-source=/dev/urandom)"		
+					if [ "${samquiet,,}" == "no" ]; then echo " File selected: ${romselect}"; fi						
 					
-					rompath="${romfind}/${romselect}"
+					rompath="${romselect}"
 					
 					#Delete rom from list so we don't have repeats
 					if [ "${norepeat,,}" == "yes" ]; then
-						awk -vLine="$romselect" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
+						awk -vLine="$romselect" '!index($0,Line)' "${romlistziptmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlistziptmp}"
 					fi
 				else
 					#Repopulate list
-					cp "${romlist}" "${romlisttmp}" &>/dev/null
+					cp "${romlistzip}" "${romlistziptmp}" &>/dev/null
 				fi
 								
 				romname=$(basename "${rompath}")
