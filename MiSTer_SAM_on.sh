@@ -1290,7 +1290,7 @@ function next_core() { # next_core (core)
 	mkdir -p "${misterpath}"/Scripts/SAM_GameLists
 	romcountpath="${mrsampath}/.SAMcount"
 	zipcountpath="${mrsampath}/.SAMcount"
-	romlist=""${misterpath}"/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
+	romlist="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
 	romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
 	excludefiles="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
 
@@ -1301,6 +1301,7 @@ function next_core() { # next_core (core)
 		
 		# Find Roms
 		function find_roms() {
+			if [ "${samquiet,,}" == "no" ]; then echo " Executing Game search in Directory."; fi
 			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
 			cp "${romlist}" "${romlisttmp}" &>/dev/null
 		}
@@ -1310,8 +1311,9 @@ function next_core() { # next_core (core)
 			find_roms
 		fi
 		
-		#If dir changed
-		if [ "${CORE_PATH[${nextcore,,}]}" != "$(cat ${romlist} |  head -1 | sed 's:^\(.*\)/.*$:\1:')" ]; then
+		#If rom doesn't exist
+		if [ ! -f "$(cat ${romlist} |  head -1)" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Directory changed."; fi
 			find_roms
 		fi
 		
@@ -1385,11 +1387,21 @@ function next_core() { # next_core (core)
 				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
 				
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+				
+				
 				if [ "${samquiet,,}" == "no" ]; then echo " Filename: $romfind"; fi
+				
+
 
 				function findzip_roms() {
 					#find biggest zip file over 300MB
 					"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > "${romlist}"
+					
+					if [ -s "${romlist}" ]; then
+						romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | head -1 | cut -d ' ' -f 2- )
+						"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > "${romlist}"
+					fi
+					
 					grep ".*\.${CORE_EXT[${nextcore,,}]}$" "${romlist}" > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlist}"
 					cp "${romlist}" "${romlisttmp}" &>/dev/null
 				}			
