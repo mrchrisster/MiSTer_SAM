@@ -7,9 +7,23 @@ fi
 
 # Change corelist to use spaces
 corelist="$(echo ${corelist} | tr ',' ' ')"
-gamelist="/media/fat/Scripts/SAM_GameLists/tgfx16cd_gamelist.txt"
-excludelist="/media/fat/Scripts/SAM_GameLists/tgfx16cd_excludelist.txt"
-me=`basename "$0"`
+
+#Setting up file lists
+declare -g gamelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_gamelist.txt"
+declare -g excludelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_excludelist.txt"
+declare -g countpath="${mrsampath}/.SAMcount"
+declare -g romlist="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
+declare -g romlistzip="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist_zipped.txt"
+declare -g romlistziptmp="/tmp/.SAMlist/${nextcore,,}_gamelist_zipped.txt"
+declare -g romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
+declare -g excludefiles="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
+
+
+# Setting up folders
+mkdir -p "${mrsampath}"/.SAMcount
+mkdir -p /tmp/.SAMlist
+mkdir -p "${misterpath}"/Scripts/SAM_GameLists
+
 
 function samedit_instructions() {
 dialog --clear --ascii-lines --no-cancel \
@@ -31,8 +45,8 @@ function samedit_menu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
 	--backtitle "Super Attract Mode" --title "[ MAIN MENU ]" \
 	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
-	Edit "Edit Exclusion Lists" \
-	Regenerate "Regenerate file lists" 2>"/tmp/.SAMmenu"
+	Edit "Edit Exclusion Lists for cores" \
+	RegAll "Regenerate file lists" 2>"/tmp/.SAMmenu"
 	
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -83,17 +97,36 @@ function samedit_regall() {
 
 }
 
+function delete_gl() {
+	# In case of issues, reset game lists
+
+	there_can_be_only_one
+	if [ -d "/media/fat/Scripts/SAM_GameLists" ]; then
+		echo "Deleting MiSTer_SAM Gamelist folder"
+		rm -rf "/media/fat/Scripts/SAM_GameLists"
+	fi
+	
+	if [ -d "/media/fat/Scripts/.MiSTer_SAM/.SAMcount" ]; then
+		rm -rf "/media/fat/Scripts/.MiSTer_SAM/.SAMcount"
+	fi
+	
+	printf "\n\n\n\n\n\nGame Lists reset.\n\n\n\n\n\n"
+	for i in {5..1}; do
+		echo -ne "Returning to menu in ${i}...\033[0K\r"
+		sleep 1
+	done
+	
+	samedit_menu
+}
+
 
 
 function reg_corelist() { # next_core (core)
 
-echo "$core"
+echo "Creating ${core^^} game list..."
 
-	if [ "${nextcore,,}" == "arcade" ]; then
-		# If this is an arcade core we go to special code
-		echo "No arcade"
-		
-	fi
+# No need for arcade core
+corelist=$(echo "$corelist" | sed "s/arcade//" | tr -s ' ')
 
 # Mister SAM tries to determine how the user has set up their rom collection. There are 4 possible cases:
 # 1. Roms are all unzipped
@@ -101,17 +134,6 @@ echo "$core"
 # 3. Roms are zipped individually
 # 4. There are some zipped roms and some unzipped roms in the same dir 
 							
-	#Setting up file lists
-	mkdir -p "${mrsampath}"/.SAMcount
-	mkdir -p /tmp/.SAMlist
-	mkdir -p "${misterpath}"/Scripts/SAM_GameLists
-	romcountpath="${mrsampath}/.SAMcount"
-	zipcountpath="${mrsampath}/.SAMcount"
-	romlist="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
-	romlistzip="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist_zipped.txt"
-	romlistziptmp="/tmp/.SAMlist/${nextcore,,}_gamelist_zipped.txt"
-	romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
-	excludefiles="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
 
 
 
@@ -176,19 +198,19 @@ echo "$core"
 ########## Check how many ZIP and ROM files in core path	(Case 4)
 	
 	
-		if [ ! -f "${zipcountpath}/${nextcore}_zipcount" ]; then
+		if [ ! -f "${countpath}/${nextcore}_zipcount" ]; then
 			echo " Please wait... Creating game list for the first time."
 			zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" -print | wc -l)
-			echo ${zipcount} > "${zipcountpath}/${nextcore}_zipcount"
+			echo ${zipcount} > "${countpath}/${nextcore}_zipcount"
 		else
-			zipcount=$(cat "${zipcountpath}/${nextcore}_zipcount")
+			zipcount=$(cat "${countpath}/${nextcore}_zipcount")
 		fi
 		
-		if [ ! -f "${romcountpath}/${nextcore}_romcount" ]; then
+		if [ ! -f "${countpath}/${nextcore}_romcount" ]; then
 			romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-			echo ${romcount} > "${romcountpath}/${nextcore}_romcount"
+			echo ${romcount} > "${countpath}/${nextcore}_romcount"
 		else
-			romcount=$(cat "${romcountpath}/${nextcore}_romcount")
+			romcount=$(cat "${countpath}/${nextcore}_romcount")
 		fi
 
 		#How many roms and zips did we find
@@ -313,43 +335,28 @@ echo "$core"
 		return
 	fi
 
-	# If there is an exclude list check it
-	declare -n excludelist="${nextcore,,}exclude"
-	if [ ${#excludelist[@]} -gt 0 ]; then
-		for excluded in "${excludelist[@]}"; do
-			if [ "${romname}" == "${excluded}" ]; then
-				echo " ${romname} is excluded - SKIPPED"
-				awk -vLine="${romname}" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}"
-				next_core
-				return
-			fi
-		done
-	fi
 	
-	if [ -f "${excludefiles}" ]; then
-		cat "${excludefiles}" | while IFS='\n' read line; do
-		echo " Found exclusion list for core $nextcore"
-		awk -vLine="$line" '!index($0,Line)' "${romlisttmp}"  > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlisttmp}" 
-		done
-	fi
+
 		
 
 }
 
+function edit_core() {
 # Start editor
 #
 
-
-#cat "${gamelist}" | grep '^[[:blank:]]' | awk '$1=$1' > "${excludelist}"
-#while IFS= read -r line; do
-#    basename "$line"
-#done < "${excludelist}" > /tmp/tmpfile && mv /tmp/tmpfile "${excludelist}"
+mcedit "${gamelist}"
+cat "${gamelist}" | grep '^[[:blank:]]' | awk '$1=$1' > "${excludelist}"
+while IFS= read -r line; do
+    basename "$line"
+done < "${excludelist}" > /tmp/tmpfile && mv /tmp/tmpfile "${excludelist}"
 
 # Reset file by deleting indents/empty lines
-#cat "${gamelist}" | awk '$1=$1' | grep "\S" > /tmp/tmpfile && mv /tmp/tmpfile "${gamelist}"
+cat "${gamelist}" | awk '$1=$1' | grep "\S" > /tmp/tmpfile && mv /tmp/tmpfile "${gamelist}"
+# Delete lines
 #cat "${gamelist}" | grep "\S" | grep -v '^[[:blank:]]' > /tmp/tmpfile && mv /tmp/tmpfile "${gamelist}"
 
-
+}
 
 
 
@@ -363,12 +370,17 @@ function parse_cmd() {
         edit)
             samedit_cores
             ;;
+        fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
+        	edit_core
+			;;
         regenerate)
             samedit_regenerate
             ;;
         regall)
 			samedit_regall
             ;;
+        deletelist
+        delete_gl
     esac
     shift
 	done
