@@ -1498,8 +1498,7 @@ function next_core() { # next_core (core)
 			elif [ ${zipcount} -gt ${romcount} ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath="$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
-				rompath="${romfind}/${rompath}"
+				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
 				romname=$(basename "${rompath}")
 					
 
@@ -1519,8 +1518,13 @@ function next_core() { # next_core (core)
 		# Use the ZIP Luke!
 		else
 			if [ "${samquiet,,}" == "no" ]; then echo " Using zip"; fi
-			romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-			rompath="$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+			if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
+					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" | shuf --head-count=1 --random-source=/dev/urandom)
+				else
+					#Find biggest zip file over 250MB. If system name is in file name, use that file
+					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
+			fi	
+			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
 			romname=$(basename "${rompath}")
 		fi
 		
