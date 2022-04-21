@@ -907,6 +907,12 @@ function deleteall() {
 		echo "Deleting MiSTer_SAM_off.sh"
 		rm /media/fat/Scripts/MiSTer_SAM_off.sh
 	fi
+	
+	if [ -d "/media/fat/Scripts/SAM_GameLists" ]; then
+		echo "Deleting Gamelist folder"
+		rm -rf "/media/fat/Scripts/SAM_GameLists"
+	fi
+	
 	if ls /media/fat/Config/inputs/*_input_1234_5678_v3.map 1> /dev/null 2>&1; then
 		echo "Deleting Keyboard mapping files"
 		rm /media/fat/Config/inputs/*_input_1234_5678_v3.map
@@ -1321,14 +1327,13 @@ function next_core() { # next_core (core)
 	#Setting up file lists
 	mkdir -p "${mrsampath}"/.SAMcount
 	mkdir -p /tmp/.SAMlist
-	mkdir -p "${misterpath}"/Scripts/SAM_GameLists
-	romcountpath="${mrsampath}/.SAMcount"
-	zipcountpath="${mrsampath}/.SAMcount"
-	romlist="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
-	romlistzip="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist_zipped.txt"
+	mkdir -p "${mrsampath}"/SAM_GameLists
+	countpath="${mrsampath}/.SAMcount"
+	romlist="${mrsampath}/SAM_GameLists/${nextcore,,}_gamelist.txt"
+	romlistzip="${mrsampath}/SAM_GameLists/${nextcore,,}_gamelist_zipped.txt"
 	romlistziptmp="/tmp/.SAMlist/${nextcore,,}_gamelist_zipped.txt"
 	romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
-	excludefiles="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
+	excludefiles="${mrsampath}/${nextcore,,}_excludelist.txt"
 
 
 
@@ -1392,19 +1397,19 @@ function next_core() { # next_core (core)
 ########## Check how many ZIP and ROM files in core path	(Case 4)
 	
 	
-		if [ ! -f "${zipcountpath}/${nextcore}_zipcount" ]; then
+		if [ ! -f "${countpath}/${nextcore}_zipcount" ]; then
 			echo " Please wait... Creating game list for the first time."
 			zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" -print | wc -l)
-			echo ${zipcount} > "${zipcountpath}/${nextcore}_zipcount"
+			echo ${zipcount} > "${countpath}/${nextcore}_zipcount"
 		else
-			zipcount=$(cat "${zipcountpath}/${nextcore}_zipcount")
+			zipcount=$(cat "${countpath}/${nextcore}_zipcount")
 		fi
 		
-		if [ ! -f "${romcountpath}/${nextcore}_romcount" ]; then
+		if [ ! -f "${countpath}/${nextcore}_romcount" ]; then
 			romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-			echo ${romcount} > "${romcountpath}/${nextcore}_romcount"
+			echo ${romcount} > "${countpath}/${nextcore}_romcount"
 		else
-			romcount=$(cat "${romcountpath}/${nextcore}_romcount")
+			romcount=$(cat "${countpath}/${nextcore}_romcount")
 		fi
 
 		#How many roms and zips did we find
