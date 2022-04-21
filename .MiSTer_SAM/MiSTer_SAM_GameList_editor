@@ -9,6 +9,7 @@ fi
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
 #Setting up file lists
+
 declare -g gamelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_gamelist.txt"
 declare -g excludelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_excludelist.txt"
 declare -g countpath="${mrsampath}/.SAMcount"
@@ -71,30 +72,14 @@ function samedit_cores() {
 	parse_cmd ${menuresponse}
 }
 
-function samedit_regenerate() {
-	declare -a menulist=()
-	for core in ${corelist}; do
-		menulist+=( "${core^^}" )
-		menulist+=( "${CORE_PRETTY[${core,,}]} - Regenerate File List" )
-	done
-
-	dialog --clear --no-cancel --ascii-lines --no-tags \
-	--backtitle "Super Attract Mode" --title "[ EXCLUSION EDITOR ]" \
-	--menu "Which system?" 0 0 0 \
-	"${menulist[@]}" \
-	RegAll 'Regenerate All lists' \
-	Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
-	clear
-	parse_cmd ${menuresponse}
-}
 
 function samedit_regall() {
+	delete_gl
+	sync
 	for core in ${corelist}; do
 		nextcore="${core}"
 		reg_corelist
 	done
-
 }
 
 function delete_gl() {
@@ -109,14 +94,7 @@ function delete_gl() {
 	if [ -d "/media/fat/Scripts/.MiSTer_SAM/.SAMcount" ]; then
 		rm -rf "/media/fat/Scripts/.MiSTer_SAM/.SAMcount"
 	fi
-	
-	printf "\n\n\n\n\n\nGame Lists reset.\n\n\n\n\n\n"
-	for i in {5..1}; do
-		echo -ne "Returning to menu in ${i}...\033[0K\r"
-		sleep 1
-	done
-	
-	samedit_menu
+
 }
 
 
@@ -372,15 +350,11 @@ function parse_cmd() {
             ;;
         fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
         	edit_core
-			;;
-        regenerate)
-            samedit_regenerate
             ;;
         regall)
 			samedit_regall
             ;;
-        deletelist
-        delete_gl
+
     esac
     shift
 	done
