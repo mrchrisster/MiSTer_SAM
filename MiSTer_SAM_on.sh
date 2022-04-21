@@ -509,6 +509,7 @@ function sam_resetmenu() {
 	--backtitle "Super Attract Mode" --title "[ Reset ]" \
 	--menu "Select an option" 0 0 0 \
 	Deleteall "Reset/Delete all files" \
+	DeleteGL "Delete Gamelists only" \
 	Default "Reinstall SAM and enable Autostart" \
 	Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -688,6 +689,10 @@ function parse_cmd() {
 					;;
 				deleteall)
 					deleteall
+					break
+					;;
+				deletegl)
+					deletegl
 					break
 					;;
 				help)
@@ -943,6 +948,27 @@ function deleteall() {
 		sleep 1
 	done
 	sam_resetmenu
+}
+
+function deletegl() {
+	# In case of issues, reset game lists
+
+	there_can_be_only_one
+	if [ -d "${mrsampath}/SAM_GameLists" ]; then
+		echo "Deleting MiSTer_SAM Gamelist folder"
+		rm -rf "${mrsampath}/SAM_GameLists"
+	fi
+	
+	if [ -d "${mrsampath}/.SAMcount" ]; then
+		rm -rf "${mrsampath}/.SAMcount"
+	fi
+	printf "\n\n\n\n\n\nGamelist reset successful. Please start SAM now.\n\n\n\n\n\n"
+	for i in {5..1}; do
+		echo -ne "Returning to menu in ${i}...\033[0K\r"
+		sleep 1
+	done
+	sam_menu
+
 }
 
 function skipmessage() {
@@ -1344,6 +1370,7 @@ function next_core() { # next_core (core)
 		function find_roms() {
 			if [ "${samquiet,,}" == "no" ]; then echo " Executing Game search in Directory."; fi
 			find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > ${romlist}
+			cat ${romlist} | sort > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlist}"
 			cp "${romlist}" "${romlisttmp}" &>/dev/null
 		}
 		
@@ -1456,7 +1483,7 @@ function next_core() { # next_core (core)
 					
 					# Add zip location to file and delete roms with wrong extension (eg partuns's filter won't filter out ".gbc" extension when ".gb" is given in filter options) 
 					awk -v prefix="${romfind}/" '{print prefix $0}' "${romlistzip}" > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlistzip}"
-					grep ".*\.${CORE_EXT[${nextcore,,}]}$" "${romlistzip}" > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlistzip}"
+					grep ".*\.${CORE_EXT[${nextcore,,}]}$" "${romlistzip}" | sort > /tmp/.SAMlist/tmpfile && mv /tmp/.SAMlist/tmpfile "${romlistzip}"
 					cp "${romlistzip}" "${romlistziptmp}" &>/dev/null
 				}			
 				
@@ -1521,7 +1548,6 @@ function next_core() { # next_core (core)
 			if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
 					romfind="$(find "${CORE_PATH[${nextcore,,}]}" -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )"
 				else
-					#Find biggest zip file over 250MB. If system name is in file name, use that file
 					romfind="$(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)"
 			fi	
 			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
