@@ -1434,7 +1434,7 @@ function next_core() { # next_core (core)
 			
 				#Prefer Everdrive zips if found. To avoid bios zip files, let's make minimum file size 15MB (Colecovision is 17Mb). Select this zip if found.
 				
-				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
+				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
 					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 				else
 					#Find biggest zip file over 250MB. If system name is in file name, use that file
@@ -1518,7 +1518,7 @@ function next_core() { # next_core (core)
 		# Use the ZIP Luke!
 		else
 			if [ "${samquiet,,}" == "no" ]; then echo " Using zip"; fi
-			if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
+			if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
 					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" | shuf --head-count=1 --random-source=/dev/urandom)
 				else
 					#Find biggest zip file over 250MB. If system name is in file name, use that file
