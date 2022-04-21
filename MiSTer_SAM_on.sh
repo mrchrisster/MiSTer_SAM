@@ -1429,16 +1429,16 @@ function next_core() { # next_core (core)
 		if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
 
 			#We found at least one large ZIP file - use it (Case 2)
-			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -type f -size +300M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 300MB+ )"; fi				
+			if [ $(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -type f -size +250M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
+				if [ "${samquiet,,}" == "no" ]; then echo " Using largest zip in folder ( < 250MB+ )"; fi				
 			
 				#Prefer Everdrive zips if found. To avoid bios zip files, let's make minimum file size 15MB (Colecovision is 17Mb). Select this zip if found.
 				
 				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
 					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 				else
-					#Find biggest zip file over 300MB. If system name is in file name, use that file
-					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -size +300M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
+					#Find biggest zip file over 250MB. If system name is in file name, use that file
+					romfind=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -size +250M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )
 				fi
 						
 				if [ "${samquiet,,}" == "no" ]; then echo " Searching for files with extension ."${CORE_EXT[${nextcore,,}]}" in $romfind"; fi
@@ -1498,7 +1498,8 @@ function next_core() { # next_core (core)
 			elif [ ${zipcount} -gt ${romcount} ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
 				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+				rompath="$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+				rompath="${romfind}/${rompath}"
 				romname=$(basename "${rompath}")
 					
 
@@ -1519,7 +1520,7 @@ function next_core() { # next_core (core)
 		else
 			if [ "${samquiet,,}" == "no" ]; then echo " Using zip"; fi
 			romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
+			rompath="$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
 			romname=$(basename "${rompath}")
 		fi
 		
