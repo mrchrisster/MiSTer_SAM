@@ -48,7 +48,7 @@ declare -i coreretries=3
 declare -i romloadfails=0
 mralist="/tmp/.SAMlist/arcade_romlist"
 gametimer=120
-corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,sms,snes,tgfx16,tgfx16cd,psx"
+corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 skipmessage="Yes"
 usezip="Yes"
 norepeat="Yes"
@@ -83,6 +83,7 @@ ggpath="/media/fat/Games/SMS"
 megacdpath="/media/fat/Games/MegaCD"
 neogeopath="/media/fat/Games/NeoGeo"
 nespath="/media/fat/Games/NES"
+s32xpath="/media/fat/Games/Genesis"
 smspath="/media/fat/Games/SMS"
 snespath="/media/fat/Games/SNES"
 tgfx16path="/media/fat/Games/TGFX16"
@@ -130,6 +131,10 @@ nesexclude="First Bad Game.nes
 Second Bad Game.nes
 Third Bad Game.nes"
 
+s32xexclude="First Bad Game.32x
+Second Bad Game.32x
+Third Bad Game.32x"
+
 smsexclude="First Bad Game.sms
 Second Bad Game.sms
 Third Bad Game.sms"
@@ -164,6 +169,7 @@ function init_data() {
 		["megacd"]="Sega CD / Mega CD" \
 		["neogeo"]="SNK NeoGeo" \
 		["nes"]="Nintendo Entertainment System" \
+		["s32x"]="Sega 32x" \
 		["sms"]="Sega Master System" \
 		["snes"]="Super Nintendo Entertainment System" \
 		["tgfx16"]="NEC PC Engine / TurboGrafx-16 " \
@@ -183,6 +189,7 @@ function init_data() {
 		["megacd"]="chd" \
 		["neogeo"]="neo" \
 		["nes"]="nes" \
+		["s32x"]="32x" \
 		["sms"]="sms" \
 		["snes"]="sfc" \
 		["tgfx16"]="pce" \
@@ -202,6 +209,7 @@ function init_data() {
 		["megacd"]="${megacdpath}" \
 		["neogeo"]="${neogeopath}" \
 		["nes"]="${nespath}" \
+		["s32x"]="${s32xpath}" \
 		["sms"]="${smspath}" \
 		["snes"]="${snespath}" \
 		["tgfx16"]="${tgfx16path}" \
@@ -221,6 +229,7 @@ function init_data() {
 		["megacd"]="No" \
 		["neogeo"]="Yes" \
 		["nes"]="Yes" \
+		["s32x"]="Yes" \
 		["sms"]="Yes" \
 		["snes"]="Yes" \
 		["tgfx16"]="Yes" \
@@ -240,6 +249,7 @@ function init_data() {
 		["megacd"]="Yes" \
 		["neogeo"]="No" \
 		["nes"]="No" \
+		["s32x"]="No" \
 		["sms"]="No" \
 		["snes"]="No" \
 		["tgfx16"]="No" \
@@ -247,7 +257,7 @@ function init_data() {
 		["psx"]="No" \
 		)
 
-	# Core to folder mapping
+	# Core to input maps mapping
 	declare -gA CORE_LAUNCH=( \
 		["arcade"]="arcade" \
 		["fds"]="nes" \
@@ -259,6 +269,7 @@ function init_data() {
 		["megacd"]="megacd" \
 		["neogeo"]="neogeo" \
 		["nes"]="nes" \
+		["s32x"]="s32x" \
 		["sms"]="sms" \
 		["snes"]="snes" \
 		["tgfx16"]="tgfx16" \
@@ -278,6 +289,7 @@ function init_data() {
 		["megacd"]="megacd" \
 		["neogeo"]="neogeo" \
 		["nes"]="nes" \
+		["s32x"]="s32x" \
 		["sms"]="sms" \
 		["snes"]="snes" \
 		["tgfx16"]="turbografx16" \
@@ -297,6 +309,7 @@ function init_data() {
 		["megacd"]="1" \
 		["neogeo"]="1" \
 		["nes"]="2" \
+		["s32x"]="1" \
 		["sms"]="1" \
 		["snes"]="2" \
 		["tgfx16"]="1" \
@@ -316,6 +329,7 @@ function init_data() {
 		["megacd"]="0" \
 		["neogeo"]="1" \
 		["nes"]="0" \
+		["s32x"]="0" \
 		["sms"]="1" \
 		["snes"]="0" \
 		["tgfx16"]="0" \
@@ -335,6 +349,7 @@ function init_data() {
 		["megacd"]="s" \
 		["neogeo"]="f" \
 		["nes"]="f" \
+		["s32x"]="f" \
 		["sms"]="f" \
 		["snes"]="f" \
 		["tgfx16"]="f" \
@@ -353,6 +368,7 @@ function init_data() {
 		["megacd"]="Sega CD" \
 		["neogeo"]="NeoGeo" \
 		["nes"]="NES" \
+		["s32x"]="32x" \
 		["sms"]="Master System" \
 		["snes"]="SNES" \
 		["tgfx16"]="PC-Engine" \
@@ -545,7 +561,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@}; do
 			case ${arg,,} in
-				arcade | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
+				arcade | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg,,}]} selected!"
 				nextcore="${arg,,}"
 				;;
@@ -631,7 +647,7 @@ function parse_cmd() {
 					sam_monitor_new
 					break
 					;;
-				arcade | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
+				arcade | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 					: # Placeholder since we parsed these above
 					;;
 				single)
