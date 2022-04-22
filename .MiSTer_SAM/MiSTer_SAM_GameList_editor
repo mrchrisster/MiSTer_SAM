@@ -8,16 +8,7 @@ fi
 # Change corelist to use spaces
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
-#Setting up file lists
 
-declare -g gamelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_gamelist.txt"
-declare -g excludelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_excludelist.txt"
-declare -g countpath="${mrsampath}/.SAMcount"
-declare -g romlist="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
-declare -g romlistzip="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist_zipped.txt"
-declare -g romlistziptmp="/tmp/.SAMlist/${nextcore,,}_gamelist_zipped.txt"
-declare -g romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
-declare -g excludefiles="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
 
 
 # Setting up folders
@@ -61,7 +52,7 @@ function samedit_cores() {
 		menulist+=( "${core^^}" )
 		menulist+=( "${CORE_PRETTY[${core,,}]} Game List Editor" )
 	done
-
+	echo $core
 	dialog --clear --no-cancel --ascii-lines --no-tags \
 	--backtitle "Super Attract Mode" --title "[ EXCLUSION EDITOR ]" \
 	--menu "Which system?" 0 0 0 \
@@ -100,6 +91,18 @@ function delete_gl() {
 
 
 function reg_corelist() { # next_core (core)
+
+
+#Setting up file lists
+
+gamelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_gamelist.txt"
+excludelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_excludelist.txt"
+countpath="${mrsampath}/.SAMcount"
+romlist="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist.txt"
+romlistzip="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_gamelist_zipped.txt"
+romlistziptmp="/tmp/.SAMlist/${nextcore,,}_gamelist_zipped.txt"
+romlisttmp="/tmp/.SAMlist/${nextcore,,}_gamelist.txt"
+excludefiles="${misterpath}/Scripts/SAM_GameLists/${nextcore,,}_excludelist.txt"
 
 echo "Creating ${core^^} game list..."
 
@@ -322,6 +325,11 @@ corelist=$(echo "$corelist" | sed "s/arcade//" | tr -s ' ')
 function edit_core() {
 # Start editor
 #
+#Setting up file lists
+
+
+gamelist="/media/fat/Scripts/SAM_GameLists/${nextcore}_gamelist.txt"
+
 
 mcedit "${gamelist}"
 cat "${gamelist}" | grep '^[[:blank:]]' | awk '$1=$1' > "${excludelist}"
@@ -349,6 +357,7 @@ function parse_cmd() {
             samedit_cores
             ;;
         fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | sms | snes | tgfx16 | tgfx16cd | psx)
+        	nextcore=${1}
         	edit_core
             ;;
         regall)
