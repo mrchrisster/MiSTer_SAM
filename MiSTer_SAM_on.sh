@@ -157,224 +157,225 @@ Third Bad Game.chd"
 
 # ======== CORE CONFIG ========
 function init_data() {
-	# Core to long name mappings
-	declare -gA CORE_PRETTY=( \
-		["arcade"]="MiSTer Arcade" \
-		["fds"]="Nintendo Disk System" \
-		["gb"]="Nintendo Game Boy" \
-		["gbc"]="Nintendo Game Boy Color" \
-		["gba"]="Nintendo Game Boy Advance" \
-		["genesis"]="Sega Genesis / Megadrive" \
-		["gg"]="Sega Game Gear" \
-		["megacd"]="Sega CD / Mega CD" \
-		["neogeo"]="SNK NeoGeo" \
-		["nes"]="Nintendo Entertainment System" \
-		["s32x"]="Sega 32x" \
-		["sms"]="Sega Master System" \
-		["snes"]="Super Nintendo Entertainment System" \
-		["tgfx16"]="NEC PC Engine / TurboGrafx-16 " \
-		["tgfx16cd"]="NEC PC Engine CD / TurboGrafx-16 CD" \
-		["psx"]="Sony Playstation" \
-		)
+
+# Core to long name mappings
+declare -gA CORE_PRETTY=( \
+["arcade"]="MiSTer Arcade" \
+["fds"]="Nintendo Disk System" \
+["gb"]="Nintendo Game Boy" \
+["gbc"]="Nintendo Game Boy Color" \
+["gba"]="Nintendo Game Boy Advance" \
+["genesis"]="Sega Genesis / Megadrive" \
+["gg"]="Sega Game Gear" \
+["megacd"]="Sega CD / Mega CD" \
+["neogeo"]="SNK NeoGeo" \
+["nes"]="Nintendo Entertainment System" \
+["s32x"]="Sega 32x" \
+["sms"]="Sega Master System" \
+["snes"]="Super Nintendo Entertainment System" \
+["tgfx16"]="NEC PC Engine / TurboGrafx-16 " \
+["tgfx16cd"]="NEC PC Engine CD / TurboGrafx-16 CD" \
+["psx"]="Sony Playstation" \
+)
 	
-	# Core to file extension mappings
-	declare -gA CORE_EXT=( \
-		["arcade"]="mra" \
-		["fds"]="fds" \
-		["gb"]="gb" \
-		["gbc"]="gbc" \
-		["gba"]="gba" \
-		["genesis"]="md" \
-		["gg"]="gg" \
-		["megacd"]="chd" \
-		["neogeo"]="neo" \
-		["nes"]="nes" \
-		["s32x"]="32x" \
-		["sms"]="sms" \
-		["snes"]="sfc" \
-		["tgfx16"]="pce" \
-		["tgfx16cd"]="chd" \
-		["psx"]="chd" \
-		)
+# Core to file extension mappings
+declare -gA CORE_EXT=( \
+["arcade"]="mra" \
+["fds"]="fds" \
+["gb"]="gb" \
+["gbc"]="gbc" \
+["gba"]="gba" \
+["genesis"]="md" \
+["gg"]="gg" \
+["megacd"]="chd" \
+["neogeo"]="neo" \
+["nes"]="nes" \
+["s32x"]="32x" \
+["sms"]="sms" \
+["snes"]="sfc" \
+["tgfx16"]="pce" \
+["tgfx16cd"]="chd" \
+["psx"]="chd" \
+)
 	
-	# Core to path mappings
-	declare -gA CORE_PATH=( \
-		["arcade"]="${arcadepath}" \
-		["fds"]="${fdspath}" \
-		["gb"]="${gbpath}" \
-		["gbc"]="${gbcpath}" \
-		["gba"]="${gbapath}" \
-		["genesis"]="${genesispath}" \
-		["gg"]="${ggpath}" \
-		["megacd"]="${megacdpath}" \
-		["neogeo"]="${neogeopath}" \
-		["nes"]="${nespath}" \
-		["s32x"]="${s32xpath}" \
-		["sms"]="${smspath}" \
-		["snes"]="${snespath}" \
-		["tgfx16"]="${tgfx16path}" \
-		["tgfx16cd"]="${tgfx16cdpath}" \
-		["psx"]="${psxpath}" \
-		)
+# Core to path mappings
+declare -gA CORE_PATH=( \
+["arcade"]="${arcadepath}" \
+["fds"]="${fdspath}" \
+["gb"]="${gbpath}" \
+["gbc"]="${gbcpath}" \
+["gba"]="${gbapath}" \
+["genesis"]="${genesispath}" \
+["gg"]="${ggpath}" \
+["megacd"]="${megacdpath}" \
+["neogeo"]="${neogeopath}" \
+["nes"]="${nespath}" \
+["s32x"]="${s32xpath}" \
+["sms"]="${smspath}" \
+["snes"]="${snespath}" \
+["tgfx16"]="${tgfx16path}" \
+["tgfx16cd"]="${tgfx16cdpath}" \
+["psx"]="${psxpath}" \
+)
 	
 	# Can this core use ZIPped ROMs
-	declare -gA CORE_ZIPPED=( \
-		["arcade"]="No" \
-		["fds"]="Yes" \
-		["gb"]="Yes" \
-		["gbc"]="Yes" \
-		["gba"]="Yes" \
-		["genesis"]="Yes" \
-		["gg"]="Yes" \
-		["megacd"]="No" \
-		["neogeo"]="Yes" \
-		["nes"]="Yes" \
-		["s32x"]="Yes" \
-		["sms"]="Yes" \
-		["snes"]="Yes" \
-		["tgfx16"]="Yes" \
-		["tgfx16cd"]="No" \
-		["psx"]="No" \
-		)
+declare -gA CORE_ZIPPED=( \
+["arcade"]="No" \
+["fds"]="Yes" \
+["gb"]="Yes" \
+["gbc"]="Yes" \
+["gba"]="Yes" \
+["genesis"]="Yes" \
+["gg"]="Yes" \
+["megacd"]="No" \
+["neogeo"]="Yes" \
+["nes"]="Yes" \
+["s32x"]="Yes" \
+["sms"]="Yes" \
+["snes"]="Yes" \
+["tgfx16"]="Yes" \
+["tgfx16cd"]="No" \
+["psx"]="No" \
+)
 		
-	# Can this core skip Bios/Safety warning messages
-	declare -gA CORE_SKIP=( \
-		["arcade"]="No" \
-		["fds"]="Yes" \
-		["gb"]="No" \
-		["gbc"]="No" \
-		["gba"]="No" \
-		["genesis"]="No" \
-		["gg"]="No" \
-		["megacd"]="Yes" \
-		["neogeo"]="No" \
-		["nes"]="No" \
-		["s32x"]="No" \
-		["sms"]="No" \
-		["snes"]="No" \
-		["tgfx16"]="No" \
-		["tgfx16cd"]="Yes" \
-		["psx"]="No" \
-		)
+# Can this core skip Bios/Safety warning messages
+declare -gA CORE_SKIP=( \
+["arcade"]="No" \
+["fds"]="Yes" \
+["gb"]="No" \
+["gbc"]="No" \
+["gba"]="No" \
+["genesis"]="No" \
+["gg"]="No" \
+["megacd"]="Yes" \
+["neogeo"]="No" \
+["nes"]="No" \
+["s32x"]="No" \
+["sms"]="No" \
+["snes"]="No" \
+["tgfx16"]="No" \
+["tgfx16cd"]="Yes" \
+["psx"]="No" \
+)
 
-	# Core to input maps mapping
-	declare -gA CORE_LAUNCH=( \
-		["arcade"]="arcade" \
-		["fds"]="nes" \
-		["gb"]="gameboy" \
-		["gbc"]="gameboy" \
-		["gba"]="gba" \
-		["genesis"]="genesis" \
-		["gg"]="sms" \
-		["megacd"]="megacd" \
-		["neogeo"]="neogeo" \
-		["nes"]="nes" \
-		["s32x"]="s32x" \
-		["sms"]="sms" \
-		["snes"]="snes" \
-		["tgfx16"]="tgfx16" \
-		["tgfx16cd"]="tgfx16" \
-		["psx"]="psx" \
-		)
+# Core to input maps mapping
+declare -gA CORE_LAUNCH=( \
+["arcade"]="arcade" \
+["fds"]="nes" \
+["gb"]="gameboy" \
+["gbc"]="gameboy" \
+["gba"]="gba" \
+["genesis"]="genesis" \
+["gg"]="sms" \
+["megacd"]="megacd" \
+["neogeo"]="neogeo" \
+["nes"]="nes" \
+["s32x"]="s32x" \
+["sms"]="sms" \
+["snes"]="snes" \
+["tgfx16"]="tgfx16" \
+["tgfx16cd"]="tgfx16" \
+["psx"]="psx" \
+)
 		
-	# MGL core name settings
-	declare -gA MGL_CORE=( \
-		["arcade"]="arcade" \
-		["fds"]="nes" \
-		["gb"]="gameboy" \
-		["gbc"]="gameboy" \
-		["gba"]="gba" \
-		["genesis"]="genesis" \
-		["gg"]="sms" \
-		["megacd"]="megacd" \
-		["neogeo"]="neogeo" \
-		["nes"]="nes" \
-		["s32x"]="s32x" \
-		["sms"]="sms" \
-		["snes"]="snes" \
-		["tgfx16"]="turbografx16" \
-		["tgfx16cd"]="turbografx16" \
-		["psx"]="psx" \
-		)	
+# MGL core name settings
+declare -gA MGL_CORE=( \
+["arcade"]="arcade" \
+["fds"]="nes" \
+["gb"]="gameboy" \
+["gbc"]="gameboy" \
+["gba"]="gba" \
+["genesis"]="genesis" \
+["gg"]="sms" \
+["megacd"]="megacd" \
+["neogeo"]="neogeo" \
+["nes"]="nes" \
+["s32x"]="s32x" \
+["sms"]="sms" \
+["snes"]="snes" \
+["tgfx16"]="turbografx16" \
+["tgfx16cd"]="turbografx16" \
+["psx"]="psx" \
+)	
 	
-	# MGL delay settings
-	declare -gA MGL_DELAY=( \
-		["arcade"]="2" \
-		["fds"]="2" \
-		["gb"]="2" \
-		["gbc"]="2" \
-		["gba"]="2" \
-		["genesis"]="1" \
-		["gg"]="1" \
-		["megacd"]="1" \
-		["neogeo"]="1" \
-		["nes"]="2" \
-		["s32x"]="1" \
-		["sms"]="1" \
-		["snes"]="2" \
-		["tgfx16"]="1" \
-		["tgfx16cd"]="1" \
-		["psx"]="1" \
-		)	
+# MGL delay settings
+declare -gA MGL_DELAY=( \
+["arcade"]="2" \
+["fds"]="2" \
+["gb"]="2" \
+["gbc"]="2" \
+["gba"]="2" \
+["genesis"]="1" \
+["gg"]="1" \
+["megacd"]="1" \
+["neogeo"]="1" \
+["nes"]="2" \
+["s32x"]="1" \
+["sms"]="1" \
+["snes"]="2" \
+["tgfx16"]="1" \
+["tgfx16cd"]="1" \
+["psx"]="1" \
+)	
 		
-	# MGL index settings
-	declare -gA MGL_INDEX=( \
-		["arcade"]="0" \
-		["fds"]="0" \
-		["gb"]="0" \
-		["gbc"]="0" \
-		["gba"]="0" \
-		["genesis"]="0" \
-		["gg"]="2" \
-		["megacd"]="0" \
-		["neogeo"]="1" \
-		["nes"]="0" \
-		["s32x"]="0" \
-		["sms"]="1" \
-		["snes"]="0" \
-		["tgfx16"]="0" \
-		["tgfx16cd"]="0" \
-		["psx"]="1" \
-		)	
+# MGL index settings
+declare -gA MGL_INDEX=( \
+["arcade"]="0" \
+["fds"]="0" \
+["gb"]="0" \
+["gbc"]="0" \
+["gba"]="0" \
+["genesis"]="0" \
+["gg"]="2" \
+["megacd"]="0" \
+["neogeo"]="1" \
+["nes"]="0" \
+["s32x"]="0" \
+["sms"]="1" \
+["snes"]="0" \
+["tgfx16"]="0" \
+["tgfx16cd"]="0" \
+["psx"]="1" \
+)	
 		
-	# MGL type settings
-	declare -gA MGL_TYPE=( \
-		["arcade"]="f" \
-		["fds"]="f" \
-		["gb"]="f" \
-		["gbc"]="f" \
-		["gba"]="f" \
-		["genesis"]="f" \
-		["gg"]="f" \
-		["megacd"]="s" \
-		["neogeo"]="f" \
-		["nes"]="f" \
-		["s32x"]="f" \
-		["sms"]="f" \
-		["snes"]="f" \
-		["tgfx16"]="f" \
-		["tgfx16cd"]="s" \
-		["psx"]="s" \
-		)	
+# MGL type settings
+declare -gA MGL_TYPE=( \
+["arcade"]="f" \
+["fds"]="f" \
+["gb"]="f" \
+["gbc"]="f" \
+["gba"]="f" \
+["genesis"]="f" \
+["gg"]="f" \
+["megacd"]="s" \
+["neogeo"]="f" \
+["nes"]="f" \
+["s32x"]="f" \
+["sms"]="f" \
+["snes"]="f" \
+["tgfx16"]="f" \
+["tgfx16cd"]="s" \
+["psx"]="s" \
+)	
 		
-	#Everdrive Zip naming convention
-	declare -gA CORE_EVERDRIVE=( \
-		["fds"]="Famicom Disk System" \
-		["gb"]="Game Boy" \
-		["gbc"]="Game Boy Color" \
-		["gba"]="Game Boy Advance" \
-		["genesis"]="Genesis" \
-		["gg"]="Game Gear" \
-		["megacd"]="Sega CD" \
-		["neogeo"]="NeoGeo" \
-		["nes"]="NES" \
-		["s32x"]="32x" \
-		["sms"]="Master System" \
-		["snes"]="SNES" \
-		["tgfx16"]="PC-Engine" \
-		["tgfx16cd"]="PC-Engine CD" \
-		["psx"]="Playstation" \
-		)
+#Everdrive Zip naming convention
+declare -gA CORE_EVERDRIVE=( \
+["fds"]="Famicom Disk System" \
+["gb"]="Game Boy" \
+["gbc"]="Game Boy Color" \
+["gba"]="Game Boy Advance" \
+["genesis"]="Genesis" \
+["gg"]="Game Gear" \
+["megacd"]="Sega CD" \
+["neogeo"]="NeoGeo" \
+["nes"]="NES" \
+["s32x"]="32x" \
+["sms"]="Master System" \
+["snes"]="SNES" \
+["tgfx16"]="PC-Engine" \
+["tgfx16cd"]="PC-Engine CD" \
+["psx"]="Playstation" \
+)
 		
 }
 
