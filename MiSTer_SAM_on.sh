@@ -1332,7 +1332,8 @@ function next_core() { # next_core (core)
 		# Don't repeat same core twice
 		
 		if [ ! -z ${nextcore} ]; then
-			corelisttmp=$(echo "$corelist" | sed "s/${nextcore} //" | sed "s/ ${nextcore}//" | tr -s ' ')
+			
+			corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
 			
 			# Choose the actual core
 			nextcore="$(echo ${corelisttmp}| xargs shuf --head-count=1 --echo)"
@@ -1415,7 +1416,7 @@ function next_core() { # next_core (core)
 			
 			#Pick the actual game
 			rompath="$(cat ${romlisttmp} | shuf --head-count=1 )"
-			if [ "${samquiet,,}" == "no" ]; then echo " Game ${rompath} from ${romlist} selected."; fi
+			if [ "${samquiet,,}" == "no" ]; then echo " Filename: ${rompath} selected."; fi
 			#Make sure file exists since we're reading from a static list
 			if [ ! -f "${rompath}" ]; then
 				create_romlist
@@ -1506,7 +1507,7 @@ function next_core() { # next_core (core)
 		
 			#Pick the actual game
 			rompath="$(cat ${romlistziptmp} | shuf --head-count=1 )"		
-			if [ "${samquiet,,}" == "no" ]; then echo " Game ${rompath} from ${romlist} selected."; fi					
+			if [ "${samquiet,,}" == "no" ]; then echo " Filename: ${rompath} selected."; fi					
 			
 			#Delete rom from list so we don't have repeats
 			if [ "${norepeat,,}" == "yes" ]; then
@@ -1526,7 +1527,7 @@ function next_core() { # next_core (core)
 	function romzip_compare() {
 		# Check how many ZIP and ROM files in core path
 		if [ ! -f "${countpath}/${nextcore}_zipcount" ]; then
-			echo " Please wait... Generating ${nextcore^^} game list."
+			echo -n " Please wait... Counting ${nextcore^^} zip files "
 			zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" -print | wc -l)
 			if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
 			echo ${zipcount} > "${countpath}/${nextcore}_zipcount"
@@ -1535,6 +1536,7 @@ function next_core() { # next_core (core)
 		fi
 		
 		if [ ! -f "${countpath}/${nextcore}_romcount" ]; then
+			echo "and rom files..."
 			romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
 			if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi	
 			echo ${romcount} > "${countpath}/${nextcore}_romcount"
@@ -1601,6 +1603,7 @@ function next_core() { # next_core (core)
 				if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi						
 				
 				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -size +15M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
+				
 					find_zip_all
 					use_ziproms
 				
