@@ -1332,7 +1332,7 @@ function next_core() { # next_core (core)
 		# Don't repeat same core twice
 		
 		if [ ! -z ${nextcore} ]; then
-			corelisttmp=$(echo "$corelist" | sed "s/${nextcore}//" | tr -s ' ')
+			corelisttmp=$(echo "$corelist" | sed "s/${nextcore} //" | sed "s/ ${nextcore}//" | tr -s ' ')
 			
 			# Choose the actual core
 			nextcore="$(echo ${corelisttmp}| xargs shuf --head-count=1 --echo)"
