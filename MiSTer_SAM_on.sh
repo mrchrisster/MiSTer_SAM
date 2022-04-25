@@ -977,8 +977,8 @@ function deletegl() {
 		rm -rf "${mrsampath}/SAM_Gamelists"
 	fi
 	
-	if [ -d "${mrsampath}/.SAM_Count" ]; then
-		rm -rf "${mrsampath}/.SAM_Count"
+	if [ -d "${mrsampath}/SAM_Count" ]; then
+		rm -rf "${mrsampath}/SAM_Count"
 	fi
 	if [ -d /tmp/.SAM_List ]; then
 		rm -rf /tmp/.SAM_List
