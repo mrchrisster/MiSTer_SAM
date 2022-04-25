@@ -884,8 +884,9 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
 	nextcore=""
-	#Delete temp files
-	find /tmp -name "*SAM*" -exec rm -rf {} \; &> /dev/null
+	#Delete temp lists
+	rm -rf /tmp/.SAM_List &> /dev/null
+	
 	# -- SAM's {soft,}start_real tmux instance
 	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}') &> /dev/null
 	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh softstart_real' | awk '{print $1}') &> /dev/null
@@ -1573,7 +1574,7 @@ function next_core() { # next_core (core)
 
 
 	
-###################################### START ROMFINDER ###############################################
+###################################### ROMFINDER START ###############################################
 
 
 # SAM tries to determine how the user has set up their rom collection. 
