@@ -1798,6 +1798,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	
 	mute_sc
 
+
 	#Create mgl file and launch game
 	
 	
@@ -1818,6 +1819,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		skipmessage	
 	fi
 	
+	sleep 2
 	unmute_sc
 }
 
@@ -1883,10 +1885,6 @@ function mute_sc() {
 			#Mute single core Volume
 			corevol="/media/fat/config/${nextcore}_volume.cfg"
 			
-			#Arcade not supported atm
-			if [ "${nextcore,,}" == "arcade" ]; then
-				next_core
-			fi
 			
 			if [ -f "${corevol}" ]; then
 				corevolbefore="$(hexdump -n 8 -ve '1/1 "%.2x"' ${corevol})"
@@ -1894,7 +1892,7 @@ function mute_sc() {
 				touch "${corevol}"
 			fi			
 			
-			echo -e "\0020\c" > "${corevol})"
+			echo -e "\0007\c" > "${corevol}"
 			sync
 	fi
 }
@@ -1906,11 +1904,11 @@ function unmute_sc() {
 			
 			if [ -z "${corevolbefore}" ]; then
 				if [ "${corevolbefore}" == "00" ]; then
-					echo -e "\0000\c" > "${corevol})"
+					echo -e "\0000\c" > "${corevol}"
 					#add more cases
 				fi
 			else
-				echo -e "\0000\c" > "${corevol})"
+				echo -e "\0000\c" > "${corevol}"
 			fi
 
 	fi
