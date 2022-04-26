@@ -60,7 +60,6 @@ usezip="Yes"
 norepeat="Yes"
 disablebootrom="Yes"
 mute="Yes"
-mute_sc="Yes"
 playcurrentgame="No"					
 listenmouse="Yes"
 listenkeyboard="Yes"
@@ -70,7 +69,6 @@ branch="main"
 counter=0
 userstartup="/media/fat/linux/user-startup.sh"
 userstartuptpl="/media/fat/linux/_user-startup.sh"
-
 
 
 
@@ -1379,8 +1377,6 @@ function next_core() { # next_core (core)
 		load_core_arcade
 		return
 	fi
-	
-	
 
 	
 	### Declare functions first
@@ -1575,7 +1571,67 @@ function next_core() { # next_core (core)
 		fi
 	}
 	
+	
+	function create_romlist() {
+		if [ "${samquiet,,}" == "no" ]; then echo " Executing Game search in Directory."; fi
+		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > "${gamelistpath}/${nextcore,,}_gamelist.txt"
+		#Find all zips and process
+		
+		for z in "${CORE_PATH[${nextcore,,}]}"/*.zip; do 
+			"${mrsampath}/partun" "${z}" -l -e ${fldrexzip::-1} --ext .${CORE_EXT[${nextcore,,}]} >> /tmp/nes_ziplist
+		done
 
+		cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
+	}
+	
+	function build_romlist() {
+	
+		#Create list
+		if [ ! -f "${gamelistpath}/${nextcore,,}_gamelist.txt" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${nextcore,,}_gamelist.txt"; fi
+			create_romlist
+		fi
+		
+		#If folder changed, make new list
+		if [ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${CORE_PATH[${nextcore,,}]}" | head -1)" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${CORE_PATH[${nextcore,,}]}" changed in ini."; fi
+			create_romlist
+		fi
+		
+		#If rom doesn't exist
+		if [ ! -f "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt |  head -1)" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Game not found. List will be recreated."; fi
+			create_romlist
+		fi
+		
+		#Check if zip still exists
+		if [ ! -f "$(cat "${gamelistpath}/${nextcore,,}_gamelist" | awk -F".zip" '{print $1}/.zip/').zip" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because zip file seems to have changed."; fi
+			create_romlist
+		fi
+		
+		#Delete played game from list	
+		if [ -s "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" ]; then
+			
+			#Pick the actual game
+			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist.txt | shuf --head-count=1 )"
+			if [ "${samquiet,,}" == "no" ]; then echo " Filename: ${rompath} selected."; fi
+			#Make sure file exists since we're reading from a static list
+			if [ ! -f "${rompath}" ]; then
+				create_romlist
+			fi
+			
+			if [ "${norepeat,,}" == "yes" ]; then
+				awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore,,}_gamelist.txt"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore,,}_gamelist.txt"
+			fi
+		else
+			#Repopulate list
+			cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
+			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist.txt | shuf --head-count=1 )"
+		fi
+			
+		romname=$(basename "${rompath}")
+	}
 
 	
 ###################################### ROMFINDER START ###############################################
@@ -1606,52 +1662,15 @@ function romfinder_gamelist() {
 	# We might be using ZIPs
 	else	
 		#Check first if something changed in the directory
-		if [ ! -f "${gamelistpathtmp}/${nextcore,,}_gamelist_zipped.txt" ]; then
-	
-			# Check how many ZIP and ROM files in core path	(Case 4)
-			romzip_compare
-			
-			#Compare roms vs zips
-			if [ "${zipcount}" -gt 0 ] && [ "${romcount}" -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi						
-				
-				if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -size +15M -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
-				
-					find_zip_all
-					use_ziproms
-				
-				# We see more zip files than ROMs, we're probably dealing with individually zipped roms (Case 3)
-				elif [ ${zipcount} -gt ${romcount} ]; then
-					if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
-
-					find_zip_individual
+		if [ ! -f "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" ]; then
 						
-				# I guess we use the ROMs! (Case 1)
-				else
-					if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
-						
-					use_roms
-				
-				fi
-
-			# Found no ZIPs or we're ignoring them
-			elif [ $zipcount = 0 ] || [ "${usezip,,}" == "no" ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Found no zips or ignoring them."; fi
-				
-				use_roms
-
-			# Use the ZIP Luke! (Case 2)
-			else
-				if [ "${samquiet,,}" == "no" ]; then echo " Using zip. Checking for Everdrive packs or large rom packs first..."; fi
-				find_zip_all
-				if [ "${samquiet,,}" == "no" ]; then echo " Selected: ${romfind}"; fi
-				use_ziproms
-			fi
+			build_romlist
 			
 		else
 			#We have a file list, pick a rom
 			if [ "${samquiet,,}" == "no" ]; then echo " Picking a game from exisitng list: ${gamelistpath}/${nextcore,,}_gamelist_zipped.txt"; fi
-			use_ziproms
+			
+			use_romlist
 		
 		fi
 	fi
@@ -1796,7 +1815,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		done
 	fi
 	
-	mute_sc
 
 
 	#Create mgl file and launch game
@@ -1818,9 +1836,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	if [ "${skipmessage,,}" == "yes" ] && [ "${CORE_SKIP[${nextcore,,}],,}" == "yes" ]; then	
 		skipmessage	
 	fi
-	
-	sleep 2
-	unmute_sc
 }
 
 function core_error() { # core_error core /path/to/ROM
@@ -1877,40 +1892,6 @@ function unmute() {
 			else
 				echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
 			fi	
-	fi
-}
-
-function mute_sc() {
-	if [ "${mute_sc,,}" == "yes" ]; then
-			#Mute single core Volume
-			corevol="/media/fat/config/${nextcore}_volume.cfg"
-			
-			
-			if [ -f "${corevol}" ]; then
-				corevolbefore="$(hexdump -n 8 -ve '1/1 "%.2x"' ${corevol})"
-			else
-				touch "${corevol}"
-			fi			
-			
-			echo -e "\0007\c" > "${corevol}"
-			sync
-	fi
-}
-
-function unmute_sc() {
-	if [ "${mute_sc,,}" == "yes" ]; then
-	
-			#Unmute and reload core
-			
-			if [ -z "${corevolbefore}" ]; then
-				if [ "${corevolbefore}" == "00" ]; then
-					echo -e "\0000\c" > "${corevol}"
-					#add more cases
-				fi
-			else
-				echo -e "\0000\c" > "${corevol}"
-			fi
-
 	fi
 }
 		
