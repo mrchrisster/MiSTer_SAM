@@ -1574,12 +1574,13 @@ function next_core() { # next_core (core)
 	
 	function create_romlist() {
 		if [ "${samquiet,,}" == "no" ]; then echo " Executing Game search in Directory."; fi
-		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > "${gamelistpath}/${nextcore,,}_gamelist.txt"
+		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > "/tmp/.SAM_List/${nextcore,,}_gamelisttmp.txt"
 		#Find all zips and process
 		
 		for z in "${CORE_PATH[${nextcore,,}]}"/*.zip; do 
 			"${mrsampath}/partun" "${z}" -l -e ${fldrexzip::-1} --include-archive-name --skip-duplicate-filenames --ext .${CORE_EXT[${nextcore,,}]} >> "${gamelistpath}/${nextcore,,}_gamelist.txt"
 		done
+		awk -F'/' '!seen[$NF]++' "/tmp/.SAM_List/${nextcore,,}_gamelisttmp.txt" > "${gamelistpath}/${nextcore,,}_gamelist.txt"
 
 		cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
 	}
