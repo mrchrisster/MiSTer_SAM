@@ -1578,7 +1578,7 @@ function next_core() { # next_core (core)
 		#Find all zips and process
 		
 		for z in "${CORE_PATH[${nextcore,,}]}"/*.zip; do 
-			"${mrsampath}/partun" "${z}" -l -e ${fldrexzip::-1} --ext .${CORE_EXT[${nextcore,,}]} >> /tmp/nes_ziplist
+			"${mrsampath}/partun" "${z}" -l -e ${fldrexzip::-1} --include-archive-name --skip-duplicate-filenames --ext .${CORE_EXT[${nextcore,,}]} >> "${gamelistpath}/${nextcore,,}_gamelist.txt"
 		done
 
 		cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
