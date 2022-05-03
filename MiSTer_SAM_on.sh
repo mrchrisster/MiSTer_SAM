@@ -1362,7 +1362,7 @@ function next_core() { # next_core (core)
 			nextcore="$(echo ${corelist}| xargs shuf --head-count=1 --echo)"
 		fi
 	
-	if [ "${samquiet,,}" == "no" ]; then echo " Selected core: ${nextcore^^}."; fi
+	if [ "${samquiet,,}" == "no" ]; then echo " Selected core: ${nextcore^^}"; fi
 	
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
@@ -1390,168 +1390,6 @@ function next_core() { # next_core (core)
 		sync
 	}
 	
-	function create_romlist() {
-		if [ "${samquiet,,}" == "no" ]; then echo " Executing Game search in Directory."; fi
-		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | sort > "${gamelistpath}/${nextcore,,}_gamelist.txt"
-		cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
-	}
-	
-	function use_roms() {		
-		#Create list
-		if [ ! -f "${gamelistpath}/${nextcore,,}_gamelist.txt" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${nextcore,,}_gamelist.txt"; fi
-			create_romlist
-		fi
-		
-		#If folder changed, make new list
-		if [ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${CORE_PATH[${nextcore,,}]}" | head -1)" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${CORE_PATH[${nextcore,,}]}" changed in ini."; fi
-			create_romlist
-		fi
-		
-		#If rom doesn't exist
-		if [ ! -f "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt |  head -1)" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Game not found. List will be recreated."; fi
-			create_romlist
-		fi
-		
-		#Delete played game from list	
-		if [ -s "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" ]; then
-			
-			#Pick the actual game
-			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist.txt | shuf --head-count=1 )"
-			if [ "${samquiet,,}" == "no" ]; then echo " Filename: ${rompath} selected."; fi
-			#Make sure file exists since we're reading from a static list
-			if [ ! -f "${rompath}" ]; then
-				create_romlist
-			fi
-			
-			if [ "${norepeat,,}" == "yes" ]; then
-				awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore,,}_gamelist.txt"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore,,}_gamelist.txt"
-			fi
-		else
-			#Repopulate list
-			cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
-			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist.txt | shuf --head-count=1 )"
-		fi
-			
-		romname=$(basename "${rompath}")
-	}	
-	
-	
-	function find_zip_all() {
-		#Prefer Everdrive zips if found. To avoid bios zip files, let's make minimum file size 15MB. Select this zip if found.
-		if [ -n "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )" ]; then
-			romfind="$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -size +15M -type f -iname "*.zip" -iname "*${CORE_EVERDRIVE[${nextcore,,}]}*" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )"
-		else
-			#Find biggest zip file in folder and assume this is our rompack
-			romfind="$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 2 -xdev -type f -iname "*.zip" -printf '%s %p\n' | sort -n | tail -1 | cut -d ' ' -f 2- )"
-		fi
-		if [ -z "${romfind}" ]; then
-			echo " ERROR Zip file: ${romfind} does not contain valid roms."
-			next_core	
-		fi
-	}
-	
-	function find_zip_individual() {
-		#Individual list roms
-		romfind=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" | shuf --head-count=1 )
-		rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
-		romname=$(basename "${rompath}")
-	}
-	
-	
-	function create_ziplist() {
-	
-		if [ -z "${romfind}" ]; then 
-			reset_core_gl
-			next_core
-		fi
-			
-		# Use partun to create zip game list
-		if [ "${samquiet,,}" == "no" ]; then echo " Searching for files with extension ."${CORE_EXT[${nextcore,,}]}" in $romfind"; fi
-		
-		"${mrsampath}/partun" "${romfind}" -l -e ${fldrexzip::-1} -f .${CORE_EXT[${nextcore,,}]} > ${tmpfile}
-		
-		#We picked the wrong zip.
-		if [ ! -s ${tmpfile} ]; then
-			echo " ERROR Zip file: ${romfind} does not contain valid roms."
-			next_core
-			
-		fi
-		
-		# Add zip location to file and delete roms with wrong extension (eg partuns's filter won't filter out ".gbc" extension when ".gb" is given in filter options) 
-		awk -v prefix="${romfind}/" '{print prefix $0}' ${tmpfile} > ${tmpfile}2
-		grep ".*\.${CORE_EXT[${nextcore,,}]}$" ${tmpfile}2 | sort > "${gamelistpath}/${nextcore,,}_gamelist_zipped.txt"
-		cp "${gamelistpath}/${nextcore,,}_gamelist_zipped.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist_zipped.txt" &>/dev/null
-	}	
-	
-	function use_ziproms() {
-				
-		#Create a list of all valid roms in zip
-		if [ ! -s "${gamelistpath}/${nextcore,,}_gamelist_zipped.txt" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${nextcore,,}_gamelist_zipped.txt"; fi
-			create_ziplist
-		fi		
-		
-		#If folder changed, make new list
-		if [ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist_zipped.txt | grep "${CORE_PATH[${nextcore,,}]}" | head -1)" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder changed in ini."; fi
-			create_ziplist
-		fi
-			
-		#Check if zip still exists
-		if [ ! -f "$(cat "${gamelistpath}/${nextcore,,}_gamelist_zipped.txt" | awk -F".zip" '{print $1}/.zip/' | head -1).zip" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because zip file seems to have changed."; fi
-			create_ziplist
-		fi
-		
-		
-		if [ -s "${gamelistpathtmp}/${nextcore,,}_gamelist_zipped.txt" ]; then
-		
-			#Pick the actual game
-			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist_zipped.txt | shuf --head-count=1 )"		
-			if [ "${samquiet,,}" == "no" ]; then echo " Filename: ${rompath} selected."; fi					
-			
-			#Delete rom from list so we don't have repeats
-			if [ "${norepeat,,}" == "yes" ]; then
-				awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore,,}_gamelist_zipped.txt"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore,,}_gamelist_zipped.txt"
-			fi
-		else
-			#Repopulate list
-			cp "${gamelistpath}/${nextcore,,}_gamelist_zipped.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist_zipped.txt" &>/dev/null
-			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist_zipped.txt | shuf --head-count=1 )"	
-			
-		fi
-						
-		romname=$(basename "${rompath}")
-	}
-	
-
-	function romzip_compare() {
-		# Check how many ZIP and ROM files in core path
-		if [ ! -f "${countpath}/${nextcore}_zipcount" ]; then
-			echo -n " Please wait... Counting ${nextcore^^} zip files "
-			zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" -print | wc -l)
-			echo ${zipcount} > "${countpath}/${nextcore}_zipcount"
-		else
-			zipcount=$(cat "${countpath}/${nextcore}_zipcount")
-		fi
-		
-		if [ ! -f "${countpath}/${nextcore}_romcount" ]; then
-			echo "and rom files..."
-			romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-			echo ${romcount} > "${countpath}/${nextcore}_romcount"
-		else
-			romcount=$(cat "${countpath}/${nextcore}_romcount")
-		fi
-
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi	
-
-
-	}
-	
 	function stat_compare() {
 	
 		DIR_TO_CHECK="${CORE_PATH[${nextcore,,}]}"
@@ -1573,19 +1411,24 @@ function next_core() { # next_core (core)
 	
 	
 	function create_romlist() {
-		if [ "${samquiet,,}" == "no" ]; then echo " Executing Game search in Directory."; fi
-		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > "/tmp/.SAM_List/${nextcore,,}_gamelisttmp.txt"
+		echo -n " Looking for games in ${CORE_PATH[${nextcore,,}]} ..."
+		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > "${tmpfile}"
 		#Find all zips and process
 		
+		shopt -s nullglob
 		for z in "${CORE_PATH[${nextcore,,}]}"/*.zip; do 
-			"${mrsampath}/partun" "${z}" -l -e ${fldrexzip::-1} --include-archive-name --skip-duplicate-filenames --ext .${CORE_EXT[${nextcore,,}]} >> "${gamelistpath}/${nextcore,,}_gamelist.txt"
+			"${mrsampath}/partun" "${z}" -l -e ${fldrexzip::-1} --include-archive-name --skip-duplicate-filenames --ext .${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
 		done
-		awk -F'/' '!seen[$NF]++' "/tmp/.SAM_List/${nextcore,,}_gamelisttmp.txt" > "${gamelistpath}/${nextcore,,}_gamelist.txt"
+		shopt -u nullglob
+		
+		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${nextcore,,}_gamelist.txt"
+		
 
 		cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
+		echo " Done."
 	}
 	
-	function build_romlist() {
+	##### START ROMFINDER #####
 	
 		#Create list
 		if [ ! -f "${gamelistpath}/${nextcore,,}_gamelist.txt" ]; then
@@ -1594,21 +1437,17 @@ function next_core() { # next_core (core)
 		fi
 		
 		#If folder changed, make new list
-		if [ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${CORE_PATH[${nextcore,,}]}" | head -1)" ]; then
+		if [[ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${CORE_PATH[${nextcore,,}]}" | head -1)" ]]; then
 			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${CORE_PATH[${nextcore,,}]}" changed in ini."; fi
 			create_romlist
 		fi
 		
-		#If rom doesn't exist
-		if [ ! -f "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt |  head -1)" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Game not found. List will be recreated."; fi
-			create_romlist
-		fi
-		
 		#Check if zip still exists
-		if [ ! -f "$(cat "${gamelistpath}/${nextcore,,}_gamelist" | awk -F".zip" '{print $1}/.zip/').zip" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because zip file seems to have changed."; fi
-			create_romlist
+		if [ "$(grep -c ".zip" ${gamelistpath}/${nextcore,,}_gamelist.txt)" != "0" ]; then
+			if [ ! -f "$(grep ".zip" "${gamelistpath}/${nextcore,,}_gamelist.txt" | awk -F".zip" '{print $1}/.zip/' |head -1).zip" ]; then
+				if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because zip file seems to have changed."; fi
+				create_romlist
+			fi
 		fi
 		
 		#Delete played game from list	
@@ -1616,10 +1455,15 @@ function next_core() { # next_core (core)
 			
 			#Pick the actual game
 			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist.txt | shuf --head-count=1 )"
-			if [ "${samquiet,,}" == "no" ]; then echo " Filename: ${rompath} selected."; fi
+			if [ "${samquiet,,}" == "no" ]; then echo " Selected file: ${rompath}"; fi
+			
 			#Make sure file exists since we're reading from a static list
-			if [ ! -f "${rompath}" ]; then
-				create_romlist
+			
+			if [[ ! "${rompath}" == *.zip* ]]; then					
+				if [ ! -f "${rompath}" ]; then
+					if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because file not found."; fi
+					create_romlist
+				fi
 			fi
 			
 			if [ "${norepeat,,}" == "yes" ]; then
@@ -1632,129 +1476,8 @@ function next_core() { # next_core (core)
 		fi
 			
 		romname=$(basename "${rompath}")
-	}
-
 	
-###################################### ROMFINDER START ###############################################
 
-
-# SAM tries to determine how the user has set up their rom collection. 
-# There are 4 possible cases:
-#
-# 1. Roms are all unzipped
-# 2. Roms are in one big zip archive - SAM supports Everdrive
-# 3. Roms are zipped individually
-# 4. There are some zipped roms and some unzipped roms in the same dir 
-
-######################################################################################################
-
-function romfinder_gamelist() {
-
-	#Do we need new filelists? Let's check if the core directory was modified.
-	#Doesn't work, after reboot it indicates changes even though nothing changed
-	#stat_compare
-
-	# Some cores don't use zips, they might use chds for example.
-	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore^^} does not use ZIPs."; fi
-			
-			use_roms
-		
-	# We might be using ZIPs
-	else	
-		#Check first if something changed in the directory
-		if [ ! -f "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" ]; then
-						
-			build_romlist
-			
-		else
-			#We have a file list, pick a rom
-			if [ "${samquiet,,}" == "no" ]; then echo " Picking a game from exisitng list: ${gamelistpath}/${nextcore,,}_gamelist_zipped.txt"; fi
-			
-			use_romlist
-		
-		fi
-	fi
-}
-
-function romfinder() {
-
-	# Some cores don't use zips - get on with it
-	if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "no" ]; then
-		if [ "${samquiet,,}" == "no" ]; then echo " ${nextcore,,} does not use ZIPs."; fi
-		rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-		#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
-		romname=$(basename "${rompath}")
-	
-	# We might be using ZIPs
-	else
-		# Check how many ZIP and ROM files in core path	(Case 4)
-		zipcount=$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -type f -iname "*.zip" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${zipcount} zip files in ${CORE_PATH[${nextcore,,}]}."; fi
-		romcount=$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" -print | wc -l)
-		if [ "${samquiet,,}" == "no" ]; then echo " Found ${romcount} ${CORE_EXT[${nextcore,,}]} files in ${CORE_PATH[${nextcore,,}]}."; fi
-
-		if [ ${zipcount} -gt 0 ] && [ ${romcount} -gt 0 ] && [ "${usezip,,}" == "yes" ]; then
-			# We've found ZIPs AND ROMs AND we're using zips
-			if [ "${samquiet,,}" == "no" ]; then echo " Both ROMs and ZIPs found!"; fi
-
-			# We found at least one large ZIP file - use it (Case 2)
-			if [ $(find "${CORE_PATH[${nextcore,,}]}" -xdev -type f -size +500M \( -iname "*.zip" \) -print | wc -l) -gt 0 ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Using 500MB+ ZIP(s)."; fi
-				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -size +500M -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
-				romname=$(basename "${rompath}")
-
-
-			# We see more zip files than ROMs, we're probably dealing with individually zipped roms (Case 3)
-			elif [ ${zipcount} -gt ${romcount} ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Fewer ROMs - using ZIPs."; fi
-				romfind=$(find "${CORE_PATH[${nextcore,,}]}" -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-				rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
-				romname=$(basename "${rompath}")
-					
-
-				
-			# I guess we use the ROMs! (Case 1)
-			else
-				if [ "${samquiet,,}" == "no" ]; then echo " Using ROMs."; fi
-				rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-				#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
-				romname=$(basename "${rompath}")
-			fi
-
-		# Found no ZIPs or we're ignoring them
-		elif [ -z "$(find "${CORE_PATH[${nextcore,,}]}" -maxdepth 1 -type f \( -iname "*.zip" \))" ] || [ "${usezip,,}" == "no" ]; then
-			rompath="$(find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -iname "*.${CORE_EXT[${nextcore,,}]}" | shuf --head-count=1 --random-source=/dev/urandom)"
-			#rompath=\"${rompath#*${CORE_PATH[${nextcore,,}]}}\"
-			romname=$(basename "${rompath}")
-
-		# Use the ZIP Luke!
-		else
-			romfind=$(find "${CORE_PATH[${nextcore,,}]}" -xdev -maxdepth 1 -type f -iname "*.zip" | shuf --head-count=1 --random-source=/dev/urandom)
-			rompath="${romfind}/$("${mrsampath}/partun" "${romfind}" -l -r -e ${fldrexzip::-1} -f ${CORE_EXT[${nextcore,,}]})"
-			romname=$(basename "${rompath}")
-		fi
-		
-		# Sanity check that we have a valid rom in var
-		if [[ ${rompath} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
-			next_core 
-			return
-		fi
-	
-	fi
-	
-}
-
-# Execute Romfinder
-if [ "${gamelist,,}" == "yes" ]; then
-	romfinder_gamelist
-else
-	romfinder
-fi
-
-
-###################################### ROMFINDER DONE ###############################################
 	
 	# Sanity check that we have a valid rom in var
 	if [[ ${rompath} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
@@ -2043,4 +1766,3 @@ if [ "${1}" != "--source-only" ]; then
 fi	
 
 
-#exit
