@@ -387,6 +387,10 @@ declare -gA CORE_EVERDRIVE=( \
 }
 
 #========= PARSE INI =========
+
+#Make all cores available
+corelistall=$corelist
+
 # Read INI
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
@@ -488,7 +492,7 @@ function sam_menu() {
 
 function sam_singlemenu() {
 	declare -a menulist=()
-	for core in ${corelist}; do
+	for core in ${corelistall}; do
 		menulist+=( "${core^^}" )
 		menulist+=( "${CORE_PRETTY[${core,,}]} games only" )
 	done
@@ -1412,7 +1416,7 @@ function next_core() { # next_core (core)
 	
 	function create_romlist() {
 		echo -n " Looking for games in ${CORE_PATH[${nextcore,,}]} ..."
-		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -not -path '*/.*' -prune -false -o -type f -iname "*.${CORE_EXT[${nextcore,,}]}" > "${tmpfile}"
+		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -name "README.md" \)  > "${tmpfile}"
 		#Find all zips and process
 		
 		shopt -s nullglob
@@ -1470,9 +1474,11 @@ function next_core() { # next_core (core)
 				awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore,,}_gamelist.txt"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore,,}_gamelist.txt"
 			fi
 		else
+
 			#Repopulate list
 			cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
 			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist.txt | shuf --head-count=1 )"
+			if [ "${samquiet,,}" == "no" ]; then echo " Selected file: ${rompath}"; fi
 		fi
 			
 		romname=$(basename "${rompath}")
@@ -1766,3 +1772,4 @@ if [ "${1}" != "--source-only" ]; then
 fi	
 
 
+#exit
