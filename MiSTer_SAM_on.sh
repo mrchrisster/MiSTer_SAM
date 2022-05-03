@@ -69,7 +69,7 @@ branch="main"
 counter=0
 userstartup="/media/fat/linux/user-startup.sh"
 userstartuptpl="/media/fat/linux/_user-startup.sh"
-
+usedefaultpaths="Yes"
 
 
 # ======== TTY2OLED =======
@@ -384,6 +384,26 @@ declare -gA CORE_EVERDRIVE=( \
 ["psx"]="Playstation" \
 )
 		
+
+# Default rom path search directories
+declare -ga GAMESDIR_FOLDERS=( \
+/media/usb0/games \
+/media/usb1/games \
+/media/usb2/games \
+/media/usb3/games \
+/media/usb4/games \
+/media/usb5/games \
+/media/fat/cifs/games \
+/media/fat/games \
+/media/usb0 \
+/media/usb1 \
+/media/usb2 \
+/media/usb3 \
+/media/usb4 \
+/media/usb5 \
+/media/fat/cifs \
+/media/fat \
+)
 }
 
 #========= PARSE INI =========
@@ -425,7 +445,62 @@ done
 fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 # Create folder exclude list for zips
 fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
+
+
+function defaultpath() {
+	local SYSTEM="${1}"
+	local SYSTEM_ORG="${SYSTEM}"
+	if [ ${SYSTEM} == "arcade" ]; then
+		SYSTEM="_arcade"
+	fi
+	if [ ${SYSTEM} == "fds" ]; then
+		SYSTEM="nes"
+	fi
 	
+	if [ ${SYSTEM} == "gg" ]; then
+		SYSTEM="sms"
+	fi
+
+	if [ ${SYSTEM} == "tgfx16cd" ]; then
+		SYSTEM="tgfx16-cd"
+	fi
+
+	shift
+	
+	GET_SYSTEM_FOLDER "${SYSTEM}"
+	local SYSTEM_FOLDER="${GET_SYSTEM_FOLDER_RESULT}"
+	local GAMESDIR="${GET_SYSTEM_FOLDER_GAMESDIR}"
+	
+	if [[ "${SYSTEM_FOLDER}" != "" ]]
+	then
+	   eval ${SYSTEM_ORG}"path"="${GAMESDIR}/${GET_SYSTEM_FOLDER_RESULT}"
+	fi
+}
+
+GET_SYSTEM_FOLDER_GAMESDIR=
+GET_SYSTEM_FOLDER_RESULT=
+GET_SYSTEM_FOLDER() {
+	GET_SYSTEM_FOLDER_GAMESDIR="/media/fat/games"
+	GET_SYSTEM_FOLDER_RESULT=
+	local SYSTEM="${1}"
+	for folder in ${GAMESDIR_FOLDERS[@]}
+	do
+	local RESULT=$(find "${folder}" -maxdepth 1 -iname "${SYSTEM}" -printf "%P\n" -quit 2> /dev/null)
+	if [[ "${RESULT}" != "" ]] ; then
+	    GET_SYSTEM_FOLDER_GAMESDIR="${folder}"
+	    GET_SYSTEM_FOLDER_RESULT="${RESULT}"
+	    break
+	fi
+	done
+}
+
+if [ ${usedefaultpaths} == "yes" ]; then
+	echo "using default paths!"
+	for core in ${corelist}; do
+		defaultpath "${core}"
+	done
+fi
+
 
 
 
