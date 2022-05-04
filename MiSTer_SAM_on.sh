@@ -97,6 +97,42 @@ tgfx16path="/media/fat/Games/TGFX16"
 tgfx16cdpath="/media/fat/Games/TGFX16-CD"
 psxpath="/media/fat/Games/PSX"
 
+#======== CORE PATHS Extra ========
+arcadepathextra=""
+fdspathextra=""
+gbpathextra=""
+gbcpathextra=""
+gbapathextra=""
+genesispathextra=""
+ggpathextra=""
+megacdpathextra=""
+neogeopathextra=""
+nespathextra=""
+s32xpathextra=""
+smspathextra=""
+snespathextra=""
+tgfx16pathextra=""
+tgfx16cdpathextra=""
+psxpathextra=""
+
+#======== CORE PATHS RBF ========
+arcadepathrbf="_Arcade"
+fdspathrbf="_Console"
+gbpathrbf="_Console"
+gbcpathrbf="_Console"
+gbapathrbf="_Console"
+genesispathrbf="_Console"
+ggpathrbf="_Console"
+megacdpathrbf="_Console"
+neogeopathrbf="_Console"
+nespathrbf="_Console"
+s32xpathrbf="_Console"
+smspathrbf="_Console"
+snespathrbf="_Console"
+tgfx16pathrbf="_Console"
+tgfx16cdpathrbf="_Console"
+psxpathrbf="_Console"
+
 #======== EXCLUDE LISTS ========
 arcadeexclude="First Bad Game.mra
 Second Bad Game.mra
@@ -224,7 +260,47 @@ declare -gA CORE_PATH=( \
 ["tgfx16cd"]="${tgfx16cdpath}" \
 ["psx"]="${psxpath}" \
 )
-	
+
+# Core to extra path mappings
+declare -gA CORE_PATH_EXTRA=( \
+["arcade"]="${arcadepathextra}" \
+["fds"]="${fdspathextra}" \
+["gb"]="${gbpathextra}" \
+["gbc"]="${gbcpathextra}" \
+["gba"]="${gbapathextra}" \
+["genesis"]="${genesispathextra}" \
+["gg"]="${ggpathextra}" \
+["megacd"]="${megacdpathextra}" \
+["neogeo"]="${neogeopathextra}" \
+["nes"]="${nespathextra}" \
+["s32x"]="${s32xpathextra}" \
+["sms"]="${smspathextra}" \
+["snes"]="${snespathextra}" \
+["tgfx16"]="${tgfx16pathextra}" \
+["tgfx16cd"]="${tgfx16cdpathextra}" \
+["psx"]="${psxpathextra}" \
+)
+
+# Core to path mappings for rbf files
+declare -gA CORE_PATH_RBF=( \
+["arcade"]="${arcadepathrbf}" \
+["fds"]="${fdspathrbf}" \
+["gb"]="${gbpathrbf}" \
+["gbc"]="${gbcpathrbf}" \
+["gba"]="${gbapathrbf}" \
+["genesis"]="${genesispathrbf}" \
+["gg"]="${ggpathrbf}" \
+["megacd"]="${megacdpathrbf}" \
+["neogeo"]="${neogeopathrbf}" \
+["nes"]="${nespathrbf}" \
+["s32x"]="${s32xpathrbf}" \
+["sms"]="${smspathrbf}" \
+["snes"]="${snespathrbf}" \
+["tgfx16"]="${tgfx16pathrbf}" \
+["tgfx16cd"]="${tgfx16cdpathrbf}" \
+["psx"]="${psxpathrbf}" \
+)
+
 # Can this core use ZIPped ROMs
 declare -gA CORE_ZIPPED=( \
 ["arcade"]="No" \
@@ -416,6 +492,12 @@ if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 	# Remove trailing slash from paths
 	for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
+		declare -g ${var}="${!var%/}"
+	done
+	for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathextra=" | cut -f1 -d"="); do
+		declare -g ${var}="${!var%/}"
+	done
+	for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
 		declare -g ${var}="${!var%/}"
 	done
 fi
@@ -1471,7 +1553,7 @@ function next_core() { # next_core (core)
 	
 	function stat_compare() {
 	
-		DIR_TO_CHECK="${CORE_PATH[${nextcore,,}]}"
+		DIR_TO_CHECK="${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}"
 		OLD_STAT_FILE="${countpath}/${nextcore}_stat"
 		if [ -e "$OLD_STAT_FILE" ]; then
 				OLD_STAT=$(cat "$OLD_STAT_FILE")
@@ -1482,7 +1564,7 @@ function next_core() { # next_core (core)
 		NEW_STAT=$(stat -t "${DIR_TO_CHECK}")
 		
 		if [ “"${OLD_STAT}"” != “"${NEW_STAT}"” ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Directory ${CORE_PATH[${nextcore,,}]} was modified or this is the first core launch. Regenerating game lists..."; fi
+				if [ "${samquiet,,}" == "no" ]; then echo " Directory ${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]} was modified or this is the first core launch. Regenerating game lists..."; fi
 				reset_core_gl
 				echo "$NEW_STAT" > "$OLD_STAT_FILE"
 		fi
@@ -1490,12 +1572,12 @@ function next_core() { # next_core (core)
 	
 	
 	function create_romlist() {
-		echo -n " Looking for games in ${CORE_PATH[${nextcore,,}]} ..."
-		find "${CORE_PATH[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -name "README.md" \)  > "${tmpfile}"
+		echo -n " Looking for games in ${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]} ..."
+		find "${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -name "README.md" \)  > "${tmpfile}"
 		#Find all zips and process
 		
 		shopt -s nullglob
-		for z in "${CORE_PATH[${nextcore,,}]}"/*.zip; do 
+		for z in "${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}"/*.zip; do 
 			"${mrsampath}/partun" "${z}" -l -e ${fldrexzip::-1} --include-archive-name --skip-duplicate-filenames --ext .${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
 		done
 		shopt -u nullglob
@@ -1516,8 +1598,8 @@ function next_core() { # next_core (core)
 		fi
 		
 		#If folder changed, make new list
-		if [[ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${CORE_PATH[${nextcore,,}]}" | head -1)" ]]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${CORE_PATH[${nextcore,,}]}" changed in ini."; fi
+		if [[ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}" | head -1)" ]]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}" changed in ini."; fi
 			create_romlist
 		fi
 		
@@ -1623,11 +1705,12 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 
 	#Create mgl file and launch game
-	
-	
+	corepath="${CORE_PATH[${nextcore,,}]}/"
+	rompath=${rompath#"${corepath}"}
+
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
-	echo "<rbf>_console/${MGL_CORE[${nextcore}]}</rbf>" >> /tmp/SAM_game.mgl	
-	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl		
+	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >> /tmp/SAM_game.mgl
+	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"${rompath}\""/>" >> /tmp/SAM_game.mgl
 	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
 	
 	
