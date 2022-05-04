@@ -384,26 +384,6 @@ declare -gA CORE_EVERDRIVE=( \
 ["psx"]="Playstation" \
 )
 		
-
-# Default rom path search directories
-declare -ga GAMESDIR_FOLDERS=( \
-/media/usb0/games \
-/media/usb1/games \
-/media/usb2/games \
-/media/usb3/games \
-/media/usb4/games \
-/media/usb5/games \
-/media/fat/cifs/games \
-/media/fat/games \
-/media/usb0 \
-/media/usb1 \
-/media/usb2 \
-/media/usb3 \
-/media/usb4 \
-/media/usb5 \
-/media/fat/cifs \
-/media/fat \
-)
 }
 
 #========= PARSE INI =========
@@ -447,6 +427,26 @@ fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
 fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
 
 
+# Default rom path search directories
+declare -ga GAMESDIR_FOLDERS=( \
+/media/usb0/games \
+/media/usb1/games \
+/media/usb2/games \
+/media/usb3/games \
+/media/usb4/games \
+/media/usb5/games \
+/media/fat/cifs/games \
+/media/fat/games \
+/media/usb0 \
+/media/usb1 \
+/media/usb2 \
+/media/usb3 \
+/media/usb4 \
+/media/usb5 \
+/media/fat/cifs \
+/media/fat \
+)
+
 function defaultpath() {
 	local SYSTEM="${1}"
 	local SYSTEM_ORG="${SYSTEM}"
@@ -457,6 +457,14 @@ function defaultpath() {
 		SYSTEM="nes"
 	fi
 	
+	if [ ${SYSTEM} == "gb" ]; then
+		SYSTEM="gameboy"
+	fi
+
+	if [ ${SYSTEM} == "gbc" ]; then
+		SYSTEM="gameboy"
+	fi
+
 	if [ ${SYSTEM} == "gg" ]; then
 		SYSTEM="sms"
 	fi
@@ -494,7 +502,7 @@ GET_SYSTEM_FOLDER() {
 	done
 }
 
-if [ ${usedefaultpaths} == "yes" ]; then
+if [ ${usedefaultpaths,,} == "yes" ]; then
 	echo "using default paths!"
 	for core in ${corelist}; do
 		defaultpath "${core}"
