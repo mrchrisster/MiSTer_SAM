@@ -42,7 +42,7 @@ function start() {
 	echo -n " Starting SAM..."
 	#Sleep before startup so clock of Mister can syncronize. Otherwise SAM will start immidiately when the clock gets set after bootup. 
 	sleep 60
-	${misterpath}/Scripts/MiSTer_SAM_on.sh start
+	${misterpath}/Scripts/MiSTer_SAM_on.sh bootstart
 }
 
 function stop() {
