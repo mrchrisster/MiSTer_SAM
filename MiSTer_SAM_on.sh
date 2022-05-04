@@ -585,7 +585,7 @@ GET_SYSTEM_FOLDER() {
 }
 
 if [ ${usedefaultpaths,,} == "yes" ]; then
-	echo "using default paths!"
+	if [ "${samquiet,,}" == "no" ]; then echo " Using default paths."; fi
 	for core in ${corelist}; do
 		defaultpath "${core}"
 	done
@@ -957,7 +957,16 @@ function sam_update() { # sam_update (next command)
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
-			echo " MiSTer SAM INI already exists... SKIPPED!"
+			echo " MiSTer SAM INI already exists... Merging with new ini."
+			get_samstuff MiSTer_SAM.ini /tmp
+			echo " Backing up MiSTer_SAM.ini to MiSTer_SAM.ini.bak"
+			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak 
+			echo -n " Merging.."
+			sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i 's/-=/--/g' /media/fat/Scripts/MiSTer_SAM.ini
+			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/MiSTer_SAM.ini /tmp/MiSTer_SAM.ini > ${tmpfile} && mv --force ${tmpfile} /media/fat/Scripts/MiSTer_SAM.ini
+			echo " Done."
+			
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		fi
