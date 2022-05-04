@@ -803,7 +803,7 @@ function parse_cmd() {
 					#break
 					;;
 				stop) # Stop SAM immediately
-					there_can_be_only_one
+					sam_stop
 					tty_exit
 					if [ "${mute,,}" == "yes" ]; then echo -e "\0000\c" > /media/fat/config/Volume.dat; fi
 					echo " Thanks for playing!"
@@ -1056,6 +1056,28 @@ function sam_help() { # sam_help
 
 #======== UTILITY FUNCTIONS ========
 function there_can_be_only_one() { # there_can_be_only_one
+	# If another attract process is running kill it
+	# This can happen if the script is started multiple times
+	echo -n " Stopping other running instances of ${samprocess}..."
+	
+	#Delete temp lists
+	rm -rf /tmp/.SAM_List &> /dev/null
+
+
+	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' | head -1)
+	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
+
+
+	[[ ! -z ${kill_2} ]] && kill -9 ${kill_2} >/dev/null
+	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
+
+	sleep 1
+
+	echo " Done!"
+}
+
+
+function stop_sam() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
