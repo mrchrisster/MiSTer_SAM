@@ -755,11 +755,11 @@ function parse_cmd() {
 		done
 
 		# If the one command was a core then we need to call in again with "start" specified
-		if [ ${nextcore} ] && [ ${#} -eq 1 ]; then
+		if [ ${nextcore,,} ] && [ ${#} -eq 1 ]; then
 			# Move cursor up a line to avoid duplicate message
 			echo -n -e "\033[A"
 			# Re-enter this function with start added
-			parse_cmd ${nextcore} start
+			parse_cmd ${nextcore,,} start
 			return
 		fi
 
@@ -775,33 +775,26 @@ function parse_cmd() {
 					sam_enable start
 					break
 					;;
-				softstart) # Start as from init
+				bootstart) # Start as from init
 					env_check ${1,,}
 					mcp_start
 					echo " Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh softstart_real
+					#tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh bootstart_real
 					break
 					;;
 				start | restart) # Start as a detached tmux session for monitoring
 					env_check ${1,,}
 					# Terminate any other running SAM processes
 					there_can_be_only_one
+					tty_init
 					mcp_start
-					echo "Starting SAM in the background."
-					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
+					echo " Starting SAM in the background."
+					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore,,}
 					break
 					;;
 				start_real) # Start SAM immediately
 					env_check ${1,,}
-					tty_init
-					loop_core ${nextcore}
-					break
-					;;
-				softstart_real) # Start SAM immediately
-					env_check ${1,,}
-					tty_init
-					counter=${samtimeout}
-					loop_core ${nextcore}
+					loop_core ${nextcore,,}
 					break
 					;;
 				skip | next) # Load next game - stops monitor
@@ -812,9 +805,9 @@ function parse_cmd() {
 				stop) # Stop SAM immediately
 					there_can_be_only_one
 					tty_exit
-					echo -e "\0000\c" > /media/fat/config/Volume.dat # Reset Volume
+					if [ "${mute,,}" == "yes" ]; then echo -e "\0000\c" > /media/fat/config/Volume.dat; fi
 					echo " Thanks for playing!"
-					echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+					if [ "${mute,,}" == "yes" ]; then "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd; fi
 					exit
 					break
 					;;
@@ -905,7 +898,7 @@ function mcp_start() {
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
 		#${mrsampath}/MiSTer_SAM_MCP monitoronly &
-		${mrsampath}/MiSTer_SAM_MCP &
+		tmux new-session -s SAMMCP -d ${mrsampath}/MiSTer_SAM_MCP 
 	fi
 
 }
@@ -972,8 +965,9 @@ function sam_update() { # sam_update (next command)
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		fi
-
+		
 	fi
+
 	echo " Update complete!"
 	return
 }
@@ -1069,17 +1063,15 @@ function there_can_be_only_one() { # there_can_be_only_one
 	#Delete temp lists
 	rm -rf /tmp/.SAM_List &> /dev/null
 
-	# -- SAM's {soft,}start_real tmux instance
-	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}') &> /dev/null
-	kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh softstart_real' | awk '{print $1}') &> /dev/null
-	#kill -9 $(ps -o pid,args | grep '[M]iSTer_SAM_on.sh' | awk '{print $1}') &> /dev/null
-	# -- Everything executable in mrsampath
-	kill -9 $(ps -o pid,args | grep ${mrsampath} | grep -v grep | awk '{print $1}') &> /dev/null
-	# -- inotifywait but only if it involves SAM
-	kill -9 $(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}') &> /dev/null
-	# -- hexdump since that's launched, no better way to see which ones to kill
-	killall -9 hexdump &> /dev/null
-	echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+	kill_1=$(ps -o pid,args | grep '[S]AMMCP' | awk '{print $1}' | head -1)
+	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' | head -1)
+	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
+	kill_4=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
+
+	[[ ! -z ${kill_1} ]] && tmux kill-session -t SAMMCP >/dev/null
+	[[ ! -z ${kill_2} ]] && kill -9 ${kill_2} >/dev/null
+	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
+	[[ ! -z ${kill_4} ]] && kill -9 ${kill_4} >/dev/null
 
 	sleep 1
 
@@ -1144,10 +1136,7 @@ function deleteall() {
 	sed -i '/Super Attract/d' ${userstartup}
 
 	printf "\n\n\n\n\n\nAll files deleted except for MiSTer_SAM_on.sh\n\n\n\n\n\n"
-	for i in {5..1}; do
-		echo -ne "Returning to menu in ${i}...\033[0K\r"
-		sleep 1
-	done
+	sleep 1
 	sam_resetmenu
 }
 
@@ -1167,11 +1156,8 @@ function deletegl() {
 		rm -rf /tmp/.SAM_List
 	fi
 	
-	printf "\n\n\n\n\n\nGamelist reset successful. Please start SAM now.\n\n\n\n\n\n"
-	for i in {5..1}; do
-		echo -ne "Returning to menu in ${i}...\033[0K\r"
-		sleep 1
-	done
+	printf "\n\n\n\n\n\nGamelist reset successful. \n\n\n\n\n\n"
+	sleep 1
 	sam_menu
 
 }
@@ -1196,9 +1182,10 @@ function mglfavorite() {
 
 
 function tty_init() { # tty_init
-	# tty2oled initialization
-	if [ "${ttyenable,,}" == "yes" ]; then
 
+	if [ "${ttyenable,,}" == "yes" ]; then
+		# tty2oled initialization
+		
 		if [ "${samquiet,,}" == "no" ]; then echo " Init tty2oled, loading variables... "; fi
 		source ${ttysystemini}
 		source ${ttyuserini}
@@ -1246,8 +1233,8 @@ function tty_init() { # tty_init
 		echo "CMDTXT,3,15,0,153,63, Mode!" > ${ttydevice}
 		tty_waitfor
 		sleep 1
-
 	fi
+	
 }
 
 function tty_waitfor() {
@@ -1367,7 +1354,8 @@ function tty_exit() { # tty_exit
 		echo "MENU" > /tmp/CORENAME
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack,,}" == "yes" ]; then
-			echo " Starting tty2oled daemon..."
+		
+			echo -n " Starting tty2oled daemon..."
 			/media/fat/tty2oled/S60tty2oled start
 			echo " Done!"
 			#sleep 2
@@ -1473,6 +1461,7 @@ function loop_core() { # loop_core (core)
 					echo " Mouse activity detected!"
 					unmute
 					tty_exit
+					sleep 5
 					exit
 				else
 					echo " Mouse activity ignored!"
@@ -1485,6 +1474,7 @@ function loop_core() { # loop_core (core)
 					echo " Keyboard activity detected!"
 					unmute
 					tty_exit
+					sleep 5
 					exit
 
 				else
@@ -1498,6 +1488,7 @@ function loop_core() { # loop_core (core)
 					echo " Controller activity detected!"
 					unmute
 					tty_exit
+					sleep 5
 					exit
 				else
 					echo " Controller activity ignored!"
@@ -1506,6 +1497,7 @@ function loop_core() { # loop_core (core)
 			fi
 
 		done
+		
 		counter=${gametimer}
 		next_core ${1}
 
@@ -1528,15 +1520,15 @@ function next_core() { # next_core (core)
 	if [ -z "${1}" ]; then
 		# Don't repeat same core twice
 
-		if [ ! -z ${nextcore} ]; then
+		if [ ! -z ${nextcore,,} ]; then
 
-			corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
+			corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore,,} //" | tr -s ' ')
 
 			# Choose the actual core
 			nextcore="$(echo ${corelisttmp}| xargs shuf --head-count=1 --echo)"
 
 			#if core is single core make sure we don't run out of cores
-			if [ -z ${nextcore} ]; then
+			if [ -z ${nextcore,,} ]; then
 			nextcore="$(echo ${corelist}| xargs shuf --head-count=1 --echo)"
 			fi
 
@@ -1567,15 +1559,15 @@ function next_core() { # next_core (core)
 	function reset_core_gl() {
 		echo " Deleting old game lists for ${nextcore^^}..."
 		rm "${gamelistpath}/${nextcore,,}_gamelist_zipped.txt" &>/dev/null
-		rm "${countpath}/${nextcore}_zipcount" &>/dev/null
-		rm "${countpath}/${nextcore}_romcount" &>/dev/null
+		rm "${countpath}/${nextcore,,}_zipcount" &>/dev/null
+		rm "${countpath}/${nextcore,,}_romcount" &>/dev/null
 		sync
 	}
 	
 	function stat_compare() {
 	
 		DIR_TO_CHECK="${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}"
-		OLD_STAT_FILE="${countpath}/${nextcore}_stat"
+		OLD_STAT_FILE="${countpath}/${nextcore,,}_stat"
 		if [ -e "$OLD_STAT_FILE" ]; then
 				OLD_STAT=$(cat "$OLD_STAT_FILE")
 		else
@@ -1691,14 +1683,14 @@ function next_core() { # next_core (core)
 
 
 	if [ -z "${rompath}" ]; then
-		core_error "${nextcore}" "${rompath}"
+		core_error "${nextcore,,}" "${rompath}"
 	else
 		if [ -f "${rompath}.sam" ]; then
 			source "${rompath}.sam"
 		fi
 
 		declare -g romloadfails=0
-		load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
+		load_core "${nextcore,,}" "${rompath}" "${romname%.*}" "${countdown}"
 	fi
 }
 
@@ -1724,18 +1716,17 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 
 
-
 	#Create mgl file and launch game
 
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
-	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >> /tmp/SAM_game.mgl
+	echo "<rbf>${CORE_PATH_RBF[${nextcore,,}]}/${MGL_CORE[${nextcore,,}]}</rbf>" >> /tmp/SAM_game.mgl
 	
 	if [ ${usedefaultpaths,,} == "yes" ]; then
 		corepath="${CORE_PATH[${nextcore,,}]}/"
 		rompath=${rompath#"${corepath}"}
-		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"${rompath}\""/>" >> /tmp/SAM_game.mgl
+		echo "<file delay="${MGL_DELAY[${nextcore,,}]}" type="${MGL_TYPE[${nextcore,,}]}" index="${MGL_INDEX[${nextcore,,}]}" path="\"${rompath}\""/>" >> /tmp/SAM_game.mgl
 	else
-		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl		
+		echo "<file delay="${MGL_DELAY[${nextcore,,}]}" type="${MGL_TYPE[${nextcore,,}]}" index="${MGL_INDEX[${nextcore,,}]}" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl		
 	fi
 	
 	
@@ -1871,7 +1862,7 @@ function load_core_arcade() {
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore,,}]}\e[0m: "
 	echo -e "\e[1m${mraname}\e[0m"
 	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >> /tmp/SAM_Games.log
-	echo "${mraname} (${nextcore})" > /tmp/SAM_Game.txt
+	echo "${mraname} (${nextcore,,})" > /tmp/SAM_Game.txt
 
 	# Get Setname from MRA needed for tty2oled, thx to RealLarry
 	mrasetname=$(grep "<setname>" "${arcadepath}/${mra}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
