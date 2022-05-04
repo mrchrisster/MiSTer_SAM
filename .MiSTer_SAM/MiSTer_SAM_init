@@ -40,7 +40,9 @@ done
 function start() {
 	#======== Start ========
 	echo -n " Starting SAM..."
-	${misterpath}/Scripts/MiSTer_SAM_on.sh start
+	#Sleep before startup so clock of Mister can syncronize. Otherwise SAM will start immidiately when the clock gets set after bootup. 
+	sleep 60
+	${misterpath}/Scripts/MiSTer_SAM_on.sh bootstart
 }
 
 function stop() {
@@ -72,11 +74,11 @@ fi
 
 # Kill old activity processes
 echo -n " Stopping activity monitoring..."
-killall -q -9 MiSTer_SAM_joy.py
-killall -q -9 MiSTer_SAM_mouse.sh
-killall -q -9 MiSTer_SAM_keyboard.sh
-killall -q -9 xxd
-kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; })
+killall -q -9 MiSTer_SAM_joy.py 2>/dev/null
+killall -q -9 MiSTer_SAM_mouse.sh 2>/dev/null
+killall -q -9 MiSTer_SAM_keyboard.sh 2>/dev/null
+killall -q -9 hexdump 2>/dev/null
+kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; }) 2>/dev/null
 echo " Done!"
 
 
