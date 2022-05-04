@@ -66,22 +66,6 @@ function sam_trigger() {
 }
 
 #======== Start ========
-# Kill running process
-pids=$(pidof -o $$ $(basename -- ${0}))
-if [ ! -z "pids" ]; then
-	if [ "${samquiet,,}" == "no" ]; then echo -n " Removing other instances of $(basename -- ${0})..."; fi
-	kill -9 ${pids} &>/dev/null
-	wait ${pids} &>/dev/null
-	if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
-fi
-
-# Kill old activity processes
-#echo -n " Stopping activity monitoring..."
-killall -q -9 MiSTer_SAM_joy.py 2>/dev/null
-killall -q -9 MiSTer_SAM_mouse.sh 2>/dev/null
-killall -q -9 MiSTer_SAM_keyboard.sh 2>/dev/null
-killall -q -9 hexdump 2>/dev/null
-kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; }) 2>/dev/null
 
 # Convert seconds to minutes
 samtimeout=$(echo - | awk -v t=${samtimeout} '{print t/60}')
@@ -118,8 +102,9 @@ if [ -e /dev/input/js0 ]; then
 fi
 
 # Spawn Mouse monitoring process
-if [ "${samquiet,,}" == "no" ]; then echo " Monitoring mouse activity..."; fi
-"${mrsampath}/MiSTer_SAM_mouse.sh" 2>/dev/null &
+if [ "${samquiet,,}" == "no" ]; then echo " Monitoring mouse activity."; fi
+[[ -z $(ps -o pid,args | grep '[M]iSTer_SAM_mouse.sh' | awk '{print $1}' | head -1) ]] && "${mrsampath}/MiSTer_SAM_mouse.sh" 2>/dev/null &
+
 
 # Spawn Keyboard monitoring per detected keyboard device
 for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
@@ -151,12 +136,14 @@ while :; do
 #Start SAM after input event
 	if [ "${menuonly,,}" == "yes" ]; then # Only start SAM from main menu
 		# Check if we're at the main menu, wait 1 minute before checking activity
-		if [ "$(cat /tmp/CORENAME)" == "MENU" ] && [ "$(/bin/find /tmp/CORENAME -mmin +1)" ]; then
+		if [[ "$(cat /tmp/CORENAME)" == "MENU" && "$(/bin/find /tmp/CORENAME -mmin +1)" ]]; then
 			# Check activity files against timeout
+			echo " Triggered after menuonly=yes"
 			sam_trigger
 		fi
 	else
 		# Check activity files against timeout
+		echo " Triggered after menuonly=no"
 		sam_trigger
 	fi
 sleep 3
