@@ -69,7 +69,7 @@ branch="main"
 counter=0
 userstartup="/media/fat/linux/user-startup.sh"
 userstartuptpl="/media/fat/linux/_user-startup.sh"
-usedefaultpaths="Yes"
+usedefaultpaths="No"
 
 
 # ======== TTY2OLED =======
@@ -97,7 +97,7 @@ tgfx16path="/media/fat/Games/TGFX16"
 tgfx16cdpath="/media/fat/Games/TGFX16-CD"
 psxpath="/media/fat/Games/PSX"
 
-#======== CORE PATHS Extra ========
+#======== CORE PATHS EXTRA ========
 arcadepathextra=""
 fdspathextra=""
 gbpathextra=""
@@ -465,7 +465,7 @@ declare -gA CORE_EVERDRIVE=( \
 #========= PARSE INI =========
 
 #Make all cores available
-corelistall=$corelist
+corelistall="${corelist}"
 
 # Read INI
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
@@ -491,6 +491,7 @@ touch ${tmpfile}
 
 # Setup corelist
 corelist="$(echo ${corelist} | tr ',' ' ')"
+corelistall="$(echo ${corelistall} | tr ',' ' ')"
 
 # Create array of coreexclude list names
 declare -a coreexcludelist
@@ -504,9 +505,10 @@ for excludelist in ${coreexcludelist[@]}; do
 done
 
 # Create folder exclude list
-fldrex=$(for f in "${folderexclude[@]}"; do echo "-o -iname *$f*" ; done)
+findex=$(for f in "${exclude[@]}"; do echo "-o -iname *$f*" ; done)
+
 # Create folder exclude list for zips
-fldrexzip=$(printf "%s," "${folderexclude[@]}" && echo "")
+zipex=$(printf "%s," "${exclude[@]}" && echo "")
 
 
 # Default rom path search directories
@@ -585,7 +587,6 @@ GET_SYSTEM_FOLDER() {
 }
 
 if [ ${usedefaultpaths,,} == "yes" ]; then
-	if [ "${samquiet,,}" == "no" ]; then echo " Using default paths."; fi
 	for core in ${corelist}; do
 		defaultpath "${core}"
 	done
@@ -961,11 +962,12 @@ function sam_update() { # sam_update (next command)
 			get_samstuff MiSTer_SAM.ini /tmp
 			echo " Backing up MiSTer_SAM.ini to MiSTer_SAM.ini.bak"
 			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak 
-			echo -n " Merging.."
+			echo -n " Merging ini values.."
+			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 			sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
 			sed -i 's/-=/--/g' /media/fat/Scripts/MiSTer_SAM.ini
 			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/MiSTer_SAM.ini /tmp/MiSTer_SAM.ini > ${tmpfile} && mv --force ${tmpfile} /media/fat/Scripts/MiSTer_SAM.ini
-			echo " Done."
+			echo "Done."
 			
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
@@ -1063,7 +1065,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
-	nextcore=""
+	
 	#Delete temp lists
 	rm -rf /tmp/.SAM_List &> /dev/null
 
@@ -1250,7 +1252,6 @@ function tty_init() { # tty_init
 
 function tty_waitfor() {
   if [ "${ttyuseack,,}" == "yes" ]; then
-    if [ "${samquiet,,}" == "no" ]; then echo -n "Waiting for tty2oled Acknowledge... "; fi
     read -d ";" ttyresponse < ${ttydevice}                # The "read" command at this position simulates an "do..while" loop
     while [ "${ttyresponse}" != "ttyack" ]; do
       read -d ";" ttyresponse < ${ttydevice}              # Read Serial Line until delimiter ";"
@@ -1593,12 +1594,12 @@ function next_core() { # next_core (core)
 	
 	function create_romlist() {
 		echo -n " Looking for games in ${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]} ..."
-		find "${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}" -type d \( -iname *BIOS* ${fldrex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -name "README.md" \)  > "${tmpfile}"
+		find "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}" -type d \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -iname *BIOS* ${findex} \)  > "${tmpfile}"
 		#Find all zips and process
 		
 		shopt -s nullglob
-		for z in "${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}"/*.zip; do 
-			"${mrsampath}/partun" "${z}" -l -e ${fldrexzip::-1} --include-archive-name --skip-duplicate-filenames --ext .${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
+		for z in "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"/*.zip; do 
+			"${mrsampath}/partun" "${z}" -l -e ${zipex::-1} --include-archive-name --skip-duplicate-filenames --ext .${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
 		done
 		shopt -u nullglob
 		
@@ -1726,13 +1727,19 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	#Create mgl file and launch game
 
-	corepath="${CORE_PATH[${nextcore,,}]}/"
-	rompath=${rompath#"${corepath}"}
-
-
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >> /tmp/SAM_game.mgl
-	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"${rompath}\""/>" >> /tmp/SAM_game.mgl
+	
+	if [ ${usedefaultpaths,,} == "yes" ]; then
+		corepath="${CORE_PATH[${nextcore,,}]}/"
+		rompath=${rompath#"${corepath}"}
+		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"${rompath}\""/>" >> /tmp/SAM_game.mgl
+	else
+		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl		
+	fi
+	
+	
+	
 	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
 
 
