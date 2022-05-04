@@ -56,7 +56,7 @@ function input_clear() {
 function sam_trigger() {
 	if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then				
 	input_clear	
-		if [ "$(ps aux | grep -v grep | grep -c -e "SAM Monitor")" != "1" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ]; then
+		if [ "$(ps aux | grep -v grep | grep -c -e "SAM Monitor")" == "0" ] && [ "$(ps aux | grep -v grep | grep -c -e '{update_all.sh}')" == "0" ]; then
 			echo " No activity detected for ${samtimeout} minutes. SAM starting..."
 			/media/fat/Scripts/MiSTer_SAM_on.sh start
 			echo " Returned from SAM."
