@@ -1077,7 +1077,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 }
 
 
-function stop_sam() { # there_can_be_only_one
+function sam_stop() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
