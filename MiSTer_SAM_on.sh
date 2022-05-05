@@ -786,7 +786,6 @@ function parse_cmd() {
 					env_check ${1,,}
 					# Terminate any other running SAM processes
 					there_can_be_only_one
-					tty_init
 					mcp_start
 					echo " Starting SAM in the background."
 					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore,,}
@@ -794,6 +793,7 @@ function parse_cmd() {
 					;;
 				start_real) # Start SAM immediately
 					env_check ${1,,}
+                                        tty_init
 					loop_core ${nextcore,,}
 					break
 					;;
