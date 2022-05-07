@@ -807,7 +807,7 @@ function parse_cmd() {
 					tty_exit
 					if [ "${mute,,}" == "yes" ]; then echo -e "\0000\c" > /media/fat/config/Volume.dat; fi
 					echo " Thanks for playing!"
-					if [ "${mute,,}" == "yes" ]; then "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd; fi
+					if [ "${mute,,}" == "yes" ]; then echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd; fi
 					exit
 					break
 					;;
