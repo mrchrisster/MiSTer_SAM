@@ -640,6 +640,7 @@ function sam_menu() {
 	--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 	Start "Start SAM now" \
+	Gamemode "Game roulette and Lucky Mode" \
 	Skip "Skip game" \
 	Stop "Stop SAM" \
 	Single "Games from only one core" \
@@ -737,6 +738,30 @@ function sam_configmenu() {
 	parse_cmd menu
 }
 
+
+
+function sam_gamemodemenu() {
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ Game Roulette ]" \
+	--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ Game Roulette and Lucky Mode ]" \
+	--menu "Select an option" 0 0 0 \
+	Roulette5 "Play a random game for 5 minutes. " \
+	Roulette10 "Play a random game for 10 minutes. " \
+	Roulette15 "Play a random game for 15 minutes. " \
+ 	Roulette20 "Play a random game for 20 minutes. " \
+ 	Roulette25 "Play a random game for 25 minutes. " \
+ 	Roulette30 "Play a random game for 30 minutes. " \
+	Lucky "Lucky Mode. SAM will launch one random game (without continuing to shuffle)." \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
 function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
 		sam_help
@@ -777,16 +802,14 @@ function parse_cmd() {
 					;;
 				bootstart) # Start as from init
 					env_check ${1,,}
+					# We start MCP on bootup of the MiSTer which will start SAM when samtimeout is reached
 					mcp_start
-					echo " Starting SAM in the background."
-					#tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh bootstart_real
 					break
 					;;
 				start | restart) # Start as a detached tmux session for monitoring
 					env_check ${1,,}
 					# Terminate any other running SAM processes
 					there_can_be_only_one
-					tty_init
 					mcp_start
 					echo " Starting SAM in the background."
 					tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d  ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore,,}
@@ -794,6 +817,7 @@ function parse_cmd() {
 					;;
 				start_real) # Start SAM immediately
 					env_check ${1,,}
+					tty_init
 					loop_core ${nextcore,,}
 					break
 					;;
@@ -807,7 +831,7 @@ function parse_cmd() {
 					tty_exit
 					if [ "${mute,,}" == "yes" ]; then echo -e "\0000\c" > /media/fat/config/Volume.dat; fi
 					echo " Thanks for playing!"
-					if [ "${mute,,}" == "yes" ]; then "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd; fi
+					if [ "${mute,,}" == "yes" ]; then echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd; fi
 					exit
 					break
 					;;
@@ -873,6 +897,72 @@ function parse_cmd() {
 					;;
 				deletegl)
 					deletegl
+					break
+					;;
+				gamemode)
+					sam_gamemodemenu
+					break
+					;;
+				roulette1)
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=30
+					loop_core
+					break
+					;;
+				roulette5)
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=300
+					loop_core
+					break
+					;;
+				roulette10)
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=600
+					loop_core
+					break
+					;;
+				roulette15)
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=900
+					loop_core
+					break
+					;;
+				roulette20)
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=1200
+					loop_core
+					break
+					;;
+				roulette25)
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=1500
+					loop_core
+					break
+					;;
+				roulette30)
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=1800
+					loop_core
+					break
+					;;
+				lucky)
+					echo "stop" | tee /tmp/.SAM_Keyboard_Activity /tmp/.SAM_Joy_Activity /tmp/.SAM_Mouse_Activity > /dev/null
+					menuonly="Yes"
+					next_core
 					break
 					;;
 				help)
@@ -1063,7 +1153,6 @@ function there_can_be_only_one() { # there_can_be_only_one
 	#Delete temp lists
 	rm -rf /tmp/.SAM_List &> /dev/null
 
-
 	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
 
@@ -1077,7 +1166,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 }
 
 
-function stop_sam() { # there_can_be_only_one
+function sam_stop() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
