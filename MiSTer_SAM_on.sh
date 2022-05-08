@@ -52,6 +52,7 @@ gamelistpathtmp="/tmp/.SAM_List/"
 excludepath="${mrsampath}"
 mralist="/tmp/.SAM_List/arcade_romlist"
 tmpfile="/tmp/.SAM_List/tmpfile"
+tmpfile2="/tmp/.SAM_List/tmpfile2"
 gametimer=120
 corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 gamelist="Yes"
@@ -487,6 +488,7 @@ mkdir -p "${mrsampath}"/SAM_Count
 mkdir -p "${mrsampath}"/SAM_Gamelists
 mkdir -p /tmp/.SAM_List
 touch ${tmpfile}
+touch ${tmpfile2}
 
 
 # Setup corelist
@@ -1607,15 +1609,23 @@ function next_core() { # next_core (core)
 	
 	
 	function create_romlist() {
-		echo -n " Looking for games in ${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]} ..."
-		find "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}" -type d \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -iname *BIOS* ${findex} \)  > "${tmpfile}"
+		echo " Looking for games in ${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]} ..."
+		find -L "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -iname *BIOS* ${findex} \) -fprint "${tmpfile}"
+
 		#Find all zips and process
-		
-		shopt -s nullglob
-		for z in "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"/*.zip; do 
-			"${mrsampath}/partun" "${z}" -l -e ${zipex::-1} --include-archive-name --skip-duplicate-filenames --ext .${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
-		done
-		shopt -u nullglob
+		if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
+			find -L "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" ! -iname *BIOS* ${findex} \) -fprint "${tmpfile2}"
+			shopt -s nullglob
+			if [ -s "${tmpfile2}" ]; then
+				local IFS=$'\n'
+				Lines=$(cat ${tmpfile2})
+				for z in ${Lines}; do
+					if [ "${samquiet,,}" == "no" ]; then echo "Processing: ${z}"; fi
+					"${mrsampath}/partun" "${z}" -l -e ${zipex::-1} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
+				done
+			fi
+			shopt -u nullglob
+		fi
 		
 		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${nextcore,,}_gamelist.txt"
 		
@@ -1678,7 +1688,7 @@ function next_core() { # next_core (core)
 
 
 	# Sanity check that we have a valid rom in var
-	if [[ ${rompath} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
+	if [[ ${rompath,,} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
 		next_core
 		return
 	fi
@@ -1739,7 +1749,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 
 	#Create mgl file and launch game
-
+	if [ -s /tmp/SAM_game.mgl ]; then
+		mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
+	fi
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore,,}]}/${MGL_CORE[${nextcore,,}]}</rbf>" >> /tmp/SAM_game.mgl
 	
