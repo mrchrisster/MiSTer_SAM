@@ -155,9 +155,7 @@ BASE_PATH="/media/fat/Games"
 
 ## Advanced Usage
 For technical users here are a few handy tricks to observe and debug SAM.
-- To update the daemon from local files:
-    `cp /media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_init /etc/init.d/S93mistersam && /etc/init.d/S93mistersam start &`
-- To disable the daemon startup delay add to your INI: `startupsleep="No"`
+
 - To enable more console messages: `samquiet="No"`
 - Check the generated MGL file under `/tmp/SAM_game.mgl`. 
 
