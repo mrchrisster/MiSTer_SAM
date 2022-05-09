@@ -1577,6 +1577,8 @@ function next_core() { # next_core (core)
 	fi
 
 
+	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
+
 	### Declare functions first
 
 
@@ -1590,7 +1592,7 @@ function next_core() { # next_core (core)
 	
 	function stat_compare() {
 	
-		DIR_TO_CHECK="${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}"
+		DIR_TO_CHECK="${DIR}"
 		OLD_STAT_FILE="${countpath}/${nextcore,,}_stat"
 		if [ -e "$OLD_STAT_FILE" ]; then
 				OLD_STAT=$(cat "$OLD_STAT_FILE")
@@ -1601,7 +1603,7 @@ function next_core() { # next_core (core)
 		NEW_STAT=$(stat -t "${DIR_TO_CHECK}")
 		
 		if [ “"${OLD_STAT}"” != “"${NEW_STAT}"” ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Directory ${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]} was modified or this is the first core launch. Regenerating game lists..."; fi
+				if [ "${samquiet,,}" == "no" ]; then echo " Directory ${DIR} was modified or this is the first core launch. Regenerating game lists..."; fi
 				reset_core_gl
 				echo "$NEW_STAT" > "$OLD_STAT_FILE"
 		fi
@@ -1609,12 +1611,12 @@ function next_core() { # next_core (core)
 	
 	
 	function create_romlist() {
-		echo " Looking for games in ${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]} ..."
-		find -L "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -iname *BIOS* ${findex} \) -fprint "${tmpfile}"
+		echo " Looking for games in  ${DIR}..."
+		find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -iname *BIOS* ${findex} \) -fprint "${tmpfile}"
 
 		#Find all zips and process
 		if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
-			find -L "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" ! -iname *BIOS* ${findex} \) -fprint "${tmpfile2}"
+			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" ! -iname *BIOS* ${findex} \) -fprint "${tmpfile2}"
 			shopt -s nullglob
 			if [ -s "${tmpfile2}" ]; then
 				local IFS=$'\n'
@@ -1643,8 +1645,8 @@ function next_core() { # next_core (core)
 		fi
 
 		#If folder changed, make new list
-		if [[ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}" | head -1)" ]]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${CORE_PATH[${nextcore,,}]}/${CORE_PATH_EXTRA[${nextcore,,}]}" changed in ini."; fi
+		if [[ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${DIR}" | head -1)" ]]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
 			create_romlist
 		fi
 
@@ -1840,10 +1842,12 @@ function unmute() {
 
 # ======== ARCADE MODE ========
 function build_mralist() {
+	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
+
 	# If no MRAs found - suicide!
-	find "${arcadepath}" -type f \( -iname "*.mra" \) &>/dev/null
+	find "${DIR}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
-		echo " The path ${arcadepath} contains no MRA files!"
+		echo " The path ${DIR} contains no MRA files!"
 		loop_core
 	fi
 
@@ -1854,13 +1858,15 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${arcadepath}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- >"${mralist}"
+		find "${DIR}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#DIR}) + 2 ))- >"${mralist}"
 	else
-		find "${arcadepath}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#arcadepath}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+		find "${DIR}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#DIR}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
 	fi
 }
 
 function load_core_arcade() {
+
+	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
@@ -1870,18 +1876,20 @@ function load_core_arcade() {
 
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist})"
+	MRAPATH=$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))
 
 	# If the mra variable is valid this is skipped, but if not we try 10 times
 	# Partially protects against typos from manual editing and strange character parsing problems
 	for i in {1..10}; do
-		if [ ! -f "${arcadepath}/${mra}" ]; then
+		if [ ! -f "${MRAPATH}" ]; then
 			mra=$(shuf --head-count=1 ${mralist})
+			MRAPATH=$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))
 		fi
 	done
 
 	# If the MRA is still not valid something is wrong - suicide
-	if [ ! -f "${arcadepath}/${mra}" ]; then
-		echo " There is no valid file at ${arcadepath}/${mra}!"
+	if [ ! -f "${MRAPATH}" ]; then
+		echo " There is no valid file at ${MRAPATH}!"
 		return
 	fi
 
@@ -1899,7 +1907,7 @@ function load_core_arcade() {
 	echo "${mraname} (${nextcore,,})" > /tmp/SAM_Game.txt
 
 	# Get Setname from MRA needed for tty2oled, thx to RealLarry
-	mrasetname=$(grep "<setname>" "${arcadepath}/${mra}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
+	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}" "${mrasetname}" &  # Non-Blocking
 	#tty_update "${CORE_PRETTY[${nextcore,,}]}" "${mraname}" "${mrasetname}"    # Blocking
 
@@ -1911,7 +1919,7 @@ function load_core_arcade() {
 	fi
 
   # Tell MiSTer to load the next MRA
-  echo "load_core ${arcadepath}/${mra}" > /dev/MiSTer_cmd
+  echo "load_core ${MRAPATH}" > /dev/MiSTer_cmd
  	sleep 1
 	echo "" |>/tmp/.SAM_Joy_Activity
 	echo "" |>/tmp/.SAM_Mouse_Activity
