@@ -1893,6 +1893,8 @@ function load_core_arcade() {
 		return
 	fi
 
+	if [ "${samquiet,,}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
+
 	#Delete mra from list so it doesn't repeat
 	if [ "${norepeat,,}" == "yes" ]; then
 		awk -vLine="$mra" '!index($0,Line)' "${mralist}"  > ${tmpfile} && mv ${tmpfile} "${mralist}"
