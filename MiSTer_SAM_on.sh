@@ -651,7 +651,7 @@ declare -gA NEOGEO_PRETTY_ENGLISH=( \
 ["pulstar"]="Pulstar" \
 ["puzzldpr"]="Puzzle De Pon! R!" \
 ["puzzledp"]="Puzzle De Pon!" \
-["quizdai2"]="Quiz Meitantei Neo &amp; Geo: Quiz Daisousa Sen part 2" \
+["quizdai2"]="Quiz Meitantei Neo & Geo: Quiz Daisousa Sen part 2" \
 ["quizdais"]="Quiz Daisousa Sen: The Last Count Down" \
 ["quizdask"]="Quiz Salibtamjeong: The Last Count Down (Korean localized Quiz Daisousa Sen)" \
 ["quizkof"]="Quiz King of Fighters" \
@@ -726,11 +726,11 @@ declare -gA NEOGEO_PRETTY_ENGLISH=( \
 ["svcsplus"]="SNK vs. Capcom Super Plus (bootleg)" \
 ["teot"]="The Eye of Typhoon: Tsunami Edition" \
 ["tetrismn"]="Tetris" \
-["tophuntr"]="Top Hunter: Roddy &amp; Cathy" \
-["tophuntrh"]="Top Hunter: Roddy &amp; Cathy (NGH-046)" \
+["tophuntr"]="Top Hunter: Roddy & Cathy" \
+["tophuntrh"]="Top Hunter: Roddy & Cathy (NGH-046)" \
 ["totc"]="Treasure of the Caribbean" \
 ["tpgolf"]="Top Player's Golf" \
-["tphuntrh"]="Top Hunter: Roddy &amp; Cathy (NGH-046)" \
+["tphuntrh"]="Top Hunter: Roddy & Cathy (NGH-046)" \
 ["trally"]="Thrash Rally" \
 ["turfmast"]="Neo Turf Masters" \
 ["twinspri"]="Twinkle Star Sprites" \
@@ -2330,10 +2330,10 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1,,}]}\e[0m: "
 	echo -e "\e[1m${GAMENAME}\e[0m"
-	echo "$(date +%H:%M:%S) - ${1} - ${3}" >> /tmp/SAM_Games.log
-	echo "${3} (${1})" > /tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}" &  # Non blocking Version
-	#tty_update "${CORE_PRETTY[${1,,}]}" "${3}" "${CORE_LAUNCH[${1,,}]}"    # Blocking Version
+	echo "$(date +%H:%M:%S) - ${1} - ${3}" $(if [ ${1} == "neogeo" ] && [ ${useneogeotitles,,} == "yes" ]; then echo "(${GAMENAME})"; fi) >> /tmp/SAM_Games.log
+	echo "${3} (${1}) "$(if [ ${1} == "neogeo" ] && [ ${useneogeotitles,,} == "yes" ]; then echo "(${GAMENAME})"; fi) > /tmp/SAM_Game.txt
+	tty_update "${CORE_PRETTY[${1,,}]}" "${GAMENAME}" "${CORE_LAUNCH[${1,,}]}" &  # Non blocking Version
+	#tty_update "${CORE_PRETTY[${1,,}]}" "${GAMENAME}" "${CORE_LAUNCH[${1,,}]}"    # Blocking Version
 
 
 
