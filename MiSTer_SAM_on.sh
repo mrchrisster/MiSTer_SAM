@@ -2315,6 +2315,7 @@ function next_core() { # next_core (core)
 
 function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
+	GAMENAME=""
 	if [ ${1} == "neogeo" ] && [ ${useneogeotitles,,} == "yes" ]; then
 		if [ ${neogeoregion,,} == "english" ]; then
 			GAMENAME="${NEOGEO_PRETTY_ENGLISH[${3}]}"
