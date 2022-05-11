@@ -2195,11 +2195,10 @@ function next_core() { # next_core (core)
 	
 	function create_romlist() {
 		echo " Looking for games in  ${DIR}..."
-		find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" ! -iname *BIOS* ${findex} \) -fprint "${tmpfile}"
 
 		#Find all zips and process
 		if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
-			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" ! -iname *BIOS* ${findex} \) -fprint "${tmpfile2}"
+			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" \) -fprint "${tmpfile2}"
 			shopt -s nullglob
 			if [ -s "${tmpfile2}" ]; then
 				local IFS=$'\n'
@@ -2210,8 +2209,12 @@ function next_core() { # next_core (core)
 				done
 			fi
 			shopt -u nullglob
+		else
+			# Core doesn't use zip files
+			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) -fprint "${tmpfile}"
 		fi
 		
+		# Strip out all duplicate filenames with this fancy awk command
 		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${nextcore,,}_gamelist.txt"
 		
 
