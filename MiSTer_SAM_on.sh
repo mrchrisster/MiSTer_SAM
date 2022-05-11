@@ -2184,7 +2184,7 @@ function next_core() { # next_core (core)
 
 		# Now find all zips in core's folder and process
 		if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
-			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" \) -fprint "${tmpfile2}"
+			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
 			shopt -s nullglob
 			if [ -s "${tmpfile2}" ]; then
 				local IFS=$'\n'
