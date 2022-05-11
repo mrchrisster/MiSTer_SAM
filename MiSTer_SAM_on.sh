@@ -1089,11 +1089,12 @@ for excludelist in ${coreexcludelist[@]}; do
 	readarray -t ${excludelist} <<<${!excludelist}
 done
 
-# Create folder exclude list
-findex=$(for f in "${exclude[@]}"; do echo "-o -iname *$f*" ; done)
+# Create folder and file exclusion list
+folderex=$(for f in "${exclude[@]}"; do echo "-o -iname *$f*" ; done)
+fileex=$(for f in "${exclude[@]}"; do echo "-and -not -iname *$f*" ; done)
 
-# Create folder exclude list for zips
-zipex=$(printf "%s," "${exclude[@]}" && echo "")
+# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
+zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
 
 
 # Default rom path search directories
@@ -2173,48 +2174,30 @@ function next_core() { # next_core (core)
 		sync
 	}
 	
-	function stat_compare() {
-	
-		DIR_TO_CHECK="${DIR}"
-		OLD_STAT_FILE="${countpath}/${nextcore,,}_stat"
-		if [ -e "$OLD_STAT_FILE" ]; then
-				OLD_STAT=$(cat "$OLD_STAT_FILE")
-		else
-				OLD_STAT=“nothing”
-		fi
-		
-		NEW_STAT=$(stat -t "${DIR_TO_CHECK}")
-		
-		if [ “"${OLD_STAT}"” != “"${NEW_STAT}"” ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Directory ${DIR} was modified or this is the first core launch. Regenerating game lists..."; fi
-				reset_core_gl
-				echo "$NEW_STAT" > "$OLD_STAT_FILE"
-		fi
-	}
-	
+						  
 	
 	function create_romlist() {
 		echo " Looking for games in  ${DIR}..."
+		
+		# Find all files in core's folder with core's extension
+		find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile}"
 
-		#Find all zips and process
+		# Now find all zips in core's folder and process
 		if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
-			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" \) -fprint "${tmpfile2}"
+			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" \) -fprint "${tmpfile2}"
 			shopt -s nullglob
 			if [ -s "${tmpfile2}" ]; then
 				local IFS=$'\n'
 				Lines=$(cat ${tmpfile2})
 				for z in ${Lines}; do
-					if [ "${samquiet,,}" == "no" ]; then echo "Processing: ${z}"; fi
-					"${mrsampath}/partun" "${z}" -l -e ${zipex::-1} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
+					if [ "${samquiet,,}" == "no" ]; then echo " Processing: ${z}"; fi
+					"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
 				done
 			fi
 			shopt -u nullglob
-		else
-			# Core doesn't use zip files
-			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${findex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" \) -fprint "${tmpfile}"
 		fi
 		
-		# Strip out all duplicate filenames with this fancy awk command
+		# Strip out all duplicate filenames with a fancy awk command
 		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${nextcore,,}_gamelist.txt"
 		
 
