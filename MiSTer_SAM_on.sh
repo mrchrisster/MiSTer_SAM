@@ -56,7 +56,7 @@ tmpfile="/tmp/.SAM_List/tmpfile"
 tmpfile2="/tmp/.SAM_List/tmpfile2"
 gametimer=120
 corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
-gamelist="Yes"
+gamelist="Dynamic"
 skipmessage="Yes"
 usezip="Yes"
 norepeat="Yes"
@@ -1682,7 +1682,7 @@ function sam_stop() { # there_can_be_only_one
 	[[ ! -z ${kill_1} ]] && tmux kill-session -t SAMMCP >/dev/null
 	[[ ! -z ${kill_2} ]] && kill -9 ${kill_2} >/dev/null
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
-	[[ ! -z ${kill_4} ]] && kill -9 ${kill_4} >/dev/null
+	#[[ ! -z ${kill_4} ]] && kill -9 ${kill_4} >/dev/null
 
 	sleep 1
 
