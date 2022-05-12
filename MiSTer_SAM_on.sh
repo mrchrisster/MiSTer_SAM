@@ -1536,8 +1536,8 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.sh
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.sh
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
@@ -1657,7 +1657,6 @@ function there_can_be_only_one() { # there_can_be_only_one
 	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
 
-
 	[[ ! -z ${kill_2} ]] && kill -9 ${kill_2} >/dev/null
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
 
@@ -1688,6 +1687,7 @@ function sam_stop() { # there_can_be_only_one
 	sleep 1
 
 	echo " Done!"
+	exit
 }
 
 function env_check() {
