@@ -39,11 +39,11 @@ done
 
 
 #======== FUNCTIONS ========
-function sam_jsmonitor() {
+function sam_jschange() {
 	# Reset trigger file
 	echo "" |>/tmp/.SAM_Joy_Change
 	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event delete /dev/input --include js0 --outfile /tmp/.SAM_Joy_Change &
+	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --outfile /tmp/.SAM_Joy_Change &
 }
 
 function input_clear() {
@@ -63,6 +63,36 @@ function sam_trigger() {
 		fi
 	input_clear
 	fi
+}
+
+function sam_jsmonitor() {
+
+	declare -a jsdevices=()
+	declare -a excludejoy=()
+	declare -a jsnew=()
+	
+	# Make a list of all js devices on system
+	shopt -s nullglob
+	for joystick in /dev/input/js*; do
+		jsdevices+=( "${joystick}" )
+	done
+	shopt -u nullglob
+
+	# Exclude motion sensors from monitoring list. This is necessary or else SAM will always detect input for these devices
+	mapfile -t excludejoy < <(grep -iwns "motion sensors" /proc/bus/input/devices -A 7 | awk -F= '/Handlers/{print $2 }' | awk '/js/{ print $1 }')
+	excludejoy=("${excludejoy[@]/#//dev/input/}")
+
+	jsnew=($(comm -3 <(printf "%s\n" "${excludejoy[@]}" | sort) <(printf "%s\n" "${jsdevices[@]}" | sort) | sort -n))
+
+	# Spawn Joystick monitoring process per detected joystick device (excluding motion sensors)
+	shopt -s nullglob
+	for joystick in ${jsnew[@]}; do
+		if [ ! -z "${joystick}" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Monitoring controller ${joystick}..."; fi
+			"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
+		fi
+	done
+	shopt -u nullglob
 }
 
 #======== Start ========
@@ -85,21 +115,11 @@ fi
 
 # Start monitoring for device changes
 if [ "${samquiet,,}" == "no" ]; then echo -n " Starting joystick change monitor..."; fi
-sam_jsmonitor
+sam_jschange
 if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 
-# Spawn Joystick monitoring process per detected joystick device
-#shopt -s nullglob
-#for joystick in /dev/input/js*; do
-#	if [ "${samquiet,,}" == "no" ]; then echo " Monitoring controller ${joystick}..."; fi
-#	"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
-#done
-#shopt -u nullglob
-
-#Problem with BT creating js1 device that always fires. Let's only monitor js0 for now
-if [ -e /dev/input/js0 ]; then
-	"${mrsampath}/MiSTer_SAM_joy.py" /dev/input/js0 2>/dev/null &
-fi
+# Spawn Joystick monitoring process
+sam_jsmonitor
 
 # Spawn Mouse monitoring process
 if [ "${samquiet,,}" == "no" ]; then echo " Monitoring mouse activity."; fi
@@ -124,9 +144,15 @@ while :; do
 		#echo " Device change(s) detected!"
 		# Wait for devices to stabilize
 		sleep 1
-		if [ $(ps aux | grep -v grep | grep -c -e MiSTer_SAM_joy.py) == "0" ]; then
-			"${mrsampath}/MiSTer_SAM_joy.py" /dev/input/js0 2>/dev/null &
-		fi
+		
+		# Kill existing monitors
+		for otherpid in $(ps -o pid,args | grep -e '[M]iSTer_SAM_joy.py'| awk '{ print $1 }'); do
+			kill -9 ${otherpid}
+			wait ${otherpid} &>/dev/null
+		done
+		
+		# Spawn Joystick monitoring process
+		sam_jsmonitor
 
 		# Reset trigger
 		echo "" |>/tmp/.SAM_Joy_Change
