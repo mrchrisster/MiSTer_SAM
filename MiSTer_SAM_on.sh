@@ -37,6 +37,7 @@ declare -g misterpath="/media/fat"
 # Save our PID and process
 declare -g sampid="${$}"
 declare -g samprocess="$(basename -- ${0})"
+declare -g inmenu=0
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -1222,6 +1223,7 @@ function sam_premenu() {
 }
 
 function sam_menu() {
+	inmenu=1
 	dialog --clear --no-cancel --ascii-lines --no-tags \
 	--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 	--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
@@ -1276,6 +1278,7 @@ function sam_utilitymenu() {
 }
 
 function sam_resetmenu() {
+	inmenu=1
 	dialog --clear --no-cancel --ascii-lines --no-tags \
 	--backtitle "Super Attract Mode" --title "[ Reset ]" \
 	--menu "Select an option" 0 0 0 \
@@ -1451,6 +1454,7 @@ function parse_cmd() {
 					;;
 				cancel) # Exit
 					echo " It's pitch dark; You are likely to be eaten by a Grue."
+					inmenu=0
 					break
 					;;
 				deleteall)
@@ -1744,8 +1748,14 @@ function deleteall() {
 	sed -i '/Super Attract/d' ${userstartup}
 
 	printf "\n\n\n\n\n\nAll files deleted except for MiSTer_SAM_on.sh\n\n\n\n\n\n"
-	sleep 1
-	sam_resetmenu
+	if [ "${inmenu}" == 1 ]; then
+		sleep 1
+		sam_resetmenu
+	else
+		printf "\n\n\n\n\n\nGamelist reset successful. Please start SAM now.\n\n\n\n\n\n"
+		sleep 1
+		parse_cmd stop
+	fi
 }
 
 function deletegl() {
@@ -1763,11 +1773,15 @@ function deletegl() {
 	if [ -d /tmp/.SAM_List ]; then
 		rm -rf /tmp/.SAM_List
 	fi
-	
-	printf "\n\n\n\n\n\nGamelist reset successful. \n\n\n\n\n\n"
-	sleep 1
-	sam_menu
 
+	if [ "${inmenu}" == 1 ]; then
+		sleep 1
+		sam_menu
+	else
+		printf "\n\n\n\n\n\nGamelist reset successful. Please start SAM now.\n\n\n\n\n\n"
+		sleep 1
+		parse_cmd stop
+	fi
 }
 
 function skipmessage() {
