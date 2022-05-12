@@ -43,16 +43,14 @@ function sam_jschange() {
 	# Reset trigger file
 	echo "" |>/tmp/.SAM_Joy_Change
 	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --outfile /tmp/.SAM_Joy_Change &
+	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --outfile /tmp/.SAM_Joy_Change 2>/dev/null &
 }
 
 function sam_keybchange() {
 	# Reset trigger file
 	echo "" |>/tmp/.SAM_Keyb_Change
 	# Monitor keyboard devices for changes
-	if [[ /dev/input/by-path/*kbd ]]; then
-		inotifywait --quiet --monitor --event create --event delete /dev/input/by-path --include kbd --outfile /tmp/.SAM_Keyb_Change &
-	fi
+	inotifywait --quiet --monitor --event create --event delete /dev/input/by-path --include kbd --outfile /tmp/.SAM_Keyb_Change 2>/dev/null &
 }
 
 
@@ -135,16 +133,8 @@ if [ "${samquiet,,}" == "no" ]; then echo -n " Starting joystick change monitor.
 sam_jschange
 if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 
-# Start monitoring for keyboard device changes
-if [ "${samquiet,,}" == "no" ]; then echo -n " Starting keyboard change monitor..."; fi
-sam_keybchange
-if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
-
 # Spawn Joystick monitoring process per detected joystick device
 sam_jsmonitor
-
-# Spawn Keyboard monitoring per detected keyboard device
-sam_keybmonitor
 
 # Spawn Mouse monitoring process. /dev/input/mice is always present so we don't need to detect changes here
 if [ "${samquiet,,}" == "no" ]; then echo " Monitoring mouse activity."; fi
@@ -176,10 +166,12 @@ while :; do
 	
 	# Only start keyboard detection if file is found
 	if [[ /dev/input/by-path/*kbd ]] && [[ ! "$(ps -o pid,args | grep '[i]notifywait.*Keyb')" ]]; then
-		sleep 1
+		if [ "${samquiet,,}" == "no" ]; then echo -n " Starting keyboard change monitor..."; fi
 		sam_keybchange
-	else
-		for otherpid in $(ps -o pid,args | grep -e '[M]iSTer_SAM_keyboard.py'| awk '{ print $1 }'); do
+		echo "Start" > /tmp/.SAM_Keyb_Change
+		sleep 1
+	elif [ ! -e /dev/input/by-path ]; then
+		for otherpid in $(ps -o pid,args | grep '[i]notifywait.*Keyb' | awk '{print $1}' | head -1); do
 			kill -9 ${otherpid}
 			wait ${otherpid} &>/dev/null
 		done
