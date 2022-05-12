@@ -46,6 +46,16 @@ function sam_jschange() {
 	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --outfile /tmp/.SAM_Joy_Change &
 }
 
+function sam_keybchange() {
+	# Reset trigger file
+	echo "" |>/tmp/.SAM_Keyb_Change
+	# Monitor keyboard devices for changes
+	if [[ /dev/input/by-path/*kbd ]]; then
+		inotifywait --quiet --monitor --event create --event delete /dev/input/by-path --include kbd --outfile /tmp/.SAM_Keyb_Change &
+	fi
+}
+
+
 function input_clear() {
 	# Reset activity triggers
 	echo "" |>/tmp/.SAM_Joy_Activity
@@ -78,10 +88,9 @@ function sam_jsmonitor() {
 	done
 	shopt -u nullglob
 
-	# Exclude motion sensors from monitoring list. This is necessary or else SAM will always detect input for these devices
+	# Exclude motion sensors from monitoring list. This is necessary or else SAM will detect constant input triggers from these js devices
 	mapfile -t excludejoy < <(grep -iwns "motion sensors" /proc/bus/input/devices -A 7 | awk -F= '/Handlers/{print $2 }' | awk '/js/{ print $1 }')
 	excludejoy=("${excludejoy[@]/#//dev/input/}")
-
 	jsnew=($(comm -3 <(printf "%s\n" "${excludejoy[@]}" | sort) <(printf "%s\n" "${jsdevices[@]}" | sort) | sort -n))
 
 	# Spawn Joystick monitoring process per detected joystick device (excluding motion sensors)
@@ -93,6 +102,14 @@ function sam_jsmonitor() {
 		fi
 	done
 	shopt -u nullglob
+}
+
+function sam_keybmonitor() {
+	
+	for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+' | sort | uniq); do
+		if [ "${samquiet,,}" == "no" ]; then echo " Monitoring keyboard ${keyboard}..."; fi
+		"${mrsampath}/MiSTer_SAM_keyboard.py" /dev/"${keyboard}" 2>/dev/null &
+	done
 }
 
 #======== Start ========
@@ -113,26 +130,25 @@ if [ "${samtrace,,}" == "yes" ]; then
 	echo "********************************************************************************"
 fi
 
-# Start monitoring for device changes
+# Start monitoring for joystick device changes
 if [ "${samquiet,,}" == "no" ]; then echo -n " Starting joystick change monitor..."; fi
 sam_jschange
 if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 
-# Spawn Joystick monitoring process
+# Start monitoring for keyboard device changes
+if [ "${samquiet,,}" == "no" ]; then echo -n " Starting keyboard change monitor..."; fi
+sam_keybchange
+if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
+
+# Spawn Joystick monitoring process per detected joystick device
 sam_jsmonitor
 
-# Spawn Mouse monitoring process
+# Spawn Keyboard monitoring per detected keyboard device
+sam_keybmonitor
+
+# Spawn Mouse monitoring process. /dev/input/mice is always present so we don't need to detect changes here
 if [ "${samquiet,,}" == "no" ]; then echo " Monitoring mouse activity."; fi
 [[ -z $(ps -o pid,args | grep '[M]iSTer_SAM_mouse.sh' | awk '{print $1}' | head -1) ]] && "${mrsampath}/MiSTer_SAM_mouse.sh" 2>/dev/null &
-
-
-# Spawn Keyboard monitoring per detected keyboard device
-for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+'); do
-	if [ "${samquiet,,}" == "no" ]; then echo " Monitoring keyboard ${keyboard}..."; fi
-	"${mrsampath}/MiSTer_SAM_keyboard.sh" "${keyboard}" 2>/dev/null &
-done
-# TODO - Detect keyboard device changes
-
 
 input_clear
 
@@ -145,21 +161,49 @@ while :; do
 		# Wait for devices to stabilize
 		sleep 1
 		
-		# Kill existing monitors
+		# Kill existing Joystick monitors
 		for otherpid in $(ps -o pid,args | grep -e '[M]iSTer_SAM_joy.py'| awk '{ print $1 }'); do
 			kill -9 ${otherpid}
 			wait ${otherpid} &>/dev/null
 		done
 		
-		# Spawn Joystick monitoring process
+		# Spawn Joystick monitoring processes
 		sam_jsmonitor
 
 		# Reset trigger
 		echo "" |>/tmp/.SAM_Joy_Change
 	fi
 	
+	# Only start keyboard detection if file is found
+	if [[ /dev/input/by-path/*kbd ]] && [[ ! "$(ps -o pid,args | grep '[i]notifywait.*Keyb')" ]]; then
+		sleep 1
+		sam_keybchange
+	else
+		for otherpid in $(ps -o pid,args | grep -e '[M]iSTer_SAM_keyboard.py'| awk '{ print $1 }'); do
+			kill -9 ${otherpid}
+			wait ${otherpid} &>/dev/null
+		done
+	fi
 	
-#Start SAM after input event
+	if [ -s /tmp/.SAM_Keyb_Change ]; then
+		#echo " Device change(s) detected!"
+		# Wait for devices to stabilize
+		sleep 1
+		
+		# Kill existing Keyboard monitors
+		for otherpid in $(ps -o pid,args | grep -e '[M]iSTer_SAM_keyboard.py'| awk '{ print $1 }'); do
+			kill -9 ${otherpid}
+			wait ${otherpid} &>/dev/null
+		done
+		
+		# Spawn Joystick monitoring processes
+		sam_keybmonitor
+
+		# Reset trigger
+		echo "" |>/tmp/.SAM_Keyb_Change
+	fi
+	
+	#Start SAM after input event
 	if [ "${menuonly,,}" == "yes" ]; then # Only start SAM from main menu
 		# Check if we're at the main menu, wait 1 minute before checking activity
 		if [[ "$(cat /tmp/CORENAME)" == "MENU" && "$(/bin/find /tmp/CORENAME -mmin +1)" ]]; then
