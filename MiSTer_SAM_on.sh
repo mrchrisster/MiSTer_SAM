@@ -1597,12 +1597,18 @@ function sam_enable() { # Enable autoplay
 	  echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1" >> ${userstartup}
 	fi
 
-	echo -e " \n\nSAM install complete."
-	echo -e " \nSAM will start after ${samtimeout} sec. idle"
-	echo " And will only shuffle games when in the menu: ${menuonly^}"
-	echo " And show each game for ${gametimer} sec."
-	echo -e " \nSAM will begin shuffle now..."
-	sleep 2
+	echo -e " \n\n SAM install complete."
+        echo -ne " \n SAM will start after ${samtimeout} sec. idle"
+        if [ ${menuonly,,} == "yes" ]; then
+                echo -n " in the main menu"
+        else
+                echo -n " whenever controller is not in use"
+        fi
+        echo " and show each game for ${gametimer} sec."
+        echo -e " \n SAM will begin shuffle now..."
+	sleep 5
+	echo -e " \n SAM will begin shuffle now... please wait."
+
 
 		${misterpath}/Scripts/MiSTer_SAM_on.sh start
 
