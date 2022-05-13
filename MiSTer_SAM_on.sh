@@ -1605,8 +1605,8 @@ function sam_enable() { # Enable autoplay
                 echo -n " whenever controller is not in use"
         fi
         echo " and show each game for ${gametimer} sec."
+	echo -e "\n\n\n"
 	sleep 5
-	echo -e "\n\n"
 	echo -e "\e[1m" SAM will begin shuffle now... please wait."\e[0m"
 	echo -e "\n\n"
 
