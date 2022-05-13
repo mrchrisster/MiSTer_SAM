@@ -1330,7 +1330,6 @@ function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
 		sam_help
 	elif [ ${#} -eq 0 ]; then # No options - show the pre-menu
-		there_can_be_only_one
 		sam_premenu
 	else
 		# If we're given a core name then we need to set it first
@@ -1360,6 +1359,8 @@ function parse_cmd() {
 					break
 					;;
 				autoconfig)
+					tmux kill-session -t MCP &>/dev/null
+					there_can_be_only_one
 					sam_update
 					mcp_start
 					sam_enable
@@ -1596,11 +1597,11 @@ function sam_enable() { # Enable autoplay
 	  echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1" >> ${userstartup}
 	fi
 
-	echo -n " \n\nSAM install complete."
-	echo -n " \nSAM will start after ${samtimeout} sec. idle"
+	echo -e " \n\nSAM install complete."
+	echo -e " \nSAM will start after ${samtimeout} sec. idle"
 	echo " And will only shuffle games when in the menu: ${menuonly^}"
 	echo " And show each game for ${gametimer} sec."
-	echo -n " \nSAM will begin shuffle now..."
+	echo -e " \nSAM will begin shuffle now..."
 	sleep 2
 
 		${misterpath}/Scripts/MiSTer_SAM_on.sh start
@@ -1678,12 +1679,12 @@ function sam_stop() { # there_can_be_only_one
 	#Delete temp lists
 	rm -rf /tmp/.SAM_List &> /dev/null
 
-	kill_1=$(ps -o pid,args | grep '[S]AMMCP' | awk '{print $1}' | head -1)
+	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
 	kill_4=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
 
-	[[ ! -z ${kill_1} ]] && tmux kill-session -t SAMMCP >/dev/null
+	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP >/dev/null
 	[[ ! -z ${kill_2} ]] && kill -9 ${kill_2} >/dev/null
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
 	#[[ ! -z ${kill_4} ]] && kill -9 ${kill_4} >/dev/null
