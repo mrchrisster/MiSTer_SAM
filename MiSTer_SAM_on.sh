@@ -38,6 +38,12 @@ declare -g misterpath="/media/fat"
 declare -g sampid="${$}"
 declare -g samprocess="$(basename -- ${0})"
 declare -g inmenu=0
+# Set to Yes to run speed tests
+declare -g speedtest="No"
+# If you need more time after running the speedtest, to evaluate the results
+# change this to a higher number (seconds)
+# This pauses execution, and, only works if speedtest is set to Yes
+declare -g sleeptime=1
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -1174,9 +1180,19 @@ GET_SYSTEM_FOLDER() {
 }
 
 if [ ${usedefaultpaths,,} == "yes" ]; then
-	for core in ${corelist}; do
-		defaultpath "${core}"
-	done
+	START="$(date +%s)"
+	if [ ${speedtest,,} == "yes" ]; then
+		for core in ${corelist}; do
+			defaultpath "${core}"
+		done
+		DURATION=$[ $(date +%s) - ${START} ]
+		echo "Searching for Default Paths took ${DURATION} seconds"
+		sleep ${sleeptime}
+	else
+		for core in ${corelist}; do
+			defaultpath "${core}"
+		done
+	fi
 fi
 
 
@@ -2230,8 +2246,46 @@ function next_core() { # next_core (core)
 		echo " Done."
 	}
 	
+	function create_romlist2() {
+		DIR2=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${1,,}]}${CORE_PATH_EXTRA[${1,,}]}"))
+
+		echo " Looking for games in  ${DIR2}..."
+		
+		# Find all files in core's folder with core's extension
+		find -L "${DIR2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${1,,}]}" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile}"
+
+		# Now find all zips in core's folder and process
+		if [ "${CORE_ZIPPED[${1,,}],,}" == "yes" ]; then
+			find -L "${DIR2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
+			shopt -s nullglob
+			if [ -s "${tmpfile2}" ]; then
+				local IFS=$'\n'
+				Lines=$(cat ${tmpfile2})
+				for z in ${Lines}; do
+					if [ "${samquiet,,}" == "no" ]; then echo " Processing: ${z}"; fi
+					"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${1,,}]} >> "${tmpfile}"
+				done
+			fi
+			shopt -u nullglob
+		fi
+		
+		# Strip out all duplicate filenames with a fancy awk command
+		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${1,,}_gamelist.txt"
+		
+
+		cp "${gamelistpath}/${1,,}_gamelist.txt" "${gamelistpathtmp}/${1,,}_gamelist.txt" &>/dev/null
+		echo " Done."
+	}
 	##### START ROMFINDER #####
-	
+		if [ ${speedtest,,} == "yes" ]; then
+			START="$(date +%s)"
+			for core in ${corelist}; do
+				create_romlist2 ${core} 
+			done
+			DURATION=$[ $(date +%s) - ${START} ]
+			echo "Creating romlists for all cores took ${DURATION} seconds"
+			sleep ${sleeptime}
+		fi
 		#Create list
 		if [ ! -f "${gamelistpath}/${nextcore,,}_gamelist.txt" ]; then
 			if [ "${samquiet,,}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${nextcore,,}_gamelist.txt"; fi
