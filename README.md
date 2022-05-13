@@ -75,7 +75,7 @@ Currently supported MiSTer cores:
 * Famicom Disk System (.fds)   
 * Game Boy Advance (.gba)
 * Genesis (.md)
-* MegaCD AKA SegaCD (.chd) - Highly recommend [Japanese region free Bios v2](https://mmmonkey.co.uk/downloads/#) for best compatibility. This will not autoboot though.
+* MegaCD AKA SegaCD (.chd) - Highly recommend [Japanese region free Bios v2](https://mmmonkey.co.uk/downloads/#) for best compatibility.
 * NeoGeo (.neo)
 * NES (.nes)
 * SNES (.sfc)
