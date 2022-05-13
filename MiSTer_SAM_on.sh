@@ -1597,12 +1597,11 @@ function sam_enable() { # Enable autoplay
 	  echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1" >> ${userstartup}
 	fi
 
-	echo -n " SAM install complete. Starting now..."
+	echo " \n\nSAM install complete. Starting now."
 
 		${misterpath}/Scripts/MiSTer_SAM_on.sh start
 
-	echo " Done!"
-	return
+	exit
 }
 
 function sam_disable() { # Disable autoplay
@@ -2591,3 +2590,4 @@ if [ "${1}" != "--source-only" ]; then
 fi
 
 
+#exit
