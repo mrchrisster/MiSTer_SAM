@@ -1596,11 +1596,11 @@ function sam_enable() { # Enable autoplay
 	  echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1" >> ${userstartup}
 	fi
 
-	echo " \n\nSAM install complete."
-	echo " \nSAM will start after ${samtimeout} sec. idle"
+	echo -n " \n\nSAM install complete."
+	echo -n " \nSAM will start after ${samtimeout} sec. idle"
 	echo " And will only shuffle games when in the menu: ${menuonly^}"
 	echo " And show each game for ${gametimer} sec."
-	echo " \nSAM will begin shuffle now..."
+	echo -n " \nSAM will begin shuffle now..."
 	sleep 2
 
 		${misterpath}/Scripts/MiSTer_SAM_on.sh start
