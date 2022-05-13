@@ -50,7 +50,7 @@ function sam_keybchange() {
 	# Reset trigger file
 	echo "" |>/tmp/.SAM_Keyb_Change
 	# Monitor keyboard devices for changes
-	inotifywait --quiet --monitor --event create --event delete /dev/input/by-path --include kbd --outfile /tmp/.SAM_Keyb_Change 2>/dev/null &
+	inotifywait -r --quiet --monitor --event create --event delete /dev/input/ --include by-path --outfile /tmp/.SAM_Keyb_Change 2>/dev/null &
 }
 
 
@@ -103,10 +103,35 @@ function sam_jsmonitor() {
 }
 
 function sam_keybmonitor() {
+
+	# We check for input on hidraw devices. First let's make sure these devices are keyboards...
 	
-	for keyboard in $(dmesg --decode --level info --kernel --color=never --notime --nopager | grep -e 'Keyboard' | grep -Eo 'hidraw[0-9]+' | sort | uniq); do
-		if [ "${samquiet,,}" == "no" ]; then echo " Monitoring keyboard ${keyboard}..."; fi
-		"${mrsampath}/MiSTer_SAM_keyboard.py" /dev/"${keyboard}" 2>/dev/null &
+	declare -a kbdevents=()
+	declare -a rawinput=()
+	
+	kbdevents=($(ls /dev/input/by-path | grep "event-kbd")) # We know these are keyboards
+	rawinput=($(ls /dev/hidraw*))
+
+	# Collect all connected keyboards names
+	for keyboards in "${kbdevents[@]}"; do 
+		devpath=$(readlink --canonicalize "/dev/input/by-path/${keyboards}")
+		kbd=${devpath##*/} 
+		kbddev+=( "$(cat /sys/class/input/${kbd}/device/uevent | grep NAME | cut -d '=' -f2 | tr -d '""')" )
+		#printf "%s \t %s\n" $devpath "$kbddev"
+	done
+
+	# Compare if hidraw devices match keyboard device names
+	for f in "${rawinput[@]}"; do
+		kbdraw=${f##*/}
+		rawdev="$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_NAME | cut -d '=' -f2 )"
+		#printf "%s \t %s\n" $kbdraw "$rawdev" 
+
+		for i in "${kbddev[@]}"; do
+			if [ "$i" == "$rawdev" ] ; then
+				echo "$f $i is a keyboard"
+				"${mrsampath}/MiSTer_SAM_keyboard.py" "${f}" 2>/dev/null &
+			fi
+		done	
 	done
 }
 
@@ -133,10 +158,20 @@ if [ "${samquiet,,}" == "no" ]; then echo -n " Starting joystick change monitor.
 sam_jschange
 if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
 
-# Spawn Joystick monitoring process per detected joystick device
+# Start monitoring for keyboard device changes
+if [ "${samquiet,,}" == "no" ]; then echo -n " Starting keyboard change monitor..."; fi
+sam_keybchange
+if [ "${samquiet,,}" == "no" ]; then echo " Done!"; fi
+
+# Spawn joystick monitoring process per detected joystick device
 sam_jsmonitor
 
-# Spawn Mouse monitoring process. /dev/input/mice is always present so we don't need to detect changes here
+# Spawn keyboard monitoring processes
+if [[ /dev/input/by-path/*kbd ]]; then
+	sam_keybmonitor
+fi
+
+# Spawn mouse monitoring process. /dev/input/mice is always present so we don't need to detect changes here
 if [ "${samquiet,,}" == "no" ]; then echo " Monitoring mouse activity."; fi
 [[ -z $(ps -o pid,args | grep '[M]iSTer_SAM_mouse.sh' | awk '{print $1}' | head -1) ]] && "${mrsampath}/MiSTer_SAM_mouse.sh" 2>/dev/null &
 
@@ -163,19 +198,7 @@ while :; do
 		# Reset trigger
 		echo "" |>/tmp/.SAM_Joy_Change
 	fi
-	
-	# Only start keyboard detection if file is found
-	if [[ /dev/input/by-path/*kbd ]] && [[ ! "$(ps -o pid,args | grep '[i]notifywait.*Keyb')" ]]; then
-		if [ "${samquiet,,}" == "no" ]; then echo -n " Starting keyboard change monitor..."; fi
-		sam_keybchange
-		echo "Start" > /tmp/.SAM_Keyb_Change
-		sleep 1
-	elif [ ! -e /dev/input/by-path ]; then
-		for otherpid in $(ps -o pid,args | grep '[i]notifywait.*Keyb' | awk '{print $1}' | head -1); do
-			kill -9 ${otherpid}
-			wait ${otherpid} &>/dev/null
-		done
-	fi
+
 	
 	if [ -s /tmp/.SAM_Keyb_Change ]; then
 		#echo " Device change(s) detected!"
@@ -188,14 +211,16 @@ while :; do
 			wait ${otherpid} &>/dev/null
 		done
 		
-		# Spawn Joystick monitoring processes
-		sam_keybmonitor
+		# Spawn keyboard monitoring processes
+		if [[ /dev/input/by-path/*kbd ]]; then
+			sam_keybmonitor
+		fi
 
 		# Reset trigger
 		echo "" |>/tmp/.SAM_Keyb_Change
 	fi
 	
-	#Start SAM after input event
+	# Start SAM after input event
 	if [ "${menuonly,,}" == "yes" ]; then # Only start SAM from main menu
 		# Check if we're at the main menu, wait 1 minute before checking activity
 		if [[ "$(cat /tmp/CORENAME)" == "MENU" && "$(/bin/find /tmp/CORENAME -mmin +1)" ]]; then
