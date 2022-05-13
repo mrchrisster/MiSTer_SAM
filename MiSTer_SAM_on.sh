@@ -1607,8 +1607,7 @@ function sam_enable() { # Enable autoplay
         echo " and show each game for ${gametimer} sec."
         echo -e " \n SAM will begin shuffle now..."
 	sleep 5
-	echo -e " \n SAM will begin shuffle now... please wait."
-
+	echo -e "\e[1m"SAM will begin shuffle now... please wait."\e[0m"
 
 		${misterpath}/Scripts/MiSTer_SAM_on.sh start
 
@@ -1789,7 +1788,7 @@ function deletegl() {
 		sleep 1
 		sam_menu
 	else
-		printf "\n\n\n\n\n\nGamelist reset successful. Please start SAM now.\n\n\n\n\n\n"
+		echo -e "\n\n\n\n\n\nGamelist reset successful. Please start SAM now.\n\n\n\n\n\n"
 		sleep 1
 		parse_cmd stop
 	fi
