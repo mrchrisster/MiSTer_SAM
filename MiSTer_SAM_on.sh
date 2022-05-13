@@ -1551,7 +1551,7 @@ function sam_update() { # sam_update (next command)
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 			sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
 			sed -i 's/-=/--/g' /media/fat/Scripts/MiSTer_SAM.ini
-			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/MiSTer_SAM.ini /tmp/MiSTer_SAM.ini > ${tmpfile} && mv --force ${tmpfile} /media/fat/Scripts/MiSTer_SAM.ini
+			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/MiSTer_SAM.ini /tmp/MiSTer_SAM.ini > /tmp/MiSTer_SAM.tmp && mv --force /tmp/MiSTer_SAM.tmp /media/fat/Scripts/MiSTer_SAM.ini
 			echo "Done."
 			
 		else
