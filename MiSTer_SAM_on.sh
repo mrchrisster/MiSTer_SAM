@@ -1188,10 +1188,10 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ $(grep -c "mistersam" ${userstartup}) = "0" ]; then
-		echo " -SAM autoplay DISABLED"
-	else
+	if [ $(grep -ic "mister_sam" ${userstartup}) != "0" ]; then
 		echo " -SAM autoplay ENABLED"
+	else
+		echo " -SAM autoplay DISABLED"
 	fi
 	echo " -Start after ${samtimeout} sec. idle"
 	echo " -Start only on the menu: ${menuonly^}"
@@ -1330,6 +1330,7 @@ function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
 		sam_help
 	elif [ ${#} -eq 0 ]; then # No options - show the pre-menu
+		there_can_be_only_one
 		sam_premenu
 	else
 		# If we're given a core name then we need to set it first
@@ -1361,7 +1362,7 @@ function parse_cmd() {
 				autoconfig)
 					sam_update
 					mcp_start
-					sam_enable start
+					sam_enable
 					break
 					;;
 				bootstart) # Start as from init
@@ -1382,7 +1383,7 @@ function parse_cmd() {
 					;;
 				start_real) # Start SAM immediately
 					env_check ${1,,}
-                                        tty_init
+                    tty_init
 					loop_core ${nextcore,,}
 					break
 					;;
@@ -1406,7 +1407,7 @@ function parse_cmd() {
 					;;
 				enable) # Enable SAM autoplay mode
 					env_check ${1,,}
-					sam_enable start
+					sam_enable
 					break
 					;;
 				disable) # Disable SAM autoplay
@@ -1449,6 +1450,7 @@ function parse_cmd() {
 					break
 					;;
 				menu)
+				
 					sam_menu
 					break
 					;;
@@ -1488,7 +1490,7 @@ function mcp_start() {
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
 		#${mrsampath}/MiSTer_SAM_MCP monitoronly &
-		tmux new-session -s SAMMCP -d ${mrsampath}/MiSTer_SAM_MCP 
+		tmux new-session -s MCP -d ${mrsampath}/MiSTer_SAM_MCP 
 	fi
 
 }
@@ -1590,15 +1592,14 @@ function sam_enable() { # Enable autoplay
 	  fi
 	fi
 	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ]; then
-	  echo -e "Add mistersam to ${userstartup}\n"
+	  echo -e "Add MiSTer SAM to ${userstartup}\n"
 	  echo -e "\n# Startup Super Attract Mode" >> ${userstartup}
 	  echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1" >> ${userstartup}
 	fi
 
-	echo -n " SAM autoplay daemon starting..."
+	echo -n " SAM install complete. Starting now..."
 
-		${mrsampath}/MiSTer_SAM_init start &
-
+		${misterpath}/Scripts/MiSTer_SAM_on.sh start
 
 	echo " Done!"
 	return
@@ -2590,4 +2591,3 @@ if [ "${1}" != "--source-only" ]; then
 fi
 
 
-#exit
