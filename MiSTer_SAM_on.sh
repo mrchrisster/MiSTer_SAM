@@ -1596,9 +1596,9 @@ function sam_enable() { # Enable autoplay
 	  echo -e "\n# Startup Super Attract Mode" >> ${userstartup}
 	  echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1" >> ${userstartup}
 	fi
-
-	echo -e " \n\n SAM install complete."
-        echo -ne " \n SAM will start after ${samtimeout} sec. idle"
+	echo "Done."
+	echo " SAM install complete."
+        echo -ne " \n\n\n SAM will start after ${samtimeout} sec. idle"
         if [ ${menuonly,,} == "yes" ]; then
                 echo -n " in the main menu"
         else
