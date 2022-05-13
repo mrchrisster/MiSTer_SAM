@@ -1410,11 +1410,8 @@ function parse_cmd() {
 					#break
 					;;
 				stop) # Stop SAM immediately
-					sam_stop
 					tty_exit
-					if [ "${mute,,}" == "yes" ]; then echo -e "\0000\c" > /media/fat/config/Volume.dat; fi
-					echo " Thanks for playing!"
-					if [ "${mute,,}" == "yes" ]; then echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd; fi
+					sam_stop
 					exit
 					break
 					;;
@@ -1698,6 +1695,8 @@ function sam_stop() { # there_can_be_only_one
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
 	
+	if [ "${mute,,}" == "yes" ]; then echo -e "\0000\c" > /media/fat/config/Volume.dat; fi
+	echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
 	#Delete temp lists
 	rm -rf /tmp/.SAM_List &> /dev/null
 
@@ -1714,6 +1713,7 @@ function sam_stop() { # there_can_be_only_one
 	sleep 1
 
 	echo " Done!"
+	echo " Thanks for playing!"
 	exit
 }
 
