@@ -2282,11 +2282,22 @@ function next_core() { # next_core (core)
 	##### START ROMFINDER #####
 		if [ ${speedtest,,} == "yes" ]; then
 			START="$(date +%s)"
+			echo "" > /tmp/Durations.tmp
 			for core in ${corelist}; do
-				create_romlist2 ${core} 
+				START2="$(date +%s)"
+				create_romlist2 ${core}
+				echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
 			done
-			DURATION=$[ $(date +%s) - ${START} ]
-			echo "Creating romlists for all cores took ${DURATION} seconds"
+			printf "Total: $[ $(date +%s) - ${START} ] seconds" >> /tmp/Durations.tmp
+			shopt -s nullglob
+			if [ -s "/tmp/Durations.tmp" ]; then
+				local IFS=$'\n'
+				Lines=$(cat /tmp/Durations.tmp)
+				for z in ${Lines}; do
+					echo "${z}"
+				done
+			fi
+			shopt -u nullglob
 			sleep ${sleeptime}
 		fi
 		#Create list
