@@ -38,12 +38,6 @@ function init_vars() {
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
 	declare -g inmenu=0
-	# Set to Yes to run speed tests
-	declare -g speedtest="No"
-	# If you need more time after running the speedtest, to evaluate the results
-	# change this to a higher number (seconds)
-	# This pauses execution, and, only works if speedtest is set to Yes
-	declare -g sleeptime=1
 
 	#======== DEBUG VARIABLES ========
 	samquiet="Yes"
@@ -1440,6 +1434,9 @@ function parse_cmd() {
 					sam_update autoconfig
 					break
 					;;
+				--speedtest | --sourceonly)
+					break
+					;;
 				autoconfig)
 					tmux kill-session -t MCP &>/dev/null
 					there_can_be_only_one
@@ -2295,6 +2292,34 @@ function reset_core_gl() { # args ${nextcore,,}
 	sync
 }
 
+function speedtest() {
+	START="$(date +%s)"
+	if [ ${speedtest,,} == "yes" ]; then
+		for core in ${corelist}; do
+			defaultpath "${core}"
+		done
+		DURATION_DP=$[ $(date +%s) - ${START} ]
+	fi
+	START="$(date +%s)"
+	echo "" > /tmp/Durations.tmp
+	for core in ${corelist}; do
+		START2="$(date +%s)"
+		create_romlist ${core}
+		echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
+	done
+	printf "Total: $[ $(date +%s) - ${START} ] seconds" >> /tmp/Durations.tmp
+	shopt -s nullglob
+	if [ -s "/tmp/Durations.tmp" ]; then
+		local IFS=$'\n'
+		Lines=$(cat /tmp/Durations.tmp)
+		for z in ${Lines}; do
+			echo "${z}"
+		done
+	fi
+	shopt -u nullglob
+	echo "Searching for Default Paths took ${DURATION_DP} seconds"
+}
+
 function create_romlist() { # args ${nextcore,,}
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${1}]}${CORE_PATH_EXTRA[${1}]}"))
 	echo " Looking for games in  ${DIR}..."
@@ -2316,7 +2341,7 @@ function create_romlist() { # args ${nextcore,,}
 		fi
 		shopt -u nullglob
 	fi
-	
+
 	# Strip out all duplicate filenames with a fancy awk command
 	if [ ${gamelists,,} == "dynamic" ]; then
 		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpathtmp}/${1}_gamelist.txt"
@@ -2374,29 +2399,6 @@ function next_core() { # next_core (core)
 	fi
 
 	##### START ROMFINDER #####
-		if [ ! ${gamelists_created,,} ]; then
-			if [ ${speedtest,,} == "yes" ]; then
-				START="$(date +%s)"
-				echo "" > /tmp/Durations.tmp
-				for core in ${corelist}; do
-					START2="$(date +%s)"
-					create_romlist ${core}
-					echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
-				done
-				printf "Total: $[ $(date +%s) - ${START} ] seconds" >> /tmp/Durations.tmp
-				shopt -s nullglob
-				if [ -s "/tmp/Durations.tmp" ]; then
-					local IFS=$'\n'
-					Lines=$(cat /tmp/Durations.tmp)
-					for z in ${Lines}; do
-						echo "${z}"
-					done
-				fi
-				shopt -u nullglob
-				sleep ${sleeptime}
-			fi
-			gamelists_created="Yes"
-		fi
 		#Create list
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
 		if [ ! -f "${gamelistpath}/${nextcore,,}_gamelist.txt" ]; then
@@ -2707,19 +2709,9 @@ function main() {
 	misc
 	init_paths
 	if [ ${usedefaultpaths,,} == "yes" ]; then
-		START="$(date +%s)"
-		if [ ${speedtest,,} == "yes" ]; then
 			for core in ${corelist}; do
 				defaultpath "${core}"
 			done
-			DURATION=$[ $(date +%s) - ${START} ]
-			echo "Searching for Default Paths took ${DURATION} seconds"
-			sleep ${sleeptime}
-		else
-			for core in ${corelist}; do
-				defaultpath "${core}"
-			done
-		fi
 	fi
 
 	init_data		# Setup data arrays
@@ -2730,7 +2722,10 @@ function main() {
 
 	disable_bootrom	# Disable Bootrom until Reboot
 	mute
-	if [ "${1}" != "--source-only" ]; then
+	if [ "${1,,}" == "--speedtest" ]; then
+		speedtest
+	fi
+	if [ "${1,,}" != "--source-only" ] || [ "${1,,}" != "--speedtest" ]; then
 		parse_cmd ${@} # Parse command line parameters for input
 	fi
 }
