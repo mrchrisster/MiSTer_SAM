@@ -2270,10 +2270,13 @@ function next_core() { # next_core (core)
 		fi
 		
 		# Strip out all duplicate filenames with a fancy awk command
-		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${1,,}_gamelist.txt"
-		
+		if [ ${gamelists,,} == "dynamic" ]; then
+			awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpathtmp}/${1,,}_gamelist.txt"
+		elif [ ${gamelists,,} == "static" ]; then
+			awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${1,,}_gamelist.txt"
+			cp "${gamelistpath}/${1,,}_gamelist.txt" "${gamelistpathtmp}/${1,,}_gamelist.txt" &>/dev/null
+		fi
 
-		cp "${gamelistpath}/${1,,}_gamelist.txt" "${gamelistpathtmp}/${1,,}_gamelist.txt" &>/dev/null
 		echo " Done."
 	}
 	##### START ROMFINDER #####
