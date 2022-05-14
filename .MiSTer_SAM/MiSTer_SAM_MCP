@@ -108,6 +108,7 @@ function sam_keybmonitor() {
 	
 	declare -a kbdevents=()
 	declare -a rawinput=()
+	declare -a kbddev=()
 	
 	kbdevents=($(ls /dev/input/by-path | grep "event-kbd")) # We know these are keyboards
 	rawinput=($(ls /dev/hidraw*))
@@ -116,14 +117,14 @@ function sam_keybmonitor() {
 	for keyboards in "${kbdevents[@]}"; do 
 		devpath=$(readlink --canonicalize "/dev/input/by-path/${keyboards}")
 		kbd=${devpath##*/} 
-		kbddev+=( "$(cat /sys/class/input/${kbd}/device/uevent | grep NAME | cut -d '=' -f2 | tr -d '""')" )
-		#printf "%s \t %s\n" $devpath "$kbddev"
+		kbddev+=( "$(cat /sys/class/input/${kbd}/device/uevent | grep PHYS | cut -d '=' -f2 | tr -d '""')" )
+		#echo "${kbddev[@]}"
 	done
 
 	# Compare if hidraw devices match keyboard device names
 	for f in "${rawinput[@]}"; do
 		kbdraw=${f##*/}
-		rawdev="$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_NAME | cut -d '=' -f2 )"
+		rawdev="$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_PHYS | cut -d '=' -f2 )"
 		#printf "%s \t %s\n" $kbdraw "$rawdev" 
 
 		for i in "${kbddev[@]}"; do
