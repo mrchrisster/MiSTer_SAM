@@ -68,6 +68,7 @@ usezip="Yes"
 norepeat="Yes"
 disablebootrom="Yes"
 mute="Yes"
+				 
 playcurrentgame="No"
 listenmouse="Yes"
 listenkeyboard="Yes"
@@ -1247,9 +1248,10 @@ function sam_menu() {
 	Skip "Skip game" \
 	Stop "Stop SAM" \
 	Single "Games from only one core" \
-	Favorite "Favorite Game. Copy current game to _Favorites folder" \
+	Gamemode "Game roulette" \
 	Utility "Update and Monitor" \
 	Config "Configure INI Settings" \
+	Favorite "Favorite Game. Copy current game to _Favorites folder" \
 	Reset "Reset or uninstall SAM" \
 	Autoplay "Autoplay Configuration" \
 	Cancel "Exit now" 2>"/tmp/.SAMmenu"
@@ -1342,6 +1344,32 @@ function sam_configmenu() {
 	parse_cmd menu
 }
 
+							 
+function sam_gamemodemenu() {
+	if [ -f /media/fat/Scripts/MiSTer_SAM_on.sh ]; then
+		source /media/fat/Scripts/MiSTer_SAM_on.sh --source-only
+	fi
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ Game Roulette ]" \
+	--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ Game Roulette and Lucky Mode ]" \
+	--menu "Select an option" 0 0 0 \
+	Roulette5 "Play a random game for 5 minutes. " \
+	Roulette10 "Play a random game for 10 minutes. " \
+	Roulette15 "Play a random game for 15 minutes. " \
+ 	Roulette20 "Play a random game for 20 minutes. " \
+ 	Roulette25 "Play a random game for 25 minutes. " \
+ 	Roulette30 "Play a random game for 30 minutes. " \
+	Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in MiSTer_SAM.ini). " \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+
+	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}													 
+
 function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
 		sam_help
@@ -1411,7 +1439,7 @@ function parse_cmd() {
 					;;
 				stop) # Stop SAM immediately
 					tty_exit
-					sam_stop
+					sam_stop																								 
 					exit
 					break
 					;;
@@ -1480,6 +1508,74 @@ function parse_cmd() {
 					deletegl
 					break
 					;;
+				gamemode)
+					sam_gamemodemenu
+					break
+					;;
+				roulette5)
+					
+					there_can_be_only_one
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=300
+					loop_core
+					break
+					;;
+				roulette10)
+					there_can_be_only_one
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=600
+					loop_core
+					break
+					;;
+				roulette15)
+					there_can_be_only_one
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=900
+					loop_core
+					break
+					;;
+				roulette20)
+					there_can_be_only_one
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=1200
+					loop_core
+					break
+					;;
+				roulette25)
+					there_can_be_only_one
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=1500
+					loop_core
+					break
+					;;
+				roulette30)
+					there_can_be_only_one
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=1800
+					loop_core
+					break
+					;;
+				roulettetimer)
+					there_can_be_only_one
+					listenmouse="No"
+					listenkeyboard="No"
+					listenjoy="No"
+					gametimer=${roulettetimer}
+					loop_core
+					break
+					;;   
 				help)
 					sam_help
 					break
@@ -2280,7 +2376,7 @@ function next_core() { # next_core (core)
 		echo " Done."
 	}
 	##### START ROMFINDER #####
-		if [ ! ${gamelists_created,,} ]; then
+		#if [ ! ${gamelists_created,,} ]; then
 			if [ ${speedtest,,} == "yes" ]; then
 				START="$(date +%s)"
 				echo "" > /tmp/Durations.tmp
@@ -2302,7 +2398,7 @@ function next_core() { # next_core (core)
 				sleep ${sleeptime}
 			fi
 			gamelists_created="Yes"
-		fi
+		#fi
 		#Create list
 		if [ ! -f "${gamelistpath}/${nextcore,,}_gamelist.txt" ]; then
 			if [ "${samquiet,,}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${nextcore,,}_gamelist.txt"; fi
