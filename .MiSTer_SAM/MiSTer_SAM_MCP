@@ -113,7 +113,7 @@ function sam_keybmonitor() {
 	kbdevents=($(ls /dev/input/by-path | grep "event-kbd")) # We know these are keyboards
 	rawinput=($(ls /dev/hidraw*))
 
-	# Collect all connected keyboards names
+	# Collect all connected keyboards by physical address
 	for keyboards in "${kbdevents[@]}"; do 
 		devpath=$(readlink --canonicalize "/dev/input/by-path/${keyboards}")
 		kbd=${devpath##*/} 
@@ -121,7 +121,7 @@ function sam_keybmonitor() {
 		#echo "${kbddev[@]}"
 	done
 
-	# Compare if hidraw devices match keyboard device names
+	# Compare if hidraw devices match keyboard device address
 	for f in "${rawinput[@]}"; do
 		kbdraw=${f##*/}
 		rawdev="$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_PHYS | cut -d '=' -f2 )"
@@ -129,7 +129,7 @@ function sam_keybmonitor() {
 
 		for i in "${kbddev[@]}"; do
 			if [ "$i" == "$rawdev" ] ; then
-				echo "$f $i is a keyboard"
+				echo "$f is a keyboard"
 				"${mrsampath}/MiSTer_SAM_keyboard.py" "${f}" 2>/dev/null &
 			fi
 		done	
