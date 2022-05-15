@@ -1378,9 +1378,6 @@ function sam_configmenu() {
 
 							 
 function sam_gamemodemenu() {
-	if [ -f /media/fat/Scripts/MiSTer_SAM_on.sh ]; then
-		source /media/fat/Scripts/MiSTer_SAM_on.sh --source-only
-	fi
 	dialog --clear --no-cancel --ascii-lines --no-tags \
 	--backtitle "Super Attract Mode" --title "[ Game Roulette ]" \
 	--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
@@ -1430,7 +1427,7 @@ function parse_cmd() {
 
 		while [ ${#} -gt 0 ]; do
 			case ${1,,} in
-				default) # Default is split because sam_update relaunches itself
+				default) # sam_update relaunches itself 
 					sam_update autoconfig
 					break
 					;;
@@ -1447,9 +1444,13 @@ function parse_cmd() {
 					;;
 				bootstart) # Start as from init
 					env_check ${1,,}
+					# Sleep before startup so clock of Mister can synchronize if connected to the internet. 
+					# We assume most people don't have RTC add-on so sleep is default.
+					# Only start MCP on boot
+					bootsleep=60
+					boot_samtimeout=$((${samtimeout} + ${bootsleep}))
+					sleep ${bootsleep}
 					mcp_start
-					echo " Starting SAM in the background."
-					#tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh bootstart_real
 					break
 					;;
 				start | restart) # Start as a detached tmux session for monitoring
@@ -1546,10 +1547,10 @@ function parse_cmd() {
 				gamemode)
 					sam_gamemodemenu
 					break
-					;;
-				roulette5)
-					
-					there_can_be_only_one
+					;;	
+
+				roulette5)				
+					only_survivor
 					listenmouse="No"
 					listenkeyboard="No"
 					listenjoy="No"
@@ -1558,7 +1559,7 @@ function parse_cmd() {
 					break
 					;;
 				roulette10)
-					there_can_be_only_one
+					only_survivor
 					listenmouse="No"
 					listenkeyboard="No"
 					listenjoy="No"
@@ -1567,7 +1568,7 @@ function parse_cmd() {
 					break
 					;;
 				roulette15)
-					there_can_be_only_one
+					only_survivor
 					listenmouse="No"
 					listenkeyboard="No"
 					listenjoy="No"
@@ -1576,7 +1577,7 @@ function parse_cmd() {
 					break
 					;;
 				roulette20)
-					there_can_be_only_one
+					only_survivor
 					listenmouse="No"
 					listenkeyboard="No"
 					listenjoy="No"
@@ -1585,7 +1586,7 @@ function parse_cmd() {
 					break
 					;;
 				roulette25)
-					there_can_be_only_one
+					only_survivor
 					listenmouse="No"
 					listenkeyboard="No"
 					listenjoy="No"
@@ -1594,7 +1595,7 @@ function parse_cmd() {
 					break
 					;;
 				roulette30)
-					there_can_be_only_one
+					only_survivor
 					listenmouse="No"
 					listenkeyboard="No"
 					listenjoy="No"
@@ -1603,7 +1604,7 @@ function parse_cmd() {
 					break
 					;;
 				roulettetimer)
-					there_can_be_only_one
+					only_survivor
 					listenmouse="No"
 					listenkeyboard="No"
 					listenjoy="No"
@@ -1743,7 +1744,7 @@ function sam_enable() { # Enable autoplay
 	echo "Done."
 	echo " SAM install complete."
 	echo -e "\n\n\n" 
-        echo -ne "\e[1m" SAM will start after ${samtimeout} sec. idle"\e[0m"
+        echo -ne "\e[1m" SAM will start after ${boot_samtimeout} sec. after boot"\e[0m"
         if [ ${menuonly,,} == "yes" ]; then
                 echo -ne "\e[1m" in the main menu"\e[0m"
         else
@@ -1805,25 +1806,45 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
 	
-	#Delete temp lists
-	rm -rf /tmp/.SAM_List &> /dev/null
+	
+	if [ "${gamelists,,}" == "static" ]; then
+		#Delete temp lists
+		rm -rf /tmp/.SAM_List &> /dev/null
+	fi
 
-
-	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' | head -1)
+	kill_1=$(ps -o pid,args | grep '[M]iSTer_SAM_init start' | awk '{print $1}' | head -1 )
+	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' )
 	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
-
-	[[ ! -z ${kill_2} ]] && kill -9 ${kill_2} >/dev/null
+	
+	[[ ! -z ${kill_1} ]] && kill -9 ${kill_1} >/dev/null
+	for kill in ${kill_2}; do
+		[[ ! -z ${kill_2} ]] && kill -9 ${kill} >/dev/null
+	done	
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
-
+	
 	sleep 1
 
 	echo " Done!"
 }
 
+function only_survivor() {
+	# Kill all SAM processes except for currently running
+	currentpid=$(echo $$)
+	pids=($(ps aux | grep -i "[M]iSTer_SAM" | awk '{print $1}' ))
+	if [ ! -z "${pids}" ]; then
+		# Kill all instances except for running task
+		otherpid=($(comm -3 <(printf "%s\n" "${currentpid}" | sort) <(printf "%s\n" "${pids[@]}" | sort) | sort -n))
+		for pid in ${otherpid[@]}; do
+			kill -9 ${pid} &>/dev/null
+			wait ${pidd} &>/dev/null
+		done
+	fi
+}
 
-function sam_stop() { # there_can_be_only_one
-	# If another attract process is running kill it
-	# This can happen if the script is started multiple times
+
+function sam_stop() { 
+	# Stop all SAM processes and reboot to menu
+
 	echo -n " Stopping other running instances of ${samprocess}..."
 	
 	if [ "${mute,,}" == "yes" ]; then echo -e "\0000\c" > /media/fat/config/Volume.dat; fi
@@ -1832,14 +1853,16 @@ function sam_stop() { # there_can_be_only_one
 	rm -rf /tmp/.SAM_List &> /dev/null
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' | head -1)
-	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
+	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
+	kill_3=$(ps -o pid,args | grep -i '[M]iSTer_SAM_on' | awk '{print $1}' )
 	kill_4=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-
-	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP >/dev/null
-	[[ ! -z ${kill_2} ]] && kill -9 ${kill_2} >/dev/null
-	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
-	#[[ ! -z ${kill_4} ]] && kill -9 ${kill_4} >/dev/null
+    
+	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
+	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
+	for kill in ${kill_3}; do
+		[[ ! -z ${kill_3} ]] && kill -9 ${kill} &>/dev/null
+	done
+	[[ ! -z ${kill_4} ]] && kill -9 ${kill_4} &>/dev/null
 
 	sleep 1
 
@@ -1945,7 +1968,7 @@ function deletegl() {
 function skipmessage() {
 	#Skip past bios/safety warnings
 
-			sleep 3 && "${mrsampath}"/mbc raw_seq :31
+			"${mrsampath}"/mbc raw_seq :31
 }
 
 function mglfavorite() {
@@ -2551,6 +2574,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "" |>/tmp/.SAM_Keyboard_Activity
 
 	if [ "${skipmessage,,}" == "yes" ] && [ "${CORE_SKIP[${nextcore,,}],,}" == "yes" ]; then
+		sleep 3
 		skipmessage
 	fi
 }
@@ -2574,19 +2598,19 @@ function core_error() { # core_error core /path/to/ROM
 function disable_bootrom() {
 	if [ "${disablebootrom}" == "Yes" ]; then
 	#Make Bootrom folder inaccessible until restart
-		if [ -d "${misterpath}/Bootrom" ]; then
+		if [ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ]; then
 			mount --bind /mnt "${misterpath}/Bootrom"
 		fi
 		#Disable Nes bootroms except for FDS Bios (boot0.rom)
-		if [ -f "${misterpath}/Games/NES/boot1.rom" ]; then
+		if [ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ]; then
 			touch /tmp/brfake
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
 		fi
-		if [ -f "${misterpath}/Games/NES/boot2.rom" ]; then
+		if [ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ]; then
 			touch /tmp/brfake
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot2.rom
 		fi
-		if [ -f "${misterpath}/Games/NES/boot3.rom" ]; then
+		if [ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ]; then
 			touch /tmp/brfake
 			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot3.rom
 		fi
@@ -2725,9 +2749,11 @@ function main() {
 	if [ "${1,,}" == "--speedtest" ]; then
 		speedtest
 	fi
-	if [ "${1,,}" != "--source-only" ] || [ "${1,,}" != "--speedtest" ]; then
-		parse_cmd ${@} # Parse command line parameters for input
-	fi
+
+	parse_cmd ${@} # Parse command line parameters for input
+
 }
 
-main ${@}
+if [ "${1,,}" != "--source-only" ]; then
+	main ${@}
+fi
