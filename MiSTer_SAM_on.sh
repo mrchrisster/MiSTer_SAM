@@ -2317,10 +2317,18 @@ function speedtest() {
 	START="$(date +%s)"
 	echo "" > /tmp/Durations.tmp
 	for core in ${corelist}; do
-	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
-		START2="$(date +%s)"
-		create_romlist ${core} ${DIR}
-		echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
+		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
+		if [ ${core} != "arcade" ]; then
+			START2="$(date +%s)"
+			create_romlist ${core} ${DIR}
+			cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
+			echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
+		elif [ ${core} == "arcade" ]; then
+			START2="$(date +%s)"
+			build_mralist ${DIR}
+			cp "${mralist}" "${mralist_tmp}" &>/dev/null
+			echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
+		fi
 	done
 	printf "Total: $[ $(date +%s) - ${START} ] seconds" >> /tmp/Durations.tmp
 	shopt -s nullglob
@@ -2664,6 +2672,7 @@ function build_mralist() {
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
+	echo " Done."
 }
 
 function load_core_arcade() {
