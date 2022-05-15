@@ -30,1100 +30,1168 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 
 #======== INI VARIABLES ========
 # Change these in the INI file
+function init_vars() {
+	#======== GLOBAL VARIABLES =========
+	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+	declare -g misterpath="/media/fat"
+	# Save our PID and process
+	declare -g sampid="${$}"
+	declare -g samprocess="$(basename -- ${0})"
+	declare -g inmenu=0
 
-#======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-declare -g misterpath="/media/fat"
-# Save our PID and process
-declare -g sampid="${$}"
-declare -g samprocess="$(basename -- ${0})"
-declare -g inmenu=0
-# Set to Yes to run speed tests
-declare -g speedtest="No"
-# If you need more time after running the speedtest, to evaluate the results
-# change this to a higher number (seconds)
-# This pauses execution, and, only works if speedtest is set to Yes
-declare -g sleeptime=1
+	#======== DEBUG VARIABLES ========
+	samquiet="Yes"
+	samdebug="No"
+	samtrace="No"
 
-#======== DEBUG VARIABLES ========
-samquiet="Yes"
-samdebug="No"
-samtrace="No"
+	#======== LOCAL VARIABLES ========
+	declare -i coreretries=3
+	declare -i romloadfails=0
+	countpath="${mrsampath}/SAM_Count"
+	gamelistpath="${mrsampath}/SAM_Gamelists"
+	gamelistpathtmp="/tmp/.SAM_List/"
+	excludepath="${mrsampath}"
+	mralist="/tmp/.SAM_List/arcade_romlist"
+	tmpfile="/tmp/.SAM_List/tmpfile"
+	tmpfile2="/tmp/.SAM_List/tmpfile2"
+	gametimer=120
+	corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	gamelist="Dynamic"
+	skipmessage="Yes"
+	usezip="Yes"
+	norepeat="Yes"
+	disablebootrom="Yes"
+	mute="Yes"
+	playcurrentgame="No"
+	listenmouse="Yes"
+	listenkeyboard="Yes"
+	listenjoy="Yes"
+	repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+	branch="main"
+	counter=0
+	userstartup="/media/fat/linux/user-startup.sh"
+	userstartuptpl="/media/fat/linux/_user-startup.sh"
+	usedefaultpaths="No"
+	neogeoregion="English"
+	useneogeotitles="Yes"
 
-#======== LOCAL VARIABLES ========
-declare -i coreretries=3
-declare -i romloadfails=0
-countpath="${mrsampath}/SAM_Count"
-gamelistpath="${mrsampath}/SAM_Gamelists"
-gamelistpathtmp="/tmp/.SAM_List/"
-excludepath="${mrsampath}"
-mralist="/tmp/.SAM_List/arcade_romlist"
-tmpfile="/tmp/.SAM_List/tmpfile"
-tmpfile2="/tmp/.SAM_List/tmpfile2"
-gametimer=120
-corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
-gamelist="Dynamic"
-skipmessage="Yes"
-usezip="Yes"
-norepeat="Yes"
-disablebootrom="Yes"
-mute="Yes"
-				 
-playcurrentgame="No"
-listenmouse="Yes"
-listenkeyboard="Yes"
-listenjoy="Yes"
-repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-branch="main"
-counter=0
-userstartup="/media/fat/linux/user-startup.sh"
-userstartuptpl="/media/fat/linux/_user-startup.sh"
-usedefaultpaths="No"
-neogeoregion="English"
-useneogeotitles="Yes"
+	# ======== TTY2OLED =======
+	ttyenable="No"
+	ttydevice="/dev/ttyUSB0"
+	ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
+	ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
+	ttyuseack="No"
 
-# ======== TTY2OLED =======
-ttyenable="No"
-ttydevice="/dev/ttyUSB0"
-ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
-ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
-ttyuseack="No"
+	#======== CORE PATHS ========
+	arcadepath="/media/fat/_Arcade"
+	fdspath="/media/fat/Games/NES"
+	gbpath="/media/fat/Games/Gameboy"
+	gbcpath="/media/fat/Games/Gameboy"
+	gbapath="/media/fat/Games/GBA"
+	genesispath="/media/fat/Games/Genesis"
+	ggpath="/media/fat/Games/SMS"
+	megacdpath="/media/fat/Games/MegaCD"
+	neogeopath="/media/fat/Games/NeoGeo"
+	nespath="/media/fat/Games/NES"
+	s32xpath="/media/fat/Games/S32X"
+	smspath="/media/fat/Games/SMS"
+	snespath="/media/fat/Games/SNES"
+	tgfx16path="/media/fat/Games/TGFX16"
+	tgfx16cdpath="/media/fat/Games/TGFX16-CD"
+	psxpath="/media/fat/Games/PSX"
 
-#======== CORE PATHS ========
-arcadepath="/media/fat/_Arcade"
-fdspath="/media/fat/Games/NES"
-gbpath="/media/fat/Games/Gameboy"
-gbcpath="/media/fat/Games/Gameboy"
-gbapath="/media/fat/Games/GBA"
-genesispath="/media/fat/Games/Genesis"
-ggpath="/media/fat/Games/SMS"
-megacdpath="/media/fat/Games/MegaCD"
-neogeopath="/media/fat/Games/NeoGeo"
-nespath="/media/fat/Games/NES"
-s32xpath="/media/fat/Games/S32X"
-smspath="/media/fat/Games/SMS"
-snespath="/media/fat/Games/SNES"
-tgfx16path="/media/fat/Games/TGFX16"
-tgfx16cdpath="/media/fat/Games/TGFX16-CD"
-psxpath="/media/fat/Games/PSX"
+	#======== CORE PATHS EXTRA ========
+	arcadepathextra=""
+	fdspathextra=""
+	gbpathextra=""
+	gbcpathextra=""
+	gbapathextra=""
+	genesispathextra=""
+	ggpathextra=""
+	megacdpathextra=""
+	neogeopathextra=""
+	nespathextra=""
+	s32xpathextra=""
+	smspathextra=""
+	snespathextra=""
+	tgfx16pathextra=""
+	tgfx16cdpathextra=""
+	psxpathextra=""
 
-#======== CORE PATHS EXTRA ========
-arcadepathextra=""
-fdspathextra=""
-gbpathextra=""
-gbcpathextra=""
-gbapathextra=""
-genesispathextra=""
-ggpathextra=""
-megacdpathextra=""
-neogeopathextra=""
-nespathextra=""
-s32xpathextra=""
-smspathextra=""
-snespathextra=""
-tgfx16pathextra=""
-tgfx16cdpathextra=""
-psxpathextra=""
-
-#======== CORE PATHS RBF ========
-arcadepathrbf="_Arcade"
-fdspathrbf="_Console"
-gbpathrbf="_Console"
-gbcpathrbf="_Console"
-gbapathrbf="_Console"
-genesispathrbf="_Console"
-ggpathrbf="_Console"
-megacdpathrbf="_Console"
-neogeopathrbf="_Console"
-nespathrbf="_Console"
-s32xpathrbf="_Console"
-smspathrbf="_Console"
-snespathrbf="_Console"
-tgfx16pathrbf="_Console"
-tgfx16cdpathrbf="_Console"
-psxpathrbf="_Console"
+	#======== CORE PATHS RBF ========
+	arcadepathrbf="_Arcade"
+	fdspathrbf="_Console"
+	gbpathrbf="_Console"
+	gbcpathrbf="_Console"
+	gbapathrbf="_Console"
+	genesispathrbf="_Console"
+	ggpathrbf="_Console"
+	megacdpathrbf="_Console"
+	neogeopathrbf="_Console"
+	nespathrbf="_Console"
+	s32xpathrbf="_Console"
+	smspathrbf="_Console"
+	snespathrbf="_Console"
+	tgfx16pathrbf="_Console"
+	tgfx16cdpathrbf="_Console"
+	psxpathrbf="_Console"
+}
 
 #======== EXCLUDE LISTS ========
-arcadeexclude="First Bad Game.mra
-Second Bad Game.mra
-Third Bad Game.mra"
+function create_exclude_lists() {
+	arcadeexclude="First Bad Game.mra
+	Second Bad Game.mra
+	Third Bad Game.mra"
 
-fdsexclude="First Bad Game.fds
-Second Bad Game.fds
-Third Bad Game.fds"
+	fdsexclude="First Bad Game.fds
+	Second Bad Game.fds
+	Third Bad Game.fds"
 
-gbexclude="First Bad Game.gb
-Second Bad Game.gb
-Third Bad Game.gb"
+	gbexclude="First Bad Game.gb
+	Second Bad Game.gb
+	Third Bad Game.gb"
 
-gbcexclude="First Bad Game.gbc
-Second Bad Game.gbc
-Third Bad Game.gbc"
+	gbcexclude="First Bad Game.gbc
+	Second Bad Game.gbc
+	Third Bad Game.gbc"
 
-gbaexclude="First Bad Game.gba
-Second Bad Game.gba
-Third Bad Game.gba"
+	gbaexclude="First Bad Game.gba
+	Second Bad Game.gba
+	Third Bad Game.gba"
 
-genesisexclude="First Bad Game.md
-Second Bad Game.md
-Third Bad Game.md"
+	genesisexclude="First Bad Game.md
+	Second Bad Game.md
+	Third Bad Game.md"
 
-ggexclude="First Bad Game.gg
-Second Bad Game.gg
-Third Bad Game.gg"
+	ggexclude="First Bad Game.gg
+	Second Bad Game.gg
+	Third Bad Game.gg"
 
-megacdexclude="First Bad Game.chd
-Second Bad Game.chd
-Third Bad Game.chd"
+	megacdexclude="First Bad Game.chd
+	Second Bad Game.chd
+	Third Bad Game.chd"
 
-neogeoexclude="First Bad Game.neo
-Second Bad Game.neo
-Third Bad Game.neo"
+	neogeoexclude="First Bad Game.neo
+	Second Bad Game.neo
+	Third Bad Game.neo"
 
-nesexclude="First Bad Game.nes
-Second Bad Game.nes
-Third Bad Game.nes"
+	nesexclude="First Bad Game.nes
+	Second Bad Game.nes
+	Third Bad Game.nes"
 
-s32xexclude="First Bad Game.32x
-Second Bad Game.32x
-Third Bad Game.32x"
+	s32xexclude="First Bad Game.32x
+	Second Bad Game.32x
+	Third Bad Game.32x"
 
-smsexclude="First Bad Game.sms
-Second Bad Game.sms
-Third Bad Game.sms"
+	smsexclude="First Bad Game.sms
+	Second Bad Game.sms
+	Third Bad Game.sms"
 
-snesexclude="First Bad Game.sfc
-Second Bad Game.sfc
-Third Bad Game.sfc"
+	snesexclude="First Bad Game.sfc
+	Second Bad Game.sfc
+	Third Bad Game.sfc"
 
-tgfx16exclude="First Bad Game.pce
-Second Bad Game.pce
-Third Bad Game.pce"
+	tgfx16exclude="First Bad Game.pce
+	Second Bad Game.pce
+	Third Bad Game.pce"
 
-tgfx16cdexclude="First Bad Game.chd
-Second Bad Game.chd
-Third Bad Game.chd"
+	tgfx16cdexclude="First Bad Game.chd
+	Second Bad Game.chd
+	Third Bad Game.chd"
 
-psxexclude="First Bad Game.chd
-Second Bad Game.chd
-Third Bad Game.chd"
+	psxexclude="First Bad Game.chd
+	Second Bad Game.chd
+	Third Bad Game.chd"
+}
+
+function init_paths() {
+	# Default rom path search directories
+	declare -ga GAMESDIR_FOLDERS=( \
+	/media/usb0/games \
+	/media/usb1/games \
+	/media/usb2/games \
+	/media/usb3/games \
+	/media/usb4/games \
+	/media/usb5/games \
+	/media/fat/cifs/games \
+	/media/fat/games \
+	/media/usb0 \
+	/media/usb1 \
+	/media/usb2 \
+	/media/usb3 \
+	/media/usb4 \
+	/media/usb5 \
+	/media/fat/cifs \
+	/media/fat \
+	)
+
+	declare -g GET_SYSTEM_FOLDER_GAMESDIR=""
+	declare -g GET_SYSTEM_FOLDER_RESULT=""
+}
 
 # ======== CORE CONFIG ========
 function init_data() {
+	# Core to long name mappings
+	declare -gA CORE_PRETTY=( \
+	["arcade"]="MiSTer Arcade" \
+	["fds"]="Nintendo Disk System" \
+	["gb"]="Nintendo Game Boy" \
+	["gbc"]="Nintendo Game Boy Color" \
+	["gba"]="Nintendo Game Boy Advance" \
+	["genesis"]="Sega Genesis / Megadrive" \
+	["gg"]="Sega Game Gear" \
+	["megacd"]="Sega CD / Mega CD" \
+	["neogeo"]="SNK NeoGeo" \
+	["nes"]="Nintendo Entertainment System" \
+	["s32x"]="Sega 32x" \
+	["sms"]="Sega Master System" \
+	["snes"]="Super Nintendo Entertainment System" \
+	["tgfx16"]="NEC PC Engine / TurboGrafx-16 " \
+	["tgfx16cd"]="NEC PC Engine CD / TurboGrafx-16 CD" \
+	["psx"]="Sony Playstation" \
+	)
 
-# Core to long name mappings
-declare -gA CORE_PRETTY=( \
-["arcade"]="MiSTer Arcade" \
-["fds"]="Nintendo Disk System" \
-["gb"]="Nintendo Game Boy" \
-["gbc"]="Nintendo Game Boy Color" \
-["gba"]="Nintendo Game Boy Advance" \
-["genesis"]="Sega Genesis / Megadrive" \
-["gg"]="Sega Game Gear" \
-["megacd"]="Sega CD / Mega CD" \
-["neogeo"]="SNK NeoGeo" \
-["nes"]="Nintendo Entertainment System" \
-["s32x"]="Sega 32x" \
-["sms"]="Sega Master System" \
-["snes"]="Super Nintendo Entertainment System" \
-["tgfx16"]="NEC PC Engine / TurboGrafx-16 " \
-["tgfx16cd"]="NEC PC Engine CD / TurboGrafx-16 CD" \
-["psx"]="Sony Playstation" \
-)
+	# Core to file extension mappings
+	declare -gA CORE_EXT=( \
+	["arcade"]="mra" \
+	["fds"]="fds" \
+	["gb"]="gb" \
+	["gbc"]="gbc" \
+	["gba"]="gba" \
+	["genesis"]="md" \
+	["gg"]="gg" \
+	["megacd"]="chd" \
+	["neogeo"]="neo" \
+	["nes"]="nes" \
+	["s32x"]="32x" \
+	["sms"]="sms" \
+	["snes"]="sfc" \
+	["tgfx16"]="pce" \
+	["tgfx16cd"]="chd" \
+	["psx"]="chd" \
+	)
 
-# Core to file extension mappings
-declare -gA CORE_EXT=( \
-["arcade"]="mra" \
-["fds"]="fds" \
-["gb"]="gb" \
-["gbc"]="gbc" \
-["gba"]="gba" \
-["genesis"]="md" \
-["gg"]="gg" \
-["megacd"]="chd" \
-["neogeo"]="neo" \
-["nes"]="nes" \
-["s32x"]="32x" \
-["sms"]="sms" \
-["snes"]="sfc" \
-["tgfx16"]="pce" \
-["tgfx16cd"]="chd" \
-["psx"]="chd" \
-)
+	# Core to path mappings
+	declare -gA CORE_PATH=( \
+	["arcade"]="${arcadepath}" \
+	["fds"]="${fdspath}" \
+	["gb"]="${gbpath}" \
+	["gbc"]="${gbcpath}" \
+	["gba"]="${gbapath}" \
+	["genesis"]="${genesispath}" \
+	["gg"]="${ggpath}" \
+	["megacd"]="${megacdpath}" \
+	["neogeo"]="${neogeopath}" \
+	["nes"]="${nespath}" \
+	["s32x"]="${s32xpath}" \
+	["sms"]="${smspath}" \
+	["snes"]="${snespath}" \
+	["tgfx16"]="${tgfx16path}" \
+	["tgfx16cd"]="${tgfx16cdpath}" \
+	["psx"]="${psxpath}" \
+	)
 
-# Core to path mappings
-declare -gA CORE_PATH=( \
-["arcade"]="${arcadepath}" \
-["fds"]="${fdspath}" \
-["gb"]="${gbpath}" \
-["gbc"]="${gbcpath}" \
-["gba"]="${gbapath}" \
-["genesis"]="${genesispath}" \
-["gg"]="${ggpath}" \
-["megacd"]="${megacdpath}" \
-["neogeo"]="${neogeopath}" \
-["nes"]="${nespath}" \
-["s32x"]="${s32xpath}" \
-["sms"]="${smspath}" \
-["snes"]="${snespath}" \
-["tgfx16"]="${tgfx16path}" \
-["tgfx16cd"]="${tgfx16cdpath}" \
-["psx"]="${psxpath}" \
-)
+	# Core to extra path mappings
+	declare -gA CORE_PATH_EXTRA=( \
+	["arcade"]="${arcadepathextra}" \
+	["fds"]="${fdspathextra}" \
+	["gb"]="${gbpathextra}" \
+	["gbc"]="${gbcpathextra}" \
+	["gba"]="${gbapathextra}" \
+	["genesis"]="${genesispathextra}" \
+	["gg"]="${ggpathextra}" \
+	["megacd"]="${megacdpathextra}" \
+	["neogeo"]="${neogeopathextra}" \
+	["nes"]="${nespathextra}" \
+	["s32x"]="${s32xpathextra}" \
+	["sms"]="${smspathextra}" \
+	["snes"]="${snespathextra}" \
+	["tgfx16"]="${tgfx16pathextra}" \
+	["tgfx16cd"]="${tgfx16cdpathextra}" \
+	["psx"]="${psxpathextra}" \
+	)
 
-# Core to extra path mappings
-declare -gA CORE_PATH_EXTRA=( \
-["arcade"]="${arcadepathextra}" \
-["fds"]="${fdspathextra}" \
-["gb"]="${gbpathextra}" \
-["gbc"]="${gbcpathextra}" \
-["gba"]="${gbapathextra}" \
-["genesis"]="${genesispathextra}" \
-["gg"]="${ggpathextra}" \
-["megacd"]="${megacdpathextra}" \
-["neogeo"]="${neogeopathextra}" \
-["nes"]="${nespathextra}" \
-["s32x"]="${s32xpathextra}" \
-["sms"]="${smspathextra}" \
-["snes"]="${snespathextra}" \
-["tgfx16"]="${tgfx16pathextra}" \
-["tgfx16cd"]="${tgfx16cdpathextra}" \
-["psx"]="${psxpathextra}" \
-)
+	# Core to path mappings for rbf files
+	declare -gA CORE_PATH_RBF=( \
+	["arcade"]="${arcadepathrbf}" \
+	["fds"]="${fdspathrbf}" \
+	["gb"]="${gbpathrbf}" \
+	["gbc"]="${gbcpathrbf}" \
+	["gba"]="${gbapathrbf}" \
+	["genesis"]="${genesispathrbf}" \
+	["gg"]="${ggpathrbf}" \
+	["megacd"]="${megacdpathrbf}" \
+	["neogeo"]="${neogeopathrbf}" \
+	["nes"]="${nespathrbf}" \
+	["s32x"]="${s32xpathrbf}" \
+	["sms"]="${smspathrbf}" \
+	["snes"]="${snespathrbf}" \
+	["tgfx16"]="${tgfx16pathrbf}" \
+	["tgfx16cd"]="${tgfx16cdpathrbf}" \
+	["psx"]="${psxpathrbf}" \
+	)
 
-# Core to path mappings for rbf files
-declare -gA CORE_PATH_RBF=( \
-["arcade"]="${arcadepathrbf}" \
-["fds"]="${fdspathrbf}" \
-["gb"]="${gbpathrbf}" \
-["gbc"]="${gbcpathrbf}" \
-["gba"]="${gbapathrbf}" \
-["genesis"]="${genesispathrbf}" \
-["gg"]="${ggpathrbf}" \
-["megacd"]="${megacdpathrbf}" \
-["neogeo"]="${neogeopathrbf}" \
-["nes"]="${nespathrbf}" \
-["s32x"]="${s32xpathrbf}" \
-["sms"]="${smspathrbf}" \
-["snes"]="${snespathrbf}" \
-["tgfx16"]="${tgfx16pathrbf}" \
-["tgfx16cd"]="${tgfx16cdpathrbf}" \
-["psx"]="${psxpathrbf}" \
-)
+	# Can this core use ZIPped ROMs
+	declare -gA CORE_ZIPPED=( \
+	["arcade"]="No" \
+	["fds"]="Yes" \
+	["gb"]="Yes" \
+	["gbc"]="Yes" \
+	["gba"]="Yes" \
+	["genesis"]="Yes" \
+	["gg"]="Yes" \
+	["megacd"]="No" \
+	["neogeo"]="Yes" \
+	["nes"]="Yes" \
+	["s32x"]="Yes" \
+	["sms"]="Yes" \
+	["snes"]="Yes" \
+	["tgfx16"]="Yes" \
+	["tgfx16cd"]="No" \
+	["psx"]="No" \
+	)
 
-# Can this core use ZIPped ROMs
-declare -gA CORE_ZIPPED=( \
-["arcade"]="No" \
-["fds"]="Yes" \
-["gb"]="Yes" \
-["gbc"]="Yes" \
-["gba"]="Yes" \
-["genesis"]="Yes" \
-["gg"]="Yes" \
-["megacd"]="No" \
-["neogeo"]="Yes" \
-["nes"]="Yes" \
-["s32x"]="Yes" \
-["sms"]="Yes" \
-["snes"]="Yes" \
-["tgfx16"]="Yes" \
-["tgfx16cd"]="No" \
-["psx"]="No" \
-)
+	# Can this core skip Bios/Safety warning messages
+	declare -gA CORE_SKIP=( \
+	["arcade"]="No" \
+	["fds"]="Yes" \
+	["gb"]="No" \
+	["gbc"]="No" \
+	["gba"]="No" \
+	["genesis"]="No" \
+	["gg"]="No" \
+	["megacd"]="Yes" \
+	["neogeo"]="No" \
+	["nes"]="No" \
+	["s32x"]="No" \
+	["sms"]="No" \
+	["snes"]="No" \
+	["tgfx16"]="No" \
+	["tgfx16cd"]="Yes" \
+	["psx"]="No" \
+	)
 
-# Can this core skip Bios/Safety warning messages
-declare -gA CORE_SKIP=( \
-["arcade"]="No" \
-["fds"]="Yes" \
-["gb"]="No" \
-["gbc"]="No" \
-["gba"]="No" \
-["genesis"]="No" \
-["gg"]="No" \
-["megacd"]="Yes" \
-["neogeo"]="No" \
-["nes"]="No" \
-["s32x"]="No" \
-["sms"]="No" \
-["snes"]="No" \
-["tgfx16"]="No" \
-["tgfx16cd"]="Yes" \
-["psx"]="No" \
-)
+	# Core to input maps mapping
+	declare -gA CORE_LAUNCH=( \
+	["arcade"]="arcade" \
+	["fds"]="nes" \
+	["gb"]="gameboy" \
+	["gbc"]="gameboy" \
+	["gba"]="gba" \
+	["genesis"]="genesis" \
+	["gg"]="sms" \
+	["megacd"]="megacd" \
+	["neogeo"]="neogeo" \
+	["nes"]="nes" \
+	["s32x"]="s32x" \
+	["sms"]="sms" \
+	["snes"]="snes" \
+	["tgfx16"]="tgfx16" \
+	["tgfx16cd"]="tgfx16" \
+	["psx"]="psx" \
+	)
 
-# Core to input maps mapping
-declare -gA CORE_LAUNCH=( \
-["arcade"]="arcade" \
-["fds"]="nes" \
-["gb"]="gameboy" \
-["gbc"]="gameboy" \
-["gba"]="gba" \
-["genesis"]="genesis" \
-["gg"]="sms" \
-["megacd"]="megacd" \
-["neogeo"]="neogeo" \
-["nes"]="nes" \
-["s32x"]="s32x" \
-["sms"]="sms" \
-["snes"]="snes" \
-["tgfx16"]="tgfx16" \
-["tgfx16cd"]="tgfx16" \
-["psx"]="psx" \
-)
+	# MGL core name settings
+	declare -gA MGL_CORE=( \
+	["arcade"]="Arcade" \
+	["fds"]="NES" \
+	["gb"]="GAMEBOY" \
+	["gbc"]="GAMEBOY" \
+	["gba"]="GBA" \
+	["genesis"]="Genesis" \
+	["gg"]="SMS" \
+	["megacd"]="MegaCD" \
+	["neogeo"]="NEOGEO" \
+	["nes"]="NES" \
+	["s32x"]="S32X" \
+	["sms"]="SMS" \
+	["snes"]="SNES" \
+	["tgfx16"]="TurboGrafx16" \
+	["tgfx16cd"]="TurboGrafx16" \
+	["psx"]="PSX" \
+	)
 
-# MGL core name settings
-declare -gA MGL_CORE=( \
-["arcade"]="Arcade" \
-["fds"]="NES" \
-["gb"]="GAMEBOY" \
-["gbc"]="GAMEBOY" \
-["gba"]="GBA" \
-["genesis"]="Genesis" \
-["gg"]="SMS" \
-["megacd"]="MegaCD" \
-["neogeo"]="NEOGEO" \
-["nes"]="NES" \
-["s32x"]="S32X" \
-["sms"]="SMS" \
-["snes"]="SNES" \
-["tgfx16"]="TurboGrafx16" \
-["tgfx16cd"]="TurboGrafx16" \
-["psx"]="PSX" \
-)
+	# MGL delay settings
+	declare -gA MGL_DELAY=( \
+	["arcade"]="2" \
+	["fds"]="2" \
+	["gb"]="2" \
+	["gbc"]="2" \
+	["gba"]="2" \
+	["genesis"]="1" \
+	["gg"]="1" \
+	["megacd"]="1" \
+	["neogeo"]="1" \
+	["nes"]="2" \
+	["s32x"]="1" \
+	["sms"]="1" \
+	["snes"]="2" \
+	["tgfx16"]="1" \
+	["tgfx16cd"]="1" \
+	["psx"]="1" \
+	)
 
-# MGL delay settings
-declare -gA MGL_DELAY=( \
-["arcade"]="2" \
-["fds"]="2" \
-["gb"]="2" \
-["gbc"]="2" \
-["gba"]="2" \
-["genesis"]="1" \
-["gg"]="1" \
-["megacd"]="1" \
-["neogeo"]="1" \
-["nes"]="2" \
-["s32x"]="1" \
-["sms"]="1" \
-["snes"]="2" \
-["tgfx16"]="1" \
-["tgfx16cd"]="1" \
-["psx"]="1" \
-)
+	# MGL index settings
+	declare -gA MGL_INDEX=( \
+	["arcade"]="0" \
+	["fds"]="0" \
+	["gb"]="0" \
+	["gbc"]="0" \
+	["gba"]="0" \
+	["genesis"]="0" \
+	["gg"]="2" \
+	["megacd"]="0" \
+	["neogeo"]="1" \
+	["nes"]="0" \
+	["s32x"]="0" \
+	["sms"]="1" \
+	["snes"]="0" \
+	["tgfx16"]="0" \
+	["tgfx16cd"]="0" \
+	["psx"]="1" \
+	)
 
-# MGL index settings
-declare -gA MGL_INDEX=( \
-["arcade"]="0" \
-["fds"]="0" \
-["gb"]="0" \
-["gbc"]="0" \
-["gba"]="0" \
-["genesis"]="0" \
-["gg"]="2" \
-["megacd"]="0" \
-["neogeo"]="1" \
-["nes"]="0" \
-["s32x"]="0" \
-["sms"]="1" \
-["snes"]="0" \
-["tgfx16"]="0" \
-["tgfx16cd"]="0" \
-["psx"]="1" \
-)
+	# MGL type settings
+	declare -gA MGL_TYPE=( \
+	["arcade"]="f" \
+	["fds"]="f" \
+	["gb"]="f" \
+	["gbc"]="f" \
+	["gba"]="f" \
+	["genesis"]="f" \
+	["gg"]="f" \
+	["megacd"]="s" \
+	["neogeo"]="f" \
+	["nes"]="f" \
+	["s32x"]="f" \
+	["sms"]="f" \
+	["snes"]="f" \
+	["tgfx16"]="f" \
+	["tgfx16cd"]="s" \
+	["psx"]="s" \
+	)
 
-# MGL type settings
-declare -gA MGL_TYPE=( \
-["arcade"]="f" \
-["fds"]="f" \
-["gb"]="f" \
-["gbc"]="f" \
-["gba"]="f" \
-["genesis"]="f" \
-["gg"]="f" \
-["megacd"]="s" \
-["neogeo"]="f" \
-["nes"]="f" \
-["s32x"]="f" \
-["sms"]="f" \
-["snes"]="f" \
-["tgfx16"]="f" \
-["tgfx16cd"]="s" \
-["psx"]="s" \
-)
+	#Everdrive Zip naming convention
+	declare -gA CORE_EVERDRIVE=( \
+	["fds"]="Famicom Disk System" \
+	["gb"]="Game Boy" \
+	["gbc"]="Game Boy Color" \
+	["gba"]="Game Boy Advance" \
+	["genesis"]="Genesis" \
+	["gg"]="Game Gear" \
+	["megacd"]="Sega CD" \
+	["neogeo"]="NeoGeo" \
+	["nes"]="NES" \
+	["s32x"]="32x" \
+	["sms"]="Master System" \
+	["snes"]="SNES" \
+	["tgfx16"]="PC-Engine" \
+	["tgfx16cd"]="PC-Engine CD" \
+	["psx"]="Playstation" \
+	)
+			
+	# NEOGEO to long name mappings English
+	declare -gA NEOGEO_PRETTY_ENGLISH=( \
+	["3countb"]="3 Count Bout" \
+	["2020bb"]="2020 Super Baseball" \
+	["2020bba"]="2020 Super Baseball (set 2)" \
+	["2020bbh"]="2020 Super Baseball (set 3)" \
+	["abyssal"]="Abyssal Infants" \
+	["alpham2"]="Alpha Mission II" \
+	["alpham2p"]="Alpha Mission II (prototype)" \
+	["androdun"]="Andro Dunos" \
+	["aodk"]="Aggressors of Dark Kombat" \
+	["aof"]="Art of Fighting" \
+	["aof2"]="Art of Fighting 2" \
+	["aof2a"]="Art of Fighting 2 (NGH-056)" \
+	["aof3"]="Art of Fighting 3: The Path of the Warrior" \
+	["aof3k"]="Art of Fighting 3: The Path of the Warrior (Korean release)" \
+	["b2b"]="Bang Bang Busters" \
+	["badapple"]="Bad Apple Demo" \
+	["bakatono"]="Bakatonosama Mahjong Manyuuki" \
+	["bangbead"]="Bang Bead" \
+	["bjourney"]="Blue's Journey" \
+	["blazstar"]="Blazing Star" \
+	["breakers"]="Breakers" \
+	["breakrev"]="Breakers Revenge" \
+	["brningfh"]="Burning Fight (NGH-018, US)" \
+	["brningfp"]="Burning Fight (prototype, older)" \
+	["brnngfpa"]="Burning Fight (prototype, near final, ver 23.3, 910326)" \
+	["bstars"]="Baseball Stars Professional" \
+	["bstars2"]="Baseball Stars 2" \
+	["bstarsh"]="Baseball Stars Professional (NGH-002)" \
+	["burningf"]="Burning Fight" \
+	["burningfh"]="Burning Fight (NGH-018, US)" \
+	["burningfp"]="Burning Fight (prototype, older)" \
+	["burningfpa"]="Burning Fight (prototype, near final, ver 23.3, 910326)" \
+	["cabalng"]="Cabal" \
+	["columnsn"]="Columns" \
+	["cphd"]="Crouching Pony Hidden Dragon Demo" \
+	["crswd2bl"]="Crossed Swords 2 (CD conversion)" \
+	["crsword"]="Crossed Swords" \
+	["ct2k3sa"]="Crouching Tiger Hidden Dragon 2003 Super Plus (The King of Fighters 2001 bootleg)" \
+	["ctomaday"]="Captain Tomaday" \
+	["cyberlip"]="Cyber-Lip" \
+	["diggerma"]="Digger Man" \
+	["doubledr"]="Double Dragon" \
+	["eightman"]="Eight Man" \
+	["fatfursp"]="Fatal Fury Special" \
+	["fatfurspa"]="Fatal Fury Special (NGM-058 ~ NGH-058, set 2)" \
+	["fatfury1"]="Fatal Fury: King of Fighters" \
+	["fatfury2"]="Fatal Fury 2" \
+	["fatfury3"]="Fatal Fury 3: Road to the Final Victory" \
+	["fbfrenzy"]="Football Frenzy" \
+	["fghtfeva"]="Fight Fever (set 2)" \
+	["fightfev"]="Fight Fever" \
+	["fightfeva"]="Fight Fever (set 2)" \
+	["flipshot"]="Battle Flip Shot" \
+	["frogfest"]="Frog Feast" \
+	["froman2b"]="Idol Mahjong Final Romance 2 (CD conversion)" \
+	["fswords"]="Fighters Swords (Korean release of Samurai Shodown III)" \
+	["ftfurspa"]="Fatal Fury Special (NGM-058 ~ NGH-058, set 2)" \
+	["galaxyfg"]="Galaxy Fight: Universal Warriors" \
+	["ganryu"]="Ganryu" \
+	["garou"]="Garou: Mark of the Wolves" \
+	["garoubl"]="Garou: Mark of the Wolves (bootleg)" \
+	["garouh"]="Garou: Mark of the Wolves (earlier release)" \
+	["garoup"]="Garou: Mark of the Wolves (prototype)" \
+	["ghostlop"]="Ghostlop" \
+	["goalx3"]="Goal! Goal! Goal!" \
+	["gowcaizr"]="Voltage Fighter Gowcaizer" \
+	["gpilots"]="Ghost Pilots" \
+	["gpilotsh"]="Ghost Pilots (NGH-020, US)" \
+	["gururin"]="Gururin" \
+	["hyprnoid"]="Hypernoid" \
+	["irnclado"]="Ironclad (prototype, bootleg)" \
+	["ironclad"]="Ironclad" \
+	["ironclado"]="Ironclad (prototype, bootleg)" \
+	["irrmaze"]="The Irritating Maze" \
+	["janshin"]="Janshin Densetsu: Quest of Jongmaster" \
+	["joyjoy"]="Puzzled" \
+	["kabukikl"]="Far East of Eden: Kabuki Klash" \
+	["karnovr"]="Karnov's Revenge" \
+	["kf2k2mp"]="The King of Fighters 2002 Magic Plus (bootleg)" \
+	["kf2k2mp2"]="The King of Fighters 2002 Magic Plus II (bootleg)" \
+	["kf2k2pla"]="The King of Fighters 2002 Plus (bootleg set 2)" \
+	["kf2k2pls"]="The King of Fighters 2002 Plus (bootleg)" \
+	["kf2k5uni"]="The King of Fighters 10th Anniversary 2005 Unique (The King of Fighters 2002 bootleg)" \
+	["kf10thep"]="The King of Fighters 10th Anniversary Extra Plus (The King of Fighters 2002 bootleg)" \
+	["kizuna"]="Kizuna Encounter: Super Tag Battle" \
+	["kof2k4se"]="The King of Fighters Special Edition 2004 (The King of Fighters 2002 bootleg)" \
+	["kof94"]="The King of Fighters '94" \
+	["kof95"]="The King of Fighters '95" \
+	["kof95a"]="The King of Fighters '95 (NGM-084, alt board)" \
+	["kof95h"]="The King of Fighters '95 (NGH-084)" \
+	["kof96"]="The King of Fighters '96" \
+	["kof96h"]="The King of Fighters '96 (NGH-214)" \
+	["kof97"]="The King of Fighters '97" \
+	["kof97h"]="The King of Fighters '97 (NGH-2320)" \
+	["kof97k"]="The King of Fighters '97 (Korean release)" \
+	["kof97oro"]="The King of Fighters '97 Chongchu Jianghu Plus 2003 (bootleg)" \
+	["kof97pls"]="The King of Fighters '97 Plus (bootleg)" \
+	["kof98"]="The King of Fighters '98: The Slugfest" \
+	["kof98a"]="The King of Fighters '98: The Slugfest (NGM-2420, alt board)" \
+	["kof98h"]="The King of Fighters '98: The Slugfest (NGH-2420)" \
+	["kof98k"]="The King of Fighters '98: The Slugfest (Korean release)" \
+	["kof98ka"]="The King of Fighters '98: The Slugfest (Korean release, set 2)" \
+	["kof99"]="The King of Fighters '99: Millennium Battle" \
+	["kof99e"]="The King of Fighters '99: Millennium Battle (earlier release)" \
+	["kof99h"]="The King of Fighters '99: Millennium Battle (NGH-2510)" \
+	["kof99k"]="The King of Fighters '99: Millennium Battle (Korean release)" \
+	["kof99p"]="The King of Fighters '99: Millennium Battle (prototype)" \
+	["kof2000"]="The King of Fighters 2000" \
+	["kof2000n"]="The King of Fighters 2000" \
+	["kof2001"]="The King of Fighters 2001" \
+	["kof2001h"]="The King of Fighters 2001 (NGH-2621)" \
+	["kof2002"]="The King of Fighters 2002" \
+	["kof2002b"]="The King of Fighters 2002 (bootleg)" \
+	["kof2003"]="The King of Fighters 2003" \
+	["kof2003h"]="The King of Fighters 2003 (NGH-2710)" \
+	["kof2003ps2"]="The King of Fighters 2003 (PS2)" \
+	["kog"]="King of Gladiators (The King of Fighters '97 bootleg)" \
+	["kotm"]="King of the Monsters" \
+	["kotm2"]="King of the Monsters 2: The Next Thing" \
+	["kotm2p"]="King of the Monsters 2: The Next Thing (prototype)" \
+	["kotmh"]="King of the Monsters (set 2)" \
+	["lans2004"]="Lansquenet" \
+	["lastblad"]="The Last Blade" \
+	["lastbladh"]="The Last Blade (NGH-2340)" \
+	["lastbld2"]="The Last Blade 2" \
+	["lasthope"]="Last Hope" \
+	["lastsold"]="The Last Soldier" \
+	["lbowling"]="League Bowling" \
+	["legendos"]="Legend of Success Joe" \
+	["lresort"]="Last Resort" \
+	["lresortp"]="Last Resort (prototype)" \
+	["lstbladh"]="Last Blade (NGH-2340)" \
+	["magdrop2"]="Magical Drop II" \
+	["magdrop3"]="Magical Drop III" \
+	["maglord"]="Magician Lord" \
+	["maglordh"]="Magician Lord (NGH-005)" \
+	["mahretsu"]="Mahjong Kyo Retsuden" \
+	["marukodq"]="Chibi Marukochan Deluxe Quiz" \
+	["matrim"]="Power Instinct Matrimelee" \
+	["miexchng"]="Money Puzzle Exchanger" \
+	["minasan"]="Minasan no Okagesamadesu! Dai Sugoroku Taikai" \
+	["montest"]="Monitor Test ROM" \
+	["moshougi"]="Shougi no Tatsujin: Master of Syougi" \
+	["ms4plus"]="Metal Slug 4 Plus (bootleg)" \
+	["mslug"]="Metal Slug: Super Vehicle-001" \
+	["mslug2"]="Metal Slug 2: Super Vehicle-001/II" \
+	["mslug2t"]="Metal Slug 2 Turbo (hack)" \
+	["mslug3"]="Metal Slug 3" \
+	["mslug3b6"]="Metal Slug 6 (Metal Slug 3 bootleg)" \
+	["mslug3h"]="Metal Slug 3 (NGH-2560)" \
+	["mslug4"]="Metal Slug 4" \
+	["mslug4h"]="Metal Slug 4 (NGH-2630)" \
+	["mslug5"]="Metal Slug 5" \
+	["mslug5h"]="Metal Slug 5 (NGH-2680)" \
+	["mslug6"]="Metal Slug 6 (Metal Slug 3 bootleg)" \
+	["mslugx"]="Metal Slug X: Super Vehicle-001" \
+	["mutnat"]="Mutation Nation" \
+	["nam1975"]="NAM-1975" \
+	["nblktigr"]="Neo Black Tiger" \
+	["ncombat"]="Ninja Combat" \
+	["ncombath"]="Ninja Combat (NGH-009)" \
+	["ncommand"]="Ninja Commando" \
+	["neobombe"]="Neo Bomberman" \
+	["neocup98"]="Neo-Geo Cup 98: The Road to the Victory" \
+	["neodrift"]="Neo Drift Out: New Technology" \
+	["neofight"]="Neo Fight" \
+	["neomrdo"]="Neo Mr. Do!" \
+	["neothund"]="Neo Thunder" \
+	["neotris"]="NeoTRIS (free beta version)" \
+	["ninjamas"]="Ninja Master's" \
+	["nitd"]="Nightmare in the Dark" \
+	["nitdbl"]="Nightmare in the Dark (bootleg)" \
+	["nsmb"]="New Super Mario Bros." \
+	["overtop"]="OverTop" \
+	["panicbom"]="Panic Bomber" \
+	["pbbblenb"]="Puzzle Bobble (bootleg)" \
+	["pbobbl2n"]="Puzzle Bobble 2" \
+	["pbobblen"]="Puzzle Bobble" \
+	["pbobblenb"]="Puzzle Bobble (bootleg)" \
+	["pgoal"]="Pleasure Goal" \
+	["pnyaa"]="Pochi and Nyaa" \
+	["popbounc"]="Pop 'n Bounce" \
+	["preisle2"]="Prehistoric Isle 2" \
+	["pspikes2"]="Power Spikes II" \
+	["pulstar"]="Pulstar" \
+	["puzzldpr"]="Puzzle De Pon! R!" \
+	["puzzledp"]="Puzzle De Pon!" \
+	["quizdai2"]="Quiz Meitantei Neo & Geo: Quiz Daisousa Sen part 2" \
+	["quizdais"]="Quiz Daisousa Sen: The Last Count Down" \
+	["quizdask"]="Quiz Salibtamjeong: The Last Count Down (Korean localized Quiz Daisousa Sen)" \
+	["quizkof"]="Quiz King of Fighters" \
+	["quizkofk"]="Quiz King of Fighters (Korean release)" \
+	["ragnagrd"]="Ragnagard" \
+	["rbff1"]="Real Bout Fatal Fury" \
+	["rbff1a"]="Real Bout Fatal Fury (bug fix revision)" \
+	["rbff2"]="Real Bout Fatal Fury 2: The Newcomers" \
+	["rbff2h"]="Real Bout Fatal Fury 2: The Newcomers (NGH-2400)" \
+	["rbff2k"]="Real Bout Fatal Fury 2: The Newcomers (Korean release)" \
+	["rbffspck"]="Real Bout Fatal Fury Special (Korean release)" \
+	["rbffspec"]="Real Bout Fatal Fury Special" \
+	["rbffspeck"]="Real Bout Fatal Fury Special (Korean release)" \
+	["ridhero"]="Riding Hero" \
+	["ridheroh"]="Riding Hero (set 2)" \
+	["roboarma"]="Robo Army (NGM-032 ~ NGH-032)" \
+	["roboarmy"]="Robo Army" \
+	["roboarmya"]="Robo Army (NGM-032 ~ NGH-032)" \
+	["rotd"]="Rage of the Dragons" \
+	["rotdh"]="Rage of the Dragons (NGH-2640?)" \
+	["s1945p"]="Strikers 1945 Plus" \
+	["samsh5fe"]="Samurai Shodown V Special Final Edition" \
+	["samsh5pf"]="Samurai Shodown V Perfect" \
+	["samsh5sp"]="Samurai Shodown V Special" \
+	["samsh5sph"]="Samurai Shodown V Special (2nd release, less censored)" \
+	["samsh5spho"]="altname=" \
+	["samsho"]="Samurai Shodown" \
+	["samsho2"]="Samurai Shodown II" \
+	["samsho2k"]="Saulabi Spirits (Korean release of Samurai Shodown II)" \
+	["samsho2ka"]="Saulabi Spirits (Korean release of Samurai Shodown II, set 2)" \
+	["samsho3"]="Samurai Shodown III" \
+	["samsho3h"]="Samurai Shodown III (NGH-087)" \
+	["samsho4"]="Samurai Shodown IV: Amakusa's Revenge" \
+	["samsho4k"]="Pae Wang Jeon Seol: Legend of a Warrior" \
+	["samsho5"]="Samurai Shodown V" \
+	["samsho5b"]="Samurai Shodown V (bootleg)" \
+	["samsho5h"]="Samurai Shodown V (NGH-2700)" \
+	["samsho5x"]="Samurai Shodown V (XBOX version hack)" \
+	["samshoh"]="Samurai Shodown (NGH-045)" \
+	["savagere"]="Savage Reign" \
+	["sbp"]="Super Bubble Pop" \
+	["scbrawlh"]="Soccer Brawl (NGH-031)" \
+	["sdodgeb"]="Super Dodge Ball" \
+	["sengoku"]="Sengoku" \
+	["sengoku2"]="Sengoku 2" \
+	["sengoku3"]="Sengoku 3" \
+	["sengokuh"]="Sengoku (NGH-017, US)" \
+	["shcktroa"]="Shock Troopers (set 2)" \
+	["shocktr2"]="Shock Troopers: 2nd Squad" \
+	["shocktro"]="Shock Troopers" \
+	["shocktroa"]="Shock Troopers (set 2)" \
+	["smbng"]="New Super Mario Bros. Demo" \
+	["smsh5sph"]="Samurai Shodown V Special (2nd release, less censored)" \
+	["smsh5spo"]="Samurai Shodown V Special (1st release, censored)" \
+	["smsho2k2"]="Saulabi Spirits (Korean release of Samurai Shodown II, set 2)" \
+	["socbrawl"]="Soccer Brawl" \
+	["socbrawlh"]="Soccer Brawl (NGH-031)" \
+	["sonicwi2"]="Aero Fighters 2" \
+	["sonicwi3"]="Aero Fighters 3" \
+	["spinmast"]="Spinmaster" \
+	["ssideki"]="Super Sidekicks" \
+	["ssideki2"]="Super Sidekicks 2: The World Championship" \
+	["ssideki3"]="Super Sidekicks 3: The Next Glory" \
+	["ssideki4"]="The Ultimate 11: The SNK Football Championship" \
+	["stakwin"]="Stakes Winner" \
+	["stakwin2"]="Stakes Winner 2" \
+	["strhoop"]="Street Hoop / Street Slam" \
+	["superspy"]="The Super Spy" \
+	["svc"]="SNK vs. Capcom: SVC Chaos" \
+	["svccpru"]="SNK vs. Capcom Remix Ultra" \
+	["svcplus"]="SNK vs. Capcom Plus (bootleg)" \
+	["svcsplus"]="SNK vs. Capcom Super Plus (bootleg)" \
+	["teot"]="The Eye of Typhoon: Tsunami Edition" \
+	["tetrismn"]="Tetris" \
+	["tophuntr"]="Top Hunter: Roddy & Cathy" \
+	["tophuntrh"]="Top Hunter: Roddy & Cathy (NGH-046)" \
+	["totc"]="Treasure of the Caribbean" \
+	["tpgolf"]="Top Player's Golf" \
+	["tphuntrh"]="Top Hunter: Roddy & Cathy (NGH-046)" \
+	["trally"]="Thrash Rally" \
+	["turfmast"]="Neo Turf Masters" \
+	["twinspri"]="Twinkle Star Sprites" \
+	["tws96"]="Tecmo World Soccer '96" \
+	["twsoc96"]="Tecmo World Soccer '96" \
+	["viewpoin"]="Viewpoint" \
+	["wakuwak7"]="Waku Waku 7" \
+	["wh1"]="World Heroes" \
+	["wh1h"]="World Heroes (ALH-005)" \
+	["wh1ha"]="World Heroes (set 3)" \
+	["wh2"]="World Heroes 2" \
+	["wh2j"]="World Heroes 2 Jet" \
+	["whp"]="World Heroes Perfect" \
+	["wjammers"]="Windjammers" \
+	["wjammss"]="Windjammers Supersonic" \
+	["xenocrisis"]="Xeno Crisis" \
+	["zedblade"]="Zed Blade" \
+	["zintrckb"]="ZinTricK" \
+	["zintrkcd"]="ZinTricK (CD conversion)" \
+	["zupapa"]="Zupapa!" \
+	)
 
-#Everdrive Zip naming convention
-declare -gA CORE_EVERDRIVE=( \
-["fds"]="Famicom Disk System" \
-["gb"]="Game Boy" \
-["gbc"]="Game Boy Color" \
-["gba"]="Game Boy Advance" \
-["genesis"]="Genesis" \
-["gg"]="Game Gear" \
-["megacd"]="Sega CD" \
-["neogeo"]="NeoGeo" \
-["nes"]="NES" \
-["s32x"]="32x" \
-["sms"]="Master System" \
-["snes"]="SNES" \
-["tgfx16"]="PC-Engine" \
-["tgfx16cd"]="PC-Engine CD" \
-["psx"]="Playstation" \
-)
-		
-# NEOGEO to long name mappings English
-declare -gA NEOGEO_PRETTY_ENGLISH=( \
-["3countb"]="3 Count Bout" \
-["2020bb"]="2020 Super Baseball" \
-["2020bba"]="2020 Super Baseball (set 2)" \
-["2020bbh"]="2020 Super Baseball (set 3)" \
-["abyssal"]="Abyssal Infants" \
-["alpham2"]="Alpha Mission II" \
-["alpham2p"]="Alpha Mission II (prototype)" \
-["androdun"]="Andro Dunos" \
-["aodk"]="Aggressors of Dark Kombat" \
-["aof"]="Art of Fighting" \
-["aof2"]="Art of Fighting 2" \
-["aof2a"]="Art of Fighting 2 (NGH-056)" \
-["aof3"]="Art of Fighting 3: The Path of the Warrior" \
-["aof3k"]="Art of Fighting 3: The Path of the Warrior (Korean release)" \
-["b2b"]="Bang Bang Busters" \
-["badapple"]="Bad Apple Demo" \
-["bakatono"]="Bakatonosama Mahjong Manyuuki" \
-["bangbead"]="Bang Bead" \
-["bjourney"]="Blue's Journey" \
-["blazstar"]="Blazing Star" \
-["breakers"]="Breakers" \
-["breakrev"]="Breakers Revenge" \
-["brningfh"]="Burning Fight (NGH-018, US)" \
-["brningfp"]="Burning Fight (prototype, older)" \
-["brnngfpa"]="Burning Fight (prototype, near final, ver 23.3, 910326)" \
-["bstars"]="Baseball Stars Professional" \
-["bstars2"]="Baseball Stars 2" \
-["bstarsh"]="Baseball Stars Professional (NGH-002)" \
-["burningf"]="Burning Fight" \
-["burningfh"]="Burning Fight (NGH-018, US)" \
-["burningfp"]="Burning Fight (prototype, older)" \
-["burningfpa"]="Burning Fight (prototype, near final, ver 23.3, 910326)" \
-["cabalng"]="Cabal" \
-["columnsn"]="Columns" \
-["cphd"]="Crouching Pony Hidden Dragon Demo" \
-["crswd2bl"]="Crossed Swords 2 (CD conversion)" \
-["crsword"]="Crossed Swords" \
-["ct2k3sa"]="Crouching Tiger Hidden Dragon 2003 Super Plus (The King of Fighters 2001 bootleg)" \
-["ctomaday"]="Captain Tomaday" \
-["cyberlip"]="Cyber-Lip" \
-["diggerma"]="Digger Man" \
-["doubledr"]="Double Dragon" \
-["eightman"]="Eight Man" \
-["fatfursp"]="Fatal Fury Special" \
-["fatfurspa"]="Fatal Fury Special (NGM-058 ~ NGH-058, set 2)" \
-["fatfury1"]="Fatal Fury: King of Fighters" \
-["fatfury2"]="Fatal Fury 2" \
-["fatfury3"]="Fatal Fury 3: Road to the Final Victory" \
-["fbfrenzy"]="Football Frenzy" \
-["fghtfeva"]="Fight Fever (set 2)" \
-["fightfev"]="Fight Fever" \
-["fightfeva"]="Fight Fever (set 2)" \
-["flipshot"]="Battle Flip Shot" \
-["frogfest"]="Frog Feast" \
-["froman2b"]="Idol Mahjong Final Romance 2 (CD conversion)" \
-["fswords"]="Fighters Swords (Korean release of Samurai Shodown III)" \
-["ftfurspa"]="Fatal Fury Special (NGM-058 ~ NGH-058, set 2)" \
-["galaxyfg"]="Galaxy Fight: Universal Warriors" \
-["ganryu"]="Ganryu" \
-["garou"]="Garou: Mark of the Wolves" \
-["garoubl"]="Garou: Mark of the Wolves (bootleg)" \
-["garouh"]="Garou: Mark of the Wolves (earlier release)" \
-["garoup"]="Garou: Mark of the Wolves (prototype)" \
-["ghostlop"]="Ghostlop" \
-["goalx3"]="Goal! Goal! Goal!" \
-["gowcaizr"]="Voltage Fighter Gowcaizer" \
-["gpilots"]="Ghost Pilots" \
-["gpilotsh"]="Ghost Pilots (NGH-020, US)" \
-["gururin"]="Gururin" \
-["hyprnoid"]="Hypernoid" \
-["irnclado"]="Ironclad (prototype, bootleg)" \
-["ironclad"]="Ironclad" \
-["ironclado"]="Ironclad (prototype, bootleg)" \
-["irrmaze"]="The Irritating Maze" \
-["janshin"]="Janshin Densetsu: Quest of Jongmaster" \
-["joyjoy"]="Puzzled" \
-["kabukikl"]="Far East of Eden: Kabuki Klash" \
-["karnovr"]="Karnov's Revenge" \
-["kf2k2mp"]="The King of Fighters 2002 Magic Plus (bootleg)" \
-["kf2k2mp2"]="The King of Fighters 2002 Magic Plus II (bootleg)" \
-["kf2k2pla"]="The King of Fighters 2002 Plus (bootleg set 2)" \
-["kf2k2pls"]="The King of Fighters 2002 Plus (bootleg)" \
-["kf2k5uni"]="The King of Fighters 10th Anniversary 2005 Unique (The King of Fighters 2002 bootleg)" \
-["kf10thep"]="The King of Fighters 10th Anniversary Extra Plus (The King of Fighters 2002 bootleg)" \
-["kizuna"]="Kizuna Encounter: Super Tag Battle" \
-["kof2k4se"]="The King of Fighters Special Edition 2004 (The King of Fighters 2002 bootleg)" \
-["kof94"]="The King of Fighters '94" \
-["kof95"]="The King of Fighters '95" \
-["kof95a"]="The King of Fighters '95 (NGM-084, alt board)" \
-["kof95h"]="The King of Fighters '95 (NGH-084)" \
-["kof96"]="The King of Fighters '96" \
-["kof96h"]="The King of Fighters '96 (NGH-214)" \
-["kof97"]="The King of Fighters '97" \
-["kof97h"]="The King of Fighters '97 (NGH-2320)" \
-["kof97k"]="The King of Fighters '97 (Korean release)" \
-["kof97oro"]="The King of Fighters '97 Chongchu Jianghu Plus 2003 (bootleg)" \
-["kof97pls"]="The King of Fighters '97 Plus (bootleg)" \
-["kof98"]="The King of Fighters '98: The Slugfest" \
-["kof98a"]="The King of Fighters '98: The Slugfest (NGM-2420, alt board)" \
-["kof98h"]="The King of Fighters '98: The Slugfest (NGH-2420)" \
-["kof98k"]="The King of Fighters '98: The Slugfest (Korean release)" \
-["kof98ka"]="The King of Fighters '98: The Slugfest (Korean release, set 2)" \
-["kof99"]="The King of Fighters '99: Millennium Battle" \
-["kof99e"]="The King of Fighters '99: Millennium Battle (earlier release)" \
-["kof99h"]="The King of Fighters '99: Millennium Battle (NGH-2510)" \
-["kof99k"]="The King of Fighters '99: Millennium Battle (Korean release)" \
-["kof99p"]="The King of Fighters '99: Millennium Battle (prototype)" \
-["kof2000"]="The King of Fighters 2000" \
-["kof2000n"]="The King of Fighters 2000" \
-["kof2001"]="The King of Fighters 2001" \
-["kof2001h"]="The King of Fighters 2001 (NGH-2621)" \
-["kof2002"]="The King of Fighters 2002" \
-["kof2002b"]="The King of Fighters 2002 (bootleg)" \
-["kof2003"]="The King of Fighters 2003" \
-["kof2003h"]="The King of Fighters 2003 (NGH-2710)" \
-["kof2003ps2"]="The King of Fighters 2003 (PS2)" \
-["kog"]="King of Gladiators (The King of Fighters '97 bootleg)" \
-["kotm"]="King of the Monsters" \
-["kotm2"]="King of the Monsters 2: The Next Thing" \
-["kotm2p"]="King of the Monsters 2: The Next Thing (prototype)" \
-["kotmh"]="King of the Monsters (set 2)" \
-["lans2004"]="Lansquenet" \
-["lastblad"]="The Last Blade" \
-["lastbladh"]="The Last Blade (NGH-2340)" \
-["lastbld2"]="The Last Blade 2" \
-["lasthope"]="Last Hope" \
-["lastsold"]="The Last Soldier" \
-["lbowling"]="League Bowling" \
-["legendos"]="Legend of Success Joe" \
-["lresort"]="Last Resort" \
-["lresortp"]="Last Resort (prototype)" \
-["lstbladh"]="Last Blade (NGH-2340)" \
-["magdrop2"]="Magical Drop II" \
-["magdrop3"]="Magical Drop III" \
-["maglord"]="Magician Lord" \
-["maglordh"]="Magician Lord (NGH-005)" \
-["mahretsu"]="Mahjong Kyo Retsuden" \
-["marukodq"]="Chibi Marukochan Deluxe Quiz" \
-["matrim"]="Power Instinct Matrimelee" \
-["miexchng"]="Money Puzzle Exchanger" \
-["minasan"]="Minasan no Okagesamadesu! Dai Sugoroku Taikai" \
-["montest"]="Monitor Test ROM" \
-["moshougi"]="Shougi no Tatsujin: Master of Syougi" \
-["ms4plus"]="Metal Slug 4 Plus (bootleg)" \
-["mslug"]="Metal Slug: Super Vehicle-001" \
-["mslug2"]="Metal Slug 2: Super Vehicle-001/II" \
-["mslug2t"]="Metal Slug 2 Turbo (hack)" \
-["mslug3"]="Metal Slug 3" \
-["mslug3b6"]="Metal Slug 6 (Metal Slug 3 bootleg)" \
-["mslug3h"]="Metal Slug 3 (NGH-2560)" \
-["mslug4"]="Metal Slug 4" \
-["mslug4h"]="Metal Slug 4 (NGH-2630)" \
-["mslug5"]="Metal Slug 5" \
-["mslug5h"]="Metal Slug 5 (NGH-2680)" \
-["mslug6"]="Metal Slug 6 (Metal Slug 3 bootleg)" \
-["mslugx"]="Metal Slug X: Super Vehicle-001" \
-["mutnat"]="Mutation Nation" \
-["nam1975"]="NAM-1975" \
-["nblktigr"]="Neo Black Tiger" \
-["ncombat"]="Ninja Combat" \
-["ncombath"]="Ninja Combat (NGH-009)" \
-["ncommand"]="Ninja Commando" \
-["neobombe"]="Neo Bomberman" \
-["neocup98"]="Neo-Geo Cup 98: The Road to the Victory" \
-["neodrift"]="Neo Drift Out: New Technology" \
-["neofight"]="Neo Fight" \
-["neomrdo"]="Neo Mr. Do!" \
-["neothund"]="Neo Thunder" \
-["neotris"]="NeoTRIS (free beta version)" \
-["ninjamas"]="Ninja Master's" \
-["nitd"]="Nightmare in the Dark" \
-["nitdbl"]="Nightmare in the Dark (bootleg)" \
-["nsmb"]="New Super Mario Bros." \
-["overtop"]="OverTop" \
-["panicbom"]="Panic Bomber" \
-["pbbblenb"]="Puzzle Bobble (bootleg)" \
-["pbobbl2n"]="Puzzle Bobble 2" \
-["pbobblen"]="Puzzle Bobble" \
-["pbobblenb"]="Puzzle Bobble (bootleg)" \
-["pgoal"]="Pleasure Goal" \
-["pnyaa"]="Pochi and Nyaa" \
-["popbounc"]="Pop 'n Bounce" \
-["preisle2"]="Prehistoric Isle 2" \
-["pspikes2"]="Power Spikes II" \
-["pulstar"]="Pulstar" \
-["puzzldpr"]="Puzzle De Pon! R!" \
-["puzzledp"]="Puzzle De Pon!" \
-["quizdai2"]="Quiz Meitantei Neo & Geo: Quiz Daisousa Sen part 2" \
-["quizdais"]="Quiz Daisousa Sen: The Last Count Down" \
-["quizdask"]="Quiz Salibtamjeong: The Last Count Down (Korean localized Quiz Daisousa Sen)" \
-["quizkof"]="Quiz King of Fighters" \
-["quizkofk"]="Quiz King of Fighters (Korean release)" \
-["ragnagrd"]="Ragnagard" \
-["rbff1"]="Real Bout Fatal Fury" \
-["rbff1a"]="Real Bout Fatal Fury (bug fix revision)" \
-["rbff2"]="Real Bout Fatal Fury 2: The Newcomers" \
-["rbff2h"]="Real Bout Fatal Fury 2: The Newcomers (NGH-2400)" \
-["rbff2k"]="Real Bout Fatal Fury 2: The Newcomers (Korean release)" \
-["rbffspck"]="Real Bout Fatal Fury Special (Korean release)" \
-["rbffspec"]="Real Bout Fatal Fury Special" \
-["rbffspeck"]="Real Bout Fatal Fury Special (Korean release)" \
-["ridhero"]="Riding Hero" \
-["ridheroh"]="Riding Hero (set 2)" \
-["roboarma"]="Robo Army (NGM-032 ~ NGH-032)" \
-["roboarmy"]="Robo Army" \
-["roboarmya"]="Robo Army (NGM-032 ~ NGH-032)" \
-["rotd"]="Rage of the Dragons" \
-["rotdh"]="Rage of the Dragons (NGH-2640?)" \
-["s1945p"]="Strikers 1945 Plus" \
-["samsh5fe"]="Samurai Shodown V Special Final Edition" \
-["samsh5pf"]="Samurai Shodown V Perfect" \
-["samsh5sp"]="Samurai Shodown V Special" \
-["samsh5sph"]="Samurai Shodown V Special (2nd release, less censored)" \
-["samsh5spho"]="altname=" \
-["samsho"]="Samurai Shodown" \
-["samsho2"]="Samurai Shodown II" \
-["samsho2k"]="Saulabi Spirits (Korean release of Samurai Shodown II)" \
-["samsho2ka"]="Saulabi Spirits (Korean release of Samurai Shodown II, set 2)" \
-["samsho3"]="Samurai Shodown III" \
-["samsho3h"]="Samurai Shodown III (NGH-087)" \
-["samsho4"]="Samurai Shodown IV: Amakusa's Revenge" \
-["samsho4k"]="Pae Wang Jeon Seol: Legend of a Warrior" \
-["samsho5"]="Samurai Shodown V" \
-["samsho5b"]="Samurai Shodown V (bootleg)" \
-["samsho5h"]="Samurai Shodown V (NGH-2700)" \
-["samsho5x"]="Samurai Shodown V (XBOX version hack)" \
-["samshoh"]="Samurai Shodown (NGH-045)" \
-["savagere"]="Savage Reign" \
-["sbp"]="Super Bubble Pop" \
-["scbrawlh"]="Soccer Brawl (NGH-031)" \
-["sdodgeb"]="Super Dodge Ball" \
-["sengoku"]="Sengoku" \
-["sengoku2"]="Sengoku 2" \
-["sengoku3"]="Sengoku 3" \
-["sengokuh"]="Sengoku (NGH-017, US)" \
-["shcktroa"]="Shock Troopers (set 2)" \
-["shocktr2"]="Shock Troopers: 2nd Squad" \
-["shocktro"]="Shock Troopers" \
-["shocktroa"]="Shock Troopers (set 2)" \
-["smbng"]="New Super Mario Bros. Demo" \
-["smsh5sph"]="Samurai Shodown V Special (2nd release, less censored)" \
-["smsh5spo"]="Samurai Shodown V Special (1st release, censored)" \
-["smsho2k2"]="Saulabi Spirits (Korean release of Samurai Shodown II, set 2)" \
-["socbrawl"]="Soccer Brawl" \
-["socbrawlh"]="Soccer Brawl (NGH-031)" \
-["sonicwi2"]="Aero Fighters 2" \
-["sonicwi3"]="Aero Fighters 3" \
-["spinmast"]="Spinmaster" \
-["ssideki"]="Super Sidekicks" \
-["ssideki2"]="Super Sidekicks 2: The World Championship" \
-["ssideki3"]="Super Sidekicks 3: The Next Glory" \
-["ssideki4"]="The Ultimate 11: The SNK Football Championship" \
-["stakwin"]="Stakes Winner" \
-["stakwin2"]="Stakes Winner 2" \
-["strhoop"]="Street Hoop / Street Slam" \
-["superspy"]="The Super Spy" \
-["svc"]="SNK vs. Capcom: SVC Chaos" \
-["svccpru"]="SNK vs. Capcom Remix Ultra" \
-["svcplus"]="SNK vs. Capcom Plus (bootleg)" \
-["svcsplus"]="SNK vs. Capcom Super Plus (bootleg)" \
-["teot"]="The Eye of Typhoon: Tsunami Edition" \
-["tetrismn"]="Tetris" \
-["tophuntr"]="Top Hunter: Roddy & Cathy" \
-["tophuntrh"]="Top Hunter: Roddy & Cathy (NGH-046)" \
-["totc"]="Treasure of the Caribbean" \
-["tpgolf"]="Top Player's Golf" \
-["tphuntrh"]="Top Hunter: Roddy & Cathy (NGH-046)" \
-["trally"]="Thrash Rally" \
-["turfmast"]="Neo Turf Masters" \
-["twinspri"]="Twinkle Star Sprites" \
-["tws96"]="Tecmo World Soccer '96" \
-["twsoc96"]="Tecmo World Soccer '96" \
-["viewpoin"]="Viewpoint" \
-["wakuwak7"]="Waku Waku 7" \
-["wh1"]="World Heroes" \
-["wh1h"]="World Heroes (ALH-005)" \
-["wh1ha"]="World Heroes (set 3)" \
-["wh2"]="World Heroes 2" \
-["wh2j"]="World Heroes 2 Jet" \
-["whp"]="World Heroes Perfect" \
-["wjammers"]="Windjammers" \
-["wjammss"]="Windjammers Supersonic" \
-["xenocrisis"]="Xeno Crisis" \
-["zedblade"]="Zed Blade" \
-["zintrckb"]="ZinTricK" \
-["zintrkcd"]="ZinTricK (CD conversion)" \
-["zupapa"]="Zupapa!" \
-)
+	# NEOGEO to long name mappings Japanese
+	declare -gA NEOGEO_PRETTY_JAPANESE=( \
+	["3countb"]="Fire Suplex" \
+	["2020bb"]="" \
+	["2020bba"]="" \
+	["2020bbh"]="" \
+	["abyssal"]="" \
+	["alpham2"]="ASO II: Last Guardian" \
+	["alpham2p"]="ASO II: Last Guardian (prototype)" \
+	["androdun"]="" \
+	["aodk"]="Tsuukai GANGAN Koushinkyoku" \
+	["aof"]="Ryuuko no Ken" \
+	["aof2"]="Ryuuko no Ken 2" \
+	["aof2a"]="Ryuuko no Ken 2 (NGH-056)" \
+	["aof3"]="Art of Fighting: Ryuuko no Ken Gaiden" \
+	["aof3k"]="" \
+	["b2b"]="" \
+	["badapple"]="" \
+	["bakatono"]="" \
+	["bangbead"]="" \
+	["bjourney"]="Raguy" \
+	["blazstar"]="" \
+	["breakers"]="" \
+	["breakrev"]="" \
+	["brningfh"]="" \
+	["brningfp"]="" \
+	["brnngfpa"]="" \
+	["bstars"]="" \
+	["bstars2"]="" \
+	["bstarsh"]="" \
+	["burningf"]="" \
+	["burningfh"]="" \
+	["burningfp"]="" \
+	["burningfpa"]="" \
+	["cabalng"]="" \
+	["columnsn"]="" \
+	["cphd"]="" \
+	["crswd2bl"]="" \
+	["crsword"]="" \
+	["ct2k3sa"]="" \
+	["ctomaday"]="" \
+	["cyberlip"]="" \
+	["diggerma"]="" \
+	["doubledr"]="" \
+	["eightman"]="" \
+	["fatfursp"]="Garou Densetsu Special" \
+	["fatfurspa"]="Garou Densetsu Special (NGM-058 ~ NGH-058, set 2)" \
+	["fatfury1"]="Garou Densetsu: Shukumei no Tatakai" \
+	["fatfury2"]="Garou Densetsu 2: Arata-naru Tatakai" \
+	["fatfury3"]="Garou Densetsu 3: Haruka-naru Tatakai" \
+	["fbfrenzy"]="" \
+	["fghtfeva"]="Wang Jung Wang (set 2)" \
+	["fightfev"]="Wang Jung Wang" \
+	["fightfeva"]="Wang Jung Wang (set 2)" \
+	["flipshot"]="" \
+	["frogfest"]="" \
+	["froman2b"]="" \
+	["fswords"]="" \
+	["ftfurspa"]="Garou Densetsu Special (NGM-058 ~ NGH-058, set 2)" \
+	["galaxyfg"]="" \
+	["ganryu"]="Musashi Ganryuki" \
+	["garou"]="" \
+	["garoubl"]="" \
+	["garouh"]="" \
+	["garoup"]="" \
+	["ghostlop"]="" \
+	["goalx3"]="" \
+	["gowcaizr"]="Choujin Gakuen Gowcaizer" \
+	["gpilots"]="" \
+	["gpilotsh"]="" \
+	["gururin"]="" \
+	["hyprnoid"]="" \
+	["irnclado"]="Choutetsu Brikin'ger (prototype, bootleg)" \
+	["ironclad"]="Choutetsu Brikin'ger" \
+	["ironclado"]="Choutetsu Brikin'ger (prototype, bootleg)" \
+	["irrmaze"]="Ultra Denryu Iraira Bou" \
+	["janshin"]="" \
+	["joyjoy"]="Joy Joy Kid" \
+	["kabukikl"]="Tengai Makyou: Shin Den" \
+	["karnovr"]="Fighter's History Dynamite" \
+	["kf2k2mp"]="" \
+	["kf2k2mp2"]="" \
+	["kf2k2pla"]="" \
+	["kf2k2pls"]="" \
+	["kf2k5uni"]="" \
+	["kf10thep"]="" \
+	["kizuna"]="Fu'un Super Tag Battle" \
+	["kof2k4se"]="" \
+	["kof94"]="" \
+	["kof95"]="" \
+	["kof95a"]="" \
+	["kof95h"]="" \
+	["kof96"]="" \
+	["kof96h"]="" \
+	["kof97"]="" \
+	["kof97h"]="" \
+	["kof97k"]="" \
+	["kof97oro"]="" \
+	["kof97pls"]="" \
+	["kof98"]="King of Fighters '98: Dream Match Never Ends" \
+	["kof98a"]="King of Fighters '98: Dream Match Never Ends (NGM-2420, alt board)" \
+	["kof98h"]="King of Fighters '98: Dream Match Never Ends (NGH-2420)" \
+	["kof98k"]="" \
+	["kof98ka"]="" \
+	["kof99"]="" \
+	["kof99e"]="" \
+	["kof99h"]="" \
+	["kof99k"]="" \
+	["kof99p"]="" \
+	["kof2000"]="" \
+	["kof2000n"]="" \
+	["kof2001"]="" \
+	["kof2001h"]="" \
+	["kof2002"]="" \
+	["kof2002b"]="" \
+	["kof2003"]="" \
+	["kof2003h"]="" \
+	["kof2003ps2"]="" \
+	["kog"]="" \
+	["kotm"]="" \
+	["kotm2"]="" \
+	["kotm2p"]="" \
+	["kotmh"]="" \
+	["lans2004"]="" \
+	["lastblad"]="Bakumatsu Roman: Gekka no Kenshi" \
+	["lastbladh"]="Bakumatsu Roman: Gekka no Kenshi (NGH-2340)" \
+	["lastbld2"]="Bakumatsu Roman: Dai Ni Maku Gekka no Kenshi" \
+	["lasthope"]="" \
+	["lastsold"]="" \
+	["lbowling"]="" \
+	["legendos"]="Ashita no Joe Densetsu" \
+	["lresort"]="" \
+	["lresortp"]="" \
+	["lstbladh"]="Bakumatsu Roman: Gekka no Kenshi (NGH-2340)" \
+	["magdrop2"]="Magical Drop 2" \
+	["magdrop3"]="" \
+	["maglord"]="" \
+	["maglordh"]="" \
+	["mahretsu"]="" \
+	["marukodq"]="" \
+	["matrim"]="Shin Goketsuji Ichizoku: Tokon Matrimelee" \
+	["miexchng"]="Money Idol Exchanger" \
+	["minasan"]="" \
+	["montest"]="" \
+	["moshougi"]="" \
+	["ms4plus"]="" \
+	["mslug"]="" \
+	["mslug2"]="" \
+	["mslug2t"]="" \
+	["mslug3"]="" \
+	["mslug3b6"]="" \
+	["mslug3h"]="" \
+	["mslug4"]="" \
+	["mslug4h"]="" \
+	["mslug5"]="" \
+	["mslug5h"]="" \
+	["mslug6"]="" \
+	["mslugx"]="" \
+	["mutnat"]="" \
+	["nam1975"]="" \
+	["nblktigr"]="" \
+	["ncombat"]="" \
+	["ncombath"]="" \
+	["ncommand"]="" \
+	["neobombe"]="" \
+	["neocup98"]="" \
+	["neodrift"]="" \
+	["neofight"]="" \
+	["neomrdo"]="" \
+	["neothund"]="" \
+	["neotris"]="" \
+	["ninjamas"]="Haoh-ninpo-cho" \
+	["nitd"]="" \
+	["nitdbl"]="" \
+	["nsmb"]="" \
+	["overtop"]="" \
+	["panicbom"]="" \
+	["pbbblenb"]="Bust-A-Move (bootleg)" \
+	["pbobbl2n"]="Bust-A-Move Again" \
+	["pbobblen"]="Bust-A-Move" \
+	["pbobblenb"]="Bust-A-Move (bootleg)" \
+	["pgoal"]="" \
+	["pnyaa"]="Pochi to Nyaa" \
+	["popbounc"]="Gapporin" \
+	["preisle2"]="" \
+	["pspikes2"]="" \
+	["pulstar"]="" \
+	["puzzldpr"]="" \
+	["puzzledp"]="" \
+	["quizdai2"]="" \
+	["quizdais"]="" \
+	["quizdask"]="" \
+	["quizkof"]="" \
+	["quizkofk"]="" \
+	["ragnagrd"]="Shin-Oh-Ken" \
+	["rbff1"]="Real Bout Garou Densetsu" \
+	["rbff1a"]="Real Bout Garou Densetsu (bug fix revision)" \
+	["rbff2"]="Real Bout Garou Densetsu 2: The Newcomers" \
+	["rbff2h"]="Real Bout Garou Densetsu 2: The Newcomers (NGH-2400)" \
+	["rbff2k"]="" \
+	["rbffspck"]="" \
+	["rbffspec"]="Real Bout Garou Densetsu Special" \
+	["rbffspeck"]="" \
+	["ridhero"]="" \
+	["ridheroh"]="" \
+	["roboarma"]="" \
+	["roboarmy"]="" \
+	["roboarmya"]="" \
+	["rotd"]="" \
+	["rotdh"]="" \
+	["s1945p"]="" \
+	["samsh5fe"]="Samurai Shodown Zero Special Final Edition" \
+	["samsh5pf"]="Samurai Spirits Zero Perfect" \
+	["samsh5sp"]="Samurai Spirits Zero Special" \
+	["samsh5sph"]="Samurai Spirits Zero Special (2nd release, less censored)" \
+	["samsh5spho"]=" altnamej=" \
+	["samsho"]="Samurai Spirits" \
+	["samsho2"]="Shin Samurai Spirits: Haohmaru Jigokuhen" \
+	["samsho2k"]="" \
+	["samsho2ka"]="" \
+	["samsho3"]="Samurai Spirits: Zankurou Musouken" \
+	["samsho3h"]="Samurai Spirits: Zankurou Musouken (NGH-087)" \
+	["samsho4"]="Samurai Spirits: Amakusa Kourin" \
+	["samsho4k"]="" \
+	["samsho5"]="Samurai Spirits Zero" \
+	["samsho5b"]="Samurai Spirits Zero (bootleg)" \
+	["samsho5h"]="Samurai Spirits Zero (NGH-2700)" \
+	["samsho5x"]="Samurai Spirits Zero (XBOX version hack)" \
+	["samshoh"]="Samurai Spirits (NGH-045)" \
+	["savagere"]="Fu'un Mokushiroku: Kakutou Sousei" \
+	["sbp"]="" \
+	["scbrawlh"]="" \
+	["sdodgeb"]="Kunio no Nekketsu Toukyuu Densetsu" \
+	["sengoku"]="Sengoku Denshou" \
+	["sengoku2"]="Sengoku Denshou 2" \
+	["sengoku3"]="Sengoku Denshou 2001" \
+	["sengokuh"]="Sengoku Denshou (NGH-017, US)" \
+	["shcktroa"]="" \
+	["shocktr2"]="" \
+	["shocktro"]="" \
+	["shocktroa"]="" \
+	["smbng"]="" \
+	["smsh5sph"]="Samurai Spirits Zero Special (2nd release, less censored)" \
+	["smsh5spo"]="Samurai Spirits Zero Special (1st release, censored)" \
+	["smsho2k2"]="" \
+	["socbrawl"]="" \
+	["socbrawlh"]="" \
+	["sonicwi2"]="Sonic Wings 2" \
+	["sonicwi3"]="Sonic Wings 3" \
+	["spinmast"]="Miracle Adventure" \
+	["ssideki"]="Tokuten Ou" \
+	["ssideki2"]="Tokuten Ou 2: Real Fight Football" \
+	["ssideki3"]="Tokuten Ou 3: Eikou e no Chousen" \
+	["ssideki4"]="Tokuten Ou: Honoo no Libero" \
+	["stakwin"]="Stakes Winner: GI Kinzen Seiha e no Michi" \
+	["stakwin2"]="" \
+	["strhoop"]="Dunk Dream" \
+	["superspy"]="" \
+	["svc"]="" \
+	["svccpru"]="" \
+	["svcplus"]="" \
+	["svcsplus"]="" \
+	["teot"]="" \
+	["tetrismn"]="" \
+	["tophuntr"]="" \
+	["tophuntrh"]="" \
+	["totc"]="" \
+	["tpgolf"]="" \
+	["tphuntrh"]="" \
+	["trally"]="" \
+	["turfmast"]="Big Tournament Golf" \
+	["twinspri"]="" \
+	["tws96"]="" \
+	["twsoc96"]="" \
+	["viewpoin"]="" \
+	["wakuwak7"]="" \
+	["wh1"]="" \
+	["wh1h"]="" \
+	["wh1ha"]="" \
+	["wh2"]="" \
+	["wh2j"]="" \
+	["whp"]="" \
+	["wjammers"]="Flying Power Disc" \
+	["wjammss"]="" \
+	["xenocrisis"]="" \
+	["zedblade"]="Operation Ragnarok" \
+	["zintrckb"]="Oshidashi Zentrix" \
+	["zintrkcd"]="Oshidashi Zentrix (CD conversion)" \
+	["zupapa"]="" \
+	)
 
-# NEOGEO to long name mappings Japanese
-declare -gA NEOGEO_PRETTY_JAPANESE=( \
-["3countb"]="Fire Suplex" \
-["2020bb"]="" \
-["2020bba"]="" \
-["2020bbh"]="" \
-["abyssal"]="" \
-["alpham2"]="ASO II: Last Guardian" \
-["alpham2p"]="ASO II: Last Guardian (prototype)" \
-["androdun"]="" \
-["aodk"]="Tsuukai GANGAN Koushinkyoku" \
-["aof"]="Ryuuko no Ken" \
-["aof2"]="Ryuuko no Ken 2" \
-["aof2a"]="Ryuuko no Ken 2 (NGH-056)" \
-["aof3"]="Art of Fighting: Ryuuko no Ken Gaiden" \
-["aof3k"]="" \
-["b2b"]="" \
-["badapple"]="" \
-["bakatono"]="" \
-["bangbead"]="" \
-["bjourney"]="Raguy" \
-["blazstar"]="" \
-["breakers"]="" \
-["breakrev"]="" \
-["brningfh"]="" \
-["brningfp"]="" \
-["brnngfpa"]="" \
-["bstars"]="" \
-["bstars2"]="" \
-["bstarsh"]="" \
-["burningf"]="" \
-["burningfh"]="" \
-["burningfp"]="" \
-["burningfpa"]="" \
-["cabalng"]="" \
-["columnsn"]="" \
-["cphd"]="" \
-["crswd2bl"]="" \
-["crsword"]="" \
-["ct2k3sa"]="" \
-["ctomaday"]="" \
-["cyberlip"]="" \
-["diggerma"]="" \
-["doubledr"]="" \
-["eightman"]="" \
-["fatfursp"]="Garou Densetsu Special" \
-["fatfurspa"]="Garou Densetsu Special (NGM-058 ~ NGH-058, set 2)" \
-["fatfury1"]="Garou Densetsu: Shukumei no Tatakai" \
-["fatfury2"]="Garou Densetsu 2: Arata-naru Tatakai" \
-["fatfury3"]="Garou Densetsu 3: Haruka-naru Tatakai" \
-["fbfrenzy"]="" \
-["fghtfeva"]="Wang Jung Wang (set 2)" \
-["fightfev"]="Wang Jung Wang" \
-["fightfeva"]="Wang Jung Wang (set 2)" \
-["flipshot"]="" \
-["frogfest"]="" \
-["froman2b"]="" \
-["fswords"]="" \
-["ftfurspa"]="Garou Densetsu Special (NGM-058 ~ NGH-058, set 2)" \
-["galaxyfg"]="" \
-["ganryu"]="Musashi Ganryuki" \
-["garou"]="" \
-["garoubl"]="" \
-["garouh"]="" \
-["garoup"]="" \
-["ghostlop"]="" \
-["goalx3"]="" \
-["gowcaizr"]="Choujin Gakuen Gowcaizer" \
-["gpilots"]="" \
-["gpilotsh"]="" \
-["gururin"]="" \
-["hyprnoid"]="" \
-["irnclado"]="Choutetsu Brikin'ger (prototype, bootleg)" \
-["ironclad"]="Choutetsu Brikin'ger" \
-["ironclado"]="Choutetsu Brikin'ger (prototype, bootleg)" \
-["irrmaze"]="Ultra Denryu Iraira Bou" \
-["janshin"]="" \
-["joyjoy"]="Joy Joy Kid" \
-["kabukikl"]="Tengai Makyou: Shin Den" \
-["karnovr"]="Fighter's History Dynamite" \
-["kf2k2mp"]="" \
-["kf2k2mp2"]="" \
-["kf2k2pla"]="" \
-["kf2k2pls"]="" \
-["kf2k5uni"]="" \
-["kf10thep"]="" \
-["kizuna"]="Fu'un Super Tag Battle" \
-["kof2k4se"]="" \
-["kof94"]="" \
-["kof95"]="" \
-["kof95a"]="" \
-["kof95h"]="" \
-["kof96"]="" \
-["kof96h"]="" \
-["kof97"]="" \
-["kof97h"]="" \
-["kof97k"]="" \
-["kof97oro"]="" \
-["kof97pls"]="" \
-["kof98"]="King of Fighters '98: Dream Match Never Ends" \
-["kof98a"]="King of Fighters '98: Dream Match Never Ends (NGM-2420, alt board)" \
-["kof98h"]="King of Fighters '98: Dream Match Never Ends (NGH-2420)" \
-["kof98k"]="" \
-["kof98ka"]="" \
-["kof99"]="" \
-["kof99e"]="" \
-["kof99h"]="" \
-["kof99k"]="" \
-["kof99p"]="" \
-["kof2000"]="" \
-["kof2000n"]="" \
-["kof2001"]="" \
-["kof2001h"]="" \
-["kof2002"]="" \
-["kof2002b"]="" \
-["kof2003"]="" \
-["kof2003h"]="" \
-["kof2003ps2"]="" \
-["kog"]="" \
-["kotm"]="" \
-["kotm2"]="" \
-["kotm2p"]="" \
-["kotmh"]="" \
-["lans2004"]="" \
-["lastblad"]="Bakumatsu Roman: Gekka no Kenshi" \
-["lastbladh"]="Bakumatsu Roman: Gekka no Kenshi (NGH-2340)" \
-["lastbld2"]="Bakumatsu Roman: Dai Ni Maku Gekka no Kenshi" \
-["lasthope"]="" \
-["lastsold"]="" \
-["lbowling"]="" \
-["legendos"]="Ashita no Joe Densetsu" \
-["lresort"]="" \
-["lresortp"]="" \
-["lstbladh"]="Bakumatsu Roman: Gekka no Kenshi (NGH-2340)" \
-["magdrop2"]="Magical Drop 2" \
-["magdrop3"]="" \
-["maglord"]="" \
-["maglordh"]="" \
-["mahretsu"]="" \
-["marukodq"]="" \
-["matrim"]="Shin Goketsuji Ichizoku: Tokon Matrimelee" \
-["miexchng"]="Money Idol Exchanger" \
-["minasan"]="" \
-["montest"]="" \
-["moshougi"]="" \
-["ms4plus"]="" \
-["mslug"]="" \
-["mslug2"]="" \
-["mslug2t"]="" \
-["mslug3"]="" \
-["mslug3b6"]="" \
-["mslug3h"]="" \
-["mslug4"]="" \
-["mslug4h"]="" \
-["mslug5"]="" \
-["mslug5h"]="" \
-["mslug6"]="" \
-["mslugx"]="" \
-["mutnat"]="" \
-["nam1975"]="" \
-["nblktigr"]="" \
-["ncombat"]="" \
-["ncombath"]="" \
-["ncommand"]="" \
-["neobombe"]="" \
-["neocup98"]="" \
-["neodrift"]="" \
-["neofight"]="" \
-["neomrdo"]="" \
-["neothund"]="" \
-["neotris"]="" \
-["ninjamas"]="Haoh-ninpo-cho" \
-["nitd"]="" \
-["nitdbl"]="" \
-["nsmb"]="" \
-["overtop"]="" \
-["panicbom"]="" \
-["pbbblenb"]="Bust-A-Move (bootleg)" \
-["pbobbl2n"]="Bust-A-Move Again" \
-["pbobblen"]="Bust-A-Move" \
-["pbobblenb"]="Bust-A-Move (bootleg)" \
-["pgoal"]="" \
-["pnyaa"]="Pochi to Nyaa" \
-["popbounc"]="Gapporin" \
-["preisle2"]="" \
-["pspikes2"]="" \
-["pulstar"]="" \
-["puzzldpr"]="" \
-["puzzledp"]="" \
-["quizdai2"]="" \
-["quizdais"]="" \
-["quizdask"]="" \
-["quizkof"]="" \
-["quizkofk"]="" \
-["ragnagrd"]="Shin-Oh-Ken" \
-["rbff1"]="Real Bout Garou Densetsu" \
-["rbff1a"]="Real Bout Garou Densetsu (bug fix revision)" \
-["rbff2"]="Real Bout Garou Densetsu 2: The Newcomers" \
-["rbff2h"]="Real Bout Garou Densetsu 2: The Newcomers (NGH-2400)" \
-["rbff2k"]="" \
-["rbffspck"]="" \
-["rbffspec"]="Real Bout Garou Densetsu Special" \
-["rbffspeck"]="" \
-["ridhero"]="" \
-["ridheroh"]="" \
-["roboarma"]="" \
-["roboarmy"]="" \
-["roboarmya"]="" \
-["rotd"]="" \
-["rotdh"]="" \
-["s1945p"]="" \
-["samsh5fe"]="Samurai Shodown Zero Special Final Edition" \
-["samsh5pf"]="Samurai Spirits Zero Perfect" \
-["samsh5sp"]="Samurai Spirits Zero Special" \
-["samsh5sph"]="Samurai Spirits Zero Special (2nd release, less censored)" \
-["samsh5spho"]=" altnamej=" \
-["samsho"]="Samurai Spirits" \
-["samsho2"]="Shin Samurai Spirits: Haohmaru Jigokuhen" \
-["samsho2k"]="" \
-["samsho2ka"]="" \
-["samsho3"]="Samurai Spirits: Zankurou Musouken" \
-["samsho3h"]="Samurai Spirits: Zankurou Musouken (NGH-087)" \
-["samsho4"]="Samurai Spirits: Amakusa Kourin" \
-["samsho4k"]="" \
-["samsho5"]="Samurai Spirits Zero" \
-["samsho5b"]="Samurai Spirits Zero (bootleg)" \
-["samsho5h"]="Samurai Spirits Zero (NGH-2700)" \
-["samsho5x"]="Samurai Spirits Zero (XBOX version hack)" \
-["samshoh"]="Samurai Spirits (NGH-045)" \
-["savagere"]="Fu'un Mokushiroku: Kakutou Sousei" \
-["sbp"]="" \
-["scbrawlh"]="" \
-["sdodgeb"]="Kunio no Nekketsu Toukyuu Densetsu" \
-["sengoku"]="Sengoku Denshou" \
-["sengoku2"]="Sengoku Denshou 2" \
-["sengoku3"]="Sengoku Denshou 2001" \
-["sengokuh"]="Sengoku Denshou (NGH-017, US)" \
-["shcktroa"]="" \
-["shocktr2"]="" \
-["shocktro"]="" \
-["shocktroa"]="" \
-["smbng"]="" \
-["smsh5sph"]="Samurai Spirits Zero Special (2nd release, less censored)" \
-["smsh5spo"]="Samurai Spirits Zero Special (1st release, censored)" \
-["smsho2k2"]="" \
-["socbrawl"]="" \
-["socbrawlh"]="" \
-["sonicwi2"]="Sonic Wings 2" \
-["sonicwi3"]="Sonic Wings 3" \
-["spinmast"]="Miracle Adventure" \
-["ssideki"]="Tokuten Ou" \
-["ssideki2"]="Tokuten Ou 2: Real Fight Football" \
-["ssideki3"]="Tokuten Ou 3: Eikou e no Chousen" \
-["ssideki4"]="Tokuten Ou: Honoo no Libero" \
-["stakwin"]="Stakes Winner: GI Kinzen Seiha e no Michi" \
-["stakwin2"]="" \
-["strhoop"]="Dunk Dream" \
-["superspy"]="" \
-["svc"]="" \
-["svccpru"]="" \
-["svcplus"]="" \
-["svcsplus"]="" \
-["teot"]="" \
-["tetrismn"]="" \
-["tophuntr"]="" \
-["tophuntrh"]="" \
-["totc"]="" \
-["tpgolf"]="" \
-["tphuntrh"]="" \
-["trally"]="" \
-["turfmast"]="Big Tournament Golf" \
-["twinspri"]="" \
-["tws96"]="" \
-["twsoc96"]="" \
-["viewpoin"]="" \
-["wakuwak7"]="" \
-["wh1"]="" \
-["wh1h"]="" \
-["wh1ha"]="" \
-["wh2"]="" \
-["wh2j"]="" \
-["whp"]="" \
-["wjammers"]="Flying Power Disc" \
-["wjammss"]="" \
-["xenocrisis"]="" \
-["zedblade"]="Operation Ragnarok" \
-["zintrckb"]="Oshidashi Zentrix" \
-["zintrkcd"]="Oshidashi Zentrix (CD conversion)" \
-["zupapa"]="" \
-)
-
+	#Make all cores available
+	corelistall="${corelist}"
 }
 
+#======== DEBUG OUTPUT =========
+function debug_output() {
+	echo " ********************************************************************************"
+	#======== GLOBAL VARIABLES =========
+	echo " mrsampath: ${mrsampath}"
+	echo " misterpath: ${misterpath}"
+	echo " sampid: ${sampid}"
+	echo " samprocess: ${samprocess}"
+	echo ""
+	#======== LOCAL VARIABLES ========
+	echo " commandline: ${@}"
+	echo " repository_url: ${repository_url}"
+	echo " branch: ${branch}"
+						
+	echo ""
+	echo " gametimer: ${gametimer}"
+	echo " corelist: ${corelist}"
+	echo " usezip: ${usezip}"
+										
+	echo " mralist: ${mralist}"
+	echo " listenmouse: ${listenmouse}"
+	echo " listenkeyboard: ${listenkeyboard}"
+	echo " listenjoy: ${listenjoy}"
+	echo ""
+	echo " arcadepath: ${arcadepath}"
+	echo " gbapath: ${gbapath}"
+	echo " genesispath: ${genesispath}"
+	echo " megacdpath: ${megacdpath}"
+	echo " neogeopath: ${neogeopath}"
+	echo " nespath: ${nespath}"
+	echo " snespath: ${snespath}"
+	echo " tgfx16path: ${tgfx16path}"
+	echo " tgfx16cdpath: ${tgfx16cdpath}"
+	echo ""
+	echo " gbalist: ${gbalist}"
+	echo " genesislist: ${genesislist}"
+	echo " megacdlist: ${megacdlist}"
+	echo " neogeolist: ${neogeolist}"
+	echo " neslist: ${neslist}"
+	echo " sneslist: ${sneslist}"
+	echo " tgfx16list: ${tgfx16list}"
+	echo " tgfx16cdlist: ${tgfx16cdlist}"
+	echo ""
+	echo " arcadeexclude: ${arcadeexclude[@]}"
+	echo " gbaexclude: ${gbaexclude[@]}"
+	echo " genesisexclude: ${genesisexclude[@]}"
+	echo " megacdexclude: ${megacdexclude[@]}"
+	echo " neogeoexclude: ${neogeoexclude[@]}"
+	echo " nesexclude: ${nesexclude[@]}"
+	echo " snesexclude: ${snesexclude[@]}"
+	echo " tgfx16exclude: ${tgfx16exclude[@]}"
+	echo " tgfx16cdexclude: ${tgfx16cdexclude[@]}"
+	echo " ********************************************************************************"
+	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
+}
 #========= PARSE INI =========
 
-#Make all cores available
-corelistall="${corelist}"
-
 # Read INI
-if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-	source "${misterpath}/Scripts/MiSTer_SAM.ini"
-	# Remove trailing slash from paths
-	for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
-		declare -g ${var}="${!var%/}"
+function readini() {
+	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+		source "${misterpath}/Scripts/MiSTer_SAM.ini"
+		# Remove trailing slash from paths
+		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
+			declare -g ${var}="${!var%/}"
+		done
+		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathextra=" | cut -f1 -d"="); do
+			declare -g ${var}="${!var%/}"
+		done
+		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
+			declare -g ${var}="${!var%/}"
+		done
+	fi
+}
+
+function misc() { # TODO
+	#Create folders if they don't exist
+	mkdir -p "${mrsampath}"/SAM_Count
+	mkdir -p "${mrsampath}"/SAM_Gamelists
+	mkdir -p /tmp/.SAM_List
+	touch ${tmpfile}
+	touch ${tmpfile2}
+
+	# Setup corelist
+	corelist="$(echo ${corelist} | tr ',' ' ')"
+	corelistall="$(echo ${corelistall} | tr ',' ' ')"
+
+	# Create array of coreexclude list names
+	declare -a coreexcludelist
+	for core in ${corelist}; do
+		coreexcludelist+=( "${core}exclude" )
 	done
-	for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathextra=" | cut -f1 -d"="); do
-		declare -g ${var}="${!var%/}"
+
+	# Iterate through coreexclude lists and make list into array
+	for excludelist in ${coreexcludelist[@]}; do
+		readarray -t ${excludelist} <<<${!excludelist}
 	done
-	for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
-		declare -g ${var}="${!var%/}"
+
+	# Create folder and file exclusion list
+	folderex=$(for f in "${exclude[@]}"; do echo "-o -iname *$f*" ; done)
+	fileex=$(for f in "${exclude[@]}"; do echo "-and -not -iname *$f*" ; done)
+
+	# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
+	zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
+}
+
+function GET_SYSTEM_FOLDER() {
+	local SYSTEM="${1}"
+	for folder in ${GAMESDIR_FOLDERS[@]}; do
+		local RESULT=$(find "${folder}" -maxdepth 1 -iname "${SYSTEM}" -printf "%P\n" -quit 2> /dev/null)
+		if [[ "${RESULT}" != "" ]] ; then
+			GET_SYSTEM_FOLDER_GAMESDIR="${folder}"
+			GET_SYSTEM_FOLDER_RESULT="${RESULT}"
+			break
+		fi
 	done
-fi
-
-#Create folders if they don't exist
-mkdir -p "${mrsampath}"/SAM_Count
-mkdir -p "${mrsampath}"/SAM_Gamelists
-mkdir -p /tmp/.SAM_List
-touch ${tmpfile}
-touch ${tmpfile2}
-
-
-# Setup corelist
-corelist="$(echo ${corelist} | tr ',' ' ')"
-corelistall="$(echo ${corelistall} | tr ',' ' ')"
-
-# Create array of coreexclude list names
-declare -a coreexcludelist
-for core in ${corelist}; do
-	coreexcludelist+=( "${core}exclude" )
-done
-
-# Iterate through coreexclude lists and make list into array
-for excludelist in ${coreexcludelist[@]}; do
-	readarray -t ${excludelist} <<<${!excludelist}
-done
-
-# Create folder and file exclusion list
-folderex=$(for f in "${exclude[@]}"; do echo "-o -iname *$f*" ; done)
-fileex=$(for f in "${exclude[@]}"; do echo "-and -not -iname *$f*" ; done)
-
-# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
-zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
-
-
-# Default rom path search directories
-declare -ga GAMESDIR_FOLDERS=( \
-/media/usb0/games \
-/media/usb1/games \
-/media/usb2/games \
-/media/usb3/games \
-/media/usb4/games \
-/media/usb5/games \
-/media/fat/cifs/games \
-/media/fat/games \
-/media/usb0 \
-/media/usb1 \
-/media/usb2 \
-/media/usb3 \
-/media/usb4 \
-/media/usb5 \
-/media/fat/cifs \
-/media/fat \
-)
+}
 
 function defaultpath() {
 	local SYSTEM="${1}"
@@ -1162,42 +1230,6 @@ function defaultpath() {
 	   eval ${SYSTEM_ORG}"path"="${GAMESDIR}/${GET_SYSTEM_FOLDER_RESULT}"
 	fi
 }
-
-GET_SYSTEM_FOLDER_GAMESDIR=
-GET_SYSTEM_FOLDER_RESULT=
-GET_SYSTEM_FOLDER() {
-	GET_SYSTEM_FOLDER_GAMESDIR="/media/fat/games"
-	GET_SYSTEM_FOLDER_RESULT=
-	local SYSTEM="${1}"
-	for folder in ${GAMESDIR_FOLDERS[@]}
-	do
-	local RESULT=$(find "${folder}" -maxdepth 1 -iname "${SYSTEM}" -printf "%P\n" -quit 2> /dev/null)
-	if [[ "${RESULT}" != "" ]] ; then
-	    GET_SYSTEM_FOLDER_GAMESDIR="${folder}"
-	    GET_SYSTEM_FOLDER_RESULT="${RESULT}"
-	    break
-	fi
-	done
-}
-
-if [ ${usedefaultpaths,,} == "yes" ]; then
-	START="$(date +%s)"
-	if [ ${speedtest,,} == "yes" ]; then
-		for core in ${corelist}; do
-			defaultpath "${core}"
-		done
-		DURATION=$[ $(date +%s) - ${START} ]
-		echo "Searching for Default Paths took ${DURATION} seconds"
-		sleep ${sleeptime}
-	else
-		for core in ${corelist}; do
-			defaultpath "${core}"
-		done
-	fi
-fi
-
-
-
 
 #======== SAM MENU ========
 function sam_premenu() {
@@ -1402,6 +1434,9 @@ function parse_cmd() {
 					sam_update autoconfig
 					break
 					;;
+				--speedtest | --sourceonly)
+					break
+					;;
 				autoconfig)
 					tmux kill-session -t MCP &>/dev/null
 					there_can_be_only_one
@@ -1439,7 +1474,7 @@ function parse_cmd() {
 					;;
 				stop) # Stop SAM immediately
 					tty_exit
-					sam_stop																								 
+					sam_stop
 					exit
 					break
 					;;
@@ -2251,6 +2286,72 @@ function loop_core() { # loop_core (core)
 	sleep 1
 }
 
+function reset_core_gl() { # args ${nextcore,,}
+	echo " Deleting old game lists for ${1^^}..."
+	rm "${gamelistpath}/${1}_gamelist.txt" &>/dev/null
+	sync
+}
+
+function speedtest() {
+	START="$(date +%s)"
+	if [ ${speedtest,,} == "yes" ]; then
+		for core in ${corelist}; do
+			defaultpath "${core}"
+		done
+		DURATION_DP=$[ $(date +%s) - ${START} ]
+	fi
+	START="$(date +%s)"
+	echo "" > /tmp/Durations.tmp
+	for core in ${corelist}; do
+		START2="$(date +%s)"
+		create_romlist ${core}
+		echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
+	done
+	printf "Total: $[ $(date +%s) - ${START} ] seconds" >> /tmp/Durations.tmp
+	shopt -s nullglob
+	if [ -s "/tmp/Durations.tmp" ]; then
+		local IFS=$'\n'
+		Lines=$(cat /tmp/Durations.tmp)
+		for z in ${Lines}; do
+			echo "${z}"
+		done
+	fi
+	shopt -u nullglob
+	echo "Searching for Default Paths took ${DURATION_DP} seconds"
+}
+
+function create_romlist() { # args ${nextcore,,}
+	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${1}]}${CORE_PATH_EXTRA[${1}]}"))
+	echo " Looking for games in  ${DIR}..."
+	
+	# Find all files in core's folder with core's extension
+	find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${1}]}" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile}"
+
+	# Now find all zips in core's folder and process
+	if [ "${CORE_ZIPPED[${1}],,}" == "yes" ]; then
+		find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
+		shopt -s nullglob
+		if [ -s "${tmpfile2}" ]; then
+			local IFS=$'\n'
+			Lines=$(cat ${tmpfile2})
+			for z in ${Lines}; do
+				if [ "${samquiet,,}" == "no" ]; then echo " Processing: ${z}"; fi
+				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${1}]} >> "${tmpfile}"
+			done
+		fi
+		shopt -u nullglob
+	fi
+
+	# Strip out all duplicate filenames with a fancy awk command
+	if [ ${gamelists,,} == "dynamic" ]; then
+		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpathtmp}/${1}_gamelist.txt"
+	elif [ ${gamelists,,} == "static" ]; then
+		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${1}_gamelist.txt"
+		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+	fi
+
+	echo " Done."
+}
 
 function next_core() { # next_core (core)
 
@@ -2297,125 +2398,25 @@ function next_core() { # next_core (core)
 		return
 	fi
 
-
-	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
-
-	### Declare functions first
-
-
-	function reset_core_gl() {
-		echo " Deleting old game lists for ${nextcore^^}..."
-		rm "${gamelistpath}/${nextcore,,}_gamelist_zipped.txt" &>/dev/null
-		rm "${countpath}/${nextcore,,}_zipcount" &>/dev/null
-		rm "${countpath}/${nextcore,,}_romcount" &>/dev/null
-		sync
-	}
-	
-						  
-	
-	function create_romlist() {
-		echo " Looking for games in  ${DIR}..."
-		
-		# Find all files in core's folder with core's extension
-		find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${nextcore,,}]}" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile}"
-
-		# Now find all zips in core's folder and process
-		if [ "${CORE_ZIPPED[${nextcore,,}],,}" == "yes" ]; then
-			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-			shopt -s nullglob
-			if [ -s "${tmpfile2}" ]; then
-				local IFS=$'\n'
-				Lines=$(cat ${tmpfile2})
-				for z in ${Lines}; do
-					if [ "${samquiet,,}" == "no" ]; then echo " Processing: ${z}"; fi
-					"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${nextcore,,}]} >> "${tmpfile}"
-				done
-			fi
-			shopt -u nullglob
-		fi
-		
-		# Strip out all duplicate filenames with a fancy awk command
-		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${nextcore,,}_gamelist.txt"
-		
-
-		cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
-		echo " Done."
-	}
-	
-	function create_romlist2() {
-		DIR2=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${1,,}]}${CORE_PATH_EXTRA[${1,,}]}"))
-
-		echo " Looking for games in  ${DIR2}..."
-		
-		# Find all files in core's folder with core's extension
-		find -L "${DIR2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${1,,}]}" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile}"
-
-		# Now find all zips in core's folder and process
-		if [ "${CORE_ZIPPED[${1,,}],,}" == "yes" ]; then
-			find -L "${DIR2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-			shopt -s nullglob
-			if [ -s "${tmpfile2}" ]; then
-				local IFS=$'\n'
-				Lines=$(cat ${tmpfile2})
-				for z in ${Lines}; do
-					if [ "${samquiet,,}" == "no" ]; then echo " Processing: ${z}"; fi
-					"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${1,,}]} >> "${tmpfile}"
-				done
-			fi
-			shopt -u nullglob
-		fi
-		
-		# Strip out all duplicate filenames with a fancy awk command
-		if [ ${gamelists,,} == "dynamic" ]; then
-			awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpathtmp}/${1,,}_gamelist.txt"
-		elif [ ${gamelists,,} == "static" ]; then
-			awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${1,,}_gamelist.txt"
-			cp "${gamelistpath}/${1,,}_gamelist.txt" "${gamelistpathtmp}/${1,,}_gamelist.txt" &>/dev/null
-		fi
-
-		echo " Done."
-	}
 	##### START ROMFINDER #####
-		#if [ ! ${gamelists_created,,} ]; then
-			if [ ${speedtest,,} == "yes" ]; then
-				START="$(date +%s)"
-				echo "" > /tmp/Durations.tmp
-				for core in ${corelist}; do
-					START2="$(date +%s)"
-					create_romlist2 ${core}
-					echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
-				done
-				printf "Total: $[ $(date +%s) - ${START} ] seconds" >> /tmp/Durations.tmp
-				shopt -s nullglob
-				if [ -s "/tmp/Durations.tmp" ]; then
-					local IFS=$'\n'
-					Lines=$(cat /tmp/Durations.tmp)
-					for z in ${Lines}; do
-						echo "${z}"
-					done
-				fi
-				shopt -u nullglob
-				sleep ${sleeptime}
-			fi
-			gamelists_created="Yes"
-		#fi
 		#Create list
+		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
 		if [ ! -f "${gamelistpath}/${nextcore,,}_gamelist.txt" ]; then
 			if [ "${samquiet,,}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${nextcore,,}_gamelist.txt"; fi
-			create_romlist
+			create_romlist ${nextcore,,}
 		fi
 
 		#If folder changed, make new list
 		if [[ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${DIR}" | head -1)" ]]; then
 			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
-			create_romlist
+			create_romlist ${nextcore,,}
 		fi
 
 		#Check if zip still exists
 		if [ "$(grep -c ".zip" ${gamelistpath}/${nextcore,,}_gamelist.txt)" != "0" ]; then
 			if [ ! -f "$(grep ".zip" "${gamelistpath}/${nextcore,,}_gamelist.txt" | awk -F".zip" '{print $1}/.zip/' |head -1).zip" ]; then
 				if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because zip file seems to have changed."; fi
-				create_romlist
+				create_romlist ${nextcore,,}
 			fi
 		fi
 
@@ -2431,7 +2432,7 @@ function next_core() { # next_core (core)
 			if [[ ! "${rompath}" == *.zip* ]]; then					
 				if [ ! -f "${rompath}" ]; then
 					if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because file not found."; fi
-					create_romlist
+					create_romlist ${nextcore,,}
 				fi
 			fi
 
@@ -2488,8 +2489,6 @@ function next_core() { # next_core (core)
 		load_core "${nextcore,,}" "${rompath}" "${romname%.*}" "${countdown}"
 	fi
 }
-
-
 
 function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
@@ -2613,10 +2612,9 @@ function unmute() {
 	fi
 }
 
-
 # ======== ARCADE MODE ========
 function build_mralist() {
-	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
+	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
 
 	# If no MRAs found - suicide!
 	find "${DIR}" -type f \( -iname "*.mra" \) &>/dev/null
@@ -2694,8 +2692,8 @@ function load_core_arcade() {
 		done
 	fi
 
-  # Tell MiSTer to load the next MRA
-  echo "load_core ${MRAPATH}" > /dev/MiSTer_cmd
+	# Tell MiSTer to load the next MRA
+	echo "load_core ${MRAPATH}" > /dev/MiSTer_cmd
  	sleep 1
 	echo "" |>/tmp/.SAM_Joy_Activity
 	echo "" |>/tmp/.SAM_Mouse_Activity
@@ -2704,66 +2702,32 @@ function load_core_arcade() {
 
 
 #========= MAIN =========
-#======== DEBUG OUTPUT =========
-if [ "${samtrace,,}" == "yes" ]; then
-	echo " ********************************************************************************"
-	#======== GLOBAL VARIABLES =========
-	echo " mrsampath: ${mrsampath}"
-	echo " misterpath: ${misterpath}"
-	echo " sampid: ${sampid}"
-	echo " samprocess: ${samprocess}"
-	echo ""
-	#======== LOCAL VARIABLES ========
-	echo " commandline: ${@}"
-	echo " repository_url: ${repository_url}"
-	echo " branch: ${branch}"
-						  
-	echo ""
-	echo " gametimer: ${gametimer}"
-	echo " corelist: ${corelist}"
-	echo " usezip: ${usezip}"
-										  
-	echo " mralist: ${mralist}"
-	echo " listenmouse: ${listenmouse}"
-	echo " listenkeyboard: ${listenkeyboard}"
-	echo " listenjoy: ${listenjoy}"
-	echo ""
-	echo " arcadepath: ${arcadepath}"
-	echo " gbapath: ${gbapath}"
-	echo " genesispath: ${genesispath}"
-	echo " megacdpath: ${megacdpath}"
-	echo " neogeopath: ${neogeopath}"
-	echo " nespath: ${nespath}"
-	echo " snespath: ${snespath}"
-	echo " tgfx16path: ${tgfx16path}"
-	echo " tgfx16cdpath: ${tgfx16cdpath}"
-	echo ""
-	echo " gbalist: ${gbalist}"
-	echo " genesislist: ${genesislist}"
-	echo " megacdlist: ${megacdlist}"
-	echo " neogeolist: ${neogeolist}"
-	echo " neslist: ${neslist}"
-	echo " sneslist: ${sneslist}"
-	echo " tgfx16list: ${tgfx16list}"
-	echo " tgfx16cdlist: ${tgfx16cdlist}"
-	echo ""
-	echo " arcadeexclude: ${arcadeexclude[@]}"
-	echo " gbaexclude: ${gbaexclude[@]}"
-	echo " genesisexclude: ${genesisexclude[@]}"
-	echo " megacdexclude: ${megacdexclude[@]}"
-	echo " neogeoexclude: ${neogeoexclude[@]}"
-	echo " nesexclude: ${nesexclude[@]}"
-	echo " snesexclude: ${snesexclude[@]}"
-	echo " tgfx16exclude: ${tgfx16exclude[@]}"
-	echo " tgfx16cdexclude: ${tgfx16cdexclude[@]}"
-	echo " ********************************************************************************"
-	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
-fi	
+function main() {
+	init_vars
+	create_exclude_lists
+	readini
+	misc
+	init_paths
+	if [ ${usedefaultpaths,,} == "yes" ]; then
+			for core in ${corelist}; do
+				defaultpath "${core}"
+			done
+	fi
 
-disable_bootrom	# Disable Bootrom until Reboot
-mute
-init_data		# Setup data arrays
-if [ "${1}" != "--source-only" ]; then
-    parse_cmd ${@} # Parse command line parameters for input
-fi
+	init_data		# Setup data arrays
 
+	if [ "${samtrace,,}" == "yes" ]; then
+		debug_output
+	fi	
+
+	disable_bootrom	# Disable Bootrom until Reboot
+	mute
+	if [ "${1,,}" == "--speedtest" ]; then
+		speedtest
+	fi
+	if [ "${1,,}" != "--source-only" ] || [ "${1,,}" != "--speedtest" ]; then
+		parse_cmd ${@} # Parse command line parameters for input
+	fi
+}
+
+main ${@}
