@@ -30,18 +30,12 @@ if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 fi
 
-# Remove trailing slash from paths
-for var in mrsampath misterpath mrapathvert mrapathhoriz arcadepath gbapath genesispath megacdpath neogeopath nespath snespath tgfx16path tgfx16cdpath; do
-	declare -g ${var}="${!var%/}"
-done
 
 
 #======== Functions ========
 function start() {
 	#======== Start ========
 	echo -n " Starting SAM..."
-	#Sleep before startup so clock of Mister can syncronize. Otherwise SAM will start immidiately when the clock gets set after bootup. 
-	sleep 60
 	${misterpath}/Scripts/MiSTer_SAM_on.sh bootstart
 }
 
