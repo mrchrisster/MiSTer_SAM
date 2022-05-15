@@ -47,16 +47,16 @@ function init_vars() {
 	#======== LOCAL VARIABLES ========
 	declare -i coreretries=3
 	declare -i romloadfails=0
-	countpath="${mrsampath}/SAM_Count"
 	gamelistpath="${mrsampath}/SAM_Gamelists"
 	gamelistpathtmp="/tmp/.SAM_List/"
 	excludepath="${mrsampath}"
-	mralist="/tmp/.SAM_List/arcade_romlist"
+	mralist="${mrsampath}/SAM_Gamelists/arcade_romlist"
+	mralist_tmp="/tmp/.SAM_List/arcade_romlist"
 	tmpfile="/tmp/.SAM_List/tmpfile"
 	tmpfile2="/tmp/.SAM_List/tmpfile2"
 	gametimer=120
 	corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
-	gamelist="Dynamic"
+	create_all_gamelists="No"
 	skipmessage="Yes"
 	usezip="Yes"
 	norepeat="Yes"
@@ -489,7 +489,7 @@ function init_data() {
 	["tgfx16cd"]="PC-Engine CD" \
 	["psx"]="Playstation" \
 	)
-			
+
 	# NEOGEO to long name mappings English
 	declare -gA NEOGEO_PRETTY_ENGLISH=( \
 	["3countb"]="3 Count Bout" \
@@ -1089,13 +1089,13 @@ function debug_output() {
 	echo " commandline: ${@}"
 	echo " repository_url: ${repository_url}"
 	echo " branch: ${branch}"
-						
+
 	echo ""
 	echo " gametimer: ${gametimer}"
 	echo " corelist: ${corelist}"
 	echo " usezip: ${usezip}"
-										
-	echo " mralist: ${mralist}"
+
+	echo " mralist: ${mralist_tmp}"
 	echo " listenmouse: ${listenmouse}"
 	echo " listenkeyboard: ${listenkeyboard}"
 	echo " listenjoy: ${listenjoy}"
@@ -1152,7 +1152,6 @@ function readini() {
 
 function misc() { # TODO
 	#Create folders if they don't exist
-	mkdir -p "${mrsampath}"/SAM_Count
 	mkdir -p "${mrsampath}"/SAM_Gamelists
 	mkdir -p /tmp/.SAM_List
 	touch ${tmpfile}
@@ -1202,7 +1201,7 @@ function defaultpath() {
 	if [ ${SYSTEM} == "fds" ]; then
 		SYSTEM="nes"
 	fi
-	
+
 	if [ ${SYSTEM} == "gb" ]; then
 		SYSTEM="gameboy"
 	fi
@@ -1220,11 +1219,11 @@ function defaultpath() {
 	fi
 
 	shift
-	
+
 	GET_SYSTEM_FOLDER "${SYSTEM}"
 	local SYSTEM_FOLDER="${GET_SYSTEM_FOLDER_RESULT}"
 	local GAMESDIR="${GET_SYSTEM_FOLDER_GAMESDIR}"
-	
+
 	if [[ "${SYSTEM_FOLDER}" != "" ]]
 	then
 	   eval ${SYSTEM_ORG}"path"="${GAMESDIR}/${GET_SYSTEM_FOLDER_RESULT}"
@@ -1376,7 +1375,7 @@ function sam_configmenu() {
 	parse_cmd menu
 }
 
-							 
+
 function sam_gamemodemenu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
 	--backtitle "Super Attract Mode" --title "[ Game Roulette ]" \
@@ -1397,7 +1396,7 @@ function sam_gamemodemenu() {
 
 	if [ "${samquiet,,}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
-}													 
+}
 
 function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
@@ -1427,7 +1426,7 @@ function parse_cmd() {
 
 		while [ ${#} -gt 0 ]; do
 			case ${1,,} in
-				default) # sam_update relaunches itself 
+				default) # sam_update relaunches itself
 					sam_update autoconfig
 					break
 					;;
@@ -1444,7 +1443,7 @@ function parse_cmd() {
 					;;
 				bootstart) # Start as from init
 					env_check ${1,,}
-					# Sleep before startup so clock of Mister can synchronize if connected to the internet. 
+					# Sleep before startup so clock of Mister can synchronize if connected to the internet.
 					# We assume most people don't have RTC add-on so sleep is default.
 					# Only start MCP on boot
 					bootsleep=60
@@ -1527,7 +1526,7 @@ function parse_cmd() {
 					sam_menu
 					break
 					;;
-				menu)			
+				menu)
 					sam_menu
 					break
 					;;
@@ -1547,9 +1546,9 @@ function parse_cmd() {
 				gamemode)
 					sam_gamemodemenu
 					break
-					;;	
+					;;
 
-				roulette5)				
+				roulette5)
 					only_survivor
 					listenmouse="No"
 					listenkeyboard="No"
@@ -1611,7 +1610,7 @@ function parse_cmd() {
 					gametimer=${roulettetimer}
 					loop_core
 					break
-					;;   
+					;;
 				help)
 					sam_help
 					break
@@ -1635,7 +1634,7 @@ function mcp_start() {
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
 		#${mrsampath}/MiSTer_SAM_MCP monitoronly &
-		tmux new-session -s MCP -d ${mrsampath}/MiSTer_SAM_MCP 
+		tmux new-session -s MCP -d ${mrsampath}/MiSTer_SAM_MCP
 	fi
 
 }
@@ -1691,18 +1690,18 @@ function sam_update() { # sam_update (next command)
 			echo " MiSTer SAM INI already exists... Merging with new ini."
 			get_samstuff MiSTer_SAM.ini /tmp
 			echo " Backing up MiSTer_SAM.ini to MiSTer_SAM.ini.bak"
-			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak 
+			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak
 			echo -n " Merging ini values.."
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 			sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
 			sed -i 's/-=/--/g' /media/fat/Scripts/MiSTer_SAM.ini
 			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/MiSTer_SAM.ini /tmp/MiSTer_SAM.ini > /tmp/MiSTer_SAM.tmp && mv --force /tmp/MiSTer_SAM.tmp /media/fat/Scripts/MiSTer_SAM.ini
 			echo "Done."
-			
+
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		fi
-		
+
 	fi
 
 	echo " Update complete!"
@@ -1743,7 +1742,7 @@ function sam_enable() { # Enable autoplay
 	fi
 	echo "Done."
 	echo " SAM install complete."
-	echo -e "\n\n\n" 
+	echo -e "\n\n\n"
         echo -ne "\e[1m" SAM will start after ${boot_samtimeout} sec. after boot"\e[0m"
         if [ ${menuonly,,} == "yes" ]; then
                 echo -ne "\e[1m" in the main menu"\e[0m"
@@ -1805,23 +1804,17 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
-	
-	
-	if [ "${gamelists,,}" == "static" ]; then
-		#Delete temp lists
-		rm -rf /tmp/.SAM_List &> /dev/null
-	fi
 
 	kill_1=$(ps -o pid,args | grep '[M]iSTer_SAM_init start' | awk '{print $1}' | head -1 )
 	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}' )
 	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
-	
+
 	[[ ! -z ${kill_1} ]] && kill -9 ${kill_1} >/dev/null
 	for kill in ${kill_2}; do
 		[[ ! -z ${kill_2} ]] && kill -9 ${kill} >/dev/null
-	done	
+	done
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
-	
+
 	sleep 1
 
 	echo " Done!"
@@ -1842,21 +1835,21 @@ function only_survivor() {
 }
 
 
-function sam_stop() { 
+function sam_stop() {
 	# Stop all SAM processes and reboot to menu
 
 	echo -n " Stopping other running instances of ${samprocess}..."
-	
+
 	if [ "${mute,,}" == "yes" ]; then echo -e "\0000\c" > /media/fat/config/Volume.dat; fi
 	echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
 	#Delete temp lists
-	rm -rf /tmp/.SAM_List &> /dev/null
+	# rm -rf /tmp/.SAM_List &> /dev/null
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep -i '[M]iSTer_SAM_on' | awk '{print $1}' )
 	kill_4=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-    
+
 	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
 	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
 	for kill in ${kill_3}; do
@@ -1988,7 +1981,7 @@ function tty_init() { # tty_init
 
 	if [ "${ttyenable,,}" == "yes" ]; then
 		# tty2oled initialization
-		
+
 		if [ "${samquiet,,}" == "no" ]; then echo " Init tty2oled, loading variables... "; fi
 		source ${ttysystemini}
 		source ${ttyuserini}
@@ -2037,7 +2030,7 @@ function tty_init() { # tty_init
 		tty_waitfor
 		sleep 1
 	fi
-	
+
 }
 
 function tty_waitfor() {
@@ -2157,7 +2150,7 @@ function tty_exit() { # tty_exit
 		echo "MENU" > /tmp/CORENAME
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack,,}" == "yes" ]; then
-		
+
 			echo -n " Starting tty2oled daemon..."
 			/media/fat/tty2oled/S60tty2oled start
 			echo " Done!"
@@ -2300,7 +2293,7 @@ function loop_core() { # loop_core (core)
 			fi
 
 		done
-		
+
 		counter=${gametimer}
 		next_core ${1}
 
@@ -2317,17 +2310,16 @@ function reset_core_gl() { # args ${nextcore,,}
 
 function speedtest() {
 	START="$(date +%s)"
-	if [ ${speedtest,,} == "yes" ]; then
-		for core in ${corelist}; do
-			defaultpath "${core}"
-		done
-		DURATION_DP=$[ $(date +%s) - ${START} ]
-	fi
+	for core in ${corelist}; do
+		defaultpath "${core}"
+	done
+	DURATION_DP=$[ $(date +%s) - ${START} ]
 	START="$(date +%s)"
 	echo "" > /tmp/Durations.tmp
 	for core in ${corelist}; do
+	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		START2="$(date +%s)"
-		create_romlist ${core}
+		create_romlist ${core} ${DIR}
 		echo "${core}: $[ $(date +%s) - ${START2} ] seconds" >> /tmp/Durations.tmp
 	done
 	printf "Total: $[ $(date +%s) - ${START} ] seconds" >> /tmp/Durations.tmp
@@ -2343,16 +2335,37 @@ function speedtest() {
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
 }
 
-function create_romlist() { # args ${nextcore,,}
-	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${1}]}${CORE_PATH_EXTRA[${1}]}"))
-	echo " Looking for games in  ${DIR}..."
-	
+function create_game_lists() {
+	for core in ${corelist}; do
+		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
+		if [ ${core} != "arcade" ]; then
+			if [ ! -s "${gamelistpath}/${core}_gamelist.txt" ]; then
+				create_romlist ${core} ${DIR}
+			fi
+			if [ ! -s "${gamelistpathtmp}/${core}_gamelist.txt" ]; then
+				cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
+			fi
+		elif [ ${core} == "arcade" ]; then
+			if [ ! -s "${mralist}" ]; then
+				build_mralist ${DIR}
+			fi
+			if [ ! -s "${mralist_tmp}" ]; then
+				cp "${mralist}" "${mralist_tmp}" &>/dev/null
+			fi
+		fi
+	done
+}
+
+##### ROMFINDER #####
+function create_romlist() { # args ${nextcore,,} ${DIR}
+	echo " Looking for games in  ${2}..."
+
 	# Find all files in core's folder with core's extension
-	find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${1}]}" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile}"
+	find -L ${2} \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${1}]}" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile}"
 
 	# Now find all zips in core's folder and process
 	if [ "${CORE_ZIPPED[${1}],,}" == "yes" ]; then
-		find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
+		find -L ${2} \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
 		shopt -s nullglob
 		if [ -s "${tmpfile2}" ]; then
 			local IFS=$'\n'
@@ -2362,24 +2375,62 @@ function create_romlist() { # args ${nextcore,,}
 				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${1}]} >> "${tmpfile}"
 			done
 		fi
+		rm ${tmpfile2} &> /dev/null
 		shopt -u nullglob
 	fi
 
 	# Strip out all duplicate filenames with a fancy awk command
-	if [ ${gamelists,,} == "dynamic" ]; then
-		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpathtmp}/${1}_gamelist.txt"
-	elif [ ${gamelists,,} == "static" ]; then
-		awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${1}_gamelist.txt"
-		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
-	fi
+	awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort > "${gamelistpath}/${1}_gamelist.txt"
+	cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
 
 	echo " Done."
 }
 
-function next_core() { # next_core (core)
+function check_list() { # args ${nextcore,,}  ${DIR}
+	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
+		create_romlist ${1} ${2}
+	fi
+
+	#If folder changed, make new list
+	if [[ ! "$(cat ${gamelistpath}/${1}_gamelist.txt | grep "${2}" | head -1)" ]]; then
+		if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
+		create_romlist ${1} ${2}
+	fi
+
+	#Check if zip still exists
+	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
+		if [ ! -f "$(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '{print $1}/.zip/' |head -1).zip" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because zip file seems to have changed."; fi
+			create_romlist ${1} ${2}
+		fi
+	fi
+	if [ -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+
+		#Pick the actual game
+		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1 )"
+	else
+
+		#Repopulate list
+		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1 )"
+	fi
+	#Make sure file exists since we're reading from a static list
+	if [[ ! "${rompath}" == *.zip* ]]; then
+		if [ ! -f "${rompath}" ]; then
+			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because file not found."; fi
+			create_romlist ${1} ${2}
+		fi
+	fi
+	if [ "${samquiet,,}" == "no" ]; then echo " Selected file: ${rompath}"; fi
+	#Delete played game from list
+	if [ "${norepeat,,}" == "yes" ]; then
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
+}
 
 # This function will pick a random rom from the game list.
-
+function next_core() { # next_core (core)
 	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
 		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
 		exit 1
@@ -2421,58 +2472,11 @@ function next_core() { # next_core (core)
 		return
 	fi
 
-	##### START ROMFINDER #####
-		#Create list
-		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
-		if [ ! -f "${gamelistpath}/${nextcore,,}_gamelist.txt" ]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${nextcore,,}_gamelist.txt"; fi
-			create_romlist ${nextcore,,}
-		fi
+	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
 
-		#If folder changed, make new list
-		if [[ ! "$(cat ${gamelistpath}/${nextcore,,}_gamelist.txt | grep "${DIR}" | head -1)" ]]; then
-			if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
-			create_romlist ${nextcore,,}
-		fi
+	check_list ${nextcore,,} ${DIR}
 
-		#Check if zip still exists
-		if [ "$(grep -c ".zip" ${gamelistpath}/${nextcore,,}_gamelist.txt)" != "0" ]; then
-			if [ ! -f "$(grep ".zip" "${gamelistpath}/${nextcore,,}_gamelist.txt" | awk -F".zip" '{print $1}/.zip/' |head -1).zip" ]; then
-				if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because zip file seems to have changed."; fi
-				create_romlist ${nextcore,,}
-			fi
-		fi
-
-		#Delete played game from list
-		if [ -s "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" ]; then
-
-			#Pick the actual game
-			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist.txt | shuf --head-count=1 )"
-			if [ "${samquiet,,}" == "no" ]; then echo " Selected file: ${rompath}"; fi
-
-			#Make sure file exists since we're reading from a static list
-			
-			if [[ ! "${rompath}" == *.zip* ]]; then					
-				if [ ! -f "${rompath}" ]; then
-					if [ "${samquiet,,}" == "no" ]; then echo " Creating new game list because file not found."; fi
-					create_romlist ${nextcore,,}
-				fi
-			fi
-
-			if [ "${norepeat,,}" == "yes" ]; then
-				awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore,,}_gamelist.txt"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore,,}_gamelist.txt"
-			fi
-		else
-
-			#Repopulate list
-			cp "${gamelistpath}/${nextcore,,}_gamelist.txt" "${gamelistpathtmp}/${nextcore,,}_gamelist.txt" &>/dev/null
-			rompath="$(cat ${gamelistpathtmp}/${nextcore,,}_gamelist.txt | shuf --head-count=1 )"
-			if [ "${samquiet,,}" == "no" ]; then echo " Selected file: ${rompath}"; fi
-		fi
-
-		romname=$(basename "${rompath}")
-	
-
+	romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
 	if [[ ${rompath,,} != *"${CORE_EXT[${nextcore,,}]}"* ]]; then
@@ -2552,17 +2556,17 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 	echo "<mistergamedescription>" > /tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore,,}]}/${MGL_CORE[${nextcore,,}]}</rbf>" >> /tmp/SAM_game.mgl
-	
+
 	if [ ${usedefaultpaths,,} == "yes" ]; then
 		corepath="${CORE_PATH[${nextcore,,}]}/"
 		rompath=${rompath#"${corepath}"}
 		echo "<file delay="${MGL_DELAY[${nextcore,,}]}" type="${MGL_TYPE[${nextcore,,}]}" index="${MGL_INDEX[${nextcore,,}]}" path="\"${rompath}\""/>" >> /tmp/SAM_game.mgl
 	else
-		echo "<file delay="${MGL_DELAY[${nextcore,,}]}" type="${MGL_TYPE[${nextcore,,}]}" index="${MGL_INDEX[${nextcore,,}]}" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl		
+		echo "<file delay="${MGL_DELAY[${nextcore,,}]}" type="${MGL_TYPE[${nextcore,,}]}" index="${MGL_INDEX[${nextcore,,}]}" path="\"../../../..${rompath}\""/>" >> /tmp/SAM_game.mgl
 	fi
-	
-	
-	
+
+
+
 	echo "</mistergamedescription>" >> /tmp/SAM_game.mgl
 
 
@@ -2638,12 +2642,11 @@ function unmute() {
 
 # ======== ARCADE MODE ========
 function build_mralist() {
-	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore,,}]}${CORE_PATH_EXTRA[${nextcore,,}]}"))
-
+	echo " Looking for games in  ${1}..."
 	# If no MRAs found - suicide!
-	find "${DIR}" -type f \( -iname "*.mra" \) &>/dev/null
+	find "${1}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
-		echo " The path ${DIR} contains no MRA files!"
+		echo " The path ${1} contains no MRA files!"
 		loop_core
 	fi
 
@@ -2654,9 +2657,12 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${DIR}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#DIR}) + 2 ))- >"${mralist}"
+		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#1}) + 2 ))- >"${mralist}"
 	else
-		find "${DIR}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#DIR}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \)  | cut -c $(( $(echo ${#1}) + 2 ))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]})>"${mralist}"
+	fi
+	if [ ! -s "${mralist_tmp}" ]; then
+		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
 }
 
@@ -2666,19 +2672,19 @@ function load_core_arcade() {
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
-	if [ ! -s ${mralist} ]; then
-		build_mralist
+	if [ ! -s ${mralist_tmp} ]; then
+		build_mralist ${DIR}
 	fi
 
 	# Get a random game from the list
-	mra="$(shuf --head-count=1 ${mralist})"
+	mra="$(shuf --head-count=1 ${mralist_tmp})"
 	MRAPATH=$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))
 
 	# If the mra variable is valid this is skipped, but if not we try 10 times
 	# Partially protects against typos from manual editing and strange character parsing problems
 	for i in {1..10}; do
 		if [ ! -f "${MRAPATH}" ]; then
-			mra=$(shuf --head-count=1 ${mralist})
+			mra=$(shuf --head-count=1 ${mralist_tmp})
 			MRAPATH=$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))
 		fi
 	done
@@ -2693,7 +2699,7 @@ function load_core_arcade() {
 
 	#Delete mra from list so it doesn't repeat
 	if [ "${norepeat,,}" == "yes" ]; then
-		awk -vLine="$mra" '!index($0,Line)' "${mralist}"  > ${tmpfile} && mv ${tmpfile} "${mralist}"
+		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}"  > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
 
 	fi
 
@@ -2728,10 +2734,15 @@ function load_core_arcade() {
 #========= MAIN =========
 function main() {
 	init_vars
+
 	create_exclude_lists
+
 	readini
+
 	misc
+
 	init_paths
+
 	if [ ${usedefaultpaths,,} == "yes" ]; then
 			for core in ${corelist}; do
 				defaultpath "${core}"
@@ -2740,15 +2751,21 @@ function main() {
 
 	init_data		# Setup data arrays
 
-	if [ "${samtrace,,}" == "yes" ]; then
-		debug_output
-	fi	
-
-	disable_bootrom	# Disable Bootrom until Reboot
-	mute
 	if [ "${1,,}" == "--speedtest" ]; then
 		speedtest
 	fi
+
+	if [ "${1,,}" == "start" ] && [ ${create_all_gamelists,,} == "yes" ]; then
+		create_game_lists
+	fi
+
+	if [ "${samtrace,,}" == "yes" ]; then
+		debug_output
+	fi
+
+	disable_bootrom	# Disable Bootrom until Reboot
+
+	mute
 
 	parse_cmd ${@} # Parse command line parameters for input
 
