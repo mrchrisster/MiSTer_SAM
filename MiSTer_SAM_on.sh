@@ -1744,7 +1744,7 @@ function sam_enable() { # Enable autoplay
 	echo "Done."
 	echo " SAM install complete."
 	echo -e "\n\n\n"
-		boot_samtimeout=$((${samtimeout} + ${bootsleep}))
+	boot_samtimeout=$((${samtimeout} + ${bootsleep}))
         echo -ne "\e[1m" SAM will start ${boot_samtimeout} sec. after boot"\e[0m"
         if [ "${menuonly,,}" == "yes" ]; then
                 echo -ne "\e[1m" in the main menu"\e[0m"
