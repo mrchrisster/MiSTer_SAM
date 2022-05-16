@@ -2159,6 +2159,7 @@ function tty_exit() { # tty_exit
 			#sleep 2
 		fi
 	fi
+	return
 }
 
 #======== DOWNLOAD FUNCTIONS ========
@@ -2259,7 +2260,6 @@ function loop_core() { # loop_core (core)
 					echo " Mouse activity detected!"
 					unmute
 					tty_exit
-					sleep 5
 					exit
 				else
 					echo " Mouse activity ignored!"
@@ -2272,7 +2272,6 @@ function loop_core() { # loop_core (core)
 					echo " Keyboard activity detected!"
 					unmute
 					tty_exit
-					sleep 5
 					exit
 
 				else
@@ -2286,7 +2285,6 @@ function loop_core() { # loop_core (core)
 					echo " Controller activity detected!"
 					unmute
 					tty_exit
-					sleep 5
 					exit
 				else
 					echo " Controller activity ignored!"
