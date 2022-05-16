@@ -56,6 +56,8 @@ function init_vars() {
 	tmpfile2="/tmp/.SAM_List/tmpfile2"
 	gametimer=120
 	corelist="arcade,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	#Make all cores available for menu
+	corelistall="${corelist}"
 	create_all_gamelists="No"
 	skipmessage="Yes"
 	usezip="Yes"
@@ -74,6 +76,8 @@ function init_vars() {
 	usedefaultpaths="No"
 	neogeoregion="English"
 	useneogeotitles="Yes"
+	bootsleep=60
+	boot_samtimeout=$((${samtimeout} + ${bootsleep}))
 
 	# ======== TTY2OLED =======
 	ttyenable="No"
@@ -1072,8 +1076,7 @@ function init_data() {
 	["zupapa"]="" \
 	)
 
-	#Make all cores available
-	corelistall="${corelist}"
+
 }
 
 #======== DEBUG OUTPUT =========
@@ -1446,8 +1449,6 @@ function parse_cmd() {
 					# Sleep before startup so clock of Mister can synchronize if connected to the internet.
 					# We assume most people don't have RTC add-on so sleep is default.
 					# Only start MCP on boot
-					bootsleep=60
-					boot_samtimeout=$((${samtimeout} + ${bootsleep}))
 					sleep ${bootsleep}
 					mcp_start
 					break
@@ -2755,7 +2756,6 @@ function load_core_arcade() {
 
 #========= MAIN =========
 function main() {
-	init_vars
 
 	create_exclude_lists
 
