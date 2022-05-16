@@ -76,8 +76,8 @@ function init_vars() {
 	usedefaultpaths="No"
 	neogeoregion="English"
 	useneogeotitles="Yes"
-	bootsleep=60
-	boot_samtimeout=$((${samtimeout} + ${bootsleep}))
+	bootsleep="60"
+
 
 	# ======== TTY2OLED =======
 	ttyenable="No"
@@ -1744,8 +1744,9 @@ function sam_enable() { # Enable autoplay
 	echo "Done."
 	echo " SAM install complete."
 	echo -e "\n\n\n"
-        echo -ne "\e[1m" SAM will start after ${boot_samtimeout} sec. after boot"\e[0m"
-        if [ ${menuonly,,} == "yes" ]; then
+		boot_samtimeout=$((${samtimeout} + ${bootsleep}))
+        echo -ne "\e[1m" SAM will start ${boot_samtimeout} sec. after boot"\e[0m"
+        if [ "${menuonly,,}" == "yes" ]; then
                 echo -ne "\e[1m" in the main menu"\e[0m"
         else
                 echo -ne "\e[1m" whenever controller is not in use"\e[0m"
