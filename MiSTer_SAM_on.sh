@@ -2756,6 +2756,7 @@ function load_core_arcade() {
 
 #========= MAIN =========
 function main() {
+	init_vars
 
 	create_exclude_lists
 
