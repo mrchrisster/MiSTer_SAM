@@ -2346,7 +2346,14 @@ function speedtest() {
 function create_game_lists() {
 	for core in ${corelist}; do
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
+		local date_file=""
 		if [ ${core} != "arcade" ]; then
+			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
+				date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
+				if [ $[$(date +%s) - ${date_file}] -gt 604800 ]; then
+					create_romlist ${core} ${DIR}
+				fi
+			fi
 			if [ ! -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 				create_romlist ${core} ${DIR}
 			fi
@@ -2354,6 +2361,12 @@ function create_game_lists() {
 				cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 			fi
 		elif [ ${core} == "arcade" ]; then
+			if [ -s "${mralist}" ]; then
+				date_file=$(stat -c '%Y' "${mralist}")
+				if [ $[$(date +%s) - ${date_file}] -gt 604800 ]; then
+					build_mralist ${DIR}
+				fi
+			fi
 			if [ ! -s "${mralist}" ]; then
 				build_mralist ${DIR}
 			fi
