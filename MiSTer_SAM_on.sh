@@ -2150,10 +2150,11 @@ function tty_exit() { # tty_exit
 		if [ "${ttyuseack}" == "yes" ]; then
 
 			echo -n " Starting tty2oled daemon..."
-			/media/fat/tty2oled/S60tty2oled start
+			tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
 			echo " Done!"
 			#sleep 2
 		fi
+		exit
 	fi
 }
 
