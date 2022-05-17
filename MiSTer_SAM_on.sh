@@ -1920,12 +1920,12 @@ function deleteall() {
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sed -i '/Super Attract/d' ${userstartup}
 
-	printf "\n\n\n\n\n\nAll files deleted except for MiSTer_SAM_on.sh\n\n\n\n\n\n"
-	if [ "${inmenu}" ]; then
+	printf "\nAll files deleted except for MiSTer_SAM_on.sh\n"
+	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
 		sam_resetmenu
 	else
-		printf "\n\n\n\n\n\nGamelist reset successful. Please start SAM now.\n\n\n\n\n\n"
+		printf "\nGamelist reset successful. Please start SAM now.\n"
 		sleep 1
 		parse_cmd stop
 	fi
@@ -1947,11 +1947,11 @@ function deletegl() {
 		rm -rf /tmp/.SAM_List
 	fi
 
-	if [ "${inmenu}" ]; then
+	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
 		sam_menu
 	else
-		echo -e "\n\n\n\n\n\nGamelist reset successful. Please start SAM now.\n\n\n\n\n\n"
+		echo -e "\nGamelist reset successful. Please start SAM now.\n"
 		sleep 1
 		parse_cmd stop
 	fi
@@ -2313,12 +2313,12 @@ function speedtest() {
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		if [ ${core} != "arcade" ]; then
 			START2="$(date +%s)"
-			create_romlist ${core} ${DIR}
+			create_romlist ${core} "${DIR}"
 			cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 			echo "${core}: $(($(date +%s) - ${START2})) seconds" >>/tmp/Durations.tmp
 		elif [ ${core} == "arcade" ]; then
 			START2="$(date +%s)"
-			build_mralist ${DIR}
+			build_mralist "${DIR}"
 			cp "${mralist}" "${mralist_tmp}" &>/dev/null
 			echo "${core}: $(($(date +%s) - ${START2})) seconds" >>/tmp/Durations.tmp
 		fi
@@ -2386,11 +2386,11 @@ function create_game_lists() {
 			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 				date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
 				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
-					create_romlist ${core} ${DIR}
+					create_romlist ${core} "${DIR}"
 				fi
 			fi
 			if [ ! -s "${gamelistpath}/${core}_gamelist.txt" ]; then
-				create_romlist ${core} ${DIR}
+				create_romlist ${core} "${DIR}"
 			fi
 			if [ ! -s "${gamelistpathtmp}/${core}_gamelist.txt" ]; then
 				cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
@@ -2399,11 +2399,11 @@ function create_game_lists() {
 			if [ -s "${mralist}" ]; then
 				date_file=$(stat -c '%Y' "${mralist}")
 				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
-					build_mralist ${DIR}
+					build_mralist "${DIR}"
 				fi
 			fi
 			if [ ! -s "${mralist}" ]; then
-				build_mralist ${DIR}
+				build_mralist "${DIR}"
 			fi
 			if [ ! -s "${mralist_tmp}" ]; then
 				cp "${mralist}" "${mralist_tmp}" &>/dev/null
@@ -2413,7 +2413,7 @@ function create_game_lists() {
 }
 
 ##### ROMFINDER #####
-function create_romlist() { # args ${nextcore} ${DIR}
+function create_romlist() { # args ${nextcore} "${DIR}"
 	echo " Looking for games in  ${2}..."
 
 	# Find all files in core's folder with core's extension
@@ -2442,7 +2442,7 @@ function create_romlist() { # args ${nextcore} ${DIR}
 	echo " Done."
 }
 
-function check_list() { # args ${nextcore}  ${DIR}
+function check_list() { # args ${nextcore}  "${DIR}"
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
 		create_romlist ${1} ${2}
@@ -2530,7 +2530,7 @@ function next_core() { # next_core (core)
 
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
 
-	check_list ${nextcore} ${DIR}
+	check_list ${nextcore} "${DIR}"
 
 	romname=$(basename "${rompath}")
 
@@ -2695,7 +2695,7 @@ function build_mralist() {
 	# If no MRAs found - suicide!
 	find "${1}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
-		echo " The path ${1} contains no MRA files!"
+		echo " The path '${1}' contains no MRA files!"
 		loop_core
 	fi
 
@@ -2723,19 +2723,19 @@ function load_core_arcade() {
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s ${mralist_tmp} ]; then
-		build_mralist ${DIR}
+		build_mralist "${DIR}"
 	fi
 
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
-	MRAPATH=$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))
+	MRAPATH=$(echo $(realpath -s --canonicalize-missing ""${DIR}"/${mra}"))
 
 	# If the mra variable is valid this is skipped, but if not we try 10 times
 	# Partially protects against typos from manual editing and strange character parsing problems
 	for i in {1..10}; do
 		if [ ! -f "${MRAPATH}" ]; then
 			mra=$(shuf --head-count=1 ${mralist_tmp})
-			MRAPATH=$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))
+			MRAPATH=$(echo $(realpath -s --canonicalize-missing ""${DIR}"/${mra}"))
 		fi
 	done
 
