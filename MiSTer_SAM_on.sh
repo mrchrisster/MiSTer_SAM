@@ -2728,14 +2728,14 @@ function load_core_arcade() {
 
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
-	MRAPATH=$(echo $(realpath -s --canonicalize-missing ""${DIR}"/${mra}"))
+	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 
 	# If the mra variable is valid this is skipped, but if not we try 10 times
 	# Partially protects against typos from manual editing and strange character parsing problems
 	for i in {1..10}; do
 		if [ ! -f "${MRAPATH}" ]; then
 			mra=$(shuf --head-count=1 ${mralist_tmp})
-			MRAPATH=$(echo $(realpath -s --canonicalize-missing ""${DIR}"/${mra}"))
+			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 		fi
 	done
 
