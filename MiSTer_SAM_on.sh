@@ -2145,7 +2145,7 @@ function tty_exit() { # tty_exit
 		#tty_waitfor
 		#sleep 3
 		#Set CORENAME for tty2oled Daemon start
-		echo "MENU" >/tmp/CORENAME
+		#echo "MENU" >/tmp/CORENAME
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack}" == "yes" ]; then
 
