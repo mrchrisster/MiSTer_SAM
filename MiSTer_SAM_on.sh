@@ -2449,8 +2449,10 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
 		mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 		for zips in "${zipsinfile[@]}"; do
-			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
-			[[ ! -f "${zips}" ]] && create_romlist ${1} ${2}
+			if [ ! -f "${zips}" ]; then
+				if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
+				create_romlist ${1} ${2}
+			fi
 		done
 	fi
 	if [ -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
