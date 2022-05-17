@@ -1822,16 +1822,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 function only_survivor() {
 	# Kill all SAM processes except for currently running
-	currentpid=$(echo $$)
-	pids=($(ps aux | grep -i "[M]iSTer_SAM" | awk '{print $1}'))
-	if [ ! -z "${pids}" ]; then
-		# Kill all instances except for running task
-		otherpid=($(comm -3 <(printf "%s\n" "${currentpid}" | sort) <(printf "%s\n" "${pids[@]}" | sort) | sort -n))
-		for pid in ${otherpid[@]}; do
-			kill -9 ${pid} &>/dev/null
-			wait ${pidd} &>/dev/null
-		done
-	fi
+	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
 }
 
 function sam_stop() {
@@ -2456,7 +2447,7 @@ function check_list() { # args ${nextcore}  "${DIR}"
 
 	#Check if zip still exists
 	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-		if [ ! -f "$(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '{print $1}/.zip/' | head -1).zip" ]; then
+		if [ ! -f "$(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' ).zip" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file seems to have changed."; fi
 			create_romlist ${1} ${2}
 		fi
@@ -2503,7 +2494,7 @@ function next_core() { # next_core (core)
 			# Choose the actual core
 			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"
 
-			#if core is single core make sure we don't run out of cores
+			# If core is single core make sure we don't run out of cores
 			if [ -z ${nextcore} ]; then
 				nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
 			fi
