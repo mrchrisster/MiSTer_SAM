@@ -1285,6 +1285,7 @@ function sam_menu() {
 		Stop "Stop SAM" \
 		Single "Games from only one core" \
 		Gamemode "Game roulette" \
+		Exclude	"Exclude game categories" \
 		Utility "Update and Monitor" \
 		Config "Configure INI Settings" \
 		Favorite "Favorite Game. Copy current game to _Favorites folder" \
@@ -1382,10 +1383,10 @@ function sam_configmenu() {
 
 function sam_gamemodemenu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ Game Roulette ]" \
+		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ Game Roulette and Lucky Mode ]" \
+		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--menu "Select an option" 0 0 0 \
 		Roulette5 "Play a random game for 5 minutes. " \
 		Roulette10 "Play a random game for 10 minutes. " \
@@ -1401,6 +1402,78 @@ function sam_gamemodemenu() {
 	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
+
+function samedit_exclude() {
+	declare -a menulist=()
+	for core in ${corelist}; do
+		menulist+=( ex_"${core}" )
+		menulist+=( "Select ${CORE_PRETTY[${core,,}]} gamelist" )
+	done
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ EXCLUSION EDITOR ]" \
+	--menu "Which system?" 0 0 0 \
+	"${menulist[@]}" \
+	Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	parse_cmd ${menuresponse}
+
+}
+
+
+function samedit_excltags() {
+	dialog --title "CATEGORY SELECTION" --ascii-lines --checklist  \
+	"Which tags do you want to exclude?" 0 0 0 \
+	"Beta" "" OFF \
+	"Hack" "" OFF \
+	"Homebrew" "" OFF \
+	"Prototypes" "" OFF \
+	"Satellaview" "" OFF \
+	"Translations" "" OFF \
+	"Unlicensed" "" OFF \
+	"USA" "" OFF \
+	"Japan" "" OFF \
+	"Europe" "" OFF \
+	"Australia" "" OFF \
+	"Brazil" "" OFF \
+	"China" "" OFF \
+	"France" "" OFF \
+	"Germany" "" OFF\
+	"Italy" "" OFF \
+	"Korea" "" OFF \
+	"Spain" "" OFF \
+	"Sweden" "" OFF  2>"/tmp/.SAMmenu"
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+
+
+if [ "$opt" != "0" ]; then
+	samedit_menu
+else
+	echo "Please wait... creating list."
+	categ="$(echo ${menuresponse} | tr ' ' '|' )" 
+	cat "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/${nextcore}_gamelist.txt" | awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' > "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/${nextcore}_gamelist_exclude.txt"
+	core=${nextcore}
+	samedit_taginfo	
+fi
+
+}
+
+function samedit_taginfo() {
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ TAG EXCLUSION SUMMARY ]" \
+	--msgbox "Gamelist: ${CORE_PRETTY[${core,,}]} 
+	\n\nExcluded tags:
+	\n\n
+	${menuresponse} 
+	\n\n\n\n
+	If you would like to return to the original list, just run \n
+	'Exclude game categories' again without any tags selected." 0 0
+	clear
+	sam_menu
+}
+
 
 function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
@@ -1545,11 +1618,19 @@ function parse_cmd() {
 				deletegl
 				break
 				;;
+			exclude)
+				samedit_exclude
+				break
+				;;
+       		ex_fds | ex_gb | ex_gbc | ex_gba | ex_genesis | ex_gg | ex_megacd | ex_neogeo | ex_nes | ex_s32x | ex_sms | ex_snes | ex_tgfx16 | ex_tgfx16cd | ex_psx)
+        		nextcore=${1:3}
+        		samedit_excltags
+				break
+            	;;
 			gamemode)
 				sam_gamemodemenu
 				break
 				;;
-
 			roulette5)
 				only_survivor
 				listenmouse="No"
@@ -2462,9 +2543,15 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	else
 
 		#Repopulate list
-		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
-		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
+			comm -13 <(sort < "${gamelistpath}/${1}_gamelist_exclude.txt" ) <(sort < "${gamelistpath}/${1}_gamelist.txt" ) > "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+		else
+			cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+		fi
 	fi
+
 	#Make sure file exists since we're reading from a static list
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
