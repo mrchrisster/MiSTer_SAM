@@ -1284,8 +1284,9 @@ function sam_menu() {
 		Skip "Skip game" \
 		Stop "Stop SAM" \
 		Single "Games from only one core" \
+		Exclude	"Exclude certain type of games" \
+		Include	"Only play certain type of games" \
 		Gamemode "Game roulette" \
-		Exclude	"Exclude game categories" \
 		Utility "Update and Monitor" \
 		Config "Configure INI Settings" \
 		Favorite "Favorite Game. Copy current game to _Favorites folder" \
@@ -1382,7 +1383,7 @@ function sam_configmenu() {
 }
 
 function sam_gamemodemenu() {
-	dialog --clear --no-cancel --ascii-lines --no-tags \
+	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
 	dialog --clear --no-cancel --ascii-lines --no-tags \
@@ -1420,9 +1421,55 @@ function samedit_exclude() {
 
 }
 
+function samedit_include() {
+	dialog --clear --ascii-lines --no-tags \
+	--backtitle "Super Attract Mode" --title "[ INCLUDE CATEGORY SELECTION ]"  \
+	--menu "Only play games from the following categories" 0 0 0 \
+	shoot "Shoot 'Em Up"  \
+	beat "Beat 'Em Up"  \
+	rpg "Role Playing Games"  \
+	pinball "Pinball Games"  \
+	platformers "Platformers"  \
+	fight "Fighting Games"  \
+	trivia "Trivia Games"  \
+	sports "Sport Games"  \
+	racing "Racing Games"  \
+	europe "Only Europe games"  \
+	usa "Only USA Games"  \
+	japan "Only Japanese Games"  \
+	translations "Translated Games"  \
+	hacks "Only Hacks"  \
+	homebrew "Only Homebrew"   2>"/tmp/.SAMmenu"
+	
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	else
+		echo "Please wait... getting things ready."
+		declare -a corelist=()
+		categ="${menuresponse}"
+		echo "${menuresponse}"
+		rm ${gamelistpathtmp}*_gamelist.txt
+		cd ${gamelistpath}
+		for list in *_gamelist.txt; do
+			cat "${list}" | awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' > "${gamelistpathtmp}/${list}"
+			if [ -s "${gamelistpathtmp}${list}" ]; then 
+				rm "${gamelistpathtmp}$list"
+			fi
+		corelist+=( $(basename "${gamelistpathtmp}$list" | cut -d '_' -f 1) )
+		echo $corelist
+		done
+
+	fi
+
+}
+
 
 function samedit_excltags() {
-	dialog --title "CATEGORY SELECTION" --ascii-lines --checklist  \
+	dialog --title "[ EXCLUDE CATEGORY SELECTION ]" --ascii-lines --checklist  \
 	"Which tags do you want to exclude?" 0 0 0 \
 	"Beta" "" OFF \
 	"Hack" "" OFF \
@@ -1447,16 +1494,15 @@ function samedit_excltags() {
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
 
-
-if [ "$opt" != "0" ]; then
-	samedit_menu
-else
-	echo "Please wait... creating list."
-	categ="$(echo ${menuresponse} | tr ' ' '|' )" 
-	cat "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/${nextcore}_gamelist.txt" | awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' > "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/${nextcore}_gamelist_exclude.txt"
-	core=${nextcore}
-	samedit_taginfo	
-fi
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	else
+		echo "Please wait... creating list."
+		categ="$(echo ${menuresponse} | tr ' ' '|' )" 
+		cat "${gamelistpath}/${nextcore}_gamelist.txt" | awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' > "${gamelistpath}/${nextcore}_gamelist_exclude.txt"
+		core=${nextcore}
+		samedit_taginfo	
+	fi
 
 }
 
@@ -1627,6 +1673,10 @@ function parse_cmd() {
         		samedit_excltags
 				break
             	;;
+			include)
+				samedit_include
+				break
+				;;
 			gamemode)
 				sam_gamemodemenu
 				break
@@ -2500,16 +2550,18 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 			Lines=$(cat ${tmpfile2})
 			for z in ${Lines}; do
 				if [ "${samquiet}" == "no" ]; then echo " Processing: ${z}"; fi
-				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --skip-duplicate-filenames --ext ${CORE_EXT[${1}]} >>"${tmpfile}"
+				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext ${CORE_EXT[${1}]} >>"${tmpfile}"
 			done
 		fi
 		rm ${tmpfile2} &>/dev/null
 		shopt -u nullglob
 	fi
 
+	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt"
+
 	# Strip out all duplicate filenames with a fancy awk command
-	awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt"
-	cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${gamelistpathtmp}/${1}_gamelist.txt" 
+	#cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 
 
 	echo " Done."
 }
@@ -2547,11 +2599,13 @@ function check_list() { # args ${nextcore}  "${DIR}"
 		#Repopulate list
 		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
-			comm -13 <(sort < "${gamelistpath}/${1}_gamelist_exclude.txt" ) <(sort < "${gamelistpath}/${1}_gamelist.txt" ) > "${gamelistpathtmp}/${1}_gamelist.txt"
+			comm -13 <(sort < "${gamelistpath}/${1}_gamelist_exclude.txt" ) <(sort < "${gamelistpath}/${1}_gamelist.txt" ) > ${tmpfile}
+			awk -F'/' '!seen[$NF]++' ${tmpfile} > "${gamelistpathtmp}/${1}_gamelist.txt" 
 			if [ "${samquiet}" == "no" ]; then echo "Done."; fi
 			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 		else
-			cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${gamelistpathtmp}/${1}_gamelist.txt" 
+			#cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
 			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 		fi
 		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
@@ -2893,6 +2947,12 @@ function main() {
 	fi
 
 	if [ "${1,,}" == "start" ] && [ ${create_all_gamelists} == "yes" ]; then
+		create_game_lists
+	fi
+
+	if [ "${1,,}" == "--create-gamelists" ]; then
+		create_all_gamelists="Yes"
+		rebuild_freq="Always"
 		create_game_lists
 	fi
 
