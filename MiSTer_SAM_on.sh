@@ -1158,7 +1158,7 @@ function readini() {
 
 function misc() { # TODO
 	#Create folders if they don't exist
-	mkdir -p "${mrsampath}"/SAM_Gamelists
+	mkdir -p "${mrsampath}/SAM_Gamelists"
 	mkdir -p /tmp/.SAM_List
 	touch ${tmpfile}
 	touch ${tmpfile2}
@@ -1188,7 +1188,7 @@ function misc() { # TODO
 
 function GET_SYSTEM_FOLDER() {
 	local SYSTEM="${1}"
-	for folder in ${GAMESDIR_FOLDERS[@]}; do
+	for folder in "${GAMESDIR_FOLDERS[@]}"; do
 		local RESULT=$(find "${folder}" -maxdepth 1 -iname "${SYSTEM}" -printf "%P\n" -quit 2>/dev/null)
 		if [[ "${RESULT}" != "" ]]; then
 			GET_SYSTEM_FOLDER_GAMESDIR="${folder}"
@@ -1241,7 +1241,7 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ $(grep -ic "mister_sam" ${userstartup}) != "0" ]; then
+	if [ $(grep -ic "mister_sam" "${userstartup}") != "0" ]; then
 		echo " -SAM autoplay ENABLED"
 	else
 		echo " -SAM autoplay DISABLED"
@@ -1548,7 +1548,7 @@ function parse_cmd() {
 		fi
 
 		while [ ${#} -gt 0 ]; do
-			case ${1,,} in
+			case "${1,,}" in
 			default) # sam_update relaunches itself
 				sam_update autoconfig
 				break
@@ -1579,7 +1579,7 @@ function parse_cmd() {
 				there_can_be_only_one
 				mcp_start
 				echo " Starting SAM in the background."
-				tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
+				tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
 				break
 				;;
 			start_real) # Start SAM immediately
@@ -1765,8 +1765,8 @@ function mcp_start() {
 
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-		#${mrsampath}/MiSTer_SAM_MCP monitoronly &
-		tmux new-session -s MCP -d ${mrsampath}/MiSTer_SAM_MCP
+		#$"{mrsampath}/MiSTer_SAM_MCP monitoronly &
+		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP"
 	fi
 
 }
@@ -1857,10 +1857,10 @@ function sam_enable() { # Enable autoplay
 	fi
 
 	# Add new startup way
-	if [ ! -e ${userstartup} ] && [ -e /etc/init.d/S99user ]; then
-		if [ -e ${userstartuptpl} ]; then
+	if [ ! -e "${userstartup}" ] && [ -e /etc/init.d/S99user ]; then
+		if [ -e "${userstartuptpl}" ]; then
 			echo "Copying ${userstartuptpl} to ${userstartup}"
-			cp ${userstartuptpl} ${userstartup}
+			cp "${userstartuptpl}" "${userstartup}"
 		else
 			echo "Building ${userstartup}"
 		fi
@@ -1868,7 +1868,7 @@ function sam_enable() { # Enable autoplay
 	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ]; then
 		echo -e "Add MiSTer SAM to ${userstartup}\n"
 		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
-		echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1" >>${userstartup}
+		echo -e "[[ -e "${mrsampath}/MiSTer_SAM_init" ]] && "${mrsampath}/MiSTer_SAM_init" \$1" >>"${userstartup}"
 	fi
 	echo "Done."
 	echo " SAM install complete."
@@ -1885,7 +1885,7 @@ function sam_enable() { # Enable autoplay
 	sleep 5
 	echo " SAM will begin shuffle now... please wait."
 
-	${misterpath}/Scripts/MiSTer_SAM_on.sh start
+	"${misterpath}/Scripts/MiSTer_SAM_on.sh" start
 
 	exit
 }
@@ -2082,16 +2082,16 @@ function deletegl() {
 function skipmessage() {
 	#Skip past bios/safety warnings
 
-	"${mrsampath}"/mbc raw_seq :31
+	"${mrsampath}/mbc" raw_seq :31
 }
 
 function mglfavorite() {
 	#Add current game to _Favorites folder
 
-	if [ ! -d "${misterpath}"/_Favorites ]; then
-		mkdir "${misterpath}"/_Favorites
+	if [ ! -d "${misterpath}/_Favorites" ]; then
+		mkdir "${misterpath}/_Favorites"
 	fi
-	cp /tmp/SAM_game.mgl "${misterpath}"/_Favorites/"$(cat /tmp/SAM_Game.txt)".mgl
+	cp /tmp/SAM_game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl"
 
 }
 
@@ -2569,13 +2569,13 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 function check_list() { # args ${nextcore}  "${DIR}"
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
-		create_romlist ${1} ${2}
+		create_romlist ${1} "${2}"
 	fi
 
 	#If folder changed, make new list
 	if [[ ! "$(cat ${gamelistpath}/${1}_gamelist.txt | grep "${2}" | head -1)" ]]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
-		create_romlist ${1} ${2}
+		create_romlist ${1} "${2}"
 	fi
 
 	#Check if zip still exists
@@ -2584,7 +2584,7 @@ function check_list() { # args ${nextcore}  "${DIR}"
 		for zips in "${zipsinfile[@]}"; do
 			if [ ! -f "${zips}" ]; then
 				if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
-				create_romlist ${1} ${2}
+				create_romlist ${1} "${2}"
 			fi
 		done
 	fi
@@ -2616,7 +2616,7 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because file not found."; fi
-			create_romlist ${1} ${2}
+			create_romlist ${1} "${2}"
 		fi
 	fi
 
@@ -2864,7 +2864,7 @@ function load_core_arcade() {
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
-	if [ ! -s ${mralist_tmp} ]; then
+	if [ ! -s "${mralist_tmp}" ]; then
 		build_mralist "${DIR}"
 	fi
 
@@ -2895,7 +2895,7 @@ function load_core_arcade() {
 
 	fi
 
-	mraname="$(echo "$(basename "${mra}")" | sed -e 's/\.[^.]*$//')"
+	mraname=$(echo "$(basename ${mra})" | sed -e 's/\.[^.]*$//')
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 	echo -e "\e[1m${mraname}\e[0m"
