@@ -5,13 +5,13 @@ if [ -f /media/fat/Scripts/MiSTer_SAM_on.sh ]; then
 	source /media/fat/Scripts/MiSTer_SAM_on.sh --source-only
 fi
 
-# Change corelist to use spaces
-corelist="$(echo ${corelist} | tr ',' ' ')"
 
 init_vars
 init_data
 
 
+# Change corelist to use spaces
+corelist="$(echo ${corelist} | tr ',' ' ')"
 
 
 # Setting up folders
