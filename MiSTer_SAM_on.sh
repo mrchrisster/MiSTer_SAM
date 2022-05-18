@@ -2536,6 +2536,8 @@ function check_list() { # args ${nextcore}  "${DIR}"
 			fi
 		done
 	fi
+
+	# If gamelist is not in /tmp dir, let's put it there
 	if [ -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 
 		#Pick the actual game
@@ -2544,13 +2546,17 @@ function check_list() { # args ${nextcore}  "${DIR}"
 
 		#Repopulate list
 		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
-			comm -13 <(sort < "${gamelistpath}/${1}_gamelist_exclude.txt" ) <(sort < "${gamelistpath}/${1}_gamelist.txt" ) > "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
+			comm -13 <(sort < "${gamelistpath}/${1}_gamelist_exclude.txt" ) <(sort < "${gamelistpath}/${1}_gamelist.txt" ) > "${gamelistpathtmp}/${1}_gamelist.txt"
+			if [ "${samquiet}" == "no" ]; then echo "Done."; fi
 			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 		else
 			cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
 			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 		fi
+		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
 	fi
+
 
 	#Make sure file exists since we're reading from a static list
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
@@ -2559,7 +2565,8 @@ function check_list() { # args ${nextcore}  "${DIR}"
 			create_romlist ${1} ${2}
 		fi
 	fi
-	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
+
+	
 	#Delete played game from list
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
