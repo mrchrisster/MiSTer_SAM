@@ -8,6 +8,9 @@ fi
 # Change corelist to use spaces
 corelist="$(echo ${corelist} | tr ',' ' ')"
 
+init_vars
+init_data
+
 
 
 
