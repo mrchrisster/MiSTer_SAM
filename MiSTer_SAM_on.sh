@@ -1261,7 +1261,7 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ $(grep -ic "mister_sam" ${userstartup}) != "0" ]; then
+	if [ $(grep -ic "mister_sam" "${userstartup}") != "0" ]; then
 		echo " -SAM autoplay ENABLED"
 	else
 		echo " -SAM autoplay DISABLED"
@@ -2320,7 +2320,6 @@ function tty_exit() { # tty_exit
 			echo " Done!"
 			#sleep 2
 		fi
-		exit
 	fi
 }
 
@@ -2396,7 +2395,7 @@ function sam_monitor_new() {
 	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
 	#tmux attach-session -t SAM
 	# window size will be wrong/too small, but ctrl-c nonfunctional instead of killing/disconnecting
-	tmux attach-session -r -t SAM
+	tmux attach-session -t SAM
 
 }
 
