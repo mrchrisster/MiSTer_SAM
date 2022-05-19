@@ -1311,7 +1311,8 @@ function sam_menu() {
 		Exclude	"Exclude categories" \
 		Gamemode "Game roulette" \
 		Config "Configure INI Settings" \
-		Favorite "Favorite Game. Copy current game to _Favorites folder" \
+		Favorite "Copy current game to _Favorites folder" \
+		Gamelists "Game Lists - Create or Delete" \
 		Reset "Reset or uninstall SAM" \
 		Autoplay "Autoplay Configuration" \
 		'' "" \
@@ -1348,8 +1349,25 @@ function sam_resetmenu() {
 		--backtitle "Super Attract Mode" --title "[ Reset ]" \
 		--menu "Select an option" 0 0 0 \
 		Deleteall "Reset/Delete all files" \
-		DeleteGL "Delete Gamelists only" \
 		Default "Reinstall SAM and enable Autostart" \
+		Back 'Previous menu' 2>"/tmp/.SAMmenu"
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+
+	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	parse_cmd ${menuresponse}
+}
+
+function sam_gamelistmenu() {
+	inmenu=1
+	dialog --clear --no-cancel --ascii-lines --colors \
+		--backtitle "Super Attract Mode" --title "[ GAMELIST MENU ]" \
+		--msgbox "Game Lists contain filenames that SAM can play for each core. \n\nThey get created automatically when SAM plays games. Here you can create or delete those lists." 0 0
+	dialog --clear --no-cancel --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ GAMELIST MENU ]" \
+		--menu "Select an option" 0 0 0 \
+		CreateGL "Create all Game Lists" \
+		DeleteGL "Delete all Game Lists" \
 		Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -1433,7 +1451,7 @@ function samedit_exclude() {
 function samedit_include() {
 	dialog --clear --no-cancel --ascii-lines --colors \
 		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-		--msgbox "Play games from only one category.\n\n\Z1Please use Everdrive packs for this mode. \Zn \n\nSome categories (like country selection) will probably work with some other rompacks as well..." 0 0
+		--msgbox "Play games from only one category.\n\n\Z1Please use Everdrive packs for this mode. \Zn \n\nSome categories (like country selection) will probably work with some other rompacks as well. \n\nMake sure you have game lists created for this mode." 0 0
 	dialog --clear --ascii-lines --no-tags \
 	--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]"  \
 	--menu "Only play games from the following categories" 0 0 0 \
@@ -1485,7 +1503,7 @@ function samedit_include() {
 		dialog --clear --no-cancel --ascii-lines --colors \
 		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 		--msgbox "SAM will start now and only play games from the "${categ^^}" category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
-		#loop_core
+		loop_core
 	fi
 
 }
@@ -1621,7 +1639,7 @@ function parse_cmd() {
 				#break
 				;;
 			stop) # Stop SAM immediately
-				tty_exit
+				tty_exit &
 				sam_stop
 				exit
 				break
@@ -1698,10 +1716,6 @@ function parse_cmd() {
 				deleteall
 				break
 				;;
-			deletegl)
-				deletegl
-				break
-				;;
 			exclude)
 				samedit_exclude
 				break
@@ -1717,6 +1731,18 @@ function parse_cmd() {
 				;;
 			gamemode)
 				sam_gamemodemenu
+				break
+				;;
+			gamelists)
+				sam_gamelistmenu
+				break
+				;;
+			creategl)
+				creategl
+				break
+				;;
+			deletegl)
+				deletegl
 				break
 				;;
 			roulette5)
@@ -2123,6 +2149,12 @@ function deletegl() {
 	fi
 }
 
+function creategl() {
+	
+	${misterpath}/Scripts/MiSTer_SAM_on.sh --create-gamelists
+
+}
+
 function skipmessage() {
 	#Skip past bios/safety warnings
 
@@ -2168,11 +2200,11 @@ function tty_init() { # tty_init
 
 		# Stopping tty2oled Daemon
 		if [ "${ttyuseack}" == "yes" ]; then
-			#if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-			echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
+			if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+			#echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
 			sleep 3
-			#/media/fat/tty2oled/S60tty2oled stop
-			#if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+			/media/fat/tty2oled/S60tty2oled stop
+			if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 		fi
 		#sleep 2
 
@@ -2207,6 +2239,7 @@ function tty_waitfor() {
 		done
 		#echo -e "${fgreen}${ttyresponse}${freset}"
 		ttyresponse=""
+		#sleep 0.05
 	else
 		#if [ "${samquiet}" == "no" ]; then echo -n "Little sleep... "; fi
 		#sleep 0.2
@@ -2319,6 +2352,9 @@ function tty_exit() { # tty_exit
 			echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
 			#echo -n " Starting tty2oled daemon..."
 			#tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+			if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then 
+				${mrsampath}/MiSTer_SAM_MCP tty2oled &>/dev/null
+			fi
 			#echo " Done!"
 			#sleep 2
 		fi
