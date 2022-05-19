@@ -2201,9 +2201,9 @@ function tty_init() { # tty_init
 		# Stopping tty2oled Daemon
 		if [ "${ttyuseack}" == "yes" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-			#echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
-			sleep 3
-			/media/fat/tty2oled/S60tty2oled stop
+			echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
+			#sleep 3
+			#/media/fat/tty2oled/S60tty2oled stop
 			if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 		fi
 		#sleep 2
@@ -2252,18 +2252,18 @@ function tty_update() { # tty_update core game
 	if [ "${ttyenable}" == "yes" ]; then
 
 		# Wait for tty2oled daemon to show the core logo
-		if [ "${ttyuseack}" != "yes" ]; then
-			inotifywait -q -e modify /tmp/CORENAME &>/dev/null
-		fi
+		#if [ "${ttyuseack}" != "yes" ]; then
+		#	inotifywait -q -e modify /tmp/CORENAME &>/dev/null
+		#fi
 
 		# Wait for tty2oled to show the core logo
 		if [ "${samdebug}" == "yes" ]; then
 			echo "-------------------------------------------"
 			echo " tty_update got Corename: ${3} "
 		fi
-		if [ "${ttyuseack}" == "yes" ]; then
-			tty_senddata "${3}"
-		fi
+		#if [ "${ttyuseack}" == "yes" ]; then
+		#	tty_senddata "${3}"
+		#fi
 		tty_waitfor
 		# Show Core-Logo for 7 Secs
 		sleep 7
@@ -2352,9 +2352,9 @@ function tty_exit() { # tty_exit
 			echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
 			#echo -n " Starting tty2oled daemon..."
 			#tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
-			if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then 
-				${mrsampath}/MiSTer_SAM_MCP tty2oled &>/dev/null
-			fi
+			#if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then 
+			#	${mrsampath}/MiSTer_SAM_MCP tty2oled &>/dev/null
+			#fi
 			#echo " Done!"
 			#sleep 2
 		fi
