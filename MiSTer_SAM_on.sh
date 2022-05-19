@@ -1484,8 +1484,8 @@ function samedit_include() {
 		#echo ${corelist}
 		dialog --clear --no-cancel --ascii-lines --colors \
 		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-		--msgbox "SAM will start now and only games from the "${categ^^}" category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
-		loop_core
+		--msgbox "SAM will start now and only play games from the "${categ^^}" category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
+		#loop_core
 	fi
 
 }
