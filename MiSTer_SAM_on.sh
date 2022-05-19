@@ -1484,7 +1484,7 @@ function samedit_include() {
 		#echo ${corelist}
 		dialog --clear --no-cancel --ascii-lines --colors \
 		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-		--msgbox "Please start SAM now to play only games from the "${categ^^}" category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
+		--msgbox "SAM will start now and only games from the "${categ^^}" category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
 		loop_core
 	fi
 
@@ -2168,9 +2168,11 @@ function tty_init() { # tty_init
 
 		# Stopping tty2oled Daemon
 		if [ "${ttyuseack}" == "yes" ]; then
-			if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-			/media/fat/tty2oled/S60tty2oled stop
-			if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+			#if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+			echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
+			sleep 3
+			#/media/fat/tty2oled/S60tty2oled stop
+			#if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 		fi
 		#sleep 2
 
@@ -2314,10 +2316,10 @@ function tty_exit() { # tty_exit
 		#echo "MENU" >/tmp/CORENAME
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack}" == "yes" ]; then
-
-			echo -n " Starting tty2oled daemon..."
-			tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
-			echo " Done!"
+			echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
+			#echo -n " Starting tty2oled daemon..."
+			#tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+			#echo " Done!"
 			#sleep 2
 		fi
 	fi
