@@ -2599,8 +2599,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		shopt -s nullglob
 		if [ -s "${tmpfile2}" ]; then
 			local IFS=$'\n'
-			Lines=$(cat "${tmpfile2}")
-			for z in ${Lines}; do
+			cat "${tmpfile2}" | while read z; do
 				if [ "${samquiet}" == "no" ]; then echo " Processing: ${z}"; fi
 				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext ${CORE_EXT[${1}]} >>"${tmpfile}"
 			done
