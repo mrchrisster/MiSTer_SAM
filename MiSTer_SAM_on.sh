@@ -1301,17 +1301,21 @@ function sam_menu() {
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		Start "Start SAM now" \
+		Startmonitor "Start SAM now and monitor (ssh)" \
 		Skip "Skip game" \
 		Stop "Stop SAM" \
-		Single "Games from only one core" \
-		Exclude	"Exclude certain type of games" \
-		Include	"Only play certain type of games" \
+		Update "Update SAM to latest" \
+		'' "" \
+		Single "Single core selection" \
+		Include	"Single category selection" \
+		Exclude	"Exclude categories" \
 		Gamemode "Game roulette" \
-		Utility "Update and Monitor" \
+								
 		Config "Configure INI Settings" \
 		Favorite "Favorite Game. Copy current game to _Favorites folder" \
 		Reset "Reset or uninstall SAM" \
 		Autoplay "Autoplay Configuration" \
+		'' "" \
 		Cancel "Exit now" 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -1339,19 +1343,6 @@ function sam_singlemenu() {
 	parse_cmd ${menuresponse}
 }
 
-function sam_utilitymenu() {
-	dialog --clear --no-cancel --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ Utilities ]" \
-		--menu "Select an option" 0 0 0 \
-		Update "Update SAM to latest" \
-		Monitor "Display messages (ssh only)" \
-		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
-	clear
-
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
-	parse_cmd ${menuresponse}
-}
 
 function sam_resetmenu() {
 	inmenu=1
@@ -1442,23 +1433,27 @@ function samedit_exclude() {
 }
 
 function samedit_include() {
+	dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
+		--msgbox "Play games from only one category\n\nWhile some categories (like country selection) will probably work with some other rompacks,it is advised to use Everdrive packs for this mode" 0 0
 	dialog --clear --ascii-lines --no-tags \
-	--backtitle "Super Attract Mode" --title "[ INCLUDE CATEGORY SELECTION ]"  \
+	--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]"  \
 	--menu "Only play games from the following categories" 0 0 0 \
-	shoot "Shoot 'Em Up"  \
-	beat "Beat 'Em Up"  \
-	rpg "Role Playing Games"  \
-	pinball "Pinball Games"  \
-	platformers "Platformers"  \
-	fight "Fighting Games"  \
-	trivia "Trivia Games"  \
-	sports "Sport Games"  \
-	racing "Racing Games"  \
-	europe "Only Europe games"  \
-	usa "Only USA Games"  \
-	japan "Only Japanese Games"  \
-	translations "Translated Games"  \
+	''"("'usa'")"'' "Only USA Games"  \
+	''"("'japan'")"'' "Only Japanese Games"  \
+	''"("'europe'")"'' "Only Europe games"  \
+	'shoot '"'"'em' "Only Shoot 'Em Ups"  \
+	'beat '"'"'em' "Only Beat 'Em Ups"  \
+	'role playing' "Only Role Playing Games"  \
+	pinball "Only Pinball Games"  \
+	platformers "Only Platformers"  \
+	'genre/fight' "Only Fighting Games"  \
+							  
+	trivia "Only Trivia Games"  \
+	sports "Only Sport Games"  \
+	racing "Only Racing Games"  \
 	hacks "Only Hacks"  \
+	translations "Only Translated Games"  \
 	homebrew "Only Homebrew"   2>"/tmp/.SAMmenu"
 	
 	opt=$?
@@ -1470,18 +1465,28 @@ function samedit_include() {
 	else
 		echo "Please wait... getting things ready."
 		declare -a corelist=()
+		declare -a gamelists=()
 		categ="${menuresponse}"
-		echo "${menuresponse}"
-		rm ${gamelistpathtmp}*_gamelist.txt
-		cd ${gamelistpath}
-		for list in *_gamelist.txt; do
-			cat "${list}" | awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' > "${gamelistpathtmp}/${list}"
-			if [ -s "${gamelistpathtmp}${list}" ]; then 
-				rm "${gamelistpathtmp}$list"
-			fi
-		corelist+=( $(basename "${gamelistpathtmp}$list" | cut -d '_' -f 1) )
-		echo $corelist
+		#echo "${menuresponse}"
+		# Delete all temporary Game lists
+		if compgen -G "${gamelistpathtmp}/*_gamelist.txt" > /dev/null; then
+			rm ${gamelistpathtmp}/*_gamelist.txt
+		fi
+		gamelists=($(find "${gamelistpath}" -name "*_gamelist.txt"))
+
+		#echo ${gamelists[@]}
+		for list in ${gamelists[@]}; do
+			listfile=$( basename ${list} )
+			#awk -v category="$categ" 'tolower($0) ~ category' "${list}" > "${gamelistpathtmp}/${listfile}"
+			grep -i "${categ}" "${list}" > "${tmpfile}"
+			awk -F'/' '!seen[$NF]++' "${tmpfile}" > "${gamelistpathtmp}/${listfile}" 
+			[[ -s "${gamelistpathtmp}/${listfile}" ]] || rm "${gamelistpathtmp}/${listfile}"
+																	   
+				
 		done
+
+		corelist=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
+		echo ${corelist}
 
 	fi
 
@@ -1495,7 +1500,6 @@ function samedit_excltags() {
 	"Hack" "" OFF \
 	"Homebrew" "" OFF \
 	"Prototypes" "" OFF \
-	"Satellaview" "" OFF \
 	"Translations" "" OFF \
 	"Unlicensed" "" OFF \
 	"USA" "" OFF \
@@ -1519,8 +1523,13 @@ function samedit_excltags() {
 	else
 		echo "Please wait... creating list."
 		categ="$(echo ${menuresponse} | tr ' ' '|' )" 
-		cat "${gamelistpath}/${nextcore}_gamelist.txt" | awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' > "${gamelistpath}/${nextcore}_gamelist_exclude.txt"
+		if [ ! -z ${categ} ]; then
+			awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' "${gamelistpath}/${nextcore}_gamelist.txt" > "${gamelistpath}/${nextcore}_gamelist_exclude.txt"
+		else 
+			echo "" > "${gamelistpath}/${nextcore}_gamelist_exclude.txt"
+		fi
 		core=${nextcore}
+		[[ -f "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		samedit_taginfo	
 	fi
 
@@ -1636,6 +1645,17 @@ function parse_cmd() {
 				sam_monitor_new
 				break
 				;;
+			startmonitor)
+				env_check ${1}
+				# Terminate any other running SAM processes
+				there_can_be_only_one
+				mcp_start
+				echo " Starting SAM in the background."
+				tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
+				sam_monitor_new
+				sam_menu		 		
+				break
+				;;
 			arcade | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
@@ -1688,7 +1708,7 @@ function parse_cmd() {
 				samedit_exclude
 				break
 				;;
-       		ex_fds | ex_gb | ex_gbc | ex_gba | ex_genesis | ex_gg | ex_megacd | ex_neogeo | ex_nes | ex_s32x | ex_sms | ex_snes | ex_tgfx16 | ex_tgfx16cd | ex_psx)
+       		ex_c64 | ex_fds | ex_gb | ex_gbc | ex_gba | ex_genesis | ex_gg | ex_megacd | ex_neogeo | ex_nes | ex_s32x | ex_sms | ex_snes | ex_tgfx16 | ex_tgfx16cd | ex_psx)
         		nextcore=${1:3}
         		samedit_excltags
 				break
@@ -1857,6 +1877,12 @@ function sam_update() { # sam_update (next command)
 
 	echo " Update complete!"
 	return
+	
+	if [ ${inmenu} -eq 1 ]; then
+		sleep 1
+		sam_menu
+	fi						 
+	
 }
 
 function sam_enable() { # Enable autoplay
@@ -2560,7 +2586,10 @@ function create_game_lists() {
 					rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 				fi
 			else
+														   
 				create_romlist ${core} "${DIR}"
+	 
+															  
 				cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 			fi
 		elif [ ${core} == "arcade" ]; then
@@ -2576,7 +2605,10 @@ function create_game_lists() {
 					rm "${mralist}" &>/dev/null
 				fi
 			else
+								 
 				build_mralist "${DIR}"
+	 
+									 
 				cp "${mralist}" "${mralist_tmp}" &>/dev/null
 			fi
 		fi
@@ -2600,6 +2632,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		if [ -s "${tmpfile2}" ]; then
 			local IFS=$'\n'
 			cat "${tmpfile2}" | while read z; do
+						
 				if [ "${samquiet}" == "no" ]; then echo " Processing: ${z}"; fi
 				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext ${CORE_EXT[${1}]} >>"${tmpfile}"
 			done
@@ -2644,9 +2677,11 @@ function check_list() { # args ${nextcore}  "${DIR}"
 
 	# If gamelist is not in /tmp dir, let's put it there
 	if [ -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+
 		#Pick the actual game
 		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 	else
+
 		#Repopulate list
 		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
