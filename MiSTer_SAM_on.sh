@@ -1261,7 +1261,7 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ $(grep -ic "mister_sam" "${userstartup}") != "0" ]; then
+	if [ $(grep -ic "mister_sam" ${userstartup}) != "0" ]; then
 		echo " -SAM autoplay ENABLED"
 	else
 		echo " -SAM autoplay DISABLED"
@@ -1310,7 +1310,6 @@ function sam_menu() {
 		Include	"Single category selection" \
 		Exclude	"Exclude categories" \
 		Gamemode "Game roulette" \
-								
 		Config "Configure INI Settings" \
 		Favorite "Favorite Game. Copy current game to _Favorites folder" \
 		Reset "Reset or uninstall SAM" \
@@ -1342,7 +1341,6 @@ function sam_singlemenu() {
 	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
 	parse_cmd ${menuresponse}
 }
-
 
 function sam_resetmenu() {
 	inmenu=1
@@ -1433,9 +1431,9 @@ function samedit_exclude() {
 }
 
 function samedit_include() {
-	dialog --clear --no-cancel --ascii-lines \
+	dialog --clear --no-cancel --ascii-lines --colors \
 		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-		--msgbox "Play games from only one category\n\nWhile some categories (like country selection) will probably work with some other rompacks,it is advised to use Everdrive packs for this mode" 0 0
+		--msgbox "Play games from only one category.\n\n\Z1Please use Everdrive packs for this mode. \Zn \n\nSome categories (like country selection) will probably work with some other rompacks as well..." 0 0
 	dialog --clear --ascii-lines --no-tags \
 	--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]"  \
 	--menu "Only play games from the following categories" 0 0 0 \
@@ -1448,7 +1446,6 @@ function samedit_include() {
 	pinball "Only Pinball Games"  \
 	platformers "Only Platformers"  \
 	'genre/fight' "Only Fighting Games"  \
-							  
 	trivia "Only Trivia Games"  \
 	sports "Only Sport Games"  \
 	racing "Only Racing Games"  \
@@ -1481,13 +1478,14 @@ function samedit_include() {
 			grep -i "${categ}" "${list}" > "${tmpfile}"
 			awk -F'/' '!seen[$NF]++' "${tmpfile}" > "${gamelistpathtmp}/${listfile}" 
 			[[ -s "${gamelistpathtmp}/${listfile}" ]] || rm "${gamelistpathtmp}/${listfile}"
-																	   
-				
 		done
 
 		corelist=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
-		echo ${corelist}
-
+		#echo ${corelist}
+		dialog --clear --no-cancel --ascii-lines --colors \
+		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
+		--msgbox "Please start SAM now to play only games from the "${categ^^}" category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
+		loop_core
 	fi
 
 }
@@ -1500,8 +1498,8 @@ function samedit_excltags() {
 	"Hack" "" OFF \
 	"Homebrew" "" OFF \
 	"Prototypes" "" OFF \
-	"Translations" "" OFF \
 	"Unlicensed" "" OFF \
+	"Translations" "" OFF \
 	"USA" "" OFF \
 	"Japan" "" OFF \
 	"Europe" "" OFF \
@@ -2014,7 +2012,7 @@ function sam_stop() {
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
-	kill_3=$(ps -o pid,args | grep -i '[M]iSTer_SAM_on' | awk '{print $1}')
+	kill_3=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
 	kill_4=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
 
 	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
