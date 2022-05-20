@@ -2196,7 +2196,7 @@ function tty_init() { # tty_init
 		# Stopping tty2oled Daemon
 		if [ "${ttyuseack}" == "yes" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-			echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
+			# echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
 			# sleep 3
 			/media/fat/tty2oled/S60tty2oled stop
 			if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
@@ -2351,7 +2351,7 @@ function tty_exit() { # tty_exit
 			#	${mrsampath}/MiSTer_SAM_MCP tty2oled &>/dev/null
 			# fi
 			# echo " Done!"
-			# sleep 2
+			return
 		fi
 	fi
 }
