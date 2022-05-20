@@ -1635,7 +1635,7 @@ function parse_cmd() {
 				# break
 				;;
 			stop) # Stop SAM immediately
-				tty_exit &
+				tty_exit
 				sam_stop
 				exit
 				break
@@ -2353,6 +2353,7 @@ function tty_exit() { # tty_exit
 			# echo " Done!"
 			return
 		fi
+exit
 	fi
 }
 
