@@ -2246,7 +2246,7 @@ function tty_waitfor() {
 function tty_update() { # tty_update core game
 	if [ "${ttyenable}" == "yes" ]; then
 
-		Wait for tty2oled daemon to show the core logo
+		# Wait for tty2oled daemon to show the core logo
 		if [ "${ttyuseack}" != "yes" ]; then
 			inotifywait -q -e modify /tmp/CORENAME &>/dev/null
 		fi
