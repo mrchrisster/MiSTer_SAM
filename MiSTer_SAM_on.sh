@@ -1594,7 +1594,7 @@ function parse_cmd() {
 				sam_update autoconfig
 				break
 				;;
-			--speedtest | --sourceonly)
+			--speedtest | --sourceonly | --create-gamelists)
 				break
 				;;
 			autoconfig)
@@ -2135,9 +2135,24 @@ function deletegl() {
 }
 
 function creategl() {
-
-	${misterpath}/Scripts/MiSTer_SAM_on.sh --create-gamelists
-
+	create_all_gamelists_old="${create_all_gamelists}"
+	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
+	rebuild_freq_old="${rebuild_freq}"
+	create_all_gamelists="Yes"
+	rebuild_freq_arcade="Always"
+	rebuild_freq="Always"
+	create_game_lists
+	create_all_gamelists="${create_all_gamelists_old}"
+	rebuild_freq_arcade="${rebuild_freq_arcade_old}"
+	rebuild_freq="${rebuild_freq_old}"
+	if [ ${inmenu} -eq 1 ]; then
+		sleep 1
+		sam_menu
+	else
+		echo -e "\nGamelist creation successful. Please start SAM now.\n"
+		sleep 1
+		parse_cmd stop
+	fi
 }
 
 function skipmessage() {
@@ -3073,9 +3088,7 @@ function main() {
 	fi
 
 	if [ "${1,,}" == "--create-gamelists" ]; then
-		create_all_gamelists="Yes"
-		rebuild_freq="Always"
-		create_game_lists
+		creategl
 	fi
 
 	if [ "${samtrace}" == "yes" ]; then
