@@ -2232,7 +2232,7 @@ function tty_waitfor() {
 		while [ "${ttyresponse}" != "ttyack" ]; do
 			read -d ";" ttyresponse <${ttydevice} # Read Serial Line until delimiter ";"
 		done
-		echo -e "${fgreen}${ttyresponse}${freset}"
+		#echo -e "${fgreen}${ttyresponse}${freset}"
 		ttyresponse=""
 		#sleep 0.05
 	else
@@ -2353,7 +2353,7 @@ function tty_exit() { # tty_exit
 			# echo " Done!"
 			return
 		fi
-exit
+	exit
 	fi
 }
 
