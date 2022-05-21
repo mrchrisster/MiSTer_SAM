@@ -1615,12 +1615,7 @@ function parse_cmd() {
 				break
 				;;
 			start | restart) # Start as a detached tmux session for monitoring
-				env_check ${1}
-				# Terminate any other running SAM processes
-				there_can_be_only_one
-				mcp_start
-				echo " Starting SAM in the background."
-				tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
+				sam_start_new
 				break
 				;;
 			start_real) # Start SAM immediately
@@ -1658,12 +1653,7 @@ function parse_cmd() {
 				break
 				;;
 			startmonitor)
-				env_check ${1}
-				# Terminate any other running SAM processes
-				there_can_be_only_one
-				mcp_start
-				echo " Starting SAM in the background."
-				tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d ${misterpath}/Scripts/MiSTer_SAM_on.sh start_real ${nextcore}
+				sam_start_new
 				sam_monitor_new
 				break
 				;;
@@ -2423,6 +2413,19 @@ function get_inputmap() {
 	echo " Done!"
 }
 
+# ========= SAM START =========
+function sam_start_new() {
+	if [ ${create_all_gamelists} == "yes" ]; then
+		create_game_lists
+	fi
+	env_check ${1}
+	# Terminate any other running SAM processes
+	there_can_be_only_one
+	mcp_start
+	echo " Starting SAM in the background."
+	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
+}
+
 # ========= SAM MONITOR =========
 function sam_monitor_new() {
 	# We can omit -r here. Tradeoff;
@@ -2645,6 +2648,17 @@ function create_game_lists() {
 	done
 }
 
+function partun_list(){
+	in_file="${1}"
+	out_file="${2}"
+	shift
+	shift
+ 	while [ ! ${#} -eq 0 ]; do # multiple file extensions requested
+		"${mrsampath}/partun" "${in_file}" -l -e ${zipex} --include-archive-name --ext ${1} >>"${out_file}"
+		shift
+ 	done
+}
+
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
 	echo " Looking for games in  ${2}..."
@@ -2660,9 +2674,8 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		if [ -s "${tmpfile2}" ]; then
 			local IFS=$'\n'
 			cat "${tmpfile2}" | while read z; do
-
 				if [ "${samquiet}" == "no" ]; then echo " Processing: ${z}"; fi
-				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext ${CORE_EXT[${1}]} >>"${tmpfile}"
+				partun_list "${z}" "${tmpfile}" ${CORE_EXT[${1}]}
 			done
 		fi
 		rm ${tmpfile2} &>/dev/null
@@ -2808,7 +2821,7 @@ function next_core() { # next_core (core)
 	fi
 
 	if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
-		cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS='\n' read line; do
+		cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
 			echo " Found exclusion list for core $nextcore"
 			awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		done
@@ -3057,10 +3070,6 @@ function main() {
 
 	if [ "${1,,}" == "--speedtest" ]; then
 		speedtest
-	fi
-
-	if [ "${1,,}" == "start" ] && [ ${create_all_gamelists} == "yes" ]; then
-		create_game_lists
 	fi
 
 	if [ "${1,,}" == "--create-gamelists" ]; then
