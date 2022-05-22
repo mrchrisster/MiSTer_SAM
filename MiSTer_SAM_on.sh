@@ -269,22 +269,22 @@ function init_data() {
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
 		["arcade"]="mra"
-		["c64"]="crt prg" 			# need to be tested "reu tap flt rom c1581"
+		["c64"]="crt,prg" 			# need to be tested "reu,tap,flt,rom,c1581"
 		["fds"]="fds"
 		["gb"]="gb"			 		# Should we include? "bin"
 		["gbc"]="gbc"		 		# Should we include? "bin"
 		["gba"]="gba"
-		["genesis"]="md gen" 		# Should we include? "bin"
+		["genesis"]="md,gen" 		# Should we include? "bin"
 		["gg"]="gg"
-		["megacd"]="chd cue"
+		["megacd"]="chd,cue"
 		["neogeo"]="neo"
 		["nes"]="nes"
 		["s32x"]="32x"
-		["sms"]="sms sg"
-		["snes"]="sfc smc" 	 		# Should we include? "bin bs"
-		["tgfx16"]="pce sgx"		 # Should we include? "bin"
-		["tgfx16cd"]="chd cue"
-		["psx"]="chd cue exe"
+		["sms"]="sms,sg"
+		["snes"]="sfc,smc" 	 		# Should we include? "bin,bs"
+		["tgfx16"]="pce,sgx"		 # Should we include? "bin"
+		["tgfx16cd"]="chd,cue"
+		["psx"]="chd,cue,exe"
 	)
 
 	# Core to path mappings
@@ -2664,26 +2664,15 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	echo " Looking for games in  ${2}..."
 
 	# Find all files in core's folder with core's extension
-	for ext in ${CORE_EXT[${1}]}; do
-		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${ext}" -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
-	done
+	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
+	find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
 	# Now find all zips in core's folder and process
 	if [ ${CORE_ZIPPED[${1}]} == "yes" ]; then
-		#for ext in ${CORE_EXT[${1}]}; do
-			#if [ ! -z ${extlist} ]; then
-				#local extlist+=","
-			#fi
-			#local extlist+="${ext}"
-		#done
 		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-		local extlist="$(echo "${CORE_EXT[${1}]}" | tr ' ' ',')"
 		if [ -s "${tmpfile2}" ]; then
 			cat "${tmpfile2}" | while read z; do
 				if [ "${samquiet}" == "no" ]; then echo " Processing: ${z}"; fi
-				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${extlist}" >>"${tmpfile}"
-				# for ext in ${CORE_EXT[${1}]}; do
-					# "${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext ${ext} >>"${tmpfile}"
-				# done
+				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${1}]}" >>"${tmpfile}"
 			done
 		fi
 	fi
@@ -2810,7 +2799,6 @@ function next_core() { # next_core (core)
 	romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
-	# if [[ "${rompath,,}" != *".${CORE_EXT[${nextcore}]}" ]]; then
 	extension="${rompath##*.}"
 	if [ $(echo "${extension,,}" | grep -w -q "${CORE_EXT[${nextcore}]}") ]; then
 		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension,,}\e[0m"; fi
