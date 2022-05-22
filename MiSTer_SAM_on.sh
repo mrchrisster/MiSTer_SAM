@@ -269,22 +269,22 @@ function init_data() {
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
 		["arcade"]="mra"
-		["c64"]="crt"
+		["c64"]="crt prg" 			# need to be tested "reu tap flt rom c1581"
 		["fds"]="fds"
-		["gb"]="gb"
-		["gbc"]="gbc"
+		["gb"]="gb"			 		# Should we include? "bin"
+		["gbc"]="gbc"		 		# Should we include? "bin"
 		["gba"]="gba"
-		["genesis"]="md"
+		["genesis"]="md gen" 		# Should we include? "bin"
 		["gg"]="gg"
-		["megacd"]="chd"
+		["megacd"]="chd cue"
 		["neogeo"]="neo"
 		["nes"]="nes"
 		["s32x"]="32x"
-		["sms"]="sms"
-		["snes"]="sfc"
-		["tgfx16"]="pce"
-		["tgfx16cd"]="chd"
-		["psx"]="chd"
+		["sms"]="sms sg"
+		["snes"]="sfc smc" 	 		# Should we include? "bin bs"
+		["tgfx16"]="pce sgx"		 # Should we include? "bin"
+		["tgfx16cd"]="chd cue"
+		["psx"]="chd cue exe"
 	)
 
 	# Core to path mappings
@@ -2539,16 +2539,12 @@ function speedtest() {
 			echo "${core}: $(($(date +%s) - ${START2})) seconds" >>/tmp/Durations.tmp
 		fi
 	done
-	printf "Total: $(($(date +%s) - ${START})) seconds" >>/tmp/Durations.tmp
-	shopt -s nullglob
+	echo "Total: $(($(date +%s) - ${START})) seconds" >>/tmp/Durations.tmp
 	if [ -s "/tmp/Durations.tmp" ]; then
-		local IFS=$'\n'
-		Lines=$(cat /tmp/Durations.tmp)
-		for z in ${Lines}; do
-			echo "${z}"
+		cat "/tmp/Durations.tmp" | while IFS=$'\n' read line; do
+			echo "${line}"
 		done
 	fi
-	shopt -u nullglob
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
 }
 
@@ -2663,45 +2659,42 @@ function create_game_lists() {
 	done
 }
 
-function partun_list(){
-	in_file="${1}"
-	out_file="${2}"
-	shift
-	shift
- 	while [ ! ${#} -eq 0 ]; do # multiple file extensions requested
-		"${mrsampath}/partun" "${in_file}" -l -e ${zipex} --include-archive-name --ext ${1} >>"${out_file}"
-		shift
- 	done
-}
-
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
 	echo " Looking for games in  ${2}..."
 
 	# Find all files in core's folder with core's extension
-	find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${CORE_EXT[${1}]}" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile}"
-
+	for ext in ${CORE_EXT[${1}]}; do
+		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.${ext}" -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
+	done
 	# Now find all zips in core's folder and process
-	if [ "${CORE_ZIPPED[${1}]}" == "yes" ]; then
-
+	if [ ${CORE_ZIPPED[${1}]} == "yes" ]; then
+		#for ext in ${CORE_EXT[${1}]}; do
+			#if [ ! -z ${extlist} ]; then
+				#local extlist+=","
+			#fi
+			#local extlist+="${ext}"
+		#done
 		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-		shopt -s nullglob
+		local extlist="$(echo "${CORE_EXT[${1}]}" | tr ' ' ',')"
 		if [ -s "${tmpfile2}" ]; then
-			local IFS=$'\n'
 			cat "${tmpfile2}" | while read z; do
 				if [ "${samquiet}" == "no" ]; then echo " Processing: ${z}"; fi
-				partun_list "${z}" "${tmpfile}" ${CORE_EXT[${1}]}
+				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${extlist}" >>"${tmpfile}"
+				# for ext in ${CORE_EXT[${1}]}; do
+					# "${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext ${ext} >>"${tmpfile}"
+				# done
 			done
 		fi
-		rm ${tmpfile2} &>/dev/null
-		shopt -u nullglob
 	fi
 
 	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt"
-
+	
 	# Strip out all duplicate filenames with a fancy awk command
 	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
 	# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt"
+	rm ${tmpfile} &>/dev/null
+	rm ${tmpfile2} &>/dev/null
 
 	echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l) " Games found."
 	echo " Done."
@@ -2750,7 +2743,6 @@ function check_list() { # args ${nextcore}  "${DIR}"
 			# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
 			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 		fi
-		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
 	fi
 
 	# Make sure file exists since we're reading from a static list
@@ -2762,6 +2754,7 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	fi
 
 	# Delete played game from list
+	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
@@ -2794,7 +2787,7 @@ function next_core() { # next_core (core)
 			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
 		fi
 
-		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}.\e[0m"; fi
+		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
 
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
@@ -2817,9 +2810,14 @@ function next_core() { # next_core (core)
 	romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
-	if [[ "${rompath,,}" != *".${CORE_EXT[${nextcore}]}" ]]; then
+	# if [[ "${rompath,,}" != *".${CORE_EXT[${nextcore}]}" ]]; then
+	extension="${rompath##*.}"
+	if [ $(echo "${extension,,}" | grep -w -q "${CORE_EXT[${nextcore}]}") ]; then
+		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension,,}\e[0m"; fi
 		next_core
 		return
+	else
+		if [ "${samquiet}" == "no" ]; then echo -e " Correct Extension! \e[1m${extension,,}\e[0m"; fi
 	fi
 
 	# If there is an exclude list check it
