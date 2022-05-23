@@ -2067,10 +2067,10 @@ function deletegl() {
 }
 
 function creategl() {
-	init_vars
-	read_samini
-	init_paths
-	init_data
+	init_vars 2>/dev/null
+	read_samini 2>/dev/null
+	init_paths 2>/dev/null
+	init_data 2>/dev/null
 	create_all_gamelists_old="${create_all_gamelists}"
 	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
 	rebuild_freq_old="${rebuild_freq}"
@@ -2597,7 +2597,7 @@ function create_game_lists() {
 
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
-	echo " Looking for games in  ${2}..."
+	echo -n " Looking for games in  ${2}..."
 
 	# Find all files in core's folder with core's extension
 	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
@@ -2621,8 +2621,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	rm ${tmpfile} &>/dev/null
 	rm ${tmpfile2} &>/dev/null
 
-	echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l) " Games found."
-	echo " Done."
+	echo " $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l) Games found."
 }
 
 function check_list() { # args ${nextcore}  "${DIR}"
@@ -2897,7 +2896,7 @@ function unmute() {
 
 # ======== ARCADE MODE ========
 function build_mralist() {
-	echo " Looking for games in  ${1}..."
+	echo -n " Looking for games in  ${1}..."
 	# If no MRAs found - suicide!
 	find "${1}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
@@ -2919,8 +2918,7 @@ function build_mralist() {
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
-	echo $(cat "${mralist}" | sed '/^\s*$/d' | wc -l) " Arcade Games found."
-	echo " Done."
+	echo " $(cat "${mralist}" | sed '/^\s*$/d' | wc -l) Arcade Games found."
 }
 
 function load_core_arcade() {
