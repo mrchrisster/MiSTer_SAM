@@ -145,8 +145,6 @@ function init_vars() {
 	declare -g tgfx16pathrbf="_Console"
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
-
-
 }
 
 # ======== EXCLUDE LISTS ========
@@ -1112,11 +1110,11 @@ function read_samini() {
 			declare -g ${var}="${!var%/}"
 		done
 	fi
-	
+
 	# Setup corelist
 	corelist="$(echo ${corelist} | tr ',' ' ')"
 	corelistall="$(echo ${corelistall} | tr ',' ' ')"
-		
+
 	# Create array of coreexclude list names
 	declare -a coreexcludelist
 	for core in ${corelist}; do
@@ -1135,7 +1133,6 @@ function read_samini() {
 	# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
 	zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
 }
-
 
 function GET_SYSTEM_FOLDER() {
 	local SYSTEM="${1}"
@@ -2454,34 +2451,40 @@ function reset_core_gl() { # args ${nextcore}
 }
 
 function speedtest() {
+	declare -g speedtest=1
+	[ ! -d "/tmp/gl" ] && { mkdir /tmp/gl; }
+	[ ! -d "/tmp/glt" ] && { mkdir /tmp/glt; }
+	mount --bind /tmp/gl "${gamelistpath}"
+	mount --bind /tmp/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
 	for core in ${corelist}; do
 		defaultpath "${core}"
 	done
 	DURATION_DP=$(($(date +%s) - ${START}))
 	START="$(date +%s)"
-	echo "" >/tmp/Durations.tmp
+	echo "" >"${gamelistpathtmp}/Durations.tmp"
 	for core in ${corelist}; do
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		if [ ${core} != "arcade" ]; then
 			START2="$(date +%s)"
 			create_romlist ${core} "${DIR}"
-			cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
-			echo "${core}: $(($(date +%s) - ${START2})) seconds" >>/tmp/Durations.tmp
+			echo -e " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 		elif [ ${core} == "arcade" ]; then
 			START2="$(date +%s)"
 			build_mralist "${DIR}"
-			cp "${mralist}" "${mralist_tmp}" &>/dev/null
-			echo "${core}: $(($(date +%s) - ${START2})) seconds" >>/tmp/Durations.tmp
+			echo -e " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 		fi
 	done
-	echo "Total: $(($(date +%s) - ${START})) seconds" >>/tmp/Durations.tmp
-	if [ -s "/tmp/Durations.tmp" ]; then
-		cat "/tmp/Durations.tmp" | while IFS=$'\n' read line; do
+	echo "Total: $(($(date +%s) - ${START})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
+	if [ -s "${gamelistpathtmp}/Durations.tmp" ]; then
+		cat "${gamelistpathtmp}/Durations.tmp" | while IFS=$'\n' read line; do
 			echo "${line}"
 		done
 	fi
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
+	umount "${gamelistpath}"
+	umount "${gamelistpathtmp}"
+	speedtest=0
 }
 
 function create_game_lists() {
@@ -2566,9 +2569,7 @@ function create_game_lists() {
 					rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 				fi
 			else
-
 				create_romlist ${core} "${DIR}"
-
 				cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 			fi
 		elif [ ${core} == "arcade" ]; then
@@ -2584,13 +2585,10 @@ function create_game_lists() {
 					rm "${mralist}" &>/dev/null
 				fi
 			else
-
 				build_mralist "${DIR}"
-
 				cp "${mralist}" "${mralist_tmp}" &>/dev/null
 			fi
 		fi
-		# echo ${corelisttmp}
 		corelist=${corelisttmp}
 	done
 }
@@ -2621,7 +2619,11 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	rm ${tmpfile} &>/dev/null
 	rm ${tmpfile2} &>/dev/null
 
-	echo " $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l) Games found."
+	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
+	echo "${total_games} Games found."
+	if [ ${speedtest} -eq 1 ]; then
+		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
+	fi
 }
 
 function check_list() { # args ${nextcore}  "${DIR}"
@@ -2918,7 +2920,11 @@ function build_mralist() {
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
-	echo " $(cat "${mralist}" | sed '/^\s*$/d' | wc -l) Arcade Games found."
+	total_games=$(cat "${mralist}" | sed '/^\s*$/d' | wc -l)
+	echo  "${total_games} Games found."
+	if [ ${speedtest} -eq 1 ]; then
+		echo -n "Arcade: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
+	fi
 }
 
 function load_core_arcade() {
@@ -2988,37 +2994,26 @@ function load_core_arcade() {
 # ========= MAIN =========
 function main() {
 	init_vars
-
 	read_samini
-
 	init_paths
-
 	if [ ${usedefaultpaths} == "yes" ]; then
 		for core in ${corelist}; do
 			defaultpath "${core}"
 		done
 	fi
-
 	init_data # Setup data arrays
-
 	if [ "${1,,}" == "--speedtest" ]; then
 		speedtest
 	fi
-
 	if [ "${1,,}" == "--create-gamelists" ]; then
 		creategl
 	fi
-
 	if [ "${samtrace}" == "yes" ]; then
 		debug_output
 	fi
-
 	disable_bootrom # Disable Bootrom until Reboot
-
 	mute
-
 	parse_cmd ${@} # Parse command line parameters for input
-
 }
 
 if [ "${1,,}" != "--source-only" ]; then
