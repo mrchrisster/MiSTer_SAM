@@ -2595,7 +2595,7 @@ function create_game_lists() {
 
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
-	echo -n " Looking for games in  ${2}..."
+	echo " Looking for games in  ${2}..."
 
 	# Find all files in core's folder with core's extension
 	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
@@ -2898,7 +2898,7 @@ function unmute() {
 
 # ======== ARCADE MODE ========
 function build_mralist() {
-	echo -n " Looking for games in  ${1}..."
+	echo " Looking for games in  ${1}..."
 	# If no MRAs found - suicide!
 	find "${1}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
