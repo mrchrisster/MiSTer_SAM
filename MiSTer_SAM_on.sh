@@ -145,78 +145,11 @@ function init_vars() {
 	declare -g tgfx16pathrbf="_Console"
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
+
+
 }
 
 # ======== EXCLUDE LISTS ========
-function create_exclude_lists() { # TODO change to arrays? declare -ga
-	declare -g arcadeexclude="First Bad Game.mra
-	Second Bad Game.mra
-	Third Bad Game.mra"
-
-	declare -g c64exclude="First Bad Game.crt
-	Second Bad Game.crt
-	Third Bad Game.crt"
-
-	declare -g fdsexclude="First Bad Game.fds
-	Second Bad Game.fds
-	Third Bad Game.fds"
-
-	declare -g gbexclude="First Bad Game.gb
-	Second Bad Game.gb
-	Third Bad Game.gb"
-
-	declare -g gbcexclude="First Bad Game.gbc
-	Second Bad Game.gbc
-	Third Bad Game.gbc"
-
-	declare -g gbaexclude="First Bad Game.gba
-	Second Bad Game.gba
-	Third Bad Game.gba"
-
-	declare -g genesisexclude="First Bad Game.md
-	Second Bad Game.md
-	Third Bad Game.md"
-
-	declare -g ggexclude="First Bad Game.gg
-	Second Bad Game.gg
-	Third Bad Game.gg"
-
-	declare -g megacdexclude="First Bad Game.chd
-	Second Bad Game.chd
-	Third Bad Game.chd"
-
-	declare -g neogeoexclude="First Bad Game.neo
-	Second Bad Game.neo
-	Third Bad Game.neo"
-
-	declare -g nesexclude="First Bad Game.nes
-	Second Bad Game.nes
-	Third Bad Game.nes"
-
-	declare -g s32xexclude="First Bad Game.32x
-	Second Bad Game.32x
-	Third Bad Game.32x"
-
-	declare -g smsexclude="First Bad Game.sms
-	Second Bad Game.sms
-	Third Bad Game.sms"
-
-	declare -g snesexclude="First Bad Game.sfc
-	Second Bad Game.sfc
-	Third Bad Game.sfc"
-
-	declare -g tgfx16exclude="First Bad Game.pce
-	Second Bad Game.pce
-	Third Bad Game.pce"
-
-	declare -g tgfx16cdexclude="First Bad Game.chd
-	Second Bad Game.chd
-	Third Bad Game.chd"
-
-	declare -g psxexclude="First Bad Game.chd
-	Second Bad Game.chd
-	Third Bad Game.chd"
-}
 
 function init_paths() {
 	# Default rom path search directories
@@ -241,6 +174,12 @@ function init_paths() {
 
 	declare -g GET_SYSTEM_FOLDER_GAMESDIR=""
 	declare -g GET_SYSTEM_FOLDER_RESULT=""
+	# Create folders if they don't exist
+	mkdir -p "${mrsampath}/SAM_Gamelists"
+	mkdir -p /tmp/.SAM_List
+	touch ${tmpfile}
+	touch ${tmpfile2}
+
 }
 
 # ======== CORE CONFIG ========
@@ -1159,7 +1098,7 @@ function debug_output() {
 # ========= PARSE INI =========
 
 # Read INI
-function readini() {
+function read_samini() {
 	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 		source "${misterpath}/Scripts/MiSTer_SAM.ini"
 		# Remove trailing slash from paths
@@ -1173,19 +1112,11 @@ function readini() {
 			declare -g ${var}="${!var%/}"
 		done
 	fi
-}
-
-function misc() { # TODO
-	# Create folders if they don't exist
-	mkdir -p "${mrsampath}/SAM_Gamelists"
-	mkdir -p /tmp/.SAM_List
-	touch ${tmpfile}
-	touch ${tmpfile2}
-
+	
 	# Setup corelist
 	corelist="$(echo ${corelist} | tr ',' ' ')"
 	corelistall="$(echo ${corelistall} | tr ',' ' ')"
-
+		
 	# Create array of coreexclude list names
 	declare -a coreexcludelist
 	for core in ${corelist}; do
@@ -1204,6 +1135,7 @@ function misc() { # TODO
 	# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
 	zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
 }
+
 
 function GET_SYSTEM_FOLDER() {
 	local SYSTEM="${1}"
@@ -1923,7 +1855,7 @@ function sam_enable() { # Enable autoplay
 	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ]; then
 		echo -e "Add MiSTer SAM to ${userstartup}\n"
 		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
-		echo -e "[[ -e "${mrsampath}/MiSTer_SAM_init" ]] && "${mrsampath}/MiSTer_SAM_init" \$1" >>"${userstartup}"
+		echo -e "[[ -e "${mrsampath}/MiSTer_SAM_init" ]] && "${mrsampath}/MiSTer_SAM_init " \$1" & >>"${userstartup}"
 	fi
 	echo "Done."
 	echo " SAM install complete."
@@ -2135,6 +2067,10 @@ function deletegl() {
 }
 
 function creategl() {
+	init_vars
+	read_samini
+	init_paths
+	init_data
 	create_all_gamelists_old="${create_all_gamelists}"
 	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
 	rebuild_freq_old="${rebuild_freq}"
@@ -2667,7 +2603,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
 	find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
 	# Now find all zips in core's folder and process
-	if [ ${CORE_ZIPPED[${1}]} == "yes" ]; then
+	if [ "${CORE_ZIPPED[${1}]}" == "yes" ]; then
 		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
 		if [ -s "${tmpfile2}" ]; then
 			cat "${tmpfile2}" | while read z; do
@@ -3055,11 +2991,7 @@ function load_core_arcade() {
 function main() {
 	init_vars
 
-	create_exclude_lists
-
-	readini
-
-	misc
+	read_samini
 
 	init_paths
 
