@@ -49,8 +49,10 @@ function init_vars() {
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 	declare -g gamelistpathtmp="/tmp/.SAM_List/"
 	declare -g excludepath="${mrsampath}"
-	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_romlist"
-	declare -g mralist_tmp="/tmp/.SAM_List/arcade_romlist"
+	declare -g mralist_old="${mrsampath}/SAM_Gamelists/arcade_romlist"
+	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
+	declare -g mralist_tmp_old="/tmp/.SAM_List/arcade_romlist"
+	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"
@@ -162,7 +164,10 @@ function init_vars() {
 	declare -g psxpathrbf="_Console"
 }
 
-# ======== EXCLUDE LISTS ========
+function update_tasks() {
+	[ -s "${mralist_old}" ] && { mv "${mralist_old}" "${mralist}"; }
+	[ -s "${mralist_tmp_old}" ] && { mv "${mralist_tmp_old}" "${mralist_tmp}"; }
+}
 
 function init_paths() {
 	# Default rom path search directories
@@ -2607,7 +2612,6 @@ function create_game_lists() {
 				fi
 			else
 				create_romlist ${core} "${DIR}"
-				cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 			fi
 		elif [ ${core} == "arcade" ]; then
 			if [ -f "${mralist}" ]; then
@@ -2615,7 +2619,6 @@ function create_game_lists() {
 					date_file=$(stat -c '%Y' "${mralist}")
 					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
 						build_mralist "${DIR}"
-						cp "${mralist}" "${mralist_tmp}" &>/dev/null
 					fi
 				else
 					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
@@ -2623,7 +2626,6 @@ function create_game_lists() {
 				fi
 			else
 				build_mralist "${DIR}"
-				cp "${mralist}" "${mralist_tmp}" &>/dev/null
 			fi
 		fi
 		corelist=${corelisttmp}
@@ -3048,6 +3050,7 @@ function main() {
 		done
 	fi
 	init_data # Setup data arrays
+	update_tasks
 	if [ "${1,,}" == "--speedtest" ]; then
 		speedtest
 	fi
