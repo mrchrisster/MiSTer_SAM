@@ -64,6 +64,7 @@ function init_vars() {
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl mute="Yes"
+	declare -gi muted=0
 	declare -gl playcurrentgame="No"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
@@ -1985,10 +1986,8 @@ function sam_stop() {
 
 	echo -n " Stopping other running instances of ${samprocess}..."
 
-	if [ "${mute}" == "yes" ]; then echo -e "\0000\c" >/media/fat/config/Volume.dat; fi
-	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-	# Delete temp lists
-	# rm -rf /tmp/.SAM_List &> /dev/null
+	unmute
+	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd;
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
@@ -2440,7 +2439,7 @@ function loop_core() { # loop_core (core)
 					echo " Mouse activity detected!"
 					unmute
 					tty_exit
-					exit
+					[ play_or_reload ] && sam_stop
 				else
 					echo " Mouse activity ignored!"
 					echo "" | >/tmp/.SAM_Mouse_Activity
@@ -2452,8 +2451,7 @@ function loop_core() { # loop_core (core)
 					echo " Keyboard activity detected!"
 					unmute
 					tty_exit
-					exit
-
+					[ play_or_reload ] && sam_stop
 				else
 					echo " Keyboard activity ignored!"
 					echo "" | >/tmp/.SAM_Keyboard_Activity
@@ -2465,7 +2463,7 @@ function loop_core() { # loop_core (core)
 					echo " Controller activity detected!"
 					unmute
 					tty_exit
-					exit
+					[ play_or_reload ] && sam_stop
 				else
 					echo " Controller activity ignored!"
 					echo "" | >/tmp/.SAM_Joy_Activity
@@ -2911,21 +2909,28 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ "${mute}" == "yes" ]; then
+	if [ "${mute}" == "yes" ] && [ ${muted} -eq 0 ]; then
 		# Mute Global Volume
+		muted=1
 		echo -e "\0020\c" >/media/fat/config/Volume.dat
 	fi
 }
 
 function unmute() {
-	if [ "${mute}" == "yes" ]; then
-		# Unmute and reload core
+	if [ ${muted} -eq 1 ]; then
+		# Unmute Global Volume
+		muted=0
 		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		if [ "${playcurrentgame}" == "yes" ]; then
-			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-		else
-			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-		fi
+	fi
+}
+
+function play_or_reload() {
+	if [ "${playcurrentgame}" == "yes" ]; then
+		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+		return 0
+	else
+		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		return 1
 	fi
 }
 
