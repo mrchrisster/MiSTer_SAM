@@ -2738,7 +2738,6 @@ function next_core() { # next_core (core)
 	# Sanity check that we have a valid rom in var
 	extension="${rompath##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
-	echo ${extlist}
 	if [ ! $(echo "${extension}" | grep -i -w -q "${extlist}" | echo $?) ]; then
 		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension,,}\e[0m"; fi
 		next_core
