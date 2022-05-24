@@ -2628,9 +2628,9 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
 	fi
 	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
-		echo "${total_games} Games found"
+		echo "${total_games} Games found."
 	else
-		echo " ${total_games} Games found"
+		echo " ${total_games} Games found."
 	fi
 }
 
