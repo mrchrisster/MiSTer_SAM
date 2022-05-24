@@ -41,6 +41,7 @@ function init_vars() {
 	declare -gl samquiet="Yes"
 	declare -gl samdebug="No"
 	declare -gl samtrace="No"
+	declare -gi speedtest=0
 
 	# ======== LOCAL VARIABLES ========
 	declare -gi coreretries=3
@@ -2064,10 +2065,8 @@ function deletegl() {
 }
 
 function creategl() {
-	init_vars 2>/dev/null
-	read_samini 2>/dev/null
-	init_paths 2>/dev/null
-	init_data 2>/dev/null
+	mkdir -p "${mrsampath}/SAM_Gamelists"
+	mkdir -p /tmp/.SAM_List
 	create_all_gamelists_old="${create_all_gamelists}"
 	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
 	rebuild_freq_old="${rebuild_freq}"
@@ -2451,7 +2450,7 @@ function reset_core_gl() { # args ${nextcore}
 }
 
 function speedtest() {
-	declare -g speedtest=1
+	speedtest=1
 	[ ! -d "/tmp/gl" ] && { mkdir /tmp/gl; }
 	[ ! -d "/tmp/glt" ] && { mkdir /tmp/glt; }
 	mount --bind /tmp/gl "${gamelistpath}"
