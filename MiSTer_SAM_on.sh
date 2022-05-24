@@ -54,7 +54,7 @@ function init_vars() {
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -gi gametimer=120
-	declare -gl corelist="arcade,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
 	declare -gl create_all_gamelists="No"
@@ -72,7 +72,7 @@ function init_vars() {
 	declare -gi counter=0
 	declare -gr userstartup="/media/fat/linux/user-startup.sh"
 	declare -gr userstartuptpl="/media/fat/linux/_user-startup.sh"
-	declare -gl usedefaultpaths="No"
+	declare -gl usedefaultpaths="Yes"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
 	declare -gl rebuild_freq="Week"
@@ -92,6 +92,10 @@ function init_vars() {
 
 	# ======== CORE PATHS ========
 	declare -g arcadepath="/media/fat/_Arcade"
+	declare -g atari2600path="/media/fat/Games/Atari7800"
+	declare -g atari5200path="/media/fat/Games/Atari5200"
+	declare -g atari7800path="/media/fat/Games/Atari7800"
+	declare -g atarilynxpath="/media/fat/Games/AtariLynx"
 	declare -g c64path="/media/fat/Games/C64"
 	declare -g fdspath="/media/fat/Games/NES"
 	declare -g gbpath="/media/fat/Games/Gameboy"
@@ -111,6 +115,10 @@ function init_vars() {
 
 	# ======== CORE PATHS EXTRA ========
 	declare -g arcadepathextra=""
+	declare -g atari2600pathextra=""
+	declare -g atari5200pathextra=""
+	declare -g atari7800pathextra=""
+	declare -g atarilynxpathextra=""
 	declare -g c64pathextra=""
 	declare -g fdspathextra=""
 	declare -g gbpathextra=""
@@ -130,6 +138,10 @@ function init_vars() {
 
 	# ======== CORE PATHS RBF ========
 	declare -g arcadepathrbf="_Arcade"
+	declare -g atari2600pathrbf="_Console"
+	declare -g atari5200pathrbf="_Console"
+	declare -g atari7800pathrbf="_Console"
+	declare -g atarilynxpathrbf="_Console"
 	declare -g c64pathrbf="_Computer"
 	declare -g fdspathrbf="_Console"
 	declare -g gbpathrbf="_Console"
@@ -186,6 +198,10 @@ function init_data() {
 	# Core to long name mappings
 	declare -gA CORE_PRETTY=(
 		["arcade"]="MiSTer Arcade"
+		["atari2600"]="Atari 2600"
+		["atari5200"]="Atari 5200"
+		["atari7800"]="Atari 7800"
+		["atarilynx"]="Atari Lynx"
 		["c64"]="Commodore 64"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
@@ -207,6 +223,10 @@ function init_data() {
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
 		["arcade"]="mra"
+		["atari2600"]="a26"			# Should we include? "bin"
+		["atari5200"]="a52,car"		# Should we include? "bin,rom"
+		["atari7800"]="a78"			# Should we include? "bin"
+		["atarilynx"]="lnx"
 		["c64"]="crt,prg" 			# need to be tested "reu,tap,flt,rom,c1581"
 		["fds"]="fds"
 		["gb"]="gb"			 		# Should we include? "bin"
@@ -228,6 +248,10 @@ function init_data() {
 	# Core to path mappings
 	declare -gA CORE_PATH=(
 		["arcade"]="${arcadepath}"
+		["atari2600"]="${atari2600path}"
+		["atari5200"]="${atari5200path}"
+		["atari7800"]="${atari7800path}"
+		["atarilynx"]="${atarilynxpath}"
 		["c64"]="${c64path}"
 		["fds"]="${fdspath}"
 		["gb"]="${gbpath}"
@@ -249,6 +273,10 @@ function init_data() {
 	# Core to extra path mappings
 	declare -gA CORE_PATH_EXTRA=(
 		["arcade"]="${arcadepathextra}"
+		["atari2600"]="${atari2600pathextra}"
+		["atari5200"]="${atari5200pathextra}"
+		["atari7800"]="${atari7800pathextra}"
+		["atarilynx"]="${atarilynxpathextra}"
 		["c64"]="${c64pathextra}"
 		["fds"]="${fdspathextra}"
 		["gb"]="${gbpathextra}"
@@ -270,6 +298,10 @@ function init_data() {
 	# Core to path mappings for rbf files
 	declare -gA CORE_PATH_RBF=(
 		["arcade"]="${arcadepathrbf}"
+		["atari2600"]="${atari2600pathrbf}"
+		["atari5200"]="${atari5200pathrbf}"
+		["atari7800"]="${atari7800pathrbf}"
+		["atarilynx"]="${atarilynxpathrbf}"
 		["c64"]="${c64pathrbf}"
 		["fds"]="${fdspathrbf}"
 		["gb"]="${gbpathrbf}"
@@ -291,6 +323,10 @@ function init_data() {
 	# Can this core use ZIPped ROMs
 	declare -glA CORE_ZIPPED=(
 		["arcade"]="No"
+		["atari2600"]="Yes"
+		["atari5200"]="Yes"
+		["atari7800"]="Yes"
+		["atarilynx"]="Yes"
 		["c64"]="Yes"
 		["fds"]="Yes"
 		["gb"]="Yes"
@@ -312,6 +348,10 @@ function init_data() {
 	# Can this core skip Bios/Safety warning messages
 	declare -glA CORE_SKIP=(
 		["arcade"]="No"
+		["atari2600"]="No"
+		["atari5200"]="No"
+		["atari7800"]="No"
+		["atarilynx"]="No"
 		["c64"]="No"
 		["fds"]="Yes"
 		["gb"]="No"
@@ -333,6 +373,10 @@ function init_data() {
 	# Core to input maps mapping
 	declare -glA CORE_LAUNCH=(
 		["arcade"]="arcade"
+		["atari2600"]="atari7800"
+		["atari5200"]="atari5200"
+		["atari7800"]="atari7800"
+		["atarilynx"]="atarilynx"
 		["c64"]="c64"
 		["fds"]="nes"
 		["gb"]="gameboy"
@@ -354,6 +398,10 @@ function init_data() {
 	# MGL core name settings
 	declare -gA MGL_CORE=(
 		["arcade"]="Arcade"
+		["atari2600"]="ATARI7800"
+		["atari5200"]="ATARI5200"
+		["atari7800"]="ATARI7800"
+		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
@@ -375,6 +423,10 @@ function init_data() {
 	# MGL delay settings
 	declare -giA MGL_DELAY=(
 		["arcade"]="2"
+		["atari2600"]="1"
+		["atari5200"]="1"
+		["atari7800"]="1"
+		["atarilynx"]="1"
 		["c64"]="1"
 		["fds"]="2"
 		["gb"]="2"
@@ -396,6 +448,10 @@ function init_data() {
 	# MGL index settings
 	declare -giA MGL_INDEX=(
 		["arcade"]="0"
+		["atari2600"]="0"
+		["atari5200"]="1"
+		["atari7800"]="1"
+		["atarilynx"]="1"
 		["c64"]="1"
 		["fds"]="0"
 		["gb"]="0"
@@ -417,6 +473,10 @@ function init_data() {
 	# MGL type settings
 	declare -glA MGL_TYPE=(
 		["arcade"]="f"
+		["atari2600"]="f"
+		["atari5200"]="f"
+		["atari7800"]="f"
+		["atarilynx"]="f"
 		["c64"]="f"
 		["fds"]="f"
 		["gb"]="f"
@@ -433,26 +493,6 @@ function init_data() {
 		["tgfx16"]="f"
 		["tgfx16cd"]="s"
 		["psx"]="s"
-	)
-
-	# Everdrive Zip naming convention
-	declare -gA CORE_EVERDRIVE=(
-		["c64"]="Commodore 64"
-		["fds"]="Famicom Disk System"
-		["gb"]="Game Boy"
-		["gbc"]="Game Boy Color"
-		["gba"]="Game Boy Advance"
-		["genesis"]="Genesis"
-		["gg"]="Game Gear"
-		["megacd"]="Sega CD"
-		["neogeo"]="NeoGeo"
-		["nes"]="NES"
-		["s32x"]="32x"
-		["sms"]="Master System"
-		["snes"]="SNES"
-		["tgfx16"]="PC-Engine"
-		["tgfx16cd"]="PC-Engine CD"
-		["psx"]="Playstation"
 	)
 
 	# NEOGEO to long name mappings English
@@ -1153,26 +1193,24 @@ function defaultpath() {
 	if [ ${SYSTEM} == "arcade" ]; then
 		SYSTEM="_arcade"
 	fi
+	if [ ${SYSTEM} == "atari2600" ]; then
+		SYSTEM="atari7800"
+	fi
 	if [ ${SYSTEM} == "fds" ]; then
 		SYSTEM="nes"
 	fi
-
 	if [ ${SYSTEM} == "gb" ]; then
 		SYSTEM="gameboy"
 	fi
-
 	if [ ${SYSTEM} == "gbc" ]; then
 		SYSTEM="gameboy"
 	fi
-
 	if [ ${SYSTEM} == "gg" ]; then
 		SYSTEM="sms"
 	fi
-
 	if [ ${SYSTEM} == "tgfx16cd" ]; then
 		SYSTEM="tgfx16-cd"
 	fi
-
 	shift
 
 	GET_SYSTEM_FOLDER "${SYSTEM}"
@@ -1502,7 +1540,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@,,}; do
 			case ${arg} in
-			arcade | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				;;
@@ -1587,7 +1625,7 @@ function parse_cmd() {
 				sam_monitor_new
 				break
 				;;
-			arcade | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -1635,7 +1673,7 @@ function parse_cmd() {
 				samedit_exclude
 				break
 				;;
-			ex_c64 | ex_fds | ex_gb | ex_gbc | ex_gba | ex_genesis | ex_gg | ex_megacd | ex_neogeo | ex_nes | ex_s32x | ex_sms | ex_snes | ex_tgfx16 | ex_tgfx16cd | ex_psx)
+			ex_atari2600 | ex_atari5200 | ex_atari7800 | ex_atarilynx | ex_c64 | ex_fds | ex_gb | ex_gbc | ex_gba | ex_genesis | ex_gg | ex_megacd | ex_neogeo | ex_nes | ex_s32x | ex_sms | ex_snes | ex_tgfx16 | ex_tgfx16cd | ex_psx)
 				nextcore=${1:3}
 				samedit_excltags
 				break
