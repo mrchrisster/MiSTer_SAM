@@ -53,6 +53,7 @@ function init_vars() {
 	declare -g mralist_tmp="/tmp/.SAM_List/arcade_romlist"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
+	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi gametimer=120
 	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
@@ -188,9 +189,9 @@ function init_paths() {
 	# Create folders if they don't exist
 	mkdir -p "${mrsampath}/SAM_Gamelists"
 	mkdir -p /tmp/.SAM_List
-	touch ${tmpfile}
-	touch ${tmpfile2}
-
+	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
+	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
+	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
 }
 
 # ======== CORE CONFIG ========
@@ -1153,12 +1154,12 @@ function read_samini() {
 	fi
 
 	# Setup corelist
-	corelist="$(echo ${corelist} | tr ',' ' ')"
-	corelistall="$(echo ${corelistall} | tr ',' ' ')"
+	corelist="$(echo ${corelist} | tr ',' ' ' | tr -s ' ')"
+	corelistall="$(echo ${corelistall} | tr ',' ' ' | tr -s ' ')"
 
 	# Create array of coreexclude list names
 	declare -a coreexcludelist
-	for core in ${corelist}; do
+	for core in ${corelistall}; do
 		coreexcludelist+=("${core}exclude")
 	done
 
@@ -1593,9 +1594,9 @@ function parse_cmd() {
 				break
 				;;
 			skip | next) # Load next game - stops monitor
-				echo " Skipping to next game..."
-				tmux send-keys -t SAM C-c ENTER
-				# break
+				# echo " Skipping to next game..."
+				# tmux send-keys -t SAM C-c ENTER
+				break
 				;;
 			stop) # Stop SAM immediately
 				tty_exit
@@ -2494,15 +2495,17 @@ function speedtest() {
 	mount --bind /tmp/gl "${gamelistpath}"
 	mount --bind /tmp/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
-	for core in ${corelist}; do
+	for core in ${corelistall}; do
 		defaultpath "${core}"
 	done
 	DURATION_DP=$(($(date +%s) - ${START}))
 	START="$(date +%s)"
 	echo "" >"${gamelistpathtmp}/Durations.tmp"
-	for core in ${corelist}; do
+	for core in ${corelistall}; do
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
-		if [ ${core} != "arcade" ]; then
+		if [ ${core} = " " ] || [ ${core} = "" ] || [ -z ${core} ]; then
+			continue
+		elif [ ${core} != "arcade" ]; then
 			START2="$(date +%s)"
 			create_romlist ${core} "${DIR}"
 			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
@@ -2589,7 +2592,7 @@ function create_game_lists() {
 	#	done
 	# fi
 
-	for core in ${corelist}; do
+	for core in ${corelistall}; do
 		corelisttmp=${corelist}
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		local date_file=""
@@ -2599,7 +2602,6 @@ function create_game_lists() {
 					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
 					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
 						create_romlist ${core} "${DIR}"
-						cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 					fi
 				else
 					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
@@ -2734,33 +2736,23 @@ function check_list() { # args ${nextcore}  "${DIR}"
 
 # This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
-	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
-		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
-		exit 1
+	if [ -z $(echo "${corelist}" | sed "s/ //g") ]; then
+		if [ -s "${corelisttmpfile}" ]; then
+			corelist=$(cat "${corelisttmpfile}")
+		else
+			echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
+			exit 1
+		fi
+	else
+		[ ! -e "${corelisttmpfile}" ] && { echo ${corelist}  >"${corelisttmpfile}"; }
 	fi
-
 	# Set $nextcore from $corelist
 	if [ -z "${1}" ]; then
 		# Don't repeat same core twice
-
-		if [ ! -z ${nextcore} ]; then
-
-			corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
-
-			# Choose the actual core
-			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"
-
-			# If core is single core make sure we don't run out of cores
-			if [ -z ${nextcore} ]; then
-				nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
-			fi
-
-		else
-			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
-		fi
-
+		# Choose the actual core
+		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+		corelist=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
 		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
-
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
@@ -2768,28 +2760,24 @@ function next_core() { # next_core (core)
 		nextcore="${1}"
 		countdown="countdown"
 	fi
-
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
 		load_core_arcade
 		return
 	fi
-
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
-
 	check_list ${nextcore} "${DIR}"
-
 	romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
 	extension="${rompath##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extension}" | grep -i -w -q "${extlist}" | echo $?) ]; then
-		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension,,}\e[0m"; fi
+		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"; fi
 		next_core
 		return
 	else
-		if [ "${samquiet}" == "no" ]; then echo -e " Correct Extension! \e[1m${extension,,}\e[0m"; fi
+		if [ "${samquiet}" == "no" ]; then echo -e " Correct Extension! \e[1m${extension^^}\e[0m"; fi
 	fi
 
 	# If there is an exclude list check it
@@ -3050,7 +3038,7 @@ function main() {
 	read_samini
 	init_paths
 	if [ ${usedefaultpaths} == "yes" ]; then
-		for core in ${corelist}; do
+		for core in ${corelistall}; do
 			defaultpath "${core}"
 		done
 	fi
@@ -3068,7 +3056,11 @@ function main() {
 	mute
 	parse_cmd ${@} # Parse command line parameters for input
 }
-
+if [ "${1,,}" == "skip" ] || [ "${1,,}" == "next" ]; then
+	echo " Skipping to next game..."
+	tmux send-keys -t SAM C-c ENTER
+	exit
+fi
 if [ "${1,,}" != "--source-only" ]; then
 	main ${@}
 fi
