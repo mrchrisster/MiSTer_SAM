@@ -2467,11 +2467,11 @@ function speedtest() {
 		if [ ${core} != "arcade" ]; then
 			START2="$(date +%s)"
 			create_romlist ${core} "${DIR}"
-			echo -e " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
+			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 		elif [ ${core} == "arcade" ]; then
 			START2="$(date +%s)"
 			build_mralist "${DIR}"
-			echo -e " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
+			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 		fi
 	done
 	echo "Total: $(($(date +%s) - ${START})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
@@ -2594,8 +2594,11 @@ function create_game_lists() {
 
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
-	echo " Looking for games in  ${2}..."
-
+	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+		echo " Looking for games in  ${2}..."
+	else
+		echo -n " Looking for games in  ${2}..."
+	fi
 	# Find all files in core's folder with core's extension
 	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
 	find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
@@ -2604,7 +2607,9 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
 		if [ -s "${tmpfile2}" ]; then
 			cat "${tmpfile2}" | while read z; do
-				if [ "${samquiet}" == "no" ]; then echo " Processing: ${z}"; fi
+				if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+					echo " Processing: ${z}"
+				fi
 				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${1}]}" >>"${tmpfile}"
 			done
 		fi
@@ -2619,9 +2624,13 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	rm ${tmpfile2} &>/dev/null
 
 	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
-	echo "${total_games} Games found."
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
+	fi
+	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+		echo "${total_games} Games found"
+	else
+		echo " ${total_games} Games found"
 	fi
 }
 
@@ -2896,7 +2905,11 @@ function unmute() {
 
 # ======== ARCADE MODE ========
 function build_mralist() {
-	echo " Looking for games in  ${1}..."
+	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+		echo " Looking for games in  ${1}..."
+	else
+		echo -n " Looking for games in  ${1}..."
+	fi
 	# If no MRAs found - suicide!
 	find "${1}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
@@ -2919,9 +2932,13 @@ function build_mralist() {
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
 	total_games=$(cat "${mralist}" | sed '/^\s*$/d' | wc -l)
-	echo  "${total_games} Games found."
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "Arcade: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
+	fi
+	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+		echo "${total_games} Games found."
+	else
+		echo " ${total_games} Games found."
 	fi
 }
 
