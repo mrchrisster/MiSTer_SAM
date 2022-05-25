@@ -41,7 +41,6 @@ function init_vars() {
 	declare -gl samquiet="Yes"
 	declare -gl samdebug="No"
 	declare -gl samtrace="No"
-	declare -gi speedtest=0
 
 	# ======== LOCAL VARIABLES ========
 	declare -gi coreretries=3
@@ -49,15 +48,12 @@ function init_vars() {
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 	declare -g gamelistpathtmp="/tmp/.SAM_List/"
 	declare -g excludepath="${mrsampath}"
-	declare -g mralist_old="${mrsampath}/SAM_Gamelists/arcade_romlist"
-	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
-	declare -g mralist_tmp_old="/tmp/.SAM_List/arcade_romlist"
-	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
+	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_romlist"
+	declare -g mralist_tmp="/tmp/.SAM_List/arcade_romlist"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
-	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi gametimer=120
-	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="arcade,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
 	declare -gl create_all_gamelists="No"
@@ -66,7 +62,6 @@ function init_vars() {
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl mute="Yes"
-	declare -gi muted=0
 	declare -gl playcurrentgame="No"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
@@ -76,7 +71,7 @@ function init_vars() {
 	declare -gi counter=0
 	declare -gr userstartup="/media/fat/linux/user-startup.sh"
 	declare -gr userstartuptpl="/media/fat/linux/_user-startup.sh"
-	declare -gl usedefaultpaths="Yes"
+	declare -gl usedefaultpaths="No"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
 	declare -gl rebuild_freq="Week"
@@ -96,10 +91,6 @@ function init_vars() {
 
 	# ======== CORE PATHS ========
 	declare -g arcadepath="/media/fat/_Arcade"
-	declare -g atari2600path="/media/fat/Games/Atari7800"
-	declare -g atari5200path="/media/fat/Games/Atari5200"
-	declare -g atari7800path="/media/fat/Games/Atari7800"
-	declare -g atarilynxpath="/media/fat/Games/AtariLynx"
 	declare -g c64path="/media/fat/Games/C64"
 	declare -g fdspath="/media/fat/Games/NES"
 	declare -g gbpath="/media/fat/Games/Gameboy"
@@ -119,10 +110,6 @@ function init_vars() {
 
 	# ======== CORE PATHS EXTRA ========
 	declare -g arcadepathextra=""
-	declare -g atari2600pathextra=""
-	declare -g atari5200pathextra=""
-	declare -g atari7800pathextra=""
-	declare -g atarilynxpathextra=""
 	declare -g c64pathextra=""
 	declare -g fdspathextra=""
 	declare -g gbpathextra=""
@@ -142,10 +129,6 @@ function init_vars() {
 
 	# ======== CORE PATHS RBF ========
 	declare -g arcadepathrbf="_Arcade"
-	declare -g atari2600pathrbf="_Console"
-	declare -g atari5200pathrbf="_Console"
-	declare -g atari7800pathrbf="_Console"
-	declare -g atarilynxpathrbf="_Console"
 	declare -g c64pathrbf="_Computer"
 	declare -g fdspathrbf="_Console"
 	declare -g gbpathrbf="_Console"
@@ -162,12 +145,11 @@ function init_vars() {
 	declare -g tgfx16pathrbf="_Console"
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
+
+
 }
 
-function update_tasks() {
-	[ -s "${mralist_old}" ] && { mv "${mralist_old}" "${mralist}"; }
-	[ -s "${mralist_tmp_old}" ] && { mv "${mralist_tmp_old}" "${mralist_tmp}"; }
-}
+# ======== EXCLUDE LISTS ========
 
 function init_paths() {
 	# Default rom path search directories
@@ -195,9 +177,9 @@ function init_paths() {
 	# Create folders if they don't exist
 	mkdir -p "${mrsampath}/SAM_Gamelists"
 	mkdir -p /tmp/.SAM_List
-	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
-	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
-	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
+	touch ${tmpfile}
+	touch ${tmpfile2}
+
 }
 
 # ======== CORE CONFIG ========
@@ -205,10 +187,6 @@ function init_data() {
 	# Core to long name mappings
 	declare -gA CORE_PRETTY=(
 		["arcade"]="MiSTer Arcade"
-		["atari2600"]="Atari 2600"
-		["atari5200"]="Atari 5200"
-		["atari7800"]="Atari 7800"
-		["atarilynx"]="Atari Lynx"
 		["c64"]="Commodore 64"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
@@ -230,10 +208,6 @@ function init_data() {
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
 		["arcade"]="mra"
-		["atari2600"]="a26"			# Should we include? "bin"
-		["atari5200"]="a52,car"		# Should we include? "bin,rom"
-		["atari7800"]="a78"			# Should we include? "bin"
-		["atarilynx"]="lnx"
 		["c64"]="crt,prg" 			# need to be tested "reu,tap,flt,rom,c1581"
 		["fds"]="fds"
 		["gb"]="gb"			 		# Should we include? "bin"
@@ -255,10 +229,6 @@ function init_data() {
 	# Core to path mappings
 	declare -gA CORE_PATH=(
 		["arcade"]="${arcadepath}"
-		["atari2600"]="${atari2600path}"
-		["atari5200"]="${atari5200path}"
-		["atari7800"]="${atari7800path}"
-		["atarilynx"]="${atarilynxpath}"
 		["c64"]="${c64path}"
 		["fds"]="${fdspath}"
 		["gb"]="${gbpath}"
@@ -280,10 +250,6 @@ function init_data() {
 	# Core to extra path mappings
 	declare -gA CORE_PATH_EXTRA=(
 		["arcade"]="${arcadepathextra}"
-		["atari2600"]="${atari2600pathextra}"
-		["atari5200"]="${atari5200pathextra}"
-		["atari7800"]="${atari7800pathextra}"
-		["atarilynx"]="${atarilynxpathextra}"
 		["c64"]="${c64pathextra}"
 		["fds"]="${fdspathextra}"
 		["gb"]="${gbpathextra}"
@@ -305,10 +271,6 @@ function init_data() {
 	# Core to path mappings for rbf files
 	declare -gA CORE_PATH_RBF=(
 		["arcade"]="${arcadepathrbf}"
-		["atari2600"]="${atari2600pathrbf}"
-		["atari5200"]="${atari5200pathrbf}"
-		["atari7800"]="${atari7800pathrbf}"
-		["atarilynx"]="${atarilynxpathrbf}"
 		["c64"]="${c64pathrbf}"
 		["fds"]="${fdspathrbf}"
 		["gb"]="${gbpathrbf}"
@@ -330,10 +292,6 @@ function init_data() {
 	# Can this core use ZIPped ROMs
 	declare -glA CORE_ZIPPED=(
 		["arcade"]="No"
-		["atari2600"]="Yes"
-		["atari5200"]="Yes"
-		["atari7800"]="Yes"
-		["atarilynx"]="Yes"
 		["c64"]="Yes"
 		["fds"]="Yes"
 		["gb"]="Yes"
@@ -355,10 +313,6 @@ function init_data() {
 	# Can this core skip Bios/Safety warning messages
 	declare -glA CORE_SKIP=(
 		["arcade"]="No"
-		["atari2600"]="No"
-		["atari5200"]="No"
-		["atari7800"]="No"
-		["atarilynx"]="No"
 		["c64"]="No"
 		["fds"]="Yes"
 		["gb"]="No"
@@ -380,10 +334,6 @@ function init_data() {
 	# Core to input maps mapping
 	declare -glA CORE_LAUNCH=(
 		["arcade"]="arcade"
-		["atari2600"]="atari7800"
-		["atari5200"]="atari5200"
-		["atari7800"]="atari7800"
-		["atarilynx"]="atarilynx"
 		["c64"]="c64"
 		["fds"]="nes"
 		["gb"]="gameboy"
@@ -405,10 +355,6 @@ function init_data() {
 	# MGL core name settings
 	declare -gA MGL_CORE=(
 		["arcade"]="Arcade"
-		["atari2600"]="ATARI7800"
-		["atari5200"]="ATARI5200"
-		["atari7800"]="ATARI7800"
-		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
@@ -430,10 +376,6 @@ function init_data() {
 	# MGL delay settings
 	declare -giA MGL_DELAY=(
 		["arcade"]="2"
-		["atari2600"]="1"
-		["atari5200"]="1"
-		["atari7800"]="1"
-		["atarilynx"]="1"
 		["c64"]="1"
 		["fds"]="2"
 		["gb"]="2"
@@ -455,10 +397,6 @@ function init_data() {
 	# MGL index settings
 	declare -giA MGL_INDEX=(
 		["arcade"]="0"
-		["atari2600"]="0"
-		["atari5200"]="1"
-		["atari7800"]="1"
-		["atarilynx"]="1"
 		["c64"]="1"
 		["fds"]="0"
 		["gb"]="0"
@@ -480,10 +418,6 @@ function init_data() {
 	# MGL type settings
 	declare -glA MGL_TYPE=(
 		["arcade"]="f"
-		["atari2600"]="f"
-		["atari5200"]="f"
-		["atari7800"]="f"
-		["atarilynx"]="f"
 		["c64"]="f"
 		["fds"]="f"
 		["gb"]="f"
@@ -500,6 +434,26 @@ function init_data() {
 		["tgfx16"]="f"
 		["tgfx16cd"]="s"
 		["psx"]="s"
+	)
+
+	# Everdrive Zip naming convention
+	declare -gA CORE_EVERDRIVE=(
+		["c64"]="Commodore 64"
+		["fds"]="Famicom Disk System"
+		["gb"]="Game Boy"
+		["gbc"]="Game Boy Color"
+		["gba"]="Game Boy Advance"
+		["genesis"]="Genesis"
+		["gg"]="Game Gear"
+		["megacd"]="Sega CD"
+		["neogeo"]="NeoGeo"
+		["nes"]="NES"
+		["s32x"]="32x"
+		["sms"]="Master System"
+		["snes"]="SNES"
+		["tgfx16"]="PC-Engine"
+		["tgfx16cd"]="PC-Engine CD"
+		["psx"]="Playstation"
 	)
 
 	# NEOGEO to long name mappings English
@@ -1158,14 +1112,14 @@ function read_samini() {
 			declare -g ${var}="${!var%/}"
 		done
 	fi
-
+	
 	# Setup corelist
-	corelist="$(echo ${corelist} | tr ',' ' ' | tr -s ' ')"
-	corelistall="$(echo ${corelistall} | tr ',' ' ' | tr -s ' ')"
-
+	corelist="$(echo ${corelist} | tr ',' ' ')"
+	corelistall="$(echo ${corelistall} | tr ',' ' ')"
+		
 	# Create array of coreexclude list names
 	declare -a coreexcludelist
-	for core in ${corelistall}; do
+	for core in ${corelist}; do
 		coreexcludelist+=("${core}exclude")
 	done
 
@@ -1181,6 +1135,7 @@ function read_samini() {
 	# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
 	zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
 }
+
 
 function GET_SYSTEM_FOLDER() {
 	local SYSTEM="${1}"
@@ -1200,24 +1155,26 @@ function defaultpath() {
 	if [ ${SYSTEM} == "arcade" ]; then
 		SYSTEM="_arcade"
 	fi
-	if [ ${SYSTEM} == "atari2600" ]; then
-		SYSTEM="atari7800"
-	fi
 	if [ ${SYSTEM} == "fds" ]; then
 		SYSTEM="nes"
 	fi
+
 	if [ ${SYSTEM} == "gb" ]; then
 		SYSTEM="gameboy"
 	fi
+
 	if [ ${SYSTEM} == "gbc" ]; then
 		SYSTEM="gameboy"
 	fi
+
 	if [ ${SYSTEM} == "gg" ]; then
 		SYSTEM="sms"
 	fi
+
 	if [ ${SYSTEM} == "tgfx16cd" ]; then
 		SYSTEM="tgfx16-cd"
 	fi
+
 	shift
 
 	GET_SYSTEM_FOLDER "${SYSTEM}"
@@ -1547,7 +1504,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@,,}; do
 			case ${arg} in
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				;;
@@ -1600,11 +1557,12 @@ function parse_cmd() {
 				break
 				;;
 			skip | next) # Load next game - stops monitor
-				# echo " Skipping to next game..."
-				# tmux send-keys -t SAM C-c ENTER
-				break
+				echo " Skipping to next game..."
+				tmux send-keys -t SAM C-c ENTER
+				# break
 				;;
 			stop) # Stop SAM immediately
+				tty_exit
 				sam_stop
 				exit
 				break
@@ -1631,7 +1589,7 @@ function parse_cmd() {
 				sam_monitor_new
 				break
 				;;
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -1679,7 +1637,7 @@ function parse_cmd() {
 				samedit_exclude
 				break
 				;;
-			ex_atari2600 | ex_atari5200 | ex_atari7800 | ex_atarilynx | ex_c64 | ex_fds | ex_gb | ex_gbc | ex_gba | ex_genesis | ex_gg | ex_megacd | ex_neogeo | ex_nes | ex_s32x | ex_sms | ex_snes | ex_tgfx16 | ex_tgfx16cd | ex_psx)
+			ex_c64 | ex_fds | ex_gb | ex_gbc | ex_gba | ex_genesis | ex_gg | ex_megacd | ex_neogeo | ex_nes | ex_s32x | ex_sms | ex_snes | ex_tgfx16 | ex_tgfx16cd | ex_psx)
 				nextcore=${1:3}
 				samedit_excltags
 				break
@@ -1987,30 +1945,30 @@ function only_survivor() {
 
 function sam_stop() {
 	# Stop all SAM processes and reboot to menu
-	tty_exit
 
-	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
+	echo -n " Stopping other running instances of ${samprocess}..."
 
-	unmute
-	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd;
+	if [ "${mute}" == "yes" ]; then echo -e "\0000\c" >/media/fat/config/Volume.dat; fi
+	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+	# Delete temp lists
+	# rm -rf /tmp/.SAM_List &> /dev/null
+
+	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
+	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
+	kill_3=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
+	kill_4=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
+
+	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
+	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
+	for kill in ${kill_3}; do
+		[[ ! -z ${kill_3} ]] && kill -9 ${kill} &>/dev/null
+	done
+	[[ ! -z ${kill_4} ]] && kill -9 ${kill_4} &>/dev/null
 
 	sleep 1
 
 	echo " Done!"
 	echo " Thanks for playing!"
-
-	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
-	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
-
-	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
-	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
-	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
-	for kill in ${kill_4}; do
-		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	done
-
 	exit
 }
 
@@ -2109,8 +2067,10 @@ function deletegl() {
 }
 
 function creategl() {
-	mkdir -p "${mrsampath}/SAM_Gamelists"
-	mkdir -p /tmp/.SAM_List
+	init_vars 2>/dev/null
+	read_samini 2>/dev/null
+	init_paths 2>/dev/null
+	init_data 2>/dev/null
 	create_all_gamelists_old="${create_all_gamelists}"
 	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
 	rebuild_freq_old="${rebuild_freq}"
@@ -2315,8 +2275,7 @@ function tty_exit() { # tty_exit
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" >${ttydevice}
-		tty_waitfor
-		sleep 1
+		tty_waitfor &
 		# Show GAME OVER! for 3 secs
 		# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
 		# tty_waitfor
@@ -2334,7 +2293,6 @@ function tty_exit() { # tty_exit
 			# echo " Done!"
 			return
 		fi
-	exit
 	fi
 }
 
@@ -2444,7 +2402,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
 					unmute
-					play_or_reload
+					tty_exit
 					exit
 				else
 					echo " Mouse activity ignored!"
@@ -2456,8 +2414,9 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
 					unmute
-					play_or_reload
+					tty_exit
 					exit
+
 				else
 					echo " Keyboard activity ignored!"
 					echo "" | >/tmp/.SAM_Keyboard_Activity
@@ -2468,7 +2427,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
 					unmute
-					play_or_reload
+					tty_exit
 					exit
 				else
 					echo " Controller activity ignored!"
@@ -2493,42 +2452,34 @@ function reset_core_gl() { # args ${nextcore}
 }
 
 function speedtest() {
-	speedtest=1
-	[ ! -d "/tmp/gl" ] && { mkdir /tmp/gl; }
-	[ ! -d "/tmp/glt" ] && { mkdir /tmp/glt; }
-	mount --bind /tmp/gl "${gamelistpath}"
-	mount --bind /tmp/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
-	for core in ${corelistall}; do
+	for core in ${corelist}; do
 		defaultpath "${core}"
 	done
 	DURATION_DP=$(($(date +%s) - ${START}))
 	START="$(date +%s)"
-	echo "" >"${gamelistpathtmp}/Durations.tmp"
-	for core in ${corelistall}; do
+	echo "" >/tmp/Durations.tmp
+	for core in ${corelist}; do
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
-		if [ ${core} = " " ] || [ ${core} = "" ] || [ -z ${core} ]; then
-			continue
-		elif [ ${core} != "arcade" ]; then
+		if [ ${core} != "arcade" ]; then
 			START2="$(date +%s)"
 			create_romlist ${core} "${DIR}"
-			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
+			cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
+			echo "${core}: $(($(date +%s) - ${START2})) seconds" >>/tmp/Durations.tmp
 		elif [ ${core} == "arcade" ]; then
 			START2="$(date +%s)"
 			build_mralist "${DIR}"
-			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
+			cp "${mralist}" "${mralist_tmp}" &>/dev/null
+			echo "${core}: $(($(date +%s) - ${START2})) seconds" >>/tmp/Durations.tmp
 		fi
 	done
-	echo "Total: $(($(date +%s) - ${START})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
-	if [ -s "${gamelistpathtmp}/Durations.tmp" ]; then
-		cat "${gamelistpathtmp}/Durations.tmp" | while IFS=$'\n' read line; do
+	echo "Total: $(($(date +%s) - ${START})) seconds" >>/tmp/Durations.tmp
+	if [ -s "/tmp/Durations.tmp" ]; then
+		cat "/tmp/Durations.tmp" | while IFS=$'\n' read line; do
 			echo "${line}"
 		done
 	fi
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
-	umount "${gamelistpath}"
-	umount "${gamelistpathtmp}"
-	speedtest=0
 }
 
 function create_game_lists() {
@@ -2596,7 +2547,7 @@ function create_game_lists() {
 	#	done
 	# fi
 
-	for core in ${corelistall}; do
+	for core in ${corelist}; do
 		corelisttmp=${corelist}
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		local date_file=""
@@ -2606,13 +2557,17 @@ function create_game_lists() {
 					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
 					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
 						create_romlist ${core} "${DIR}"
+						cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 					fi
 				else
 					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
 					rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 				fi
 			else
+
 				create_romlist ${core} "${DIR}"
+
+				cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 			fi
 		elif [ ${core} == "arcade" ]; then
 			if [ -f "${mralist}" ]; then
@@ -2620,26 +2575,28 @@ function create_game_lists() {
 					date_file=$(stat -c '%Y' "${mralist}")
 					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
 						build_mralist "${DIR}"
+						cp "${mralist}" "${mralist_tmp}" &>/dev/null
 					fi
 				else
 					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
 					rm "${mralist}" &>/dev/null
 				fi
 			else
+
 				build_mralist "${DIR}"
+
+				cp "${mralist}" "${mralist_tmp}" &>/dev/null
 			fi
 		fi
+		# echo ${corelisttmp}
 		corelist=${corelisttmp}
 	done
 }
 
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
-	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  ${2}..."
-	else
-		echo -n " Looking for games in  ${2}..."
-	fi
+	echo -n " Looking for games in  ${2}..."
+
 	# Find all files in core's folder with core's extension
 	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
 	find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
@@ -2648,9 +2605,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
 		if [ -s "${tmpfile2}" ]; then
 			cat "${tmpfile2}" | while read z; do
-				if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
-					echo " Processing: ${z}"
-				fi
+				if [ "${samquiet}" == "no" ]; then echo " Processing: ${z}"; fi
 				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${1}]}" >>"${tmpfile}"
 			done
 		fi
@@ -2664,15 +2619,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	rm ${tmpfile} &>/dev/null
 	rm ${tmpfile2} &>/dev/null
 
-	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
-	if [ ${speedtest} -eq 1 ]; then
-		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
-	fi
-	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
-		echo "${total_games} Games found."
-	else
-		echo " ${total_games} Games found."
-	fi
+	echo " $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l) Games found."
 }
 
 function check_list() { # args ${nextcore}  "${DIR}"
@@ -2737,23 +2684,33 @@ function check_list() { # args ${nextcore}  "${DIR}"
 
 # This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
-	if [ -z "$(echo '${corelist}' | sed 's/ //g')" ]; then
-		if [ -s "${corelisttmpfile}" ]; then
-			corelist=$(cat "${corelisttmpfile}")
-		else
-			echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
-			exit 1
-		fi
-	else
-		[ ! -e "${corelisttmpfile}" ] && { echo ${corelist}  >"${corelisttmpfile}"; }
+	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
+		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
+		exit 1
 	fi
+
 	# Set $nextcore from $corelist
 	if [ -z "${1}" ]; then
 		# Don't repeat same core twice
-		# Choose the actual core
-		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
-		corelist=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
+
+		if [ ! -z ${nextcore} ]; then
+
+			corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
+
+			# Choose the actual core
+			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"
+
+			# If core is single core make sure we don't run out of cores
+			if [ -z ${nextcore} ]; then
+				nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+			fi
+
+		else
+			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+		fi
+
 		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
+
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
@@ -2761,24 +2718,29 @@ function next_core() { # next_core (core)
 		nextcore="${1}"
 		countdown="countdown"
 	fi
+
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
 		load_core_arcade
 		return
 	fi
+
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
+
 	check_list ${nextcore} "${DIR}"
+
 	romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
 	extension="${rompath##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
+	echo ${extlist}
 	if [ ! $(echo "${extension}" | grep -i -w -q "${extlist}" | echo $?) ]; then
-		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"; fi
+		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension,,}\e[0m"; fi
 		next_core
 		return
 	else
-		if [ "${samquiet}" == "no" ]; then echo -e " Correct Extension! \e[1m${extension^^}\e[0m"; fi
+		if [ "${samquiet}" == "no" ]; then echo -e " Correct Extension! \e[1m${extension,,}\e[0m"; fi
 	fi
 
 	# If there is an exclude list check it
@@ -2912,36 +2874,27 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ "${mute}" == "yes" ] && [ ${muted} -eq 0 ]; then
+	if [ "${mute}" == "yes" ]; then
 		# Mute Global Volume
-		muted=1
 		echo -e "\0020\c" >/media/fat/config/Volume.dat
 	fi
 }
 
 function unmute() {
-	if [ ${muted} -eq 1 ]; then
-		# Unmute Global Volume
-		muted=0
+	if [ "${mute}" == "yes" ]; then
+		# Unmute and reload core
 		echo -e "\0000\c" >/media/fat/config/Volume.dat
-	fi
-}
-
-function play_or_reload() {
-	if [ "${playcurrentgame}" == "yes" ]; then
-		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-	else
-		sam_stop
+		if [ "${playcurrentgame}" == "yes" ]; then
+			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+		else
+			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		fi
 	fi
 }
 
 # ======== ARCADE MODE ========
 function build_mralist() {
-	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  ${1}..."
-	else
-		echo -n " Looking for games in  ${1}..."
-	fi
+	echo -n " Looking for games in  ${1}..."
 	# If no MRAs found - suicide!
 	find "${1}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
@@ -2963,15 +2916,7 @@ function build_mralist() {
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
-	total_games=$(cat "${mralist}" | sed '/^\s*$/d' | wc -l)
-	if [ ${speedtest} -eq 1 ]; then
-		echo -n "Arcade: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
-	fi
-	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
-		echo "${total_games} Games found."
-	else
-		echo " ${total_games} Games found."
-	fi
+	echo " $(cat "${mralist}" | sed '/^\s*$/d' | wc -l) Arcade Games found."
 }
 
 function load_core_arcade() {
@@ -3041,38 +2986,39 @@ function load_core_arcade() {
 # ========= MAIN =========
 function main() {
 	init_vars
+
 	read_samini
+
 	init_paths
+
 	if [ ${usedefaultpaths} == "yes" ]; then
-		for core in ${corelistall}; do
+		for core in ${corelist}; do
 			defaultpath "${core}"
 		done
 	fi
+
 	init_data # Setup data arrays
-	update_tasks
+
 	if [ "${1,,}" == "--speedtest" ]; then
 		speedtest
 	fi
+
 	if [ "${1,,}" == "--create-gamelists" ]; then
 		creategl
 	fi
+
 	if [ "${samtrace}" == "yes" ]; then
 		debug_output
 	fi
+
 	disable_bootrom # Disable Bootrom until Reboot
+
 	mute
+
 	parse_cmd ${@} # Parse command line parameters for input
+
 }
-if [ "${1,,}" == "stop" ] || [ "${1,,}" == "quit" ]; then
-	declare -gi muted=1
-	sam_stop
-	exit
-fi
-if [ "${1,,}" == "skip" ] || [ "${1,,}" == "next" ]; then
-	echo " Skipping to next game..."
-	tmux send-keys -t SAM C-c ENTER
-	exit
-fi
+
 if [ "${1,,}" != "--source-only" ]; then
 	main ${@}
 fi
