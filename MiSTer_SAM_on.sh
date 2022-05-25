@@ -2737,7 +2737,7 @@ function check_list() { # args ${nextcore}  "${DIR}"
 
 # This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
-	if [ -z $(echo "${corelist}" | sed "s/ //g") ]; then
+	if [ -z "$(echo '${corelist}' | sed 's/ //g')" ]; then
 		if [ -s "${corelisttmpfile}" ]; then
 			corelist=$(cat "${corelisttmpfile}")
 		else
