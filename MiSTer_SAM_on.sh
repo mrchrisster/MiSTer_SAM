@@ -1605,7 +1605,6 @@ function parse_cmd() {
 				break
 				;;
 			stop) # Stop SAM immediately
-				tty_exit
 				sam_stop
 				exit
 				break
@@ -1988,28 +1987,30 @@ function only_survivor() {
 
 function sam_stop() {
 	# Stop all SAM processes and reboot to menu
+	tty_exit
 
-	echo -n " Stopping other running instances of ${samprocess}..."
+	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
 	unmute
 	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd;
-
-	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
-	kill_3=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
-	kill_4=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-
-	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
-	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
-	for kill in ${kill_3}; do
-		[[ ! -z ${kill_3} ]] && kill -9 ${kill} &>/dev/null
-	done
-	[[ ! -z ${kill_4} ]] && kill -9 ${kill_4} &>/dev/null
 
 	sleep 1
 
 	echo " Done!"
 	echo " Thanks for playing!"
+
+	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
+	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
+	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
+	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
+
+	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
+	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
+	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
+	for kill in ${kill_4}; do
+		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+	done
+
 	exit
 }
 
@@ -2443,8 +2444,8 @@ function loop_core() { # loop_core (core)
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
 					unmute
-					tty_exit
-					[ play_or_reload ] && sam_stop
+					play_or_reload
+					exit
 				else
 					echo " Mouse activity ignored!"
 					echo "" | >/tmp/.SAM_Mouse_Activity
@@ -2455,8 +2456,8 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
 					unmute
-					tty_exit
-					[ play_or_reload ] && sam_stop
+					play_or_reload
+					exit
 				else
 					echo " Keyboard activity ignored!"
 					echo "" | >/tmp/.SAM_Keyboard_Activity
@@ -2467,8 +2468,8 @@ function loop_core() { # loop_core (core)
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
 					unmute
-					tty_exit
-					[ play_or_reload ] && sam_stop
+					play_or_reload
+					exit
 				else
 					echo " Controller activity ignored!"
 					echo "" | >/tmp/.SAM_Joy_Activity
@@ -2929,10 +2930,8 @@ function unmute() {
 function play_or_reload() {
 	if [ "${playcurrentgame}" == "yes" ]; then
 		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-		return 0
 	else
-		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-		return 1
+		sam_stop
 	fi
 }
 
@@ -3064,6 +3063,11 @@ function main() {
 	mute
 	parse_cmd ${@} # Parse command line parameters for input
 }
+if [ "${1,,}" == "stop" ] || [ "${1,,}" == "quit" ]; then
+	declare -gi muted=1
+	sam_stop
+	exit
+fi
 if [ "${1,,}" == "skip" ] || [ "${1,,}" == "next" ]; then
 	echo " Skipping to next game..."
 	tmux send-keys -t SAM C-c ENTER
