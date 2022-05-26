@@ -2169,10 +2169,11 @@ function tty_init() { # tty_init
 
 function tty_waitfor() {
 	if [ "${ttyuseack}" == "yes" ]; then
-		read -d ";" ttyresponse <${ttydevice} # The "read" command at this position simulates an "do..while" loop
-		while [ "${ttyresponse}" != "ttyack" ]; do
-			read -d ";" ttyresponse <${ttydevice} # Read Serial Line until delimiter ";"
-		done
+		read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
+		# read -d ";" ttyresponse <${ttydevice} # The "read" command at this position simulates an "do..while" loop
+		#while [ "${ttyresponse}" != "ttyack" ]; do
+		#  read -d ";" ttyresponse <${ttydevice} # Read Serial Line until delimiter ";"
+		#done
 		#echo -e "${fgreen}${ttyresponse}${freset}"
 		ttyresponse=""
 		#sleep 0.05
