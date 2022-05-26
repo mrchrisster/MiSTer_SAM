@@ -2076,15 +2076,17 @@ function sam_stop() {
 }
 
 function sam_exit() {
-	unmute
-	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd;
+	if [ -z "${1}" ]; then
+		unmute
+		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd;
 
-	sleep 1
+		sleep 1
 
-	echo " Done!"
-	echo " Thanks for playing!"
-
-	exit
+		echo " Done!"
+		echo " Thanks for playing!"
+	else
+		exit
+	fi
 }
 
 function env_check() {
@@ -2516,7 +2518,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
-					unmute
 					play_or_exit
 					exit
 				else
@@ -2528,7 +2529,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
-					unmute
 					play_or_exit
 					exit
 				else
@@ -2540,7 +2540,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
-					unmute
 					play_or_exit
 					exit
 				else
@@ -3000,7 +2999,10 @@ function unmute() {
 }
 
 function play_or_exit() {
-	if [ "${playcurrentgame}" == "yes" ]; then
+	if [ "${playcurrentgame}" == "yes" ] && [ ${muted} -eq 0 ]; then
+		sam_exit "play"
+	elif [ "${playcurrentgame}" == "yes" ] && [ ${muted} -eq 1 ]; then
+		unmute
 		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 	else
 		sam_exit
