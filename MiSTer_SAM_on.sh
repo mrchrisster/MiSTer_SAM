@@ -2209,7 +2209,6 @@ function tty_init() { # tty_init
 		# Stopping tty2oled Daemon
 		if [ "${ttyuseack}" == "yes" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-			# echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
 			# sleep 3
 			/media/fat/tty2oled/S60tty2oled stop
 			if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
@@ -2353,18 +2352,13 @@ function tty_exit() { # tty_exit
 		# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
 		# tty_waitfor
 		# sleep 3
-		# Set CORENAME for tty2oled Daemon start
-		# echo "MENU" >/tmp/CORENAME
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack}" == "yes" ]; then
-			# echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change MiSTer_SAM_on.ini"
-			# echo -n " Starting tty2oled daemon..."
-			tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
-			# if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
-			#	${mrsampath}/MiSTer_SAM_MCP tty2oled &>/dev/null
-			# fi
-			# echo " Done!"
-			return
+			if [ "${samquiet}" == "no" ]; then echo -n " Starting tty2oled daemon..."; fi
+			if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
+				tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+			fi
+			echo " Done."
 		fi
 	fi
 }
