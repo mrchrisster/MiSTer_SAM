@@ -1489,9 +1489,10 @@ function samedit_include() {
 
 		corelist=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
 
-		dialog --clear --no-cancel --ascii-lines --colors \
+		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-			--msgbox "SAM will start now and only play games from the "${categ^^}" category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
+			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
+		only_survivor
 		loop_core
 	fi
 
@@ -1999,6 +2000,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 function only_survivor() {
 	# Kill all SAM processes except for currently running
 	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+	tty_init
 }
 
 function sam_stop() {
@@ -2347,7 +2349,7 @@ function tty_exit() { # tty_exit
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" >${ttydevice}
-		tty_waitfor
+		tty_waitfor &
 		# Show GAME OVER! for 3 secs
 		# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
 		# tty_waitfor
@@ -2819,8 +2821,11 @@ function next_core() { # next_core (core)
 	extension="${rompath##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 				
-	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
+	if [[ ! "$(echo "${extlist}" | grep -i "${extension}")" ]]; then
 		if [ "${samquiet}" == "no" ]; then echo -e " Wrong extension found: \e[1m${extension^^}\e[0m"; fi
+		if [ "${samquiet}" == "no" ]; then echo -e " Regenerating Game List"; fi
+
+		create_romlist ${nextcore} "${DIR}"
 		next_core ${nextcore}
 		return
 	fi
@@ -2929,7 +2934,7 @@ function core_error() { # core_error core /path/to/ROM
 		declare -g corelist=("${corelist[@]/${1}/}")
 		echo " List of cores is now: ${corelist[@]}"
 		declare -g romloadfails=0
-		next_core ${1}
+		next_core
 	fi
 }
 
