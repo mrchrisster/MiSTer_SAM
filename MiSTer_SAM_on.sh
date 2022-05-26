@@ -236,24 +236,24 @@ function init_data() {
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
 		["arcade"]="mra"
-		["atari2600"]="a26"			# Should we include? "bin"
-		["atari5200"]="a52,car"		# Should we include? "bin,rom"
-		["atari7800"]="a78"			# Should we include? "bin"
+		["atari2600"]="a26"     # Should we include? "bin"
+		["atari5200"]="a52,car" # Should we include? "bin,rom"
+		["atari7800"]="a78"     # Should we include? "bin"
 		["atarilynx"]="lnx"
-		["c64"]="crt,prg" 			# need to be tested "reu,tap,flt,rom,c1581"
+		["c64"]="crt,prg" # need to be tested "reu,tap,flt,rom,c1581"
 		["fds"]="fds"
-		["gb"]="gb"			 		# Should we include? "bin"
-		["gbc"]="gbc"		 		# Should we include? "bin"
+		["gb"]="gb"   # Should we include? "bin"
+		["gbc"]="gbc" # Should we include? "bin"
 		["gba"]="gba"
-		["genesis"]="md,gen" 		# Should we include? "bin"
+		["genesis"]="md,gen" # Should we include? "bin"
 		["gg"]="gg"
 		["megacd"]="chd,cue"
 		["neogeo"]="neo"
 		["nes"]="nes"
 		["s32x"]="32x"
 		["sms"]="sms,sg"
-		["snes"]="sfc,smc" 	 		# Should we include? "bin,bs"
-		["tgfx16"]="pce,sgx"		 # Should we include? "bin"
+		["snes"]="sfc,smc"   # Should we include? "bin,bs"
+		["tgfx16"]="pce,sgx" # Should we include? "bin"
 		["tgfx16cd"]="chd,cue"
 		["psx"]="chd,cue,exe"
 	)
@@ -1581,8 +1581,8 @@ function process_cmd() {
 		startup_tasks
 		creategl
 		;;
-	--sourceonly)
-		;;
+	--sourceonly) ;;
+
 	--help)
 		sam_help
 		;;
@@ -2053,7 +2053,7 @@ function sam_stop() {
 	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
 	unmute
-	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd;
+	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 
 	sleep 1
 
@@ -2078,7 +2078,7 @@ function sam_stop() {
 function sam_exit() {
 	if [ -z "${1}" ]; then
 		unmute
-		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd;
+		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 
 		sleep 1
 
@@ -2705,7 +2705,7 @@ function create_game_lists() {
 
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
-	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 		echo " Looking for games in  ${2}..."
 	else
 		echo -n " Looking for games in  ${2}..."
@@ -2718,7 +2718,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
 		if [ -s "${tmpfile2}" ]; then
 			cat "${tmpfile2}" | while read z; do
-				if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+				if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 					echo " Processing: ${z}"
 				fi
 				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${1}]}" >>"${tmpfile}"
@@ -2727,7 +2727,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	fi
 
 	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt"
-	
+
 	# Strip out all duplicate filenames with a fancy awk command
 	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
 	# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt"
@@ -2738,7 +2738,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
 	fi
-	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 		echo "${total_games} Games found."
 	else
 		echo " ${total_games} Games found."
@@ -2815,7 +2815,7 @@ function next_core() { # next_core (core)
 			exit 1
 		fi
 	elif [ ! -s "${corelisttmpfile}" ]; then
-		echo "${corelist}"  >"${corelisttmpfile}"
+		echo "${corelist}" >"${corelisttmpfile}"
 	fi
 	if [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
@@ -2830,7 +2830,7 @@ function next_core() { # next_core (core)
 		if [ "${1}" == "${nextcore}" ]; then
 			next_core ${nextcore}
 			return
-		else 
+		else
 			corelist=$(echo ${corelist} | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
 		fi
 	fi
@@ -3014,7 +3014,7 @@ function play_or_exit() {
 
 # ======== ARCADE MODE ========
 function build_mralist() {
-	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 		echo " Looking for games in  ${1}..."
 	else
 		echo -n " Looking for games in  ${1}..."
@@ -3044,7 +3044,7 @@ function build_mralist() {
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "Arcade: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
 	fi
-	if [ ${speedtest} -eq 1 ] ||  [ "${samquiet}" == "no" ]; then
+	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 		echo "${total_games} Games found."
 	else
 		echo " ${total_games} Games found."
