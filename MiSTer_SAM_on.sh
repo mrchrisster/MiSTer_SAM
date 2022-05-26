@@ -1915,7 +1915,6 @@ function sam_enable() { # Enable autoplay
 		echo -e "\n# Startup MiSTer_SAM - Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e "${mrsampath}/MiSTer_SAM_init" ]] && "${mrsampath}/MiSTer_SAM_init " \$1 &" >>"${userstartup}"
 	fi
-	echo "Done."
 	echo " SAM install complete."
 	echo -e "\n\n\n"
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
@@ -1927,7 +1926,6 @@ function sam_enable() { # Enable autoplay
 		echo -ne "\e[1m" whenever controller is not in use"\e[0m"
 	fi
 	echo -e "\e[1m" and show each game for ${gametimer} sec."\e[0m"
-	echo -e "\n"
 	echo -ne "\e[1m" First run will take time to compile game list... please wait."\e[0m"
 	echo -e "\n\n\n"
 	sleep 5
