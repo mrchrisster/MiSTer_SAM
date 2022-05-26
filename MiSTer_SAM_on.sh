@@ -1551,42 +1551,42 @@ function samedit_taginfo() {
 
 function process_cmd() {
 	case "${1,,}" in
-	stop | --quit)
+	--stop | --quit)
 		declare -gi muted=1
 		sam_stop
 		;;
-	skip | --next)
+	--skip | --next)
 		echo " Skipping to next game..."
 		tmux send-keys -t SAM C-c ENTER
 		;;
-	monitor)
+	--monitor)
 		sam_monitor_new
 		;;
-	update) # Update SAM
+	--update) # Update SAM
 		startup_tasks
 		sam_update
 		;;
-	enable) # Enable SAM autoplay mode
+	--enable) # Enable SAM autoplay mode
 		startup_tasks
 		env_check ${1}
 		sam_enable
 		;;
-	disable) # Disable SAM autoplay
+	--disable) # Disable SAM autoplay
 		startup_tasks
 		sam_disable
 		;;
-	speedtest)
+	--speedtest)
 		startup_tasks
 		speedtest
 		;;
-	create-gamelists)
+	--create-gamelists)
 		startup_tasks
 		creategl
 		;;
-	sourceonly)
+	--sourceonly)
 		startup_tasks
 		;;
-	help)
+	--help)
 		sam_help
 		;;
 	*)
@@ -1654,6 +1654,39 @@ function parse_cmd() {
 				env_check ${1}
 				tty_init
 				loop_core ${nextcore}
+				break
+				;;
+			skip | next) # Load next game - stops monitor
+				# echo " Skipping to next game..."
+				# tmux send-keys -t SAM C-c ENTER
+				echo "Use new commandline option --skip or --next"
+				break
+				;;
+			stop) # Stop SAM immediately
+				# sam_stop
+				# exit
+				echo "Use new commandline option --stop"
+				break
+				;;
+			update) # Update SAM
+				# sam_update
+				echo "Use new commandline option --update"
+				break
+				;;
+			enable) # Enable SAM autoplay mode
+				# env_check ${1}
+				# sam_enable
+				echo "Use new commandline option --enable"
+				break
+				;;
+			disable) # Disable SAM autoplay
+				# sam_disable
+				echo "Use new commandline option --disable"
+				break
+				;;
+			monitor) # Warn user of changes
+				# sam_monitor_new
+				echo "Use new commandline option --monitor"
 				break
 				;;
 			startmonitor)
