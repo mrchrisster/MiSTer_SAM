@@ -26,17 +26,16 @@
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
+# ======== GLOBAL VARIABLES =========
+declare -gr mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -gr misterpath="/media/fat"
+# Save our PID and process
+declare -gr sampid="${$}"
+declare -gr samprocess="$(basename -- ${0})"
+
 # ======== INI VARIABLES ========
 # Change these in the INI file
 function init_vars() {
-	# ======== GLOBAL VARIABLES =========
-	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-	declare -g misterpath="/media/fat"
-	# Save our PID and process
-	declare -gr sampid="${$}"
-	declare -gr samprocess="$(basename -- ${0})"
-	declare -gi inmenu=0
-
 	# ======== DEBUG VARIABLES ========
 	declare -gl samquiet="Yes"
 	declare -gl samdebug="No"
@@ -44,6 +43,7 @@ function init_vars() {
 	declare -gi speedtest=0
 
 	# ======== LOCAL VARIABLES ========
+	declare -gi inmenu=0
 	declare -gi coreretries=3
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
@@ -199,6 +199,11 @@ function init_paths() {
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
 	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
+	if [ ${usedefaultpaths} == "yes" ]; then
+		for core in ${corelistall}; do
+			defaultpath "${core}"
+		done
+	fi
 }
 
 # ======== CORE CONFIG ========
@@ -1084,7 +1089,14 @@ function init_data() {
 		["zintrkcd"]="Oshidashi Zentrix (CD conversion)"
 		["zupapa"]=""
 	)
+}
 
+function startup_tasks() {
+	init_vars
+	read_samini
+	init_paths
+	init_data # Setup data arrays
+	update_tasks
 }
 
 # ======== DEBUG OUTPUT =========
@@ -1537,6 +1549,51 @@ function samedit_taginfo() {
 	sam_menu
 }
 
+function process_cmd() {
+	case "${1,,}" in
+	--stop | --quit)
+		declare -gi muted=1
+		sam_stop
+		;;
+	--skip | --next)
+		echo " Skipping to next game..."
+		tmux send-keys -t SAM C-c ENTER
+		;;
+	--monitor)
+		sam_monitor_new
+		;;
+	--update) # Update SAM
+		sam_update
+		;;
+	--enable) # Enable SAM autoplay mode
+		env_check ${1}
+		sam_enable
+		;;
+	--disable) # Disable SAM autoplay
+		declare -gi muted=1
+		sam_disable
+		;;
+	--speedtest)
+		startup_tasks
+		speedtest
+		;;
+	--create-gamelists)
+		startup_tasks
+		creategl
+		;;
+	--sourceonly)
+		;;
+	--help)
+		sam_help
+		;;
+	*)
+		echo " ERROR! ${1} is unknown."
+		echo " Try $(basename -- ${0}) help"
+		echo " Or check the Github readme."
+		;;
+	esac
+}
+
 function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
 		sam_help
@@ -1569,9 +1626,6 @@ function parse_cmd() {
 				sam_update autoconfig
 				break
 				;;
-			--speedtest | --sourceonly | --create-gamelists)
-				break
-				;;
 			autoconfig)
 				tmux kill-session -t MCP &>/dev/null
 				there_can_be_only_one
@@ -1602,28 +1656,34 @@ function parse_cmd() {
 			skip | next) # Load next game - stops monitor
 				# echo " Skipping to next game..."
 				# tmux send-keys -t SAM C-c ENTER
+				echo "Use new commandline option --skip or --next"
 				break
 				;;
 			stop) # Stop SAM immediately
-				sam_stop
-				exit
+				# sam_stop
+				# exit
+				echo "Use new commandline option --stop"
 				break
 				;;
 			update) # Update SAM
-				sam_update
+				# sam_update
+				echo "Use new commandline option --update"
 				break
 				;;
 			enable) # Enable SAM autoplay mode
-				env_check ${1}
-				sam_enable
+				# env_check ${1}
+				# sam_enable
+				echo "Use new commandline option --enable"
 				break
 				;;
 			disable) # Disable SAM autoplay
-				sam_disable
+				# sam_disable
+				echo "Use new commandline option --disable"
 				break
 				;;
 			monitor) # Warn user of changes
-				sam_monitor_new
+				# sam_monitor_new
+				echo "Use new commandline option --monitor"
 				break
 				;;
 			startmonitor)
@@ -1768,7 +1828,8 @@ function parse_cmd() {
 				break
 				;;
 			help)
-				sam_help
+				# sam_help
+				echo "Use new commandline option --help"
 				break
 				;;
 			*)
@@ -2010,6 +2071,18 @@ function sam_stop() {
 	for kill in ${kill_4}; do
 		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
 	done
+
+	exit
+}
+
+function sam_exit() {
+	unmute
+	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd;
+
+	sleep 1
+
+	echo " Done!"
+	echo " Thanks for playing!"
 
 	exit
 }
@@ -2444,7 +2517,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
 					unmute
-					play_or_reload
+					play_or_exit
 					exit
 				else
 					echo " Mouse activity ignored!"
@@ -2456,7 +2529,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
 					unmute
-					play_or_reload
+					play_or_exit
 					exit
 				else
 					echo " Keyboard activity ignored!"
@@ -2468,7 +2541,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
 					unmute
-					play_or_reload
+					play_or_exit
 					exit
 				else
 					echo " Controller activity ignored!"
@@ -2926,11 +2999,11 @@ function unmute() {
 	fi
 }
 
-function play_or_reload() {
+function play_or_exit() {
 	if [ "${playcurrentgame}" == "yes" ]; then
 		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 	else
-		sam_stop
+		sam_exit
 	fi
 }
 
@@ -3039,22 +3112,15 @@ function load_core_arcade() {
 
 # ========= MAIN =========
 function main() {
-	init_vars
-	read_samini
-	init_paths
-	if [ ${usedefaultpaths} == "yes" ]; then
-		for core in ${corelistall}; do
-			defaultpath "${core}"
-		done
+	if [ ${1:0:2} == "--" ]; then
+		if [ ${#} -gt 1 ]; then # We don't accept more than 1 parameter
+			echo "Too many parameters"
+		else
+			process_cmd ${1}
+		fi
+		exit
 	fi
-	init_data # Setup data arrays
-	update_tasks
-	if [ "${1,,}" == "--speedtest" ]; then
-		speedtest
-	fi
-	if [ "${1,,}" == "--create-gamelists" ]; then
-		creategl
-	fi
+	startup_tasks
 	if [ "${samtrace}" == "yes" ]; then
 		debug_output
 	fi
@@ -3062,16 +3128,5 @@ function main() {
 	mute
 	parse_cmd ${@} # Parse command line parameters for input
 }
-if [ "${1,,}" == "stop" ] || [ "${1,,}" == "quit" ]; then
-	declare -gi muted=1
-	sam_stop
-	exit
-fi
-if [ "${1,,}" == "skip" ] || [ "${1,,}" == "next" ]; then
-	echo " Skipping to next game..."
-	tmux send-keys -t SAM C-c ENTER
-	exit
-fi
-if [ "${1,,}" != "--source-only" ]; then
-	main ${@}
-fi
+
+main ${@}
