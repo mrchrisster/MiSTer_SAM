@@ -1957,7 +1957,7 @@ function sam_enable() { # Enable autoplay
 	fi
 	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ]; then
 		echo -e "Add MiSTer SAM to ${userstartup}\n"
-		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
+		echo -e "\n# Startup MiSTer_SAM - Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e "${mrsampath}/MiSTer_SAM_init" ]] && "${mrsampath}/MiSTer_SAM_init " \$1 &" >>"${userstartup}"
 	fi
 	echo "Done."
