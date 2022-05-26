@@ -2390,8 +2390,7 @@ function tty_exit() { # tty_exit
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" >${ttydevice}
-		tty_waitfor
-		sleep 1
+		tty_waitfor &
 		# Show GAME OVER! for 3 secs
 		# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
 		# tty_waitfor
@@ -2409,7 +2408,6 @@ function tty_exit() { # tty_exit
 			# echo " Done!"
 			return
 		fi
-	exit
 	fi
 }
 
@@ -2551,7 +2549,7 @@ function loop_core() { # loop_core (core)
 		done
 
 		counter=${gametimer}
-		next_core ${1}
+		next_core ${nextcore}
 
 	done
 	trap - INT
@@ -2819,7 +2817,6 @@ function next_core() { # next_core (core)
 	elif [ ! -s "${corelisttmpfile}" ]; then
 		echo "${corelist}"  >"${corelisttmpfile}"
 	fi
-	# Set $nextcore from $corelist
 	if [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
@@ -2827,9 +2824,15 @@ function next_core() { # next_core (core)
 		nextcore="${1}"
 		countdown="countdown"
 	fi
-	if [ ${countdown} != "countdown" ]; then
+	if [ "${countdown}" != "countdown" ]; then
+		# Set $nextcore from $corelist
 		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
-		corelist=$(echo ${corelist} | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
+		if [ "${1}" == "${nextcore}" ]; then
+			next_core ${nextcore}
+			return
+		else 
+			corelist=$(echo ${corelist} | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
+		fi
 	fi
 	if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
 	if [ "${nextcore}" == "arcade" ]; then
@@ -2846,7 +2849,7 @@ function next_core() { # next_core (core)
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
 		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"; fi
-		next_core
+		next_core ${nextcore}
 		return
 	else
 		if [ "${samquiet}" == "no" ]; then echo -e " Correct Extension! \e[1m${extension^^}\e[0m"; fi
@@ -2859,7 +2862,7 @@ function next_core() { # next_core (core)
 			if [ "${romname}" == "${excluded}" ]; then
 				echo " ${romname} is excluded - SKIPPED"
 				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-				next_core
+				next_core ${nextcore}
 				return
 			fi
 		done
@@ -2956,7 +2959,7 @@ function core_error() { # core_error core /path/to/ROM
 		declare -g corelist=("${corelist[@]/${1}/}")
 		echo " List of cores is now: ${corelist[@]}"
 		declare -g romloadfails=0
-		next_core
+		next_core ${1}
 	fi
 }
 
@@ -3054,7 +3057,7 @@ function load_core_arcade() {
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
-	if [ ! -s "${mralist_tmp}" ]; then
+	if [ ! -s "${mralist}" ]; then
 		build_mralist "${DIR}"
 	fi
 
@@ -3082,7 +3085,6 @@ function load_core_arcade() {
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}" >${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
-
 	fi
 
 	mraname=$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')
