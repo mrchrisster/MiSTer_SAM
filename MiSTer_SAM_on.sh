@@ -86,6 +86,7 @@ function init_vars() {
 	declare -gi regen_duration_arcade=1
 	declare -gi rebuild_freq_arcade_int="604800"
 	declare -gi bootsleep="60"
+	declare -gi countdown="nocountdown"
 
 	# ======== TTY2OLED =======
 	declare -gl ttyenable="No"
@@ -1473,7 +1474,6 @@ function samedit_include() {
 		done
 
 		corelist=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
-		# echo ${corelist}
 		dialog --clear --no-cancel --ascii-lines --colors \
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 			--msgbox "SAM will start now and only play games from the "${categ^^}" category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
@@ -2737,30 +2737,29 @@ function check_list() { # args ${nextcore}  "${DIR}"
 
 # This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
-	if [ -z "$(echo '${corelist}' | sed 's/ //g')" ]; then
+	if [ -z "$(echo ${corelist} | sed 's/ //g')" ]; then
 		if [ -s "${corelisttmpfile}" ]; then
-			corelist=$(cat "${corelisttmpfile}")
+			corelist="$(cat ${corelisttmpfile})"
 		else
 			echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
 			exit 1
 		fi
-	else
-		[ ! -e "${corelisttmpfile}" ] && { echo ${corelist}  >"${corelisttmpfile}"; }
+	elif [ ! -s "${corelisttmpfile}" ]; then
+		echo "${corelist}"  >"${corelisttmpfile}"
 	fi
 	# Set $nextcore from $corelist
-	if [ -z "${1}" ]; then
-		# Don't repeat same core twice
-		# Choose the actual core
-		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
-		corelist=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
-		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
-	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
+	if [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
 	elif [ "${2,,}" == "countdown" ]; then
 		nextcore="${1}"
 		countdown="countdown"
 	fi
+	if [ ${countdown} != "countdown" ]; then
+		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+		corelist=$(echo ${corelist} | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
+	fi
+	if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
 		load_core_arcade
@@ -2773,7 +2772,7 @@ function next_core() { # next_core (core)
 	# Sanity check that we have a valid rom in var
 	extension="${rompath##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
-	if [ ! $(echo "${extension}" | grep -i -w -q "${extlist}" | echo $?) ]; then
+	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
 		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"; fi
 		next_core
 		return
