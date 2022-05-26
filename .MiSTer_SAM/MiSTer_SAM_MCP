@@ -32,14 +32,6 @@ if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 fi
 
-if [ "${1,,}" == "tty2oled" ]; then
-	/media/fat/tty2oled/S60tty2oled start
-	break
-fi
-
-
-
-
 
 #======== FUNCTIONS ========
 function sam_jschange() {
