@@ -1918,6 +1918,7 @@ function sam_enable() { # Enable autoplay
 	echo "Done."
 	echo " SAM install complete."
 	echo -e "\n\n\n"
+	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 	boot_samtimeout=$((${samtimeout} + ${bootsleep}))
 	echo -ne "\e[1m" SAM will start ${boot_samtimeout} sec. after boot"\e[0m"
 	if [ "${menuonly}" == "yes" ]; then
@@ -1928,7 +1929,7 @@ function sam_enable() { # Enable autoplay
 	echo -e "\e[1m" and show each game for ${gametimer} sec."\e[0m"
 	echo -e "\n\n\n"
 	sleep 5
-	echo " SAM will begin shuffle now... please wait."
+	echo " SAM will begin shuffle now. First run will take time to compile game list... please wait."
 
 	"${misterpath}/Scripts/MiSTer_SAM_on.sh" start
 
