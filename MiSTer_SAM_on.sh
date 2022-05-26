@@ -1656,39 +1656,6 @@ function parse_cmd() {
 				loop_core ${nextcore}
 				break
 				;;
-			skip | next) # Load next game - stops monitor
-				# echo " Skipping to next game..."
-				# tmux send-keys -t SAM C-c ENTER
-				echo "Use new commandline option --skip or --next"
-				break
-				;;
-			stop) # Stop SAM immediately
-				# sam_stop
-				# exit
-				echo "Use new commandline option --stop"
-				break
-				;;
-			update) # Update SAM
-				# sam_update
-				echo "Use new commandline option --update"
-				break
-				;;
-			enable) # Enable SAM autoplay mode
-				# env_check ${1}
-				# sam_enable
-				echo "Use new commandline option --enable"
-				break
-				;;
-			disable) # Disable SAM autoplay
-				# sam_disable
-				echo "Use new commandline option --disable"
-				break
-				;;
-			monitor) # Warn user of changes
-				# sam_monitor_new
-				echo "Use new commandline option --monitor"
-				break
-				;;
 			startmonitor)
 				sam_start_new
 				sam_monitor_new
