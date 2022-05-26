@@ -1563,14 +1563,16 @@ function process_cmd() {
 		sam_monitor_new
 		;;
 	--update) # Update SAM
+		startup_tasks
 		sam_update
 		;;
 	--enable) # Enable SAM autoplay mode
+		startup_tasks
 		env_check ${1}
 		sam_enable
 		;;
 	--disable) # Disable SAM autoplay
-		declare -gi muted=1
+		startup_tasks
 		sam_disable
 		;;
 	--speedtest)
@@ -1581,8 +1583,9 @@ function process_cmd() {
 		startup_tasks
 		creategl
 		;;
-	--sourceonly) ;;
-
+	--sourceonly)
+		startup_tasks
+		;;
 	--help)
 		sam_help
 		;;
