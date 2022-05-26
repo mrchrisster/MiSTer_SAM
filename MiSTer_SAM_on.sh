@@ -33,8 +33,8 @@ function init_vars() {
 	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 	declare -g misterpath="/media/fat"
 	# Save our PID and process
-	declare -gr sampid="${$}"
-	declare -gr samprocess="$(basename -- ${0})"
+	declare -g sampid="${$}"
+	declare -g samprocess="$(basename -- ${0})"
 	declare -gi inmenu=0
 	declare -gi speedtest=0
 
@@ -74,8 +74,8 @@ function init_vars() {
 	declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 	declare -g branch="main"
 	declare -gi counter=0
-	declare -gr userstartup="/media/fat/linux/user-startup.sh"
-	declare -gr userstartuptpl="/media/fat/linux/_user-startup.sh"
+	declare -g userstartup="/media/fat/linux/user-startup.sh"
+	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 	declare -gl usedefaultpaths="No"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
@@ -1921,15 +1921,16 @@ function sam_enable() { # Enable autoplay
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 	boot_samtimeout=$((${samtimeout} + ${bootsleep}))
 	echo -ne "\e[1m" SAM will start ${boot_samtimeout} sec. after boot"\e[0m"
-	if [ "${menuonly}" == "yes" ]; then
+	if [ "${menuonly,,}" == "yes" ]; then
 		echo -ne "\e[1m" in the main menu"\e[0m"
 	else
 		echo -ne "\e[1m" whenever controller is not in use"\e[0m"
 	fi
 	echo -e "\e[1m" and show each game for ${gametimer} sec."\e[0m"
+	echo -e "\n"
+	echo -ne "\e[1m" First run will take time to compile game list... please wait."\e[0m"
 	echo -e "\n\n\n"
 	sleep 5
-	echo " SAM will begin shuffle now. First run will take time to compile game list... please wait."
 
 	"${misterpath}/Scripts/MiSTer_SAM_on.sh" start
 
@@ -2796,6 +2797,7 @@ function next_core() { # next_core (core)
 		nextcore="${1}"
 		countdown="countdown"
 	fi
+	# If nextcore is passed as an argument e.g "MiSTer_SAM_on.sh snes", don't select core from corelist
 	if [ -z "${1}" ]; then
 		if [ "${countdown}" != "countdown" ]; then
 			# Set $nextcore from $corelist
