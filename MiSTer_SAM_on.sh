@@ -2336,9 +2336,12 @@ function tty_waitfor() {
 		#sleep 0.05
 	else
 		# if [ "${samquiet}" == "no" ]; then echo -n "Little sleep... "; fi
+		# sleep 0.4
+		# sleep 0.3
+		sleep 0.25
 		# sleep 0.2
-		# sleep 0.1
-		sleep 0.05
+		# sleep 0.1  #ESP8266 not working
+		# sleep 0.05
 	fi
 }
 
@@ -2361,10 +2364,14 @@ function tty_update() { # tty_update core game
 		tty_waitfor
 		# Show Core-Logo for 7 Secs
 		sleep 7
+		# Show Core-Logo for 10 Secs
+		sleep 10
 		# Clear Display	with Random effect
+		#echo "CMDCLS" >"${ttydevice}"
+		#echo "CMDCLSWU" >"${ttydevice}"
 		echo "CMDCLST,-1,0" >"${ttydevice}"
 		tty_waitfor
-		# sleep 0.5
+		sleep 1
 
 		# Split long lines - length is approximate since fonts are variable width!
 
@@ -2372,7 +2379,7 @@ function tty_update() { # tty_update core game
 			for l in {1..15}; do
 				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." >${ttydevice}
 				tty_waitfor
-				echo "CMDTXT,103,${l},0,0,40, ${2:20}" >${ttydevice}
+				echo "CMDTXT,103,${l},0,0,40, ${2:20:40}" >${ttydevice}
 				tty_waitfor
 				echo "CMDTXT,2,$((${l} / 3)),0,0,60,${1}" >${ttydevice}
 				tty_waitfor
