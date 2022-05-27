@@ -1420,23 +1420,6 @@ function sam_gamemodemenu() {
 	parse_cmd ${menuresponse}
 }
 
-function samedit_exclude() {
-	declare -a menulist=()
-	for core in ${corelist}; do
-		menulist+=(ex_"${core}")
-		menulist+=("Select ${CORE_PRETTY[${core,,}]} gamelist")
-	done
-	dialog --clear --no-cancel --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ EXCLUSION EDITOR ]" \
-		--menu "Which system?" 0 0 0 \
-		"${menulist[@]}" \
-		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
-	clear
-	parse_cmd ${menuresponse}
-
-}
-
 function samedit_include() {
 	dialog --clear --no-cancel --ascii-lines --colors \
 		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
@@ -1493,6 +1476,8 @@ function samedit_include() {
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
 		only_survivor
+		tty_init
+		checkgl
 		loop_core
 	fi
 
@@ -1525,15 +1510,21 @@ function samedit_excltags() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	else
-		echo "Please wait... creating list."
+		echo " Please wait... creating exclusion lists."
 		categ="$(echo ${menuresponse} | tr ' ' '|')"
 		if [ ! -z ${categ} ]; then
-			awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' "${gamelistpath}/${nextcore}_gamelist.txt" >"${gamelistpath}/${nextcore}_gamelist_exclude.txt"
+			# TO DO: What if we don't have gamelists
+			for core in ${corelist}; do
+				[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${core}_gamelist.txt"
+				# Find out how to do this with grep, might be faster
+				awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpath}/${core}_gamelist_exclude.txt"
+			done
 		else
-			echo "" >"${gamelistpath}/${nextcore}_gamelist_exclude.txt"
+			for core in ${corelist}; do
+				rm "${gamelistpath}/${core}_gamelist_exclude.txt"
+			done
 		fi
-		core=${nextcore}
-		[[ -f "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		find "${gamelistpath}" -name "*_gamelist_exclude.txt" -size 0 -print0 | xargs -0 rm
 		samedit_taginfo
 	fi
 
@@ -1693,11 +1684,6 @@ function parse_cmd() {
 				break
 				;;
 			exclude)
-				samedit_exclude
-				break
-				;;
-			ex_atari2600 | ex_atari5200 | ex_atari7800 | ex_atarilynx | ex_c64 | ex_fds | ex_gb | ex_gbc | ex_gba | ex_genesis | ex_gg | ex_megacd | ex_neogeo | ex_nes | ex_s32x | ex_sms | ex_snes | ex_tgfx16 | ex_tgfx16cd | ex_psx)
-				nextcore=${1:3}
 				samedit_excltags
 				break
 				;;
@@ -1723,6 +1709,8 @@ function parse_cmd() {
 				;;
 			roulette5)
 				only_survivor
+				tty_init
+				checkgl
 				listenmouse="No"
 				listenkeyboard="No"
 				listenjoy="No"
@@ -1732,6 +1720,8 @@ function parse_cmd() {
 				;;
 			roulette10)
 				only_survivor
+				tty_init
+				checkgl
 				listenmouse="No"
 				listenkeyboard="No"
 				listenjoy="No"
@@ -1741,6 +1731,8 @@ function parse_cmd() {
 				;;
 			roulette15)
 				only_survivor
+				tty_init
+				checkgl
 				listenmouse="No"
 				listenkeyboard="No"
 				listenjoy="No"
@@ -1750,6 +1742,8 @@ function parse_cmd() {
 				;;
 			roulette20)
 				only_survivor
+				tty_init
+				checkgl
 				listenmouse="No"
 				listenkeyboard="No"
 				listenjoy="No"
@@ -1759,6 +1753,8 @@ function parse_cmd() {
 				;;
 			roulette25)
 				only_survivor
+				tty_init
+				checkgl
 				listenmouse="No"
 				listenkeyboard="No"
 				listenjoy="No"
@@ -1768,6 +1764,8 @@ function parse_cmd() {
 				;;
 			roulette30)
 				only_survivor
+				tty_init
+				checkgl
 				listenmouse="No"
 				listenkeyboard="No"
 				listenjoy="No"
@@ -1777,6 +1775,8 @@ function parse_cmd() {
 				;;
 			roulettetimer)
 				only_survivor
+				tty_init
+				checkgl
 				listenmouse="No"
 				listenkeyboard="No"
 				listenjoy="No"
@@ -1927,7 +1927,7 @@ function sam_enable() { # Enable autoplay
 		echo -ne "\e[1m" whenever controller is not in use"\e[0m"
 	fi
 	echo -e "\e[1m" and show each game for ${gametimer} sec."\e[0m"
-	echo -ne "\e[1m" First run will take time to compile game list... please wait."\e[0m"
+	echo -ne "\e[1m" First run will take some time to compile game list... please wait."\e[0m"
 	echo -e "\n\n\n"
 	sleep 5
 
@@ -2000,7 +2000,6 @@ function there_can_be_only_one() { # there_can_be_only_one
 function only_survivor() {
 	# Kill all SAM processes except for currently running
 	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
-	tty_init
 }
 
 function sam_stop() {
@@ -2114,6 +2113,7 @@ function deleteall() {
 	fi
 }
 
+
 function deletegl() {
 	# In case of issues, reset game lists
 
@@ -2140,11 +2140,20 @@ function deletegl() {
 	fi
 }
 
+# Check if gamelists exist
+function checkgl() {
+	if ! compgen -G "${gamelistpath}/*_gamelist.txt" >/dev/null; then
+		echo " Creating Game Lists"
+		read_samini
+		creategl
+	fi
+}
+
 function creategl() {
-	init_vars 2>/dev/null
-	read_samini 2>/dev/null
-	init_paths 2>/dev/null
-	init_data 2>/dev/null
+	init_vars 
+	read_samini 
+	init_paths 
+	init_data
 	create_all_gamelists_old="${create_all_gamelists}"
 	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
 	rebuild_freq_old="${rebuild_freq}"
