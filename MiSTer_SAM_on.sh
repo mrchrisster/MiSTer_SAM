@@ -1476,6 +1476,7 @@ function samedit_include() {
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
 		only_survivor
+		unmute
 		tty_init
 		checkgl
 		loop_core
@@ -1484,6 +1485,86 @@ function samedit_include() {
 }
 
 function samedit_excltags() {
+	excludetags="${gamelistpath}/.excludetags"
+	
+	function process_tag() {
+		for core in ${corelist}; do
+			[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${core}_gamelist.txt"
+			if [ "${gamelistpath}/${core}_gamelist.txt" ]; then
+				grep -i "$categ" "${gamelistpath}/${core}_gamelist.txt" >>"${gamelistpath}/${core}_gamelist_exclude.txt"
+			else
+				grep -i "$categ" "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpath}/${core}_gamelist_exclude.txt"
+			fi
+		done
+	}
+	
+	if [ -f "${excludetags}" ]; then
+		dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+		--msgbox "Currently excluded tags: \n\n$(cat "${excludetags}")" 0 0
+	else
+		dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+		--msgbox "Exclude hacks, prototypes, homebrew or other game categories you don't want SAM to show.\n\n" 0 0
+	fi 
+
+	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Done" \
+		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+		--menu "Which tags do you want to exclude?" 0 0 0 \
+		Beta "Beta Games" \
+		Hack "Hacks" \
+		Homebrew "Homebrew" \
+		Prototype "Prototypes"  \
+		Unlicensed "Unlicensed Games" \
+		Translations "Translated Games" \
+		USA "USA" \
+		Japan "Japan" \
+		Europe "Europe" \
+		'' "Reset Exclusion Lists" 2>"/tmp/.SAMmenu" 
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	categ="${menuresponse}"
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	else
+		echo " Please wait... creating exclusion lists."
+		if [ ! -z ${categ} ]; then
+			if [ ! -s "${excludetags}" ]; then
+				echo "${categ} " > "${excludetags}"
+				process_tag
+			else
+				# Check if tag is already excluded
+				if [ "$(grep -i "${categ}" "${excludetags}")" ]; then
+					dialog --clear --no-cancel --ascii-lines \
+					--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+					--msgbox "${categ} has already been excluded. \n\n" 0 0
+				else
+					echo "${categ} " >> "${excludetags}"
+					# TO DO: What if we don't have gamelists
+					process_tag
+				fi
+			fi
+		else
+			for core in ${corelist}; do
+				rm "${gamelistpath}/${core}_gamelist_exclude.txt" 2>/dev/null
+				rm "${excludetags}" 2>/dev/null
+			done
+			dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+			--msgbox "All exclusion filters have been removed. \n\n" 0 0
+			sam_menu
+		fi
+		find "${gamelistpath}" -name "*_gamelist_exclude.txt" -size 0 -print0 | xargs -0 rm
+		samedit_excltags
+	fi
+	
+}
+
+function samedit_excltags_old() {
+	# Looks better but doesn't work with gamepad
 	dialog --title "[ EXCLUDE CATEGORY SELECTION ]" --ascii-lines --checklist \
 		"Which tags do you want to exclude?" 0 0 0 \
 		"Beta" "" OFF \
@@ -1530,19 +1611,6 @@ function samedit_excltags() {
 
 }
 
-function samedit_taginfo() {
-	dialog --clear --ascii-lines --no-cancel \
-		--backtitle "Super Attract Mode" --title "[ TAG EXCLUSION SUMMARY ]" \
-		--msgbox "Gamelist: ${CORE_PRETTY[${core,,}]} 
-	\n\nExcluded tags:
-	\n\n
-	${menuresponse} 
-	\n\n\n\n
-	If you would like to return to the original list, just run \n
-	'Exclude game categories' again without any tags selected." 0 0
-	clear
-	sam_menu
-}
 
 function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
@@ -1709,6 +1777,7 @@ function parse_cmd() {
 				;;
 			roulette5)
 				only_survivor
+				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1720,6 +1789,7 @@ function parse_cmd() {
 				;;
 			roulette10)
 				only_survivor
+				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1731,6 +1801,7 @@ function parse_cmd() {
 				;;
 			roulette15)
 				only_survivor
+				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1742,6 +1813,7 @@ function parse_cmd() {
 				;;
 			roulette20)
 				only_survivor
+				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1753,6 +1825,7 @@ function parse_cmd() {
 				;;
 			roulette25)
 				only_survivor
+				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1764,6 +1837,7 @@ function parse_cmd() {
 				;;
 			roulette30)
 				only_survivor
+				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1775,6 +1849,7 @@ function parse_cmd() {
 				;;
 			roulettetimer)
 				only_survivor
+				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
