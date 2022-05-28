@@ -27,11 +27,13 @@
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
 # ======== GLOBAL VARIABLES =========
-declare -gr mrsampath="/media/fat/Scripts/.MiSTer_SAM"
-declare -gr misterpath="/media/fat"
+declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g misterpath="/media/fat"
+declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+declare -g branch="main"
 # Save our PID and process
-declare -gr sampid="${$}"
-declare -gr samprocess="$(basename -- ${0})"
+declare -g sampid="${$}"
+declare -g samprocess="$(basename -- ${0})"
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
@@ -71,11 +73,9 @@ function init_vars() {
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
 	declare -gl listenjoy="Yes"
-	declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-	declare -g branch="main"
 	declare -gi counter=0
-	declare -gr userstartup="/media/fat/linux/user-startup.sh"
-	declare -gr userstartuptpl="/media/fat/linux/_user-startup.sh"
+	declare -g userstartup="/media/fat/linux/user-startup.sh"
+	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 	declare -gl usedefaultpaths="Yes"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
@@ -204,6 +204,12 @@ function init_paths() {
 			defaultpath "${core}"
 		done
 	fi
+}
+
+function config_bind() {
+	[ ! -d "/tmp/SAM_config" ] && mkdir "/tmp/SAM_config"
+	[ -d "/tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/SAM_config
+	[ -d "/tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/SAM_config" "/media/fat/config"
 }
 
 # ======== CORE CONFIG ========
@@ -1583,8 +1589,12 @@ function process_cmd() {
 		startup_tasks
 		creategl
 		;;
-	--sourceonly)
+	--delete-gamelists)
 		startup_tasks
+		deletegl
+		;;
+	--source-only) # the script should never reach this
+		# startup_tasks
 		;;
 	--help)
 		sam_help
@@ -1593,8 +1603,14 @@ function process_cmd() {
 		echo " ERROR! ${1} is unknown."
 		echo " Try $(basename -- ${0}) help"
 		echo " Or check the Github readme."
+		echo "process_cmd"
 		;;
 	esac
+}
+
+function source-only() {
+	startup_tasks
+	return 0
 }
 
 function parse_cmd() {
@@ -1629,13 +1645,8 @@ function parse_cmd() {
 				sam_update autoconfig
 				break
 				;;
-			autoconfig)
-				tmux kill-session -t MCP &>/dev/null
-				there_can_be_only_one
-				sam_update
-				mcp_start
-				sam_enable
-				break
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+				: # Placeholder since we parsed these above
 				;;
 			bootstart) # Start as from init
 				env_check ${1}
@@ -1650,52 +1661,83 @@ function parse_cmd() {
 				sam_start_new
 				break
 				;;
-			start_real) # Start SAM immediately
-				env_check ${1}
-				tty_init
-				loop_core ${nextcore}
-				break
-				;;
 			skip | next) # Load next game - stops monitor
-				# echo " Skipping to next game..."
-				# tmux send-keys -t SAM C-c ENTER
-				echo "Use new commandline option --skip or --next"
+				echo " Skipping to next game..."
+				# echo "Use new commandline option --skip or --next"
+				tmux send-keys -t SAM C-c ENTER
 				break
 				;;
 			stop) # Stop SAM immediately
-				# sam_stop
-				# exit
-				echo "Use new commandline option --stop"
+				# echo "Use new commandline option --stop"
+				sam_stop
 				break
 				;;
 			update) # Update SAM
-				# sam_update
-				echo "Use new commandline option --update"
+				# echo "Use new commandline option --update"
+				sam_update
 				break
 				;;
 			enable) # Enable SAM autoplay mode
-				# env_check ${1}
-				# sam_enable
-				echo "Use new commandline option --enable"
+				# echo "Use new commandline option --enable"
+				env_check ${1}
+				sam_enable
 				break
 				;;
 			disable) # Disable SAM autoplay
-				# sam_disable
-				echo "Use new commandline option --disable"
+				# echo "Use new commandline option --disable"
+				sam_disable
 				break
 				;;
 			monitor) # Warn user of changes
-				# sam_monitor_new
-				echo "Use new commandline option --monitor"
+				# echo "Use new commandline option --monitor"
+				sam_monitor_new
 				break
 				;;
+			favorite)
+				mglfavorite
+				break
+				;;
+			deleteall)
+				deleteall
+				break
+				;;
+			creategl)
+				creategl
+				break
+				;;
+			deletegl)
+				deletegl
+				break
+				;;
+			help)
+				sam_help
+				# echo "Use new commandline option --help"
+				break
+				;;
+			esac
+			[ ! -z ${2} ] && shift
+			config_bind
+			disable_bootrom # Disable Bootrom until Reboot
+			mute
+			case "${1,,}" in
 			startmonitor)
 				sam_start_new
 				sam_monitor_new
 				break
 				;;
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
-				: # Placeholder since we parsed these above
+			autoconfig)
+				tmux kill-session -t MCP &>/dev/null
+				there_can_be_only_one
+				sam_update
+				mcp_start
+				sam_enable
+				break
+				;;
+			start_real) # Start SAM immediately
+				env_check ${1}
+				tty_init
+				loop_core ${nextcore}
+				break
 				;;
 			single)
 				sam_singlemenu
@@ -1707,10 +1749,6 @@ function parse_cmd() {
 				;;
 			autoplay)
 				sam_autoplaymenu
-				break
-				;;
-			favorite)
-				mglfavorite
 				break
 				;;
 			reset)
@@ -1734,10 +1772,6 @@ function parse_cmd() {
 				inmenu=0
 				break
 				;;
-			deleteall)
-				deleteall
-				break
-				;;
 			exclude)
 				samedit_exclude
 				break
@@ -1757,14 +1791,6 @@ function parse_cmd() {
 				;;
 			gamelists)
 				sam_gamelistmenu
-				break
-				;;
-			creategl)
-				creategl
-				break
-				;;
-			deletegl)
-				deletegl
 				break
 				;;
 			roulette5)
@@ -1830,19 +1856,14 @@ function parse_cmd() {
 				loop_core
 				break
 				;;
-			help)
-				# sam_help
-				echo "Use new commandline option --help"
-				break
-				;;
 			*)
 				echo " ERROR! ${1} is unknown."
 				echo " Try $(basename -- ${0}) help"
 				echo " Or check the Github readme."
+				echo "parse_cmd"
 				break
 				;;
 			esac
-			shift
 		done
 	fi
 }
@@ -1878,18 +1899,18 @@ function sam_update() { # sam_update (next command)
 			if [ ${1} ]; then
 				echo " Continuing setup with latest MiSTer_SAM_on.sh..."
 				/tmp/MiSTer_SAM_on.sh ${1}
-				exit 0
+				return 0
 			else
 				echo " Launching latest"
 				echo " MiSTer_SAM_on.sh..."
 				/tmp/MiSTer_SAM_on.sh update
-				exit 0
+				return 0
 			fi
 		else
 			# /tmp/MiSTer_SAM_on.sh isn't there!
 			echo " SAM update FAILED"
 			echo " No Internet?"
-			exit 1
+			return 1
 		fi
 	else # We're running from /tmp - download dependencies and proceed
 		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
@@ -1979,8 +2000,6 @@ function sam_enable() { # Enable autoplay
 	echo " SAM will begin shuffle now... please wait."
 
 	"${misterpath}/Scripts/MiSTer_SAM_on.sh" start
-
-	exit
 }
 
 function sam_disable() { # Disable autoplay
@@ -2001,7 +2020,6 @@ function sam_disable() { # Disable autoplay
 	there_can_be_only_one
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sync
-	unmute
 	echo " Done!"
 }
 
@@ -2020,7 +2038,7 @@ function sam_help() { # sam_help
 	echo ""
 	echo " arcade, genesis, gba..."
 	echo " games from one system only"
-	exit 2
+	sam_exit 0
 }
 
 # ======== UTILITY FUNCTIONS ========
@@ -2055,40 +2073,47 @@ function sam_stop() {
 
 	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
-	unmute
-	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-
-	sleep 1
-
-	echo " Done!"
-	echo " Thanks for playing!"
-
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
+	# kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
 
 	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
 	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
-	for kill in ${kill_4}; do
-		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	done
-
-	exit
+	# for kill in ${kill_4}; do
+	#	[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+	# done
+	only_survivor
+	sam_exit 0
 }
 
-function sam_exit() {
-	if [ -z "${1}" ]; then
-		unmute
+function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
+	# Clean up by umounting any mount binds
+	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
+	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
+	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
+	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
+	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	if [ ${1} -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-
 		sleep 1
-
 		echo " Done!"
 		echo " Thanks for playing!"
-	else
-		exit
+		exit 0
+	elif [ ${1} -eq 1 ]; then # Error
+		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		sleep 1
+		echo " Done!"
+		echo " There was an error ${2}" # Pass error messages in ${2}
+		exit 1
+	elif [ ${1} -eq 2 ]; then # Play Current Game
+		sleep 1
+		exit 0
+	elif [ ${1} -eq 3 ]; then # Play Current Game
+		sleep 1
+		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+		exit 0
 	fi
 }
 
@@ -2182,7 +2207,7 @@ function deletegl() {
 	else
 		echo -e "\nGamelist reset successful. Please start SAM now.\n"
 		sleep 1
-		parse_cmd stop
+		sam_exit 0
 	fi
 }
 
@@ -2205,7 +2230,7 @@ function creategl() {
 	else
 		echo -e "\nGamelist creation successful. Please start SAM now.\n"
 		sleep 1
-		parse_cmd stop
+		sam_exit 0
 	fi
 }
 
@@ -2520,7 +2545,6 @@ function loop_core() { # loop_core (core)
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
 					play_or_exit
-					exit
 				else
 					echo " Mouse activity ignored!"
 					echo "" | >/tmp/.SAM_Mouse_Activity
@@ -2531,7 +2555,6 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
 					play_or_exit
-					exit
 				else
 					echo " Keyboard activity ignored!"
 					echo "" | >/tmp/.SAM_Keyboard_Activity
@@ -2542,7 +2565,6 @@ function loop_core() { # loop_core (core)
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
 					play_or_exit
-					exit
 				else
 					echo " Controller activity ignored!"
 					echo "" | >/tmp/.SAM_Joy_Activity
@@ -2569,8 +2591,8 @@ function speedtest() {
 	speedtest=1
 	[ ! -d "/tmp/gl" ] && { mkdir /tmp/gl; }
 	[ ! -d "/tmp/glt" ] && { mkdir /tmp/glt; }
-	mount --bind /tmp/gl "${gamelistpath}"
-	mount --bind /tmp/glt "${gamelistpathtmp}"
+	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind /tmp/gl "${gamelistpath}"
+	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind /tmp/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
 	for core in ${corelistall}; do
 		defaultpath "${core}"
@@ -2599,8 +2621,8 @@ function speedtest() {
 		done
 	fi
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
-	umount "${gamelistpath}"
-	umount "${gamelistpathtmp}"
+	[ "$(mount | grep -ic '${gamelistpath}')" == "1" ] && umount "${gamelistpath}"
+	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "1" ] && umount "${gamelistpathtmp}"
 	speedtest=0
 }
 
@@ -2815,7 +2837,7 @@ function next_core() { # next_core (core)
 			corelist="$(cat ${corelisttmpfile})"
 		else
 			echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
-			exit 1
+			sam_exit 1 " ERROR: FATAL - List of cores is empty. Nothing to do!"
 		fi
 	elif [ ! -s "${corelisttmpfile}" ]; then
 		echo "${corelist}" >"${corelisttmpfile}"
@@ -2969,49 +2991,47 @@ function core_error() { # core_error core /path/to/ROM
 function disable_bootrom() {
 	if [ "${disablebootrom}" == "Yes" ]; then
 		# Make Bootrom folder inaccessible until restart
-		if [ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ]; then
-			mount --bind /mnt "${misterpath}/Bootrom"
-		fi
+		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
 		# Disable Nes bootroms except for FDS Bios (boot0.rom)
-		if [ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot1.rom
-		fi
-		if [ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot2.rom
-		fi
-		if [ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ]; then
-			touch /tmp/brfake
-			mount --bind /tmp/brfake ${misterpath}/Games/NES/boot3.rom
-		fi
+		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot1.rom"
+		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot2.rom"
+		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot3.rom"
 	fi
 }
 
 function mute() {
-	if [ "${mute}" == "yes" ] && [ ${muted} -eq 0 ]; then
-		# Mute Global Volume
-		muted=1
-		echo -e "\0020\c" >/media/fat/config/Volume.dat
+	if [ ! -z "${1}" ]; then
+		echo "Not Global"
+	else
+		echo "Global"
+		if [ "${mute}" == "yes" ] && [ ${muted} -eq 0 ]; then
+			# Mute Global Volume
+			muted=1
+			echo -e "\0020\c" >/media/fat/config/Volume.dat
+		fi
 	fi
 }
 
 function unmute() {
-	if [ ${muted} -eq 1 ]; then
-		# Unmute Global Volume
-		muted=0
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
+	if [ ! -z "${1}" ]; then
+		echo "Not Global"
+	else
+		echo "Global"
+		if [ ${muted} -eq 1 ]; then
+			# Unmute Global Volume
+			muted=0
+			echo -e "\0000\c" >/media/fat/config/Volume.dat
+		fi
 	fi
 }
 
 function play_or_exit() {
 	if [ "${playcurrentgame}" == "yes" ] && [ ${muted} -eq 0 ]; then
-		sam_exit "play"
+		sam_exit 2
 	elif [ "${playcurrentgame}" == "yes" ] && [ ${muted} -eq 1 ]; then
-		unmute
-		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+		sam_exit 3
 	else
-		sam_exit
+		sam_exit 0
 	fi
 }
 
@@ -3124,16 +3144,18 @@ function main() {
 			echo "Too many parameters"
 		else
 			process_cmd ${1}
+			return 0
 		fi
-		exit
 	fi
 	startup_tasks
 	if [ "${samtrace}" == "yes" ]; then
 		debug_output
 	fi
-	disable_bootrom # Disable Bootrom until Reboot
-	mute
 	parse_cmd ${@} # Parse command line parameters for input
 }
 
-main ${@}
+if [ "${1,,}" == "--source-only" ]; then
+	source-only
+else
+	main ${@}
+fi
