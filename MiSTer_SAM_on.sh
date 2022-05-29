@@ -2440,7 +2440,8 @@ function tty_senddata() {
 function tty_exit() { # tty_exit
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
-		echo "CMDCLST,-1,0" >${ttydevice}
+		# echo "CMDCLST,-1,0" >${ttydevice}
+echo "CMDCLSWU" >"${ttydevice}"
 		tty_waitfor &
 		# Show GAME OVER! for 3 secs
 		# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
