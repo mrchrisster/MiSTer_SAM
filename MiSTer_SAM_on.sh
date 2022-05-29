@@ -2369,8 +2369,8 @@ function tty_update() { # tty_update core game
 		sleep 10
 		# Clear Display	with Random effect
 		#echo "CMDCLS" >"${ttydevice}"
-		#echo "CMDCLSWU" >"${ttydevice}"
-		echo "CMDCLST,-1,0" >"${ttydevice}"
+		echo "CMDCLSWU" >"${ttydevice}"
+		#echo "CMDCLST,-1,0" >"${ttydevice}"
 		tty_waitfor
 		sleep 1
 
