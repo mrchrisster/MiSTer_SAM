@@ -34,6 +34,7 @@ declare -g branch="main"
 # Save our PID and process
 declare -g sampid="${$}"
 declare -g samprocess="$(basename -- ${0})"
+declare cmd_pipe="/tmp/SAM_cmd_pipe"
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
@@ -1555,15 +1556,23 @@ function samedit_taginfo() {
 	sam_menu
 }
 
+function write_to_pipe() {
+	if [[ ! -p ${cmd_pipe} ]]; then
+		echo "SAM not running"
+		exit 1
+	fi
+	echo "${1}" >${cmd_pipe}
+	exit 0
+}
+
 function process_cmd() {
 	case "${1,,}" in
 	--stop | --quit)
-		declare -gi muted=1
-		sam_stop
+		write_to_pipe ${1}
 		;;
 	--skip | --next)
 		echo " Skipping to next game..."
-		tmux send-keys -t SAM C-c ENTER
+		write_to_pipe ${1}
 		;;
 	--monitor)
 		sam_monitor_new
@@ -1669,7 +1678,7 @@ function parse_cmd() {
 				;;
 			stop) # Stop SAM immediately
 				# echo "Use new commandline option --stop"
-				sam_stop
+				sam_exit 0 "stop"
 				break
 				;;
 			update) # Update SAM
@@ -2068,28 +2077,29 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 function only_survivor() {
 	# Kill all SAM processes except for currently running
-	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+	# ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+	kill_4=$(ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}')
+	for kill in ${kill_4}; do
+		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+	done
 }
 
 function sam_stop() {
 	# Stop all SAM processes and reboot to menu
 	tty_exit
-
 	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-	# kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
+	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
 
 	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
 	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
-	# for kill in ${kill_4}; do
-	#	[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	# done
-	only_survivor
-	sam_exit 0
+	for kill in ${kill_4}; do
+		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+	 done
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
@@ -2099,25 +2109,27 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	rm -f ${cmd_pipe}
 	if [ ${1} -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
 		echo " Done!"
 		echo " Thanks for playing!"
-		exit 0
 	elif [ ${1} -eq 1 ]; then # Error
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
 		echo " Done!"
 		echo " There was an error ${2}" # Pass error messages in ${2}
-		exit 1
 	elif [ ${1} -eq 2 ]; then # Play Current Game
 		sleep 1
-		exit 0
 	elif [ ${1} -eq 3 ]; then # Play Current Game
 		sleep 1
 		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-		exit 0
+	fi
+	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
+		sam_stop
+	else
+		exit ${1}
 	fi
 }
 
@@ -2536,9 +2548,33 @@ function loop_core() { # loop_core (core)
 	echo -e " Starting Super Attract Mode...\n Let Mortal Kombat begin!\n"
 	# Reset game log for this session
 	echo "" | >/tmp/SAM_Games.log
+	if [[ ! -p ${cmd_pipe} ]]; then
+    	mkfifo ${cmd_pipe}
+	fi
+	# trap "rm -f ${cmd_pipe}" EXIT
+	while true; do
+		if read line <${cmd_pipe}; then
+			case "${line}" in
+			--stop | --quit)
+				# declare -gi muted=1
+				sam_exit 0 "stop"
+				;;
+			--skip | --next)
+				echo " Skipping to next game..."
+				tmux send-keys -t SAM C-c ENTER
+				;;
+			*)
+				echo " ERROR! ${line} is unknown."
+				echo " Try $(basename -- ${0}) help"
+				echo " Or check the Github readme."
+				echo " Named Pipe"
+				;;
+			esac
+		fi
+		sleep 0.1
+	done &
 
 	while :; do
-
 		while [ ${counter} -gt 0 ]; do
 			trap 'counter=0' INT #Break out of loop for skip & next command
 			echo -ne " Next game in ${counter}...\033[0K\r"
