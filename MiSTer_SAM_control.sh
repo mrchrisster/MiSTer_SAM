@@ -15,10 +15,10 @@ function write_to_pipe() {
 # we can actually combine commands together that are exact copies, like below, and, probably simplify this down to just
 # write_to_pipe ${1} for everything coming in (need to add code, of course, to reject bad input, but, this is just for testing)
 case "${1,,}" in
---stop | --quit)
+--stop | --quit | stop | quit)
     write_to_pipe ${1}
     ;;
---skip | --next)
+--skip | --next | skip | next)
 	echo " Skipping to next game..."
     write_to_pipe ${1}
     ;;
