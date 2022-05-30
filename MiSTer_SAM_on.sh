@@ -1567,14 +1567,14 @@ function write_to_pipe() {
 
 function process_cmd() {
 	case "${1,,}" in
-	--stop | --quit)
+	--stop | --quit | stop | quit)
 		write_to_pipe ${1}
 		;;
-	--skip | --next)
+	--skip | --next | skip | next)
 		echo " Skipping to next game..."
 		write_to_pipe ${1}
 		;;
-	--monitor)
+	--monitor | monitor)
 		sam_monitor_new
 		;;
 	--update) # Update SAM
@@ -1609,10 +1609,7 @@ function process_cmd() {
 		sam_help
 		;;
 	*)
-		echo " ERROR! ${1} is unknown."
-		echo " Try $(basename -- ${0}) help"
-		echo " Or check the Github readme."
-		echo "process_cmd"
+		return
 		;;
 	esac
 }
@@ -1671,14 +1668,14 @@ function parse_cmd() {
 				break
 				;;
 			skip | next) # Load next game - stops monitor
-				echo " Skipping to next game..."
-				# echo "Use new commandline option --skip or --next"
-				tmux send-keys -t SAM C-c ENTER
+				# already processed
+				# echo " Skipping to next game..."
+				# tmux send-keys -t SAM C-c ENTER
 				break
 				;;
 			stop) # Stop SAM immediately
-				# echo "Use new commandline option --stop"
-				sam_exit 0 "stop"
+				# already processed
+				# sam_exit 0 "stop"
 				break
 				;;
 			update) # Update SAM
@@ -1698,8 +1695,8 @@ function parse_cmd() {
 				break
 				;;
 			monitor) # Warn user of changes
-				# echo "Use new commandline option --monitor"
-				sam_monitor_new
+				# already processed
+				# sam_monitor_new
 				break
 				;;
 			favorite)
@@ -2555,12 +2552,10 @@ function loop_core() { # loop_core (core)
 	while true; do
 		if read line <${cmd_pipe}; then
 			case "${line}" in
-			--stop | --quit)
-				# declare -gi muted=1
+			--stop | --quit | stop | quit)
 				sam_exit 0 "stop"
 				;;
-			--skip | --next)
-				echo " Skipping to next game..."
+			--skip | --next | skip | next)
 				tmux send-keys -t SAM C-c ENTER
 				;;
 			*)
@@ -3186,14 +3181,7 @@ function load_core_arcade() {
 
 # ========= MAIN =========
 function main() {
-	if [ ${1:0:2} == "--" ]; then
-		if [ ${#} -gt 1 ]; then # We don't accept more than 1 parameter
-			echo "Too many parameters"
-		else
-			process_cmd ${1}
-			return 0
-		fi
-	fi
+	process_cmd ${@}
 	startup_tasks
 	if [ "${samtrace}" == "yes" ]; then
 		debug_output
