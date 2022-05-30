@@ -208,7 +208,7 @@ function init_paths() {
 
 function config_bind() {
 	[ ! -d "/tmp/SAM_config" ] && mkdir "/tmp/SAM_config"
-	[ -d "/tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/SAM_config
+	[ -d "/tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/SAM_config &>/dev/null
 	[ -d "/tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/SAM_config" "/media/fat/config"
 }
 
@@ -1393,7 +1393,7 @@ function sam_configmenu() {
 		--editbox "${misterpath}/Scripts/MiSTer_SAM.ini" 0 0 2>"/tmp/.SAMmenu"
 
 	if [ -s "/tmp/.SAMmenu" ] && [ "$(diff -wq "/tmp/.SAMmenu" "${misterpath}/Scripts/MiSTer_SAM.ini")" ]; then
-		cp -f "/tmp/.SAMmenu" "${misterpath}/Scripts/MiSTer_SAM.ini"
+		cp -f "/tmp/.SAMmenu" "${misterpath}/Scripts/MiSTer_SAM.ini" &>/dev/null
 		dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
 			--msgbox "Changes saved!" 0 0
@@ -1720,6 +1720,10 @@ function parse_cmd() {
 			disable_bootrom # Disable Bootrom until Reboot
 			mute
 			case "${1,,}" in
+			start | restart) # Start as a detached tmux session for monitoring
+				sam_start_new
+				break
+				;;
 			startmonitor)
 				sam_start_new
 				sam_monitor_new
@@ -1913,7 +1917,7 @@ function sam_update() { # sam_update (next command)
 			return 1
 		fi
 	else # We're running from /tmp - download dependencies and proceed
-		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
+		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh" &>/dev/null
 
 		get_partun
 		get_mbc
@@ -1929,7 +1933,7 @@ function sam_update() { # sam_update (next command)
 			echo " MiSTer SAM INI already exists... Merging with new ini."
 			get_samstuff MiSTer_SAM.ini /tmp
 			echo " Backing up MiSTer_SAM.ini to MiSTer_SAM.ini.bak"
-			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak
+			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak &>/dev/null
 			echo -n " Merging ini values.."
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 			sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
@@ -1974,7 +1978,7 @@ function sam_enable() { # Enable autoplay
 	if [ ! -e "${userstartup}" ] && [ -e /etc/init.d/S99user ]; then
 		if [ -e "${userstartuptpl}" ]; then
 			echo "Copying ${userstartuptpl} to ${userstartup}"
-			cp "${userstartuptpl}" "${userstartup}"
+			cp "${userstartuptpl}" "${userstartup}" &>/dev/null
 		else
 			echo "Building ${userstartup}"
 		fi
@@ -2137,7 +2141,7 @@ function deleteall() {
 	fi
 	if [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
 		echo "Deleting MiSTer_SAM.ini"
-		cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak
+		cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak &>/dev/null
 		rm /media/fat/Scripts/MiSTer_SAM.ini
 	fi
 	if [ -f "/media/fat/Scripts/MiSTer_SAM_off.sh" ]; then
@@ -2246,7 +2250,7 @@ function mglfavorite() {
 	if [ ! -d "${misterpath}/_Favorites" ]; then
 		mkdir "${misterpath}/_Favorites"
 	fi
-	cp /tmp/SAM_game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl"
+	cp /tmp/SAM_game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl" &>/dev/null
 
 }
 
@@ -2706,6 +2710,9 @@ function create_game_lists() {
 					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
 					rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 				fi
+				if [ ! -s "${gamelistpathtmp}/${core}_gamelist.txt" ]; then
+					cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
+				fi
 			else
 				create_romlist ${core} "${DIR}"
 			fi
@@ -2719,6 +2726,9 @@ function create_game_lists() {
 				else
 					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
 					rm "${mralist}" &>/dev/null
+				fi
+				if [ ! -s "${mralist_tmp}" ]; then
+					cp "${mralist}" "${mralist_tmp}" &>/dev/null
 				fi
 			else
 				build_mralist "${DIR}"
@@ -2751,13 +2761,14 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		fi
 	fi
 
-	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt"
+	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt.tmp"
 
 	# Strip out all duplicate filenames with a fancy awk command
-	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
-	# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt"
-	rm ${tmpfile} &>/dev/null
-	rm ${tmpfile2} &>/dev/null
+	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt.tmp" >"${gamelistpath}/${1}_gamelist.txt"
+	cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+	rm "${gamelistpath}/${1}_gamelist.txt.tmp" &>/dev/null
+	rm "${tmpfile}" &>/dev/null
+	rm "${tmpfile2}" &>/dev/null
 
 	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 	if [ ${speedtest} -eq 1 ]; then
