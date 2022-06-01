@@ -1559,7 +1559,7 @@ function process_cmd() {
 	case "${1,,}" in
 	--stop | --quit)
 		declare -gi muted=1
-		sam_stop
+		sam_exit 0 "stop"
 		;;
 	--skip | --next)
 		echo " Skipping to next game..."
@@ -1668,8 +1668,7 @@ function parse_cmd() {
 				break
 				;;
 			stop) # Stop SAM immediately
-				# echo "Use new commandline option --stop"
-				sam_stop
+				# sam_exit 0 "stop"
 				break
 				;;
 			update) # Update SAM
@@ -2068,7 +2067,11 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 function only_survivor() {
 	# Kill all SAM processes except for currently running
-	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+	# ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+	kill_4=$(ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}')
+	for kill in ${kill_4}; do
+		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+	done
 }
 
 function sam_stop() {
@@ -2080,16 +2083,14 @@ function sam_stop() {
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-	# kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
+	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
 
 	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
 	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
-	# for kill in ${kill_4}; do
-	#	[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	# done
-	only_survivor
-	sam_exit 0
+	for kill in ${kill_4}; do
+		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+	 done
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
@@ -2104,20 +2105,21 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		sleep 1
 		echo " Done!"
 		echo " Thanks for playing!"
-		exit 0
 	elif [ ${1} -eq 1 ]; then # Error
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
 		echo " Done!"
 		echo " There was an error ${2}" # Pass error messages in ${2}
-		exit 1
 	elif [ ${1} -eq 2 ]; then # Play Current Game
 		sleep 1
-		exit 0
 	elif [ ${1} -eq 3 ]; then # Play Current Game
 		sleep 1
 		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-		exit 0
+	fi
+	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
+		sam_stop
+	else
+		exit ${1}
 	fi
 }
 
