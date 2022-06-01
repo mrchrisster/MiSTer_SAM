@@ -1674,7 +1674,6 @@ function parse_cmd() {
 				break
 				;;
 			stop) # Stop SAM immediately
-				# already processed
 				# sam_exit 0 "stop"
 				break
 				;;
