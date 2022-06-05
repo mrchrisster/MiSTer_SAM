@@ -4,6 +4,16 @@ import struct
 import time
 import glob
 import sys
+import os
+import errno
+
+FIFO = '/tmp/.SAM_tmp/SAM_Activity'
+
+try:
+    os.mkfifo(FIFO)
+except OSError as oe:
+    if oe.errno != errno.EEXIST:
+        raise
 
 packstring = "i"
 
@@ -14,10 +24,11 @@ while True:
         file = open(infile_path, "rb")
         event = file.read(EVENT_SIZE)
         (a) = struct.unpack(packstring, event)
-        if a != 111 :
-           f = open("/tmp/.SAM_Mouse_Activity", "w")
-           f.write("Mouse moved")
-           f.close()
+        if a != 111:
+            f = open(FIFO, "w")
+            f.write("Mouse moved")
+            f.write("\n")
+            f.close()
         time.sleep(0.4)
     except FileNotFoundError:
         print(" Mouse disconnected")
