@@ -4,6 +4,16 @@ import struct
 import time
 import glob
 import sys
+import os
+import errno
+
+FIFO = '/tmp/.SAM_tmp/SAM_Activity'
+
+try:
+    os.mkfifo(FIFO)
+except OSError as oe:
+    if oe.errno != errno.EEXIST:
+        raise
 
 packstring = "i"
 
@@ -15,9 +25,10 @@ while True:
         event = file.read(EVENT_SIZE)
         (a) = struct.unpack(packstring, event)
         if a != 111 :
-           f = open("/tmp/.SAM_Keyboard_Activity", "w")
-           f.write("Button pushed")
-           f.close()
+            f = open(FIFO, "w")
+            f.write("Button pushed on Keyboard")
+            f.write("\n")
+            f.close()
         time.sleep(0.3)
     except FileNotFoundError:
         print(" Keyboard disconnected")

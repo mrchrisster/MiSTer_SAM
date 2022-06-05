@@ -1,6 +1,7 @@
 #!/bin/bash
 trap "" HUP
 trap "" TERM
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
 #======== INI VARIABLES ========
 # Change these in the INI file
@@ -8,6 +9,10 @@ trap "" TERM
 #======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
+declare -g userstartup="/media/fat/linux/user-startup.sh"
+declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
+declare -gi bootsleep="60"
+declare -g corename_name="printf '%s\n' $(< /tmp/CORENAME)"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -30,16 +35,25 @@ if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 fi
 
-
+[ ! -d /tmp/.SAM_tmp/ ] && mkdir -p /tmp/.SAM_tmp/
 
 #======== Functions ========
 function start() {
 	#======== Start ========
-	echo -n " Starting SAM..."
-	${misterpath}/Scripts/MiSTer_SAM_on.sh bootstart
+	sleep ${bootsleep}
+	mcp_start
+}
+
+function quickstart() {
+	#======== Start ========
+	mcp_start
 }
 
 function stop() {
+	corename_name=$(printf '%s\n' $(< /tmp/CORENAME))
+	if [ ! ${corename_name} == "MENU" ]; then
+		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+	fi
 	echo -n " Stopping SAM MCP..."
 	pids=$(pidof MiSTer_SAM_MCP)
 	if [ ! -z "${pids}" ]; then
@@ -57,6 +71,14 @@ function stop() {
 	echo " Done!"
 }
 
+function mcp_start() {
+	echo -n " Starting MCP.."
+	# If the MCP isn't running we need to start it in monitoring only mode
+	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
+		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP" &
+	fi
+}
+
 # Kill running process
 pids=$(pidof -o $$ $(basename -- ${0}))
 if [ ! -z "pids" ]; then
@@ -69,8 +91,8 @@ fi
 # Kill old activity processes
 echo -n " Stopping activity monitoring..."
 killall -q -9 MiSTer_SAM_joy.py 2>/dev/null
-killall -q -9 MiSTer_SAM_mouse.sh 2>/dev/null
-killall -q -9 MiSTer_SAM_keyboard.sh 2>/dev/null
+killall -q -9 MiSTer_SAM_mouse.py 2>/dev/null
+killall -q -9 MiSTer_SAM_keyboard.py 2>/dev/null
 killall -q -9 hexdump 2>/dev/null
 kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; }) 2>/dev/null
 echo " Done!"
@@ -94,8 +116,8 @@ case "${1,,}" in
         start
         ;;
     quickstart)
-    		quickstart
-    		;;    	
+		quickstart
+		;;    	
     stop)
         stop
         ;;
@@ -104,7 +126,7 @@ case "${1,,}" in
         start
         ;;
     *)
-        echo " Usage: /etc/init.d/S93mistersam {start|stop|restart}"
+        echo " Usage: ${userstartup} {start|stop|restart}"
         exit 1
         ;;
 esac

@@ -24,17 +24,23 @@
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
 
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
+trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT
 
 # ======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
 declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g branch="main"
+declare -g userstartup="/media/fat/linux/user-startup.sh"
+declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 # Save our PID and process
 declare -g sampid="${$}"
 declare -g samprocess="$(basename -- ${0})"
-declare cmd_pipe="/tmp/SAM_cmd_pipe"
+
+# Named Pipes
+declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
+declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
+declare -g activity_pipe="/tmp/.SAM_tmp/SAM_Activity"
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
@@ -75,8 +81,6 @@ function init_vars() {
 	declare -gl listenkeyboard="Yes"
 	declare -gl listenjoy="Yes"
 	declare -gi counter=0
-	declare -g userstartup="/media/fat/linux/user-startup.sh"
-	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 	declare -gl usedefaultpaths="Yes"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
@@ -208,9 +212,9 @@ function init_paths() {
 }
 
 function config_bind() {
-	[ ! -d "/tmp/SAM_config" ] && mkdir "/tmp/SAM_config"
-	[ -d "/tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/SAM_config &>/dev/null
-	[ -d "/tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/SAM_config" "/media/fat/config"
+	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir "/tmp/.SAM_tmp/SAM_config"
+	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
+	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
 }
 
 # ======== CORE CONFIG ========
@@ -1106,6 +1110,49 @@ function startup_tasks() {
 	update_tasks
 }
 
+function start_pipe_readers() {
+	if [[ ! -p ${SAM_cmd_pipe} ]]; then
+    	mkfifo ${SAM_cmd_pipe}
+	fi
+
+	while true; do
+		if [[ -p ${SAM_cmd_pipe} ]]; then
+			if read line <${SAM_cmd_pipe}; then
+				set -- junk ${line}
+				shift
+				case "${1}" in
+				stop | quit)
+					sam_exit 0 "stop"
+					break
+					;;
+				exit)
+					sam_exit ${2}
+					break
+					;;
+				skip | next)
+					tmux send-keys -t SAM C-c ENTER
+					;;
+				*)
+					echo " ERROR! ${line} is unknown."
+					echo " Try $(basename -- ${0}) help"
+					echo " Or check the Github readme."
+					echo " Named Pipe"
+					;;
+				esac
+			fi
+		fi
+		sleep 0.1
+	done &
+	
+	while true; do
+		if read line <${activity_pipe}; then
+			echo " Activity detected!"
+			play_or_exit
+		fi
+		sleep 0.1
+	done &
+}
+
 # ======== DEBUG OUTPUT =========
 function debug_output() {
 	echo " ********************************************************************************"
@@ -1556,56 +1603,59 @@ function samedit_taginfo() {
 	sam_menu
 }
 
-function write_to_pipe() {
-	if [[ ! -p ${cmd_pipe} ]]; then
+function write_to_SAM_cmd_pipe() {
+	if [[ ! -p ${SAM_cmd_pipe} ]]; then
 		echo "SAM not running"
 		exit 1
 	fi
-	echo "${1}" >${cmd_pipe}
-	exit 0
+	echo "${1-}" >${SAM_cmd_pipe}
 }
 
 function process_cmd() {
 	case "${1,,}" in
-	--stop | --quit | stop | quit)
-		write_to_pipe ${1}
+	stop | quit)
+		write_to_SAM_cmd_pipe ${1-}
+		exit 0
 		;;
-	--skip | --next | skip | next)
+	exit)
+		write_to_SAM_cmd_pipe ${1-}
+		exit 0
+		;;
+	skip | next)
 		echo " Skipping to next game..."
-		write_to_pipe ${1}
+		write_to_SAM_cmd_pipe ${1-}
+		exit 0
 		;;
-	--monitor | monitor)
+	monitor)
 		sam_monitor_new
+		exit 0
 		;;
-	--update) # Update SAM
+	update) # Update SAM
 		startup_tasks
 		sam_update
 		;;
-	--enable) # Enable SAM autoplay mode
+	enable) # Enable SAM autoplay mode
 		startup_tasks
 		env_check ${1}
 		sam_enable
 		;;
-	--disable) # Disable SAM autoplay
+	disable) # Disable SAM autoplay
 		startup_tasks
 		sam_disable
 		;;
-	--speedtest)
+	speedtest)
 		startup_tasks
 		speedtest
 		;;
-	--create-gamelists)
+	create-gamelists)
 		startup_tasks
 		creategl
 		;;
-	--delete-gamelists)
+	delete-gamelists)
 		startup_tasks
 		deletegl
 		;;
-	--source-only) # the script should never reach this
-		# startup_tasks
-		;;
-	--help)
+	help)
 		sam_help
 		;;
 	*)
@@ -1655,26 +1705,10 @@ function parse_cmd() {
 				: # Placeholder since we parsed these above
 				;;
 			bootstart) # Start as from init
-				env_check ${1}
-				# Sleep before startup so clock of Mister can synchronize if connected to the internet.
-				# We assume most people don't have RTC add-on so sleep is default.
-				# Only start MCP on boot
-				sleep ${bootsleep}
-				mcp_start
 				break
 				;;
-			start | restart) # Start as a detached tmux session for monitoring
+			start | restart | start_real) # Start as a detached tmux session for monitoring
 				sam_start_new
-				break
-				;;
-			skip | next) # Load next game - stops monitor
-				# already processed
-				# echo " Skipping to next game..."
-				# tmux send-keys -t SAM C-c ENTER
-				break
-				;;
-			stop) # Stop SAM immediately
-				# sam_exit 0 "stop"
 				break
 				;;
 			update) # Update SAM
@@ -1682,20 +1716,9 @@ function parse_cmd() {
 				sam_update
 				break
 				;;
-			enable) # Enable SAM autoplay mode
-				# echo "Use new commandline option --enable"
-				env_check ${1}
-				sam_enable
-				break
-				;;
 			disable) # Disable SAM autoplay
 				# echo "Use new commandline option --disable"
 				sam_disable
-				break
-				;;
-			monitor) # Warn user of changes
-				# already processed
-				# sam_monitor_new
 				break
 				;;
 			favorite)
@@ -1725,7 +1748,7 @@ function parse_cmd() {
 			disable_bootrom # Disable Bootrom until Reboot
 			mute
 			case "${1,,}" in
-			start | restart) # Start as a detached tmux session for monitoring
+			start | restart | start_real) # Start as a detached tmux session for monitoring
 				sam_start_new
 				break
 				;;
@@ -1736,16 +1759,10 @@ function parse_cmd() {
 				;;
 			autoconfig)
 				tmux kill-session -t MCP &>/dev/null
-				there_can_be_only_one
+				# there_can_be_only_one
 				sam_update
 				mcp_start
 				sam_enable
-				break
-				;;
-			start_real) # Start SAM immediately
-				env_check ${1}
-				tty_init
-				loop_core ${nextcore}
 				break
 				;;
 			single)
@@ -1878,19 +1895,9 @@ function parse_cmd() {
 }
 
 # ======== SAM COMMANDS ========
-function mcp_start() {
-
-	# If the MCP isn't running we need to start it in monitoring only mode
-	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-		# ${mrsampath}/MiSTer_SAM_MCP monitoronly &
-		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP"
-	fi
-
-}
-
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
-	mkdir --parents "${mrsampath}" &>/dev/null
+	mkdir -p "${mrsampath}" &>/dev/null
 
 	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 		# Warn if using non-default branch for updates
@@ -2006,9 +2013,9 @@ function sam_enable() { # Enable autoplay
 	echo -e "\e[1m" and show each game for ${gametimer} sec."\e[0m"
 	echo -e "\n\n\n"
 	sleep 5
-	echo " SAM will begin shuffle now... please wait."
+	echo " Please restart your Mister. (Hard Reboot)"
 
-	"${misterpath}/Scripts/MiSTer_SAM_on.sh" start
+	sam_exit 0
 }
 
 function sam_disable() { # Disable autoplay
@@ -2026,10 +2033,10 @@ function sam_disable() { # Disable autoplay
 		[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
 	fi
 
-	there_can_be_only_one
+	# there_can_be_only_one
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sync
-	echo " Done!"
+	sam_exit 0
 }
 
 function sam_help() { # sam_help
@@ -2073,11 +2080,11 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 function only_survivor() {
 	# Kill all SAM processes except for currently running
-	# ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
-	kill_4=$(ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}')
-	for kill in ${kill_4}; do
-		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	done
+	ps -ef | grep -i '[s]tart_real' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+	# kill_4=$(ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}')
+	# for kill in ${kill_4}; do
+	# 	[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+	# done
 }
 
 function sam_stop() {
@@ -2095,17 +2102,21 @@ function sam_stop() {
 	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
 	for kill in ${kill_4}; do
 		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	 done
+	done
 }
-
-function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
+function SAM_cleanup() {
 	# Clean up by umounting any mount binds
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	rm -f ${cmd_pipe}
+	[ -p ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
+}
+
+function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
+	SAM_cleanup
 	if [ ${1} -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
@@ -2125,7 +2136,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
 		sam_stop
 	else
-		exit ${1}
+		ps -ef | grep -i '[s]tart_real' | xargs kill &>/dev/null
 	fi
 }
 
@@ -2142,7 +2153,7 @@ function env_check() {
 function deleteall() {
 	# In case of issues, reset SAM
 
-	there_can_be_only_one
+	# there_can_be_only_one
 	if [ -d "${mrsampath}" ]; then
 		echo "Deleting MiSTer_SAM folder"
 		rm -rf "${mrsampath}"
@@ -2200,7 +2211,7 @@ function deleteall() {
 function deletegl() {
 	# In case of issues, reset game lists
 
-	there_can_be_only_one
+	# there_can_be_only_one
 	if [ -d "${mrsampath}/SAM_Gamelists" ]; then
 		echo "Deleting MiSTer_SAM Gamelist folder"
 		rm -rf "${mrsampath}/SAM_Gamelists"
@@ -2345,6 +2356,7 @@ function tty_update() { # tty_update core game
 		# Wait for tty2oled daemon to show the core logo
 		if [ "${ttyuseack}" != "yes" ]; then
 			inotifywait -q -e modify /tmp/CORENAME &>/dev/null
+			sleep 1
 		fi
 
 		# Wait for tty2oled to show the core logo
@@ -2519,15 +2531,12 @@ function get_inputmap() {
 
 # ========= SAM START =========
 function sam_start_new() {
+	env_check ${1}
 	if [ ${create_all_gamelists} == "yes" ]; then
 		create_game_lists
 	fi
-	env_check ${1}
-	# Terminate any other running SAM processes
-	there_can_be_only_one
-	mcp_start
-	echo " Starting SAM in the background."
-	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
+	tty_init
+	loop_core ${nextcore}
 }
 
 # ========= SAM MONITOR =========
@@ -2544,75 +2553,19 @@ function loop_core() { # loop_core (core)
 	echo -e " Starting Super Attract Mode...\n Let Mortal Kombat begin!\n"
 	# Reset game log for this session
 	echo "" | >/tmp/SAM_Games.log
-	if [[ ! -p ${cmd_pipe} ]]; then
-    	mkfifo ${cmd_pipe}
-	fi
-	# trap "rm -f ${cmd_pipe}" EXIT
-	while true; do
-		if read line <${cmd_pipe}; then
-			case "${line}" in
-			--stop | --quit | stop | quit)
-				sam_exit 0 "stop"
-				;;
-			--skip | --next | skip | next)
-				tmux send-keys -t SAM C-c ENTER
-				;;
-			*)
-				echo " ERROR! ${line} is unknown."
-				echo " Try $(basename -- ${0}) help"
-				echo " Or check the Github readme."
-				echo " Named Pipe"
-				;;
-			esac
-		fi
-		sleep 0.1
-	done &
-
-	while :; do
+	start_pipe_readers
+	while [[ -p ${SAM_cmd_pipe} ]]; do
 		while [ ${counter} -gt 0 ]; do
 			trap 'counter=0' INT #Break out of loop for skip & next command
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
-
-			if [ -s /tmp/.SAM_Mouse_Activity ]; then
-				if [ "${listenmouse}" == "yes" ]; then
-					echo " Mouse activity detected!"
-					play_or_exit
-				else
-					echo " Mouse activity ignored!"
-					echo "" | >/tmp/.SAM_Mouse_Activity
-				fi
-			fi
-
-			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
-				if [ "${listenkeyboard}" == "yes" ]; then
-					echo " Keyboard activity detected!"
-					play_or_exit
-				else
-					echo " Keyboard activity ignored!"
-					echo "" | >/tmp/.SAM_Keyboard_Activity
-				fi
-			fi
-
-			if [ -s /tmp/.SAM_Joy_Activity ]; then
-				if [ "${listenjoy}" == "yes" ]; then
-					echo " Controller activity detected!"
-					play_or_exit
-				else
-					echo " Controller activity ignored!"
-					echo "" | >/tmp/.SAM_Joy_Activity
-				fi
-			fi
-
 		done
-
+		trap - INT
+		sleep 1
 		counter=${gametimer}
 		next_core ${nextcore}
-
 	done
-	trap - INT
-	sleep 1
 }
 
 function reset_core_gl() { # args ${nextcore}
@@ -2623,10 +2576,10 @@ function reset_core_gl() { # args ${nextcore}
 
 function speedtest() {
 	speedtest=1
-	[ ! -d "/tmp/gl" ] && { mkdir /tmp/gl; }
-	[ ! -d "/tmp/glt" ] && { mkdir /tmp/glt; }
-	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind /tmp/gl "${gamelistpath}"
-	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind /tmp/glt "${gamelistpathtmp}"
+	[ ! -d "/tmp/.SAM_tmp/gl" ] && { mkdir /tmp/.SAM_tmp/gl; }
+	[ ! -d "/tmp/.SAM_tmp/glt" ] && { mkdir /tmp/.SAM_tmp/glt; }
+	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind /tmp/.SAM_tmp/gl "${gamelistpath}"
+	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind /tmp/.SAM_tmp/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
 	for core in ${corelistall}; do
 		defaultpath "${core}"
@@ -3003,9 +2956,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 
 	sleep 1
-	echo "" | >/tmp/.SAM_Joy_Activity
-	echo "" | >/tmp/.SAM_Mouse_Activity
-	echo "" | >/tmp/.SAM_Keyboard_Activity
 
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
 		sleep 3
@@ -3034,9 +2984,9 @@ function disable_bootrom() {
 		# Make Bootrom folder inaccessible until restart
 		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
 		# Disable Nes bootroms except for FDS Bios (boot0.rom)
-		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot1.rom"
-		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot2.rom"
-		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot3.rom"
+		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot1.rom"
+		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot2.rom"
+		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot3.rom"
 	fi
 }
 
@@ -3068,11 +3018,11 @@ function unmute() {
 
 function play_or_exit() {
 	if [ "${playcurrentgame}" == "yes" ] && [ ${muted} -eq 0 ]; then
-		sam_exit 2
+		write_to_SAM_cmd_pipe "exit 2"
 	elif [ "${playcurrentgame}" == "yes" ] && [ ${muted} -eq 1 ]; then
-		sam_exit 3
+		write_to_SAM_cmd_pipe "exit 3"
 	else
-		sam_exit 0
+		write_to_SAM_cmd_pipe "exit 0"
 	fi
 }
 
@@ -3173,9 +3123,6 @@ function load_core_arcade() {
 	# Tell MiSTer to load the next MRA
 	echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
 	sleep 1
-	echo "" | >/tmp/.SAM_Joy_Activity
-	echo "" | >/tmp/.SAM_Mouse_Activity
-	echo "" | >/tmp/.SAM_Keyboard_Activity
 }
 
 # ========= MAIN =========
