@@ -2089,7 +2089,6 @@ function only_survivor() {
 
 function sam_stop() {
 	# Stop all SAM processes and reboot to menu
-	tty_exit
 	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
@@ -2106,6 +2105,7 @@ function sam_stop() {
 }
 function SAM_cleanup() {
 	# Clean up by umounting any mount binds
+	tty_exit
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
@@ -2136,7 +2136,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
 		sam_stop
 	else
-		ps -ef | grep -i '[s]tart_real' | xargs kill &>/dev/null
+		ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
 	fi
 }
 
@@ -2438,7 +2438,7 @@ function tty_senddata() {
 	fi                                                 # End if Picture check
 }
 
-function tty_exit() { # tty_exit
+function tty_exit() { 
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" >${ttydevice}
