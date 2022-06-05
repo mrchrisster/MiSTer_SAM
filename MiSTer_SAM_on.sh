@@ -1707,10 +1707,6 @@ function parse_cmd() {
 			bootstart) # Start as from init
 				break
 				;;
-			start | restart | start_real) # Start as a detached tmux session for monitoring
-				sam_start_new
-				break
-				;;
 			update) # Update SAM
 				# echo "Use new commandline option --update"
 				sam_update
