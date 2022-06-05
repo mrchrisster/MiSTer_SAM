@@ -245,14 +245,14 @@ MCP_loop() {
 				((mcp_counter--))
 			done
 			trap - INT
-		fi
-		# Only start SAM from main menu
-		if  [ "${menuonly,,}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
-			printf '%s\n' " Triggered after menuonly=yes"
-			sam_trigger
-		elif [ "${menuonly,,}" == "no" ]; then
-			echo " Triggered after menuonly=no"
-			sam_trigger
+			# Only start SAM from main menu
+			if  [ "${menuonly,,}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
+				printf '%s\n' " Triggered after menuonly=yes"
+				sam_trigger
+			elif [ "${menuonly,,}" == "no" ]; then
+				echo " Triggered after menuonly=no"
+				sam_trigger
+			fi
 		fi
 		mcp_counter=${mcptimeout}
 	done
@@ -266,7 +266,6 @@ main() {
 
 	createpipes
 	monitors
-	MCP_loop
 	#======== DEBUG OUTPUT =========
 	if [ "${samtrace,,}" == "yes" ]; then
 		printf '%s\n' "********************************************************************************"
@@ -278,6 +277,7 @@ main() {
 		printf '%s\n' " mcptimeout: ${mcptimeout}"
 		printf '%s\n' "********************************************************************************"
 	fi
+	MCP_loop
 }
 
 main ${@}
