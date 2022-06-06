@@ -1,5 +1,5 @@
 #!/bin/bash
-trap MCP_cleanup EXIT
+trap 'MCP_cleanup' 1 2 3 9 15
 
 #======== INI VARIABLES ========
 # Change these in the INI file
@@ -142,6 +142,11 @@ function sam_trigger() {
 }
 
 function MCP_cleanup() {
+	[[ -e ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
+	[[ -e ${corename_change_pipe} ]] && rm ${corename_change_pipe}
+	[[ -e ${corename_pipe} ]] && rm ${corename_pipe}
+	[[ -e ${activity_change_pipe} ]] && rm ${activity_change_pipe}
+	[[ -e ${activity_pipe} ]] && rm ${activity_pipe}
 	[[ -p ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
 	[[ -p ${corename_change_pipe} ]] && rm ${corename_change_pipe}
 	[[ -p ${corename_pipe} ]] && rm ${corename_pipe}
