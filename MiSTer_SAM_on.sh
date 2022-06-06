@@ -2280,12 +2280,6 @@ function tty_init() { # tty_init
 		ttypicture=${picturefolder}
 		ttypicture_pri=${picturefolder_pri}
 
-		# Clear Serial input buffer first
-		# if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
-		# while read -t 0 sdummy <${ttydevice}; do continue; done
-		# if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
-		# sleep 2
-
 		# Stopping ScreenSaver
 		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled ScreenSaver..."; fi
 		echo "CMDSAVER,0,0,0" >${ttydevice}
@@ -2328,21 +2322,9 @@ function tty_init() { # tty_init
 function tty_waitfor() {
 	if [ "${ttyuseack}" == "yes" ]; then
 		read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
-		# read -d ";" ttyresponse <${ttydevice} # The "read" command at this position simulates an "do..while" loop
-		#while [ "${ttyresponse}" != "ttyack" ]; do
-		#  read -d ";" ttyresponse <${ttydevice} # Read Serial Line until delimiter ";"
-		#done
-		#echo -e "${fgreen}${ttyresponse}${freset}"
 		ttyresponse=""
-		#sleep 0.05
 	else
-		# if [ "${samquiet}" == "no" ]; then echo -n "Little sleep... "; fi
-		# sleep 0.4
-		# sleep 0.3
 		sleep 0.25
-		# sleep 0.2
-		# sleep 0.1  #ESP8266 not working
-		# sleep 0.05
 	fi
 }
 
@@ -2355,24 +2337,15 @@ function tty_update() { # tty_update core game
 		fi
 
 		# Wait for tty2oled to show the core logo
-		if [ "${samdebug}" == "yes" ]; then
-			echo "-------------------------------------------"
-			echo " tty_update got Corename: ${3} "
-		fi
 		if [ "${ttyuseack}" == "yes" ]; then
 			tty_senddata "${3}"
 		fi
 		tty_waitfor
-		# Show Core-Logo for 7 Secs
-		sleep 7
-		# Show Core-Logo for 10 Secs
+		# Show Core-Logo for 15 Secs
 		sleep 10
 		# Clear Display	with Random effect
-		#echo "CMDCLS" >"${ttydevice}"
-		echo "CMDCLSWU" >"${ttydevice}"
-		#echo "CMDCLST,-1,0" >"${ttydevice}"
+		echo "CMDCLS" >${ttydevice}
 		tty_waitfor
-		sleep 1
 
 		# Split long lines - length is approximate since fonts are variable width!
 
@@ -2440,13 +2413,9 @@ function tty_senddata() {
 function tty_exit() { # tty_exit
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
-		# echo "CMDCLST,-1,0" >${ttydevice}
-		echo "CMDCLSWU" >"${ttydevice}"
+		echo "CMDCLS" >${ttydevice}
+		# echo "CMDCLS" >"${ttydevice}"
 		tty_waitfor &
-		# Show GAME OVER! for 3 secs
-		# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
-		# tty_waitfor
-		# sleep 3
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack}" == "yes" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Starting tty2oled daemon..."; fi
