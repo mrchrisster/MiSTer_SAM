@@ -75,7 +75,6 @@ function init_vars() {
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl mute="Yes"
-	declare -gi muted=0
 	declare -gl playcurrentgame="No"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
@@ -734,7 +733,7 @@ function init_data() {
 		["samsh5pf"]="Samurai Shodown V Perfect"
 		["samsh5sp"]="Samurai Shodown V Special"
 		["samsh5sph"]="Samurai Shodown V Special (2nd release, less censored)"
-		["samsh5spho"]="altname="
+		["samsh5spho"]="Samurai Shodown V Special (1st release, censored)"
 		["samsho"]="Samurai Shodown"
 		["samsho2"]="Samurai Shodown II"
 		["samsho2k"]="Saulabi Spirits (Korean release of Samurai Shodown II)"
@@ -1025,7 +1024,7 @@ function init_data() {
 		["samsh5pf"]="Samurai Spirits Zero Perfect"
 		["samsh5sp"]="Samurai Spirits Zero Special"
 		["samsh5sph"]="Samurai Spirits Zero Special (2nd release, less censored)"
-		["samsh5spho"]=" altnamej="
+		["samsh5spho"]="Samurai Spirits Zero Special (1st release, censored)"
 		["samsho"]="Samurai Spirits"
 		["samsho2"]="Shin Samurai Spirits: Haohmaru Jigokuhen"
 		["samsho2k"]=""
@@ -1108,6 +1107,7 @@ function startup_tasks() {
 	init_paths
 	init_data # Setup data arrays
 	update_tasks
+	mute
 }
 
 function start_pipe_readers() {
@@ -1742,7 +1742,6 @@ function parse_cmd() {
 			[ ! -z ${2} ] && shift
 			config_bind
 			disable_bootrom # Disable Bootrom until Reboot
-			mute
 			case "${1,,}" in
 			start | restart | start_real) # Start as a detached tmux session for monitoring
 				sam_start_new
@@ -2925,6 +2924,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}" & # Non blocking Version
 	# tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}"    # Blocking Version
 
+
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
 			echo -ne " Loading game in ${i}...\033[0K\r"
@@ -2987,35 +2987,30 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ ! -z "${1}" ]; then
-		echo "Not Global"
-	else
-		echo "Global"
-		if [ "${mute}" == "yes" ] && [ ${muted} -eq 0 ]; then
-			# Mute Global Volume
-			muted=1
-			echo -e "\0020\c" >/media/fat/config/Volume.dat
-		fi
-	fi
-}
-
-function unmute() {
-	if [ ! -z "${1}" ]; then
-		echo "Not Global"
-	else
-		echo "Global"
-		if [ ${muted} -eq 1 ]; then
-			# Unmute Global Volume
-			muted=0
-			echo -e "\0000\c" >/media/fat/config/Volume.dat
-		fi
+	if [ "${mute}" == "yes" ]; then
+		# Mute Global Volume
+		echo -e "\0020\c" >/media/fat/config/Volume.dat
+	elif [ "${mute}" == "core" ]; then
+		# UnMute Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# Mute Core Volumes
+		for core in ${corelistall}; do
+			echo -e "\0006\c" >"/media/fat/config/${MGL_CORE[${core}]}_volume.cfg"
+		done
+	elif [ "${mute}" == "no" ]; then
+		# UnMute Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# UnMute Core Volumes
+		for core in ${corelistall}; do
+			echo -e "\0000\c" >"/media/fat/config/${MGL_CORE[${core}]}_volume.cfg"
+		done
 	fi
 }
 
 function play_or_exit() {
-	if [ "${playcurrentgame}" == "yes" ] && [ ${muted} -eq 0 ]; then
+	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
 		write_to_SAM_cmd_pipe "exit 2"
-	elif [ "${playcurrentgame}" == "yes" ] && [ ${muted} -eq 1 ]; then
+	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
 		write_to_SAM_cmd_pipe "exit 3"
 	else
 		write_to_SAM_cmd_pipe "exit 0"
