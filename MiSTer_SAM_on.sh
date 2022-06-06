@@ -727,7 +727,7 @@ function init_data() {
 		["samsh5pf"]="Samurai Shodown V Perfect"
 		["samsh5sp"]="Samurai Shodown V Special"
 		["samsh5sph"]="Samurai Shodown V Special (2nd release, less censored)"
-		["samsh5spho"]="altname="
+		["samsh5spho"]="Samurai Shodown V Special (1st release, censored)"
 		["samsho"]="Samurai Shodown"
 		["samsho2"]="Samurai Shodown II"
 		["samsho2k"]="Saulabi Spirits (Korean release of Samurai Shodown II)"
@@ -1018,7 +1018,7 @@ function init_data() {
 		["samsh5pf"]="Samurai Spirits Zero Perfect"
 		["samsh5sp"]="Samurai Spirits Zero Special"
 		["samsh5sph"]="Samurai Spirits Zero Special (2nd release, less censored)"
-		["samsh5spho"]=" altnamej="
+		["samsh5spho"]="Samurai Spirits Zero Special (1st release, censored)"
 		["samsho"]="Samurai Spirits"
 		["samsho2"]="Shin Samurai Spirits: Haohmaru Jigokuhen"
 		["samsho2k"]=""
@@ -2978,6 +2978,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}" & # Non blocking Version
 	# tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}"    # Blocking Version
 
+
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
 			echo -ne " Loading game in ${i}...\033[0K\r"
@@ -3056,17 +3057,28 @@ function disable_bootrom() {
 function mute() {
 	if [ "${mute}" == "yes" ] && [ ${muted} -eq 0 ]; then
 		# Mute Global Volume
-		muted=1
 		echo -e "\0020\c" >/media/fat/config/Volume.dat
+	elif [ "${mute}" == "core" ] && [ ${muted} -eq 0 ]; then
+		# UnMute Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# Mute Core Volumes
+		for core in ${corelistall}; do
+			echo -e "\0006\c" >"/media/fat/config/${MGL_CORE[${core}]}_volume.cfg"
+		done
 	fi
+	muted=1
 }
 
 function unmute() {
 	if [ ${muted} -eq 1 ]; then
-		# Unmute Global Volume
-		muted=0
+		# UnMute Global Volume
 		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# UnMute Core Volumes
+		for core in ${corelistall}; do
+			echo -e "\0000\c" >"/media/fat/config/${MGL_CORE[${core}]}_volume.cfg"
+		done
 	fi
+	muted=0
 }
 
 function play_or_exit() {
