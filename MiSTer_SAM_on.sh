@@ -19,11 +19,10 @@
 
 # ======== Credits ========
 # Original concept and implementation: mrchrisster
-# Additional development and script layout: Mellified and Paradox
+# Additional development and script layout: Mellified
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond
-# tty2oled improvements by venice
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
@@ -727,7 +726,7 @@ function init_data() {
 		["samsh5pf"]="Samurai Shodown V Perfect"
 		["samsh5sp"]="Samurai Shodown V Special"
 		["samsh5sph"]="Samurai Shodown V Special (2nd release, less censored)"
-		["samsh5spho"]="Samurai Shodown V Special (1st release, censored)"
+		["samsh5spho"]="altname="
 		["samsho"]="Samurai Shodown"
 		["samsho2"]="Samurai Shodown II"
 		["samsho2k"]="Saulabi Spirits (Korean release of Samurai Shodown II)"
@@ -1018,7 +1017,7 @@ function init_data() {
 		["samsh5pf"]="Samurai Spirits Zero Perfect"
 		["samsh5sp"]="Samurai Spirits Zero Special"
 		["samsh5sph"]="Samurai Spirits Zero Special (2nd release, less censored)"
-		["samsh5spho"]="Samurai Spirits Zero Special (1st release, censored)"
+		["samsh5spho"]=" altnamej="
 		["samsho"]="Samurai Spirits"
 		["samsho2"]="Shin Samurai Spirits: Haohmaru Jigokuhen"
 		["samsho2k"]=""
@@ -1477,7 +1476,6 @@ function samedit_include() {
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
 		only_survivor
-		unmute
 		tty_init
 		checkgl
 		loop_core
@@ -1486,86 +1484,6 @@ function samedit_include() {
 }
 
 function samedit_excltags() {
-	excludetags="${gamelistpath}/.excludetags"
-	
-	function process_tag() {
-		for core in ${corelist}; do
-			[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${core}_gamelist.txt"
-			if [ "${gamelistpath}/${core}_gamelist.txt" ]; then
-				grep -i "$categ" "${gamelistpath}/${core}_gamelist.txt" >>"${gamelistpath}/${core}_gamelist_exclude.txt"
-			else
-				grep -i "$categ" "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpath}/${core}_gamelist_exclude.txt"
-			fi
-		done
-	}
-	
-	if [ -f "${excludetags}" ]; then
-		dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-		--msgbox "Currently excluded tags: \n\n$(cat "${excludetags}")" 0 0
-	else
-		dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-		--msgbox "Exclude hacks, prototypes, homebrew or other game categories you don't want SAM to show.\n\n" 0 0
-	fi 
-
-	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Done" \
-		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-		--menu "Which tags do you want to exclude?" 0 0 0 \
-		Beta "Beta Games" \
-		Hack "Hacks" \
-		Homebrew "Homebrew" \
-		Prototype "Prototypes"  \
-		Unlicensed "Unlicensed Games" \
-		Translations "Translated Games" \
-		USA "USA" \
-		Japan "Japan" \
-		Europe "Europe" \
-		'' "Reset Exclusion Lists" 2>"/tmp/.SAMmenu" 
-
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
-	
-	categ="${menuresponse}"
-	
-	if [ "$opt" != "0" ]; then
-		sam_menu
-	else
-		echo " Please wait... creating exclusion lists."
-		if [ ! -z ${categ} ]; then
-			if [ ! -s "${excludetags}" ]; then
-				echo "${categ} " > "${excludetags}"
-				process_tag
-			else
-				# Check if tag is already excluded
-				if [ "$(grep -i "${categ}" "${excludetags}")" ]; then
-					dialog --clear --no-cancel --ascii-lines \
-					--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-					--msgbox "${categ} has already been excluded. \n\n" 0 0
-				else
-					echo "${categ} " >> "${excludetags}"
-					# TO DO: What if we don't have gamelists
-					process_tag
-				fi
-			fi
-		else
-			for core in ${corelist}; do
-				rm "${gamelistpath}/${core}_gamelist_exclude.txt" 2>/dev/null
-				rm "${excludetags}" 2>/dev/null
-			done
-			dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-			--msgbox "All exclusion filters have been removed. \n\n" 0 0
-			sam_menu
-		fi
-		find "${gamelistpath}" -name "*_gamelist_exclude.txt" -size 0 -print0 | xargs -0 rm
-		samedit_excltags
-	fi
-	
-}
-
-function samedit_excltags_old() {
-	# Looks better but doesn't work with gamepad
 	dialog --title "[ EXCLUDE CATEGORY SELECTION ]" --ascii-lines --checklist \
 		"Which tags do you want to exclude?" 0 0 0 \
 		"Beta" "" OFF \
@@ -1612,6 +1530,19 @@ function samedit_excltags_old() {
 
 }
 
+function samedit_taginfo() {
+	dialog --clear --ascii-lines --no-cancel \
+		--backtitle "Super Attract Mode" --title "[ TAG EXCLUSION SUMMARY ]" \
+		--msgbox "Gamelist: ${CORE_PRETTY[${core,,}]} 
+	\n\nExcluded tags:
+	\n\n
+	${menuresponse} 
+	\n\n\n\n
+	If you would like to return to the original list, just run \n
+	'Exclude game categories' again without any tags selected." 0 0
+	clear
+	sam_menu
+}
 
 function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
@@ -1778,7 +1709,6 @@ function parse_cmd() {
 				;;
 			roulette5)
 				only_survivor
-				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1790,7 +1720,6 @@ function parse_cmd() {
 				;;
 			roulette10)
 				only_survivor
-				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1802,7 +1731,6 @@ function parse_cmd() {
 				;;
 			roulette15)
 				only_survivor
-				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1814,7 +1742,6 @@ function parse_cmd() {
 				;;
 			roulette20)
 				only_survivor
-				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1826,7 +1753,6 @@ function parse_cmd() {
 				;;
 			roulette25)
 				only_survivor
-				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1838,7 +1764,6 @@ function parse_cmd() {
 				;;
 			roulette30)
 				only_survivor
-				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1850,7 +1775,6 @@ function parse_cmd() {
 				;;
 			roulettetimer)
 				only_survivor
-				unmute
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1990,7 +1914,7 @@ function sam_enable() { # Enable autoplay
 	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ]; then
 		echo -e "Add MiSTer SAM to ${userstartup}\n"
 		echo -e "\n# Startup MiSTer_SAM - Super Attract Mode" >>${userstartup}
-		echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1 &" >>"${userstartup}"
+		echo -e "[[ -e "${mrsampath}/MiSTer_SAM_init" ]] && "${mrsampath}/MiSTer_SAM_init " \$1 &" >>"${userstartup}"
 	fi
 	echo " SAM install complete."
 	echo -e "\n\n\n"
@@ -2281,9 +2205,9 @@ function tty_init() { # tty_init
 		ttypicture_pri=${picturefolder_pri}
 
 		# Clear Serial input buffer first
-		# if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
-		# while read -t 0 sdummy <${ttydevice}; do continue; done
-		# if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+		if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
+		while read -t 0 sdummy <${ttydevice}; do continue; done
+		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 		# sleep 2
 
 		# Stopping ScreenSaver
@@ -2337,12 +2261,9 @@ function tty_waitfor() {
 		#sleep 0.05
 	else
 		# if [ "${samquiet}" == "no" ]; then echo -n "Little sleep... "; fi
-		# sleep 0.4
-		# sleep 0.3
-		sleep 0.25
 		# sleep 0.2
-		# sleep 0.1  #ESP8266 not working
-		# sleep 0.05
+		# sleep 0.1
+		sleep 0.05
 	fi
 }
 
@@ -2365,14 +2286,10 @@ function tty_update() { # tty_update core game
 		tty_waitfor
 		# Show Core-Logo for 7 Secs
 		sleep 7
-		# Show Core-Logo for 10 Secs
-		sleep 10
 		# Clear Display	with Random effect
-		#echo "CMDCLS" >"${ttydevice}"
-		echo "CMDCLSWU" >"${ttydevice}"
-		#echo "CMDCLST,-1,0" >"${ttydevice}"
+		echo "CMDCLST,-1,0" >"${ttydevice}"
 		tty_waitfor
-		sleep 1
+		# sleep 0.5
 
 		# Split long lines - length is approximate since fonts are variable width!
 
@@ -2380,7 +2297,7 @@ function tty_update() { # tty_update core game
 			for l in {1..15}; do
 				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." >${ttydevice}
 				tty_waitfor
-				echo "CMDTXT,103,${l},0,0,40, ${2:20:40}" >${ttydevice}
+				echo "CMDTXT,103,${l},0,0,40, ${2:20}" >${ttydevice}
 				tty_waitfor
 				echo "CMDTXT,2,$((${l} / 3)),0,0,60,${1}" >${ttydevice}
 				tty_waitfor
@@ -2440,8 +2357,7 @@ function tty_senddata() {
 function tty_exit() { # tty_exit
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
-		# echo "CMDCLST,-1,0" >${ttydevice}
-		echo "CMDCLSWU" >"${ttydevice}"
+		echo "CMDCLST,-1,0" >${ttydevice}
 		tty_waitfor &
 		# Show GAME OVER! for 3 secs
 		# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
@@ -2806,19 +2722,19 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 }
 
 function check_list() { # args ${nextcore}  "${DIR}"
-	# If gamelist is not in /tmp dir, let's put it there
+	# If we don't have a game list for the core already, create one
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
 		create_romlist ${1} "${2}"
 	fi
 
-	# If folder changed, make new list
+	# If folder changed, create new list
 	if [[ ! "$(cat ${gamelistpath}/${1}_gamelist.txt | grep "${2}" | head -1)" ]]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
 		create_romlist ${1} "${2}"
 	fi
 
-	# Check if zip still exists
+	# Check if zips a are in a gamelist. Then check if those zips still exist
 	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
 		mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 		for zips in "${zipsinfile[@]}"; do
@@ -2850,7 +2766,8 @@ function check_list() { # args ${nextcore}  "${DIR}"
 		fi
 	fi
 
-	# Make sure file exists since we're reading from a static list
+	# Make sure file exists since we're reading from a static list.
+	# Check that selected file is not a zip and check if that file exists
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because file not found."; fi
@@ -2978,7 +2895,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}" & # Non blocking Version
 	# tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}"    # Blocking Version
 
-
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
 			echo -ne " Loading game in ${i}...\033[0K\r"
@@ -3057,28 +2973,17 @@ function disable_bootrom() {
 function mute() {
 	if [ "${mute}" == "yes" ] && [ ${muted} -eq 0 ]; then
 		# Mute Global Volume
+		muted=1
 		echo -e "\0020\c" >/media/fat/config/Volume.dat
-	elif [ "${mute}" == "core" ] && [ ${muted} -eq 0 ]; then
-		# UnMute Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		# Mute Core Volumes
-		for core in ${corelistall}; do
-			echo -e "\0006\c" >"/media/fat/config/${MGL_CORE[${core}]}_volume.cfg"
-		done
 	fi
-	muted=1
 }
 
 function unmute() {
 	if [ ${muted} -eq 1 ]; then
-		# UnMute Global Volume
+		# Unmute Global Volume
+		muted=0
 		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		# UnMute Core Volumes
-		for core in ${corelistall}; do
-			echo -e "\0000\c" >"/media/fat/config/${MGL_CORE[${core}]}_volume.cfg"
-		done
 	fi
-	muted=0
 }
 
 function play_or_exit() {
@@ -3118,9 +3023,6 @@ function build_mralist() {
 	else
 		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
 	fi
-	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
-	fi
 	total_games=$(cat "${mralist}" | sed '/^\s*$/d' | wc -l)
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "Arcade: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
@@ -3141,14 +3043,17 @@ function load_core_arcade() {
 	if [ ! -s "${mralist}" ]; then
 		build_mralist "${DIR}"
 	fi
+	if [ ! -s "${mralist_tmp}" ]; then
+		cp "${mralist}" "${mralist_tmp}" &>/dev/null
+	fi
 
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
 	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 
-	# If the mra variable is valid this is skipped, but if not we try 10 times
+	# If the mra variable is valid this is skipped, but if not we try 5 times
 	# Partially protects against typos from manual editing and strange character parsing problems
-	for i in {1..10}; do
+	for i in {1..5}; do
 		if [ ! -f "${MRAPATH}" ]; then
 			mra=$(shuf --head-count=1 ${mralist_tmp})
 			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
