@@ -2281,9 +2281,9 @@ function tty_init() { # tty_init
 		ttypicture_pri=${picturefolder_pri}
 
 		# Clear Serial input buffer first
-		if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
-		while read -t 0 sdummy <${ttydevice}; do continue; done
-		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+		# if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
+		# while read -t 0 sdummy <${ttydevice}; do continue; done
+		# if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 		# sleep 2
 
 		# Stopping ScreenSaver
@@ -2441,7 +2441,7 @@ function tty_exit() { # tty_exit
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
 		# echo "CMDCLST,-1,0" >${ttydevice}
-echo "CMDCLSWU" >"${ttydevice}"
+		echo "CMDCLSWU" >"${ttydevice}"
 		tty_waitfor &
 		# Show GAME OVER! for 3 secs
 		# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
