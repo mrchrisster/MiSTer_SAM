@@ -71,17 +71,25 @@ The script is highly customizable through the included ini file `MiSTer_SAM.ini`
 
 ## Supported Systems
 Currently supported MiSTer cores:
-* Arcade
-* Famicom Disk System (.fds)   
+* Amiga (MegaAGS.hdf)
+* Arcade (all .MRA files)
+* Atari2600/5200/7800 (.a26 .a52 .car .a78)
+* Atari Lynx (.lnx)
+* C64 (.prg and .crt)
+* Famicom Disk System (.fds)
+* Game Boy/ Game Boy Color (.gb and .gbc)   
 * Game Boy Advance (.gba)
-* Genesis (.md)
-* MegaCD AKA SegaCD (.chd) - Highly recommend [Japanese region free Bios v2](https://mmmonkey.co.uk/downloads/#) for best compatibility.
+* Genesis (.md .gen)
+* Game Gear (.gg)
+* MegaCD AKA SegaCD (.chd .cue) - Highly recommend [Japanese region free Bios v2](https://mmmonkey.co.uk/downloads/#) for best compatibility.
 * NeoGeo (.neo)
 * NES (.nes)
-* SNES (.sfc)
-* PSX (.chd)
-* TurboGrafx-16 AKA PC Engine (.pce)
-* TurboGrafx-16 CD AKA PC Engine CD (.chd) - No autoboot bios required since SAM will autostart games for you.
+* Genesis 32X (.32x)
+* Sega Master System (.sms .sg)
+* SNES (.sfc .smc)
+* PSX (.chd .cue .exe)
+* TurboGrafx-16 AKA PC Engine (.pce .sgx)
+* TurboGrafx-16 CD AKA PC Engine CD (.chd .cue) - No autoboot bios required since SAM will autostart games for you.
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
