@@ -53,7 +53,7 @@ video_mode=512,38,66,64,224,12,20,6,10689
   
   
 ## Reset to Defaults
-This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.
+This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.  
 **Method 1**  
 - Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.  
 - Press **Up Button** to open SAM's menu and select reset.  
