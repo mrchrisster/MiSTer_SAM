@@ -54,16 +54,18 @@ video_mode=512,38,66,64,224,12,20,6,10689
   
 ## Reset to Defaults
 This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.
+* Method 1
+- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.  
+- Press **Up Button** to open SAM's menu and select reset.  
+* Method 2
 - From the main MiSTer menu open the terminal (F9).
 - Login (default user: `root` default password: `1`).
 - `rm -fr /media/fat/Scripts/.MiSTer_SAM /media/fat/MiSTer_SAM /media/fat/Scripts/MiSTer_SAM.ini`
 - Open the OSD (F12 or your controller's menu button).
 - Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.  
   
-  **Or**
   
-- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.  
-- Press **Up Button** to open SAM's menu and select reset.  
+
   
 
 ## Configuration
