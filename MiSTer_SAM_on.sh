@@ -25,7 +25,6 @@
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond
 # tty2oled improvements by venice
 
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
@@ -58,7 +57,7 @@ function init_vars() {
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"													 
 	declare -gi gametimer=120
-	declare -gl corelist="arcade,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="arcade,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
 	declare -gl create_all_gamelists="No"
@@ -97,6 +96,7 @@ function init_vars() {
 	declare -gl ttyuseack="No"
 
 	# ======== CORE PATHS ========
+	declare -g amigapath="/media/fat/Games/Amiga"	
 	declare -g arcadepath="/media/fat/_Arcade"
 	declare -g atari2600path="/media/fat/Games/Atari7800"
 	declare -g atari5200path="/media/fat/Games/Atari5200"
@@ -120,6 +120,7 @@ function init_vars() {
 	declare -g psxpath="/media/fat/Games/PSX"
 
 	# ======== CORE PATHS EXTRA ========
+	declare -g amigapathextra=""
 	declare -g arcadepathextra=""
 	declare -g atari2600pathextra=""
 	declare -g atari5200pathextra=""
@@ -143,6 +144,7 @@ function init_vars() {
 	declare -g psxpathextra=""
 
 	# ======== CORE PATHS RBF ========
+	declare -g amigapathrbf="_Computer"
 	declare -g arcadepathrbf="_Arcade"
 	declare -g atari2600pathrbf="_Console"
 	declare -g atari5200pathrbf="_Console"
@@ -218,6 +220,7 @@ function init_data() {
 		["atari5200"]="Atari 5200"
 		["atari7800"]="Atari 7800"
 		["atarilynx"]="Atari Lynx"
+		["amiga"]="Commodore Amiga"
 		["c64"]="Commodore 64"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
@@ -238,6 +241,7 @@ function init_data() {
 
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
+		["amiga"]="hdf" 		#This is just a placeholder
 		["arcade"]="mra"
 		["atari2600"]="a26"     # Should we include? "bin"
 		["atari5200"]="a52,car" # Should we include? "bin,rom"
@@ -263,6 +267,7 @@ function init_data() {
 
 	# Core to path mappings
 	declare -gA CORE_PATH=(
+		["amiga"]="${amigapath}"
 		["arcade"]="${arcadepath}"
 		["atari2600"]="${atari2600path}"
 		["atari5200"]="${atari5200path}"
@@ -288,6 +293,7 @@ function init_data() {
 
 	# Core to extra path mappings
 	declare -gA CORE_PATH_EXTRA=(
+		["amiga"]="${amigapathextra}"
 		["arcade"]="${arcadepathextra}"
 		["atari2600"]="${atari2600pathextra}"
 		["atari5200"]="${atari5200pathextra}"
@@ -313,6 +319,7 @@ function init_data() {
 
 	# Core to path mappings for rbf files
 	declare -gA CORE_PATH_RBF=(
+		["amiga"]="${amigapathrbf}"
 		["arcade"]="${arcadepathrbf}"
 		["atari2600"]="${atari2600pathrbf}"
 		["atari5200"]="${atari5200pathrbf}"
@@ -338,6 +345,7 @@ function init_data() {
 
 	# Can this core use ZIPped ROMs
 	declare -glA CORE_ZIPPED=(
+		["amiga"]="No"
 		["arcade"]="No"
 		["atari2600"]="Yes"
 		["atari5200"]="Yes"
@@ -363,6 +371,7 @@ function init_data() {
 
 	# Can this core skip Bios/Safety warning messages
 	declare -glA CORE_SKIP=(
+		["amiga"]="No"
 		["arcade"]="No"
 		["atari2600"]="No"
 		["atari5200"]="No"
@@ -388,6 +397,7 @@ function init_data() {
 
 	# Core to input maps mapping
 	declare -glA CORE_LAUNCH=(
+		["amiga"]="minimig"
 		["arcade"]="arcade"
 		["atari2600"]="atari7800"
 		["atari5200"]="atari5200"
@@ -413,6 +423,7 @@ function init_data() {
 
 	# MGL core name settings
 	declare -gA MGL_CORE=(
+		["amiga"]="minimig"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
 		["atari5200"]="ATARI5200"
@@ -438,6 +449,7 @@ function init_data() {
 
 	# MGL delay settings
 	declare -giA MGL_DELAY=(
+		["amiga"]="1"
 		["arcade"]="2"
 		["atari2600"]="1"
 		["atari5200"]="1"
@@ -463,6 +475,7 @@ function init_data() {
 
 	# MGL index settings
 	declare -giA MGL_INDEX=(
+		["amiga"]="0"
 		["arcade"]="0"
 		["atari2600"]="0"
 		["atari5200"]="1"
@@ -488,6 +501,7 @@ function init_data() {
 
 	# MGL type settings
 	declare -glA MGL_TYPE=(
+		["amiga"]="f"
 		["arcade"]="f"
 		["atari2600"]="f"
 		["atari5200"]="f"
@@ -1623,7 +1637,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@,,}; do
 			case ${arg} in
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				;;
@@ -1708,7 +1722,7 @@ function parse_cmd() {
 				sam_monitor_new
 				break
 				;;
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -2872,6 +2886,17 @@ function next_core() { # next_core (core)
 		load_core_arcade
 		return
 	fi
+	if [ "${nextcore}" == "amiga" ]; then
+		# If this is Amiag core we go to special code
+		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
+			load_core_amiga
+		else
+			echo " ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
+			declare -g corelist=("${corelist[@]/${1}/}")
+			next_core
+		fi
+		return
+	fi
 
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
 
@@ -3167,6 +3192,37 @@ function load_core_arcade() {
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
 }
+
+function load_core_amiga() {
+
+	# Only works if MegAGS has been set up correctly
+	echo -n " Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+	echo -e "\e[1mMegaAGS Amiga Game\e[0m"
+
+
+	tty_update "${CORE_PRETTY[${nextcore}]}" & # Non-Blocking
+	# tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}"    # Blocking
+
+	if [ "${1}" == "countdown" ]; then
+		for i in {5..1}; do
+			echo " Loading game in ${i}...\033[0K\r"
+			sleep 1
+		done
+	fi
+
+	# Tell MiSTer to load the next MRA
+	amigacore="$( find /media/fat/_Computer/ -iname "*minimig*")"
+	echo "load_core ${amigacore}" >/dev/MiSTer_cmd
+	sleep 12
+	"${mrsampath}/mbc" raw_seq {6c
+	"${mrsampath}/mbc" raw_seq O
+	echo "" | >/tmp/.SAM_Joy_Activity
+	echo "" | >/tmp/.SAM_Mouse_Activity
+	echo "" | >/tmp/.SAM_Keyboard_Activity
+}
+
+
 
 # ========= MAIN =========
 function main() {
