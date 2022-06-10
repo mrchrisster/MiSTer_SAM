@@ -3223,6 +3223,8 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
+	amigacore="$( find /media/fat/_Computer/ -iname "*minimig*")"
+
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
 		# This is for MegaAGS version March 2022 or older
 		echo -n " Starting now on the "
@@ -3240,7 +3242,7 @@ function load_core_amiga() {
 		fi
 
 		# Tell MiSTer to load the next MRA
-		amigacore="$( find /media/fat/_Computer/ -iname "*minimig*")"
+
 		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 		sleep 12
 		"${mrsampath}/mbc" raw_seq {6c
