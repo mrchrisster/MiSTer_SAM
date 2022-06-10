@@ -57,7 +57,7 @@ function init_vars() {
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"													 
 	declare -gi gametimer=120
-	declare -gl corelist="arcade,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
 	declare -gl create_all_gamelists="No"
@@ -209,6 +209,15 @@ function init_paths() {
 			defaultpath "${core}"
 		done
 	fi
+}
+
+function config_bind() {
+	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
+	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
+	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
+	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
+	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
+	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
 }
 
 # ======== CORE CONFIG ========
@@ -2876,6 +2885,7 @@ function next_core() { # next_core (core)
 				next_core ${nextcore}
 				return
 			else
+				# Limit corelist to only show games from one core
 				corelist=$(echo ${corelist} | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
 			fi
 		fi
@@ -2887,7 +2897,7 @@ function next_core() { # next_core (core)
 		return
 	fi
 	if [ "${nextcore}" == "amiga" ]; then
-		# If this is Amiag core we go to special code
+		# If this is Amiga core we go to special code
 		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
 			load_core_amiga
 		else
@@ -3193,33 +3203,78 @@ function load_core_arcade() {
 	echo "" | >/tmp/.SAM_Keyboard_Activity
 }
 
-function load_core_amiga() {
+function create_amigalist () {
 
-	# Only works if MegAGS has been set up correctly
-	echo -n " Starting now on the "
-	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
-	echo -e "\e[1mMegaAGS Amiga Game\e[0m"
+	if [ -f "${amigapath}/listings/games.txt" ]; then
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${1}_gamelist.txt
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${1}_gamelist.txt
+		
+		total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 
-
-	tty_update "${CORE_PRETTY[${nextcore}]}" & # Non-Blocking
-	# tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}"    # Blocking
-
-	if [ "${1}" == "countdown" ]; then
-		for i in {5..1}; do
-			echo " Loading game in ${i}...\033[0K\r"
-			sleep 1
-		done
+		if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
+			echo "${total_games} Games and Demos found."
+		else
+			echo " ${total_games} Games and Demos found."
+		fi
 	fi
 
-	# Tell MiSTer to load the next MRA
-	amigacore="$( find /media/fat/_Computer/ -iname "*minimig*")"
-	echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-	sleep 12
-	"${mrsampath}/mbc" raw_seq {6c
-	"${mrsampath}/mbc" raw_seq O
-	echo "" | >/tmp/.SAM_Joy_Activity
-	echo "" | >/tmp/.SAM_Mouse_Activity
-	echo "" | >/tmp/.SAM_Keyboard_Activity
+}
+
+
+function load_core_amiga() {
+
+	if [ ! -f "${amigapath}/listings/games.txt" ]; then
+		# This is for MegaAGS version March 2022 or older
+		echo -n " Starting now on the "
+		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
+
+
+		tty_update "${CORE_PRETTY[${nextcore}]}" & # Non-Blocking
+
+		if [ "${1}" == "countdown" ]; then
+			for i in {5..1}; do
+				echo " Loading game in ${i}...\033[0K\r"
+				sleep 1
+			done
+		fi
+
+		# Tell MiSTer to load the next MRA
+		amigacore="$( find /media/fat/_Computer/ -iname "*minimig*")"
+		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
+		sleep 12
+		"${mrsampath}/mbc" raw_seq {6c
+		"${mrsampath}/mbc" raw_seq O
+		echo "" | >/tmp/.SAM_Joy_Activity
+		echo "" | >/tmp/.SAM_Mouse_Activity
+		echo "" | >/tmp/.SAM_Keyboard_Activity
+	else
+		create_amigalist
+		# This is for MegaAGS version June 2022 or newer
+		if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+			cp ${gamelistpath}/${1}_gamelist.txt "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+		fi
+
+		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${1}_gamelist.txt)"
+
+		# Delete played game from list
+		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
+		if [ "${norepeat}" == "yes" ]; then
+			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
+		fi
+
+		echo "${rompath}" > "${amigapath}"/shared/ags_boot
+
+		echo -n " Starting now on the "
+		echo -ne "\e[4m${CORE_PRETTY[${1}]}\e[0m: "
+		echo -e "\e[1m${3}\e[0m"
+		echo "$(date +%H:%M:%S) - ${1} - ${3}" >>/tmp/SAM_Games.log
+		echo "${3} (${1})" >/tmp/SAM_Game.txt
+		tty_update "${CORE_PRETTY[${1}]}" "${3}" "${CORE_LAUNCH[${1}]}" & # Non blocking Version
+
+		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
+
+	fi
 }
 
 
@@ -3245,6 +3300,8 @@ function main() {
 	if [ "${samtrace}" == "yes" ]; then
 		debug_output
 	fi
+
+	config_bind
 
 	disable_bootrom # Disable Bootrom until Reboot
 
