@@ -3251,7 +3251,7 @@ function load_core_amiga() {
 		echo "" | >/tmp/.SAM_Mouse_Activity
 		echo "" | >/tmp/.SAM_Keyboard_Activity
 	else
-		create_amigalist
+		[ ! -f ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
 		# This is for MegaAGS version June 2022 or newer
 		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 			cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
