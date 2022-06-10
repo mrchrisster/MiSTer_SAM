@@ -3206,10 +3206,10 @@ function load_core_arcade() {
 function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${1}_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${1}_gamelist.txt
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
 		
-		total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
+		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 
 		if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 			echo "${total_games} Games and Demos found."
@@ -3234,7 +3234,7 @@ function load_core_amiga() {
 
 		tty_update "${CORE_PRETTY[${nextcore}]}" & # Non-Blocking
 
-		if [ "${1}" == "countdown" ]; then
+		if [ "${nextcore}" == "countdown" ]; then
 			for i in {5..1}; do
 				echo " Loading game in ${i}...\033[0K\r"
 				sleep 1
@@ -3253,26 +3253,26 @@ function load_core_amiga() {
 	else
 		create_amigalist
 		# This is for MegaAGS version June 2022 or newer
-		if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-			cp ${gamelistpath}/${1}_gamelist.txt "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
+		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+			cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		fi
 
-		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${1}_gamelist.txt)"
+		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
 
 		# Delete played game from list
 		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
 		if [ "${norepeat}" == "yes" ]; then
-			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
+			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
 
 		echo -n " Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[${1}]}\e[0m: "
-		echo -e "\e[1m${3}\e[0m"
-		echo "$(date +%H:%M:%S) - ${1} - ${3}" >>/tmp/SAM_Games.log
-		echo "${3} (${1})" >/tmp/SAM_Game.txt
-		tty_update "${CORE_PRETTY[${1}]}" "${3}" "${CORE_LAUNCH[${1}]}" & # Non blocking Version
+		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+		echo -e "\e[1m${rompath}\e[0m"
+		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
+		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
+		tty_update "${CORE_PRETTY[${nextcore}]}" "${rompath}" "${CORE_LAUNCH[${nextcore}]}" & # Non blocking Version
 
 		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 
