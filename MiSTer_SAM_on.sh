@@ -219,6 +219,16 @@ function config_bind() {
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
 }
 
+function config_unbind() {
+	# Clean up by umounting any mount binds
+	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
+	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
+	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
+	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
+	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
+	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+}
+
 # ======== CORE CONFIG ========
 function init_data() {
 	# Core to long name mappings
@@ -1707,6 +1717,7 @@ function parse_cmd() {
 				break
 				;;
 			update) # Update SAM
+				config_unbind
 				sam_update
 				break
 				;;
@@ -2127,6 +2138,7 @@ function sam_stop() {
 }
 
 function sam_exit() {
+	config_unbind
 	if [ -z "${1}" ]; then
 		mute=no
 		mute
@@ -2504,10 +2516,10 @@ function get_mbc() {
 
 function get_inputmap() {
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
-	get_samstuff .MiSTer_SAM/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs
-	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs
-	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs
-	get_samstuff .MiSTer_SAM/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs
+	get_samstuff .MiSTer_SAM/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	echo " Done!"
 }
 
