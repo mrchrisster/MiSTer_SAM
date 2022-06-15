@@ -214,6 +214,8 @@ function config_bind() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
+	sleep 0.5
+	mute
 }
 
 # ======== CORE CONFIG ========
@@ -1107,7 +1109,6 @@ function startup_tasks() {
 	init_paths
 	init_data # Setup data arrays
 	update_tasks
-	mute
 }
 
 function start_pipe_readers() {
