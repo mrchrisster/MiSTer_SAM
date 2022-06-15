@@ -2306,7 +2306,7 @@ function mglfavorite() {
 	# Add current game to _Favorites folder
 
 	if [ ! -d "${misterpath}/_Favorites" ]; then
-		mkdir "${misterpath}/_Favorites"
+		mkdir -p "${misterpath}/_Favorites"
 	fi
 	cp /tmp/SAM_game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl"
 
@@ -2627,10 +2627,10 @@ function reset_core_gl() { # args ${nextcore}
 
 function speedtest() {
 	speedtest=1
-	[ ! -d "/tmp/gl" ] && { mkdir /tmp/gl; }
-	[ ! -d "/tmp/glt" ] && { mkdir /tmp/glt; }
-	mount --bind /tmp/gl "${gamelistpath}"
-	mount --bind /tmp/glt "${gamelistpathtmp}"
+	[ ! -d "/tmp/gl" ] && { mkdir -p /tmp/gl; }
+	[ ! -d "/tmp/glt" ] && { mkdir -p /tmp/glt; }
+	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind /tmp/gl "${gamelistpath}"
+	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind /tmp/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
 	for core in ${corelistall}; do
 		defaultpath "${core}"
@@ -3205,6 +3205,12 @@ function load_core_arcade() {
 	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}" & # Non-Blocking
 	# tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}"    # Blocking
+
+	if [ ${mute} == "core" ]; then
+		echo -e "\0006\c" >"/media/fat/config/${mrasetname}_volume.cfg"
+	elif [ ${mute} == "no" ] || [ ${mute} == "yes" ]; then
+		echo -e "\0000\c" >"/media/fat/config/${mrasetname}_volume.cfg"
+	fi
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
