@@ -206,9 +206,11 @@ function init_paths() {
 }
 
 function config_bind() {
-	[ ! -d "/tmp/SAM_config" ] && mkdir "/tmp/SAM_config"
+	[ ! -d "/tmp/SAM_config" ] && mkdir -p "/tmp/SAM_config"
 	[ -d "/tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/SAM_config &>/dev/null
 	[ -d "/tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/SAM_config" "/media/fat/config"
+	sleep 0.5
+	mute
 }
 
 # ======== CORE CONFIG ========
@@ -1102,7 +1104,6 @@ function startup_tasks() {
 	init_paths
 	init_data # Setup data arrays
 	update_tasks
-	mute
 }
 
 # ======== DEBUG OUTPUT =========
@@ -2248,7 +2249,7 @@ function mglfavorite() {
 	# Add current game to _Favorites folder
 
 	if [ ! -d "${misterpath}/_Favorites" ]; then
-		mkdir "${misterpath}/_Favorites"
+		mkdir -p "${misterpath}/_Favorites"
 	fi
 	cp /tmp/SAM_game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl" &>/dev/null
 
@@ -2593,8 +2594,8 @@ function reset_core_gl() { # args ${nextcore}
 
 function speedtest() {
 	speedtest=1
-	[ ! -d "/tmp/gl" ] && { mkdir /tmp/gl; }
-	[ ! -d "/tmp/glt" ] && { mkdir /tmp/glt; }
+	[ ! -d "/tmp/gl" ] && { mkdir -p /tmp/gl; }
+	[ ! -d "/tmp/glt" ] && { mkdir -p /tmp/glt; }
 	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind /tmp/gl "${gamelistpath}"
 	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind /tmp/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
@@ -3128,6 +3129,12 @@ function load_core_arcade() {
 	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}" & # Non-Blocking
 	# tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}"    # Blocking
+
+	if [ ${mute} == "core" ]; then
+		echo -e "\0006\c" >"/media/fat/config/${mrasetname}_volume.cfg"
+	elif [ ${mute} == "no" ] || [ ${mute} == "yes" ]; then
+		echo -e "\0000\c" >"/media/fat/config/${mrasetname}_volume.cfg"
+	fi
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
