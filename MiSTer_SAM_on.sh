@@ -207,10 +207,8 @@ function init_paths() {
 
 function config_bind() {
 	[ ! -d "/tmp/SAM_config" ] && mkdir -p "/tmp/SAM_config"
-	[ -d "/tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/SAM_config &>/dev/null
+	[ -d "/tmp/SAM_config" ] && cp -pr --force /media/fat/config/* /tmp/SAM_config &>/dev/null
 	[ -d "/tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/SAM_config" "/media/fat/config"
-	sleep 0.5
-	mute
 }
 
 # ======== CORE CONFIG ========
@@ -391,28 +389,28 @@ function init_data() {
 	)
 
 	# Core to input maps mapping
-	declare -glA CORE_LAUNCH=(
-		["arcade"]="arcade"
-		["atari2600"]="atari7800"
-		["atari5200"]="atari5200"
-		["atari7800"]="atari7800"
-		["atarilynx"]="atarilynx"
-		["c64"]="c64"
-		["fds"]="nes"
-		["gb"]="gameboy"
-		["gbc"]="gameboy"
-		["gba"]="gba"
-		["genesis"]="genesis"
-		["gg"]="sms"
-		["megacd"]="megacd"
-		["neogeo"]="neogeo"
-		["nes"]="nes"
-		["s32x"]="s32x"
-		["sms"]="sms"
-		["snes"]="snes"
-		["tgfx16"]="tgfx16"
-		["tgfx16cd"]="tgfx16"
-		["psx"]="psx"
+	declare -gA CORE_LAUNCH=(
+		["arcade"]="Arcade"
+		["atari2600"]="ATARI7800"
+		["atari5200"]="ATARI5200"
+		["atari7800"]="ATARI7800"
+		["atarilynx"]="AtariLynx"
+		["c64"]="C64"
+		["fds"]="NES"
+		["gb"]="GAMEBOY"
+		["gbc"]="GAMEBOY"
+		["gba"]="GBA"
+		["genesis"]="Genesis"
+		["gg"]="SMS"
+		["megacd"]="MegaCD"
+		["neogeo"]="NEOGEO"
+		["nes"]="NES"
+		["s32x"]="S32X"
+		["sms"]="SMS"
+		["snes"]="SNES"
+		["tgfx16"]="TGFX16"
+		["tgfx16cd"]="TGFX16"
+		["psx"]="PSX"
 	)
 
 	# MGL core name settings
@@ -2503,8 +2501,8 @@ function get_inputmap() {
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
 	for i in "${CORE_LAUNCH[@]}"; do
 		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then
-			curl_download "/tmp/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" "${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map?raw=true" &>/dev/null
-			mv --force "/tmp/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i]^^}_input_1234_5678_v3.map" &>/dev/null
+			curl_download "/tmp/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" "${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map?raw=true" &>/dev/null
+			mv --force "/tmp/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" &>/dev/null
 		fi
 	done
 	echo " Done!"
@@ -2959,6 +2957,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	if [ -s /tmp/SAM_game.mgl ]; then
 		mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
 	fi
+
+	mute "${CORE_LAUNCH[${nextcore}]}"
+
 	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >>/tmp/SAM_game.mgl
 
@@ -2982,6 +2983,23 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
 		sleep 3
 		skipmessage
+	fi
+}
+
+function mute() {
+	if [ "${mute}" == "yes" ]; then
+		# Mute Global Volume
+		echo -e "\0020\c" >/media/fat/config/Volume.dat
+	elif [ "${mute}" == "core" ]; then
+		# UnMute Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# Mute Core Volumes
+		echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
+	elif [ "${mute}" == "no" ]; then
+		# UnMute Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# UnMute Core Volumes
+		echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
 	fi
 }
 
@@ -3009,27 +3027,6 @@ function disable_bootrom() {
 		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot1.rom"
 		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot2.rom"
 		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot3.rom"
-	fi
-}
-
-function mute() {
-	if [ "${mute}" == "yes" ]; then
-		# Mute Global Volume
-		echo -e "\0020\c" >/media/fat/config/Volume.dat
-	elif [ "${mute}" == "core" ]; then
-		# UnMute Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		# Mute Core Volumes
-		for core in ${corelistall}; do
-			echo -e "\0006\c" >"/media/fat/config/${MGL_CORE[${core}]}_volume.cfg"
-		done
-	elif [ "${mute}" == "no" ]; then
-		# UnMute Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		# UnMute Core Volumes
-		for core in ${corelistall}; do
-			echo -e "\0000\c" >"/media/fat/config/${MGL_CORE[${core}]}_volume.cfg"
-		done
 	fi
 }
 
@@ -3130,11 +3127,7 @@ function load_core_arcade() {
 	tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}" & # Non-Blocking
 	# tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}"    # Blocking
 
-	if [ ${mute} == "core" ]; then
-		echo -e "\0006\c" >"/media/fat/config/${mrasetname}_volume.cfg"
-	elif [ ${mute} == "no" ] || [ ${mute} == "yes" ]; then
-		echo -e "\0000\c" >"/media/fat/config/${mrasetname}_volume.cfg"
-	fi
+	mute "${mrasetname}"
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
