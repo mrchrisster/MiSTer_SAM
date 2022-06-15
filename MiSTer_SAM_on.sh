@@ -1809,7 +1809,7 @@ function parse_cmd() {
 				;;
 			roulette5)
 				only_survivor
-				mute=no && mute
+				config_unbind
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1821,7 +1821,7 @@ function parse_cmd() {
 				;;
 			roulette10)
 				only_survivor
-				mute=no && mute
+				config_unbind
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1833,7 +1833,7 @@ function parse_cmd() {
 				;;
 			roulette15)
 				only_survivor
-				mute=no && mute
+				config_unbind
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1845,7 +1845,7 @@ function parse_cmd() {
 				;;
 			roulette20)
 				only_survivor
-				mute=no && mute
+				config_unbind
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1857,7 +1857,7 @@ function parse_cmd() {
 				;;
 			roulette25)
 				only_survivor
-				mute=no && mute
+				config_unbind
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1869,7 +1869,7 @@ function parse_cmd() {
 				;;
 			roulette30)
 				only_survivor
-				mute=no && mute
+				config_unbind
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1881,7 +1881,7 @@ function parse_cmd() {
 				;;
 			roulettetimer)
 				only_survivor
-				mute=no && mute
+				config_unbind
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -2059,9 +2059,9 @@ function sam_disable() { # Disable autoplay
 	fi
 
 	there_can_be_only_one
+	config_unbind
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sync
-	mute=no && mute
 	echo " Done!"
 }
 
@@ -2111,11 +2111,10 @@ function only_survivor() {
 
 function sam_stop() {
 	# Stop all SAM processes and reboot to menu
-	tty_exit
 
 	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
-	mute=no && mute
+	config_unbind
 	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 
 	sleep 1
@@ -2138,10 +2137,12 @@ function sam_stop() {
 }
 
 function sam_exit() {
+	# Delete mount binds and unmute
 	config_unbind
+	mute=no
+	mute
+
 	if [ -z "${1}" ]; then
-		mute=no
-		mute
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 
 		sleep 1
@@ -2451,11 +2452,9 @@ function tty_exit() { # tty_exit
 		tty_waitfor &
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack}" == "yes" ]; then
-			if [ "${samquiet}" == "no" ]; then echo -n " Starting tty2oled daemon..."; fi
 			if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
 				tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
 			fi
-			echo " Done."
 		fi
 	fi
 }
@@ -2562,7 +2561,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
-					mute=no && mute
 					tty_exit
 					play_or_exit
 				else
@@ -2574,7 +2572,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
-					mute=no && mute
 					tty_exit
 					play_or_exit
 
@@ -2587,7 +2584,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
-					mute=no && mute
 					tty_exit
 					play_or_exit
 				else
@@ -3075,6 +3071,7 @@ function mute() {
 		echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
 	fi
 }
+
 
 function play_or_exit() {
 	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
