@@ -13,28 +13,31 @@ declare -g activity_pipe="/tmp/.SAM_tmp/SAM_Activity"
 declare -g corename_pipe="/tmp/.SAM_tmp/SAM_CoreName_Activity"
 declare -g activity_change_pipe="/tmp/.SAM_tmp/SAM_Activity_Change"
 declare -g corename_change_pipe="/tmp/.SAM_tmp/SAM_CoreName_Change"
+declare -gl listenmouse="Yes"
+declare -gl listenkeyboard="Yes"
+declare -gl listenjoy="Yes"
+declare -gl menuonly="Yes"
 
 #======== DEBUG VARIABLES ========
-samquiet="Yes"
-samdebug="No"
-samtrace="No"
+declare -gl samquiet="Yes"
+declare -gl samdebug="No"
+declare -gl samtrace="No"
 
 #======== LOCAL VARIABLES ========
-mcptimeout=60
-mcp_counter=${mcptimeout}
-mcptimeout_minutes=""
-menuonly="Yes"
+declare -gi mcptimeout=60
+declare -gi mcp_counter=${mcptimeout}
+declare -g mcptimeout_minutes=""
+declare -g corename_name=$(</tmp/CORENAME)
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
-while ! test -d /media/fat/
-do
+while ! test -d /media/fat/; do
 	sleep 1
-	count=`expr $count + 1`
+	count=$(expr $count + 1)
 	if test $count -eq 30; then
 		printf '%s\n' " Mount timed out!"
-      		exit 1
- 		fi
+		exit 1
+	fi
 done
 
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
@@ -59,7 +62,7 @@ function sam_activity_change() {
 
 function sam_corename_monitor() {
 	# Spawn CORENAME monitoring process.
-	corename_name=$(< /tmp/CORENAME)
+	corename_name=$(</tmp/CORENAME)
 	printf '%s\n' ${corename_name} >${corename_pipe} &
 }
 
@@ -68,11 +71,11 @@ function sam_jsmonitor() {
 	declare -a jsdevices=()
 	declare -a excludejoy=()
 	declare -a jsnew=()
-	
+
 	# Make a list of all js devices on system
 	shopt -s nullglob
 	for joystick in /dev/input/js*; do
-		jsdevices+=( "${joystick}" )
+		jsdevices+=("${joystick}")
 	done
 	shopt -u nullglob
 
@@ -85,7 +88,7 @@ function sam_jsmonitor() {
 	shopt -s nullglob
 	for joystick in ${jsnew[@]}; do
 		if [ ! -z "${joystick}" ]; then
-			if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Monitoring controller ${joystick}..."; fi
+			if [ "${samquiet}" == "no" ]; then printf '%s\n' " Monitoring controller ${joystick}..."; fi
 			"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
 		fi
 	done
@@ -95,40 +98,40 @@ function sam_jsmonitor() {
 function sam_keybmonitor() {
 
 	# We check for input on hidraw devices. First let's make sure these devices are keyboards...
-	
+
 	declare -a kbdevents=()
 	declare -a rawinput=()
 	declare -a kbddev=()
-	
+
 	kbdevents=($(ls /dev/input/by-path | grep "event-kbd")) # We know these are keyboards
 	rawinput=($(ls /dev/hidraw*))
 
 	# Collect all connected keyboards by physical address
-	for keyboards in "${kbdevents[@]}"; do 
+	for keyboards in "${kbdevents[@]}"; do
 		devpath=$(readlink --canonicalize "/dev/input/by-path/${keyboards}")
-		kbd=${devpath##*/} 
-		kbddev+=( "$(cat /sys/class/input/${kbd}/device/uevent | grep PHYS | cut -d '=' -f2 | tr -d '""')" )
+		kbd=${devpath##*/}
+		kbddev+=("$(cat /sys/class/input/${kbd}/device/uevent | grep PHYS | cut -d '=' -f2 | tr -d '""')")
 		#printf '%s\n' "${kbddev[@]}"
 	done
 
 	# Compare if hidraw devices match keyboard device address
 	for f in "${rawinput[@]}"; do
 		kbdraw=${f##*/}
-		rawdev="$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_PHYS | cut -d '=' -f2 )"
-		#printf "%s \t %s\n" $kbdraw "$rawdev" 
+		rawdev="$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_PHYS | cut -d '=' -f2)"
+		#printf "%s \t %s\n" $kbdraw "$rawdev"
 
 		for i in "${kbddev[@]}"; do
-			if [ "$i" == "$rawdev" ] ; then
+			if [ "$i" == "$rawdev" ]; then
 				printf '%s\n' "$f is a keyboard"
 				"${mrsampath}/MiSTer_SAM_keyboard.py" "${f}" 2>/dev/null &
 			fi
-		done	
+		done
 	done
 }
 
 function sam_msmonitor() {
 	mouse="/dev/input/mice"
-	if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Monitoring mouse ${mouse}..."; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Monitoring mouse ${mouse}..."; fi
 	"${mrsampath}/MiSTer_SAM_mouse.py" "${mouse}" 2>/dev/null &
 }
 
@@ -137,6 +140,7 @@ function sam_trigger() {
 		printf '%s\n' " No activity detected for ${mcptimeout_minutes} minutes. SAM starting..."
 		# /media/fat/Scripts/MiSTer_SAM_on.sh start
 		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
+		sleep 0.5
 		printf '%s\n' " Returned from SAM."
 	fi
 }
@@ -164,41 +168,41 @@ function createpipes() {
 
 function monitors() {
 	# Start monitoring for CORENAME changes
-	if [ "${samquiet,,}" == "no" ]; then printf '%s' " Starting CORENAME change monitor..."; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s' " Starting CORENAME change monitor..."; fi
 	sam_corename_change
-	if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Done!"; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
 
 	# Spawn CORENAME monitoring process.
-	if [ "${samquiet,,}" == "no" ]; then printf '%s' " Starting CORENAME monitor..."; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s' " Starting CORENAME monitor..."; fi
 	sam_corename_monitor
-	if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Done!"; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
 
 	# Start monitoring for joystick device changes
-	if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Starting devices change monitor..."; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Starting devices change monitor..."; fi
 	sam_activity_change
-	if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Done!"; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
 
-	if [ "${listenjoy,,}" == "yes" ]; then
+	if [ "${listenjoy}" == "yes" ]; then
 		# Spawn joystick monitoring process per detected joystick device
-		if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Starting joystick monitor..."; fi
+		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Starting joystick monitor..."; fi
 		sam_jsmonitor
-		if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Done!"; fi
+		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
 
 	fi
-	if [ "${listenkeyboard,,}" == "yes" ]; then
+	if [ "${listenkeyboard}" == "yes" ]; then
 		# Spawn keyboard monitoring processes
-		if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Starting keyboard monitor..."; fi
+		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Starting keyboard monitor..."; fi
 		if [[ /dev/input/by-path/*kbd ]]; then
 			sam_keybmonitor
 		fi
-		if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Done!"; fi
+		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
 	fi
 
-	if [ "${listenmouse,,}" == "yes" ]; then
+	if [ "${listenmouse}" == "yes" ]; then
 		# Spawn mouse monitoring process per detected mouse device
-		if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Starting mouse monitor..."; fi
+		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Starting mouse monitor..."; fi
 		sam_msmonitor
-		if [ "${samquiet,,}" == "no" ]; then printf '%s\n' " Done!"; fi
+		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
 	fi
 
 	while true; do
@@ -243,21 +247,20 @@ function monitors() {
 MCP_loop() {
 	while true; do
 		trap 'mcp_counter=${mcptimeout}' INT #Break out of loop for Activity Triggers
-		if [ ! ${corename_name} == "UNEM" ]; then
-			while [ ${mcp_counter} -gt 0 ]; do
-				echo -ne " Starting in ${mcp_counter}...\033[0K\r"
-				sleep 1
-				((mcp_counter--))
-			done
-			trap - INT
-			# Only start SAM from main menu
-			if  [ "${menuonly,,}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
-				printf '%s\n' " Triggered after menuonly=yes"
-				sam_trigger
-			elif [ "${menuonly,,}" == "no" ]; then
-				echo " Triggered after menuonly=no"
-				sam_trigger
-			fi
+		while [ ${mcp_counter} -gt 0 ]; do
+			echo -ne " Starting in ${mcp_counter}...\033[0K\r"
+			sleep 1
+			((mcp_counter--))
+		done
+		corename_name=$(</tmp/CORENAME)
+		trap - INT
+		# Only start SAM from main menu
+		if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
+			printf '%s\n' " Triggered after menuonly=yes"
+			sam_trigger
+		elif [ "${menuonly}" == "no" ]; then
+			echo " Triggered after menuonly=no"
+			sam_trigger
 		fi
 		mcp_counter=${mcptimeout}
 	done
@@ -272,7 +275,7 @@ main() {
 	createpipes
 	monitors
 	#======== DEBUG OUTPUT =========
-	if [ "${samtrace,,}" == "yes" ]; then
+	if [ "${samtrace}" == "yes" ]; then
 		printf '%s\n' "********************************************************************************"
 		#======== GLOBAL VARIABLES =========
 		printf '%s\n' " mrsampath: ${mrsampath}"

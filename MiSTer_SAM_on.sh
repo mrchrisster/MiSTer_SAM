@@ -1111,7 +1111,7 @@ function startup_tasks() {
 
 function start_pipe_readers() {
 	if [[ ! -p ${SAM_cmd_pipe} ]]; then
-    	mkfifo ${SAM_cmd_pipe}
+		mkfifo ${SAM_cmd_pipe}
 	fi
 
 	while true; do
@@ -1142,7 +1142,7 @@ function start_pipe_readers() {
 		fi
 		sleep 0.1
 	done &
-	
+
 	while true; do
 		if read line <${activity_pipe}; then
 			echo " Activity detected!"
@@ -2121,7 +2121,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		sleep 1
 		echo " Done!"
 		echo " There was an error ${2}" # Pass error messages in ${2}
-	elif [ ${1} -eq 2 ]; then # Play Current Game
+	elif [ ${1} -eq 2 ]; then        # Play Current Game
 		sleep 1
 	elif [ ${1} -eq 3 ]; then # Play Current Game
 		sleep 1
@@ -2432,7 +2432,7 @@ function tty_senddata() {
 	fi                                                 # End if Picture check
 }
 
-function tty_exit() { 
+function tty_exit() {
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" >${ttydevice}
@@ -2922,7 +2922,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "${3} (${1}) "$(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >/tmp/SAM_Game.txt
 	tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}" & # Non blocking Version
 	# tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}"    # Blocking Version
-
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
