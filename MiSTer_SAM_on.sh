@@ -3130,7 +3130,9 @@ function load_core_arcade() {
 
 	if [ ! -s "${mralist}" ]; then
 		build_mralist "${DIR}"
+		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
+
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
@@ -3138,6 +3140,15 @@ function load_core_arcade() {
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
 	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+	
+	if [ ! -f "${MRAPATH}" ]; then
+		echo " There is no valid file at ${MRAPATH}... Rebuilding list."
+		build_mralist "${DIR}"
+		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
+		cp "${mralist}" "${mralist_tmp}" &>/dev/null
+		mra="$(shuf --head-count=1 ${mralist_tmp})"
+		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+	fi
 
 	# If the mra variable is valid this is skipped, but if not we try 5 times
 	# Partially protects against typos from manual editing and strange character parsing problems
@@ -3147,12 +3158,6 @@ function load_core_arcade() {
 			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 		fi
 	done
-
-	# If the MRA is still not valid something is wrong - suicide
-	if [ ! -f "${MRAPATH}" ]; then
-		echo " There is no valid file at ${MRAPATH}!"
-		return
-	fi
 
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
 
