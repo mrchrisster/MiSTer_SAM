@@ -1667,20 +1667,17 @@ function sam_bgmmenu() {
 				repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
 				get_samstuff bgm.sh /tmp
 				mv --force /tmp/bgm.sh /media/fat/Scripts/
-				echo " Updating MiSTer_SAM.ini to use Mute=Core"
-				sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
-
 			else
 				echo " BGM script is installed already. Continuing with setup."
 				/media/fat/Scripts/bgm.sh stop
-				echo " Updating MiSTer_SAM.ini to use Mute=Core"
-				sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
 				echo " Resetting BGM"
 				[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
 			fi
+			echo " Updating MiSTer_SAM.ini to use Mute=Core"
+			sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
 			/media/fat/Scripts/bgm.sh
 			sync
-			#sed -i '/startup/c\startup = no' /media/fat/music/bgm.ini
+			sed -i '/startup/c\startup = no' /media/fat/music/bgm.ini
 			sed -i '/playincore/c\playincore = yes' /media/fat/music/bgm.ini
 			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 			get_samstuff Media/80s.pls /media/fat/music
@@ -2369,7 +2366,7 @@ function mglfavorite() {
 function bgm_start() {
 
 	if [ "${bgm}" == "yes" ]; then
-		/media/fat/Scripts/bgm.sh start
+		/media/fat/Scripts/bgm.sh stop && /media/fat/Scripts/bgm.sh play
 	fi
 
 }
