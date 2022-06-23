@@ -19,6 +19,13 @@ samquiet="Yes"
 
 #======== LOCAL VARIABLES ========
 
+# ======== TTY2OLED =======
+declare -gl ttyenable="No"
+declare -g ttydevice="/dev/ttyUSB0"
+declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
+declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
+declare -gl ttyuseack="No"
+
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
 while ! test -d /media/fat/; do
@@ -68,10 +75,18 @@ function stop() {
 		wait ${pids} &>/dev/null
 	fi
 	echo " Done!"
+
+	echo -n " Stopping TTY2oled..."
+	pids=$(pidof MiSTer_SAM_tty2oled)
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
 }
 
 function mcp_start() {
-	echo -n " Starting MCP.."
+	echo " Starting MCP.."
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
 		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP" &
