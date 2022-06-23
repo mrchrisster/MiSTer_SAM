@@ -1680,7 +1680,7 @@ function sam_bgmmenu() {
 			fi
 			/media/fat/Scripts/bgm.sh
 			sync
-			sed -i '/startup/c\startup = no' /media/fat/music/bgm.ini
+			#sed -i '/startup/c\startup = no' /media/fat/music/bgm.ini
 			sed -i '/playincore/c\playincore = yes' /media/fat/music/bgm.ini
 			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 			get_samstuff Media/80s.pls /media/fat/music
@@ -1773,6 +1773,7 @@ function parse_cmd() {
 				;;
 			stop) # Stop SAM immediately
 				tty_exit
+				bgm_stop
 				sam_stop
 				exit
 				break
@@ -2368,7 +2369,7 @@ function mglfavorite() {
 function bgm_start() {
 
 	if [ "${bgm}" == "yes" ]; then
-		/media/fat/Scripts/bgm.sh
+		/media/fat/Scripts/bgm.sh start
 	fi
 
 }
