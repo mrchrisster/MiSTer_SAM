@@ -86,7 +86,8 @@ function init_vars() {
 	declare -gi rebuild_freq_arcade_int="604800"
 	declare -gi bootsleep="60"
 	declare -gi countdown="nocountdown"								
-
+	# ======== BGM =======
+	declare -gl bgm="No"
 	# ======== TTY2OLED =======
 	declare -gl ttyenable="No"
 	declare -g ttydevice="/dev/ttyUSB0"
@@ -415,6 +416,7 @@ function init_data() {
 
 	# Core to input maps mapping
 	declare -gA CORE_LAUNCH=(
+		["amiga"]="minimig"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
 		["atari5200"]="ATARI5200"
@@ -1331,6 +1333,7 @@ function sam_menu() {
 		Include "Single category selection" \
 		Exclude "Exclude categories" \
 		Gamemode "Game roulette" \
+		BGM "Background Music Player" \
 		Config "Configure INI Settings" \
 		Favorite "Copy current game to _Favorites folder" \
 		Gamelists "Game Lists - Create or Delete" \
@@ -1642,6 +1645,63 @@ function samedit_excltags_old() {
 
 }
 
+function sam_bgmmenu() {
+	dialog --clear --no-cancel --ascii-lines \
+	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
+	--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM. Please note that if you are using BGM already, backup your bgm.ini since SAM will change some settings.\n\nWe'll drop one playlist in the music folder as a default playlist. You can customize this later to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
+	dialog --clear --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
+		--menu "Select from the following options?" 0 0 0 \
+		Enablebgm "Enable BGM for SAM" \
+		Disablebgm "Disable BGM for SAM" 2>"/tmp/.SAMmenu" 
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	else
+		if [[ "${menuresponse,,}" == "enablebgm" ]]; then
+			if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
+				echo " Installing BGM to Scripts folder"
+				repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+				get_samstuff bgm.sh /tmp
+				mv --force /tmp/bgm.sh /media/fat/Scripts/
+				echo " Updating MiSTer_SAM.ini to use Mute=Core"
+				sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
+
+			else
+				echo " BGM script is installed already. Continuing with setup."
+				/media/fat/Scripts/bgm.sh stop
+				echo " Updating MiSTer_SAM.ini to use Mute=Core"
+				sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
+				echo " Resetting BGM"
+				[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
+			fi
+			/media/fat/Scripts/bgm.sh
+			sync
+			#sed -i '/startup/c\startup = no' /media/fat/music/bgm.ini
+			sed -i '/playincore/c\playincore = yes' /media/fat/music/bgm.ini
+			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+			get_samstuff Media/80s.pls /media/fat/music
+			[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/bgm=/c\bgm=Yes' /media/fat/Scripts/MiSTer_SAM.ini
+			echo " All Done. Starting SAM now."
+			/media/fat/Scripts/MiSTer_SAM_on.sh start
+
+		elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
+			echo " Uninstalling BGM, please wait..."
+			[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
+			[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
+			sed -i '/bgm.sh/d' ${userstartup}
+			sed -i '/Startup BGM/d' ${userstartup}
+			echo " Done."
+		fi
+	fi
+}
+
+
+
 
 function parse_cmd() {
 	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
@@ -1678,7 +1738,7 @@ function parse_cmd() {
 			--speedtest | --sourceonly | --create-gamelists)
 				break
 				;;
-			autoconfig)
+			autoconfig | defaultb)
 				tmux kill-session -t MCP &>/dev/null
 				there_can_be_only_one
 				sam_update
@@ -1702,6 +1762,7 @@ function parse_cmd() {
 			start_real) # Start SAM immediately
 				env_check ${1}
 				tty_init
+				bgm_start
 				loop_core ${nextcore}
 				break
 				;;
@@ -1793,6 +1854,10 @@ function parse_cmd() {
 				;;
 			gamemode)
 				sam_gamemodemenu
+				break
+				;;
+			bgm)
+				sam_bgmmenu
 				break
 				;;
 			gamelists)
@@ -2300,6 +2365,23 @@ function mglfavorite() {
 
 }
 
+function bgm_start() {
+
+	if [ "${bgm}" == "yes" ]; then
+		/media/fat/Scripts/bgm.sh
+	fi
+
+}
+
+function bgm_stop() {
+
+	if [ "${bgm}" == "yes" ]; then
+		/media/fat/Scripts/bgm.sh stop
+	fi
+
+}
+
+
 # ======== tty2oled FUNCTIONS ========
 
 function tty_init() { # tty_init
@@ -2562,6 +2644,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
 					tty_exit
+					bgm_stop
 					play_or_exit
 				else
 					echo " Mouse activity ignored!"
@@ -2573,6 +2656,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
 					tty_exit
+					bgm_stop
 					play_or_exit
 
 				else
@@ -2585,6 +2669,7 @@ function loop_core() { # loop_core (core)
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
 					tty_exit
+					bgm_stop
 					play_or_exit
 				else
 					echo " Controller activity ignored!"
