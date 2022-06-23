@@ -10,6 +10,7 @@ declare -g misterpath="/media/fat"
 declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
 declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
 declare -g activity_pipe="/tmp/.SAM_tmp/SAM_Activity"
+declare -g activity_pipe2="/tmp/.SAM_tmp/SAM_Activity2"
 declare -g corename_pipe="/tmp/.SAM_tmp/SAM_CoreName_Activity"
 declare -g activity_change_pipe="/tmp/.SAM_tmp/SAM_Activity_Change"
 declare -g corename_change_pipe="/tmp/.SAM_tmp/SAM_CoreName_Change"
@@ -28,6 +29,10 @@ declare -gi mcptimeout=60
 declare -gi mcp_counter=${mcptimeout}
 declare -g mcptimeout_minutes=""
 declare -g corename_name=$(</tmp/CORENAME)
+
+# ======== TTY2OLED =======
+declare -gl ttyenable="No"
+declare -gl ttyuseack="No"
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
@@ -135,13 +140,23 @@ function sam_msmonitor() {
 	"${mrsampath}/MiSTer_SAM_mouse.py" "${mouse}" 2>/dev/null &
 }
 
+function tty2oled_start() {
+	echo " Starting TTY.."
+	# If the TTY2oled isn't running we need to start it in monitoring only mode
+	if [ -z "$(pidof MiSTer_SAM_tty2oled)" ]; then
+		tmux new-session -s TTY2OLED -d "${mrsampath}/MiSTer_SAM_tty2oled" &
+	fi
+}
+
 function sam_trigger() {
 	if [ "$(ps aux | grep -ice "[M]iSTer_SAM_on")" == "0" ] && [ "$(ps aux | grep -ice "[u]pdate_all.sh")" == "0" ]; then
 		printf '%s\n' " No activity detected for ${mcptimeout_minutes} minutes. SAM starting..."
-		# /media/fat/Scripts/MiSTer_SAM_on.sh start
+		if [ "${ttyenable}" == "yes" ]; then
+			tty2oled_start
+		fi
+		sleep 1
 		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
 		sleep 0.5
-		printf '%s\n' " Returned from SAM."
 	fi
 }
 
@@ -151,11 +166,13 @@ function MCP_cleanup() {
 	[[ -e ${corename_pipe} ]] && rm ${corename_pipe}
 	[[ -e ${activity_change_pipe} ]] && rm ${activity_change_pipe}
 	[[ -e ${activity_pipe} ]] && rm ${activity_pipe}
+	[[ -e ${activity_pipe2} ]] && rm ${activity_pipe2}
 	[[ -p ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
 	[[ -p ${corename_change_pipe} ]] && rm ${corename_change_pipe}
 	[[ -p ${corename_pipe} ]] && rm ${corename_pipe}
 	[[ -p ${activity_change_pipe} ]] && rm ${activity_change_pipe}
 	[[ -p ${activity_pipe} ]] && rm ${activity_pipe}
+	[[ -p ${activity_pipe2} ]] && rm ${activity_pipe2}
 }
 
 function createpipes() {
@@ -164,6 +181,7 @@ function createpipes() {
 	[[ ! -p ${corename_pipe} ]] && mkfifo ${corename_pipe}
 	[[ ! -p ${activity_change_pipe} ]] && mkfifo ${activity_change_pipe}
 	[[ ! -p ${activity_pipe} ]] && mkfifo ${activity_pipe}
+	[[ ! -p ${activity_pipe2} ]] && mkfifo ${activity_pipe2}
 }
 
 function monitors() {
@@ -215,9 +233,12 @@ function monitors() {
 
 	while true; do
 		if read line <${activity_pipe}; then
-			echo -n -e "\033[A"
-			printf '%s\n' "${line}"
 			tmux send-keys -t MCP C-c ENTER
+			echo -n -e "\033[A"
+			# printf '%s\n' "${line}"
+			if [ ! -z "$(pidof MiSTer_SAM_on.sh)" ]; then
+				printf '%s\n' "${line}" >${activity_pipe2}
+			fi
 		fi
 		sleep 0.1
 	done &
@@ -233,11 +254,11 @@ function monitors() {
 		if read line <${corename_pipe}; then
 			# If we detect a change to CORENAME:
 			# Spawn CORENAME monitoring process
-			echo -n -e "\033[A"
-			printf '%s\n' "${line}"
 			tmux rename-window -t MCP "${line}"
 			tmux send-keys -t MCP C-c ENTER
 			sam_corename_change
+			echo -n -e "\033[A"
+			# printf '%s\n' "${line}"
 		fi
 		sleep 0.1
 	done &
@@ -245,6 +266,7 @@ function monitors() {
 
 # ======== MAIN LOOP ========
 MCP_loop() {
+	echo -n -e "\033[A"
 	while true; do
 		trap 'mcp_counter=${mcptimeout}' INT #Break out of loop for Activity Triggers
 		while [ ${mcp_counter} -gt 0 ]; do
