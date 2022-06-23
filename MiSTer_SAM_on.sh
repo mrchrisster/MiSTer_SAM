@@ -1692,6 +1692,7 @@ function sam_bgmmenu() {
 			[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
 			sed -i '/bgm.sh/d' ${userstartup}
 			sed -i '/Startup BGM/d' ${userstartup}
+			sed -i '/bgm=/c\bgm=No' /media/fat/Scripts/MiSTer_SAM.ini
 			echo " Done."
 		fi
 	fi
