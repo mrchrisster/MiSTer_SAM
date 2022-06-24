@@ -85,7 +85,7 @@ Currently supported MiSTer cores:
 * Game Boy Advance (.gba)
 * Genesis (.md .gen)
 * Game Gear (.gg)
-* MegaCD AKA SegaCD (.chd .cue) - Highly recommend [Japanese region free Bios v2](https://mmmonkey.co.uk/downloads/#) for best compatibility.
+* MegaCD AKA SegaCD (.chd .cue) - Highly recommend `Japanese Mega CD 2 with BIOS v2.00c` for best compatibility.
 * NeoGeo (.neo)
 * NES (.nes)
 * Genesis 32X (.32x)
