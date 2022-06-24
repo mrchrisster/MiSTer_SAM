@@ -218,11 +218,6 @@ function config_bind() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
-	if [[ -f "/media/fat/music/bgm.ini" ]]	&& [[ "$(mount | grep -ic bgm.ini)" == "0" ]]; then
-		cp "/media/fat/music/bgm.ini" /tmp/.SAM_tmp/bgm.ini 
-		sed -i '/playincore/c\playincore = yes' /tmp/.SAM_tmp/bgm.ini
-		mount --bind "/tmp/.SAM_tmp/bgm.ini" "/media/fat/music/bgm.ini"
-	fi
 
 }
 
@@ -2375,6 +2370,11 @@ function mglfavorite() {
 function bgm_start() {
 
 	if [ "${bgm}" == "yes" ]; then
+		if [[ -f "/media/fat/music/bgm.ini" ]]	&& [[ "$(mount | grep -ic bgm.ini)" == "0" ]]; then
+			cp "/media/fat/music/bgm.ini" /tmp/.SAM_tmp/bgm.ini 
+			sed -i '/playincore/c\playincore = yes' /tmp/.SAM_tmp/bgm.ini
+			mount --bind "/tmp/.SAM_tmp/bgm.ini" "/media/fat/music/bgm.ini"
+		fi
 		/media/fat/Scripts/bgm.sh stop && /media/fat/Scripts/bgm.sh play
 	fi
 
