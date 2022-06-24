@@ -2375,7 +2375,9 @@ function bgm_start() {
 			sed -i '/playincore/c\playincore = yes' /tmp/.SAM_tmp/bgm.ini
 			mount --bind "/tmp/.SAM_tmp/bgm.ini" "/media/fat/music/bgm.ini"
 		fi
-		/media/fat/Scripts/bgm.sh stop && /media/fat/Scripts/bgm.sh play
+		/media/fat/Scripts/bgm.sh stop
+		[[ -e "/tmp/bgm.sock" ]] && rm /tmp/bgm.sock
+		/media/fat/Scripts/bgm.sh play
 	fi
 
 }
