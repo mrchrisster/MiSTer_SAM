@@ -27,7 +27,6 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 
 ## Update  
 - Running `MiSTer_SAM_on.sh` will update your exisiting version to the newest version.
-- Backup `MiSTer_SAM.ini` and delete (recommended). Since we constantly add new features, it is advised to backup your custom settings and start with a fresh `MiSTer_SAM.ini`. 
   
 ## Usage
 Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
