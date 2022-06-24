@@ -218,6 +218,12 @@ function config_bind() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+	if [[ -f "/media/fat/music/bgm.ini" ]]	&& [[ "$(mount | grep -ic bgm.ini)" == "0" ]]; then
+		cp "/media/fat/music/bgm.ini" /tmp/.SAM_tmp/bgm.ini 
+		sed -i '/playincore/c\playincore = yes' /tmp/.SAM_tmp/bgm.ini
+		mount --bind "/tmp/.SAM_tmp/bgm.ini" "/media/fat/music/bgm.ini"
+	fi
+
 }
 
 function config_unbind() {
@@ -228,6 +234,7 @@ function config_unbind() {
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	[ -f "/media/fat/music/bgm.ini" ] && [ "$(mount | grep -ic bgm.ini)" == "1" ] && umount "/media/fat/music/bgm.ini"
 }
 
 # ======== CORE CONFIG ========
@@ -416,7 +423,7 @@ function init_data() {
 
 	# Core to input maps mapping
 	declare -gA CORE_LAUNCH=(
-		["amiga"]="minimig"
+		["amiga"]="Minimig"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
 		["atari5200"]="ATARI5200"
@@ -1671,14 +1678,13 @@ function sam_bgmmenu() {
 				echo " BGM script is installed already. Continuing with setup."
 				/media/fat/Scripts/bgm.sh stop
 				echo " Resetting BGM"
+				config_unbind
 				[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
 			fi
 			echo " Updating MiSTer_SAM.ini to use Mute=Core"
 			sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
 			/media/fat/Scripts/bgm.sh
 			sync
-			sed -i '/startup/c\startup = no' /media/fat/music/bgm.ini
-			sed -i '/playincore/c\playincore = yes' /media/fat/music/bgm.ini
 			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 			get_samstuff Media/80s.pls /media/fat/music
 			[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
@@ -1688,8 +1694,10 @@ function sam_bgmmenu() {
 
 		elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
 			echo " Uninstalling BGM, please wait..."
+			config_unbind
 			[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
 			[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
+			[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
 			sed -i '/bgm.sh/d' ${userstartup}
 			sed -i '/Startup BGM/d' ${userstartup}
 			sed -i '/bgm=/c\bgm=No' /media/fat/Scripts/MiSTer_SAM.ini
