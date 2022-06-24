@@ -11,7 +11,7 @@ Like a screen saver, SAM comes on when your MiSTer is idle. It will launch a ran
 
 ## Installation
   
-The easiest way to install SAM is launch update_all.sh menu, select "0 Misc" and select "Mister SAM files". After running update_all, you will have a file called `update_MiSter_SAM.sh` in the Scripts folder. Run `update_MiSter_SAM.sh` and don't push any buttons until SAM is updated. It should now be installed and you can configure it from the menu by running `MiSTer_SAM_on.sh` and pushing up.
+- The easiest way to install SAM is launch update_all.sh menu, select "0 Misc" and select "Mister SAM files". After running update_all, you will have a file called `update_MiSter_SAM.sh` in the Scripts folder. Run `update_MiSter_SAM.sh` and don't push any buttons until SAM is updated. It should now be installed and you can configure it from the menu by running `MiSTer_SAM_on.sh` and pushing up.
   
 - Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
 - From the main MiSTer menu navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
@@ -187,6 +187,7 @@ Some commands to control SAM from the command line
    
    
 ## Release History
+- 24 June 2022 - Added category exclusion mode, atari core support and BGM support
 - 25 Apr 2022 - Added gb,gbc,gg and s32x support. SAM now uses game lists for faster load times and better exclusion options.
 - 22 Mar 2022 - Added support for Famicom Disk System and `MiSTer_SAM_on.sh favorite`
 - 17 Mar 2022 - SAM is now using MGL to launch games. Also added PSX support
