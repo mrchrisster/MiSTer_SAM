@@ -2361,7 +2361,7 @@ function mglfavorite() {
 	# Add current game to _Favorites folder
 
 	if [ ! -d "${misterpath}/_Favorites" ]; then
-		mkdir "${misterpath}/_Favorites"
+		mkdir -p "${misterpath}/_Favorites"
 	fi
 	cp /tmp/SAM_game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl"
 
@@ -2704,10 +2704,10 @@ function reset_core_gl() { # args ${nextcore}
 
 function speedtest() {
 	speedtest=1
-	[ ! -d "/tmp/gl" ] && { mkdir /tmp/gl; }
-	[ ! -d "/tmp/glt" ] && { mkdir /tmp/glt; }
-	mount --bind /tmp/gl "${gamelistpath}"
-	mount --bind /tmp/glt "${gamelistpathtmp}"
+	[ ! -d "/tmp/gl" ] && { mkdir -p /tmp/gl; }
+	[ ! -d "/tmp/glt" ] && { mkdir -p /tmp/glt; }
+	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind /tmp/gl "${gamelistpath}"
+	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind /tmp/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
 	for core in ${corelistall}; do
 		defaultpath "${core}"
