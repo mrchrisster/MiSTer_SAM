@@ -3293,8 +3293,8 @@ function load_core_arcade() {
 function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
 		
 		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 
@@ -3310,7 +3310,7 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
-	amigacore="$( find /media/fat/_Computer/ -iname "*minimig*")"
+	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
 		# This is for MegaAGS version March 2022 or older
@@ -3338,8 +3338,9 @@ function load_core_amiga() {
 		echo "" | >/tmp/.SAM_Mouse_Activity
 		echo "" | >/tmp/.SAM_Keyboard_Activity
 	else
-		[ ! -f ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
 		# This is for MegaAGS version June 2022 or newer
+		[ ! -f ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
+		
 		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 			cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		fi
