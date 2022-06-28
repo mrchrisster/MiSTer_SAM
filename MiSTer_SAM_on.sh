@@ -2416,7 +2416,10 @@ function tty_init() { # tty_init
 		if [ "${ttyuseack}" == "yes" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
 			# sleep 3
-			/media/fat/tty2oled/S60tty2oled stop
+			killtty=$(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}' | head -1)
+			for kill in ${killtty}; do
+				[[ ! -z ${killtty} ]] && kill -9 ${kill} >/dev/null
+			done
 			if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 		fi
 		# sleep 2
@@ -3293,8 +3296,9 @@ function load_core_arcade() {
 function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
+		sed -i -e 's/^/Demo: /' ${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
 		
 		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 
@@ -3311,6 +3315,8 @@ function create_amigalist () {
 function load_core_amiga() {
 
 	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+	
+	mute "${CORE_LAUNCH[${nextcore}]}"
 
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
 		# This is for MegaAGS version March 2022 or older
@@ -3346,6 +3352,12 @@ function load_core_amiga() {
 		fi
 
 		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
+		agpretty="$(echo "${rompath}" | tr '_' ' ')"
+		
+		# Special case for demo
+		if [[ "${rompath}" == *"Demo:"* ]]; then
+			rompath=${rompath//Demo: /}
+		fi
 
 		# Delete played game from list
 		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
@@ -3355,7 +3367,6 @@ function load_core_amiga() {
 
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
 
-		agpretty="$(echo "${rompath}" | tr '_' ' ')"
 		echo -n " Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 		echo -e "\e[1m${agpretty}\e[0m"
