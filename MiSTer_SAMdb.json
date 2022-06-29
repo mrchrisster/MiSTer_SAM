@@ -5,7 +5,7 @@
     "db_url": "https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/main/MiSTer_SAMdb.json",
     "default_options": {},
     "files": {
-	"Scripts/update_MiSTer_SAM.sh": {
+	"Scripts/MiSTer_SAM_on.sh": {
 	    "hash": "07b54fe6344855e7b5323d9b4278f741",
 	    "size": 104815,
 	    "url": "https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/main/MiSTer_SAM_on.sh"
