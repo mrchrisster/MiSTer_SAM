@@ -211,7 +211,7 @@ function init_paths() {
 	fi
 }
 
-function SAM_prep() {
+function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
@@ -221,7 +221,7 @@ function SAM_prep() {
 
 }
 
-function SAM_cleanup() {
+function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	tty_exit &
 	bgm_stop
@@ -231,7 +231,7 @@ function SAM_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleaned up mounts."; fi
 }
 
 
@@ -1443,22 +1443,47 @@ function sam_gamemodemenu() {
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
-	dialog --clear --no-cancel --ascii-lines --no-tags \
+	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--menu "Select an option" 0 0 0 \
+		Roulette2 "Play a random game for 2 minutes. " \
 		Roulette5 "Play a random game for 5 minutes. " \
 		Roulette10 "Play a random game for 10 minutes. " \
 		Roulette15 "Play a random game for 15 minutes. " \
 		Roulette20 "Play a random game for 20 minutes. " \
 		Roulette25 "Play a random game for 25 minutes. " \
 		Roulette30 "Play a random game for 30 minutes. " \
-		Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in MiSTer_SAM.ini). " \
-		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
-	clear
-
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
-	parse_cmd ${menuresponse}
+		Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in MiSTer_SAM.ini). " 2>"/tmp/.SAMmenu"	
+	
+		opt=$?
+		menuresponse=$(<"/tmp/.SAMmenu")
+		
+		if [ "$opt" != "0" ]; then
+			sam_menu
+		elif [ "${menuresponse}" == "Roulettetimer" ]; then
+			gametimer=${roulettetimer}
+			mute=no
+			only_survivor
+			sam_cleanup
+			tty_init
+			checkgl
+			listenmouse="No"
+			listenkeyboard="No"
+			listenjoy="No"
+			loop_core	
+		else
+			timemin=${menuresponse//Roulette/}
+			gametimer=$((timemin*60))
+			mute=no
+			only_survivor
+			sam_cleanup
+			tty_init
+			checkgl
+			listenmouse="No"
+			listenkeyboard="No"
+			listenjoy="No"
+			loop_core
+		fi
 }
 
 function samedit_include() {
@@ -1517,6 +1542,7 @@ function samedit_include() {
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
 		only_survivor
+		sam_prep
 		tty_init
 		checkgl
 		loop_core
@@ -1777,13 +1803,13 @@ function parse_cmd() {
 				# break
 				;;
 			stop) # Stop SAM immediately
-				SAM_cleanup
+				sam_cleanup
 				sam_stop
 				exit
 				break
 				;;
 			update) # Update SAM
-				SAM_cleanup
+				sam_cleanup
 				sam_update
 				break
 				;;
@@ -1793,7 +1819,7 @@ function parse_cmd() {
 				break
 				;;
 			disable) # Disable SAM autoplay
-				SAM_cleanup
+				sam_cleanup
 				sam_disable
 				break
 				;;
@@ -1876,90 +1902,6 @@ function parse_cmd() {
 				;;
 			deletegl)
 				deletegl
-				break
-				;;
-			roulette5)
-				only_survivor
-				SAM_cleanup
-				tty_init
-				checkgl
-				listenmouse="No"
-				listenkeyboard="No"
-				listenjoy="No"
-				gametimer=300
-				loop_core
-				break
-				;;
-			roulette10)
-				only_survivor
-				SAM_cleanup
-				tty_init
-				checkgl
-				listenmouse="No"
-				listenkeyboard="No"
-				listenjoy="No"
-				gametimer=600
-				loop_core
-				break
-				;;
-			roulette15)
-				only_survivor
-				SAM_cleanup
-				tty_init
-				checkgl
-				listenmouse="No"
-				listenkeyboard="No"
-				listenjoy="No"
-				gametimer=900
-				loop_core
-				break
-				;;
-			roulette20)
-				only_survivor
-				SAM_cleanup
-				tty_init
-				checkgl
-				listenmouse="No"
-				listenkeyboard="No"
-				listenjoy="No"
-				gametimer=1200
-				loop_core
-				break
-				;;
-			roulette25)
-				only_survivor
-				SAM_cleanup
-				tty_init
-				checkgl
-				listenmouse="No"
-				listenkeyboard="No"
-				listenjoy="No"
-				gametimer=1500
-				loop_core
-				break
-				;;
-			roulette30)
-				only_survivor
-				SAM_cleanup
-				tty_init
-				checkgl
-				listenmouse="No"
-				listenkeyboard="No"
-				listenjoy="No"
-				gametimer=1800
-				loop_core
-				break
-				;;
-			roulettetimer)
-				only_survivor
-				SAM_cleanup
-				tty_init
-				checkgl
-				listenmouse="No"
-				listenkeyboard="No"
-				listenjoy="No"
-				gametimer=${roulettetimer}
-				loop_core
 				break
 				;;
 			help)
@@ -2207,7 +2149,7 @@ function sam_stop() {
 
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
-	SAM_cleanup
+	sam_cleanup
 	if [ ${1} -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
@@ -2670,7 +2612,7 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
-					SAM_cleanup
+					sam_cleanup
 					play_or_exit
 				else
 					echo " Mouse activity ignored!"
@@ -2681,7 +2623,7 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
-					SAM_cleanup
+					sam_cleanup
 					play_or_exit
 
 				else
@@ -2693,7 +2635,7 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
-					SAM_cleanup
+					sam_cleanup
 					play_or_exit
 				else
 					echo " Controller activity ignored!"
@@ -3405,7 +3347,7 @@ function main() {
 		debug_output
 	fi
 
-	SAM_prep
+	sam_prep
 
 	disable_bootrom # Disable Bootrom until Reboot
 
