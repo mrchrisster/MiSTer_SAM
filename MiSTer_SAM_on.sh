@@ -1206,6 +1206,9 @@ function read_samini() {
 		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
 			declare -g ${var}="${!var%/}"
 		done
+		
+	else
+		sam_enable
 	fi
 
 	# Setup corelist
@@ -1326,7 +1329,7 @@ function sam_premenu() {
 
 function sam_menu() {
 	inmenu=1
-	dialog --clear --no-cancel --ascii-lines --no-tags \
+	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		Start "Start SAM now" \
@@ -1344,14 +1347,18 @@ function sam_menu() {
 		Favorite "Copy current game to _Favorites folder" \
 		Gamelists "Game Lists - Create or Delete" \
 		Reset "Reset or uninstall SAM" \
-		Autoplay "Autoplay Configuration" \
-		'' "" \
-		Cancel "Exit now" 2>"/tmp/.SAMmenu"
+		Autoplay "Autoplay Configuration" 2>"/tmp/.SAMmenu"
+	
+	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
+	
+	if [ "$opt" != "0" ]; then
+		exit
+	else 
+		parse_cmd ${menuresponse}
+	fi
 
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
-	parse_cmd ${menuresponse}
 }
 
 function sam_singlemenu() {
@@ -1361,16 +1368,20 @@ function sam_singlemenu() {
 		menulist+=("${CORE_PRETTY[${core}]} games only")
 	done
 
-	dialog --clear --no-cancel --ascii-lines --no-tags \
+	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ Single System Select ]" \
 		--menu "Which system?" 0 0 0 \
-		"${menulist[@]}" \
-		Back 'Previous menu' 2>"/tmp/.SAMmenu"
+		"${menulist[@]}" 2>"/tmp/.SAMmenu"
+	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	else 
+		parse_cmd ${menuresponse}
+	fi
 
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
-	parse_cmd ${menuresponse}
 }
 
 function sam_resetmenu() {
@@ -1462,11 +1473,11 @@ function sam_gamemodemenu() {
 			sam_menu
 		elif [ "${menuresponse}" == "Roulettetimer" ]; then
 			gametimer=${roulettetimer}
-			mute=no
 			only_survivor
 			sam_cleanup
 			tty_init
 			checkgl
+			mute=no
 			listenmouse="No"
 			listenkeyboard="No"
 			listenjoy="No"
@@ -1474,11 +1485,11 @@ function sam_gamemodemenu() {
 		else
 			timemin=${menuresponse//Roulette/}
 			gametimer=$((timemin*60))
-			mute=no
 			only_survivor
 			sam_cleanup
 			tty_init
 			checkgl
+			mute=no
 			listenmouse="No"
 			listenkeyboard="No"
 			listenjoy="No"
@@ -1787,7 +1798,7 @@ function parse_cmd() {
 				break
 				;;
 			start | restart) # Start as a detached tmux session for monitoring
-				sam_start_new
+				sam_start
 				break
 				;;
 			start_real) # Start SAM immediately
@@ -1824,12 +1835,12 @@ function parse_cmd() {
 				break
 				;;
 			monitor) # Warn user of changes
-				sam_monitor_new
+				sam_monitor
 				break
 				;;
 			startmonitor)
-				sam_start_new
-				sam_monitor_new
+				sam_start
+				sam_monitor
 				break
 				;;
 			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
@@ -2504,6 +2515,7 @@ function tty_exit() { # tty_exit
 		# Starting tty2oled daemon only if needed
 		if [ "${ttyuseack}" == "yes" ]; then
 			if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
+				sleep 1
 				tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
 			fi
 		fi
@@ -2574,7 +2586,7 @@ function get_inputmap() {
 }
 
 # ========= SAM START =========
-function sam_start_new() {
+function sam_start() {
 	if [ ${create_all_gamelists} == "yes" ]; then
 		create_game_lists
 	fi
@@ -2587,7 +2599,7 @@ function sam_start_new() {
 }
 
 # ========= SAM MONITOR =========
-function sam_monitor_new() {
+function sam_monitor() {
 	# We can omit -r here. Tradeoff;
 	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
 	# tmux attach-session -t SAM
