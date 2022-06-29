@@ -211,7 +211,7 @@ function init_paths() {
 	fi
 }
 
-function config_bind() {
+function SAM_prep() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
@@ -221,16 +221,20 @@ function config_bind() {
 
 }
 
-function config_unbind() {
+function SAM_cleanup() {
 	# Clean up by umounting any mount binds
+	tty_exit &
+	bgm_stop
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	[ -f "/media/fat/music/bgm.ini" ] && [ "$(mount | grep -ic bgm.ini)" == "1" ] && umount "/media/fat/music/bgm.ini"
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
 }
+
+
 
 # ======== CORE CONFIG ========
 function init_data() {
@@ -1670,11 +1674,12 @@ function sam_bgmmenu() {
 				get_samstuff bgm.sh /tmp
 				mv --force /tmp/bgm.sh /media/fat/Scripts/
 			else
-				echo " BGM script is installed already. Continuing with setup."
-				/media/fat/Scripts/bgm.sh stop
-				echo " Resetting BGM"
-				config_unbind
-				[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
+				echo " BGM script is installed already. Updating just in case..."
+				/media/fat/Scripts/bgm.sh stop &>/dev/null
+				repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+				get_samstuff bgm.sh /tmp
+				mv --force /tmp/bgm.sh /media/fat/Scripts/
+				echo " Resetting BGM now."
 			fi
 			echo " Updating MiSTer_SAM.ini to use Mute=Core"
 			sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
@@ -1689,7 +1694,6 @@ function sam_bgmmenu() {
 
 		elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
 			echo " Uninstalling BGM, please wait..."
-			config_unbind
 			[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
 			[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
 			[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
@@ -1773,14 +1777,13 @@ function parse_cmd() {
 				# break
 				;;
 			stop) # Stop SAM immediately
-				tty_exit
-				bgm_stop
+				SAM_cleanup
 				sam_stop
 				exit
 				break
 				;;
 			update) # Update SAM
-				config_unbind
+				SAM_cleanup
 				sam_update
 				break
 				;;
@@ -1790,6 +1793,7 @@ function parse_cmd() {
 				break
 				;;
 			disable) # Disable SAM autoplay
+				SAM_cleanup
 				sam_disable
 				break
 				;;
@@ -1876,7 +1880,7 @@ function parse_cmd() {
 				;;
 			roulette5)
 				only_survivor
-				config_unbind
+				SAM_cleanup
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1888,7 +1892,7 @@ function parse_cmd() {
 				;;
 			roulette10)
 				only_survivor
-				config_unbind
+				SAM_cleanup
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1900,7 +1904,7 @@ function parse_cmd() {
 				;;
 			roulette15)
 				only_survivor
-				config_unbind
+				SAM_cleanup
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1912,7 +1916,7 @@ function parse_cmd() {
 				;;
 			roulette20)
 				only_survivor
-				config_unbind
+				SAM_cleanup
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1924,7 +1928,7 @@ function parse_cmd() {
 				;;
 			roulette25)
 				only_survivor
-				config_unbind
+				SAM_cleanup
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1936,7 +1940,7 @@ function parse_cmd() {
 				;;
 			roulette30)
 				only_survivor
-				config_unbind
+				SAM_cleanup
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -1948,7 +1952,7 @@ function parse_cmd() {
 				;;
 			roulettetimer)
 				only_survivor
-				config_unbind
+				SAM_cleanup
 				tty_init
 				checkgl
 				listenmouse="No"
@@ -2126,7 +2130,6 @@ function sam_disable() { # Disable autoplay
 	fi
 
 	there_can_be_only_one
-	config_unbind
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sync
 	echo " Done!"
@@ -2181,7 +2184,6 @@ function sam_stop() {
 
 	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
-	config_unbind
 	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 
 	sleep 1
@@ -2203,24 +2205,42 @@ function sam_stop() {
 						
 }
 
-function sam_exit() {
-	# Delete mount binds and unmute
-	config_unbind
-	mute=no
-	mute
 
-	if [ -z "${1}" ]; then
+function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
+	SAM_cleanup
+	if [ ${1} -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-
 		sleep 1
-
 		echo " Done!"
 		echo " Thanks for playing!"
-		exit
-	else
-		exit
+	elif [ ${1} -eq 1 ]; then # Error
+		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		sleep 1
+		echo " Done!"
+		echo " There was an error ${2}" # Pass error messages in ${2}
+	elif [ ${1} -eq 2 ]; then        # Play Current Game
+		sleep 1
+	elif [ ${1} -eq 3 ]; then # Play Current Game
+		sleep 1
+		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 	fi
-} 
+	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
+		sam_stop
+	else
+		ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
+	fi
+}
+
+function play_or_exit() {
+	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
+		sam_exit 2
+	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
+		sam_exit 3
+	else
+		sam_exit 0
+	fi
+}
+
 
 function env_check() {
 	# Check if we've been installed
@@ -2370,14 +2390,8 @@ function mglfavorite() {
 function bgm_start() {
 
 	if [ "${bgm}" == "yes" ]; then
-		if [[ -f "/media/fat/music/bgm.ini" ]]	&& [[ "$(mount | grep -ic bgm.ini)" == "0" ]]; then
-			cp "/media/fat/music/bgm.ini" /tmp/.SAM_tmp/bgm.ini 
-			sed -i '/playincore/c\playincore = yes' /tmp/.SAM_tmp/bgm.ini
-			mount --bind "/tmp/.SAM_tmp/bgm.ini" "/media/fat/music/bgm.ini"
-		fi
-		/media/fat/Scripts/bgm.sh stop
-		[[ -e "/tmp/bgm.sock" ]] && rm /tmp/bgm.sock
-		/media/fat/Scripts/bgm.sh play
+		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock
+		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock
 	fi
 
 }
@@ -2385,7 +2399,8 @@ function bgm_start() {
 function bgm_stop() {
 
 	if [ "${bgm}" == "yes" ]; then
-		/media/fat/Scripts/bgm.sh stop
+		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock
+		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock
 	fi
 
 }
@@ -2655,8 +2670,7 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
-					tty_exit
-					bgm_stop
+					SAM_cleanup
 					play_or_exit
 				else
 					echo " Mouse activity ignored!"
@@ -2667,8 +2681,7 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
-					tty_exit
-					bgm_stop
+					SAM_cleanup
 					play_or_exit
 
 				else
@@ -2680,8 +2693,7 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
-					tty_exit
-					bgm_stop
+					SAM_cleanup
 					play_or_exit
 				else
 					echo " Controller activity ignored!"
@@ -3170,16 +3182,6 @@ function mute() {
 }
 
 
-function play_or_exit() {
-	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
-		sam_exit 2
-	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
-		sam_exit 3
-	else
-		sam_exit 0
-	fi
-}
-
 # ======== ARCADE MODE ========
 function build_mralist() {
 	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
@@ -3319,7 +3321,7 @@ function load_core_amiga() {
 	mute "${CORE_LAUNCH[${nextcore}]}"
 
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
-		# This is for MegaAGS version March 2022 or older
+		# This is for MegaAGS version June 2022 or older
 		echo -n " Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
@@ -3344,7 +3346,7 @@ function load_core_amiga() {
 		echo "" | >/tmp/.SAM_Mouse_Activity
 		echo "" | >/tmp/.SAM_Keyboard_Activity
 	else
-		# This is for MegaAGS version June 2022 or newer
+		# This is for MegaAGS version July 2022 or newer
 		[ ! -f ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
 		
 		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
@@ -3403,7 +3405,7 @@ function main() {
 		debug_output
 	fi
 
-	config_bind
+	SAM_prep
 
 	disable_bootrom # Disable Bootrom until Reboot
 
