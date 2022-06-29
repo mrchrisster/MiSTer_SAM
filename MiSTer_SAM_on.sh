@@ -1691,7 +1691,7 @@ function samedit_excltags_old() {
 function sam_bgmmenu() {
 	dialog --clear --no-cancel --ascii-lines \
 	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
-	--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM. Please note that if you are using BGM already, backup your bgm.ini since SAM will change some settings.\n\nWe'll drop one playlist in the music folder as a default playlist. You can customize this later to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
+	--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
