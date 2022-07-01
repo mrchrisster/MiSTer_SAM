@@ -2925,6 +2925,10 @@ function load_core_arcade() {
 		build_mralist "${DIR}"
 	fi
 
+	if [ ! -s "${mralist_tmp}" ]; then
+		cp "${mralist}" "${mralist_tmp}" &>/dev/null
+	fi
+
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
 	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
