@@ -161,18 +161,18 @@ function sam_trigger() {
 }
 
 function MCP_cleanup() {
-	[[ -e ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
-	[[ -e ${corename_change_pipe} ]] && rm ${corename_change_pipe}
-	[[ -e ${corename_pipe} ]] && rm ${corename_pipe}
-	[[ -e ${activity_change_pipe} ]] && rm ${activity_change_pipe}
-	[[ -e ${activity_pipe} ]] && rm ${activity_pipe}
-	[[ -e ${activity_pipe2} ]] && rm ${activity_pipe2}
 	[[ -p ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
 	[[ -p ${corename_change_pipe} ]] && rm ${corename_change_pipe}
 	[[ -p ${corename_pipe} ]] && rm ${corename_pipe}
 	[[ -p ${activity_change_pipe} ]] && rm ${activity_change_pipe}
 	[[ -p ${activity_pipe} ]] && rm ${activity_pipe}
 	[[ -p ${activity_pipe2} ]] && rm ${activity_pipe2}
+	[[ -e ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
+	[[ -e ${corename_change_pipe} ]] && rm ${corename_change_pipe}
+	[[ -e ${corename_pipe} ]] && rm ${corename_pipe}
+	[[ -e ${activity_change_pipe} ]] && rm ${activity_change_pipe}
+	[[ -e ${activity_pipe} ]] && rm ${activity_pipe}
+	[[ -e ${activity_pipe2} ]] && rm ${activity_pipe2}
 }
 
 function createpipes() {
@@ -234,7 +234,7 @@ function monitors() {
 	while true; do
 		if read line <${activity_pipe}; then
 			tmux send-keys -t MCP C-c ENTER
-			echo -n -e "\033[A"
+			echo -ne "\033[0K\r\033[A"
 			# printf '%s\n' "${line}"
 			if [ ! -z "$(pidof MiSTer_SAM_on.sh)" ]; then
 				printf '%s\n' "${line}" >${activity_pipe2}
@@ -252,12 +252,14 @@ function monitors() {
 
 	while true; do
 		if read line <${corename_pipe}; then
-			# If we detect a change to CORENAME:
-			# Spawn CORENAME monitoring process
-			tmux rename-window -t MCP "${line}"
-			tmux send-keys -t MCP C-c ENTER
-			sam_corename_change
-			echo -n -e "\033[A"
+			if [ ! "${line}" == "${corename_name}" ]; then
+				# If we detect a change to CORENAME:
+				# Spawn CORENAME monitoring process
+				tmux rename-window -t MCP "${line}"
+				tmux send-keys -t MCP C-c ENTER
+				echo -ne "\033[0K\r\033[A"
+				sam_corename_change
+			fi
 			# printf '%s\n' "${line}"
 		fi
 		sleep 0.1
@@ -266,7 +268,10 @@ function monitors() {
 
 # ======== MAIN LOOP ========
 MCP_loop() {
-	echo -n -e "\033[A"
+	if [ ! -z "$1" ] && [ "$1" == "quickstart" ]; then
+		sam_trigger
+	fi
+	corename_name=$(</tmp/CORENAME)
 	while true; do
 		trap 'mcp_counter=${mcptimeout}' INT #Break out of loop for Activity Triggers
 		while [ ${mcp_counter} -gt 0 ]; do
@@ -307,7 +312,7 @@ main() {
 		printf '%s\n' " mcptimeout: ${mcptimeout}"
 		printf '%s\n' "********************************************************************************"
 	fi
-	MCP_loop
+	MCP_loop "${@}"
 }
 
-main ${@}
+main "${@}"

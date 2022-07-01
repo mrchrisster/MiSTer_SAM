@@ -16,6 +16,7 @@ declare -g corename_name="printf '%s\n' $(</tmp/CORENAME)"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
+samtrace="No"
 
 #======== LOCAL VARIABLES ========
 
@@ -52,7 +53,7 @@ function start() {
 
 function quickstart() {
 	#======== Start ========
-	mcp_start
+	mcp_start "quickstart"
 }
 
 function stop() {
@@ -89,7 +90,7 @@ function mcp_start() {
 	echo " Starting MCP.."
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP" &
+		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP" "${@}" &
 	fi
 }
 
@@ -115,7 +116,7 @@ kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | {
 echo " Done!"
 
 #======== DEBUG OUTPUT =========
-if [ "${samquiet,,}" == "no" ]; then
+if [ "${samtrace}" == "yes" ]; then
 	echo "********************************************************************************"
 	#======== GLOBAL VARIABLES =========
 	echo " mrsampath: ${mrsampath}"
@@ -142,7 +143,7 @@ restart)
 	start
 	;;
 *)
-	echo " Usage: ${userstartup} {start|stop|restart}"
+	echo " Usage: ${userstartup} {start|stop|restart|quickstart}"
 	exit 1
 	;;
 esac
