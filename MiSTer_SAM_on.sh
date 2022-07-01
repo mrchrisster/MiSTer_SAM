@@ -19,7 +19,7 @@
 
 # ======== Credits ========
 # Original concept and implementation: mrchrisster
-# Additional development and script layout: Mellified
+# Additional development and script layout: Mellified and Paradox
 #
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
@@ -1625,6 +1625,10 @@ function write_to_TTY_cmd_pipe() {
 
 function process_cmd() {
 	case "${1,,}" in
+	start | restart | bootstart) # Start as from init
+		sam_start
+		exit 0
+		;;
 	stop | quit)
 		write_to_SAM_cmd_pipe ${1-}
 		exit 0
@@ -1716,9 +1720,6 @@ function parse_cmd() {
 			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
-			bootstart) # Start as from init
-				break
-				;;
 			update) # Update SAM
 				# echo "Use new commandline option --update"
 				sam_update
@@ -1755,7 +1756,7 @@ function parse_cmd() {
 			config_bind
 			disable_bootrom # Disable Bootrom until Reboot
 			case "${1,,}" in
-			start | restart | start_real) # Start as a detached tmux session for monitoring
+			start_real) # Start as a detached tmux session for monitoring
 				sam_start_new
 				break
 				;;
@@ -2119,6 +2120,7 @@ function SAM_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
 	[ -p ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
+	[ -e ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
 	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
 }
 
@@ -2266,7 +2268,7 @@ function creategl() {
 
 function skipmessage() {
 	# Skip past bios/safety warnings
-
+	if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
 	"${mrsampath}/mbc" raw_seq :31
 }
 
@@ -2353,6 +2355,12 @@ function sam_start_new() {
 		create_game_lists
 	fi
 	loop_core ${nextcore}
+}
+
+function sam_start() {
+	if [ -z "$(pidof MiSTer_SAM_init)" ]; then
+		"${mrsampath}/MiSTer_SAM_init" "quickstart"
+	fi
 }
 
 # ========= SAM MONITOR =========
@@ -2809,7 +2817,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	sleep 1
 
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		sleep 3
+		sleep 5
 		skipmessage
 	fi
 }
