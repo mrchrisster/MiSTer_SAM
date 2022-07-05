@@ -2158,7 +2158,6 @@ function sam_stop() {
 						
 }
 
-
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
 	sam_cleanup
 	if [ ${1} -eq 0 ]; then # just exit
@@ -2173,9 +2172,17 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		echo " There was an error ${2}" # Pass error messages in ${2}
 	elif [ ${1} -eq 2 ]; then        # Play Current Game
 		sleep 1
-	elif [ ${1} -eq 3 ]; then # Play Current Game
+	elif [ ${1} -eq 3 ]; then # Play Current Game, relaunch because of mute
 		sleep 1
-		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+		if [ "${nextcore}" == "arcade" ]; then
+			mute=no
+			mute "${mrasetname}"
+			echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
+		else
+			mute=no
+			mute "${CORE_LAUNCH[${nextcore}]}"
+			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+		fi
 	fi
 	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
 		sam_stop
@@ -2186,9 +2193,9 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 
 function play_or_exit() {
 	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
-		sam_exit 2
-	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
 		sam_exit 3
+	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
+		sam_exit 2
 	else
 		sam_exit 0
 	fi
@@ -2342,7 +2349,7 @@ function mglfavorite() {
 
 function bgm_start() {
 
-	if [ "${bgm}" == "yes" ]; then
+	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock
 		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock
 	fi
