@@ -2350,8 +2350,8 @@ function mglfavorite() {
 function bgm_start() {
 
 	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
-		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock
-		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock
+		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 	fi
 
 }
@@ -2359,8 +2359,8 @@ function bgm_start() {
 function bgm_stop() {
 
 	if [ "${bgm}" == "yes" ]; then
-		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock
-		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock
+		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 	fi
 
 }
