@@ -2006,7 +2006,7 @@ function sam_update() { # sam_update (next command)
 		fi
 		
 		#blacklist files
-		get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt SAM_Gamelists/arcade_blacklist.txt
 
 	fi
 
