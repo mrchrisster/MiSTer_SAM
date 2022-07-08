@@ -2006,7 +2006,7 @@ function sam_update() { # sam_update (next command)
 		fi
 		
 		#blacklist files
-		get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt SAM_Gamelists/arcade_blacklist.txt
 
 	fi
 
@@ -2403,15 +2403,12 @@ function tty_init() { # tty_init
 		fi
 		# sleep 2
 
-		# Small loop for Welcome...
-		for l in {1..3}; do
-			echo "CMDCLS" >${ttydevice}
-			tty_waitfor
-			sleep 0.2
-			echo "CMDTXT,1,15,0,0,9, Welcome to..." >${ttydevice}
-			tty_waitfor
-			sleep 0.2
-		done
+
+		echo "CMDCLST,19,1" >${ttydevice}
+		tty_waitfor
+		sleep 0.2
+		echo "CMDTXT,1,15,0,0,9, Welcome to..." >${ttydevice}
+		tty_waitfor
 		sleep 1
 		echo "CMDTXT,3,15,0,47,27, Super" >${ttydevice}
 		tty_waitfor
@@ -2448,10 +2445,10 @@ function tty_update() { # tty_update core game
 			tty_senddata "${3}"
 		fi
 		tty_waitfor
-		# Show Core-Logo for 15 Secs
+		# Show Core-Logo for 10 Secs
 		sleep 10
 		# Clear Display	with Random effect
-		echo "CMDCLS" >${ttydevice}
+		echo "CMDCLST,19,1" >${ttydevice}
 		tty_waitfor
 
 		# Split long lines - length is approximate since fonts are variable width!
@@ -2520,7 +2517,7 @@ function tty_senddata() {
 function tty_exit() { # tty_exit
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
-		echo "CMDCLS" >${ttydevice}
+		echo "CMDCLST,19,1" >${ttydevice}
 		# echo "CMDCLS" >"${ttydevice}"
 		tty_waitfor &
 		# Starting tty2oled daemon only if needed
