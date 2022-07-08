@@ -1945,6 +1945,7 @@ function mcp_start() {
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
+	mkdir --parents "${gamelistpath}" &>/dev/null
 
 	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
 		# Warn if using non-default branch for updates
@@ -2003,6 +2004,9 @@ function sam_update() { # sam_update (next command)
 		else
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		fi
+		
+		#blacklist files
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt
 
 	fi
 
@@ -3196,7 +3200,7 @@ function load_core_arcade() {
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
-
+	
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
 	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
@@ -3218,6 +3222,19 @@ function load_core_arcade() {
 			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 		fi
 	done
+	
+	#Check blacklist
+	if [ -f ${gamelistpath}/${nextcore}_blacklist.txt ]; then
+		for i in {1..10}; do
+			if [ "$(grep -ic "${mra}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0"  ]; then
+				if [ "${samquiet}" == "no" ]; then echo " Blacklisted because duplicate or boring: ${mra}, trying a different mra.."; fi
+				mra=$(shuf --head-count=1 ${mralist_tmp})
+				MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+			fi
+		done
+	fi
+		
+		
 
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
 
