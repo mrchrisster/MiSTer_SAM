@@ -11,11 +11,11 @@ Like a screen saver, SAM comes on when your MiSTer is idle. It will launch a ran
 
 ## Installation
   
-- The easiest way to install SAM is launch `update_all.sh` menu, select "0 Misc" and select "Mister SAM files". After running update_all, you will have a file called `MiSter_SAM_on.sh` in the Scripts folder. Run `MiSter_SAM_on.sh` and wait until SAM is fully installed/updated. You can configure it from the menu by running `MiSTer_SAM_on.sh` and pushing up.
+- The easiest way to install SAM is launch `update_all.sh` menu, select "0 Misc" and select "Mister SAM files". After running update_all, you will have a file called `MiSter_SAM_on.sh` in the Scripts folder. Run `MiSter_SAM_on.sh` and wait until SAM is fully installed/updated. You can configure SAM from the menu by running `MiSTer_SAM_on.sh` and pushing up.
   
 or  
   
-- Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
+- Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory
 - From the main MiSTer menu navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
 - **NOTE** Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`.
   
