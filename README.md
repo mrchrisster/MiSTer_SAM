@@ -26,7 +26,7 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 - To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu.
 
 ## Update  
-- Running `MiSTer_SAM_on.sh` will update your exisiting version to the newest version.
+- Running `MiSTer_SAM_on.sh` will update your existing version to the newest version.
   
 ## Usage
 Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
@@ -171,7 +171,7 @@ For technical users here are a few handy tricks to observe and debug SAM.
 - To enable more console messages: `samquiet="No"`
 - Check the generated MGL file under `/tmp/SAM_game.mgl`. 
 
-## SSH fetures  
+## SSH features  
 
 Some commands to control SAM from the command line  
   
