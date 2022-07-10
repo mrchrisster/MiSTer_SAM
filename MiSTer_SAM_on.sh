@@ -1944,6 +1944,7 @@ function mcp_start() {
 
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
+	sam_cleanup
 	mkdir --parents "${mrsampath}" &>/dev/null
 	mkdir --parents "${gamelistpath}" &>/dev/null
 
@@ -2336,9 +2337,11 @@ function creategl() {
 }
 
 function skipmessage() {
-	# Skip past bios/safety warnings
-
-	"${mrsampath}/mbc" raw_seq :31
+	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
+		# Skip past bios/safety warnings
+		sleep 10
+		"${mrsampath}/mbc" raw_seq :31
+	fi
 }
 
 function mglfavorite() {
@@ -2632,7 +2635,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse}" == "yes" ]; then
 					echo " Mouse activity detected!"
-					sam_cleanup
 					play_or_exit
 				else
 					echo " Mouse activity ignored!"
@@ -2643,7 +2645,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo " Keyboard activity detected!"
-					sam_cleanup
 					play_or_exit
 
 				else
@@ -2655,7 +2656,6 @@ function loop_core() { # loop_core (core)
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
 				if [ "${listenjoy}" == "yes" ]; then
 					echo " Controller activity detected!"
-					sam_cleanup
 					play_or_exit
 				else
 					echo " Controller activity ignored!"
@@ -3091,10 +3091,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
 
-	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		sleep 3
-		skipmessage
-	fi
+	# Skip bios screen for FDS or MegaCD
+	skipmessage
+
 }
 
 function core_error() { # core_error core /path/to/ROM
