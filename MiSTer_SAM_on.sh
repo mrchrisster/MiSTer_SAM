@@ -1944,7 +1944,6 @@ function mcp_start() {
 
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
-	sam_cleanup
 	mkdir --parents "${mrsampath}" &>/dev/null
 	mkdir --parents "${gamelistpath}" &>/dev/null
 
