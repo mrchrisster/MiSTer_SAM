@@ -1943,6 +1943,8 @@ function mcp_start() {
 }
 
 function sam_update() { # sam_update (next command)
+	# End script through button push
+	echo "Button push." >/tmp/.SAM_Joy_Activity
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
 	mkdir --parents "${gamelistpath}" &>/dev/null
