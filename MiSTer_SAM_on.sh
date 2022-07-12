@@ -1208,7 +1208,7 @@ function read_samini() {
 		done
 		
 	else
-		sam_enable
+		sam_update
 	fi
 
 	# Setup corelist
