@@ -1949,6 +1949,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
@@ -2270,8 +2271,8 @@ function creategl() {
 
 function skipmessage() {
 	# Skip past bios/safety warnings
-	if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
 	sleep 10
+	if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
 	"${mrsampath}/mbc" raw_seq :31
 }
 
@@ -2817,10 +2818,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 
-	sleep 1
-
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		skipmessage
+		skipmessage &
 	fi
 }
 
