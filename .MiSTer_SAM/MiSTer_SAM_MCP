@@ -151,6 +151,8 @@ function tty2oled_start() {
 function sam_trigger() {
 	if [ "$(ps aux | grep -ice "[M]iSTer_SAM_on")" == "0" ] && [ "$(ps aux | grep -ice "[u]pdate_all.sh")" == "0" ]; then
 		printf '%s\n' " No activity detected for ${mcptimeout_minutes} minutes. SAM starting..."
+		printf '%s ' $(date +%c)
+		printf '\n'
 		if [ "${ttyenable}" == "yes" ]; then
 			tty2oled_start
 		fi
@@ -182,6 +184,32 @@ function createpipes() {
 	[[ ! -p ${activity_change_pipe} ]] && mkfifo ${activity_change_pipe}
 	[[ ! -p ${activity_pipe} ]] && mkfifo ${activity_pipe}
 	[[ ! -p ${activity_pipe2} ]] && mkfifo ${activity_pipe2}
+
+	while true; do
+		if [[ -p ${MCP_cmd_pipe} ]]; then
+			if read line <${MCP_cmd_pipe}; then
+				set -- junk ${line}
+				shift
+				case "${1}" in
+				stop | quit)
+					# sam_exit 0 "stop"
+					break
+					;;
+				exit)
+					# sam_exit ${2}
+					break
+					;;
+				*)
+					echo " ERROR! ${line} is unknown."
+					echo " Try $(basename -- ${0}) help"
+					echo " Or check the Github readme."
+					echo " Named Pipe"
+					;;
+				esac
+			fi
+		fi
+		sleep 0.1
+	done &
 }
 
 function monitors() {
@@ -267,33 +295,28 @@ function monitors() {
 }
 
 # ======== MAIN LOOP ========
-MCP_loop() {
-	if [ ! -z "$1" ] && [ "$1" == "quickstart" ]; then
+function MCP_loop() {
+	while [ ${mcp_counter} -gt 0 ]; do
+		echo -ne " Starting in ${mcp_counter}...\033[0K\r"
+		sleep 1
+		((mcp_counter--))
+	done
+	corename_name=$(</tmp/CORENAME)
+	tmux rename-window -t MCP "$corename_name"
+	# Only start SAM from main menu
+	if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
+		printf '%s\n' " Triggered after menuonly=yes"
+		sam_trigger
+	elif [ "${menuonly}" == "no" ]; then
+		echo " Triggered after menuonly=no"
 		sam_trigger
 	fi
-	corename_name=$(</tmp/CORENAME)
-	while true; do
-		trap 'mcp_counter=${mcptimeout}' INT #Break out of loop for Activity Triggers
-		while [ ${mcp_counter} -gt 0 ]; do
-			echo -ne " Starting in ${mcp_counter}...\033[0K\r"
-			sleep 1
-			((mcp_counter--))
-		done
-		corename_name=$(</tmp/CORENAME)
-		trap - INT
-		# Only start SAM from main menu
-		if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
-			printf '%s\n' " Triggered after menuonly=yes"
-			sam_trigger
-		elif [ "${menuonly}" == "no" ]; then
-			echo " Triggered after menuonly=no"
-			sam_trigger
-		fi
-		mcp_counter=${mcptimeout}
-	done
+	mcp_counter=${mcptimeout}
+	sleep 1
+	MCP_loop
 }
 
-main() {
+function main() {
 	#======== Start ========
 
 	# Convert seconds to minutes
@@ -312,7 +335,14 @@ main() {
 		printf '%s\n' " mcptimeout: ${mcptimeout}"
 		printf '%s\n' "********************************************************************************"
 	fi
-	MCP_loop "${@}"
+	corename_name=$(</tmp/CORENAME)
+	tmux rename-window -t MCP "$corename_name"
+	if [ ! -z "$1" ] && [ "$1" == "quickstart" ]; then
+		sam_trigger
+	fi
+	trap 'mcp_counter=${mcptimeout}' INT # Reset mcp_counter for Activity Triggers
+	MCP_loop
+	trap - INT
 }
 
 main "${@}"

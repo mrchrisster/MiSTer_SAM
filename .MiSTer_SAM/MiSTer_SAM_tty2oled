@@ -52,7 +52,8 @@ declare -g ttydevice="/dev/ttyUSB0"
 declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
 declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
 declare -gl ttyuseack="No"
-
+declare -g ttypicture="/media/fat/tty2oled/pics"
+declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
 declare -g prev_name_scroll=""
 declare -g prev_counter=""
 
@@ -136,9 +137,9 @@ function tty_init() { # tty_init
 		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 	fi
 	# sleep 2
-
 	# Small loop for Welcome...
 	echo "CMDCLST,-1,0" >${ttydevice}
+	# echo "CMDCOR,snes" >${ttydevice} &&  tail -n +4 "/media/fat/Scripts/.MiSTer_SAM/SAM2.gsc" | xxd -r -p >${ttydevice}
 	sleep 0.8
 	echo "CMDTXT,1,15,0,0,9, Welcome to..." >${ttydevice}
 	sleep 0.8

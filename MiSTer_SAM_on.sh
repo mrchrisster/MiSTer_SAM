@@ -1150,7 +1150,7 @@ function start_pipe_readers() {
 
 	while true; do
 		if read line <${activity_pipe2}; then
-			echo " Activity detected!"
+			echo " Activity detected! (${line})"
 			play_or_exit
 		fi
 		sleep 0.1
@@ -1612,7 +1612,7 @@ function write_to_SAM_cmd_pipe() {
 		echo "SAM not running"
 		exit 1
 	fi
-	echo "${1-}" >${SAM_cmd_pipe}
+	echo "${@}" >${SAM_cmd_pipe}
 }
 
 function write_to_TTY_cmd_pipe() {
@@ -1621,6 +1621,14 @@ function write_to_TTY_cmd_pipe() {
 		exit 1
 	fi
 	echo "${@}" >${TTY_cmd_pipe}
+}
+
+function write_to_MCP_cmd_pipe() {
+	if [[ ! -p ${MCP_cmd_pipe} ]]; then
+		echo "MCP not running"
+		exit 1
+	fi
+	echo "${@}" >${MCP_cmd_pipe}
 }
 
 function process_cmd() {
@@ -1650,14 +1658,13 @@ function process_cmd() {
 		startup_tasks
 		sam_update
 		;;
-	enable) # Enable SAM autoplay mode
+	install) # Enable SAM autoplay mode
 		startup_tasks
-		env_check ${1}
-		sam_enable
+		sam_install
 		;;
-	disable) # Disable SAM autoplay
+	uninstall) # Disable SAM autoplay
 		startup_tasks
-		sam_disable
+		sam_uninstall
 		;;
 	speedtest)
 		startup_tasks
@@ -1725,11 +1732,6 @@ function parse_cmd() {
 				sam_update
 				break
 				;;
-			disable) # Disable SAM autoplay
-				# echo "Use new commandline option --disable"
-				sam_disable
-				break
-				;;
 			favorite)
 				mglfavorite
 				break
@@ -1770,7 +1772,7 @@ function parse_cmd() {
 				# there_can_be_only_one
 				sam_update
 				mcp_start
-				sam_enable
+				sam_install
 				break
 				;;
 			single)
@@ -1977,8 +1979,8 @@ function sam_update() { # sam_update (next command)
 
 }
 
-function sam_enable() { # Enable autoplay
-	echo -n " Enabling MiSTer SAM Autoplay..."
+function sam_install() { # Install SAM to startup
+	echo -n " Installing MiSTer SAM..."
 
 	# Awaken daemon
 	# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
@@ -2026,9 +2028,9 @@ function sam_enable() { # Enable autoplay
 	sam_exit 0
 }
 
-function sam_disable() { # Disable autoplay
+function sam_uninstall() { # Uninstall SAM from startup
 
-	echo -n " Disabling SAM autoplay..."
+	echo -n " Uninstallling SAM..."
 	# Clean out existing processes to ensure we can update
 
 	if [ -f /etc/init.d/S93mistersam ] || [ -f /etc/init.d/_S93mistersam ]; then
@@ -2269,6 +2271,7 @@ function creategl() {
 function skipmessage() {
 	# Skip past bios/safety warnings
 	if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
+	sleep 10
 	"${mrsampath}/mbc" raw_seq :31
 }
 
@@ -2381,8 +2384,8 @@ function loop_core() { # loop_core (core)
 	declare -i name_position=0
 	declare -i scroll_direction=1
 	while [[ -p ${SAM_cmd_pipe} ]]; do
+		trap 'counter=0' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
-			trap 'counter=0' INT #Break out of loop for skip & next command
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
@@ -2817,7 +2820,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	sleep 1
 
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		sleep 5
 		skipmessage
 	fi
 }
