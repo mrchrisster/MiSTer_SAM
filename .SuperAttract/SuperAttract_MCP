@@ -5,7 +5,7 @@ trap 'MCP_cleanup' 1 2 3 9 15
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
 declare -g misterpath="/media/fat"
 declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
 declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
@@ -45,8 +45,8 @@ while ! test -d /media/fat/; do
 	fi
 done
 
-if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+if [ -f "${misterpath}/Scripts/Super Attract Mode.ini" ]; then
+	source "${misterpath}/Scripts/Super Attract Mode.ini"
 fi
 
 if [ "${1,,}" == "tty2oled" ]; then
@@ -94,7 +94,7 @@ function sam_jsmonitor() {
 	for joystick in ${jsnew[@]}; do
 		if [ ! -z "${joystick}" ]; then
 			if [ "${samquiet}" == "no" ]; then printf '%s\n' " Monitoring controller ${joystick}..."; fi
-			"${mrsampath}/MiSTer_SAM_joy.py" "${joystick}" 2>/dev/null &
+			"${mrsampath}/SuperAttract_joy.py" "${joystick}" 2>/dev/null &
 		fi
 	done
 	shopt -u nullglob
@@ -128,7 +128,7 @@ function sam_keybmonitor() {
 		for i in "${kbddev[@]}"; do
 			if [ "$i" == "$rawdev" ]; then
 				printf '%s\n' "$f is a keyboard"
-				"${mrsampath}/MiSTer_SAM_keyboard.py" "${f}" 2>/dev/null &
+				"${mrsampath}/SuperAttract_keyboard.py" "${f}" 2>/dev/null &
 			fi
 		done
 	done
@@ -137,14 +137,14 @@ function sam_keybmonitor() {
 function sam_msmonitor() {
 	mouse="/dev/input/mice"
 	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Monitoring mouse ${mouse}..."; fi
-	"${mrsampath}/MiSTer_SAM_mouse.py" "${mouse}" 2>/dev/null &
+	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" 2>/dev/null &
 }
 
 function tty2oled_start() {
 	echo " Starting TTY.."
 	# If the TTY2oled isn't running we need to start it in monitoring only mode
-	if [ -z "$(pidof MiSTer_SAM_tty2oled)" ]; then
-		tmux new-session -s TTY2OLED -d "${mrsampath}/MiSTer_SAM_tty2oled" &
+	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then
+		tmux new-session -s TTY2OLED -d "${mrsampath}/SuperAttract_tty2oled" &
 	fi
 }
 
@@ -157,7 +157,7 @@ function sam_trigger() {
 			tty2oled_start
 		fi
 		sleep 1
-		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
+		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super Attract Mode.sh" start_real ${nextcore}
 		sleep 0.5
 	fi
 }
@@ -264,7 +264,7 @@ function monitors() {
 			tmux send-keys -t MCP C-c ENTER
 			echo -ne "\033[0K\r\033[A"
 			# printf '%s\n' "${line}"
-			if [ ! -z "$(pidof MiSTer_SAM_on.sh)" ]; then
+			if [ ! -z "$(pidof Super Attract Mode.sh)" ]; then
 				printf '%s\n' "${line}" >${activity_pipe2}
 			fi
 		fi

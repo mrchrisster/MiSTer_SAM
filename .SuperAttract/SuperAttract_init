@@ -1,0 +1,150 @@
+#!/bin/bash
+trap "" HUP
+trap "" TERM
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.SuperAttract:.
+
+#======== INI VARIABLES ========
+# Change these in the INI file
+
+#======== GLOBAL VARIABLES =========
+declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
+declare -g misterpath="/media/fat"
+declare -g userstartup="/media/fat/linux/user-startup.sh"
+declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
+declare -gi bootsleep="60"
+declare -g corename_name="printf '%s\n' $(</tmp/CORENAME)"
+
+#======== DEBUG VARIABLES ========
+samquiet="Yes"
+samtrace="No"
+
+#======== LOCAL VARIABLES ========
+
+# ======== TTY2OLED =======
+declare -gl ttyenable="No"
+declare -g ttydevice="/dev/ttyUSB0"
+declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
+declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
+declare -gl ttyuseack="No"
+
+#========= PARSE INI =========
+# Read INI, Check for mount point presence
+while ! test -d /media/fat/; do
+	sleep 1
+	count=$(expr $count + 1)
+	if test $count -eq 30; then
+		echo " Mount timed out!"
+		exit 1
+	fi
+done
+
+if [ -f "${misterpath}/Scripts/Super Attract Mode.ini" ]; then
+	source "${misterpath}/Scripts/Super Attract Mode.ini"
+fi
+
+[ ! -d /tmp/.SAM_tmp/ ] && mkdir -p /tmp/.SAM_tmp/
+
+#======== Functions ========
+function start() {
+	#======== Start ========
+	sleep ${bootsleep}
+	mcp_start
+}
+
+function quickstart() {
+	#======== Start ========
+	mcp_start "quickstart"
+}
+
+function stop() {
+	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
+	if [ ! ${corename_name} == "MENU" ]; then
+		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+	fi
+	echo -n " Stopping SAM MCP..."
+	pids=$(pidof SuperAttract_MCP)
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
+
+	echo -n " Stopping SAM..."
+	pids=$(pidof "Super Attract Mode.sh")
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
+
+	echo -n " Stopping TTY2oled..."
+	pids=$(pidof SuperAttract_tty2oled)
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
+}
+
+function mcp_start() {
+	echo " Starting MCP.."
+	# If the MCP isn't running we need to start it in monitoring only mode
+	if [ -z "$(pidof SuperAttract_MCP)" ]; then
+		tmux new-session -s MCP -d "${mrsampath}/SuperAttract_MCP" "${@}" &
+	fi
+}
+
+# Kill running process
+pids=$(pidof -o $$ $(basename -- ${0}))
+if [ ! -z "pids" ]; then
+	echo -n " Removing other instances of $(basename -- ${0})..."
+	kill -9 ${pids} &>/dev/null
+	wait ${pids} &>/dev/null
+	echo " Done!"
+fi
+
+# Kill old activity processes
+echo -n " Stopping activity monitoring..."
+killall -q -9 SuperAttract_joy.py 2>/dev/null
+killall -q -9 SuperAttract_mouse.py 2>/dev/null
+killall -q -9 SuperAttract_keyboard.py 2>/dev/null
+killall -q -9 hexdump 2>/dev/null
+kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | {
+	read -r PID COMMAND
+	echo $PID
+}) 2>/dev/null
+echo " Done!"
+
+#======== DEBUG OUTPUT =========
+if [ "${samtrace}" == "yes" ]; then
+	echo "********************************************************************************"
+	#======== GLOBAL VARIABLES =========
+	echo " mrsampath: ${mrsampath}"
+	echo " misterpath: ${misterpath}"
+	#======== LOCAL VARIABLES ========
+	echo " samtimeout: ${samtimeout}"
+	echo " menuonly: ${menuonly}"
+	echo "********************************************************************************"
+fi
+
+# Parse command line
+case "${1,,}" in
+start)
+	start
+	;;
+quickstart)
+	quickstart
+	;;
+stop)
+	stop
+	;;
+restart)
+	stop
+	start
+	;;
+*)
+	echo " Usage: ${userstartup} {start|stop|restart|quickstart}"
+	exit 1
+	;;
+esac
+exit 0

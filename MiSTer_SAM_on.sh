@@ -1951,6 +1951,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
+		get_samstuff MiSTer_SAM_control.sh /media/fat/Scripts
 
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 			echo " MiSTer SAM INI already exists... Merging with new ini."
