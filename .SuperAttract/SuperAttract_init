@@ -38,8 +38,8 @@ while ! test -d /media/fat/; do
 	fi
 done
 
-if [ -f "${misterpath}/Scripts/Super Attract Mode.ini" ]; then
-	source "${misterpath}/Scripts/Super Attract Mode.ini"
+if [ -f "${misterpath}/Scripts/Super_Attract_Mode.ini" ]; then
+	source "${misterpath}/Scripts/Super_Attract_Mode.ini"
 fi
 
 [ ! -d /tmp/.SAM_tmp/ ] && mkdir -p /tmp/.SAM_tmp/
@@ -70,7 +70,7 @@ function stop() {
 	echo " Done!"
 
 	echo -n " Stopping SAM..."
-	pids=$(pidof "Super Attract Mode.sh")
+	pids=$(pidof "Super_Attract_Mode.sh")
 	if [ ! -z "${pids}" ]; then
 		kill -9 ${pids} &>/dev/null
 		wait ${pids} &>/dev/null
