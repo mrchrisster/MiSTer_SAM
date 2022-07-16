@@ -2698,7 +2698,8 @@ function next_core() { # next_core (core)
 	if [ "${countdown}" != "countdown" ]; then
 		# Set $nextcore from $corelist
 		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
-		if [ "${1}" == "${nextcore}" ]; then
+		wc=$(echo "$corelisttmpfile" | awk '{print NF}')
+		if [ $wc -gt 1 ] && [ "${1}" == "${nextcore}" ]; then
 			next_core ${nextcore}
 			return
 		else
