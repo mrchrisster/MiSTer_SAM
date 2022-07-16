@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# https://github.com/mrchrisster/SuperAttract/
+# https://github.com/mrchrisster/MiSTer_SAM/
 # Copyright (c) 2021 by mrchrisster and Mellified
 
 # This program is free software: you can redistribute it and/or modify
@@ -29,13 +29,13 @@ trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT
 # ======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
 declare -g misterpath="/media/fat"
-declare -g repository_url="https://github.com/mrchrisster/SuperAttract"
+declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g branch="main"
 declare -g userstartup="/media/fat/linux/user-startup.sh"
 declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 # Save our PID and process
 declare -g sampid="${$}"
-declare -g samprocess="$(basename -- "${0}")"
+declare -g samprocess="$(basename -- ${0})"
 
 # Named Pipes
 declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
@@ -104,6 +104,8 @@ function init_vars() {
 		["counter"]=${gametimer}
 	)
 
+	# ======== BGM =======
+	declare -gl bgm="No"
 	# ======== CORE PATHS ========
 	declare -g arcadepath="/media/fat/_Arcade"
 	declare -g atari2600path="/media/fat/Games/Atari7800"
@@ -1138,7 +1140,7 @@ function start_pipe_readers() {
 					;;
 				*)
 					echo " ERROR! ${line} is unknown."
-					echo " Try $(basename -- "${0}") help"
+					echo " Try $(basename -- ${0}) help"
 					echo " Or check the Github readme."
 					echo " Named Pipe"
 					;;
@@ -1827,74 +1829,59 @@ function parse_cmd() {
 				sam_update autoconfig
 				break
 				;;
-			--speedtest | --sourceonly | --create-gamelists)
-				break
-				;;
-			autoconfig | defaultb)
-				tmux kill-session -t MCP &>/dev/null
-				there_can_be_only_one
-				sam_update
-				mcp_start
-				sam_enable
-				break
-				;;
-			bootstart) # Start as from init
-				env_check ${1}
-				# Sleep before startup so clock of Mister can synchronize if connected to the internet.
-				# We assume most people don't have RTC add-on so sleep is default.
-				# Only start MCP on boot
-				sleep ${bootsleep}
-				mcp_start
-				break
-				;;
-			start | restart) # Start as a detached tmux session for monitoring
-				sam_start
-				break
-				;;
-			start_real) # Start SAM immediately
-				env_check ${1}
-				tty_init
-				bgm_start
-				loop_core ${nextcore}
-				break
-				;;
-			skip | next) # Load next game - stops monitor
-				echo " Skipping to next game..."
-				tmux send-keys -t SAM C-c ENTER
-				# break
-				;;
-			stop) # Stop SAM immediately
-				sam_cleanup
-				sam_stop
-				exit
-				break
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+				: # Placeholder since we parsed these above
 				;;
 			update) # Update SAM
-				sam_cleanup
+				# echo "Use new commandline option --update"
 				sam_update
 				break
 				;;
-			enable) # Enable SAM autoplay mode
-				env_check ${1}
-				sam_enable
+			favorite)
+				mglfavorite
 				break
 				;;
-			disable) # Disable SAM autoplay
-				sam_cleanup
-				sam_disable
+			deleteall)
+				deleteall
 				break
 				;;
-			monitor) # Warn user of changes
-				sam_monitor
+			creategl)
+				creategl
+				break
+				;;
+			deletegl)
+				deletegl
+				break
+				;;
+			help)
+				sam_help
+				# echo "Use new commandline option --help"
+				break
+				;;
+			esac
+			
+			[ ! -z ${2} ] && shift
+			config_bind
+			disable_bootrom # Disable Bootrom until Reboot
+			bgm_start
+			
+			case "${1,,}" in
+			start_real) # Start as a detached tmux session for monitoring
+				sam_start_new
 				break
 				;;
 			startmonitor)
-				sam_start
-				sam_monitor
+				sam_start_new
+				sam_monitor_new
 				break
 				;;
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
-				: # Placeholder since we parsed these above
+			autoconfig)
+				tmux kill-session -t MCP &>/dev/null
+				# there_can_be_only_one
+				sam_update
+				mcp_start
+				sam_install
+				break
 				;;
 			single)
 				sam_singlemenu
@@ -1906,10 +1893,6 @@ function parse_cmd() {
 				;;
 			autoplay)
 				sam_autoplaymenu
-				break
-				;;
-			favorite)
-				mglfavorite
 				break
 				;;
 			reset)
@@ -1933,10 +1916,6 @@ function parse_cmd() {
 				inmenu=0
 				break
 				;;
-			deleteall)
-				deleteall
-				break
-				;;
 			exclude)
 				samedit_excltags
 				break
@@ -1949,37 +1928,26 @@ function parse_cmd() {
 				sam_gamemodemenu
 				break
 				;;
-			bgm)
-				sam_bgmmenu
-				break
-				;;
 			gamelists)
 				sam_gamelistmenu
 				break
 				;;
-			creategl)
-				creategl
-				break
-				;;
-			deletegl)
-				deletegl
-				break
-				;;
-			help)
-				sam_help
+			bgm)
+				sam_bgmmenu
 				break
 				;;
 			*)
 				echo " ERROR! ${1} is unknown."
 				echo " Try $(basename -- ${0}) help"
 				echo " Or check the Github readme."
+				echo "parse_cmd"
 				break
 				;;
 			esac
-			shift
 		done
 	fi
 }
+
 
 # ======== SAM COMMANDS ========
 function sam_update() { # sam_update (next command)
@@ -1996,27 +1964,27 @@ function sam_update() { # sam_update (next command)
 			echo ""
 		fi
 
-		# Download the newest SuperAttract_on.sh to /tmp
-		get_samstuff SuperAttract_on.sh /tmp
-		if [ -f /tmp/SuperAttract_on.sh ]; then
+		# Download the newest Super_Attract_Mode.sh to /tmp
+		get_samstuff Super_Attract_Mode.sh /tmp
+		if [ -f /tmp/Super_Attract_Mode.sh ]; then
 			if [ ${1} ]; then
-				echo " Continuing setup with latest SuperAttract_on.sh..."
-				/tmp/SuperAttract_on.sh ${1}
+				echo " Continuing setup with latest Super_Attract_Mode.sh..."
+				/tmp/Super_Attract_Mode.sh ${1}
 				return 0
 			else
 				echo " Launching latest"
-				echo " SuperAttract_on.sh..."
-				/tmp/SuperAttract_on.sh update
+				echo " Super_Attract_Mode.sh..."
+				/tmp/Super_Attract_Mode.sh update
 				return 0
 			fi
 		else
-			# /tmp/SuperAttract_on.sh isn't there!
+			# /tmp/Super_Attract_Mode.sh isn't there!
 			echo " SAM update FAILED"
 			echo " No Internet?"
 			return 1
 		fi
 	else # We're running from /tmp - download dependencies and proceed
-		cp --force "/tmp/SuperAttract_on.sh" "/media/fat/Scripts/SuperAttract_on.sh" &>/dev/null
+		cp --force "/tmp/Super_Attract_Mode.sh" "/media/fat/Scripts/Super_Attract_Mode.sh" &>/dev/null
 
 		get_partun
 		get_mbc
@@ -2028,7 +1996,6 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
 		get_samstuff .SuperAttract/SuperAttract_control.sh
-		get_samstuff SuperAttract_off.sh /media/fat/Scripts
 
 
 		if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
@@ -2254,10 +2221,6 @@ function deleteall() {
 		cp /media/fat/Scripts/"Super_Attract_Mode.ini" /media/fat/Scripts/"Super_Attract_Mode.ini.bak" &>/dev/null
 		rm /media/fat/Scripts/"Super_Attract_Mode.ini"
 	fi
-	if [ -f "/media/fat/Scripts/SuperAttract_off.sh" ]; then
-		echo "Deleting SuperAttract_off.sh"
-		rm /media/fat/Scripts/SuperAttract_off.sh
-	fi
 
 	if [ -d "/media/fat/Scripts/SAM_Gamelists" ]; then
 		echo "Deleting Gamelist folder"
@@ -2288,7 +2251,7 @@ function deleteall() {
 	sed -i '/SuperAttract/d' ${userstartup}
 	sed -i '/Super Attract/d' ${userstartup}
 
-	printf "\nAll files deleted except for SuperAttract_on.sh\n"
+	printf "\nAll files deleted except for Super_Attract_Mode.sh\n"
 	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
 		sam_resetmenu
@@ -2304,7 +2267,7 @@ function deletegl() {
 
 	# there_can_be_only_one
 	if [ -d "${mrsampath}/SAM_Gamelists" ]; then
-		echo "Deleting SuperAttract Gamelist folder"
+		echo "Deleting SuperAttract Gamelist folder"Super_Attract_Mode.sh
 		rm -rf "${mrsampath}/SAM_Gamelists"
 	fi
 
@@ -2365,6 +2328,24 @@ function mglfavorite() {
 
 }
 
+function bgm_start() {
+
+	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
+		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+	fi
+
+}
+
+function bgm_stop() {
+
+	if [ "${bgm}" == "yes" ]; then
+		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+	fi
+
+}
+
 # ======== DOWNLOAD FUNCTIONS ========
 function curl_download() { # curl_download ${filepath} ${URL}
 
@@ -2420,14 +2401,11 @@ function get_mbc() {
 }
 
 function get_inputmap() {
-	# Ok, this is messy. Try to download every map file and just disable errors if they don't exist.
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
-	for i in "${CORE_LAUNCH[@]}"; do
-		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then
-			curl_download "/tmp/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" "${repository_url}/blob/${branch}/.SuperAttract/inputs/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map?raw=true" &>/dev/null
-			mv --force "/tmp/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" &>/dev/null
-		fi
-	done
+	get_samstuff .MiSTer_SAM/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	echo " Done!"
 }
 
@@ -2442,7 +2420,6 @@ function sam_start_new() {
 
 function sam_start() {
 	if [ -z "$(pidof SuperAttract_init)" ]; then
-		write_to_SAM_cmd_pipe stop
 		"${mrsampath}/SuperAttract_init" "quickstart"
 	fi
 }
@@ -2949,6 +2926,7 @@ function disable_bootrom() {
 }
 
 function play_or_exit() {
+	bgm_stop
 	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
 		write_to_SAM_cmd_pipe "exit 2"
 	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
