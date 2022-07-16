@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.MiSTer_SAM:.
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.SuperAttract:.
 
 # ======== GLOBAL VARIABLES =========
 declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"

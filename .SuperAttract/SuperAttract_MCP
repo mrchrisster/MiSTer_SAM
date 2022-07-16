@@ -45,8 +45,8 @@ while ! test -d /media/fat/; do
 	fi
 done
 
-if [ -f "${misterpath}/Scripts/Super Attract Mode.ini" ]; then
-	source "${misterpath}/Scripts/Super Attract Mode.ini"
+if [ -f "${misterpath}/Scripts/Super_Attract_Mode.ini" ]; then
+	source "${misterpath}/Scripts/Super_Attract_Mode.ini"
 fi
 
 if [ "${1,,}" == "tty2oled" ]; then
@@ -157,7 +157,7 @@ function sam_trigger() {
 			tty2oled_start
 		fi
 		sleep 1
-		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super Attract Mode.sh" start_real ${nextcore}
+		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super_Attract_Mode.sh" start_real ${nextcore}
 		sleep 0.5
 	fi
 }
@@ -264,7 +264,7 @@ function monitors() {
 			tmux send-keys -t MCP C-c ENTER
 			echo -ne "\033[0K\r\033[A"
 			# printf '%s\n' "${line}"
-			if [ ! -z "$(pidof Super Attract Mode.sh)" ]; then
+			if [ ! -z "$(pidof Super_Attract_Mode.sh)" ]; then
 				printf '%s\n' "${line}" >${activity_pipe2}
 			fi
 		fi
