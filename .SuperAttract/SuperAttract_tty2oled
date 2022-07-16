@@ -1,0 +1,306 @@
+#!/bin/bash
+
+# https://github.com/mrchrisster/MiSTer_SAM/
+# Copyright (c) 2021 by mrchrisster and Mellified
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# Description
+# This cycles through arcade and console cores periodically
+# Games are randomly pulled from their respective folders
+
+# ======== Credits ========
+# Original concept and implementation: mrchrisster
+# Additional development and script layout: Mellified
+#
+# Thanks for the contributions and support:
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
+
+trap 'rc=$?;[ $rc = 0 ] && exit;TTY_cleanup' EXIT
+
+# ======== GLOBAL VARIABLES =========
+declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g misterpath="/media/fat"
+
+# Save our PID and process
+declare -g ttypid="${$}"
+declare -g samprocess="$(basename -- ${0})"
+
+# Named Pipes
+declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
+declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
+declare -g TTY_cmd_pipe="/tmp/.SAM_tmp/TTY_cmd_pipe"
+
+# ======== INI VARIABLES ========
+# Change these in the INI file
+# ======== DEBUG VARIABLES ========
+declare -gl samquiet="Yes"
+declare -gl samdebug="No"
+declare -gl samtrace="No"
+
+# ======== TTY2OLED =======
+declare -gl ttyenable="No"
+declare -g ttydevice="/dev/ttyUSB0"
+declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
+declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
+declare -gl ttyuseack="No"
+declare -g ttypicture="/media/fat/tty2oled/pics"
+declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
+declare -g prev_name_scroll=""
+declare -g prev_counter=""
+
+function start_pipe_reader() {
+	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, starting pipe reader... "; fi
+	if [[ ! -p ${TTY_cmd_pipe} ]]; then
+		mkfifo ${TTY_cmd_pipe}
+	fi
+
+	while true; do
+		if [[ -p ${TTY_cmd_pipe} ]]; then
+			if read line <${TTY_cmd_pipe}; then
+				set -- junk ${line}
+				shift
+				case "${1}" in
+				stop | quit | exit)
+					tty_exit
+					break
+					;;
+				display_info)
+					shift
+					tty_display ${@}
+					;;
+				update_info)
+					shift
+					tty_update ${@}
+					;;
+				*)
+					echo " ERROR! ${line} is unknown."
+					echo " Try $(basename -- ${0}) help"
+					echo " Or check the Github readme."
+					echo " Named Pipe"
+					;;
+				esac
+			fi
+		fi
+		sleep 0.1
+	done &
+}
+
+# ========= PARSE INI =========
+
+# Read INI
+function read_samini() {
+	if [ -f "${misterpath}/Scripts/Super Attract Mode.ini" ]; then
+		source "${misterpath}/Scripts/Super Attract Mode.ini"
+	fi
+}
+
+# ======== tty2oled FUNCTIONS ========
+
+function tty_init() { # tty_init
+	# tty2oled initialization
+	declare -gi START="$(date +%s)"
+	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, loading variables... "; fi
+	source ${ttysystemini}
+	source ${ttyuserini}
+	ttydevice=${TTYDEV}
+	ttypicture=${picturefolder}
+	ttypicture_pri=${picturefolder_pri}
+
+	# Clear Serial input buffer first
+	if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
+	while read -t 0 sdummy <${ttydevice}; do continue; done
+	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+	# sleep 2
+
+	# Stopping ScreenSaver
+	if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled ScreenSaver..."; fi
+	echo "CMDSAVER,0,0,0" >${ttydevice}
+	tty_waitfor
+	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+	# sleep 2
+
+	# Stopping tty2oled Daemon
+	if [ "${ttyuseack}" == "yes" ]; then
+		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+		# echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change Super Attract Mode.ini"
+		# sleep 3
+		/media/fat/tty2oled/S60tty2oled stop
+		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+	fi
+	# sleep 2
+	# Small loop for Welcome...
+	echo "CMDCLST,-1,0" >${ttydevice}
+	# echo "CMDCOR,snes" >${ttydevice} &&  tail -n +4 "/media/fat/Scripts/.MiSTer_SAM/SAM2.gsc" | xxd -r -p >${ttydevice}
+	sleep 0.8
+	echo "CMDTXT,1,15,0,0,9, Welcome to..." >${ttydevice}
+	sleep 0.8
+	echo "CMDTXT,3,15,0,47,27, Super" >${ttydevice}
+	sleep 0.8
+	echo "CMDTXT,3,15,0,97,45, Attract" >${ttydevice}
+	sleep 0.8
+	echo "CMDTXT,3,15,0,153,63, Mode!" >${ttydevice}
+	sleep 2
+}
+
+function tty_waitfor() {
+	if [ "${ttyuseack}" == "yes" ]; then
+		read -d ";" ttyresponse <${ttydevice} # The "read" command at this position simulates an "do..while" loop
+		while [ "${ttyresponse}" != "ttyack" ]; do
+			read -d ";" ttyresponse <${ttydevice} # Read Serial Line until delimiter ";"
+		done
+		#echo -e "${fgreen}${ttyresponse}${freset}"
+		ttyresponse=""
+		#sleep 0.05
+	else
+		# if [ "${samquiet}" == "no" ]; then echo -n "Little sleep... "; fi
+		# sleep 0.2
+		# sleep 0.1
+		sleep 0.05
+	fi
+}
+
+function update_loop() {
+	while [[ -p ${TTY_cmd_pipe} ]]; do
+		sleep 0.01
+	done
+}
+
+function tty_update() { # tty_update core game
+	echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
+	echo "CMDTXT,102,0,0,0,63,Next game in ${prev_counter}" >${ttydevice}
+	eval "${@}"
+	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+	echo "CMDTXT,102,15,0,0,63,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
+	echo "CMDDUPD" >"${ttydevice}"
+
+	prev_name_scroll="${tty_currentinfo[name_scroll]}"
+	prev_counter="${tty_currentinfo[counter]}"
+}
+
+function tty_display() { # tty_update core game
+	eval "${@}"
+	# Wait for tty2oled daemon to show the core logo
+	if [ "${ttyuseack}" == "yes" ]; then
+		tty_senddata "${tty_currentinfo[core]}"
+	elif [ "${ttyuseack}" == "no" ]; then
+		inotifywait -q -e modify /tmp/CORENAME &>/dev/null
+		sleep 1
+	fi
+
+	# Wait for tty2oled to show the core logo
+	if [ "${samdebug}" == "yes" ]; then
+		echo "-------------------------------------------"
+		echo " tty_update got Corename: ${tty_currentinfo[core]} "
+	fi
+	tty_waitfor
+	# Show Core-Logo for 5 Secs
+	sleep 5
+	# Clear Display	with Random effect
+	echo "CMDCLST,-1,0" >"${ttydevice}"
+	tty_waitfor
+
+	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
+	echo "CMDTXT,102,15,0,0,63,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	prev_name_scroll="${tty_currentinfo[name_scroll]}"
+	prev_counter="${tty_currentinfo[counter]}"
+}
+
+# USB Send-Picture-Data function
+function tty_senddata() {
+	newcore="${1}"
+	unset picfnam
+	if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then # Check for _pri pictures
+		picfnam="${ttypicture_pri}/${newcore}.gsc"
+	elif [ -e "${ttypicture_pri}/${newcore}.xbm" ]; then
+		picfnam="${ttypicture_pri}/${newcore}.xbm"
+	else
+		picfolders="gsc_us xbm_us gsc xbm xbm_text" # If no _pri picture found, try all the others
+		[ "${USE_US_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us xbm_us/}"
+		[ "${USE_GSC_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us/}" && picfolders="${picfolders//gsc/}"
+		[ "${USE_TEXT_PICTURE}" = "no" ] && picfolders="${picfolders//xbm_text/}"
+		for picfolder in ${picfolders}; do
+			for ((c = "${#newcore}"; c >= 1; c--)); do                               # Manipulate string...
+				picfnam="${ttypicture}/${picfolder^^}/${newcore:0:$c}.${picfolder:0:3}" # ...until it matches something
+				[ -e "${picfnam}" ] && break
+			done
+			[ -e "${picfnam}" ] && break
+		done
+	fi
+	if [ -e "${picfnam}" ]; then # Exist?
+		# For testing...
+		if [ "${samdebug}" == "yes" ]; then
+			echo "-------------------------------------------"
+			echo " tty2oled sending Corename: ${1} "
+			echo " tty2oled found/send Picture : ${picfnam} "
+			echo "-------------------------------------------"
+		fi
+		echo "CMDCOR,${1}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
+		sleep 0.02                                        # sleep needed here ?!
+		tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
+	else                                               # No Picture available!
+		echo "${1}" >"${ttydevice}"                       # Send just the CORENAME
+	fi                                                 # End if Picture check
+}
+
+function tty_exit() {
+	TTY_cleanup
+	# Clear Display	with Random effect
+	echo "CMDCLST,-1,0" >${ttydevice}
+	tty_waitfor
+	echo "CMDBYE" >${ttydevice}
+	tty_waitfor
+	# Show GAME OVER! for 3 secs
+	# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
+	# tty_waitfor
+	# sleep 3
+	# Set CORENAME for tty2oled Daemon start
+	# echo "MENU" >/tmp/CORENAME
+	# Starting tty2oled daemon only if needed
+	if [ "${ttyuseack}" == "yes" ]; then
+		# echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change Super Attract Mode.ini"
+		# echo -n " Starting tty2oled daemon..."
+		tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+		# if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
+		#	${mrsampath}/MiSTer_SAM_MCP tty2oled &>/dev/null
+		# fi
+		# echo " Done!"
+		return
+	fi
+}
+
+function TTY_cleanup() {
+	# Clean up by umounting any mount binds
+	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
+	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
+}
+
+# ========= TTY MONITOR =========
+function tty_monitor_new() {
+	# We can omit -r here. Tradeoff;
+	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
+	# tmux attach-session -t SAM
+	# window size will be wrong/too small, but ctrl-c nonfunctional instead of killing/disconnecting
+	tmux attach-session -t TTY2OLED
+}
+
+# ========= MAIN =========
+function main() {
+	read_samini
+	start_pipe_reader
+	tty_init
+	update_loop
+}
+
+main ${@}
