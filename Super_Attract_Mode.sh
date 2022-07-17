@@ -35,7 +35,7 @@ declare -g userstartup="/media/fat/linux/user-startup.sh"
 declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 # Save our PID and process
 declare -g sampid="${$}"
-declare -g samprocess="$(basename -- "${0}")"
+declare -g samprocess="$(basename -- ${0})"
 
 # Named Pipes
 declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
@@ -1140,7 +1140,7 @@ function start_pipe_readers() {
 					;;
 				*)
 					echo " ERROR! ${line} is unknown."
-					echo " Try $(basename -- "${0}") help"
+					echo " Try $(basename -- ${0}) help"
 					echo " Or check the Github readme."
 					echo " Named Pipe"
 					;;
@@ -1917,7 +1917,7 @@ function parse_cmd() {
 				break
 				;;
 			exclude)
-				samedit_exclude
+				samedit_excltags
 				break
 				;;
 			include)
