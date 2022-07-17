@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# https://github.com/mrchrisster/MiSTer_SAMSuperAttract/
+# https://github.com/mrchrisster/MiSTer_SAM/
 # Copyright (c) 2021 by mrchrisster and Mellified
 
 # This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT
 # ======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
 declare -g misterpath="/media/fat"
-declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAMSuperAttract"
+declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g branch="main"
 declare -g userstartup="/media/fat/linux/user-startup.sh"
 declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
@@ -1691,7 +1691,7 @@ function sam_bgmmenu() {
 			sed -i '/mute=/c\mute=Core' /media/fat/Scripts/Super_Attract_Mode.ini
 			/media/fat/Scripts/bgm.sh
 			sync
-			repository_url="https://github.com/mrchrisster/MiSTer_SAMMiSTer_SAM"
+			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 			branch="main"
 			get_samstuff Media/80s.pls /media/fat/music
 			[[ ! $(grep -i "bgm" /media/fat/Scripts/Super_Attract_Mode.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/Super_Attract_Mode.ini
