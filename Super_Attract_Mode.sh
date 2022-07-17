@@ -1829,74 +1829,59 @@ function parse_cmd() {
 				sam_update autoconfig
 				break
 				;;
-			--speedtest | --sourceonly | --create-gamelists)
-				break
-				;;
-			autoconfig | defaultb)
-				tmux kill-session -t MCP &>/dev/null
-				there_can_be_only_one
-				sam_update
-				mcp_start
-				sam_enable
-				break
-				;;
-			bootstart) # Start as from init
-				env_check ${1}
-				# Sleep before startup so clock of Mister can synchronize if connected to the internet.
-				# We assume most people don't have RTC add-on so sleep is default.
-				# Only start MCP on boot
-				sleep ${bootsleep}
-				mcp_start
-				break
-				;;
-			start | restart) # Start as a detached tmux session for monitoring
-				sam_start
-				break
-				;;
-			start_real) # Start SAM immediately
-				env_check ${1}
-				tty_init
-				bgm_start
-				loop_core ${nextcore}
-				break
-				;;
-			skip | next) # Load next game - stops monitor
-				echo " Skipping to next game..."
-				tmux send-keys -t SAM C-c ENTER
-				# break
-				;;
-			stop) # Stop SAM immediately
-				sam_cleanup
-				sam_stop
-				exit
-				break
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+				: # Placeholder since we parsed these above
 				;;
 			update) # Update SAM
-				sam_cleanup
+				# echo "Use new commandline option --update"
 				sam_update
 				break
 				;;
-			enable) # Enable SAM autoplay mode
-				env_check ${1}
-				sam_enable
+			favorite)
+				mglfavorite
 				break
 				;;
-			disable) # Disable SAM autoplay
-				sam_cleanup
-				sam_disable
+			deleteall)
+				deleteall
 				break
 				;;
-			monitor) # Warn user of changes
-				sam_monitor
+			creategl)
+				creategl
+				break
+				;;
+			deletegl)
+				deletegl
+				break
+				;;
+			help)
+				sam_help
+				# echo "Use new commandline option --help"
+				break
+				;;
+			esac
+			
+			[ ! -z ${2} ] && shift
+			config_bind
+			disable_bootrom # Disable Bootrom until Reboot
+			bgm_start
+			
+			case "${1,,}" in
+			start_real) # Start as a detached tmux session for monitoring
+				sam_start_new
 				break
 				;;
 			startmonitor)
-				sam_start
-				sam_monitor
+				sam_start_new
+				sam_monitor_new
 				break
 				;;
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
-				: # Placeholder since we parsed these above
+			autoconfig)
+				tmux kill-session -t MCP &>/dev/null
+				# there_can_be_only_one
+				sam_update
+				mcp_start
+				sam_install
+				break
 				;;
 			single)
 				sam_singlemenu
@@ -1908,10 +1893,6 @@ function parse_cmd() {
 				;;
 			autoplay)
 				sam_autoplaymenu
-				break
-				;;
-			favorite)
-				mglfavorite
 				break
 				;;
 			reset)
@@ -1935,12 +1916,8 @@ function parse_cmd() {
 				inmenu=0
 				break
 				;;
-			deleteall)
-				deleteall
-				break
-				;;
 			exclude)
-				samedit_excltags
+				samedit_exclude
 				break
 				;;
 			include)
@@ -1951,37 +1928,26 @@ function parse_cmd() {
 				sam_gamemodemenu
 				break
 				;;
-			bgm)
-				sam_bgmmenu
-				break
-				;;
 			gamelists)
 				sam_gamelistmenu
 				break
 				;;
-			creategl)
-				creategl
-				break
-				;;
-			deletegl)
-				deletegl
-				break
-				;;
-			help)
-				sam_help
+			bgm)
+				sam_bgmmenu
 				break
 				;;
 			*)
 				echo " ERROR! ${1} is unknown."
 				echo " Try $(basename -- ${0}) help"
 				echo " Or check the Github readme."
+				echo "parse_cmd"
 				break
 				;;
 			esac
-			shift
 		done
 	fi
 }
+
 
 # ======== SAM COMMANDS ========
 function sam_update() { # sam_update (next command)
