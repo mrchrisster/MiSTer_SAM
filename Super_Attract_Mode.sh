@@ -104,6 +104,8 @@ function init_vars() {
 		["counter"]=${gametimer}
 	)
 
+	# ======== BGM =======
+	declare -gl bgm="No"
 	# ======== CORE PATHS ========
 	declare -g arcadepath="/media/fat/_Arcade"
 	declare -g atari2600path="/media/fat/Games/Atari7800"
@@ -2365,6 +2367,24 @@ function mglfavorite() {
 
 }
 
+function bgm_start() {
+
+	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
+		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+	fi
+
+}
+
+function bgm_stop() {
+
+	if [ "${bgm}" == "yes" ]; then
+		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+	fi
+
+}
+
 # ======== DOWNLOAD FUNCTIONS ========
 function curl_download() { # curl_download ${filepath} ${URL}
 
@@ -2442,7 +2462,6 @@ function sam_start_new() {
 
 function sam_start() {
 	if [ -z "$(pidof SuperAttract_init)" ]; then
-		write_to_SAM_cmd_pipe stop
 		"${mrsampath}/SuperAttract_init" "quickstart"
 	fi
 }
@@ -2949,6 +2968,7 @@ function disable_bootrom() {
 }
 
 function play_or_exit() {
+	bgm_stop
 	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
 		write_to_SAM_cmd_pipe "exit 2"
 	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
