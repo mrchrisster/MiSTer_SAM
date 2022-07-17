@@ -1995,11 +1995,10 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_keyboard.py
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
-		get_samstuff .SuperAttract/SuperAttract_control.sh
 
 
 		if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
-			echo " MiSTer SAM INI already exists... Merging with new ini."
+			echo " SAM INI already exists... Merging with new ini."
 			get_samstuff "Super_Attract_Mode.ini" /tmp
 			echo " Backing up Super_Attract_Mode.ini to Super_Attract_Mode.ini.bak"
 			cp /media/fat/Scripts/"Super_Attract_Mode.ini" /media/fat/Scripts/"Super_Attract_Mode.ini.bak" &>/dev/null
@@ -2027,7 +2026,7 @@ function sam_update() { # sam_update (next command)
 }
 
 function sam_install() { # Install SAM to startup
-	echo -n " Installing MiSTer SAM..."
+	echo -n " Installing Super Attract Mode..."
 
 	# Awaken daemon
 	# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
@@ -2052,9 +2051,9 @@ function sam_install() { # Install SAM to startup
 			echo "Building ${userstartup}"
 		fi
 	fi
-	if [ $(grep -ic "SuperAttract" ${userstartup}) = "0" ]; then
-		echo -e "Add MiSTer SAM to ${userstartup}\n"
-		echo -e "\n# Startup SuperAttract - Super_Attract_Mode" >>${userstartup}
+	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ] || [ $(grep -ic "attract" ${userstartup}) = "0" ]; then
+		echo -e "Adding SAM to ${userstartup}\n"
+		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e "${mrsampath}/SuperAttract_init" ]] && "${mrsampath}/SuperAttract_init " \$1 &" >>"${userstartup}"
 	fi
 	echo "Done."
@@ -2091,7 +2090,8 @@ function sam_uninstall() { # Uninstall SAM from startup
 	fi
 
 	# there_can_be_only_one
-	sed -i '/SuperAttract/d' ${userstartup}
+	sed -i '/MiSTer_SAM/d' ${userstartup}
+	sed -i '/Attract/d' ${userstartup}
 	sync
 	sam_exit 0
 }
