@@ -1996,7 +1996,6 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
 		get_samstuff .SuperAttract/SuperAttract_control.sh
-		get_samstuff SuperAttract_off.sh /media/fat/Scripts
 
 
 		if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
@@ -2222,10 +2221,6 @@ function deleteall() {
 		cp /media/fat/Scripts/"Super_Attract_Mode.ini" /media/fat/Scripts/"Super_Attract_Mode.ini.bak" &>/dev/null
 		rm /media/fat/Scripts/"Super_Attract_Mode.ini"
 	fi
-	if [ -f "/media/fat/Scripts/SuperAttract_off.sh" ]; then
-		echo "Deleting SuperAttract_off.sh"
-		rm /media/fat/Scripts/SuperAttract_off.sh
-	fi
 
 	if [ -d "/media/fat/Scripts/SAM_Gamelists" ]; then
 		echo "Deleting Gamelist folder"
@@ -2406,14 +2401,11 @@ function get_mbc() {
 }
 
 function get_inputmap() {
-	# Ok, this is messy. Try to download every map file and just disable errors if they don't exist.
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
-	for i in "${CORE_LAUNCH[@]}"; do
-		if [ ! -f /media/fat/Config/inputs/"${CORE_LAUNCH[$i]}"_input_1234_5678_v3.map ]; then
-			curl_download "/tmp/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" "${repository_url}/blob/${branch}/.SuperAttract/inputs/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map?raw=true" &>/dev/null
-			mv --force "/tmp/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" "/media/fat/Config/inputs/${CORE_LAUNCH[$i]}_input_1234_5678_v3.map" &>/dev/null
-		fi
-	done
+	get_samstuff .MiSTer_SAM/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	echo " Done!"
 }
 
