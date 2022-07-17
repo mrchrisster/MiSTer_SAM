@@ -1964,27 +1964,27 @@ function sam_update() { # sam_update (next command)
 			echo ""
 		fi
 
-		# Download the newest SuperAttract_on.sh to /tmp
-		get_samstuff SuperAttract_on.sh /tmp
-		if [ -f /tmp/SuperAttract_on.sh ]; then
+		# Download the newest Super_Attract_Mode.sh to /tmp
+		get_samstuff Super_Attract_Mode.sh /tmp
+		if [ -f /tmp/Super_Attract_Mode.sh ]; then
 			if [ ${1} ]; then
-				echo " Continuing setup with latest SuperAttract_on.sh..."
-				/tmp/SuperAttract_on.sh ${1}
+				echo " Continuing setup with latest Super_Attract_Mode.sh..."
+				/tmp/Super_Attract_Mode.sh ${1}
 				return 0
 			else
 				echo " Launching latest"
-				echo " SuperAttract_on.sh..."
-				/tmp/SuperAttract_on.sh update
+				echo " Super_Attract_Mode.sh..."
+				/tmp/Super_Attract_Mode.sh update
 				return 0
 			fi
 		else
-			# /tmp/SuperAttract_on.sh isn't there!
+			# /tmp/Super_Attract_Mode.sh isn't there!
 			echo " SAM update FAILED"
 			echo " No Internet?"
 			return 1
 		fi
 	else # We're running from /tmp - download dependencies and proceed
-		cp --force "/tmp/SuperAttract_on.sh" "/media/fat/Scripts/SuperAttract_on.sh" &>/dev/null
+		cp --force "/tmp/Super_Attract_Mode.sh" "/media/fat/Scripts/Super_Attract_Mode.sh" &>/dev/null
 
 		get_partun
 		get_mbc
@@ -2256,7 +2256,7 @@ function deleteall() {
 	sed -i '/SuperAttract/d' ${userstartup}
 	sed -i '/Super Attract/d' ${userstartup}
 
-	printf "\nAll files deleted except for SuperAttract_on.sh\n"
+	printf "\nAll files deleted except for Super_Attract_Mode.sh\n"
 	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
 		sam_resetmenu
