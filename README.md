@@ -10,32 +10,32 @@
 Like a screen saver, MiSTer SAM comes on when your MiSTer is idle. Then SAM will launch a random game from your library every few minutes. If you like a game that's currently playing, just pick up your controller and push a button, press a key, or move the mouse. SAM will wait until your **MiSTer goes idle in the menu** again. Then the gaming tour begins again!
 
 ## Installation
-- Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
-- From the main MiSTer menu navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
-- NOTE: Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`.
+- Copy `Super_Attract_Mode.sh` to your MiSTer's `/media/fat/Scripts` directory - *that's it!* 
+- From the main MiSTer menu navigate to **Scripts** and select **Super_Attract_Mode.sh**.
+- NOTE: Additional files will be downloaded automatically the first time you run `Super_Attract_Mode.sh`.
   
 ## Offline Installation  
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
-- Copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. 
-- Additionally copy the entire `.MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
-- To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu.
+- Copy `Super_Attract_Mode.sh` and `Super_Attract_Mode.ini` to `/media/fat/Scripts` on your MiSTer. 
+- Additionally copy the entire `.SuperAttractMode` directory to `/media/fat/Scripts/.SuperAttractMode` on your MiSTer.
+- To enable autoplay, launch `Super_Attract_Mode.sh` - push up button to enter Menu. Now find enable autoplay in the menu.
 
 ## Update  
-- Running `MiSTer_SAM_on.sh` will update your exisiting version to the newest version.
-- Backup `MiSTer_SAM.ini` and delete (recommended). Since we constantly add new features, it is advised to backup your custom settings and start with a fresh `MiSTer_SAM.ini`. 
+- Running `Super_Attract_Mode.sh` will update your exisiting version to the newest version.
+- Backup `Super_Attract_Mode.ini` and delete (recommended). Since we constantly add new features, it is advised to backup your custom settings and start with a fresh `Super_Attract_Mode.ini`. 
   
 ## Usage
 Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
 - ** NOTE ** When you set the startup time to 60 seconds, it will actually wait 2 minutes since there is a default 60 second wait after boot (to let all processes start up).
 
-Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` script in your MiSTer's Scripts folder! 
+Don't want to wait? You can start SAM instantly by launching `Super_Attract_Mode.sh` script in your MiSTer's Scripts folder! 
 
 ## Features
-- **Autoplay** - MiSTer SAM autostarts by default when your MiSTer is idle in the main menu. If you want SAM to always autostart, no matter if in the main menu or not, you can do that by changing "menuonly" setting in `MiSTer_SAM.ini` .
+- **Autoplay** - MiSTer SAM autostarts by default when your MiSTer is idle in the main menu. If you want SAM to always autostart, no matter if in the main menu or not, you can do that by changing "menuonly" setting in `Super_Attract_Mode.ini` .
 
-- **Controller Detection** - MiSTer SAM will only start when no input has been received from your controllers for the amount of time set in `MiSTer_SAM.ini`  
+- **Controller Detection** - MiSTer SAM will only start when no input has been received from your controllers for the amount of time set in `Super_Attract_Mode.ini`  
 
-- **Options Menu** - All options of SAM can be configured from a menu when launching `MiSTer_SAM_on.sh`. 
+- **Options Menu** - All options of SAM can be configured from a menu when launching `Super_Attract_Mode.sh`. 
 **NOTE** The menu does not work out of the box on CRT's . Please try adding the following settings to your `/media/fat/MiSTer.ini` and see if it will make the menu work for your CRT setup:  
 ```
 [Menu]
@@ -47,7 +47,7 @@ video_mode=512,38,66,64,224,12,20,6,10689
   
 - **Exclusion Lists** - You can exclude any amount of games in the ini that you don't want to have displayed.  
   
-- **Custom Game Directory Support** - You can set a custom directory for your games in `MiSTer_SAM.ini` like `/media/usb0`.
+- **Custom Game Directory Support** - You can set a custom directory for your games in `Super_Attract_Mode.ini` like `/media/usb0`.
   
   
   
@@ -55,12 +55,12 @@ video_mode=512,38,66,64,224,12,20,6,10689
 This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.
 - From the main MiSTer menu open the terminal (F9).
 - Login (default user: `root` default password: `1`).
-- `rm -fr /media/fat/Scripts/.MiSTer_SAM /media/fat/MiSTer_SAM /media/fat/Scripts/MiSTer_SAM.ini`
+- `rm -fr /media/fat/Scripts/.SuperAttractMode /media/fat/Scripts/Super_Attract_Mode.ini`
 - Open the OSD (F12 or your controller's menu button).
-- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
+- Navigate to **Scripts** and select **Super_Attract_Mode.sh**.
   
 ## Configuration
-The script is highly customizable through the included ini file `MiSTer_SAM.ini` (details below).
+The script is highly customizable through the included ini file `Super_Attract_Mode.ini` (details below).
 
 ## Supported Systems
 Currently supported MiSTer cores:
@@ -80,10 +80,10 @@ The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works g
 
 ## Attract Mode Configuration
 ### Arcade Horizontal or Vertical Only
-Change the "orientation" setting in the `MiSTer_SAM.ini` file to choose from only horizontal or vertical arcade games.
+Change the "orientation" setting in the `Super_Attract_Mode.ini` file to choose from only horizontal or vertical arcade games.
 
 ### Exclude
-Want to exclude certain arcade games? Just add them to `mraexclude` in the `MiSTer_SAM.ini` file.
+Want to exclude certain arcade games? Just add them to `mraexclude` in the `Super_Attract_Mode.ini` file.
 
 ## FAQs
 
@@ -96,7 +96,7 @@ MiSTer arcade cores are launched via a MiSTer command. For console games we are 
 SNAC is not handled by the Linux kernel so unfortunately we wont be able to support SNAC devices.
   
 ### I don't like how SAM does something!
-MiSTer SAM is designed to be highly configurable. Please check the `/media/fat/Scripts/MiSTer_SAM.ini` file to see if the behavior you want is configurable. If not, please [open an issue](https://github.com/mrchrisster/MiSTer_SAM/issues/new/choose)! We love feedback and feature requests.
+MiSTer SAM is designed to be highly configurable. Please check the `/media/fat/Scripts/Super_Attract_Mode.ini` file to see if the behavior you want is configurable. If not, please [open an issue](https://github.com/mrchrisster/MiSTer_SAM/issues/new/choose)! We love feedback and feature requests.
 
 ### Will this break my MiSTer? Will attract mode reduce the life of the MiSTer cycling between cores if left on long term?
 Short answer is no. FPGAs [don't have a limited number of writes](https://www.youtube.com/watch?v=gtxNu_BUL-w). They are solid state devices that are configured at boot up or - in the case of MiSTer - when a core is loaded. There is no wear from this configuration step.
@@ -134,7 +134,7 @@ BASE_PATH="/media/fat/Games"
 ## Advanced Usage
 For technical users here are a few handy tricks to observe and debug SAM.
 - To update the daemon from local files:
-    `cp /media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_init /etc/init.d/S93mistersam && /etc/init.d/S93mistersam start &`
+    `cp /media/fat/Scripts/.SuperAttractMode/SuperAttractMode_init /etc/init.d/S93mistersam && /etc/init.d/S93mistersam start &`
 - To disable the daemon startup delay add to your INI: `startupsleep="No"`
 - To enable more console messages: `samquiet="No"`
   
