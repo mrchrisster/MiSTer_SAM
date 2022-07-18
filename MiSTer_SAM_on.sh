@@ -263,7 +263,7 @@ function sam_bootmigrate() {
 	
 	if [ -d /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists ]; then
 		echo -e " Migrating Gamelists..."
-		rsync -avx "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists" "/media/fat/Scripts/.SuperAttract/SAM_Gamelists" >/dev/null
+		rsync -avx "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/" "/media/fat/Scripts/.SuperAttract/SAM_Gamelists/" >/dev/null
 		echo " Done."
 	fi
 }
