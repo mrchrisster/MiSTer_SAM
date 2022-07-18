@@ -27,7 +27,7 @@
 trap 'rc=$?;[ $rc = 0 ] && exit;TTY_cleanup' EXIT
 
 # ======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
 declare -g misterpath="/media/fat"
 
 # Save our PID and process

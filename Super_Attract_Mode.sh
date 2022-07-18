@@ -2120,9 +2120,9 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
 
-	kill_1=$(ps -o pid,args | grep '[M]iSTer_SAM_init start' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}')
-	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
+	kill_1=$(ps -o pid,args | grep '[S]uper_Attract_init start' | awk '{print $1}' | head -1)
+	kill_2=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh start_real' | awk '{print $1}')
+	kill_3=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh bootstart_real' | awk '{print $1}' | head -1)
 
 	[[ ! -z ${kill_1} ]] && kill -9 ${kill_1} >/dev/null
 	for kill in ${kill_2}; do
@@ -2138,7 +2138,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 function only_survivor() {
 	# Kill all SAM processes except for currently running
 	ps -ef | grep -i '[s]tart_real' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
-	# kill_4=$(ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}')
+	# kill_4=$(ps -ef | grep -i '[S]uper_Attract_Mode' | awk -v me=${sampid} '$1 != me {print $1}')
 	# for kill in ${kill_4}; do
 	# 	[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
 	# done
@@ -2149,9 +2149,9 @@ function sam_stop() {
 	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
+	kill_2=$(ps -o pid,args | grep '[S]uper_' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
+	kill_4=$(ps -o pid,args | grep -i '[S]uper_Attract_Mode' | awk '{print $1}')
 
 	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
 	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
@@ -2194,7 +2194,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
 		sam_stop
 	else
-		ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
+		ps -ef | grep -i '[S]uper_Attract_Mode.sh' | xargs kill &>/dev/null
 	fi
 }
 

@@ -149,7 +149,7 @@ function tty2oled_start() {
 }
 
 function sam_trigger() {
-	if [ "$(ps aux | grep -ice "[M]iSTer_SAM_on")" == "0" ] && [ "$(ps aux | grep -ice "[u]pdate_all.sh")" == "0" ]; then
+	if [ "$(ps aux | grep -ice "[S]uper_Attract_Mode.sh")" == "0" ] && [ "$(ps aux | grep -ice "[u]pdate_all.sh")" == "0" ]; then
 		printf '%s\n' " No activity detected for ${mcptimeout_minutes} minutes. SAM starting..."
 		printf '%s ' $(date +%c)
 		printf '\n'
