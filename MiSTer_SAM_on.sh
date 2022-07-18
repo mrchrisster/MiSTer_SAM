@@ -88,7 +88,7 @@ function sam_update() { # sam_update (next command)
 		get_partun
 		get_mbc
 		get_inputmap
-        get_samstuff Super_Attract_Mode.sh /media/fat/Scripts
+        	get_samstuff Super_Attract_Mode.sh /media/fat/Scripts
 		get_samstuff .SuperAttract/SuperAttract_init
 		get_samstuff .SuperAttract/SuperAttract_MCP
 		get_samstuff .SuperAttract/SuperAttract_joy.py
@@ -96,7 +96,10 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
 
-
+		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/Super_Attract_Mode.ini
+		fi
+		
 		if [ -f /media/fat/Scripts/Super_Attract_Mode.ini ]; then
 			echo " MiSTer SAM INI already exists... Merging with new ini."
 			get_samstuff Super_Attract_Mode.ini /tmp
@@ -256,6 +259,12 @@ function sam_bootmigrate() {
 		echo -e " Add Super Attract Mode to ${userstartup}\n"
 		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e ${mrsampath}/SuperAttract_init ]] && ${mrsampath}/SuperAttract_init \$1 &" >>"${userstartup}"
+	fi
+	
+	if [ -d /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists ]; then
+		echo -e " Migrating Gamelists..."
+		rsync -avx "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists" "/media/fat/Scripts/.SuperAttract/SAM_Gamelists" >/dev/null
+		echo " Done."
 	fi
 }
 
