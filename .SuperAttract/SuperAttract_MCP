@@ -62,7 +62,7 @@ function sam_corename_change() {
 
 function sam_activity_change() {
 	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --include by-path --outfile ${activity_change_pipe} 2>/dev/null &
+	inotifywait --quiet --monitor --event modify /dev/input --include js --include by-path --outfile ${activity_change_pipe} 2>/dev/null &
 }
 
 function sam_corename_monitor() {
@@ -157,7 +157,7 @@ function sam_trigger() {
 			tty2oled_start
 		fi
 		sleep 1
-		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super_Attract_Mode.sh" start_real ${nextcore}
+		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super_Attract_Mode.sh" start_real
 		sleep 0.5
 	fi
 }

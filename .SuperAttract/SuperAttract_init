@@ -109,7 +109,7 @@ killall -q -9 SuperAttract_joy.py 2>/dev/null
 killall -q -9 SuperAttract_mouse.py 2>/dev/null
 killall -q -9 SuperAttract_keyboard.py 2>/dev/null
 killall -q -9 hexdump 2>/dev/null
-kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | {
+kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Activity_Change" | {
 	read -r PID COMMAND
 	echo $PID
 }) 2>/dev/null
