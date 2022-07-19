@@ -176,10 +176,10 @@ function update_loop() {
 
 function tty_update() { # tty_update core game
 	echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
-	echo "CMDTXT,102,0,0,0,63,Next game in ${prev_counter}" >${ttydevice}
+	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
 	eval "${@}"
 	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,63,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
 	echo "CMDDUPD" >"${ttydevice}"
 
@@ -211,7 +211,7 @@ function tty_display() { # tty_update core game
 
 	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
 	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,63,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_name_scroll="${tty_currentinfo[name_scroll]}"
 	prev_counter="${tty_currentinfo[counter]}"
 }
