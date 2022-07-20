@@ -97,11 +97,13 @@ function init_vars() {
 	declare -gl ttyenable="No"
 	declare -gl ttyuseack="No"
 	declare -gA tty_currentinfo=(
-		["core_pretty"]=""
-		["name"]=""
-		["name_scroll"]=""
-		["core"]=""
-		["counter"]=${gametimer}
+		[core_pretty]=""
+		[name]=""
+		[core]=""
+		[counter]=0
+		[name_scroll]=""
+		[name_scroll_position]=0
+		[name_scroll_direction]=1
 	)
 
 	# ======== BGM =======
@@ -2439,8 +2441,6 @@ function loop_core() { # loop_core (core)
 	# Reset game log for this session
 	echo "" | >/tmp/SAM_Games.log
 	start_pipe_readers
-	declare -i name_position=0
-	declare -i scroll_direction=1
 	while [[ -p ${SAM_cmd_pipe} ]]; do
 		trap 'counter=0' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
@@ -2448,30 +2448,12 @@ function loop_core() { # loop_core (core)
 			sleep 1
 			((counter--))
 			if [ "${ttyenable}" == "yes" ]; then
-				if [ ${#tty_currentinfo[name]} -gt 21 ]; then
-					if [ ${scroll_direction} -eq 1 ]; then
-						if [ ${name_position} -lt ${#tty_currentinfo[name]} ]; then
-							((name_position++))
-						else
-							scroll_direction=0
-						fi
-					elif [ ${scroll_direction} -eq 0 ]; then
-						if [ ${name_position} -gt 0 ]; then
-							((name_position--))
-						else
-							scroll_direction=1
-						fi
-					fi
-				fi
-				tty_currentinfo["name_scroll"]="${tty_currentinfo[name]:${name_position}:21}"
-				tty_currentinfo["counter"]=$(printf "%03d" ${counter})
-				write_to_TTY_cmd_pipe "update_info $(declare -p tty_currentinfo)" &
+				tty_currentinfo[counter]=$(printf "%03d" ${counter})
+				write_to_TTY_cmd_pipe "update_info ${tty_currentinfo[counter]}" &
 			fi
 		done
 		trap - INT
 		sleep 1
-		name_position=0
-		scroll_direction=1
 		counter=${gametimer}
 		next_core ${nextcore}
 	done
@@ -2838,11 +2820,13 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "${3} (${1}) "$(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >/tmp/SAM_Game.txt
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
-			["core_pretty"]="${CORE_PRETTY[${1}]}"
-			["name"]="${GAMENAME}"
-			["name_scroll"]="${GAMENAME:0:21}"
-			["core"]="${CORE_LAUNCH[${1}]}"
-			["counter"]=${gametimer}
+			[core_pretty]="${CORE_PRETTY[${1}]}"
+			[name]="${GAMENAME}"
+			[core]="${CORE_LAUNCH[${1}]}"
+			[counter]=${gametimer}
+			[name_scroll]="${GAMENAME:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
 		)
 		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi
@@ -3026,11 +3010,13 @@ function load_core_arcade() {
 	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
-			["core_pretty"]="${CORE_PRETTY[${nextcore}]}"
-			["name"]="${mraname}"
-			["name_scroll"]="${mraname:0:21}"
-			["core"]="${mrasetname}"
-			["counter"]=${gametimer}
+			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[name]="${mraname}"
+			[core]="${mrasetname}"
+			[counter]=${gametimer}
+			[name_scroll]="${mraname:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
 		)
 		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi

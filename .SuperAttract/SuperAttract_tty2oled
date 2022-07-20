@@ -56,6 +56,15 @@ declare -g ttypicture="/media/fat/tty2oled/pics"
 declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
 declare -g prev_name_scroll=""
 declare -g prev_counter=""
+declare -gA tty_currentinfo=(
+	[core_pretty]=""
+	[name]=""
+	[core]=""
+	[counter]=0
+	[name_scroll]=""
+	[name_scroll_position]=0
+	[name_scroll_direction]=1
+)
 
 function start_pipe_reader() {
 	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, starting pipe reader... "; fi
@@ -175,9 +184,26 @@ function update_loop() {
 }
 
 function tty_update() { # tty_update core game
+	eval $(</tmp/.SAM_tmp/tty_currentinfo)
 	echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
 	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
-	eval "${@}"
+	if [ ${#tty_currentinfo[name]} -gt 21 ]; then
+		if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
+			if [ ${tty_currentinfo[name_scroll_position]} -lt ${#tty_currentinfo[name]} ]; then
+				(('tty_currentinfo[name_scroll_position]'++))
+			else
+				tty_currentinfo[name_scroll_direction]=0
+			fi
+		elif [ ${tty_currentinfo[name_scroll_direction]} -eq 0 ]; then
+			if [ ${tty_currentinfo[name_scroll_position]} -gt 0 ]; then
+				(('tty_currentinfo[name_scroll_position]'--))
+			else
+				tty_currentinfo[name_scroll_direction]=1
+			fi
+		fi
+	fi
+	tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
+	tty_currentinfo[counter]="$1"
 	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
@@ -185,6 +211,7 @@ function tty_update() { # tty_update core game
 
 	prev_name_scroll="${tty_currentinfo[name_scroll]}"
 	prev_counter="${tty_currentinfo[counter]}"
+	echo "$(declare -p tty_currentinfo)" > /tmp/.SAM_tmp/tty_currentinfo
 }
 
 function tty_display() { # tty_update core game
@@ -202,18 +229,17 @@ function tty_display() { # tty_update core game
 		echo "-------------------------------------------"
 		echo " tty_update got Corename: ${tty_currentinfo[core]} "
 	fi
-	tty_waitfor
 	# Show Core-Logo for 5 Secs
 	sleep 5
 	# Clear Display	with Random effect
 	echo "CMDCLST,-1,0" >"${ttydevice}"
-	tty_waitfor
 
 	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
 	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_name_scroll="${tty_currentinfo[name_scroll]}"
 	prev_counter="${tty_currentinfo[counter]}"
+	echo "$(declare -p tty_currentinfo)" > /tmp/.SAM_tmp/tty_currentinfo
 }
 
 # USB Send-Picture-Data function
