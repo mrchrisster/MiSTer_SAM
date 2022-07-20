@@ -98,8 +98,8 @@ function start_pipe_reader() {
 
 # Read INI
 function read_samini() {
-	if [ -f "${misterpath}/Scripts/Super Attract Mode.ini" ]; then
-		source "${misterpath}/Scripts/Super Attract Mode.ini"
+	if [ -f "${misterpath}/Scripts/Super_Attract_Mode.ini" ]; then
+		source "${misterpath}/Scripts/Super_Attract_Mode.ini"
 	fi
 }
 
