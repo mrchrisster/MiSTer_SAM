@@ -183,10 +183,8 @@ function update_loop() {
 	done
 }
 
-function tty_update() { # tty_update core game
-	eval $(</tmp/.SAM_tmp/tty_currentinfo)
+function update_name_scroll() {
 	echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
-	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
 	if [ ${#tty_currentinfo[name]} -gt 21 ]; then
 		if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
 			if [ ${tty_currentinfo[name_scroll_position]} -lt ${#tty_currentinfo[name]} ]; then
@@ -203,19 +201,29 @@ function tty_update() { # tty_update core game
 		fi
 	fi
 	tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
-	tty_currentinfo[counter]="$1"
 	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
-	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
 	echo "CMDDUPD" >"${ttydevice}"
-
 	prev_name_scroll="${tty_currentinfo[name_scroll]}"
+}
+
+function update_counter() {
+	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
+	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	echo "CMDDUPD" >"${ttydevice}"
 	prev_counter="${tty_currentinfo[counter]}"
-	echo "$(declare -p tty_currentinfo)" > /tmp/.SAM_tmp/tty_currentinfo
+}
+
+function tty_update() { # tty_update core game
+	tty_currentinfo[counter]="$1"
+	update_name_scroll
+	update_counter
+	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
 }
 
 function tty_display() { # tty_update core game
-	eval "${@}"
+	args=$(echo "${@}" | sed "s/ -A / -gA /")
+	# echo "$args"
+	eval "$args"
 	# Wait for tty2oled daemon to show the core logo
 	if [ "${ttyuseack}" == "yes" ]; then
 		tty_senddata "${tty_currentinfo[core]}"
@@ -239,7 +247,6 @@ function tty_display() { # tty_update core game
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_name_scroll="${tty_currentinfo[name_scroll]}"
 	prev_counter="${tty_currentinfo[counter]}"
-	echo "$(declare -p tty_currentinfo)" > /tmp/.SAM_tmp/tty_currentinfo
 }
 
 # USB Send-Picture-Data function
