@@ -17,6 +17,7 @@ declare -g corename_name="printf '%s\n' $(</tmp/CORENAME)"
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
 samtrace="No"
+samdebug="No"
 
 #======== LOCAL VARIABLES ========
 
