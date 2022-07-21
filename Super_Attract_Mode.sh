@@ -1835,11 +1835,6 @@ function parse_cmd() {
 			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
-			update) # Update SAM
-				# echo "Use new commandline option --update"
-				sam_update
-				break
-				;;
 			favorite)
 				mglfavorite
 				break
@@ -1876,6 +1871,11 @@ function parse_cmd() {
 			startmonitor)
 				sam_start_new
 				sam_monitor_new
+				break
+				;;
+			update) # Update SAM
+				# echo "Use new commandline option --update"
+				sam_update
 				break
 				;;
 			autoconfig)
