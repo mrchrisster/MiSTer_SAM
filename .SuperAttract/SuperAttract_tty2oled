@@ -162,14 +162,12 @@ function update_loop() {
 }
 
 function set_scroll_speed() {
-	if [ $ttyscroll_speed == "fast" ]; then
+	if [ $ttyscroll_speed == "normal" ]; then
 		scroll_speed_int=0
-	elif [ $ttyscroll_speed == "normal" ]; then
-		scroll_speed_int=1
 	elif [ $ttyscroll_speed == "slow" ]; then
 		scroll_speed_int=2
 	else
-		scroll_speed_int=1
+		scroll_speed_int=0
 	fi
 }
 
