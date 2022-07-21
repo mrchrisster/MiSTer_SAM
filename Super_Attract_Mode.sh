@@ -104,6 +104,7 @@ function init_vars() {
 		[name_scroll]=""
 		[name_scroll_position]=0
 		[name_scroll_direction]=1
+		[update_pause]=15
 	)
 
 	# ======== BGM =======
@@ -2449,7 +2450,7 @@ function loop_core() { # loop_core (core)
 			((counter--))
 			if [ "${ttyenable}" == "yes" ]; then
 				tty_currentinfo[counter]=$(printf "%03d" ${counter})
-				write_to_TTY_cmd_pipe "update_info ${tty_currentinfo[counter]}" &
+				write_to_TTY_cmd_pipe "update_counter ${tty_currentinfo[counter]}" &
 			fi
 		done
 		trap - INT
@@ -2827,6 +2828,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			[name_scroll]="${GAMENAME:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
+			[update_pause]=15
 		)
 		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi
@@ -3017,6 +3019,7 @@ function load_core_arcade() {
 			[name_scroll]="${mraname:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
+			[update_pause]=15
 		)
 		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi

@@ -56,15 +56,8 @@ declare -g ttypicture="/media/fat/tty2oled/pics"
 declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
 declare -g prev_name_scroll=""
 declare -g prev_counter=""
-declare -gA tty_currentinfo=(
-	[core_pretty]=""
-	[name]=""
-	[core]=""
-	[counter]=0
-	[name_scroll]=""
-	[name_scroll_position]=0
-	[name_scroll_direction]=1
-)
+declare -gl scroll_speed="Normal"
+declare -gi scroll_speed_int=1
 
 function start_pipe_reader() {
 	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, starting pipe reader... "; fi
@@ -86,9 +79,9 @@ function start_pipe_reader() {
 					shift
 					tty_display ${@}
 					;;
-				update_info)
+				update_counter)
 					shift
-					tty_update ${@}
+					update_counter ${1}
 					;;
 				*)
 					echo " ERROR! ${line} is unknown."
@@ -123,6 +116,7 @@ function tty_init() { # tty_init
 	ttydevice=${TTYDEV}
 	ttypicture=${picturefolder}
 	ttypicture_pri=${picturefolder_pri}
+	set_scroll_speed
 
 	# Clear Serial input buffer first
 	if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
@@ -183,43 +177,59 @@ function update_loop() {
 	done
 }
 
+function set_scroll_speed() {
+	if [ $scroll_speed == "fast" ]; then
+		scroll_speed_int=0
+	elif [ $scroll_speed == "normal" ]; then
+		scroll_speed_int=1
+	elif [ $scroll_speed == "slow" ]; then
+		scroll_speed_int=2
+	else
+		scroll_speed_int=1
+	fi
+}
+
 function update_name_scroll() {
-	echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
 	if [ ${#tty_currentinfo[name]} -gt 21 ]; then
-		if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
-			if [ ${tty_currentinfo[name_scroll_position]} -lt ${#tty_currentinfo[name]} ]; then
-				(('tty_currentinfo[name_scroll_position]'++))
-			else
-				tty_currentinfo[name_scroll_direction]=0
+		if [ $scroll_speed_int -gt 0 ]; then
+			((scroll_speed_int--))
+		else
+			set_scroll_speed
+			if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
+				if [ ${tty_currentinfo[name_scroll_position]} -lt $((${#tty_currentinfo[name]} - 21)) ]; then
+					(('tty_currentinfo[name_scroll_position]'++))
+				else
+					tty_currentinfo[name_scroll_direction]=0
+				fi
+			elif [ ${tty_currentinfo[name_scroll_direction]} -eq 0 ]; then
+				if [ ${tty_currentinfo[name_scroll_position]} -gt 0 ]; then
+					(('tty_currentinfo[name_scroll_position]'--))
+				else
+					tty_currentinfo[name_scroll_direction]=1
+				fi
 			fi
-		elif [ ${tty_currentinfo[name_scroll_direction]} -eq 0 ]; then
-			if [ ${tty_currentinfo[name_scroll_position]} -gt 0 ]; then
-				(('tty_currentinfo[name_scroll_position]'--))
-			else
-				tty_currentinfo[name_scroll_direction]=1
-			fi
+			tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
+			echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
+			echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+			prev_name_scroll="${tty_currentinfo[name_scroll]}"
 		fi
 	fi
-	tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
-	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-	prev_name_scroll="${tty_currentinfo[name_scroll]}"
 }
 
 function update_counter() {
+	tty_currentinfo[counter]="$1"
+	if [ ${tty_currentinfo[update_pause]} -gt 0 ]; then
+		(('tty_currentinfo[update_pause]'--))
+	else
+		update_name_scroll
+	fi
 	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_counter="${tty_currentinfo[counter]}"
-}
-
-function tty_update() { # tty_update core game
-	tty_currentinfo[counter]="$1"
+	echo "CMDDUPD" >"${ttydevice}"
 	if [ $samdebug == "yes" ]; then
 		declare -p tty_currentinfo
 	fi
-	update_name_scroll
-	update_counter
-	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
-	echo "CMDDUPD" >"${ttydevice}"
 }
 
 function tty_display() { # tty_update core game
