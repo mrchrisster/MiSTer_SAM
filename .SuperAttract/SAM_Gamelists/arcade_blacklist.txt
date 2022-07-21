@@ -228,6 +228,7 @@ Shinobi (Set 6, World, S16A).mra
 Shot Rider.mra
 Shuffleboard.mra
 Shuttle Invader.mra
+Slap Shooter.mra
 Solar Fox.mra
 Solomon no Kagi (Japan).mra
 Space Encounters.mra
