@@ -2300,7 +2300,7 @@ function deletegl() {
 
 	there_can_be_only_one
 	if [ -d "${mrsampath}/SAM_Gamelists" ]; then
-		echo "Deleting Super Attract Mode Gamelist folder"Super_Attract_Mode.sh
+		echo "Deleting Super Attract Mode Gamelist folder"
 		rm -rf "${mrsampath}/SAM_Gamelists"
 	fi
 
