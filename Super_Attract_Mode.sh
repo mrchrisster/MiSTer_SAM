@@ -1762,10 +1762,6 @@ function process_cmd() {
 		sam_monitor_new
 		exit 0
 		;;
-	update) # Update SAM
-		startup_tasks
-		sam_update
-		;;
 	install) # Enable SAM autoplay mode
 		startup_tasks
 		sam_install
@@ -1832,6 +1828,19 @@ function parse_cmd() {
 				sam_update autoconfig
 				break
 				;;
+			update) # Update SAM
+				# echo "Use new commandline option --update"
+				sam_update
+				break
+				;;
+			autoconfig)
+				tmux kill-session -t MCP &>/dev/null
+				# there_can_be_only_one
+				sam_update
+				startup_tasks
+				sam_install
+				break
+				;;
 			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
@@ -1871,19 +1880,6 @@ function parse_cmd() {
 			startmonitor)
 				sam_start_new
 				sam_monitor_new
-				break
-				;;
-			update) # Update SAM
-				# echo "Use new commandline option --update"
-				sam_update
-				break
-				;;
-			autoconfig)
-				tmux kill-session -t MCP &>/dev/null
-				# there_can_be_only_one
-				sam_update
-				mcp_start
-				sam_install
 				break
 				;;
 			single)
