@@ -57,7 +57,7 @@ declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
 declare -g prev_name_scroll=""
 declare -g prev_counter=""
 declare -gi ttyscroll_speed=1
-declare -gi ttyscroll_speed_int=$ttyscroll_speed
+declare -gi ttyscroll_speed_int=$(($ttyscroll_speed - 1))
 
 function start_pipe_reader() {
 	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, starting pipe reader... "; fi
@@ -162,7 +162,7 @@ function update_loop() {
 }
 
 function set_scroll_speed() {
-	scroll_speed_int=$(($ttyscroll_speed -1))
+	scroll_speed_int=$(($ttyscroll_speed - 1))
 }
 
 function update_name_scroll() {
