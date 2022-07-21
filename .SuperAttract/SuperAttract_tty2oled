@@ -56,7 +56,7 @@ declare -g ttypicture="/media/fat/tty2oled/pics"
 declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
 declare -g prev_name_scroll=""
 declare -g prev_counter=""
-declare -gl scroll_speed="Normal"
+declare -gl ttyscroll_speed="Normal"
 declare -gi scroll_speed_int=1
 
 function start_pipe_reader() {
@@ -122,36 +122,25 @@ function tty_init() { # tty_init
 	if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
 	while read -t 0 sdummy <${ttydevice}; do continue; done
 	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
-	# sleep 2
 
 	# Stopping ScreenSaver
 	if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled ScreenSaver..."; fi
 	echo "CMDSAVER,0,0,0" >${ttydevice}
 	tty_waitfor
 	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
-	# sleep 2
 
 	# Stopping tty2oled Daemon
 	if [ "${ttyuseack}" == "yes" ]; then
 		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-		# echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change Super Attract Mode.ini"
-		# sleep 3
 		/media/fat/tty2oled/S60tty2oled stop
 		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 	fi
-	# sleep 2
-	# Small loop for Welcome...
 	echo "CMDCLST,-1,0" >${ttydevice}
-	# echo "CMDCOR,snes" >${ttydevice} &&  tail -n +4 "/media/fat/Scripts/.SuperAttractMode/SAM2.gsc" | xxd -r -p >${ttydevice}
 	sleep 0.8
-	echo "CMDTXT,1,15,0,0,9, Welcome to..." >${ttydevice}
-	sleep 0.8
-	echo "CMDTXT,3,15,0,47,27, Super" >${ttydevice}
-	sleep 0.8
-	echo "CMDTXT,3,15,0,97,45, Attract" >${ttydevice}
-	sleep 0.8
-	echo "CMDTXT,3,15,0,153,63, Mode!" >${ttydevice}
-	sleep 2
+	echo "CMDAPD,SAM_splash" > /dev/ttyUSB0
+	tail -n +4 "/media/fat/Scripts/.SuperAttract/SAM_splash.gsc" | xxd -r -p >/dev/ttyUSB0
+	echo "CMDSPIC,-1" > /dev/ttyUSB0
+	sleep 5
 }
 
 function tty_waitfor() {
@@ -160,13 +149,8 @@ function tty_waitfor() {
 		while [ "${ttyresponse}" != "ttyack" ]; do
 			read -d ";" ttyresponse <${ttydevice} # Read Serial Line until delimiter ";"
 		done
-		#echo -e "${fgreen}${ttyresponse}${freset}"
 		ttyresponse=""
-		#sleep 0.05
 	else
-		# if [ "${samquiet}" == "no" ]; then echo -n "Little sleep... "; fi
-		# sleep 0.2
-		# sleep 0.1
 		sleep 0.05
 	fi
 }
@@ -178,11 +162,11 @@ function update_loop() {
 }
 
 function set_scroll_speed() {
-	if [ $scroll_speed == "fast" ]; then
+	if [ $ttyscroll_speed == "fast" ]; then
 		scroll_speed_int=0
-	elif [ $scroll_speed == "normal" ]; then
+	elif [ $ttyscroll_speed == "normal" ]; then
 		scroll_speed_int=1
-	elif [ $scroll_speed == "slow" ]; then
+	elif [ $ttyscroll_speed == "slow" ]; then
 		scroll_speed_int=2
 	else
 		scroll_speed_int=1
@@ -307,21 +291,8 @@ function tty_exit() {
 	tty_waitfor
 	echo "CMDBYE" >${ttydevice}
 	tty_waitfor
-	# Show GAME OVER! for 3 secs
-	# echo "CMDTXT,5,15,0,15,45,GAME OVER!" > ${ttydevice}
-	# tty_waitfor
-	# sleep 3
-	# Set CORENAME for tty2oled Daemon start
-	# echo "MENU" >/tmp/CORENAME
-	# Starting tty2oled daemon only if needed
 	if [ "${ttyuseack}" == "yes" ]; then
-		# echo " PLEASE NOTE ++++  ttyuseack=yes is currently not supported. Please change Super Attract Mode.ini"
-		# echo -n " Starting tty2oled daemon..."
 		tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
-		# if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
-		#	${mrsampath}/MiSTer_SAM_MCP tty2oled &>/dev/null
-		# fi
-		# echo " Done!"
 		return
 	fi
 }

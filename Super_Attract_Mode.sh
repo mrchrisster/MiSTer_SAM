@@ -1998,6 +1998,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_keyboard.py
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
+		get_samstuff .SuperAttract/SAM_splash.gsc
 
 
 		if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
