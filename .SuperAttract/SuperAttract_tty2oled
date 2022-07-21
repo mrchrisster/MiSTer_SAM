@@ -162,7 +162,7 @@ function update_loop() {
 }
 
 function set_scroll_speed() {
-	scroll_speed_int=$ttyscroll_speed
+	scroll_speed_int=$(($ttyscroll_speed -1))
 }
 
 function update_name_scroll() {
