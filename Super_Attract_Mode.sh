@@ -24,7 +24,7 @@
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
 
-trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT
+trap 'rc=$?;[ $rc = 0 ] && exit;sam_cleanup' EXIT
 
 # ======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
@@ -67,7 +67,7 @@ function init_vars() {
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi gametimer=120
-	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
 	declare -gl create_all_gamelists="No"
@@ -109,7 +109,9 @@ function init_vars() {
 
 	# ======== BGM =======
 	declare -gl bgm="No"
+	
 	# ======== CORE PATHS ========
+	declare -g amigapath="/media/fat/Games/Amiga"	
 	declare -g arcadepath="/media/fat/_Arcade"
 	declare -g atari2600path="/media/fat/Games/Atari7800"
 	declare -g atari5200path="/media/fat/Games/Atari5200"
@@ -133,6 +135,7 @@ function init_vars() {
 	declare -g psxpath="/media/fat/Games/PSX"
 
 	# ======== CORE PATHS EXTRA ========
+	declare -g amigapathextra=""
 	declare -g arcadepathextra=""
 	declare -g atari2600pathextra=""
 	declare -g atari5200pathextra=""
@@ -156,6 +159,7 @@ function init_vars() {
 	declare -g psxpathextra=""
 
 	# ======== CORE PATHS RBF ========
+	declare -g amigapathrbf="_Computer"
 	declare -g arcadepathrbf="_Arcade"
 	declare -g atari2600pathrbf="_Console"
 	declare -g atari5200pathrbf="_Console"
@@ -220,16 +224,45 @@ function init_paths() {
 	fi
 }
 
-function config_bind() {
+
+function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -pr --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
+	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
+	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
+	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+	# Disable Bootrom - Make Bootrom folder inaccessible until restart
+	if [ "${disablebootrom}" == "Yes" ]; then	
+		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
+		# Disable Nes bootroms except for FDS Bios (boot0.rom)
+		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot1.rom"
+		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot2.rom"
+		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot3.rom"
+	fi
 }
+
+function sam_cleanup() {
+	# Clean up by umounting any mount binds
+	write_to_TTY_cmd_pipe "exit" &
+	bgm_stop
+	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
+	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
+	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
+	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
+	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
+	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	[ -p ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
+	[ -e ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleaned up mounts."; fi
+}
+
 
 # ======== CORE CONFIG ========
 function init_data() {
 	# Core to long name mappings
 	declare -gA CORE_PRETTY=(
+		["amiga"]="Commodore Amiga"
 		["arcade"]="MiSTer Arcade"
 		["atari2600"]="Atari 2600"
 		["atari5200"]="Atari 5200"
@@ -255,6 +288,7 @@ function init_data() {
 
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
+		["amiga"]="hdf" 		#This is just a placeholder
 		["arcade"]="mra"
 		["atari2600"]="a26"     # Should we include? "bin"
 		["atari5200"]="a52,car" # Should we include? "bin,rom"
@@ -280,6 +314,7 @@ function init_data() {
 
 	# Core to path mappings
 	declare -gA CORE_PATH=(
+		["amiga"]="${amigapath}"
 		["arcade"]="${arcadepath}"
 		["atari2600"]="${atari2600path}"
 		["atari5200"]="${atari5200path}"
@@ -305,6 +340,7 @@ function init_data() {
 
 	# Core to extra path mappings
 	declare -gA CORE_PATH_EXTRA=(
+		["amiga"]="${amigapathextra}"
 		["arcade"]="${arcadepathextra}"
 		["atari2600"]="${atari2600pathextra}"
 		["atari5200"]="${atari5200pathextra}"
@@ -330,6 +366,7 @@ function init_data() {
 
 	# Core to path mappings for rbf files
 	declare -gA CORE_PATH_RBF=(
+		["amiga"]="${amigapathrbf}"
 		["arcade"]="${arcadepathrbf}"
 		["atari2600"]="${atari2600pathrbf}"
 		["atari5200"]="${atari5200pathrbf}"
@@ -355,6 +392,7 @@ function init_data() {
 
 	# Can this core use ZIPped ROMs
 	declare -glA CORE_ZIPPED=(
+		["amiga"]="No"
 		["arcade"]="No"
 		["atari2600"]="Yes"
 		["atari5200"]="Yes"
@@ -380,6 +418,7 @@ function init_data() {
 
 	# Can this core skip Bios/Safety warning messages
 	declare -glA CORE_SKIP=(
+		["amiga"]="No"
 		["arcade"]="No"
 		["atari2600"]="No"
 		["atari5200"]="No"
@@ -405,6 +444,7 @@ function init_data() {
 
 	# Core to input maps mapping
 	declare -gA CORE_LAUNCH=(
+		["amiga"]="Minimig"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
 		["atari5200"]="ATARI5200"
@@ -430,6 +470,7 @@ function init_data() {
 
 	# MGL core name settings
 	declare -gA MGL_CORE=(
+		["amiga"]="Minimig"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
 		["atari5200"]="ATARI5200"
@@ -455,6 +496,7 @@ function init_data() {
 
 	# MGL delay settings
 	declare -giA MGL_DELAY=(
+		["amiga"]="1"
 		["arcade"]="2"
 		["atari2600"]="1"
 		["atari5200"]="1"
@@ -480,6 +522,7 @@ function init_data() {
 
 	# MGL index settings
 	declare -giA MGL_INDEX=(
+		["amiga"]="0"
 		["arcade"]="0"
 		["atari2600"]="0"
 		["atari5200"]="1"
@@ -505,6 +548,7 @@ function init_data() {
 
 	# MGL type settings
 	declare -glA MGL_TYPE=(
+		["amiga"]="f"
 		["arcade"]="f"
 		["atari2600"]="f"
 		["atari5200"]="f"
@@ -1806,7 +1850,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@,,}; do
 			case ${arg} in
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				;;
@@ -1840,7 +1884,7 @@ function parse_cmd() {
 				sam_install
 				break
 				;;
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			favorite)
@@ -1867,12 +1911,11 @@ function parse_cmd() {
 			esac
 			
 			[ ! -z ${2} ] && shift
-			config_bind
-			disable_bootrom # Disable Bootrom until Reboot
-			bgm_start
+				sam_prep
+				bgm_start
 			
 			case "${1,,}" in
-			start_real) # Start as a detached tmux session for monitoring
+				start_real) # Start as a detached tmux session for monitoring
 				sam_start_new
 				break
 				;;
@@ -2159,21 +2202,10 @@ function sam_stop() {
 		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
 	done
 }
-function SAM_cleanup() {
-	# Clean up by umounting any mount binds
-	write_to_TTY_cmd_pipe "exit" &
-	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
-	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
-	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
-	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
-	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	[ -p ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
-	[ -e ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
-}
+
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
-	SAM_cleanup
+	sam_cleanup
 	if [ ${1} -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
@@ -2345,7 +2377,52 @@ function bgm_stop() {
 
 }
 
-# ======== DOWNLOAD FUNCTIONS ========
+
+function mute() {
+	if [ "${mute}" == "yes" ]; then
+		# Mute Global Volume
+		echo -e "\0020\c" >/media/fat/config/Volume.dat
+	elif [ "${mute}" == "core" ]; then
+		# UnMute Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# Mute Core Volumes
+		echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
+	elif [ "${mute}" == "no" ]; then
+		# UnMute Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# UnMute Core Volumes
+		echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
+	fi
+}
+
+function core_error() { # core_error core /path/to/ROM
+	if [ ${romloadfails} -lt ${coreretries} ]; then
+		declare -g romloadfails=$((romloadfails + 1))
+		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+		echo " Trying to find another rom..."
+		next_core ${1}
+	else
+		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+		echo " ERROR: Core ${1} is blacklisted!"
+		declare -g corelist=("${corelist[@]/${1}/}")
+		echo " List of cores is now: ${corelist[@]}"
+		declare -g romloadfails=0
+		next_core ${1}
+	fi
+}
+
+function play_or_exit() {
+	bgm_stop
+	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
+		write_to_SAM_cmd_pipe "exit 2"
+	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
+		write_to_SAM_cmd_pipe "exit 3"
+	else
+		write_to_SAM_cmd_pipe "exit 0"
+	fi
+}
+
+# ======== UPDATER FUNCTIONS ========
 function curl_download() { # curl_download ${filepath} ${URL}
 
 	curl \
@@ -2357,7 +2434,6 @@ function curl_download() { # curl_download ${filepath} ${URL}
 		"${2}"
 }
 
-# ======== UPDATER FUNCTIONS ========
 function get_samstuff() { #get_samstuff file (path)
 	if [ -z "${1}" ]; then
 		return 1
@@ -2748,6 +2824,19 @@ function next_core() { # next_core (core)
 		load_core_arcade
 		return
 	fi
+	
+	if [ "${nextcore}" == "amiga" ]; then
+		# If this is Amiga core we go to special code
+		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
+			load_core_amiga
+		else
+			echo " ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
+			declare -g corelist=("${corelist[@]/${1}/}")
+			next_core
+		fi
+		return
+	fi
+	
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
 	check_list ${nextcore} "${DIR}"
 	romname=$(basename "${rompath}")
@@ -2863,61 +2952,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 }
 
-function mute() {
-	if [ "${mute}" == "yes" ]; then
-		# Mute Global Volume
-		echo -e "\0020\c" >/media/fat/config/Volume.dat
-	elif [ "${mute}" == "core" ]; then
-		# UnMute Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		# Mute Core Volumes
-		echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
-	elif [ "${mute}" == "no" ]; then
-		# UnMute Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		# UnMute Core Volumes
-		echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
-	fi
-}
-
-function core_error() { # core_error core /path/to/ROM
-	if [ ${romloadfails} -lt ${coreretries} ]; then
-		declare -g romloadfails=$((romloadfails + 1))
-		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-		echo " Trying to find another rom..."
-		next_core ${1}
-	else
-		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-		echo " ERROR: Core ${1} is blacklisted!"
-		declare -g corelist=("${corelist[@]/${1}/}")
-		echo " List of cores is now: ${corelist[@]}"
-		declare -g romloadfails=0
-		next_core ${1}
-	fi
-}
-
-function disable_bootrom() {
-	if [ "${disablebootrom}" == "Yes" ]; then
-		# Make Bootrom folder inaccessible until restart
-		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
-		# Disable Nes bootroms except for FDS Bios (boot0.rom)
-		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot1.rom"
-		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot2.rom"
-		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot3.rom"
-	fi
-}
-
-function play_or_exit() {
-	bgm_stop
-	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
-		write_to_SAM_cmd_pipe "exit 2"
-	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
-		write_to_SAM_cmd_pipe "exit 3"
-	else
-		write_to_SAM_cmd_pipe "exit 0"
-	fi
-}
-
 # ======== ARCADE MODE ========
 function build_mralist() {
 	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
@@ -2939,9 +2973,9 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
+		find "${1}" -maxdepth 1 -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
 	else
-		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
+		find "${1}" -maxdepth 1 -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
 	fi
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
@@ -2974,20 +3008,34 @@ function load_core_arcade() {
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
 	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
-
-	# If the mra variable is valid this is skipped, but if not we try 10 times
+	
+	if [ ! -f "${MRAPATH}" ]; then
+		echo " There is no valid file at ${MRAPATH}... Rebuilding list."
+		build_mralist "${DIR}"
+		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
+		cp "${mralist}" "${mralist_tmp}" &>/dev/null
+		mra="$(shuf --head-count=1 ${mralist_tmp})"
+		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+	fi
+	
+	# If the mra variable is valid this is skipped, but if not we try 5 times
 	# Partially protects against typos from manual editing and strange character parsing problems
-	for i in {1..10}; do
+	for i in {1..5}; do
 		if [ ! -f "${MRAPATH}" ]; then
 			mra=$(shuf --head-count=1 ${mralist_tmp})
 			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 		fi
 	done
 
-	# If the MRA is still not valid something is wrong - suicide
-	if [ ! -f "${MRAPATH}" ]; then
-		echo " There is no valid file at ${MRAPATH}!"
-		return
+	#Check blacklist
+	if [ -f ${gamelistpath}/${nextcore}_blacklist.txt ]; then
+		for i in {1..10}; do
+			if [ "$(grep -ic "${mra}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0"  ]; then
+				if [ "${samquiet}" == "no" ]; then echo " Blacklisted because duplicate or boring: ${mra}, trying a different mra.."; fi
+				mra=$(shuf --head-count=1 ${mralist_tmp})
+				MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+			fi
+		done
 	fi
 
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
@@ -3033,6 +3081,103 @@ function load_core_arcade() {
 	echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
 	sleep 1
 }
+
+# ======== AMIGA MODE ========
+
+function create_amigalist () {
+
+	if [ -f "${amigapath}/listings/games.txt" ]; then
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
+		sed -i -e 's/^/Demo: /' ${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
+		
+		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
+
+		if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
+			echo "${total_games} Games and Demos found."
+		else
+			echo " ${total_games} Games and Demos found."
+		fi
+	fi
+
+}
+
+function load_core_amiga() {
+
+	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+	
+	mute "${CORE_LAUNCH[${nextcore}]}"
+
+	if [ ! -f "${amigapath}/listings/games.txt" ]; then
+		# This is for MegaAGS version June 2022 or older
+		echo -n " Starting now on the "
+		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
+
+		if [ "${nextcore}" == "countdown" ]; then
+			for i in {5..1}; do
+				echo " Loading game in ${i}...\033[0K\r"
+				sleep 1
+			done
+		fi
+
+		# Tell MiSTer to load the next MRA
+
+		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
+		sleep 13
+		"${mrsampath}/mbc" raw_seq {6c
+		"${mrsampath}/mbc" raw_seq O
+		echo "" | >/tmp/.SAM_Joy_Activity
+		echo "" | >/tmp/.SAM_Mouse_Activity
+		echo "" | >/tmp/.SAM_Keyboard_Activity
+	else
+		# This is for MegaAGS version July 2022 or newer
+		[ ! -s ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
+		
+		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+			cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+		fi
+
+		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
+		agpretty="$(echo "${rompath}" | tr '_' ' ')"
+		
+		# Special case for demo
+		if [[ "${rompath}" == *"Demo:"* ]]; then
+			rompath=${rompath//Demo: /}
+		fi
+
+		# Delete played game from list
+		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
+		if [ "${norepeat}" == "yes" ]; then
+			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		fi
+
+		echo "${rompath}" > "${amigapath}"/shared/ags_boot
+
+		echo -n " Starting now on the "
+		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+		echo -e "\e[1m${agpretty}\e[0m"
+		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
+		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
+		if [ "${ttyenable}" == "yes" ]; then
+			tty_currentinfo=(
+			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[name]="${agpretty}"
+			[core]="${CORE_LAUNCH[${nextcore}]}"
+			[counter]=${gametimer}
+			[name_scroll]="${agpretty:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=10
+			)
+			write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
+		fi
+
+		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
+
+	fi
+}
+
 
 # ========= MAIN =========
 function main() {
