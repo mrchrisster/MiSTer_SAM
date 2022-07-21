@@ -135,10 +135,9 @@ function tty_init() { # tty_init
 		/media/fat/tty2oled/S60tty2oled stop
 		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 	fi
-	echo "CMDCLST,-1,0" >${ttydevice}
-	sleep 0.8
 	echo "CMDAPD,SAM_splash" > /dev/ttyUSB0
 	tail -n +4 "/media/fat/Scripts/.SuperAttract/SAM_splash.gsc" | xxd -r -p >/dev/ttyUSB0
+	tty_waitfor
 	echo "CMDSPIC,-1" > /dev/ttyUSB0
 	sleep 5
 }
@@ -151,7 +150,7 @@ function tty_waitfor() {
 		done
 		ttyresponse=""
 	else
-		sleep 0.05
+		sleep 0.08
 	fi
 }
 
@@ -205,6 +204,7 @@ function update_counter() {
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_counter="${tty_currentinfo[counter]}"
 	echo "CMDDUPD" >"${ttydevice}"
+	tty_waitfor
 	if [ $samdebug == "yes" ]; then
 		declare -p tty_currentinfo
 	fi
@@ -233,7 +233,7 @@ function tty_display() { # tty_update core game
 	sleep 5
 	# Clear Display	with Random effect
 	echo "CMDCLST,-1,0" >"${ttydevice}"
-
+	tty_waitfor
 	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
 	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
@@ -271,7 +271,7 @@ function tty_senddata() {
 			echo "-------------------------------------------"
 		fi
 		echo "CMDCOR,${1}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
-		sleep 0.02                                        # sleep needed here ?!
+		tty_waitfor                                       # sleep needed here ?!
 		tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
 	else                                               # No Picture available!
 		echo "${1}" >"${ttydevice}"                       # Send just the CORENAME
@@ -279,16 +279,16 @@ function tty_senddata() {
 }
 
 function tty_exit() {
-	TTY_cleanup
 	# Clear Display	with Random effect
 	echo "CMDCLST,-1,0" >${ttydevice}
 	tty_waitfor
 	echo "CMDBYE" >${ttydevice}
-	tty_waitfor
+	sleep 5
 	if [ "${ttyuseack}" == "yes" ]; then
 		tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
 		return
 	fi
+	TTY_cleanup
 }
 
 function TTY_cleanup() {
