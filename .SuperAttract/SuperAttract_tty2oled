@@ -166,28 +166,30 @@ function set_scroll_speed() {
 }
 
 function update_name_scroll() {
-	if [ ${#tty_currentinfo[name]} -gt 21 ]; then
-		if [ $scroll_speed_int -gt 0 ]; then
-			((scroll_speed_int--))
-		else
-			set_scroll_speed
-			if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
-				if [ ${tty_currentinfo[name_scroll_position]} -lt $((${#tty_currentinfo[name]} - 21)) ]; then
-					(('tty_currentinfo[name_scroll_position]'++))
-				else
-					tty_currentinfo[name_scroll_direction]=0
+	if [ $ttyscroll_speed -gt 0 ]; then
+		if [ ${#tty_currentinfo[name]} -gt 21 ]; then
+			if [ $scroll_speed_int -gt 0 ]; then
+				((scroll_speed_int--))
+			else
+				set_scroll_speed
+				if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
+					if [ ${tty_currentinfo[name_scroll_position]} -lt $((${#tty_currentinfo[name]} - 21)) ]; then
+						(('tty_currentinfo[name_scroll_position]'++))
+					else
+						tty_currentinfo[name_scroll_direction]=0
+					fi
+				elif [ ${tty_currentinfo[name_scroll_direction]} -eq 0 ]; then
+					if [ ${tty_currentinfo[name_scroll_position]} -gt 0 ]; then
+						(('tty_currentinfo[name_scroll_position]'--))
+					else
+						tty_currentinfo[name_scroll_direction]=1
+					fi
 				fi
-			elif [ ${tty_currentinfo[name_scroll_direction]} -eq 0 ]; then
-				if [ ${tty_currentinfo[name_scroll_position]} -gt 0 ]; then
-					(('tty_currentinfo[name_scroll_position]'--))
-				else
-					tty_currentinfo[name_scroll_direction]=1
-				fi
+				tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
+				echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
+				echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+				prev_name_scroll="${tty_currentinfo[name_scroll]}"
 			fi
-			tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
-			echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
-			echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-			prev_name_scroll="${tty_currentinfo[name_scroll]}"
 		fi
 	fi
 }
