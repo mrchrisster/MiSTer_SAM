@@ -1277,6 +1277,8 @@ function read_samini() {
 		for var in $(grep "^[^#;]" "${misterpath}/Scripts/Super_Attract_Mode.ini" | grep "pathrbf=" | cut -f1 -d"="); do
 			declare -g ${var}="${!var%/}"
 		done
+	else
+		sam_update autoconfig 				   
 	fi
 
 	# Setup corelist
@@ -1352,10 +1354,10 @@ function defaultpath() {
 # ======== SAM MENU ========
 function sam_premenu() {
 	echo "+---------------------------+"
-	echo "| MiSTer Super_Attract_Mode |"
+	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ $(grep -ic "SuperAttract" "${userstartup}") != "0" ]; then
+	if [ $(grep -ic "Attract" "${userstartup}") != "0" ]; then
 		echo " -SAM autoplay ENABLED"
 	else
 		echo " -SAM autoplay DISABLED"
@@ -1392,7 +1394,7 @@ function sam_premenu() {
 function sam_menu() {
 	inmenu=1
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
-		--backtitle "Super_Attract_Mode" --title "[ Main Menu ]" \
+		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		Start "Start SAM now" \
 		Startmonitor "Start SAM now and monitor (ssh)" \
@@ -1431,7 +1433,7 @@ function sam_singlemenu() {
 	done
 
 	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super_Attract_Mode" --title "[ Single System Select ]" \
+		--backtitle "Super Attract Mode" --title "[ Single System Select ]" \
 		--menu "Which system?" 0 0 0 \
 		"${menulist[@]}" 2>"/tmp/.SAMmenu"
 	opt=$?
@@ -1449,7 +1451,7 @@ function sam_singlemenu() {
 function sam_resetmenu() {
 	inmenu=1
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-		--backtitle "Super_Attract_Mode" --title "[ Reset ]" \
+		--backtitle "Super Attract Mode" --title "[ Reset ]" \
 		--menu "Select an option" 0 0 0 \
 		Deleteall "Reset/Delete all files" \
 		Default "Reinstall SAM and enable Autostart" \
@@ -1464,10 +1466,10 @@ function sam_resetmenu() {
 function sam_gamelistmenu() {
 	inmenu=1
 	dialog --clear --no-cancel --ascii-lines --colors \
-		--backtitle "Super_Attract_Mode" --title "[ GAMELIST MENU ]" \
+		--backtitle "Super Attract Mode" --title "[ GAMELIST MENU ]" \
 		--msgbox "Game Lists contain filenames that SAM can play for each core. \n\nThey get created automatically when SAM plays games. Here you can create or delete those lists." 0 0
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-		--backtitle "Super_Attract_Mode" --title "[ GAMELIST MENU ]" \
+		--backtitle "Super Attract Mode" --title "[ GAMELIST MENU ]" \
 		--menu "Select an option" 0 0 0 \
 		CreateGL "Create all Game Lists" \
 		DeleteGL "Delete all Game Lists" \
@@ -1481,7 +1483,7 @@ function sam_gamelistmenu() {
 
 function sam_autoplaymenu() {
 	dialog --clear --no-cancel --ascii-lines --no-tags \
-		--backtitle "Super_Attract_Mode" --title "[ Configure Autoplay ]" \
+		--backtitle "Super Attract Mode" --title "[ Configure Autoplay ]" \
 		--menu "Select an option" 0 0 0 \
 		Enable "Enable Autoplay" \
 		Disable "Disable Autoplay" \
@@ -1495,17 +1497,17 @@ function sam_autoplaymenu() {
 
 function sam_configmenu() {
 	dialog --clear --ascii-lines --no-cancel \
-		--backtitle "Super_Attract_Mode" --title "[ INI Settings ]" \
+		--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
 		--msgbox "Here you can configure the INI settings for SAM.\n\nUse TAB to switch between editing, the OK and Cancel buttons." 0 0
 
 	dialog --clear --ascii-lines \
-		--backtitle "Super_Attract_Mode" --title "[ INI Settings ]" \
+		--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
 		--editbox "${misterpath}/Scripts/Super_Attract_Mode.ini" 0 0 2>"/tmp/.SAMmenu"
 
 	if [ -s "/tmp/.SAMmenu" ] && [ "$(diff -wq "/tmp/.SAMmenu" "${misterpath}/Scripts/Super_Attract_Mode.ini")" ]; then
 		cp -f "/tmp/.SAMmenu" "${misterpath}/Scripts/Super_Attract_Mode.ini"
 		dialog --clear --ascii-lines --no-cancel \
-			--backtitle "Super_Attract_Mode" --title "[ INI Settings ]" \
+			--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
 			--msgbox "Changes saved!" 0 0
 	fi
 
@@ -1514,10 +1516,10 @@ function sam_configmenu() {
 
 function sam_gamemodemenu() {
 	dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super_Attract_Mode" --title "[ GAME ROULETTE ]" \
+		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
 	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super_Attract_Mode" --title "[ GAME ROULETTE ]" \
+		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--menu "Select an option" 0 0 0 \
 		Roulette2 "Play a random game for 2 minutes. " \
 		Roulette5 "Play a random game for 5 minutes. " \
@@ -1561,10 +1563,10 @@ function sam_gamemodemenu() {
 
 function samedit_include() {
 	dialog --clear --no-cancel --ascii-lines --colors \
-		--backtitle "Super_Attract_Mode" --title "[ CATEGORY SELECTION ]" \
+		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 		--msgbox "Play games from only one category.\n\n\Z1Please use Everdrive packs for this mode. \Zn \n\nSome categories (like country selection) will probably work with some other rompacks as well. \n\nMake sure you have game lists created for this mode." 0 0
 	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super_Attract_Mode" --title "[ CATEGORY SELECTION ]" \
+		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 		--menu "Only play games from the following categories" 0 0 0 \
 		''"("'usa'")"'' "Only USA Games" \
 		''"("'japan'")"'' "Only Japanese Games" \
@@ -1639,16 +1641,16 @@ function samedit_excltags() {
 	
 	if [ -f "${excludetags}" ]; then
 		dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super_Attract_Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
 		--msgbox "Currently excluded tags: \n\n$(cat "${excludetags}")" 0 0
 	else
 		dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super_Attract_Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
 		--msgbox "Exclude hacks, prototypes, homebrew or other game categories you don't want SAM to show.\n\n" 0 0
 	fi 
 
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Done" \
-		--backtitle "Super_Attract_Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
 		--menu "Which tags do you want to exclude?" 0 0 0 \
 		Beta "Beta Games" \
 		Hack "Hacks" \
@@ -1678,7 +1680,7 @@ function samedit_excltags() {
 				# Check if tag is already excluded
 				if [ "$(grep -i "${categ}" "${excludetags}")" ]; then
 					dialog --clear --no-cancel --ascii-lines \
-					--backtitle "Super_Attract_Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+					--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
 					--msgbox "${categ} has already been excluded. \n\n" 0 0
 				else
 					echo "${categ} " >> "${excludetags}"
@@ -1692,7 +1694,7 @@ function samedit_excltags() {
 				rm "${excludetags}" 2>/dev/null
 			done
 			dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super_Attract_Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+			--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
 			--msgbox "All exclusion filters have been removed. \n\n" 0 0
 			sam_menu
 		fi
@@ -1704,10 +1706,10 @@ function samedit_excltags() {
 
 function sam_bgmmenu() {
 	dialog --clear --no-cancel --ascii-lines \
-	--backtitle "Super_Attract_Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
+	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 	--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
 	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super_Attract_Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
+		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		Enablebgm "Enable BGM for SAM" \
 		Disablebgm "Disable BGM for SAM" 2>"/tmp/.SAMmenu" 
@@ -1878,7 +1880,7 @@ function parse_cmd() {
 				;;
 			autoconfig)
 				tmux kill-session -t MCP &>/dev/null
-				# there_can_be_only_one
+				there_can_be_only_one
 				sam_update
 				startup_tasks
 				sam_install
@@ -2131,7 +2133,7 @@ function sam_uninstall() { # Uninstall SAM from startup
 		[ "$RO_ROOT" == "true" ] && mount / -o remount,ro
 	fi
 
-	# there_can_be_only_one
+	there_can_be_only_one
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sed -i '/Attract/d' ${userstartup}
 	sync
@@ -2279,7 +2281,7 @@ function deleteall() {
 	fi
 	echo "Done."
 
-	sed -i '/SuperAttract/d' ${userstartup}
+	sed -i '/Attract/d' ${userstartup}
 	sed -i '/Super Attract/d' ${userstartup}
 
 	printf "\nAll files deleted except for Super_Attract_Mode.sh\n"
@@ -2296,9 +2298,9 @@ function deleteall() {
 function deletegl() {
 	# In case of issues, reset game lists
 
-	# there_can_be_only_one
+	there_can_be_only_one
 	if [ -d "${mrsampath}/SAM_Gamelists" ]; then
-		echo "Deleting SuperAttract Gamelist folder"Super_Attract_Mode.sh
+		echo "Deleting Super Attract Mode Gamelist folder"Super_Attract_Mode.sh
 		rm -rf "${mrsampath}/SAM_Gamelists"
 	fi
 
@@ -2343,10 +2345,12 @@ function creategl() {
 }
 
 function skipmessage() {
-	# Skip past bios/safety warnings
-	sleep 10
-	if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
-	"${mrsampath}/mbc" raw_seq :31
+	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
+		# Skip past bios/safety warnings
+		sleep 10
+		if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
+		"${mrsampath}/mbc" raw_seq :31
+	fi
 }
 
 function mglfavorite() {
@@ -2848,8 +2852,7 @@ function next_core() { # next_core (core)
 		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"; fi
 		next_core ${nextcore}
 		return
-	else
-		if [ "${samquiet}" == "no" ]; then echo -e " Correct Extension! \e[1m${extension^^}\e[0m"; fi
+
 	fi
 
 	# If there is an exclude list check it
@@ -2999,6 +3002,7 @@ function load_core_arcade() {
 
 	if [ ! -s "${mralist}" ]; then
 		build_mralist "${DIR}"
+		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"										
 	fi
 
 	if [ ! -s "${mralist_tmp}" ]; then
