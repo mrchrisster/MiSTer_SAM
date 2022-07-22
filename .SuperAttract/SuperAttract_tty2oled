@@ -144,13 +144,10 @@ function tty_init() { # tty_init
 
 function tty_waitfor() {
 	if [ "${ttyuseack}" == "yes" ]; then
-		read -d ";" ttyresponse <${ttydevice} # The "read" command at this position simulates an "do..while" loop
-		while [ "${ttyresponse}" != "ttyack" ]; do
-			read -d ";" ttyresponse <${ttydevice} # Read Serial Line until delimiter ";"
-		done
+		read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
 		ttyresponse=""
 	else
-		sleep 0.08
+		sleep 0.25
 	fi
 }
 
@@ -271,10 +268,11 @@ function tty_senddata() {
 			echo "-------------------------------------------"
 		fi
 		echo "CMDCOR,${1}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
-		tty_waitfor                                       # sleep needed here ?!
 		tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
+		tty_waitfor                                       # sleep needed here ?!
 	else                                               # No Picture available!
 		echo "${1}" >"${ttydevice}"                       # Send just the CORENAME
+		tty_waitfor                                       # sleep needed here ?!
 	fi                                                 # End if Picture check
 }
 
