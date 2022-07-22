@@ -178,6 +178,7 @@ function MCP_cleanup() {
 }
 
 function createpipes() {
+	MCP_cleanup
 	[[ ! -p ${MCP_cmd_pipe} ]] && mkfifo ${MCP_cmd_pipe}
 	[[ ! -p ${corename_change_pipe} ]] && mkfifo ${corename_change_pipe}
 	[[ ! -p ${corename_pipe} ]] && mkfifo ${corename_pipe}

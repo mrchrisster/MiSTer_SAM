@@ -95,7 +95,7 @@ function init_vars() {
 
 	# ======== TTY2OLED =======
 	declare -gl ttyenable="No"
-	declare -gl ttyuseack="No"
+	declare -gi ttyupdate_pause=10
 	declare -gA tty_currentinfo=(
 		[core_pretty]=""
 		[name]=""
@@ -104,12 +104,11 @@ function init_vars() {
 		[name_scroll]=""
 		[name_scroll_position]=0
 		[name_scroll_direction]=1
-		[update_pause]=10
+		[update_pause]=$ttyupdate_pause
 	)
 
 	# ======== BGM =======
 	declare -gl bgm="No"
-	
 	# ======== CORE PATHS ========
 	declare -g amigapath="/media/fat/Games/Amiga"	
 	declare -g arcadepath="/media/fat/_Arcade"
@@ -256,7 +255,6 @@ function sam_cleanup() {
 	[ -e ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
 	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleaned up mounts."; fi
 }
-
 
 # ======== CORE CONFIG ========
 function init_data() {
@@ -1785,91 +1783,61 @@ function write_to_MCP_cmd_pipe() {
 	echo "${@}" >${MCP_cmd_pipe}
 }
 
-function process_cmd() {
-	case "${1,,}" in
-	start | restart | bootstart) # Start as from init
-		sam_start
-		exit 0
-		;;
-	stop | quit)
-		write_to_SAM_cmd_pipe ${1-}
-		exit 0
-		;;
-	exit)
-		write_to_SAM_cmd_pipe ${1-}
-		exit 0
-		;;
-	skip | next)
-		echo " Skipping to next game..."
-		write_to_SAM_cmd_pipe ${1-}
-		exit 0
-		;;
-	monitor)
-		sam_monitor_new
-		exit 0
-		;;
-	install) # Enable SAM autoplay mode
-		startup_tasks
-		sam_install
-		;;
-	uninstall) # Disable SAM autoplay
-		startup_tasks
-		sam_uninstall
-		;;
-	speedtest)
-		startup_tasks
-		speedtest
-		;;
-	create-gamelists)
-		startup_tasks
-		creategl
-		;;
-	delete-gamelists)
-		startup_tasks
-		deletegl
-		;;
-	help)
-		sam_help
-		;;
-	*)
-		return
-		;;
-	esac
-}
-
 function source-only() {
 	startup_tasks
 	return 0
 }
 
 function parse_cmd() {
-	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
-		sam_help
-	elif [ ${#} -eq 0 ]; then # No options - show the pre-menu
+	if [ ${#} -eq 0 ]; then # No options - show the pre-menu
 		sam_premenu
+	elif [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
+		sam_help
 	else
-		# If we're given a core name then we need to set it first
-		nextcore=""
-		for arg in ${@,,}; do
-			case ${arg} in
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
-				echo " ${CORE_PRETTY[${arg}]} selected!"
-				nextcore="${arg}"
-				;;
-			esac
-		done
-
-		# If the one command was a core then we need to call in again with "start" specified
-		if [ ${nextcore} ] && [ ${#} -eq 1 ]; then
-			# Move cursor up a line to avoid duplicate message
-			echo -n -e "\033[A"
-			# Re-enter this function with start added
-			parse_cmd ${nextcore} start
-			return
-		fi
-
 		while [ ${#} -gt 0 ]; do
 			case "${1,,}" in
+			stop | quit)
+				write_to_SAM_cmd_pipe ${1-}
+				exit 0
+				;;
+			exit)
+				write_to_SAM_cmd_pipe ${1-}
+				exit 0
+				;;
+			skip | next)
+				echo " Skipping to next game..."
+				write_to_SAM_cmd_pipe ${1-}
+				exit 0
+				;;
+			monitor)
+				sam_monitor_new
+				exit 0
+				;;
+			install) # Enable SAM autoplay mode
+				startup_tasks
+				sam_install
+				break
+				;;
+			uninstall) # Disable SAM autoplay
+				startup_tasks
+				sam_uninstall
+				break
+				;;
+			speedtest)
+				startup_tasks
+				speedtest
+				break
+				;;
+			create-gamelists)
+				startup_tasks
+				creategl
+				break
+				;;
+			delete-gamelists)
+				startup_tasks
+				deletegl
+				break
+				;;
 			default) # sam_update relaunches itself
 				sam_update autoconfig
 				break
@@ -1885,9 +1853,6 @@ function parse_cmd() {
 				startup_tasks
 				sam_install
 				break
-				;;
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
-				: # Placeholder since we parsed these above
 				;;
 			favorite)
 				mglfavorite
@@ -1907,17 +1872,37 @@ function parse_cmd() {
 				;;
 			help)
 				sam_help
-				# echo "Use new commandline option --help"
 				break
 				;;
 			esac
 			
-			[ ! -z ${2} ] && shift
-				sam_prep
-				bgm_start
+			startup_tasks
+			sam_prep
+			
+			bgm_start
+			check_gamelists
+
+			if [ "${samtrace}" == "yes" ]; then
+				debug_output
+			fi
 			
 			case "${1,,}" in
-				start_real) # Start as a detached tmux session for monitoring
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+				# If we're given a core name then we need to set it first
+				if [ ! -z "${2}" ] && [ "${2,,}" == "start_real" ]; then
+					nextcore=${1,,}
+					corelist=$nextcore
+					sam_start_new
+				else
+					sam_start ${1,,}
+				fi
+				break
+				;;
+			start | restart | bootstart) # Start as from init
+				sam_start
+				break
+				;;
+			start_real) # Start looping
 				sam_start_new
 				break
 				;;
@@ -2166,7 +2151,7 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 	kill_1=$(ps -o pid,args | grep '[S]uper_Attract_init start' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh start_real' | awk '{print $1}')
-	kill_3=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh bootstart_real' | awk '{print $1}' | head -1)
+	kill_3=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh bootstart' | awk '{print $1}' | head -1)
 
 	[[ ! -z ${kill_1} ]] && kill -9 ${kill_1} >/dev/null
 	for kill in ${kill_2}; do
@@ -2488,18 +2473,33 @@ function get_inputmap() {
 	echo " Done!"
 }
 
-# ========= SAM START =========
-function sam_start_new() {
-	env_check ${1}
+function check_gamelists() {
 	if [ ${create_all_gamelists} == "yes" ]; then
+		echo " Checking Gamelists"
 		create_game_lists
 	fi
+}
+
+# ========= SAM START =========
+function sam_start_new() {
 	loop_core ${nextcore}
 }
 
 function sam_start() {
-	if [ -z "$(pidof SuperAttract_init)" ]; then
-		"${mrsampath}/SuperAttract_init" "quickstart"
+	# If MCP isn't running we need to start it in monitoring only mode
+	if [ -z "$(pidof SuperAttract_MCP)" ]; then
+		echo " Starting MCP.."
+		tmux new-session -s MCP -d "${mrsampath}/SuperAttract_MCP" &
+	fi
+	# If TTY2oled isn't running we need to start it in monitoring only mode
+	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then
+		echo " Starting TTY.."
+		tmux new-session -s TTY2OLED -d "${mrsampath}/SuperAttract_tty2oled" &
+	fi
+	# If SAM isn't running we need to start it in monitoring only mode
+	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then
+		echo " Starting SAM.."
+		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super_Attract_Mode.sh" ${1} start_real &
 	fi
 }
 
@@ -2916,7 +2916,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			[name_scroll]="${GAMENAME:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
-			[update_pause]=10
+			[update_pause]=$ttyupdate_pause
 		)
 		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi
@@ -2976,9 +2976,9 @@ function build_mralist() {
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
 	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${1}" -maxdepth 1 -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
+		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
 	else
-		find "${1}" -maxdepth 1 -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
+		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
 	fi
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
@@ -3067,7 +3067,7 @@ function load_core_arcade() {
 			[name_scroll]="${mraname:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
-			[update_pause]=10
+			[update_pause]=$ttyupdate_pause
 		)
 		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi
@@ -3172,7 +3172,7 @@ function load_core_amiga() {
 			[name_scroll]="${agpretty:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
-			[update_pause]=10
+			[update_pause]=$ttyupdate_pause
 			)
 			write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 		fi
@@ -3185,11 +3185,6 @@ function load_core_amiga() {
 
 # ========= MAIN =========
 function main() {
-	process_cmd ${@}
-	startup_tasks
-	if [ "${samtrace}" == "yes" ]; then
-		debug_output
-	fi
 	parse_cmd ${@} # Parse command line parameters for input
 }
 

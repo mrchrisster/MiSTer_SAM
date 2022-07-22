@@ -61,6 +61,8 @@ declare -gi ttyscroll_speed_int=$(($ttyscroll_speed - 1))
 
 function start_pipe_reader() {
 	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, starting pipe reader... "; fi
+	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
+	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
 	if [[ ! -p ${TTY_cmd_pipe} ]]; then
 		mkfifo ${TTY_cmd_pipe}
 	fi
@@ -284,18 +286,18 @@ function tty_exit() {
 	tty_waitfor
 	echo "CMDBYE" >${ttydevice}
 	sleep 5
-	if [ "${ttyuseack}" == "yes" ]; then
-		tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
-		return
-	fi
 	TTY_cleanup
 }
 
 function TTY_cleanup() {
+	if [ "${ttyuseack}" == "yes" ]; then
+		tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+		return
+	fi
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
 	# Clean up by umounting any mount binds
 	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
 	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
 }
 
 # ========= TTY MONITOR =========
