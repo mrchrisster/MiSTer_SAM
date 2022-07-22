@@ -290,7 +290,6 @@ function tty_exit() {
 function TTY_cleanup() {
 	if [ "${ttyuseack}" == "yes" ]; then
 		tmux new -s TTY2OLED -d "/media/fat/tty2oled/tty2oled.sh" &
-		return
 	fi
 	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
 	# Clean up by umounting any mount binds
