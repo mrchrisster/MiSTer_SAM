@@ -89,7 +89,10 @@ function init_vars() {
 	declare -gi rebuild_freq_int="604800"
 	declare -gl rebuild_freq_arcade="Week"
 	declare -gi regen_duration_arcade=1
-	declare -gi rebuild_freq_arcade_int="604800"
+	declare -gi rebuild_freq_amiga_int="604800"
+	declare -gl rebuild_freq_amiga="Week"
+	declare -gi regen_duration_amiga=8
+	declare -gi rebuild_freq_amiga_int="604800"
 	declare -gi bootsleep="60"
 	declare -gi countdown="nocountdown"
 
@@ -2311,13 +2314,16 @@ function creategl() {
 	mkdir -p "${mrsampath}/SAM_Gamelists"
 	mkdir -p /tmp/.SAM_List
 	create_all_gamelists_old="${create_all_gamelists}"
+	rebuild_freq_amiga_old="${rebuild_freq_amiga}"
 	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
 	rebuild_freq_old="${rebuild_freq}"
 	create_all_gamelists="Yes"
+	rebuild_freq_amiga="Always"
 	rebuild_freq_arcade="Always"
 	rebuild_freq="Always"
 	create_game_lists
 	create_all_gamelists="${create_all_gamelists_old}"
+	rebuild_freq_amiga="${rebuild_freq_amiga_old}"
 	rebuild_freq_arcade="${rebuild_freq_arcade_old}"
 	rebuild_freq="${rebuild_freq_old}"
 	if [ ${inmenu} -eq 1 ]; then
@@ -2550,13 +2556,17 @@ function speedtest() {
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		if [ ${core} = " " ] || [ ${core} = "" ] || [ -z ${core} ]; then
 			continue
-		elif [ ${core} != "arcade" ]; then
+		elif [ ${core} != "arcade" ] || [ ${core} != "amiga" ]; then
 			START2="$(date +%s)"
 			create_romlist ${core} "${DIR}"
 			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 		elif [ ${core} == "arcade" ]; then
 			START2="$(date +%s)"
 			build_mralist "${DIR}"
+			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
+		elif [ ${core} == "amiga" ]; then
+			START2="$(date +%s)"
+			create_amigalist
 			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 		fi
 	done
@@ -2615,11 +2625,32 @@ function create_game_lists() {
 		;;
 	esac
 
+	case ${rebuild_freq_amiga} in
+	hour)
+		rebuild_freq_amiga_int=$((3600 * ${regen_duration_amiga}))
+		;;
+	day)
+		rebuild_freq_amiga_int=$((86400 * ${regen_duration_amiga}))
+		;;
+	week)
+		rebuild_freq_amiga_int=$((604800 * ${regen_duration_amiga}))
+		;;
+	always)
+		rebuild_freq_amiga_int=0
+		;;
+	never)
+		rebuild_freq_amiga_int=$((3155760000 * ${regen_duration_amiga}))
+		;;
+	*)
+		echo "Incorrect regeneration value"
+		;;
+	esac
+
 	for core in ${corelistall}; do
 		corelisttmp=${corelist}
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		local date_file=""
-		if [ ${core} != "arcade" ]; then
+		if [ ${core} != "arcade" ] || [ ${core} != "amiga" ]; then
 			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 				if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
@@ -2638,20 +2669,33 @@ function create_game_lists() {
 			fi
 		elif [ ${core} == "arcade" ]; then
 			if [ -s "${mralist}" ]; then
-				if [ -s "${mralist}" ]; then
-					date_file=$(stat -c '%Y' "${mralist}")
-					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
-						build_mralist "${DIR}"
-					fi
-				else
-					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
-					rm "${mralist}" &>/dev/null
-				fi
-				if [ ! -s "${mralist_tmp}" ]; then
-					cp "${mralist}" "${mralist_tmp}" &>/dev/null
+				date_file=$(stat -c '%Y' "${mralist}")
+				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
+					build_mralist "${DIR}"
 				fi
 			else
+				corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
+				rm "${mralist}" &>/dev/null
+			fi
+			if [ ! -s "${mralist_tmp}" ]; then
+				cp "${mralist}" "${mralist_tmp}" &>/dev/null
+			else
 				build_mralist "${DIR}"
+			fi
+		elif [ ${core} == "amiga" ]; then
+			if [ -s ${gamelistpath}/${core}_gamelist.txt ]
+				date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
+				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_amiga_int} ]; then
+					create_amigalist
+				fi
+			else
+				corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
+				rm ${gamelistpath}/${core}_gamelist.txt &>/dev/null
+			fi
+			if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+				cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+			else
+				create_amigalist
 			fi
 		fi
 		corelist=${corelisttmp}
