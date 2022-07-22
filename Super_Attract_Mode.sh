@@ -2683,7 +2683,7 @@ function create_game_lists() {
 				build_mralist "${DIR}"
 			fi
 		elif [ ${core} == "amiga" ]; then
-			if [ -s ${gamelistpath}/${core}_gamelist.txt ]
+			if [ -s ${gamelistpath}/${core}_gamelist.txt ]; then
 				date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
 				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_amiga_int} ]; then
 					create_amigalist
