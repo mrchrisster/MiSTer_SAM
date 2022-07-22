@@ -1838,18 +1838,20 @@ function parse_cmd() {
 				break
 				;;
 			default) # sam_update relaunches itself
+				startup_tasks
 				sam_update autoconfig
 				break
 				;;
 			update) # Update SAM
+				startup_tasks
 				sam_update
 				break
 				;;
 			autoconfig)
 				tmux kill-session -t MCP &>/dev/null
 				there_can_be_only_one
-				sam_update
 				startup_tasks
+				sam_update
 				sam_install
 				break
 				;;
