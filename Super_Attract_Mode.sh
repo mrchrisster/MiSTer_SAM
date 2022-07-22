@@ -2483,7 +2483,7 @@ function sam_start() {
 	# If TTY2oled isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then
 		echo " Starting TTY.."
-		tmux new-session -s TTY2OLED -d "${mrsampath}/SuperAttract_tty2oled" &
+		tmux new-session -s TTY -d "${mrsampath}/SuperAttract_tty2oled" &
 	fi
 	# If SAM isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then

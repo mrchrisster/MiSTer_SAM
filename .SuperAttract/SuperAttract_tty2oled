@@ -24,7 +24,7 @@
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
 
-trap 'rc=$?;[ $rc = 0 ] && exit;TTY_cleanup' EXIT
+trap 'rc=$?;[ $rc = 0 ] && exit;TTY_exit' EXIT
 
 # ======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
@@ -289,7 +289,7 @@ function tty_exit() {
 
 function TTY_cleanup() {
 	if [ "${ttyuseack}" == "yes" ]; then
-		tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+		tmux new -s TTY2OLED -d "/media/fat/tty2oled/tty2oled.sh" &
 		return
 	fi
 	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
@@ -304,7 +304,7 @@ function tty_monitor_new() {
 	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
 	# tmux attach-session -t SAM
 	# window size will be wrong/too small, but ctrl-c nonfunctional instead of killing/disconnecting
-	tmux attach-session -t TTY2OLED
+	tmux attach-session -t TTY
 }
 
 # ========= MAIN =========

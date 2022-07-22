@@ -144,7 +144,7 @@ function tty2oled_start() {
 	echo " Starting TTY.."
 	# If the TTY2oled isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then
-		tmux new-session -s TTY2OLED -d "${mrsampath}/SuperAttract_tty2oled" &
+		tmux new-session -s TTY -d "${mrsampath}/SuperAttract_tty2oled" &
 	fi
 }
 
