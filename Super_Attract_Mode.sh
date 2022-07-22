@@ -110,7 +110,7 @@ function init_vars() {
 	# ======== BGM =======
 	declare -gl bgm="No"
 	# ======== CORE PATHS ========
-	declare -g amigapath="/media/fat/Games/Amiga"	
+	declare -g amigapath="/media/fat/Games/Amiga"
 	declare -g arcadepath="/media/fat/_Arcade"
 	declare -g atari2600path="/media/fat/Games/Atari7800"
 	declare -g atari5200path="/media/fat/Games/Atari5200"
@@ -223,7 +223,6 @@ function init_paths() {
 	fi
 }
 
-
 function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -pr --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
@@ -232,7 +231,7 @@ function sam_prep() {
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
 	# Disable Bootrom - Make Bootrom folder inaccessible until restart
-	if [ "${disablebootrom}" == "Yes" ]; then	
+	if [ "${disablebootrom}" == "Yes" ]; then
 		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
 		# Disable Nes bootroms except for FDS Bios (boot0.rom)
 		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot1.rom"
@@ -286,7 +285,7 @@ function init_data() {
 
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
-		["amiga"]="hdf" 		#This is just a placeholder
+		["amiga"]="hdf" #This is just a placeholder
 		["arcade"]="mra"
 		["atari2600"]="a26"     # Should we include? "bin"
 		["atari5200"]="a52,car" # Should we include? "bin,rom"
@@ -1276,7 +1275,7 @@ function read_samini() {
 			declare -g ${var}="${!var%/}"
 		done
 	else
-		sam_update autoconfig 				   
+		sam_update autoconfig
 	fi
 
 	# Setup corelist
@@ -1410,14 +1409,14 @@ function sam_menu() {
 		Gamelists "Game Lists - Create or Delete" \
 		Reset "Reset or uninstall SAM" \
 		Autoplay "Autoplay Configuration" 2>"/tmp/.SAMmenu"
-	
+
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
-	
+
 	if [ "$opt" != "0" ]; then
 		exit
-	else 
+	else
 		parse_cmd ${menuresponse}
 	fi
 
@@ -1437,10 +1436,10 @@ function sam_singlemenu() {
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
-	
+
 	if [ "$opt" != "0" ]; then
 		sam_menu
-	else 
+	else
 		parse_cmd ${menuresponse}
 	fi
 
@@ -1526,37 +1525,37 @@ function sam_gamemodemenu() {
 		Roulette20 "Play a random game for 20 minutes. " \
 		Roulette25 "Play a random game for 25 minutes. " \
 		Roulette30 "Play a random game for 30 minutes. " \
-		Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in Super_Attract_Mode.ini). " 2>"/tmp/.SAMmenu"	
-	
-		opt=$?
-		menuresponse=$(<"/tmp/.SAMmenu")
-		
-		if [ "$opt" != "0" ]; then
-			sam_menu
-		elif [ "${menuresponse}" == "Roulettetimer" ]; then
-			gametimer=${roulettetimer}
-			only_survivor
-			sam_cleanup
-			tty_init
-			checkgl
-			mute=no
-			listenmouse="No"
-			listenkeyboard="No"
-			listenjoy="No"
-			loop_core	
-		else
-			timemin=${menuresponse//Roulette/}
-			gametimer=$((timemin*60))
-			only_survivor
-			sam_cleanup
-			tty_init
-			checkgl
-			mute=no
-			listenmouse="No"
-			listenkeyboard="No"
-			listenjoy="No"
-			loop_core
-		fi
+		Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in Super_Attract_Mode.ini). " 2>"/tmp/.SAMmenu"
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	elif [ "${menuresponse}" == "Roulettetimer" ]; then
+		gametimer=${roulettetimer}
+		only_survivor
+		sam_cleanup
+		tty_init
+		checkgl
+		mute=no
+		listenmouse="No"
+		listenkeyboard="No"
+		listenjoy="No"
+		loop_core
+	else
+		timemin=${menuresponse//Roulette/}
+		gametimer=$((timemin * 60))
+		only_survivor
+		sam_cleanup
+		tty_init
+		checkgl
+		mute=no
+		listenmouse="No"
+		listenkeyboard="No"
+		listenjoy="No"
+		loop_core
+	fi
 }
 
 function samedit_include() {
@@ -1625,7 +1624,7 @@ function samedit_include() {
 
 function samedit_excltags() {
 	excludetags="${gamelistpath}/.excludetags"
-	
+
 	function process_tag() {
 		for core in ${corelist}; do
 			[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${core}_gamelist.txt"
@@ -1636,16 +1635,16 @@ function samedit_excltags() {
 			fi
 		done
 	}
-	
+
 	if [ -f "${excludetags}" ]; then
 		dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-		--msgbox "Currently excluded tags: \n\n$(cat "${excludetags}")" 0 0
+			--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+			--msgbox "Currently excluded tags: \n\n$(cat "${excludetags}")" 0 0
 	else
 		dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-		--msgbox "Exclude hacks, prototypes, homebrew or other game categories you don't want SAM to show.\n\n" 0 0
-	fi 
+			--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+			--msgbox "Exclude hacks, prototypes, homebrew or other game categories you don't want SAM to show.\n\n" 0 0
+	fi
 
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Done" \
 		--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
@@ -1653,35 +1652,35 @@ function samedit_excltags() {
 		Beta "Beta Games" \
 		Hack "Hacks" \
 		Homebrew "Homebrew" \
-		Prototype "Prototypes"  \
+		Prototype "Prototypes" \
 		Unlicensed "Unlicensed Games" \
 		Translations "Translated Games" \
 		USA "USA" \
 		Japan "Japan" \
 		Europe "Europe" \
-		'' "Reset Exclusion Lists" 2>"/tmp/.SAMmenu" 
+		'' "Reset Exclusion Lists" 2>"/tmp/.SAMmenu"
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
-	
+
 	categ="${menuresponse}"
-	
+
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	else
 		echo " Please wait... creating exclusion lists."
 		if [ ! -z ${categ} ]; then
 			if [ ! -s "${excludetags}" ]; then
-				echo "${categ} " > "${excludetags}"
+				echo "${categ} " >"${excludetags}"
 				process_tag
 			else
 				# Check if tag is already excluded
 				if [ "$(grep -i "${categ}" "${excludetags}")" ]; then
 					dialog --clear --no-cancel --ascii-lines \
-					--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-					--msgbox "${categ} has already been excluded. \n\n" 0 0
+						--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+						--msgbox "${categ} has already been excluded. \n\n" 0 0
 				else
-					echo "${categ} " >> "${excludetags}"
+					echo "${categ} " >>"${excludetags}"
 					# TO DO: What if we don't have gamelists
 					process_tag
 				fi
@@ -1692,29 +1691,29 @@ function samedit_excltags() {
 				rm "${excludetags}" 2>/dev/null
 			done
 			dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
-			--msgbox "All exclusion filters have been removed. \n\n" 0 0
+				--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
+				--msgbox "All exclusion filters have been removed. \n\n" 0 0
 			sam_menu
 		fi
 		find "${gamelistpath}" -name "*_gamelist_exclude.txt" -size 0 -print0 | xargs -0 rm
 		samedit_excltags
 	fi
-	
+
 }
 
 function sam_bgmmenu() {
 	dialog --clear --no-cancel --ascii-lines \
-	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
-	--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
+		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
+		--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		Enablebgm "Enable BGM for SAM" \
-		Disablebgm "Disable BGM for SAM" 2>"/tmp/.SAMmenu" 
+		Disablebgm "Disable BGM for SAM" 2>"/tmp/.SAMmenu"
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
-	
+
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	else
@@ -1741,7 +1740,7 @@ function sam_bgmmenu() {
 			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 			branch="main"
 			get_samstuff Media/80s.pls /media/fat/music
-			[[ ! $(grep -i "bgm" /media/fat/Scripts/Super_Attract_Mode.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/Super_Attract_Mode.ini
+			[[ ! $(grep -i "bgm" /media/fat/Scripts/Super_Attract_Mode.ini) ]] && echo "bgm=Yes" >>/media/fat/Scripts/Super_Attract_Mode.ini
 			sed -i '/bgm=/c\bgm=Yes' /media/fat/Scripts/Super_Attract_Mode.ini
 			echo " All Done. Starting SAM now."
 			/media/fat/Scripts/"Super_Attract_Mode.sh" start
@@ -1875,17 +1874,17 @@ function parse_cmd() {
 				break
 				;;
 			esac
-			
+
 			startup_tasks
 			sam_prep
-			
+
 			bgm_start
 			check_gamelists
 
 			if [ "${samtrace}" == "yes" ]; then
 				debug_output
 			fi
-			
+
 			case "${1,,}" in
 			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				# If we're given a core name then we need to set it first
@@ -1976,7 +1975,6 @@ function parse_cmd() {
 	fi
 }
 
-
 # ======== SAM COMMANDS ========
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
@@ -2024,7 +2022,6 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
 		get_samstuff .SuperAttract/SAM_splash.gsc
-
 
 		if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
 			echo " SAM INI already exists... Merging with new ini."
@@ -2189,7 +2186,6 @@ function sam_stop() {
 		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
 	done
 }
-
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
 	sam_cleanup
@@ -2365,7 +2361,6 @@ function bgm_stop() {
 	fi
 
 }
-
 
 function mute() {
 	if [ "${mute}" == "yes" ]; then
@@ -2828,7 +2823,7 @@ function next_core() { # next_core (core)
 		load_core_arcade
 		return
 	fi
-	
+
 	if [ "${nextcore}" == "amiga" ]; then
 		# If this is Amiga core we go to special code
 		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
@@ -2840,7 +2835,7 @@ function next_core() { # next_core (core)
 		fi
 		return
 	fi
-	
+
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
 	check_list ${nextcore} "${DIR}"
 	romname=$(basename "${rompath}")
@@ -3002,7 +2997,7 @@ function load_core_arcade() {
 
 	if [ ! -s "${mralist}" ]; then
 		build_mralist "${DIR}"
-		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"										
+		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
 
 	if [ ! -s "${mralist_tmp}" ]; then
@@ -3012,7 +3007,7 @@ function load_core_arcade() {
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
 	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
-	
+
 	if [ ! -f "${MRAPATH}" ]; then
 		echo " There is no valid file at ${MRAPATH}... Rebuilding list."
 		build_mralist "${DIR}"
@@ -3021,7 +3016,7 @@ function load_core_arcade() {
 		mra="$(shuf --head-count=1 ${mralist_tmp})"
 		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 	fi
-	
+
 	# If the mra variable is valid this is skipped, but if not we try 5 times
 	# Partially protects against typos from manual editing and strange character parsing problems
 	for i in {1..5}; do
@@ -3034,7 +3029,7 @@ function load_core_arcade() {
 	#Check blacklist
 	if [ -f ${gamelistpath}/${nextcore}_blacklist.txt ]; then
 		for i in {1..10}; do
-			if [ "$(grep -ic "${mra}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0"  ]; then
+			if [ "$(grep -ic "${mra}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0" ]; then
 				if [ "${samquiet}" == "no" ]; then echo " Blacklisted because duplicate or boring: ${mra}, trying a different mra.."; fi
 				mra=$(shuf --head-count=1 ${mralist_tmp})
 				MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
@@ -3088,13 +3083,13 @@ function load_core_arcade() {
 
 # ======== AMIGA MODE ========
 
-function create_amigalist () {
+function create_amigalist() {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" >${gamelistpath}/${nextcore}_gamelist.txt
 		sed -i -e 's/^/Demo: /' ${gamelistpath}/${nextcore}_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
-		
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >>${gamelistpath}/${nextcore}_gamelist.txt
+
 		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 
 		if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
@@ -3109,7 +3104,7 @@ function create_amigalist () {
 function load_core_amiga() {
 
 	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
-	
+
 	mute "${CORE_LAUNCH[${nextcore}]}"
 
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
@@ -3137,14 +3132,14 @@ function load_core_amiga() {
 	else
 		# This is for MegaAGS version July 2022 or newer
 		[ ! -s ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
-		
+
 		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 			cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		fi
 
 		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
 		agpretty="$(echo "${rompath}" | tr '_' ' ')"
-		
+
 		# Special case for demo
 		if [[ "${rompath}" == *"Demo:"* ]]; then
 			rompath=${rompath//Demo: /}
@@ -3156,7 +3151,7 @@ function load_core_amiga() {
 			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 
-		echo "${rompath}" > "${amigapath}"/shared/ags_boot
+		echo "${rompath}" >"${amigapath}"/shared/ags_boot
 
 		echo -n " Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
@@ -3165,14 +3160,14 @@ function load_core_amiga() {
 		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
 		if [ "${ttyenable}" == "yes" ]; then
 			tty_currentinfo=(
-			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
-			[name]="${agpretty}"
-			[core]="${CORE_LAUNCH[${nextcore}]}"
-			[counter]=${gametimer}
-			[name_scroll]="${agpretty:0:21}"
-			[name_scroll_position]=0
-			[name_scroll_direction]=1
-			[update_pause]=$ttyupdate_pause
+				[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+				[name]="${agpretty}"
+				[core]="${CORE_LAUNCH[${nextcore}]}"
+				[counter]=${gametimer}
+				[name_scroll]="${agpretty:0:21}"
+				[name_scroll_position]=0
+				[name_scroll_direction]=1
+				[update_pause]=$ttyupdate_pause
 			)
 			write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 		fi
@@ -3181,7 +3176,6 @@ function load_core_amiga() {
 
 	fi
 }
-
 
 # ========= MAIN =========
 function main() {
