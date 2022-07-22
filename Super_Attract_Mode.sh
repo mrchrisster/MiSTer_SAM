@@ -1879,7 +1879,10 @@ function parse_cmd() {
 			sam_prep
 
 			bgm_start
-			check_gamelists
+			if [ ${create_all_gamelists} == "yes" ]; then
+				echo " Checking Gamelists"
+				create_game_lists
+			fi
 
 			if [ "${samtrace}" == "yes" ]; then
 				debug_output
@@ -2326,12 +2329,10 @@ function creategl() {
 }
 
 function skipmessage() {
-	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		# Skip past bios/safety warnings
-		sleep 10
-		if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
-		"${mrsampath}/mbc" raw_seq :31
-	fi
+	# Skip past bios/safety warnings
+	sleep 10
+	if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
+	"${mrsampath}/mbc" raw_seq :31
 }
 
 function mglfavorite() {
@@ -2466,13 +2467,6 @@ function get_inputmap() {
 	get_samstuff .SuperAttract/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .SuperAttract/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	echo " Done!"
-}
-
-function check_gamelists() {
-	if [ ${create_all_gamelists} == "yes" ]; then
-		echo " Checking Gamelists"
-		create_game_lists
-	fi
 }
 
 # ========= SAM START =========
@@ -2618,35 +2612,13 @@ function create_game_lists() {
 		echo "Incorrect regeneration value"
 		;;
 	esac
-	# TODO integrate this later
-	# if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
-	#	if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
-	# create_romlist ${1} "${2}"
-	# fi
-
-	# If folder changed, make new list
-	# if [[ ! "$(cat ${gamelistpath}/${1}_gamelist.txt | grep "${2}" | head -1)" ]]; then
-	#	if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
-	# create_romlist ${1} "${2}"
-	# fi
-
-	# Check if zip still exists
-	# if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-	#	mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
-	#	for zips in "${zipsinfile[@]}"; do
-	#		if [ ! -f "${zips}" ]; then
-	#			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
-	# create_romlist ${1} "${2}"
-	#		fi
-	#	done
-	# fi
 
 	for core in ${corelistall}; do
 		corelisttmp=${corelist}
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		local date_file=""
 		if [ ${core} != "arcade" ]; then
-			if [ -f "${gamelistpath}/${core}_gamelist.txt" ]; then
+			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 				if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
 					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
@@ -2663,7 +2635,7 @@ function create_game_lists() {
 				create_romlist ${core} "${DIR}"
 			fi
 		elif [ ${core} == "arcade" ]; then
-			if [ -f "${mralist}" ]; then
+			if [ -s "${mralist}" ]; then
 				if [ -s "${mralist}" ]; then
 					date_file=$(stat -c '%Y' "${mralist}")
 					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
@@ -2729,7 +2701,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 
 function check_list() { # args ${nextcore}  "${DIR}"
 	# If gamelist is not in /tmp dir, let's put it there
-	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
+	if [ ! -s "${gamelistpath}/${1}_gamelist.txt" ]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
 		create_romlist ${1} "${2}"
 	fi
@@ -2759,7 +2731,7 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	else
 
 		# Repopulate list
-		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
+		if [ -s "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
 			comm -13 <(sort <"${gamelistpath}/${1}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${1}_gamelist.txt") >${tmpfile}
 			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${1}_gamelist.txt"
@@ -2774,7 +2746,7 @@ function check_list() { # args ${nextcore}  "${DIR}"
 
 	# Make sure file exists since we're reading from a static list
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
-		if [ ! -f "${rompath}" ]; then
+		if [ ! -s "${rompath}" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because file not found."; fi
 			create_romlist ${1} "${2}"
 		fi
@@ -2957,27 +2929,28 @@ function build_mralist() {
 	else
 		echo -n " Looking for games in  ${1}..."
 	fi
-	# If no MRAs found - suicide!
-	find "${1}" -type f \( -iname "*.mra" \) &>/dev/null
-	if [ ! ${?} == 0 ]; then
-		echo " The path '${1}' contains no MRA files!"
-		loop_core
-	fi
-
 	# This prints the list of MRA files in a path,
 	# Cuts the string to just the file name,
 	# Then saves it to the mralist file.
 
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
-	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
+	if echo "${1}" | grep -q "_Organized"; then
+		echo "_Organized detected!"
+		if [ ${#arcadeexclude[@]} -eq 0 ]; then
+			find -L "${1}" \( -xtype f -o -xtype l \) \( -path '*/.*' \) -prune -o \( -iname "*.mra" \) -print | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
+		else
+			find -L "${1}" \( -xtype f -o -xtype l \) \( -path '*/.*' \) -prune -o \( -iname "*.mra" \) -print | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
+		fi
 	else
-		find "${1}" -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
+		echo "_Organized not detected!"
+		if [ ${#arcadeexclude[@]} -eq 0 ]; then
+			find -L "${1}" \( -xtype f -o -xtype l \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -iname "*.mra" \) -print | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
+		else
+			find -L "${1}" \( -xtype f -o -xtype l \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -iname "*.mra" \) -print | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
+		fi
 	fi
-	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
-	fi
+	cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	total_games=$(cat "${mralist}" | sed '/^\s*$/d' | wc -l)
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "Arcade: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
@@ -2997,7 +2970,6 @@ function load_core_arcade() {
 
 	if [ ! -s "${mralist}" ]; then
 		build_mralist "${DIR}"
-		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
 
 	if [ ! -s "${mralist_tmp}" ]; then
@@ -3011,8 +2983,6 @@ function load_core_arcade() {
 	if [ ! -f "${MRAPATH}" ]; then
 		echo " There is no valid file at ${MRAPATH}... Rebuilding list."
 		build_mralist "${DIR}"
-		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 		mra="$(shuf --head-count=1 ${mralist_tmp})"
 		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 	fi
@@ -3126,9 +3096,6 @@ function load_core_amiga() {
 		sleep 13
 		"${mrsampath}/mbc" raw_seq {6c
 		"${mrsampath}/mbc" raw_seq O
-		echo "" | >/tmp/.SAM_Joy_Activity
-		echo "" | >/tmp/.SAM_Mouse_Activity
-		echo "" | >/tmp/.SAM_Keyboard_Activity
 	else
 		# This is for MegaAGS version July 2022 or newer
 		[ ! -s ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
