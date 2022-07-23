@@ -2651,7 +2651,7 @@ function create_game_lists() {
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		local date_file=""
 		if [ ${core} != "arcade" ] || [ ${core} != "amiga" ]; then
-			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
+			if [ -f "${gamelistpath}/${core}_gamelist.txt" ]; then
 				if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
 					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
@@ -2661,39 +2661,34 @@ function create_game_lists() {
 					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
 					rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 				fi
-				if [ ! -s "${gamelistpathtmp}/${core}_gamelist.txt" ]; then
-					cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
-				fi
 			else
 				create_romlist ${core} "${DIR}"
 			fi
 		elif [ ${core} == "arcade" ]; then
-			if [ -s "${mralist}" ]; then
-				date_file=$(stat -c '%Y' "${mralist}")
-				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
-					build_mralist "${DIR}"
+			if [ -f "${mralist}" ]; then
+				if [ -s "${mralist}" ]; then
+					date_file=$(stat -c '%Y' "${mralist}")
+					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
+						build_mralist "${DIR}"
+					fi
+				else
+					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
+					rm "${mralist}" &>/dev/null
 				fi
-			else
-				corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
-				rm "${mralist}" &>/dev/null
-			fi
-			if [ ! -s "${mralist_tmp}" ]; then
-				cp "${mralist}" "${mralist_tmp}" &>/dev/null
 			else
 				build_mralist "${DIR}"
 			fi
 		elif [ ${core} == "amiga" ]; then
-			if [ -s ${gamelistpath}/${core}_gamelist.txt ]; then
-				date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
-				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_amiga_int} ]; then
-					create_amigalist
+			if [ -f ${gamelistpath}/${core}_gamelist.txt ]; then
+				if [ -s ${gamelistpath}/${core}_gamelist.txt ]; then
+					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
+					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_amiga_int} ]; then
+						create_amigalist
+					fi
+				else
+					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
+					rm ${gamelistpath}/${core}_gamelist.txt &>/dev/null
 				fi
-			else
-				corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
-				rm ${gamelistpath}/${core}_gamelist.txt &>/dev/null
-			fi
-			if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
-				cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 			else
 				create_amigalist
 			fi
@@ -3102,19 +3097,19 @@ function load_core_arcade() {
 function create_amigalist() {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" >${gamelistpath}/${nextcore}_gamelist.txt
-		sed -i -e 's/^/Demo: /' ${gamelistpath}/${nextcore}_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >>${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" >${gamelistpath}/amiga_gamelist.txt
+		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >>${gamelistpath}/amiga_gamelist.txt
 
-		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
-
-		if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-			echo "${total_games} Games and Demos found."
-		else
-			echo " ${total_games} Games and Demos found."
-		fi
+	total_games=$(echo $(cat "${gamelistpath}/amiga_gamelist.txt" | sed '/^\s*$/d' | wc -l))
+	if [ ${speedtest} -eq 1 ]; then
+		echo -n "amiga: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
 	fi
-
+	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
+		echo "${total_games} Games found."
+	else
+		echo " ${total_games} Games found."
+	fi
 }
 
 function load_core_amiga() {
