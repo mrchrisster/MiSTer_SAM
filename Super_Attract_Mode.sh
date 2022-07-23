@@ -1672,7 +1672,7 @@ function samedit_excltags() {
 		sam_menu
 	else
 		echo " Please wait... creating exclusion lists."
-		if [ ! -z ${categ} ]; then
+		if [ ${categ} ]; then
 			if [ ! -s "${excludetags}" ]; then
 				echo "${categ} " >"${excludetags}"
 				process_tag
@@ -1896,7 +1896,7 @@ function parse_cmd() {
 			case "${1,,}" in
 			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				# If we're given a core name then we need to set it first
-				if [ ! -z "${2}" ] && [ "${2,,}" == "start_real" ]; then
+				if -[ "${2}" ] && [ "${2,,}" == "start_real" ]; then
 					nextcore=${1,,}
 					corelist=$nextcore
 					sam_start_new
@@ -1988,9 +1988,9 @@ function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
 	mkdir -p "${mrsampath}" &>/dev/null
 
-	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
+	if [ "$(dirname -- ${0})" != "/tmp" ]; then
 		# Warn if using non-default branch for updates
-		if [ ! "${branch}" == "main" ]; then
+		if [ "${branch}" != "main" ]; then
 			echo ""
 			echo "*******************************"
 			echo " Updating from ${branch}"
@@ -2158,11 +2158,11 @@ function there_can_be_only_one() { # there_can_be_only_one
 	kill_2=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh start_real' | awk '{print $1}')
 	kill_3=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh bootstart' | awk '{print $1}' | head -1)
 
-	[[ ! -z ${kill_1} ]] && kill -9 ${kill_1} >/dev/null
+	[[ ${kill_1} ]] && kill -9 ${kill_1} >/dev/null
 	for kill in ${kill_2}; do
-		[[ ! -z ${kill_2} ]] && kill -9 ${kill} >/dev/null
+		[[ ${kill_2} ]] && kill -9 ${kill} >/dev/null
 	done
-	[[ ! -z ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
+	[[ ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
 
 	sleep 1
 
@@ -2180,18 +2180,18 @@ function only_survivor() {
 
 function sam_stop() {
 	# Stop all SAM processes and reboot to menu
-	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
+	[ ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]uper_' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
 	kill_4=$(ps -o pid,args | grep -i '[S]uper_Attract_Mode' | awk '{print $1}')
 
-	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
-	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
-	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
+	[[ ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
+	[[ ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
+	[[ ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
 	for kill in ${kill_4}; do
-		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+		[[ ${kill_4} ]] && kill -9 ${kill} &>/dev/null
 	done
 }
 
@@ -2213,7 +2213,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		sleep 1
 		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 	fi
-	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
+	if [ ${2} ] && [ ${2} == "stop" ]; then
 		sam_stop
 	else
 		ps -ef | grep -i '[S]uper_Attract_Mode.sh' | xargs kill &>/dev/null
@@ -2389,18 +2389,20 @@ function mute() {
 }
 
 function core_error() { # core_error core /path/to/ROM
+	local core=${1}
+	local rompath=${2}
 	if [ ${romloadfails} -lt ${coreretries} ]; then
-		declare -g romloadfails=$((romloadfails + 1))
-		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+		((romloadfails++))
+		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${core} rom: ${rompath}"
 		echo " Trying to find another rom..."
-		next_core ${1}
+		next_core ${core}
 	else
-		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-		echo " ERROR: Core ${1} is blacklisted!"
-		declare -g corelist=("${corelist[@]/${1}/}")
+		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${core} rom: ${rompath}"
+		echo " ERROR: Core ${core} is blacklisted!"
+		corelist=("${corelist[@]/${core}/}")
 		echo " List of cores is now: ${corelist[@]}"
-		declare -g romloadfails=0
-		next_core ${1}
+		romloadfails=0
+		next_core ${core}
 	fi
 }
 
@@ -2440,7 +2442,7 @@ function get_samstuff() { #get_samstuff file (path)
 	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
 	curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
 
-	if [ ! "${filepath}" == "/tmp" ]; then
+	if [ "${filepath}" != "/tmp" ]; then
 		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
 	fi
 
@@ -2529,7 +2531,7 @@ function loop_core() { # loop_core (core)
 		trap - INT
 		sleep 1
 		counter=${gametimer}
-		next_core ${nextcore}
+		next_core ${core}
 	done
 }
 
@@ -2556,17 +2558,9 @@ function speedtest() {
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		if [ ${core} = " " ] || [ ${core} = "" ] || [ -z ${core} ]; then
 			continue
-		elif [ ${core} != "arcade" ] || [ ${core} != "amiga" ]; then
+		else
 			START2="$(date +%s)"
 			create_romlist ${core} "${DIR}"
-			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
-		elif [ ${core} == "arcade" ]; then
-			START2="$(date +%s)"
-			build_mralist "${DIR}"
-			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
-		elif [ ${core} == "amiga" ]; then
-			START2="$(date +%s)"
-			create_amigalist
 			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 		fi
 	done
@@ -2650,88 +2644,98 @@ function create_game_lists() {
 		corelisttmp=${corelist}
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		local date_file=""
-		if [ ${core} != "arcade" ] || [ ${core} != "amiga" ]; then
-			if [ -f "${gamelistpath}/${core}_gamelist.txt" ]; then
-				if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
-					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
-					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
-						create_romlist ${core} "${DIR}"
-					fi
-				else
-					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
-					rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
-				fi
-			else
-				create_romlist ${core} "${DIR}"
-			fi
-		elif [ ${core} == "arcade" ]; then
-			if [ -f "${mralist}" ]; then
-				if [ -s "${mralist}" ]; then
-					date_file=$(stat -c '%Y' "${mralist}")
-					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
-						build_mralist "${DIR}"
-					fi
-				else
-					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
-					rm "${mralist}" &>/dev/null
-				fi
-			else
-				build_mralist "${DIR}"
-			fi
+
+		if [ ${core} == "arcade" ]; then
+			rebuild_freq_int=${rebuild_freq_arcade_int}
 		elif [ ${core} == "amiga" ]; then
-			if [ -f ${gamelistpath}/${core}_gamelist.txt ]; then
-				if [ -s ${gamelistpath}/${core}_gamelist.txt ]; then
-					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
-					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_amiga_int} ]; then
-						create_amigalist
-					fi
-				else
-					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
-					rm ${gamelistpath}/${core}_gamelist.txt &>/dev/null
+			rebuild_freq_int=${rebuild_freq_amiga_int}
+		fi
+
+		if [ -f "${gamelistpath}/${core}_gamelist.txt" ]; then
+			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
+				date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
+				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
+					create_romlist ${core} "${DIR}"
 				fi
 			else
-				create_amigalist
+				corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
+				rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 			fi
+		else
+			create_romlist ${core} "${DIR}"
 		fi
 		corelist=${corelisttmp}
 	done
 }
 
 # ======== ROMFINDER ========
-function create_romlist() { # args ${nextcore} "${DIR}"
+function create_romlist() { # args ${core} "${DIR}"
+	local core=${1}
+	local DIR="${2}"
+	local total_games=0
 	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  ${2}..."
+		echo " Looking for games in  ${DIR}..."
 	else
-		echo -n " Looking for games in  ${2}..."
+		echo -n " Looking for games in  ${DIR}..."
 	fi
-	# Find all files in core's folder with core's extension
-	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
-	find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
-	# Now find all zips in core's folder and process
-	if [ "${CORE_ZIPPED[${1}]}" == "yes" ]; then
-		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-		if [ -s "${tmpfile2}" ]; then
-			cat "${tmpfile2}" | while read z; do
-				if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-					echo " Processing: ${z}"
-				fi
-				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${1}]}" >>"${tmpfile}"
-			done
+	if [ $core == "amiga" ]; then
+		# Check for existing files that define the "ROMs"
+		if [ -f "${amigapath}/listings/games.txt" ]; then
+			[ -s "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" >"${tmpfile}"
+			sed -i -e 's/^/Demo: /' "${tmpfile}"
+			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >>"${tmpfile}"
+		fi
+	elif [ $core == "arcade" ]; then
+		# This prints the list of MRA files in a path,
+		# Cuts the string to just the file name,
+		# Then saves it to the mralist file.
+		# If there is an empty exclude list ignore it
+		# Otherwise use it to filter the list
+		if echo "${DIR}" | grep -q "_Organized"; then
+			if [ "${samdebug}" == "yes" ]; then echo "_Organized detected!"; fi
+			if [ ${#arcadeexclude[@]} -eq 0 ]; then
+				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}")
+			else
+				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}") | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${tmpfile}"
+			fi
+		else
+			if [ "${samdebug}" == "yes" ]; then echo "_Organized not detected!"; fi
+			if [ ${#arcadeexclude[@]} -eq 0 ]; then
+				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}")
+			else
+				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}") | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${tmpfile}"
+			fi
+		fi
+	else
+		# Find all files in core's folder with core's extension
+		extlist=$(echo ${CORE_EXT[${core}]} | sed -e "s/,/ -o -iname *.$f/g")
+		find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
+		# Now find all zips in core's folder and process
+		if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
+			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
+			if [ -s "${tmpfile2}" ]; then
+				cat "${tmpfile2}" | while read z; do
+					if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
+						echo " Processing: ${z}"
+					fi
+					"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${core}]}" >>"${tmpfile}"
+				done
+			fi
 		fi
 	fi
 
-	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt.tmp"
+	cat "${tmpfile}" | sort >"${gamelistpath}/${core}_gamelist.txt.tmp"
 
 	# Strip out all duplicate filenames with a fancy awk command
-	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt.tmp" >"${gamelistpath}/${1}_gamelist.txt"
-	cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
-	rm "${gamelistpath}/${1}_gamelist.txt.tmp" &>/dev/null
-	rm "${tmpfile}" &>/dev/null
-	rm "${tmpfile2}" &>/dev/null
+	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt.tmp" >"${gamelistpath}/${core}_gamelist.txt"
+	cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
+	[ -f "${gamelistpath}/${core}_gamelist.txt.tmp" ] && rm "${gamelistpath}/${core}_gamelist.txt.tmp" &>/dev/null
+	[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
+	[ -f "${tmpfile2}" ] && rm "${tmpfile2}" &>/dev/null
 
-	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
+	total_games=$(echo $(cat "${gamelistpath}/${core}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 	if [ ${speedtest} -eq 1 ]; then
-		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
+		echo -n "${core}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
 	fi
 	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 		echo "${total_games} Games found."
@@ -2740,68 +2744,70 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	fi
 }
 
-function check_list() { # args ${nextcore}  "${DIR}"
+function check_romlist() { # args ${core}  "${DIR}"
+	local core=${1}
+	local DIR="${2}"
 	# If gamelist is not in /tmp dir, let's put it there
-	if [ ! -s "${gamelistpath}/${1}_gamelist.txt" ]; then
-		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
-		create_romlist ${1} "${2}"
+	if [ ! -s "${gamelistpath}/${core}_gamelist.txt" ]; then
+		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${core}_gamelist.txt"; fi
+		create_romlist ${core} "${DIR}"
 	fi
 
 	# If folder changed, make new list
-	if [[ ! "$(cat ${gamelistpath}/${1}_gamelist.txt | grep "${2}" | head -1)" ]]; then
+	if [ ${core} != "amiga" ] && [[ ! "$(cat ${gamelistpath}/${core}_gamelist.txt | grep "${DIR}" | head -1)" ]]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
-		create_romlist ${1} "${2}"
+		create_romlist ${core} "${DIR}"
 	fi
 
 	# Check if zip still exists
-	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-		mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
-		for zips in "${zipsinfile[@]}"; do
-			if [ ! -f "${zips}" ]; then
-				if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
-				create_romlist ${1} "${2}"
-			fi
-		done
+	if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
+		if [ "$(grep -c ".zip" ${gamelistpath}/${core}_gamelist.txt)" != "0" ]; then
+			mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${core}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
+			for zips in "${zipsinfile[@]}"; do
+				if [ ! -f "${zips}" ]; then
+					if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
+					create_romlist ${core} "${DIR}"
+				fi
+			done
+		fi
 	fi
 
-	# If gamelist is not in /tmp dir, let's put it there
-	if [ -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-
-		# Pick the actual game
-		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+	# Pick the actual game
+	if [ -s "${gamelistpathtmp}/${core}_gamelist.txt" ]; then
+		rompath="$(cat ${gamelistpathtmp}/${core}_gamelist.txt | shuf --head-count=1)"
 	else
-
 		# Repopulate list
-		if [ -s "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
+		if [ -s "${gamelistpath}/${core}_gamelist_exclude.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
-			comm -13 <(sort <"${gamelistpath}/${1}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${1}_gamelist.txt") >${tmpfile}
-			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${1}_gamelist.txt"
+			comm -13 <(sort <"${gamelistpath}/${core}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${core}_gamelist.txt") >${tmpfile}
+			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${core}_gamelist.txt"
 			if [ "${samquiet}" == "no" ]; then echo "Done."; fi
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+			rompath="$(cat ${gamelistpathtmp}/${core}_gamelist.txt | shuf --head-count=1)"
 		else
-			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
-			# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpathtmp}/${core}_gamelist.txt"
+			# cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
+			rompath="$(cat ${gamelistpathtmp}/${core}_gamelist.txt | shuf --head-count=1)"
 		fi
 	fi
 
 	# Make sure file exists since we're reading from a static list
-	if [[ ! "${rompath,,}" == *.zip* ]]; then
+	if [[ "${rompath,,}" != *.zip* ]] && [ ${core} != "amiga" ]; then
 		if [ ! -s "${rompath}" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because file not found."; fi
-			create_romlist ${1} "${2}"
+			create_romlist ${core} "${DIR}"
 		fi
 	fi
 
 	# Delete played game from list
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${core}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${core}_gamelist.txt"
 	fi
 }
 
 # This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
+	core=${1}
 	if [ -z "$(echo ${corelist} | sed 's/ //g')" ]; then
 		if [ -s "${corelisttmpfile}" ]; then
 			corelist="$(cat ${corelisttmpfile})"
@@ -2831,36 +2837,28 @@ function next_core() { # next_core (core)
 		fi
 	fi
 	if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
-	if [ "${nextcore}" == "arcade" ]; then
-		# If this is an arcade core we go to special code
-		load_core_arcade
-		return
-	fi
-
-	if [ "${nextcore}" == "amiga" ]; then
-		# If this is Amiga core we go to special code
-		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
-			load_core_amiga
-		else
-			echo " ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
-			declare -g corelist=("${corelist[@]/${1}/}")
-			next_core
-		fi
-		return
-	fi
 
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
-	check_list ${nextcore} "${DIR}"
+	check_romlist ${nextcore} "${DIR}"
+
+	if [ -z "${rompath}" ]; then
+		core_error "${nextcore}" "${rompath}"
+		return
+	else
+		if [ -f "${rompath}.sam" ]; then
+			source "${rompath}.sam"
+		fi
+	fi
+
 	romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
-	extension="${rompath##*.}"
+	extension="${romname##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
 		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"; fi
 		next_core ${nextcore}
 		return
-
 	fi
 
 	# If there is an exclude list check it
@@ -2883,43 +2881,59 @@ function next_core() { # next_core (core)
 		done
 	fi
 
-	if [ -z "${rompath}" ]; then
-		core_error "${nextcore}" "${rompath}"
-	else
-		if [ -f "${rompath}.sam" ]; then
-			source "${rompath}.sam"
-		fi
-
-		declare -g romloadfails=0
-		load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
+	#Check blacklist
+	if [ -f ${gamelistpath}/${nextcore}_blacklist.txt ]; then
+		for i in {1..10}; do
+			if [ "$(grep -ic "${romname}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0" ]; then
+				if [ "${samquiet}" == "no" ]; then echo " Blacklisted because duplicate or boring: ${romname}, trying a different game.."; fi
+				next_core ${nextcore}
+				return
+			fi
+		done
 	fi
+
+	load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
 }
 
 function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
-
+	local core=${1}
+	local rompath=${2}
+	local romname=${3}
+	local countdown=${4}
 	GAMENAME=""
-	if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then
+	if [ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then
 		if [ ${neogeoregion} == "english" ]; then
-			GAMENAME="${NEOGEO_PRETTY_ENGLISH[${3}]}"
+			GAMENAME="${NEOGEO_PRETTY_ENGLISH[${romname}]}"
 		elif [ ${neogeoregion} == "japanese" ]; then
-			GAMENAME="${NEOGEO_PRETTY_JAPANESE[${3}]}"
-			[[ ! "${GAMENAME}" ]] && GAMENAME="${NEOGEO_PRETTY_ENGLISH[${3}]}"
+			GAMENAME="${NEOGEO_PRETTY_JAPANESE[${romname}]}"
+			[[ -z "${GAMENAME}" ]] && GAMENAME="${NEOGEO_PRETTY_ENGLISH[${romname}]}"
 		fi
 	fi
-	if [ ! "${GAMENAME}" ]; then
-		GAMENAME="${3}"
+	if [ -z "${GAMENAME}" ]; then
+		GAMENAME="${romname}"
+	fi
+
+	if [ ${core} == "arcade" ]; then
+		corename=$(grep "<setname>" "${rompath}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
+	else
+		corename="${CORE_LAUNCH[${core}]}"
+	fi
+
+	if [ ${core} == "amiga" ]; then
+		GAMENAME="$(echo "${GAMENAME}" | tr '_' ' ')"
 	fi
 
 	echo -n " Starting now on the "
-	echo -ne "\e[4m${CORE_PRETTY[${1}]}\e[0m: "
+	echo -ne "\e[4m${CORE_PRETTY[${core}]}\e[0m: "
 	echo -e "\e[1m${GAMENAME}\e[0m"
-	echo "$(date +%H:%M:%S) - ${1} - ${3}" $(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >>/tmp/SAM_Games.log
-	echo "${3} (${1}) "$(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >/tmp/SAM_Game.txt
+	echo "$(date +%H:%M:%S) - ${core} - ${romname}" $(if [ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >>/tmp/SAM_Games.log
+	echo "${romname} (${core}) "$(if [ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >/tmp/SAM_Game.txt
+
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
-			[core_pretty]="${CORE_PRETTY[${1}]}"
+			[core_pretty]="${CORE_PRETTY[${core}]}"
 			[name]="${GAMENAME}"
-			[core]="${CORE_LAUNCH[${1}]}"
+			[core]=${corename}
 			[counter]=${gametimer}
 			[name_scroll]="${GAMENAME:0:21}"
 			[name_scroll_position]=0
@@ -2929,259 +2943,59 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi
 
-	if [ "${4}" == "countdown" ]; then
+	mute "${corename}"
+
+	if [ "${countdown}" == "countdown" ]; then
 		for i in {5..1}; do
 			echo -ne " Loading game in ${i}...\033[0K\r"
 			sleep 1
 		done
 	fi
-
-	# Create mgl file and launch game
-	if [ -s /tmp/SAM_game.mgl ]; then
-		mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
-	fi
-
-	mute "${CORE_LAUNCH[${nextcore}]}"
-
-	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
-	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >>/tmp/SAM_game.mgl
-
-	if [ ${usedefaultpaths} == "yes" ]; then
-		corepath="${CORE_PATH[${nextcore}]}/"
-		rompath="${rompath#${corepath}}"
-		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"${rompath}\""/>" >>/tmp/SAM_game.mgl
-	else
-		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
-	fi
-
-	echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
-
-	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-
-	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		skipmessage &
-	fi
-}
-
-# ======== ARCADE MODE ========
-function build_mralist() {
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  ${1}..."
-	else
-		echo -n " Looking for games in  ${1}..."
-	fi
-	# This prints the list of MRA files in a path,
-	# Cuts the string to just the file name,
-	# Then saves it to the mralist file.
-
-	# If there is an empty exclude list ignore it
-	# Otherwise use it to filter the list
-	if echo "${1}" | grep -q "_Organized"; then
-		echo "_Organized detected!"
-		if [ ${#arcadeexclude[@]} -eq 0 ]; then
-			find -L "${1}" \( -xtype f -o -xtype l \) \( -path '*/.*' \) -prune -o \( -iname "*.mra" \) -print | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
-		else
-			find -L "${1}" \( -xtype f -o -xtype l \) \( -path '*/.*' \) -prune -o \( -iname "*.mra" \) -print | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
-		fi
-	else
-		echo "_Organized not detected!"
-		if [ ${#arcadeexclude[@]} -eq 0 ]; then
-			find -L "${1}" \( -xtype f -o -xtype l \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -iname "*.mra" \) -print | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
-		else
-			find -L "${1}" \( -xtype f -o -xtype l \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -iname "*.mra" \) -print | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
-		fi
-	fi
-	cp "${mralist}" "${mralist_tmp}" &>/dev/null
-	total_games=$(cat "${mralist}" | sed '/^\s*$/d' | wc -l)
-	if [ ${speedtest} -eq 1 ]; then
-		echo -n "Arcade: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
-	fi
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo "${total_games} Games found."
-	else
-		echo " ${total_games} Games found."
-	fi
-}
-
-function load_core_arcade() {
-
-	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
-
-	# Check if the MRA list is empty or doesn't exist - if so, make a new list
-
-	if [ ! -s "${mralist}" ]; then
-		build_mralist "${DIR}"
-	fi
-
-	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
-	fi
-
-	# Get a random game from the list
-	mra="$(shuf --head-count=1 ${mralist_tmp})"
-	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
-
-	if [ ! -f "${MRAPATH}" ]; then
-		echo " There is no valid file at ${MRAPATH}... Rebuilding list."
-		build_mralist "${DIR}"
-		mra="$(shuf --head-count=1 ${mralist_tmp})"
-		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
-	fi
-
-	# If the mra variable is valid this is skipped, but if not we try 5 times
-	# Partially protects against typos from manual editing and strange character parsing problems
-	for i in {1..5}; do
-		if [ ! -f "${MRAPATH}" ]; then
-			mra=$(shuf --head-count=1 ${mralist_tmp})
-			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
-		fi
-	done
-
-	#Check blacklist
-	if [ -f ${gamelistpath}/${nextcore}_blacklist.txt ]; then
-		for i in {1..10}; do
-			if [ "$(grep -ic "${mra}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0" ]; then
-				if [ "${samquiet}" == "no" ]; then echo " Blacklisted because duplicate or boring: ${mra}, trying a different mra.."; fi
-				mra=$(shuf --head-count=1 ${mralist_tmp})
-				MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
-			fi
-		done
-	fi
-
-	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
-
-	# Delete mra from list so it doesn't repeat
-	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}" >${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
-	fi
-
-	mraname=$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')
-	echo -n " Starting now on the "
-	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
-	echo -e "\e[1m${mraname}\e[0m"
-	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >>/tmp/SAM_Games.log
-	echo "${mraname} (${nextcore})" >/tmp/SAM_Game.txt
-
-	# Get Setname from MRA needed for tty2oled, thx to RealLarry
-	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
-	if [ "${ttyenable}" == "yes" ]; then
-		tty_currentinfo=(
-			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
-			[name]="${mraname}"
-			[core]="${mrasetname}"
-			[counter]=${gametimer}
-			[name_scroll]="${mraname:0:21}"
-			[name_scroll_position]=0
-			[name_scroll_direction]=1
-			[update_pause]=$ttyupdate_pause
-		)
-		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
-	fi
-
-	mute "${mrasetname}"
-
-	if [ "${1}" == "countdown" ]; then
-		for i in {5..1}; do
-			echo " Loading game in ${i}...\033[0K\r"
-			sleep 1
-		done
-	fi
-
-	# Tell MiSTer to load the next MRA
-	echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
-	sleep 1
-}
-
-# ======== AMIGA MODE ========
-
-function create_amigalist() {
-
-	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" >${gamelistpath}/amiga_gamelist.txt
-		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >>${gamelistpath}/amiga_gamelist.txt
-
-	total_games=$(echo $(cat "${gamelistpath}/amiga_gamelist.txt" | sed '/^\s*$/d' | wc -l))
-	if [ ${speedtest} -eq 1 ]; then
-		echo -n "amiga: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
-	fi
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo "${total_games} Games found."
-	else
-		echo " ${total_games} Games found."
-	fi
-}
-
-function load_core_amiga() {
-
-	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
-
-	mute "${CORE_LAUNCH[${nextcore}]}"
-
-	if [ ! -f "${amigapath}/listings/games.txt" ]; then
-		# This is for MegaAGS version June 2022 or older
-		echo -n " Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
-		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
-
-		if [ "${nextcore}" == "countdown" ]; then
-			for i in {5..1}; do
-				echo " Loading game in ${i}...\033[0K\r"
-				sleep 1
-			done
-		fi
-
+	if [ ${core} == "arcade" ]; then
 		# Tell MiSTer to load the next MRA
-
+		echo "load_core ${rompath}" >/dev/MiSTer_cmd
+	elif [ ${core} == "amiga" ]; then
+		amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+		if [ ! -f "${amigapath}/MegaAGS.hdf" ]; then
+			echo " ERROR - MegaAGS Pack not found in Amiga folder."
+			# This is for MegaAGS version July 2022 or newer
+			# Special case for demo
+			if [[ "${rompath}" == *"Demo:"* ]]; then
+				rompath=${rompath//Demo: /}
+			fi
+			echo "${rompath}" >"${amigapath}"/shared/ags_boot
+		fi
 		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-		sleep 13
-		"${mrsampath}/mbc" raw_seq {6c
-		"${mrsampath}/mbc" raw_seq O
+		if [ ! -f "${amigapath}/listings/games.txt" ]; then
+			# This is for MegaAGS version June 2022 or older
+			sleep 13
+			"${mrsampath}/mbc" raw_seq '{6c'
+			"${mrsampath}/mbc" raw_seq O
+		fi
 	else
-		# This is for MegaAGS version July 2022 or newer
-		[ ! -s ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
-
-		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
-			cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+		# Create mgl file and launch game
+		if [ -s /tmp/SAM_game.mgl ]; then
+			mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
 		fi
 
-		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
-		agpretty="$(echo "${rompath}" | tr '_' ' ')"
+		echo "<mistergamedescription>" >/tmp/SAM_game.mgl
+		echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>/tmp/SAM_game.mgl
 
-		# Special case for demo
-		if [[ "${rompath}" == *"Demo:"* ]]; then
-			rompath=${rompath//Demo: /}
+		if [ ${usedefaultpaths} == "yes" ]; then
+			corepath="${CORE_PATH[${core}]}/"
+			rompath="${rompath#${corepath}}"
+			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>/tmp/SAM_game.mgl
+		else
+			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
 		fi
 
-		# Delete played game from list
-		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
-		if [ "${norepeat}" == "yes" ]; then
-			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
+
+		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+
+		if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
+			skipmessage &
 		fi
-
-		echo "${rompath}" >"${amigapath}"/shared/ags_boot
-
-		echo -n " Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
-		echo -e "\e[1m${agpretty}\e[0m"
-		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
-		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
-		if [ "${ttyenable}" == "yes" ]; then
-			tty_currentinfo=(
-				[core_pretty]="${CORE_PRETTY[${nextcore}]}"
-				[name]="${agpretty}"
-				[core]="${CORE_LAUNCH[${nextcore}]}"
-				[counter]=${gametimer}
-				[name_scroll]="${agpretty:0:21}"
-				[name_scroll_position]=0
-				[name_scroll_direction]=1
-				[update_pause]=$ttyupdate_pause
-			)
-			write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
-		fi
-
-		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-
 	fi
 }
 
