@@ -261,9 +261,9 @@ function sam_prep() {
 }
 
 function sam_cleanup() {
-	# Clean up by umounting any mount binds
-	write_to_TTY_cmd_pipe "exit" &
 	bgm_stop
+	write_to_TTY_cmd_pipe "exit" &
+	# Clean up by umounting any mount binds
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ "$(mount | grep -ic ${amigashared})" == "1" ] && umount "${amigashared}"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
@@ -2194,31 +2194,49 @@ function only_survivor() {
 }
 
 function sam_stop() {
-	# Stop all SAM processes and reboot to menu
-	[ ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
+	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
+	if [ ! ${corename_name} == "MENU" ]; then
+		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+	fi
+	echo -n " Stopping SAM MCP..."
+	pids=$(pidof SuperAttract_MCP)
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
 
-	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[S]uper_' | awk '{print $1}' | head -1)
-	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-	kill_4=$(ps -o pid,args | grep -i '[S]uper_Attract_Mode' | awk '{print $1}')
+	echo -n " Stopping TTY2oled..."
+	pids=$(pidof SuperAttract_tty2oled)
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
 
-	[[ ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
-	[[ ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
-	[[ ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
-	for kill in ${kill_4}; do
-		[[ ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	done
+	echo -n " Stopping SAM..."
+	pids=$(pidof "Super_Attract_Mode.sh")
+	if [ ! -z "${pids}" ]; then
+		kill -9 ${pids} &>/dev/null
+		wait ${pids} &>/dev/null
+	fi
+	echo " Done!"
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
+	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
 	sam_cleanup
 	if [ ${1} -eq 0 ]; then # just exit
-		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		if [ ! ${corename_name} == "MENU" ]; then
+			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		fi
 		sleep 1
 		echo " Done!"
 		echo " Thanks for playing!"
 	elif [ ${1} -eq 1 ]; then # Error
-		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		if [ ! ${corename_name} == "MENU" ]; then
+			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		fi
 		sleep 1
 		echo " Done!"
 		echo " There was an error ${2}" # Pass error messages in ${2}

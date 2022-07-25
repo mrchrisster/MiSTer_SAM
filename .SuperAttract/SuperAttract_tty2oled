@@ -280,16 +280,16 @@ function tty_senddata() {
 }
 
 function tty_exit() {
-	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >${ttydevice}
-	tty_waitfor
-	echo "CMDBYE" >${ttydevice}
-	sleep 5
 	if [ "${ttyuseack}" == "yes" ]; then
 		if [ "${samquiet}" == "no" ]; then echo -n " Starting tty2oled Daemon..."; fi
 		[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
 		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 	fi
+	# Clear Display	with Random effect
+	echo "CMDCLST,-1,0" >${ttydevice}
+	tty_waitfor
+	echo "CMDBYE" >${ttydevice}
+	sleep 5
 	TTY_cleanup
 }
 

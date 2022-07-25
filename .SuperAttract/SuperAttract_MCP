@@ -49,11 +49,6 @@ if [ -f "${misterpath}/Scripts/Super_Attract_Mode.ini" ]; then
 	source "${misterpath}/Scripts/Super_Attract_Mode.ini"
 fi
 
-if [ "${1,,}" == "tty2oled" ]; then
-	/media/fat/tty2oled/S60tty2oled start
-	break
-fi
-
 #======== FUNCTIONS ========
 function sam_corename_change() {
 	# Monitor CORENAME for changes (to determine if the menu is currently running)

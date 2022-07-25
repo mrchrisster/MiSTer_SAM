@@ -21,13 +21,6 @@ samdebug="No"
 
 #======== LOCAL VARIABLES ========
 
-# ======== TTY2OLED =======
-declare -gl ttyenable="No"
-declare -g ttydevice="/dev/ttyUSB0"
-declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
-declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
-declare -gl ttyuseack="No"
-
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
 while ! test -d /media/fat/; do
