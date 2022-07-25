@@ -59,10 +59,6 @@ function init_vars() {
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 	declare -g gamelistpathtmp="/tmp/.SAM_List/"
 	declare -g excludepath="${mrsampath}"
-	declare -g mralist_old="${mrsampath}/SAM_Gamelists/arcade_romlist"
-	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
-	declare -g mralist_tmp_old="/tmp/.SAM_List/arcade_romlist"
-	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"
@@ -185,11 +181,6 @@ function init_vars() {
 	declare -g psxpathrbf="_Console"
 }
 
-function update_tasks() {
-	[ -s "${mralist_old}" ] && { mv "${mralist_old}" "${mralist}"; }
-	[ -s "${mralist_tmp_old}" ] && { mv "${mralist_tmp_old}" "${mralist_tmp}"; }
-}
-
 function init_paths() {
 	# Default rom path search directories
 	declare -ga GAMESDIR_FOLDERS=(
@@ -227,12 +218,38 @@ function init_paths() {
 }
 
 function sam_prep() {
+	declare -g amigashared="${amigapath}/shared"
+	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
+	if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Grep got $var"; fi
+	if [ "${var}" ]; then
+		if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable is not empty"; fi
+		if [ ! -d ${var} ]; then
+			if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable is not a valid directory"; fi
+			if [ "${var: -1}" != "/" ]; then
+				if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable does not contain / in the last position"; fi
+				var=$(echo $var | sed 's:/.$::')
+			fi
+		fi
+		if [ -d ${var} ]; then
+			if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable is a valid directory"; fi
+			if [ "${var: -1}" == "/" ]; then
+				if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable contains / in the last position"; fi
+				var="${var::${#var}-1}"
+			fi
+			if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Setting the amigashared variable"; fi
+			amigashared="${var}"
+		fi
+	else
+		if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable is empty sticking with default"; fi
+	fi
+
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Amigashare directory $amigashared "; fi
+
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -pr --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
-	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
-	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+	[ -d "${amigashared}" ] && [ "$(mount | grep -ic ${amigashared})" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigashared}"
 	# Disable Bootrom - Make Bootrom folder inaccessible until restart
 	if [ "${disablebootrom}" == "Yes" ]; then
 		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
@@ -248,7 +265,7 @@ function sam_cleanup() {
 	write_to_TTY_cmd_pipe "exit" &
 	bgm_stop
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
-	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
+	[ "$(mount | grep -ic ${amigashared})" == "1" ] && umount "${amigashared}"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
@@ -1160,7 +1177,6 @@ function startup_tasks() {
 	read_samini
 	init_paths
 	init_data # Setup data arrays
-	update_tasks
 }
 
 function start_pipe_readers() {
@@ -1225,7 +1241,6 @@ function debug_output() {
 	echo " corelist: ${corelist}"
 	echo " usezip: ${usezip}"
 
-	echo " mralist: ${mralist_tmp}"
 	echo " listenmouse: ${listenmouse}"
 	echo " listenkeyboard: ${listenkeyboard}"
 	echo " listenjoy: ${listenjoy}"
@@ -2688,7 +2703,7 @@ function create_romlist() { # args ${core} "${DIR}"
 	elif [ $core == "arcade" ]; then
 		# This prints the list of MRA files in a path,
 		# Cuts the string to just the file name,
-		# Then saves it to the mralist file.
+		# Then saves it to the games list file.
 		# If there is an empty exclude list ignore it
 		# Otherwise use it to filter the list
 		if echo "${DIR}" | grep -q "_Organized"; then
@@ -2829,7 +2844,7 @@ function next_core() { # next_core (core)
 		# Set $nextcore from $corelist
 		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
 		wc=$(echo "$corelisttmpfile" | awk '{print NF}')
-		if [ $wc -gt 1 ] && [ "${1}" == "${nextcore}" ]; then
+		if [ $wc -gt 1 ] && [ "${core}" == "${nextcore}" ]; then
 			next_core ${nextcore}
 			return
 		else
@@ -2915,8 +2930,12 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	if [ ${core} == "arcade" ]; then
 		corename=$(grep "<setname>" "${rompath}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
-	else
+	elif [ ${core} == "amiga" ]; then
 		corename="${CORE_LAUNCH[${core}]}"
+		# corename="${core}"
+	else
+		# corename="${CORE_LAUNCH[${core}]}"
+		corename="${core}"
 	fi
 
 	if [ ${core} == "amiga" ]; then
@@ -2955,21 +2974,24 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		# Tell MiSTer to load the next MRA
 		echo "load_core ${rompath}" >/dev/MiSTer_cmd
 	elif [ ${core} == "amiga" ]; then
-		amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 		if [ ! -f "${amigapath}/MegaAGS.hdf" ]; then
 			echo " ERROR - MegaAGS Pack not found in Amiga folder."
+			return
+		fi
+		amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+		if [ -s "${amigapath}/listings/games.txt" ]; then
 			# This is for MegaAGS version July 2022 or newer
 			# Special case for demo
 			if [[ "${rompath}" == *"Demo:"* ]]; then
 				rompath=${rompath//Demo: /}
 			fi
-			echo "${rompath}" >"${amigapath}"/shared/ags_boot
-		fi
-		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-		if [ ! -f "${amigapath}/listings/games.txt" ]; then
+			echo "${rompath}" >"${amigashared}/ags_boot"
+			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
+		else
 			# This is for MegaAGS version June 2022 or older
+			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 			sleep 13
-			"${mrsampath}/mbc" raw_seq '{6c'
+			"${mrsampath}/mbc" raw_seq {6c
 			"${mrsampath}/mbc" raw_seq O
 		fi
 	else

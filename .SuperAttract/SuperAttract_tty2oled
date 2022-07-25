@@ -110,6 +110,13 @@ function read_samini() {
 # ======== tty2oled FUNCTIONS ========
 
 function tty_init() { # tty_init
+	# Stopping tty2oled Daemon
+	if [ "${ttyuseack}" == "yes" ]; then
+		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+		[ ! -f /tmp/tty2oled_sleep ] && touch /tmp/tty2oled_sleep &>/dev/null
+		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+	fi
+
 	# tty2oled initialization
 	declare -gi START="$(date +%s)"
 	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, loading variables... "; fi
@@ -131,12 +138,6 @@ function tty_init() { # tty_init
 	tty_waitfor
 	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 
-	# Stopping tty2oled Daemon
-	if [ "${ttyuseack}" == "yes" ]; then
-		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-		/media/fat/tty2oled/S60tty2oled stop
-		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
-	fi
 	echo "CMDAPD,SAM_splash" >/dev/ttyUSB0
 	tail -n +4 "/media/fat/Scripts/.SuperAttract/SAM_splash.gsc" | xxd -r -p >/dev/ttyUSB0
 	tty_waitfor
@@ -284,13 +285,15 @@ function tty_exit() {
 	tty_waitfor
 	echo "CMDBYE" >${ttydevice}
 	sleep 5
+	if [ "${ttyuseack}" == "yes" ]; then
+		if [ "${samquiet}" == "no" ]; then echo -n " Starting tty2oled Daemon..."; fi
+		[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
+		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+	fi
 	TTY_cleanup
 }
 
 function TTY_cleanup() {
-	if [ "${ttyuseack}" == "yes" ]; then
-		tmux new -s TTY2OLED -d "/media/fat/tty2oled/tty2oled.sh" &
-	fi
 	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
 	# Clean up by umounting any mount binds
 	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
