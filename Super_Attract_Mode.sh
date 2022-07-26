@@ -1911,7 +1911,7 @@ function parse_cmd() {
 			case "${1,,}" in
 			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				# If we're given a core name then we need to set it first
-				if -[ "${2}" ] && [ "${2,,}" == "start_real" ]; then
+				if [ "${2}" ] && [ "${2,,}" == "start_real" ]; then
 					nextcore=${1,,}
 					corelist=$nextcore
 					sam_start_new
