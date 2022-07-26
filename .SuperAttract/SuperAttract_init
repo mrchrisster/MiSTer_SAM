@@ -52,32 +52,70 @@ function quickstart() {
 
 function stop() {
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
-	if [ ! ${corename_name} == "MENU" ]; then
+	if [ ${corename_name} != "MENU" ]; then
+		echo -n " Returning to MiSTer Menu..."
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		echo " Done!"
 	fi
-	echo -n " Stopping SAM MCP..."
+	tries=5
 	pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then
+		echo -n " Stopping MCP..."
+		echo -n " ${pids} "
+		# kill -9 ${pids} &>/dev/null
+		while [ $(kill -15 ${pids} 2>/dev/null)] && [ $tries -gt 0 ]; do
+			((tries--))
+	    	sleep 1
+		done
+		pids=$(pidof SuperAttract_MCP)
+		echo " Failed, forcing!"
+		echo -n " Stopping MCP..."
+		echo -n " ${pids} "
 		kill -9 ${pids} &>/dev/null
-		wait ${pids} &>/dev/null
+		echo " Done!"
 	fi
-	echo " Done!"
-
-	echo -n " Stopping SAM..."
-	pids=$(pidof "Super_Attract_Mode.sh")
-	if [ ! -z "${pids}" ]; then
-		kill -9 ${pids} &>/dev/null
-		wait ${pids} &>/dev/null
-	fi
-	echo " Done!"
-
-	echo -n " Stopping TTY2oled..."
+	sleep 2
+	pids=""
 	pids=$(pidof SuperAttract_tty2oled)
 	if [ ! -z "${pids}" ]; then
-		kill -9 ${pids} &>/dev/null
-		wait ${pids} &>/dev/null
+		echo -n " Stopping TTY..."
+		echo -n " | ${pids} "
+		# kill -9 ${pids} &>/dev/null
+		while $(kill -15 ${pids} 2>/dev/null); do
+	    	sleep 1
+		done
+		echo " Done!"
 	fi
-	echo " Done!"
+	sleep 2
+	pids=""
+	pids=$(pidof Super_Attract_Mode.sh)
+	if [ ! -z "${pids}" ]; then
+		echo -n " Stopping SAM..."
+		echo -n " | ${pids} "
+		# kill -9 ${pids} &>/dev/null
+		while $(kill -15 ${pids} 2>/dev/null); do
+	    	sleep 1
+		done
+		echo " Done!"
+	fi
+	pids=""
+	sleep 2
+	SAM_cleanup
+}
+
+function SAM_cleanup() {
+	# Clean up by umounting any mount binds
+	mount1=$(mount | grep /media/fat/config | awk '{print $3}')
+	mount2=$(mount | grep shared | awk '{print $3}')
+	[[ $mount1 ]] && umount $mount1
+	[[ $mount2 ]] && umount $mount2
+	[[ -z $mount1 ]] && echo " No mount exists!"
+	[[ -z $mount2 ]] && echo " No mount exists!"
+	[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" == "1" ]] && umount "${misterpath}/Bootrom"
+	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot1.rom"
+	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot2.rom"
+	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot3.rom"
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Cleaned up mounts."
 }
 
 function mcp_start() {
@@ -103,7 +141,7 @@ killall -q -9 SuperAttract_joy.py 2>/dev/null
 killall -q -9 SuperAttract_mouse.py 2>/dev/null
 killall -q -9 SuperAttract_keyboard.py 2>/dev/null
 killall -q -9 hexdump 2>/dev/null
-kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Activity_Change" | {
+kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Activity_pipe" | {
 	read -r PID COMMAND
 	echo $PID
 }) 2>/dev/null

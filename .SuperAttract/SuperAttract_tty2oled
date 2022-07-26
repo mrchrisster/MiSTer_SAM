@@ -24,7 +24,7 @@
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
 
-trap 'rc=$?;[ $rc = 0 ] && exit;TTY_exit' EXIT
+trap 'rc=$?;[ $rc = 0 ] && exit;TTY_exit' EXIT TERM
 
 # ======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.SuperAttract"

@@ -24,7 +24,7 @@
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
 
-trap 'rc=$?;[ $rc = 0 ] && exit;sam_cleanup' EXIT
+trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT TERM
 
 # ======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
@@ -260,9 +260,7 @@ function sam_prep() {
 	fi
 }
 
-function sam_cleanup() {
-	bgm_stop
-	write_to_TTY_cmd_pipe "exit" &
+function SAM_cleanup() {
 	# Clean up by umounting any mount binds
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ "$(mount | grep -ic ${amigashared})" == "1" ] && umount "${amigashared}"
@@ -435,7 +433,7 @@ function init_data() {
 
 	# Can this core skip Bios/Safety warning messages
 	declare -glA CORE_SKIP=(
-		["amiga"]="No"
+		["amiga"]="Yes"
 		["arcade"]="No"
 		["atari2600"]="No"
 		["atari5200"]="No"
@@ -464,6 +462,32 @@ function init_data() {
 		["amiga"]="Minimig"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
+		["atari5200"]="ATARI5200"
+		["atari7800"]="ATARI7800"
+		["atarilynx"]="AtariLynx"
+		["c64"]="C64"
+		["fds"]="NES"
+		["gb"]="GAMEBOY"
+		["gbc"]="GAMEBOY"
+		["gba"]="GBA"
+		["genesis"]="Genesis"
+		["gg"]="SMS"
+		["megacd"]="MegaCD"
+		["neogeo"]="NEOGEO"
+		["nes"]="NES"
+		["s32x"]="S32X"
+		["sms"]="SMS"
+		["snes"]="SNES"
+		["tgfx16"]="TGFX16"
+		["tgfx16cd"]="TGFX16"
+		["psx"]="PSX"
+	)
+
+	# TTY2OLED Core Pic mappings
+	declare -gA TTY2OLED_PIC_NAME=(
+		["amiga"]="Minimig"
+		["arcade"]="Arcade"
+		["atari2600"]="ATARI2600"
 		["atari5200"]="ATARI5200"
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
@@ -1553,7 +1577,7 @@ function sam_gamemodemenu() {
 	elif [ "${menuresponse}" == "Roulettetimer" ]; then
 		gametimer=${roulettetimer}
 		only_survivor
-		sam_cleanup
+		SAM_cleanup
 		tty_init
 		checkgl
 		mute=no
@@ -1565,7 +1589,7 @@ function sam_gamemodemenu() {
 		timemin=${menuresponse//Roulette/}
 		gametimer=$((timemin * 60))
 		only_survivor
-		sam_cleanup
+		SAM_cleanup
 		tty_init
 		checkgl
 		mute=no
@@ -1646,7 +1670,7 @@ function samedit_excltags() {
 	function process_tag() {
 		for core in ${corelist}; do
 			[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${core}_gamelist.txt"
-			if [ "${gamelistpath}/${core}_gamelist.txt" ]; then
+			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 				grep -i "$categ" "${gamelistpath}/${core}_gamelist.txt" >>"${gamelistpath}/${core}_gamelist_exclude.txt"
 			else
 				grep -i "$categ" "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpath}/${core}_gamelist_exclude.txt"
@@ -1693,7 +1717,7 @@ function samedit_excltags() {
 				process_tag
 			else
 				# Check if tag is already excluded
-				if [ "$(grep -i "${categ}" "${excludetags}")" ]; then
+				if [ "$(grep -i "${categ}" "${excludetags}")" != 0 ]; then
 					dialog --clear --no-cancel --ascii-lines \
 						--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
 						--msgbox "${categ} has already been excluded. \n\n" 0 0
@@ -1777,27 +1801,15 @@ function sam_bgmmenu() {
 }
 
 function write_to_SAM_cmd_pipe() {
-	if [[ ! -p ${SAM_cmd_pipe} ]]; then
-		echo "SAM not running"
-		exit 1
-	fi
-	echo "${@}" >${SAM_cmd_pipe}
+	[[ -p ${SAM_cmd_pipe} ]] &&	echo "${@}" >${SAM_cmd_pipe}
 }
 
 function write_to_TTY_cmd_pipe() {
-	if [[ ! -p ${TTY_cmd_pipe} ]]; then
-		echo "TTY2oled not running"
-		exit 1
-	fi
-	echo "${@}" >${TTY_cmd_pipe}
+	[[ -p ${TTY_cmd_pipe} ]] &&	echo "${@}" >${TTY_cmd_pipe}
 }
 
 function write_to_MCP_cmd_pipe() {
-	if [[ ! -p ${MCP_cmd_pipe} ]]; then
-		echo "MCP not running"
-		exit 1
-	fi
-	echo "${@}" >${MCP_cmd_pipe}
+	[[ -p ${MCP_cmd_pipe} ]] &&	echo "${@}" >${MCP_cmd_pipe}
 }
 
 function source-only() {
@@ -1813,22 +1825,18 @@ function parse_cmd() {
 	else
 		while [ ${#} -gt 0 ]; do
 			case "${1,,}" in
-			stop | quit)
-				write_to_SAM_cmd_pipe ${1-}
-				exit 0
-				;;
-			exit)
-				write_to_SAM_cmd_pipe ${1-}
-				exit 0
+			stop | quit | exit)
+				write_to_SAM_cmd_pipe  ${1-}
+				break
 				;;
 			skip | next)
 				echo " Skipping to next game..."
 				write_to_SAM_cmd_pipe ${1-}
-				exit 0
+				break
 				;;
 			monitor)
 				sam_monitor_new
-				exit 0
+				break
 				;;
 			install) # Enable SAM autoplay mode
 				startup_tasks
@@ -1911,7 +1919,7 @@ function parse_cmd() {
 			case "${1,,}" in
 			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				# If we're given a core name then we need to set it first
-				if [ "${2}" ] && [ "${2,,}" == "start_real" ]; then
+				if [ ! -z "${2}" ] && [ "${2,,}" == "start_real" ]; then
 					nextcore=${1,,}
 					corelist=$nextcore
 					sam_start_new
@@ -2160,7 +2168,6 @@ function sam_help() { # sam_help
 	echo ""
 	echo " arcade, genesis, gba..."
 	echo " games from one system only"
-	sam_exit 0
 }
 
 # ======== UTILITY FUNCTIONS ========
@@ -2195,46 +2202,74 @@ function only_survivor() {
 
 function sam_stop() {
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
-	if [ ! ${corename_name} == "MENU" ]; then
+	if [ ${corename_name} != "MENU" ]; then
+		echo -n " Returning to MiSTer Menu..."
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		echo " Done!"
 	fi
-	echo -n " Stopping SAM MCP..."
+
+	SAM_cleanup
+
+	tries=5
 	pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then
+		echo -n " Stopping MCP..."
+		echo -n " ${pids} "
+		# kill -9 ${pids} &>/dev/null
+		while [ $(kill -15 ${pids} 2>/dev/null)] && [ $tries -gt 0 ]; do
+			((tries--))
+	    	sleep 1
+		done
+		pids=$(pidof SuperAttract_MCP)
+		echo " Failed, forcing!"
+		echo -n " Stopping MCP..."
+		echo -n " ${pids} "
 		kill -9 ${pids} &>/dev/null
-		wait ${pids} &>/dev/null
+		echo " Done!"
 	fi
-	echo " Done!"
-
-	echo -n " Stopping TTY2oled..."
+	sleep 2
+	pids=""
 	pids=$(pidof SuperAttract_tty2oled)
 	if [ ! -z "${pids}" ]; then
-		kill -9 ${pids} &>/dev/null
-		wait ${pids} &>/dev/null
+		echo -n " Stopping TTY..."
+		echo -n " | ${pids} "
+		# kill -9 ${pids} &>/dev/null
+		while $(kill -15 ${pids} 2>/dev/null); do
+	    	sleep 1
+		done
+		echo " Done!"
 	fi
-	echo " Done!"
-
-	echo -n " Stopping SAM..."
-	pids=$(pidof "Super_Attract_Mode.sh")
+	sleep 2
+	pids=""
+	pids=$(pidof Super_Attract_Mode.sh)
 	if [ ! -z "${pids}" ]; then
-		kill -9 ${pids} &>/dev/null
-		wait ${pids} &>/dev/null
+		echo -n " Stopping SAM..."
+		echo -n " | ${pids} "
+		# kill -9 ${pids} &>/dev/null
+		while $(kill -15 ${pids} 2>/dev/null); do
+	    	sleep 1
+		done
+		echo " Done!"
 	fi
-	echo " Done!"
+	pids=""
+	sleep 2
 }
 
-function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
+function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message or stop
+	bgm_stop
+	write_to_TTY_cmd_pipe "exit" &
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
-	sam_cleanup
-	if [ ${1} -eq 0 ]; then # just exit
-		if [ ! ${corename_name} == "MENU" ]; then
+	if [ ! -z "${2}" ] && [ "${2}" == "stop" ]; then
+		sam_stop
+	elif [ "${1}" -eq 0 ]; then # just exit
+		if [ ! ${corename_name,,} == "menu" ]; then
 			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		fi
 		sleep 1
 		echo " Done!"
 		echo " Thanks for playing!"
-	elif [ ${1} -eq 1 ]; then # Error
-		if [ ! ${corename_name} == "MENU" ]; then
+	elif [ "${1}" -eq 1 ]; then # Error
+		if [ ! ${corename_name,,} == "menu" ]; then
 			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		fi
 		sleep 1
@@ -2251,6 +2286,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	else
 		ps -ef | grep -i '[S]uper_Attract_Mode.sh' | xargs kill &>/dev/null
 	fi
+	SAM_cleanup
 }
 
 function env_check() {
@@ -2339,7 +2375,7 @@ function deletegl() {
 	else
 		echo -e "\nGamelist reset successful. Please start SAM now.\n"
 		sleep 1
-		sam_exit 0
+		sam_exit 0 "stop"
 	fi
 }
 
@@ -2365,15 +2401,26 @@ function creategl() {
 	else
 		echo -e "\nGamelist creation successful. Please start SAM now.\n"
 		sleep 1
-		sam_exit 0
+		sam_exit 0 "stop"
 	fi
 }
 
 function skipmessage() {
-	# Skip past bios/safety warnings
-	sleep 10
-	if [ "${samquiet}" == "no" ]; then echo " Skipping BIOS/Safety Warnings!"; fi
-	"${mrsampath}/mbc" raw_seq :31
+	core=$1
+	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
+		# Skip past bios/safety warnings
+		sleep 15
+		[[ "${samquiet}" == "no" ]] && echo " Skipping BIOS/Safety Warnings!"
+		if [ $core != "amiga" ]; then
+			"${mrsampath}/mbc" raw_seq :31
+		else
+			if [ ! -s "${amigapath}/listings/games.txt" ]; then
+				# This is for MegaAGS version June 2022 or older
+				"${mrsampath}/mbc" raw_seq {6c
+				"${mrsampath}/mbc" raw_seq O
+			fi
+		fi
+	fi
 }
 
 function mglfavorite() {
@@ -2440,11 +2487,8 @@ function core_error() { # core_error core /path/to/ROM
 }
 
 function play_or_exit() {
-	bgm_stop
-	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
+	if [ "${playcurrentgame}" == "yes" ]; then
 		write_to_SAM_cmd_pipe "exit 2"
-	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
-		write_to_SAM_cmd_pipe "exit 3"
 	else
 		write_to_SAM_cmd_pipe "exit 0"
 	fi
@@ -2550,21 +2594,27 @@ function loop_core() { # loop_core (core)
 	# Reset game log for this session
 	echo "" | >/tmp/SAM_Games.log
 	start_pipe_readers
-	while [[ -p ${SAM_cmd_pipe} ]]; do
+	while true; do
 		trap 'counter=0' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
-			echo -ne " Next game in ${counter}...\033[0K\r"
-			sleep 1
-			((counter--))
-			if [ "${ttyenable}" == "yes" ]; then
-				tty_currentinfo[counter]=$(printf "%03d" ${counter})
-				write_to_TTY_cmd_pipe "update_counter ${tty_currentinfo[counter]}" &
+			if [ "$(mount | grep -ic '/media/fat/config')" == "1" ]; then
+				echo -ne " Next game in ${counter}...\033[0K\r"
+				sleep 1
+				((counter--))
+				if [ "${ttyenable}" == "yes" ]; then
+					tty_currentinfo[counter]=$(printf "%03d" ${counter})
+					write_to_TTY_cmd_pipe "update_counter ${tty_currentinfo[counter]}" &
+				fi
+			else
+				break
 			fi
 		done
 		trap - INT
 		sleep 1
-		counter=${gametimer}
-		next_core ${core}
+		if [ "$(mount | grep -ic '/media/fat/config')" == "1" ]; then
+			counter=${gametimer}
+			next_core ${core}
+		fi
 	done
 }
 
@@ -2947,13 +2997,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 
 	if [ ${core} == "arcade" ]; then
-		corename=$(grep "<setname>" "${rompath}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
-	elif [ ${core} == "amiga" ]; then
-		corename="${CORE_LAUNCH[${core}]}"
-		# corename="${core}"
+		tty_corename=$(grep "<setname>" "${rompath}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	else
-		# corename="${CORE_LAUNCH[${core}]}"
-		corename="${core}"
+		tty_corename="${TTY2OLED_PIC_NAME[${core}]}"
 	fi
 
 	if [ ${core} == "amiga" ]; then
@@ -2963,14 +3009,14 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${core}]}\e[0m: "
 	echo -e "\e[1m${GAMENAME}\e[0m"
-	echo "$(date +%H:%M:%S) - ${core} - ${romname}" $(if [ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >>/tmp/SAM_Games.log
-	echo "${romname} (${core}) "$(if [ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >/tmp/SAM_Game.txt
+	echo "$(date +%H:%M:%S) - ${core} - ${romname}" $([ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ] && echo "(${GAMENAME})") >>/tmp/SAM_Games.log
+	echo "${romname} (${core}) "$([ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ] && echo "(${GAMENAME})") >/tmp/SAM_Game.txt
 
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
 			[core_pretty]="${CORE_PRETTY[${core}]}"
 			[name]="${GAMENAME}"
-			[core]=${corename}
+			[core]=${tty_corename}
 			[counter]=${gametimer}
 			[name_scroll]="${GAMENAME:0:21}"
 			[name_scroll_position]=0
@@ -2980,7 +3026,11 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi
 
-	mute "${corename}"
+	if [ $core != "arcade" ]; then
+		mute "${CORE_LAUNCH[${core}]}"
+	else
+		mute "${tty_corename}"
+	fi
 
 	if [ "${countdown}" == "countdown" ]; then
 		for i in {5..1}; do
@@ -2994,6 +3044,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	elif [ ${core} == "amiga" ]; then
 		if [ ! -f "${amigapath}/MegaAGS.hdf" ]; then
 			echo " ERROR - MegaAGS Pack not found in Amiga folder."
+			next_core ${core}
 			return
 		fi
 		amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
@@ -3009,8 +3060,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			# This is for MegaAGS version June 2022 or older
 			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 			sleep 13
-			"${mrsampath}/mbc" raw_seq {6c
-			"${mrsampath}/mbc" raw_seq O
+			skipmessage &
 		fi
 	else
 		# Create mgl file and launch game
