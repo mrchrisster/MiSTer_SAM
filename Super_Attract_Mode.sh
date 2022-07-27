@@ -21,8 +21,13 @@
 # Original concept and implementation: mrchrisster
 # Additional development and script layout: Mellified and Paradox
 #
+# mbc by pocomane
+# partun by woelper
+# samindex by wizzo
+# tty2oled by venice
+#
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
+# kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
 
 trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT TERM
 
