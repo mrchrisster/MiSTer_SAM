@@ -73,6 +73,7 @@ function init_vars() {
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl mute="Yes"
+	declare -gl samindex="Yes"
 	declare -gl playcurrentgame="No"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
@@ -2058,6 +2059,8 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_keyboard.py
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
+		curl_download "/tmp/samindex.zip" "${repository_url}/blob/${branch}/.SuperAttract/samindex.zip?raw=true"
+		unzip -ojq /tmp/samindex.zip -d ${mrsampath} &>/dev/null																								  												  
 		get_samstuff .SuperAttract/SAM_splash.gsc
 
 		if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
@@ -2797,27 +2800,34 @@ function create_romlist() { # args ${core} "${DIR}"
 		fi
 	else
 		# Find all files in core's folder with core's extension
-		extlist=$(echo ${CORE_EXT[${core}]} | sed -e "s/,/ -o -iname *.$f/g")
-		find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
-		# Now find all zips in core's folder and process
-		if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
-			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-			if [ -s "${tmpfile2}" ]; then
-				cat "${tmpfile2}" | while read z; do
-					if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-						echo " Processing: ${z}"
-					fi
-					"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${core}]}" >>"${tmpfile}"
-				done
+		if [ "${samindex}" == "yes" ]; then
+			if [ "${samquiet}" == "no" ]; then 
+				${mrsampath}/samindex -s ${core} -o "${gamelistpath}"
+			else
+				${mrsampath}/samindex -q -s ${core} -o "${gamelistpath}"
 			fi
+			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpathtmp}/${core}_gamelist.txt"
+
+		else
+			extlist=$(echo ${CORE_EXT[${core}]} | sed -e "s/,/ -o -iname *.$f/g")
+			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
+			# Now find all zips in core's folder and process
+			if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
+				find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
+				if [ -s "${tmpfile2}" ]; then
+					cat "${tmpfile2}" | while read z; do
+						if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
+							echo " Processing: ${z}"
+						fi
+						"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${core}]}" >>"${tmpfile}"
+					done
+				fi														   
+			fi
+			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt.tmp" >"${gamelistpath}/${core}_gamelist.txt"
+			cat "${tmpfile}" | sort >"${gamelistpath}/${core}_gamelist.txt.tmp"
+			cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 		fi
 	fi
-
-	cat "${tmpfile}" | sort >"${gamelistpath}/${core}_gamelist.txt.tmp"
-
-	# Strip out all duplicate filenames with a fancy awk command
-	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt.tmp" >"${gamelistpath}/${core}_gamelist.txt"
-	cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 	[ -f "${gamelistpath}/${core}_gamelist.txt.tmp" ] && rm "${gamelistpath}/${core}_gamelist.txt.tmp" &>/dev/null
 	[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
 	[ -f "${tmpfile2}" ] && rm "${tmpfile2}" &>/dev/null
@@ -3092,12 +3102,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 }
 
 # ========= MAIN =========
-function main() {
-	parse_cmd ${@} # Parse command line parameters for input
-}
-
 if [ "${1,,}" == "--source-only" ]; then
 	source-only
 else
-	main ${@}
+	parse_cmd ${@}
 fi
