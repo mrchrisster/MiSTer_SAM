@@ -88,7 +88,7 @@ function sam_jsmonitor() {
 	shopt -s nullglob
 	for joystick in ${jsnew[@]}; do
 		if [ ! -z "${joystick}" ]; then
-			if [ "${samquiet}" == "no" ]; then printf '%s\n' " Monitoring controller ${joystick}..."; fi
+			[[ "${samquiet}" == "no" ]] && printf '%s\n' " Monitoring controller ${joystick}..."
 			"${mrsampath}/SuperAttract_joy.py" "${joystick}" 2>/dev/null &
 		fi
 	done
@@ -131,7 +131,7 @@ function sam_keybmonitor() {
 
 function sam_msmonitor() {
 	mouse="/dev/input/mice"
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Monitoring mouse ${mouse}..."; fi
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Monitoring mouse ${mouse}..."
 	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" 2>/dev/null &
 }
 
@@ -207,41 +207,41 @@ function createpipes() {
 
 function monitors() {
 	# Start monitoring for CORENAME changes
-	if [ "${samquiet}" == "no" ]; then printf '%s' " Starting CORENAME change monitor..."; fi
 	sam_corename_change
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
+	[[ "${samquiet}" == "no" ]] && printf '%s' " Starting CORENAME change monitor..."
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 
 	# Spawn CORENAME monitoring process.
-	if [ "${samquiet}" == "no" ]; then printf '%s' " Starting CORENAME monitor..."; fi
 	sam_corename_monitor
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
+	[[ "${samquiet}" == "no" ]] && printf '%s' " Starting CORENAME monitor..."
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 
 	# Start monitoring for joystick device changes
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Starting devices change monitor..."; fi
 	sam_activity_change
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting devices change monitor..."
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 
 	if [ "${listenjoy}" == "yes" ]; then
 		# Spawn joystick monitoring process per detected joystick device
-		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Starting joystick monitor..."; fi
+		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting joystick monitor..."
 		sam_jsmonitor
-		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
+		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 
 	fi
 	if [ "${listenkeyboard}" == "yes" ]; then
 		# Spawn keyboard monitoring processes
-		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Starting keyboard monitor..."; fi
+		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting keyboard monitor..."
 		if [[ /dev/input/by-path/*kbd ]]; then
 			sam_keybmonitor
 		fi
-		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
+		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 	fi
 
 	if [ "${listenmouse}" == "yes" ]; then
 		# Spawn mouse monitoring process per detected mouse device
-		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Starting mouse monitor..."; fi
+		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting mouse monitor..."
 		sam_msmonitor
-		if [ "${samquiet}" == "no" ]; then printf '%s\n' " Done!"; fi
+		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 	fi
 
 	while true; do

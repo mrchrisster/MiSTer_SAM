@@ -180,6 +180,8 @@ function init_vars() {
 	declare -g tgfx16pathrbf="_Console"
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
+
+	declare -g amigashared="${amigapath}/shared"
 }
 
 function init_paths() {
@@ -221,57 +223,58 @@ function init_paths() {
 function sam_prep() {
 	declare -g amigashared="${amigapath}/shared"
 	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
-	if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Grep got $var"; fi
-	if [ "${var}" ]; then
-		if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable is not empty"; fi
+	[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Grep got $var"
+	if [ ! -z "${var}" ]; then
+		[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is not empty"
 		if [ ! -d ${var} ]; then
-			if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable is not a valid directory"; fi
-			if [ "${var: -1}" != "/" ]; then
-				if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable does not contain / in the last position"; fi
+			[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is not a valid directory"
+			if [  "${var: -1}" != "/" ]; then
+				[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable does not contain / in the last position"
 				var=$(echo $var | sed 's:/.$::')
 			fi
 		fi
 		if [ -d ${var} ]; then
-			if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable is a valid directory"; fi
+			[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is a valid directory"
 			if [ "${var: -1}" == "/" ]; then
-				if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable contains / in the last position"; fi
+				[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable contains / in the last position"
 				var="${var::${#var}-1}"
 			fi
-			if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Setting the amigashared variable"; fi
+			[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Setting the amigashared variable"
 			amigashared="${var}"
 		fi
 	else
-		if [ "${samdebug}" == "yes" ]; then printf '%s\n' " Variable is empty sticking with default"; fi
+		[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is empty sticking with default"
 	fi
 
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Amigashare directory $amigashared "; fi
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory $amigashared "
 
-	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
-	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -pr --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
-	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
-	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
-	[ -d "${amigashared}" ] && [ "$(mount | grep -ic ${amigashared})" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigashared}"
+	[[ ! -d "/tmp/.SAM_tmp/SAM_config" ]] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
+	[[ -d "/tmp/.SAM_tmp/SAM_config" ]] && [[ "$(mount | grep -ic '/media/fat/config')" == "0" ]] && cp -pr --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
+	[[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ]] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
+	[[ -d "${amigashared}" ]] && [[ "$(mount | grep -ic ${amigashared})" == "0" ]] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigashared}"
 	# Disable Bootrom - Make Bootrom folder inaccessible until restart
 	if [ "${disablebootrom}" == "Yes" ]; then
-		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
+		[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" == "0" ]] && mount --bind /mnt "${misterpath}/Bootrom"
 		# Disable Nes bootroms except for FDS Bios (boot0.rom)
-		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot1.rom"
-		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot2.rom"
-		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot3.rom"
+		[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ]] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot1.rom"
+		[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ]] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot2.rom"
+		[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ]] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot3.rom"
 	fi
 }
 
 function SAM_cleanup() {
 	# Clean up by umounting any mount binds
-	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
-	[ "$(mount | grep -ic ${amigashared})" == "1" ] && umount "${amigashared}"
-	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
-	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
-	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
-	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	[ -p ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
-	[ -e ${SAM_cmd_pipe} ] && rm -f ${SAM_cmd_pipe}
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleaned up mounts."; fi
+	[[ "$(mount | grep -ic /media/fat/config)" == "1" ]] && umount "/media/fat/config"
+	[[ "$(mount | grep -ic ${amigashared})" == "1" ]] && umount "${amigashared}"
+	[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" == "1" ]] && umount "${misterpath}/Bootrom"
+	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot1.rom"
+	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot2.rom"
+	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot3.rom"
+	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
+	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
+	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
+	[[ -e ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Cleaned up mounts."
 }
 
 # ======== CORE CONFIG ========
@@ -1205,6 +1208,8 @@ function startup_tasks() {
 }
 
 function start_pipe_readers() {
+	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
+	[[ -e ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
 	if [[ ! -p ${SAM_cmd_pipe} ]]; then
 		mkfifo ${SAM_cmd_pipe}
 	fi
@@ -1243,7 +1248,7 @@ function start_pipe_readers() {
 			echo " Activity detected! (${line})"
 			play_or_exit
 		fi
-		sleep 0.1
+		sleep 0.5
 	done &
 }
 
@@ -1499,7 +1504,7 @@ function sam_resetmenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	[[ "${samquiet}" == "no" ]] && echo " menuresponse: ${menuresponse}"
 	parse_cmd ${menuresponse}
 }
 
@@ -1517,7 +1522,7 @@ function sam_gamelistmenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	[[ "${samquiet}" == "no" ]] && echo " menuresponse: ${menuresponse}"
 	parse_cmd ${menuresponse}
 }
 
@@ -1531,7 +1536,7 @@ function sam_autoplaymenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 
 	clear
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	[[ "${samquiet}" == "no" ]] && echo " menuresponse: ${menuresponse}"
 	parse_cmd ${menuresponse}
 }
 
@@ -2129,7 +2134,7 @@ function sam_install() { # Install SAM to startup
 	sleep 5
 	echo " Please restart your Mister. (Hard Reboot)"
 
-	sam_exit 0
+	sam_exit 0 "stop"
 }
 
 function sam_uninstall() { # Uninstall SAM from startup
@@ -2151,7 +2156,7 @@ function sam_uninstall() { # Uninstall SAM from startup
 	sed -i '/MiSTer_SAM/d' ${userstartup}
 	sed -i '/Attract/d' ${userstartup}
 	sync
-	sam_exit 0
+	sam_exit 0 "stop"
 }
 
 function sam_help() { # sam_help
@@ -2776,14 +2781,14 @@ function create_romlist() { # args ${core} "${DIR}"
 		# If there is an empty exclude list ignore it
 		# Otherwise use it to filter the list
 		if echo "${DIR}" | grep -q "_Organized"; then
-			if [ "${samdebug}" == "yes" ]; then echo "_Organized detected!"; fi
+			[[ "${samdebug}" == "yes" ]] && echo "_Organized detected!"
 			if [ ${#arcadeexclude[@]} -eq 0 ]; then
 				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}")
 			else
 				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}") | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${tmpfile}"
 			fi
 		else
-			if [ "${samdebug}" == "yes" ]; then echo "_Organized not detected!"; fi
+			[[ "${samdebug}" == "yes" ]] && echo "_Organized not detected!"
 			if [ ${#arcadeexclude[@]} -eq 0 ]; then
 				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}")
 			else
@@ -2833,13 +2838,13 @@ function check_romlist() { # args ${core}  "${DIR}"
 	local DIR="${2}"
 	# If gamelist is not in /tmp dir, let's put it there
 	if [ ! -s "${gamelistpath}/${core}_gamelist.txt" ]; then
-		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${core}_gamelist.txt"; fi
+		[[ "${samquiet}" == "no" ]] && echo " Creating game list at ${gamelistpath}/${core}_gamelist.txt"
 		create_romlist ${core} "${DIR}"
 	fi
 
 	# If folder changed, make new list
 	if [ ${core} != "amiga" ] && [[ ! "$(cat ${gamelistpath}/${core}_gamelist.txt | grep -i "${DIR}" | head -1)" ]]; then
-		if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
+		[[ "${samquiet}" == "no" ]] && echo " Creating new game list because folder "${DIR}" changed in ini."
 		create_romlist ${core} "${DIR}"
 	fi
 
@@ -2849,7 +2854,7 @@ function check_romlist() { # args ${core}  "${DIR}"
 			mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${core}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 			for zips in "${zipsinfile[@]}"; do
 				if [ ! -f "${zips}" ]; then
-					if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
+					[[ "${samquiet}" == "no" ]] && echo " Creating new game list because zip file[s] seems to have changed."
 					create_romlist ${core} "${DIR}"
 				fi
 			done
@@ -2862,10 +2867,10 @@ function check_romlist() { # args ${core}  "${DIR}"
 	else
 		# Repopulate list
 		if [ -s "${gamelistpath}/${core}_gamelist_exclude.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
+			[[ "${samquiet}" == "no" ]] && echo -n " Exclusion list found. Excluding games now..."
 			comm -13 <(sort <"${gamelistpath}/${core}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${core}_gamelist.txt") >${tmpfile}
 			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${core}_gamelist.txt"
-			if [ "${samquiet}" == "no" ]; then echo "Done."; fi
+			[[ "${samquiet}" == "no" ]] && echo "Done."
 			rompath="$(cat ${gamelistpathtmp}/${core}_gamelist.txt | shuf --head-count=1)"
 		else
 			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpathtmp}/${core}_gamelist.txt"
@@ -2877,13 +2882,13 @@ function check_romlist() { # args ${core}  "${DIR}"
 	# Make sure file exists since we're reading from a static list
 	if [[ "${rompath,,}" != *.zip* ]] && [ ${core} != "amiga" ]; then
 		if [ ! -s "${rompath}" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because file not found."; fi
+			[[ "${samquiet}" == "no" ]] && echo " Creating new game list because file not found."
 			create_romlist ${core} "${DIR}"
 		fi
 	fi
 
 	# Delete played game from list
-	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
+	[[ "${samquiet}" == "no" ]] && echo " Selected file: ${rompath}"
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${core}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${core}_gamelist.txt"
 	fi
@@ -2920,7 +2925,7 @@ function next_core() { # next_core (core)
 			corelist=$(echo ${corelist} | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
 		fi
 	fi
-	if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
+	[[ "${samquiet}" == "no" ]] && echo -e " Selected core: \e[1m${nextcore^^}\e[0m"
 
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
 	check_romlist ${nextcore} "${DIR}"
@@ -2940,7 +2945,7 @@ function next_core() { # next_core (core)
 	extension="${romname##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
-		if [ "${samquiet}" == "no" ]; then echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"; fi
+		[[ "${samquiet}" == "no" ]] && echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"
 		next_core ${nextcore}
 		return
 	fi
@@ -2969,7 +2974,7 @@ function next_core() { # next_core (core)
 	if [ -f ${gamelistpath}/${nextcore}_blacklist.txt ]; then
 		for i in {1..10}; do
 			if [ "$(grep -ic "${romname}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0" ]; then
-				if [ "${samquiet}" == "no" ]; then echo " Blacklisted because duplicate or boring: ${romname}, trying a different game.."; fi
+				[[ "${samquiet}" == "no" ]] && echo " Blacklisted because duplicate or boring: ${romname}, trying a different game.."
 				next_core ${nextcore}
 				return
 			fi
@@ -3071,7 +3076,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		echo "<mistergamedescription>" >/tmp/SAM_game.mgl
 		echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>/tmp/SAM_game.mgl
 
-		if [ ${usedefaultpaths} == "yes" ]; then
+		if [ ${usedefaultpaths} == "yes" ] || [ $core == "amiga" ]; then
 			corepath="${CORE_PATH[${core}]}/"
 			rompath="${rompath#${corepath}}"
 			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>/tmp/SAM_game.mgl

@@ -60,7 +60,7 @@ declare -gi ttyscroll_speed=1
 declare -gi ttyscroll_speed_int=$(($ttyscroll_speed - 1))
 
 function start_pipe_reader() {
-	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, starting pipe reader... "; fi
+	[[ "${samquiet}" == "no" ]] && echo " Init tty2oled, starting pipe reader... "
 	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
 	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
 	if [[ ! -p ${TTY_cmd_pipe} ]]; then
@@ -112,14 +112,14 @@ function read_samini() {
 function tty_init() { # tty_init
 	# Stopping tty2oled Daemon
 	if [ "${ttyuseack}" == "yes" ]; then
-		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+		[[ "${samquiet}" == "no" ]] && echo -n " Stopping tty2oled Daemon..."
 		[ ! -f /tmp/tty2oled_sleep ] && touch /tmp/tty2oled_sleep &>/dev/null
-		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+		[[ "${samquiet}" == "no" ]] && echo " Done!"
 	fi
 
 	# tty2oled initialization
 	declare -gi START="$(date +%s)"
-	if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, loading variables... "; fi
+	[[ "${samquiet}" == "no" ]] && echo " Init tty2oled, loading variables... "
 	source ${ttysystemini}
 	source ${ttyuserini}
 	ttydevice=${TTYDEV}
@@ -128,15 +128,15 @@ function tty_init() { # tty_init
 	set_scroll_speed
 
 	# Clear Serial input buffer first
-	if [ "${samquiet}" == "no" ]; then echo -n " Clear tty2oled Serial Input Buffer..."; fi
+	[[ "${samquiet}" == "no" ]] && echo -n " Clear tty2oled Serial Input Buffer..."
 	while read -t 0 sdummy <${ttydevice}; do continue; done
-	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+	[[ "${samquiet}" == "no" ]] && echo " Done!"
 
 	# Stopping ScreenSaver
-	if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled ScreenSaver..."; fi
+	[[ "${samquiet}" == "no" ]] && echo -n " Stopping tty2oled ScreenSaver..."
 	echo "CMDSAVER,0,0,0" >${ttydevice}
 	tty_waitfor
-	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+	[[ "${samquiet}" == "no" ]] && echo " Done!"
 
 	echo "CMDAPD,SAM_splash" >/dev/ttyUSB0
 	tail -n +4 "/media/fat/Scripts/.SuperAttract/SAM_splash.gsc" | xxd -r -p >/dev/ttyUSB0
@@ -281,9 +281,9 @@ function tty_senddata() {
 
 function tty_exit() {
 	if [ "${ttyuseack}" == "yes" ]; then
-		if [ "${samquiet}" == "no" ]; then echo -n " Starting tty2oled Daemon..."; fi
+		[[ "${samquiet}" == "no" ]] && echo -n " Starting tty2oled Daemon..."
 		[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
-		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+		[[ "${samquiet}" == "no" ]] && echo " Done!"
 	fi
 	# Clear Display	with Random effect
 	echo "CMDCLST,-1,0" >${ttydevice}
@@ -294,7 +294,7 @@ function tty_exit() {
 }
 
 function TTY_cleanup() {
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' "Cleaned up!"; fi
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' "Cleaned up!"
 	# Clean up by umounting any mount binds
 	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
 	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
