@@ -33,6 +33,7 @@ declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g branch="main"
 declare -g userstartup="/media/fat/linux/user-startup.sh"
 declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
+declare -g amigacore=""
 # Save our PID and process
 declare -g sampid="${$}"
 declare -g samprocess="$(basename -- ${0})"
@@ -2406,7 +2407,7 @@ function creategl() {
 }
 
 function skipmessage() {
-	core=$1
+	core=${1}
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
 		# Skip past bios/safety warnings
 		sleep 15
@@ -2837,7 +2838,7 @@ function check_romlist() { # args ${core}  "${DIR}"
 	fi
 
 	# If folder changed, make new list
-	if [ ${core} != "amiga" ] && [[ ! "$(cat ${gamelistpath}/${core}_gamelist.txt | grep "${DIR}" | head -1)" ]]; then
+	if [ ${core} != "amiga" ] && [[ ! "$(cat ${gamelistpath}/${core}_gamelist.txt | grep -i "${DIR}" | head -1)" ]]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
 		create_romlist ${core} "${DIR}"
 	fi
@@ -3060,7 +3061,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			# This is for MegaAGS version June 2022 or older
 			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 			sleep 13
-			skipmessage &
 		fi
 	else
 		# Create mgl file and launch game
@@ -3082,11 +3082,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
 
 		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-
-		if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
-			skipmessage &
-		fi
 	fi
+	skipmessage $core &
 }
 
 # ========= MAIN =========
