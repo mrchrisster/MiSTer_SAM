@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import struct
 import time
 import glob
@@ -7,7 +6,7 @@ import sys
 import os
 import errno
 
-FIFO = '/tmp/.SAM_tmp/SAM_Activity'
+FIFO = sys.argv[2]
 
 try:
     os.mkfifo(FIFO)

@@ -9,11 +9,11 @@ declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
 declare -g misterpath="/media/fat"
 declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
 declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
-declare -g activity_pipe="/tmp/.SAM_tmp/SAM_Activity"
-declare -g activity_pipe2="/tmp/.SAM_tmp/SAM_Activity2"
-declare -g corename_pipe="/tmp/.SAM_tmp/SAM_CoreName_Activity"
-declare -g activity_change_pipe="/tmp/.SAM_tmp/SAM_Activity_Change"
-declare -g corename_change_pipe="/tmp/.SAM_tmp/SAM_CoreName_Change"
+declare -g MCP_Activity_pipe="/tmp/.SAM_tmp/MCP_Activity_pipe"
+declare -g SAM_Activity_pipe="/tmp/.SAM_tmp/SAM_Activity_pipe"
+declare -g MCP_Corename_Activity_pipe="/tmp/.SAM_tmp/MCP_CoreName_Activity_pipe"
+declare -g MCP_Activity_Change_pipe="/tmp/.SAM_tmp/MCP_Activity_Change_pipe"
+declare -g MCP_CoreName_Change_pipe="/tmp/.SAM_tmp/MCP_CoreName_Change_pipe"
 declare -gl listenmouse="Yes"
 declare -gl listenkeyboard="Yes"
 declare -gl listenjoy="Yes"
@@ -25,10 +25,10 @@ declare -gl samdebug="No"
 declare -gl samtrace="No"
 
 #======== LOCAL VARIABLES ========
-declare -gi mcptimeout=60
-declare -gi mcp_counter=${mcptimeout}
-declare -g mcptimeout_minutes=""
-declare -g corename_name=$(</tmp/CORENAME)
+declare -gi MCP_timeout=60
+declare -gi MCP_counter=${MCP_timeout}
+declare -g MCP_timeout_minutes=""
+declare -g MCP_corename_name=$(</tmp/CORENAME)
 
 # ======== TTY2OLED =======
 declare -gl ttyenable="No"
@@ -50,23 +50,23 @@ if [ -f "${misterpath}/Scripts/Super_Attract_Mode.ini" ]; then
 fi
 
 #======== FUNCTIONS ========
-function sam_corename_change() {
+function MCP_CoreName_Change() {
 	# Monitor CORENAME for changes (to determine if the menu is currently running)
-	inotifywait --event modify /tmp/CORENAME --outfile ${corename_change_pipe} 2>/dev/null &
+	inotifywait --event modify /tmp/CORENAME --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
 }
 
-function sam_activity_change() {
+function MCP_Activity_Change() {
 	# Monitor devices for changes
-	inotifywait --quiet --monitor --event modify /dev/input --include js --include by-path --outfile ${activity_change_pipe} 2>/dev/null &
+	inotifywait --quiet --monitor --event modify /dev/input --include js --include by-path --outfile ${MCP_Activity_Change_pipe} 2>/dev/null &
 }
 
-function sam_corename_monitor() {
+function MCP_CoreName_Monitor() {
 	# Spawn CORENAME monitoring process.
-	corename_name=$(</tmp/CORENAME)
-	printf '%s\n' ${corename_name} >${corename_pipe} &
+	MCP_corename_name=$(</tmp/CORENAME)
+	printf '%s\n' ${MCP_corename_name} >${MCP_Corename_Activity_pipe} &
 }
 
-function sam_jsmonitor() {
+function MCP_jsmonitor() {
 
 	declare -a jsdevices=()
 	declare -a excludejoy=()
@@ -89,13 +89,13 @@ function sam_jsmonitor() {
 	for joystick in ${jsnew[@]}; do
 		if [ ! -z "${joystick}" ]; then
 			[[ "${samquiet}" == "no" ]] && printf '%s\n' " Monitoring controller ${joystick}..."
-			"${mrsampath}/SuperAttract_joy.py" "${joystick}" 2>/dev/null &
+			"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" 2>/dev/null &
 		fi
 	done
 	shopt -u nullglob
 }
 
-function sam_keybmonitor() {
+function MCP_keybmonitor() {
 
 	# We check for input on hidraw devices. First let's make sure these devices are keyboards...
 
@@ -123,19 +123,19 @@ function sam_keybmonitor() {
 		for i in "${kbddev[@]}"; do
 			if [ "$i" == "$rawdev" ]; then
 				printf '%s\n' "$f is a keyboard"
-				"${mrsampath}/SuperAttract_keyboard.py" "${f}" 2>/dev/null &
+				"${mrsampath}/SuperAttract_keyboard.py" "${f}" "${MCP_Activity_pipe}" 2>/dev/null &
 			fi
 		done
 	done
 }
 
-function sam_msmonitor() {
+function MCP_msmonitor() {
 	mouse="/dev/input/mice"
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Monitoring mouse ${mouse}..."
-	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" 2>/dev/null &
+	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" "${MCP_Activity_pipe}" 2>/dev/null &
 }
 
-function tty2oled_start() {
+function MCP_tty2oled_start() {
 	echo " Starting TTY.."
 	# If the TTY2oled isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then
@@ -143,13 +143,13 @@ function tty2oled_start() {
 	fi
 }
 
-function sam_trigger() {
+function MCP_SAM_trigger() {
 	if [ "$(ps aux | grep -ice "[S]uper_Attract_Mode.sh")" == "0" ] && [ "$(ps aux | grep -ice "[u]pdate")" == "0" ]; then
-		printf '%s\n' " No activity detected for ${mcptimeout_minutes} minutes. SAM starting..."
+		printf '%s\n' " No activity detected for ${MCP_timeout_minutes} minutes. SAM starting..."
 		printf '%s ' $(date +%c)
 		printf '\n'
 		if [ "${ttyenable}" == "yes" ]; then
-			tty2oled_start
+			MCP_tty2oled_start
 		fi
 		sleep 1
 		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super_Attract_Mode.sh" start_real &
@@ -160,27 +160,26 @@ function sam_trigger() {
 function MCP_cleanup() {
 	kill $(jobs -p)
 	[[ -p ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
-	[[ -p ${corename_change_pipe} ]] && rm ${corename_change_pipe}
-	[[ -p ${corename_pipe} ]] && rm ${corename_pipe}
-	[[ -p ${activity_change_pipe} ]] && rm ${activity_change_pipe}
-	[[ -p ${activity_pipe} ]] && rm ${activity_pipe}
-	[[ -p ${activity_pipe2} ]] && rm ${activity_pipe2}
+	[[ -p ${MCP_CoreName_Change_pipe} ]] && rm ${MCP_CoreName_Change_pipe}
+	[[ -p ${MCP_Corename_Activity_pipe} ]] && rm ${MCP_Corename_Activity_pipe}
+	[[ -p ${MCP_Activity_Change_pipe} ]] && rm ${MCP_Activity_Change_pipe}
+	[[ -p ${MCP_Activity_pipe} ]] && rm ${MCP_Activity_pipe}
+	[[ -p ${SAM_Activity_pipe} ]] && rm ${SAM_Activity_pipe}
 	[[ -e ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
-	[[ -e ${corename_change_pipe} ]] && rm ${corename_change_pipe}
-	[[ -e ${corename_pipe} ]] && rm ${corename_pipe}
-	[[ -e ${activity_change_pipe} ]] && rm ${activity_change_pipe}
-	[[ -e ${activity_pipe} ]] && rm ${activity_pipe}
-	[[ -e ${activity_pipe2} ]] && rm ${activity_pipe2}
+	[[ -e ${MCP_CoreName_Change_pipe} ]] && rm ${MCP_CoreName_Change_pipe}
+	[[ -e ${MCP_Corename_Activity_pipe} ]] && rm ${MCP_Corename_Activity_pipe}
+	[[ -e ${MCP_Activity_Change_pipe} ]] && rm ${MCP_Activity_Change_pipe}
+	[[ -e ${MCP_Activity_pipe} ]] && rm ${MCP_Activity_pipe}
+	[[ -e ${SAM_Activity_pipe} ]] && rm ${SAM_Activity_pipe}
 }
 
-function createpipes() {
-	MCP_cleanup
+function MCP_createpipes() {
 	[[ ! -p ${MCP_cmd_pipe} ]] && mkfifo ${MCP_cmd_pipe}
-	[[ ! -p ${corename_change_pipe} ]] && mkfifo ${corename_change_pipe}
-	[[ ! -p ${corename_pipe} ]] && mkfifo ${corename_pipe}
-	[[ ! -p ${activity_change_pipe} ]] && mkfifo ${activity_change_pipe}
-	[[ ! -p ${activity_pipe} ]] && mkfifo ${activity_pipe}
-	[[ ! -p ${activity_pipe2} ]] && mkfifo ${activity_pipe2}
+	[[ ! -p ${MCP_CoreName_Change_pipe} ]] && mkfifo ${MCP_CoreName_Change_pipe}
+	[[ ! -p ${MCP_Corename_Activity_pipe} ]] && mkfifo ${MCP_Corename_Activity_pipe}
+	[[ ! -p ${MCP_Activity_Change_pipe} ]] && mkfifo ${MCP_Activity_Change_pipe}
+	[[ ! -p ${MCP_Activity_pipe} ]] && mkfifo ${MCP_Activity_pipe}
+	[[ ! -p ${SAM_Activity_pipe} ]] && mkfifo ${SAM_Activity_pipe}
 
 	while true; do
 		if [[ -p ${MCP_cmd_pipe} ]]; then
@@ -205,26 +204,26 @@ function createpipes() {
 	done &
 }
 
-function monitors() {
+function MCP_monitors() {
 	# Start monitoring for CORENAME changes
-	sam_corename_change
 	[[ "${samquiet}" == "no" ]] && printf '%s' " Starting CORENAME change monitor..."
+	MCP_CoreName_Change
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 
 	# Spawn CORENAME monitoring process.
-	sam_corename_monitor
 	[[ "${samquiet}" == "no" ]] && printf '%s' " Starting CORENAME monitor..."
+	MCP_CoreName_Monitor
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 
 	# Start monitoring for joystick device changes
-	sam_activity_change
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting devices change monitor..."
+	MCP_Activity_Change
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 
 	if [ "${listenjoy}" == "yes" ]; then
 		# Spawn joystick monitoring process per detected joystick device
 		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting joystick monitor..."
-		sam_jsmonitor
+		MCP_jsmonitor
 		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 
 	fi
@@ -232,7 +231,7 @@ function monitors() {
 		# Spawn keyboard monitoring processes
 		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting keyboard monitor..."
 		if [[ /dev/input/by-path/*kbd ]]; then
-			sam_keybmonitor
+			MCP_keybmonitor
 		fi
 		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 	fi
@@ -240,46 +239,47 @@ function monitors() {
 	if [ "${listenmouse}" == "yes" ]; then
 		# Spawn mouse monitoring process per detected mouse device
 		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting mouse monitor..."
-		sam_msmonitor
+		MCP_msmonitor
 		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
 	fi
 
 	while true; do
-		if read line <${activity_change_pipe}; then
+		if read line <${MCP_Activity_Change_pipe}; then
 			# If we detect a change to devices:
-			printf '%s\n' "${line}" >${activity_pipe}
+			# printf '%s\n' "${line}" >${MCP_Activity_pipe}
+			echo $line
 		fi
 		sleep 0.1
 	done &
 
 	while true; do
-		if read line <${activity_pipe}; then
+		if read line <${MCP_Activity_pipe}; then
 			tmux send-keys -t MCP C-c ENTER
 			echo -ne "\033[0K\r\033[A"
 			# printf '%s\n' "${line}"
 			if [ ! -z "$(pidof Super_Attract_Mode.sh)" ]; then
-				printf '%s\n' "${line}" >${activity_pipe2}
+				printf '%s\n' "${line}" >${SAM_Activity_pipe}
 			fi
 		fi
 		sleep 0.1
 	done &
 
 	while true; do
-		if read line <${corename_change_pipe}; then
-			sam_corename_monitor
+		if read line <${MCP_CoreName_Change_pipe}; then
+			MCP_CoreName_Monitor
 		fi
 		sleep 0.1
 	done &
 
 	while true; do
-		if read line <${corename_pipe}; then
-			if [ "${line}" != "${corename_name}" ]; then
+		if read line <${MCP_Corename_Activity_pipe}; then
+			if [ "${line}" != "${MCP_corename_name}" ]; then
 				# If we detect a change to CORENAME:
 				# Spawn CORENAME monitoring process
 				tmux rename-window -t MCP "${line}"
 				tmux send-keys -t MCP C-c ENTER
 				echo -ne "\033[0K\r\033[A"
-				sam_corename_change
+				MCP_CoreName_Change
 			fi
 			# printf '%s\n' "${line}"
 		fi
@@ -289,24 +289,24 @@ function monitors() {
 
 # ======== MAIN LOOP ========
 function MCP_loop() {
-	while [ ${mcp_counter} -gt 0 ]; do
-		echo -ne " Starting in ${mcp_counter}...\033[0K\r"
+	while [ ${MCP_counter} -gt 0 ]; do
+		echo -ne " Starting in ${MCP_counter}...\033[0K\r"
 		sleep 1
-		((mcp_counter--))
-		corename_name=$(</tmp/CORENAME)
-		tmux rename-window -t MCP "$corename_name"
+		((MCP_counter--))
+		MCP_corename_name=$(</tmp/CORENAME)
+		tmux rename-window -t MCP "$MCP_corename_name"
 	done
-	corename_name=$(</tmp/CORENAME)
-	tmux rename-window -t MCP "$corename_name"
+	MCP_corename_name=$(</tmp/CORENAME)
+	tmux rename-window -t MCP "$MCP_corename_name"
 	# Only start SAM from main menu
-	if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
+	if [ "${menuonly}" == "yes" ] && [ "${MCP_corename_name}" == "MENU" ]; then
 		printf '%s\n' " Triggered after menuonly=yes"
-		sam_trigger
+		MCP_SAM_trigger
 	elif [ "${menuonly}" == "no" ]; then
 		echo " Triggered after menuonly=no"
-		sam_trigger
+		MCP_SAM_trigger
 	fi
-	mcp_counter=${mcptimeout}
+	MCP_counter=${MCP_timeout}
 	sleep 1
 	MCP_loop
 }
@@ -315,10 +315,10 @@ function main() {
 	#======== Start ========
 
 	# Convert seconds to minutes
-	mcptimeout_minutes=$(echo - | awk -v t=${mcptimeout} '{print t/60}')
+	MCP_timeout_minutes=$(echo - | awk -v t=${MCP_timeout} '{print t/60}')
 
-	createpipes
-	monitors
+	MCP_createpipes
+	MCP_monitors
 	#======== DEBUG OUTPUT =========
 	if [ "${samtrace}" == "yes" ]; then
 		printf '%s\n' "********************************************************************************"
@@ -327,15 +327,15 @@ function main() {
 		printf '%s\n' " misterpath: ${misterpath}"
 		#======== LOCAL VARIABLES ========
 		printf '%s\n' " commandline: ${@}"
-		printf '%s\n' " mcptimeout: ${mcptimeout}"
+		printf '%s\n' " MCP_timeout: ${MCP_timeout}"
 		printf '%s\n' "********************************************************************************"
 	fi
-	corename_name=$(</tmp/CORENAME)
-	tmux rename-window -t MCP "$corename_name"
+	MCP_corename_name=$(</tmp/CORENAME)
+	tmux rename-window -t MCP "$MCP_corename_name"
 	if [ ! -z "$1" ] && [ "$1" == "quickstart" ]; then
-		sam_trigger
+		MCP_SAM_trigger
 	fi
-	trap 'mcp_counter=${mcptimeout}' INT # Reset mcp_counter for Activity Triggers
+	trap 'MCP_counter=${MCP_timeout}' INT # Reset MCP_counter for Activity Triggers
 	MCP_loop
 	trap - INT
 }

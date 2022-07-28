@@ -41,6 +41,8 @@ fi
 #======== Functions ========
 function start() {
 	#======== Start ========
+	cleanup
+	# create_lists &
 	sleep ${bootsleep}
 	mcp_start
 }
@@ -50,18 +52,20 @@ function quickstart() {
 	mcp_start "quickstart"
 }
 
-function stop() {
+function cleanup() {
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
 	if [ ${corename_name} != "MENU" ]; then
-		echo -n " Returning to MiSTer Menu..."
+		[[ "$samdebug" == "yes" ]] && echo -n " Returning to MiSTer Menu..."
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-		echo " Done!"
+		[[ "$samdebug" == "yes" ]] && echo " Done!"
 	fi
 	tries=5
 	pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping MCP..."
-		echo -n " ${pids} "
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while [ $(kill -15 ${pids} 2>/dev/null)] && [ $tries -gt 0 ]; do
 			((tries--))
@@ -70,28 +74,32 @@ function stop() {
 		pids=$(pidof SuperAttract_MCP)
 		echo " Failed, forcing!"
 		echo -n " Stopping MCP..."
-		echo -n " ${pids} "
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
 		kill -9 ${pids} &>/dev/null
 		echo " Done!"
 	fi
-	sleep 2
 	pids=""
 	pids=$(pidof SuperAttract_tty2oled)
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping TTY..."
-		echo -n " | ${pids} "
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
 		done
 		echo " Done!"
 	fi
-	sleep 2
 	pids=""
 	pids=$(pidof Super_Attract_Mode.sh)
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping SAM..."
-		echo -n " | ${pids} "
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
@@ -99,18 +107,59 @@ function stop() {
 		echo " Done!"
 	fi
 	pids=""
-	sleep 2
 	SAM_cleanup
+
+	# Kill old activity processes
+	pids=$(ps aux | grep python | grep MCP_Activity_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
+	if [ ! -z "${pids}" ]; then
+		echo -n " Stopping Device monitors..."
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		# kill -9 ${pids} &>/dev/null
+		while $(kill -15 ${pids} 2>/dev/null); do
+	    	sleep 1
+		done
+		echo " Done!"
+	fi
+	pids=""
+	
+	pids=$(ps aux | grep inotifywait | grep MCP_Activity_Change_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
+	if [ ! -z "${pids}" ]; then
+		echo -n " Stopping Inotifywait Activity instances..."
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		# kill -9 ${pids} &>/dev/null
+		while $(kill -15 ${pids} 2>/dev/null); do
+	    	sleep 1
+		done
+		echo " Done!"
+	fi
+	pids=""
+	
+	pids=$(ps aux | grep inotifywait | grep MCP_CoreName_Change_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
+	if [ ! -z "${pids}" ]; then
+		echo -n " Stopping Inotifywait Corename Change instances..."
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		# kill -9 ${pids} &>/dev/null
+		while $(kill -15 ${pids} 2>/dev/null); do
+	    	sleep 1
+		done
+		echo " Done!"
+	fi
+	pids=""
+	killall -q -9 hexdump 2>/dev/null
 }
 
 function SAM_cleanup() {
 	# Clean up by umounting any mount binds
 	mount1=$(mount | grep /media/fat/config | awk '{print $3}')
-	mount2=$(mount | grep shared | awk '{print $3}')
+	# mount2=$(mount | grep shared | awk '{print $3}')
 	[[ $mount1 ]] && umount $mount1
-	[[ $mount2 ]] && umount $mount2
-	[[ -z $mount1 ]] && echo " No mount exists!"
-	[[ -z $mount2 ]] && echo " No mount exists!"
+	# [[ $mount2 ]] && umount $mount2
 	[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" == "1" ]] && umount "${misterpath}/Bootrom"
 	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot1.rom"
 	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot2.rom"
@@ -125,27 +174,6 @@ function mcp_start() {
 		tmux new-session -s MCP -d "${mrsampath}/SuperAttract_MCP" "${@}" &
 	fi
 }
-
-# Kill running process
-pids=$(pidof -o $$ $(basename -- ${0}))
-if [ ! -z "pids" ]; then
-	echo -n " Removing other instances of $(basename -- ${0})..."
-	kill -9 ${pids} &>/dev/null
-	wait ${pids} &>/dev/null
-	echo " Done!"
-fi
-
-# Kill old activity processes
-echo -n " Stopping activity monitoring..."
-killall -q -9 SuperAttract_joy.py 2>/dev/null
-killall -q -9 SuperAttract_mouse.py 2>/dev/null
-killall -q -9 SuperAttract_keyboard.py 2>/dev/null
-killall -q -9 hexdump 2>/dev/null
-kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Activity_pipe" | {
-	read -r PID COMMAND
-	echo $PID
-}) 2>/dev/null
-echo " Done!"
 
 #======== DEBUG OUTPUT =========
 if [ "${samtrace}" == "yes" ]; then
@@ -168,10 +196,10 @@ quickstart)
 	quickstart
 	;;
 stop)
-	stop
+	cleanup
 	;;
 restart)
-	stop
+	cleanup
 	start
 	;;
 *)

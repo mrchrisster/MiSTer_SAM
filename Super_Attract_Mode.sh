@@ -38,7 +38,7 @@ declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g branch="main"
 declare -g userstartup="/media/fat/linux/user-startup.sh"
 declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
-declare -g amigacore=""
+
 # Save our PID and process
 declare -g sampid="${$}"
 declare -g samprocess="$(basename -- ${0})"
@@ -46,8 +46,8 @@ declare -g samprocess="$(basename -- ${0})"
 # Named Pipes
 declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
 declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
-declare -g activity_pipe2="/tmp/.SAM_tmp/SAM_Activity2"
 declare -g TTY_cmd_pipe="/tmp/.SAM_tmp/TTY_cmd_pipe"
+declare -g SAM_Activity_pipe="/tmp/.SAM_tmp/SAM_Activity_pipe"
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
@@ -187,7 +187,6 @@ function init_vars() {
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
 
-	declare -g amigashared="${amigapath}/shared"
 }
 
 function init_paths() {
@@ -1214,8 +1213,15 @@ function startup_tasks() {
 }
 
 function start_pipe_readers() {
+	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
+	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
 	[[ -e ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
+
+	if [[ ! -p ${SAM_Activity_pipe} ]]; then
+		mkfifo ${SAM_Activity_pipe}
+	fi
+	
 	if [[ ! -p ${SAM_cmd_pipe} ]]; then
 		mkfifo ${SAM_cmd_pipe}
 	fi
@@ -1250,7 +1256,7 @@ function start_pipe_readers() {
 	done &
 
 	while true; do
-		if read line <${activity_pipe2}; then
+		if read line <${SAM_Activity_pipe}; then
 			echo " Activity detected! (${line})"
 			play_or_exit
 		fi
@@ -1824,11 +1830,6 @@ function write_to_MCP_cmd_pipe() {
 	[[ -p ${MCP_cmd_pipe} ]] &&	echo "${@}" >${MCP_cmd_pipe}
 }
 
-function source-only() {
-	startup_tasks
-	return 0
-}
-
 function parse_cmd() {
 	if [ ${#} -eq 0 ]; then # No options - show the pre-menu
 		sam_premenu
@@ -2301,6 +2302,8 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		ps -ef | grep -i '[S]uper_Attract_Mode.sh' | xargs kill &>/dev/null
 	fi
 	SAM_cleanup
+	tmux kill-session -t SAM
+	exit $1
 }
 
 function env_check() {
@@ -2421,18 +2424,17 @@ function creategl() {
 
 function skipmessage() {
 	core=${1}
-	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
-		# Skip past bios/safety warnings
-		sleep 15
-		[[ "${samquiet}" == "no" ]] && echo " Skipping BIOS/Safety Warnings!"
-		if [ $core != "amiga" ]; then
-			"${mrsampath}/mbc" raw_seq :31
-		else
-			if [ ! -s "${amigapath}/listings/games.txt" ]; then
-				# This is for MegaAGS version June 2022 or older
-				"${mrsampath}/mbc" raw_seq {6c
-				"${mrsampath}/mbc" raw_seq O
-			fi
+	# Skip past bios/safety warnings
+	sleep 15
+	[[ "${samquiet}" == "no" ]] && echo " Skipping BIOS/Safety Warnings!"
+	if [ $core != "amiga" ]; then
+		"${mrsampath}/mbc" raw_seq :31
+	else
+		if [ ! -s "${amigapath}/listings/games.txt" ]; then
+			# This is for MegaAGS version June 2022 or older
+			"${mrsampath}/mbc" raw_seq {6c
+			"${mrsampath}/mbc" raw_seq O
+			"${mrsampath}/mbc" raw_seq }
 		fi
 	fi
 }
@@ -2611,7 +2613,7 @@ function loop_core() { # loop_core (core)
 	while true; do
 		trap 'counter=0' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
-			if [ "$(mount | grep -ic '/media/fat/config')" == "1" ]; then
+			if [ "$(mount | grep -ic '/media/fat/config')" -eq 1 ]; then
 				echo -ne " Next game in ${counter}...\033[0K\r"
 				sleep 1
 				((counter--))
@@ -2625,7 +2627,7 @@ function loop_core() { # loop_core (core)
 		done
 		trap - INT
 		sleep 1
-		if [ "$(mount | grep -ic '/media/fat/config')" == "1" ]; then
+		if [ "$(mount | grep -ic '/media/fat/config')" -eq 1 ]; then
 			counter=${gametimer}
 			next_core ${core}
 		fi
@@ -2668,8 +2670,8 @@ function speedtest() {
 		done
 	fi
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
-	[ "$(mount | grep -ic '${gamelistpath}')" == "1" ] && umount "${gamelistpath}"
-	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "1" ] && umount "${gamelistpathtmp}"
+	[ "$(mount | grep -ic '${gamelistpath}')" -eq 1 ] && umount "${gamelistpath}"
+	[ "$(mount | grep -ic '${gamelistpathtmp}')" -eq 1 ] && umount "${gamelistpathtmp}"
 	speedtest=0
 }
 
@@ -2828,12 +2830,14 @@ function create_romlist() { # args ${core} "${DIR}"
 					done
 				fi														   
 			fi
-			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt.tmp" >"${gamelistpath}/${core}_gamelist.txt"
-			cat "${tmpfile}" | sort >"${gamelistpath}/${core}_gamelist.txt.tmp"
+			cat "${tmpfile}" | sort >"${tmpfile2}"
+			# Strip out all duplicate filenames with a fancy awk command
+			awk -F'/' '!seen[$NF]++' "${tmpfile2}" >"${gamelistpath}/${core}_gamelist.txt"
 			cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 		fi
 	fi
-	[ -f "${gamelistpath}/${core}_gamelist.txt.tmp" ] && rm "${gamelistpath}/${core}_gamelist.txt.tmp" &>/dev/null
+
+
 	[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
 	[ -f "${tmpfile2}" ] && rm "${tmpfile2}" &>/dev/null
 
@@ -2907,6 +2911,7 @@ function check_romlist() { # args ${core}  "${DIR}"
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${core}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${core}_gamelist.txt"
 	fi
+	[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
 }
 
 # This function will pick a random rom from the game list.
@@ -2937,7 +2942,7 @@ function next_core() { # next_core (core)
 			next_core ${nextcore}
 			return
 		else
-			corelist=$(echo ${corelist} | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
+			corelist=("${corelist[@]/${core}/}")
 		fi
 	fi
 	[[ "${samquiet}" == "no" ]] && echo -e " Selected core: \e[1m${nextcore^^}\e[0m"
@@ -3059,6 +3064,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			sleep 1
 		done
 	fi
+
 	if [ ${core} == "arcade" ]; then
 		# Tell MiSTer to load the next MRA
 		echo "load_core ${rompath}" >/dev/MiSTer_cmd
@@ -3108,7 +3114,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 # ========= MAIN =========
 if [ "${1,,}" == "--source-only" ]; then
-	source-only
+	startup_tasks
 else
 	parse_cmd ${@}
 fi
