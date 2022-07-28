@@ -2098,7 +2098,7 @@ function sam_stop() {
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message or stop
-	set -x
+	# set -x
 	[[ "$(mount | grep -ic /media/fat/config)" -eq 1 ]] && umount /media/fat/config
 	while [[ "$(mount | grep -ic /media/fat/config)" -eq 1 ]]; do
 		sleep 1
@@ -2905,7 +2905,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		done
 	fi
 
-	set -x
+	# set -x
 	if [ ${core} == "arcade" ]; then
 		file_to_load="$rompath"
 		# Tell MiSTer to load the next MRA
@@ -2949,7 +2949,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
 		skipmessage $core &
 	fi
-	set +x
+	# set +x
 }
 
 # ========= MAIN =========
