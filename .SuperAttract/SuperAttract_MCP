@@ -247,7 +247,7 @@ function MCP_monitors() {
 		if read line <${MCP_Activity_Change_pipe}; then
 			# If we detect a change to devices:
 			# printf '%s\n' "${line}" >${MCP_Activity_pipe}
-			echo $line
+			printf '%s\n' "${line}"
 		fi
 		sleep 0.1
 	done &

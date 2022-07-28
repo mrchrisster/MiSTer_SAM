@@ -78,7 +78,7 @@ function init_vars() {
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl mute="Yes"
-	declare -gl samindex="Yes"
+	declare -gl samindex="No"
 	declare -gl playcurrentgame="No"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
@@ -2673,13 +2673,11 @@ function create_romlist() { # args ${core} "${DIR}"
 			cat "${tmpfile}" | sort >"${tmpfile2}"
 			# Strip out all duplicate filenames with a fancy awk command
 			awk -F'/' '!seen[$NF]++' "${tmpfile2}" >"${gamelistpath}/${core}_gamelist.txt"
-			cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 		fi
+		[ -s "${gamelistpath}/${core}_gamelist.txt" ] && cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
+		[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
+		[ -f "${tmpfile2}" ] && rm "${tmpfile2}" &>/dev/null
 	fi
-
-
-	[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
-	[ -f "${tmpfile2}" ] && rm "${tmpfile2}" &>/dev/null
 
 	total_games=$(echo $(cat "${gamelistpath}/${core}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 	if [ ${speedtest} -eq 1 ]; then
