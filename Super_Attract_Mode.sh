@@ -32,22 +32,24 @@
 trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT TERM
 
 # ======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
 declare -g misterpath="/media/fat"
+declare -g misterscripts="${misterpath}/Scripts"
+declare -g mrsampath="${misterscripts}/.SuperAttract"
+declare -g mrsamtmp="/tmp/.SAM_tmp"
 declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g branch="main"
-declare -g userstartup="/media/fat/linux/user-startup.sh"
-declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
+declare -g userstartup="${mrpath}/linux/user-startup.sh"
+declare -g userstartuptpl="${mrpath}/linux/_user-startup.sh"
 
 # Save our PID and process
 declare -g sampid="${$}"
 declare -g samprocess="$(basename -- ${0})"
 
 # Named Pipes
-declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
-declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
-declare -g TTY_cmd_pipe="/tmp/.SAM_tmp/TTY_cmd_pipe"
-declare -g SAM_Activity_pipe="/tmp/.SAM_tmp/SAM_Activity_pipe"
+declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
+declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
+declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
+declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
@@ -63,11 +65,11 @@ function init_vars() {
 	declare -gi coreretries=3
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
-	declare -g gamelistpathtmp="/tmp/.SAM_List/"
+	declare -g gamelistpathtmp="/tmp/.SAM_List"
 	declare -g excludepath="${mrsampath}"
-	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
-	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
-	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"
+	declare -g tmpfile="${gamelistpathtmp}/tmpfile"
+	declare -g tmpfile2="${gamelistpathtmp}/tmpfile2"
+	declare -g corelisttmpfile="${gamelistpathtmp}/corelist.tmp"
 	declare -gi gametimer=120
 	declare -gl corelist="amiga,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
@@ -117,28 +119,28 @@ function init_vars() {
 	# ======== BGM =======
 	declare -gl bgm="No"
 	# ======== CORE PATHS ========
-	declare -g amigapath="/media/fat/Games/Amiga"
-	declare -g arcadepath="/media/fat/_Arcade"
-	declare -g atari2600path="/media/fat/Games/Atari7800"
-	declare -g atari5200path="/media/fat/Games/Atari5200"
-	declare -g atari7800path="/media/fat/Games/Atari7800"
-	declare -g atarilynxpath="/media/fat/Games/AtariLynx"
-	declare -g c64path="/media/fat/Games/C64"
-	declare -g fdspath="/media/fat/Games/NES"
-	declare -g gbpath="/media/fat/Games/Gameboy"
-	declare -g gbcpath="/media/fat/Games/Gameboy"
-	declare -g gbapath="/media/fat/Games/GBA"
-	declare -g genesispath="/media/fat/Games/Genesis"
-	declare -g ggpath="/media/fat/Games/SMS"
-	declare -g megacdpath="/media/fat/Games/MegaCD"
-	declare -g neogeopath="/media/fat/Games/NeoGeo"
-	declare -g nespath="/media/fat/Games/NES"
-	declare -g s32xpath="/media/fat/Games/S32X"
-	declare -g smspath="/media/fat/Games/SMS"
-	declare -g snespath="/media/fat/Games/SNES"
-	declare -g tgfx16path="/media/fat/Games/TGFX16"
-	declare -g tgfx16cdpath="/media/fat/Games/TGFX16-CD"
-	declare -g psxpath="/media/fat/Games/PSX"
+	declare -g amigapath="${misterpath}/Games/Amiga"
+	declare -g arcadepath="${misterpath}/_Arcade"
+	declare -g atari2600path="${misterpath}/Games/Atari7800"
+	declare -g atari5200path="${misterpath}/Games/Atari5200"
+	declare -g atari7800path="${misterpath}/Games/Atari7800"
+	declare -g atarilynxpath="${misterpath}/Games/AtariLynx"
+	declare -g c64path="${misterpath}/Games/C64"
+	declare -g fdspath="${misterpath}/Games/NES"
+	declare -g gbpath="${misterpath}/Games/Gameboy"
+	declare -g gbcpath="${misterpath}/Games/Gameboy"
+	declare -g gbapath="${misterpath}/Games/GBA"
+	declare -g genesispath="${misterpath}/Games/Genesis"
+	declare -g ggpath="${misterpath}/Games/SMS"
+	declare -g megacdpath="${misterpath}/Games/MegaCD"
+	declare -g neogeopath="${misterpath}/Games/NeoGeo"
+	declare -g nespath="${misterpath}/Games/NES"
+	declare -g s32xpath="${misterpath}/Games/S32X"
+	declare -g smspath="${misterpath}/Games/SMS"
+	declare -g snespath="${misterpath}/Games/SNES"
+	declare -g tgfx16path="${misterpath}/Games/TGFX16"
+	declare -g tgfx16cdpath="${misterpath}/Games/TGFX16-CD"
+	declare -g psxpath="${misterpath}/Games/PSX"
 
 	# ======== CORE PATHS EXTRA ========
 	declare -g amigapathextra=""
@@ -199,23 +201,23 @@ function init_paths() {
 		/media/usb3/games
 		/media/usb4/games
 		/media/usb5/games
-		/media/fat/cifs/games
-		/media/fat/games
+		${misterpath}/cifs/games
+		${misterpath}/games
 		/media/usb0
 		/media/usb1
 		/media/usb2
 		/media/usb3
 		/media/usb4
 		/media/usb5
-		/media/fat/cifs
-		/media/fat
+		${misterpath}/cifs
+		${misterpath}
 	)
 
 	declare -g GET_SYSTEM_FOLDER_GAMESDIR=""
 	declare -g GET_SYSTEM_FOLDER_RESULT=""
 	# Create folders if they don't exist
-	mkdir -p "${mrsampath}/SAM_Gamelists"
-	mkdir -p /tmp/.SAM_List
+	mkdir -p "${gamelistpath}"
+	mkdir -p "${gamelistpathtmp}"
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
 	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
@@ -255,33 +257,33 @@ function sam_prep() {
 
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory is $amigashared "
 
-	RBF_found=$(find /media/fat/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -ic Minimig)
+	RBF_found=$(find ${misterpath}/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -ic Minimig)
 	if [ "${RBF_found}" -eq 0 ]; then
 		echo "Amiga RBF not found!"
 		corelist=("${corelist[@]/amiga/}")
 	else
-		amigacore=$(find /media/fat/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -i ${CORE_LAUNCH[amiga]} | tail -1)
+		amigacore=$(find ${misterpath}/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -i ${CORE_LAUNCH[amiga]} | tail -1)
 	fi
 
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amiga RBF is $amigacore "
 
-	[[ ! -d "/tmp/.SAM_tmp/SAM_config" ]] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
-	[[ -d "/tmp/.SAM_tmp/SAM_config" ]] && [[ "$(mount | grep -ic '/media/fat/config')" == "0" ]] && cp -pr --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
-	# [[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ]] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
-	# [[ -d "/tmp/.SAM_tmp/Amiga_shared" ]] && [[ "$(mount | grep -ic '${amigashared}')" == "0" ]] && cp -pr --force ${amigashared}/Disk.info /tmp/.SAM_tmp/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat /tmp/.SAM_tmp/Amiga_shared &>/dev/null && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigashared}"
+	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
+	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ "$(mount | grep -ic '${misterpath}/config')" == "0" ]] && cp -pr --force ${misterpath}/config/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
+	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
+	# [[ -d "${mrsamtmp}/Amiga_shared" ]] && [[ "$(mount | grep -ic '${amigashared}')" == "0" ]] && cp -pr --force ${amigashared}/Disk.info ${mrsamtmp}/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat ${mrsamtmp}/Amiga_shared &>/dev/null && mount --bind "${mrsamtmp}/Amiga_shared" "${amigashared}"
 	# Disable Bootrom - Make Bootrom folder inaccessible until restart
 	if [ "${disablebootrom}" == "Yes" ]; then
 		[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" == "0" ]] && mount --bind /mnt "${misterpath}/Bootrom"
 		# Disable Nes bootroms except for FDS Bios (boot0.rom)
-		[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ]] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot1.rom"
-		[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ]] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot2.rom"
-		[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ]] && touch /tmp/.SAM_tmp/brfake && mount --bind /tmp/.SAM_tmp/brfake "${misterpath}/Games/NES/boot3.rom"
+		[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${misterpath}/Games/NES/boot1.rom"
+		[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${misterpath}/Games/NES/boot2.rom"
+		[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${misterpath}/Games/NES/boot3.rom"
 	fi
 }
 
 function SAM_cleanup() {
 	# Clean up by umounting any mount binds
-	[[ "$(mount | grep -ic /media/fat/config)" -eq 1 ]] && umount "/media/fat/config"
+	[[ "$(mount | grep -ic ${misterpath}/config)" -eq 1 ]] && umount "${misterpath}/config"
 	# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] && umount "${amigashared}"
 	[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" -eq 1 ]] && umount "${misterpath}/Bootrom"
 	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" -eq 1 ]] && umount "${misterpath}/Games/NES/boot1.rom"
@@ -1338,16 +1340,16 @@ function debug_output() {
 
 # Read INI
 function read_samini() {
-	if [ -f "${misterpath}/Scripts/Super_Attract_Mode.ini" ]; then
-		source "${misterpath}/Scripts/Super_Attract_Mode.ini"
+	if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
+		source "${misterscripts}/Super_Attract_Mode.ini"
 		# Remove trailing slash from paths
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/Super_Attract_Mode.ini" | grep "path=" | cut -f1 -d"="); do
+		for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "path=" | cut -f1 -d"="); do
 			declare -g ${var}="${!var%/}"
 		done
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/Super_Attract_Mode.ini" | grep "pathextra=" | cut -f1 -d"="); do
+		for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "pathextra=" | cut -f1 -d"="); do
 			declare -g ${var}="${!var%/}"
 		done
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/Super_Attract_Mode.ini" | grep "pathrbf=" | cut -f1 -d"="); do
+		for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "pathrbf=" | cut -f1 -d"="); do
 			declare -g ${var}="${!var%/}"
 		done
 	else
@@ -1575,10 +1577,10 @@ function sam_configmenu() {
 
 	dialog --clear --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
-		--editbox "${misterpath}/Scripts/Super_Attract_Mode.ini" 0 0 2>"/tmp/.SAMmenu"
+		--editbox "${misterscripts}/Super_Attract_Mode.ini" 0 0 2>"/tmp/.SAMmenu"
 
-	if [ -s "/tmp/.SAMmenu" ] && [ "$(diff -wq "/tmp/.SAMmenu" "${misterpath}/Scripts/Super_Attract_Mode.ini")" ]; then
-		cp -f "/tmp/.SAMmenu" "${misterpath}/Scripts/Super_Attract_Mode.ini"
+	if [ -s "/tmp/.SAMmenu" ] && [ "$(diff -wq "/tmp/.SAMmenu" "${misterscripts}/Super_Attract_Mode.ini")" ]; then
+		cp -f "/tmp/.SAMmenu" "${misterscripts}/Super_Attract_Mode.ini"
 		dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
 			--msgbox "Changes saved!" 0 0
@@ -1670,7 +1672,7 @@ function samedit_include() {
 		categ="${menuresponse}"
 		# echo "${menuresponse}"
 		# Delete all temporary Game lists
-		if compgen -G "${gamelistpathtmp}/*_gamelist.txt" >/dev/null; then
+		if compgen -G "${gamelistpathtmp}/*_gamelist.txt" &>/dev/null; then
 			rm ${gamelistpathtmp}/*_gamelist.txt
 		fi
 		gamelists=($(find "${gamelistpath}" -name "*_gamelist.txt"))
@@ -1780,7 +1782,7 @@ function samedit_excltags() {
 function sam_bgmmenu() {
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
-		--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
+		--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in ${misterpath}/music folder." 0 0
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
@@ -1794,41 +1796,41 @@ function sam_bgmmenu() {
 		sam_menu
 	else
 		if [[ "${menuresponse,,}" == "enablebgm" ]]; then
-			if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
+			if [ ! -f "${misterscripts}/bgm.sh" ]; then
 				echo " Installing BGM to Scripts folder"
 				repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
 				branch="main"
 				get_samstuff bgm.sh /tmp
-				mv --force /tmp/bgm.sh /media/fat/Scripts/
+				mv --force /tmp/bgm.sh ${misterscripts}/
 			else
 				echo " BGM script is installed already. Updating just in case..."
-				/media/fat/Scripts/bgm.sh stop &>/dev/null
+				${misterscripts}/bgm.sh stop &>/dev/null
 				repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
 				branch="main"
 				get_samstuff bgm.sh /tmp
-				mv --force /tmp/bgm.sh /media/fat/Scripts/
+				mv --force /tmp/bgm.sh ${misterscripts}/
 				echo " Resetting BGM now."
 			fi
 			echo " Updating Super_Attract_Mode.ini to use Mute=Core"
-			sed -i '/mute=/c\mute=Core' /media/fat/Scripts/Super_Attract_Mode.ini
-			/media/fat/Scripts/bgm.sh
+			sed -i '/mute=/c\mute=Core' ${misterscripts}/Super_Attract_Mode.ini
+			${misterscripts}/bgm.sh
 			sync
 			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 			branch="main"
-			get_samstuff Media/80s.pls /media/fat/music
-			[[ ! $(grep -i "bgm" /media/fat/Scripts/Super_Attract_Mode.ini) ]] && echo "bgm=Yes" >>/media/fat/Scripts/Super_Attract_Mode.ini
-			sed -i '/bgm=/c\bgm=Yes' /media/fat/Scripts/Super_Attract_Mode.ini
+			get_samstuff Media/80s.pls ${misterpath}/music
+			[[ ! $(grep -i "bgm" ${misterscripts}/Super_Attract_Mode.ini) ]] && echo "bgm=Yes" >>${misterscripts}/Super_Attract_Mode.ini
+			sed -i '/bgm=/c\bgm=Yes' ${misterscripts}/Super_Attract_Mode.ini
 			echo " All Done. Starting SAM now."
-			/media/fat/Scripts/"Super_Attract_Mode.sh" start
+			${misterscripts}/"Super_Attract_Mode.sh" start
 
 		elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
 			echo " Uninstalling BGM, please wait..."
-			[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
-			[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
-			[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
+			[[ -e ${misterscripts}/bgm.sh ]] && ${misterscripts}/bgm.sh stop
+			[[ -e ${misterscripts}/bgm.sh ]] && rm ${misterscripts}/bgm.sh
+			[[ -e ${misterpath}/music/bgm.ini ]] && rm ${misterpath}/music/bgm.ini
 			sed -i '/bgm.sh/d' ${userstartup}
 			sed -i '/Startup BGM/d' ${userstartup}
-			sed -i '/bgm=/c\bgm=No' /media/fat/Scripts/Super_Attract_Mode.ini
+			sed -i '/bgm=/c\bgm=No' ${misterscripts}/Super_Attract_Mode.ini
 			echo " Done."
 		fi
 	fi
@@ -1881,7 +1883,7 @@ function sam_update() { # sam_update (next command)
 			return 1
 		fi
 	else # We're running from /tmp - download dependencies and proceed
-		cp --force "/tmp/Super_Attract_Mode.sh" "/media/fat/Scripts/Super_Attract_Mode.sh" &>/dev/null
+		cp --force "/tmp/Super_Attract_Mode.sh" "${misterscripts}/Super_Attract_Mode.sh" &>/dev/null
 
 		get_partun
 		get_mbc
@@ -1896,20 +1898,20 @@ function sam_update() { # sam_update (next command)
 		unzip -ojq /tmp/samindex.zip -d ${mrsampath} &>/dev/null																								  												  
 		get_samstuff .SuperAttract/SAM_splash.gsc
 
-		if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
+		if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
 			echo " SAM INI already exists... Merging with new ini."
 			get_samstuff "Super_Attract_Mode.ini" /tmp
 			echo " Backing up Super_Attract_Mode.ini to Super_Attract_Mode.ini.bak"
-			cp /media/fat/Scripts/"Super_Attract_Mode.ini" /media/fat/Scripts/"Super_Attract_Mode.ini.bak" &>/dev/null
+			cp ${misterscripts}/"Super_Attract_Mode.ini" ${misterscripts}/"Super_Attract_Mode.ini.bak" &>/dev/null
 			echo -n " Merging ini values.."
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
-			sed -i 's/==/--/g' /media/fat/Scripts/"Super_Attract_Mode.ini"
-			sed -i 's/-=/--/g' /media/fat/Scripts/"Super_Attract_Mode.ini"
-			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/Super_Attract_Mode.ini /tmp/"Super_Attract_Mode.ini" >/tmp/SuperAttract.tmp && mv --force /tmp/SuperAttract.tmp /media/fat/Scripts/"Super_Attract_Mode.ini"
+			sed -i 's/==/--/g' ${misterscripts}/"Super_Attract_Mode.ini"
+			sed -i 's/-=/--/g' ${misterscripts}/"Super_Attract_Mode.ini"
+			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' ${misterscripts}/Super_Attract_Mode.ini /tmp/"Super_Attract_Mode.ini" >/tmp/SuperAttract.tmp && mv --force /tmp/SuperAttract.tmp ${misterscripts}/"Super_Attract_Mode.ini"
 			echo "Done."
 
 		else
-			get_samstuff "Super_Attract_Mode.ini" /media/fat/Scripts
+			get_samstuff "Super_Attract_Mode.ini" ${misterscripts}
 		fi
 
 	fi
@@ -1928,7 +1930,7 @@ function sam_install() { # Install SAM to startup
 	echo -n " Installing Super Attract Mode..."
 
 	# Awaken daemon
-	# Check for and delete old fashioned scripts to prefer /media/fat/linux/user-startup.sh
+	# Check for and delete old fashioned scripts to prefer ${misterpath}/linux/user-startup.sh
 	# (https://misterfpga.org/viewtopic.php?p=32159#p32159)
 
 	if [ -f /etc/init.d/S93mistersam ] || [ -f /etc/init.d/_S93mistersam ]; then
@@ -2046,7 +2048,7 @@ function sam_stop() {
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
 	if [ ${corename_name} != "MENU" ]; then
 		echo -n " Returning to MiSTer Menu..."
-		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		echo " Done!"
 	fi
 
@@ -2098,9 +2100,8 @@ function sam_stop() {
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message or stop
-	# set -x
-	[[ "$(mount | grep -ic /media/fat/config)" -eq 1 ]] && umount /media/fat/config
-	while [[ "$(mount | grep -ic /media/fat/config)" -eq 1 ]]; do
+	[[ "$(mount | grep -ic ${misterpath}/config)" -eq 1 ]] && umount ${misterpath}/config
+	while [[ "$(mount | grep -ic ${misterpath}/config)" -eq 1 ]]; do
 		sleep 1
 	done
 	# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] && umount "${amigashared}"
@@ -2114,14 +2115,14 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		sam_stop
 	elif [ "${1}" -eq 0 ]; then # just exit
 		if [ ! ${corename_name,,} == "menu" ]; then
-			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		fi
 		sleep 1
 		echo " Done!"
 		echo " Thanks for playing!"
 	elif [ "${1}" -eq 1 ]; then # Error
 		if [ ! ${corename_name,,} == "menu" ]; then
-			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		fi
 		sleep 1
 		echo " Done!"
@@ -2130,8 +2131,8 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		if  [ ${mute} != "no" ]; then
 			sleep 0.5
 			# if [ ${corename_name,,} == "minimig" ]; then
-			# 	[[ -s /tmp/.SAM_tmp/Amiga_shared/ags_boot ]] && mv /tmp/.SAM_tmp/Amiga_shared/ags_boot ${amigashared}/ags_boot
-			# 	[[ -s /tmp/.SAM_tmp/Amiga_shared/ags_current ]] && mv /tmp/.SAM_tmp/Amiga_shared/ags_current ${amigashared}/ags_boot
+			# 	[[ -s ${mrsamtmp}/Amiga_shared/ags_boot ]] && mv ${mrsamtmp}/Amiga_shared/ags_boot ${amigashared}/ags_boot
+			# 	[[ -s ${mrsamtmp}/Amiga_shared/ags_current ]] && mv ${mrsamtmp}/Amiga_shared/ags_current ${amigashared}/ags_boot
 			# 	sleep 1
 			# fi
 			echo "load_core $file_to_load" >/dev/MiSTer_cmd
@@ -2164,20 +2165,20 @@ function deleteall() {
 		echo "Deleting SuperAttract folder"
 		rm -rf "${mrsampath}"
 	fi
-	if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
+	if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
 		echo "Deleting Super_Attract_Mode.ini"
-		cp /media/fat/Scripts/"Super_Attract_Mode.ini" /media/fat/Scripts/"Super_Attract_Mode.ini.bak" &>/dev/null
-		rm /media/fat/Scripts/"Super_Attract_Mode.ini"
+		cp ${misterscripts}/"Super_Attract_Mode.ini" ${misterscripts}/"Super_Attract_Mode.ini.bak" &>/dev/null
+		rm ${misterscripts}/"Super_Attract_Mode.ini"
 	fi
 
-	if [ -d "/media/fat/Scripts/SAM_Gamelists" ]; then
+	if [ -d "${gamelistpath}" ]; then
 		echo "Deleting Gamelist folder"
-		rm -rf "/media/fat/Scripts/SAM_Gamelists"
+		rm -rf "${gamelistpath}"
 	fi
 
-	if ls /media/fat/Config/inputs/*_input_1234_5678_v3.map 1>/dev/null 2>&1; then
+	if ls ${misterpath}/Config/inputs/*_input_1234_5678_v3.map 1>/dev/null 2>&1; then
 		echo "Deleting Keyboard mapping files"
-		rm /media/fat/Config/inputs/*_input_1234_5678_v3.map
+		rm ${misterpath}/Config/inputs/*_input_1234_5678_v3.map
 	fi
 	# Remount root as read-write if read-only so we can remove daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
@@ -2214,16 +2215,16 @@ function deletegl() {
 	# In case of issues, reset game lists
 
 	there_can_be_only_one
-	if [ -d "${mrsampath}/SAM_Gamelists" ]; then
+	if [ -d "${gamelistpath}" ]; then
 		echo "Deleting Super Attract Mode Gamelist folder"
-		rm -rf "${mrsampath}/SAM_Gamelists"
+		rm -rf "${gamelistpath}"
 	fi
 
 	if [ -d "${mrsampath}/SAM_Count" ]; then
 		rm -rf "${mrsampath}/SAM_Count"
 	fi
-	if [ -d /tmp/.SAM_List ]; then
-		rm -rf /tmp/.SAM_List
+	if [ -d "${gamelistpathtmp}" ]; then
+		rm -rf "${gamelistpathtmp}"
 	fi
 
 	if [ ${inmenu} -eq 1 ]; then
@@ -2237,8 +2238,8 @@ function deletegl() {
 }
 
 function creategl() {
-	mkdir -p "${mrsampath}/SAM_Gamelists"
-	mkdir -p /tmp/.SAM_List
+	mkdir -p "${gamelistpath}"
+	mkdir -p "${gamelistpathtmp}"
 	create_all_gamelists_old="${create_all_gamelists}"
 	rebuild_freq_amiga_old="${rebuild_freq_amiga}"
 	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
@@ -2310,17 +2311,17 @@ function bgm_stop() {
 function mute() {
 	if [ "${mute}" == "yes" ]; then
 		# Mute Global Volume
-		echo -e "\0020\c" >/media/fat/config/Volume.dat
+		echo -e "\0020\c" >${misterpath}/config/Volume.dat
 	elif [ "${mute}" == "core" ]; then
 		# UnMute Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		echo -e "\0000\c" >${misterpath}/config/Volume.dat
 		# Mute Core Volumes
-		echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
+		echo -e "\0006\c" >"${misterpath}/config/${1}_volume.cfg"
 	elif [ "${mute}" == "no" ]; then
 		# UnMute Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		echo -e "\0000\c" >${misterpath}/config/Volume.dat
 		# UnMute Core Volumes
-		echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
+		echo -e "\0000\c" >"${misterpath}/config/${1}_volume.cfg"
 	fi
 }
 
@@ -2405,10 +2406,10 @@ function get_mbc() {
 
 function get_inputmap() {
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
-	get_samstuff .SuperAttract/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/GBA_input_1234_5678_v3.map ${misterpath}/Config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/MegaCD_input_1234_5678_v3.map ${misterpath}/Config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/NES_input_1234_5678_v3.map ${misterpath}/Config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/TGFX16_input_1234_5678_v3.map ${misterpath}/Config/inputs >/dev/null
 	echo " Done!"
 }
 
@@ -2453,7 +2454,7 @@ function loop_core() { # loop_core (core)
 	while true; do
 		trap 'counter=0' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
-			if [ "$(mount | grep -ic '/media/fat/config')" -eq 1 ]; then
+			if [[ "$(mount | grep -ic ${misterpath}/config)" -eq 1 ]]; then
 				echo -ne " Next game in ${counter}...\033[0K\r"
 				sleep 1
 				((counter--))
@@ -2467,7 +2468,7 @@ function loop_core() { # loop_core (core)
 		done
 		trap - INT
 		sleep 1
-		if [ "$(mount | grep -ic '/media/fat/config')" -eq 1 ]; then
+		if [[ "$(mount | grep -ic ${misterpath}/config)" -eq 1 ]]; then
 			counter=${gametimer}
 			next_core ${core}
 		fi
@@ -2482,17 +2483,17 @@ function reset_core_gl() { # args ${nextcore}
 
 function speedtest() {
 	speedtest=1
-	[ ! -d "/tmp/.SAM_tmp/gl" ] && { mkdir -p /tmp/.SAM_tmp/gl; }
-	[ ! -d "/tmp/.SAM_tmp/glt" ] && { mkdir -p /tmp/.SAM_tmp/glt; }
-	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind /tmp/.SAM_tmp/gl "${gamelistpath}"
-	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind /tmp/.SAM_tmp/glt "${gamelistpathtmp}"
+	[ ! -d "${mrsamtmp}/gl" ] && { mkdir -p ${mrsamtmp}/gl; }
+	[ ! -d "${mrsamtmp}/glt" ] && { mkdir -p ${mrsamtmp}/glt; }
+	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind ${mrsamtmp}/gl "${gamelistpath}"
+	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind ${mrsamtmp}/glt "${gamelistpathtmp}"
 	START="$(date +%s)"
 	for core in ${corelistall}; do
 		defaultpath "${core}"
 	done
 	DURATION_DP=$(($(date +%s) - ${START}))
 	START="$(date +%s)"
-	echo "" >"${gamelistpathtmp}/Durations.tmp"
+	echo "" | >"${gamelistpathtmp}/Durations.tmp"
 	for core in ${corelistall}; do
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
 		if [ ${core} = " " ] || [ ${core} = "" ] || [ -z ${core} ]; then
@@ -2617,6 +2618,10 @@ function create_romlist() { # args ${core} "${DIR}"
 	else
 		echo -n " Looking for games in  ${DIR}..."
 	fi
+	rm "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
+	[[ -f "${tmpfile}" ]] && rm "${tmpfile}" &>/dev/null
+	[[ -f "${tmpfile2}" ]] && rm "${tmpfile2}" &>/dev/null
+
 	if [ $core == "amiga" ]; then
 		# Check for existing files that define the "ROMs"
 		if [ -f "${amigapath}/listings/games.txt" ]; then
@@ -2647,21 +2652,22 @@ function create_romlist() { # args ${core} "${DIR}"
 		fi
 	else
 		# Find all files in core's folder with core's extension
-		if [ "${samindex}" == "yes" ]; then
+		if [ "${samindex}" == "yes" ] && [ -s "${mrsampath}/samindex" ]; then
+			mkdir -p "${gamelistpathtmp}/samindex"
 			if [ "${samquiet}" == "no" ]; then 
-				${mrsampath}/samindex -s ${core} -o "${gamelistpath}"
+				${mrsampath}/samindex -s ${core} -o "${gamelistpathtmp}/samindex"
 			else
-				${mrsampath}/samindex -q -s ${core} -o "${gamelistpath}"
+				${mrsampath}/samindex -q -s ${core} -o "${gamelistpathtmp}/samindex"
 			fi
-			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpathtmp}/${core}_gamelist.txt"
-
+			[[ ! -f "${gamelistpathtmp}/samindex/${core}_gamelist.txt" ]] && echo "" | >"${tmpfile}" &>/dev/null
+			[[ -f "${gamelistpathtmp}/samindex/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/samindex/${core}_gamelist.txt" "${tmpfile}" &>/dev/null
 		else
 			extlist=$(echo ${CORE_EXT[${core}]} | sed -e "s/,/ -o -iname *.$f/g")
-			find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
+			find -L "${DIR}" \( -xtype l -o -xtype d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' \( -xtype l -o -xtype f \) \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
 			# Now find all zips in core's folder and process
 			if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
-				find -L "${DIR}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-				if [ -s "${tmpfile2}" ]; then
+				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' \( -xtype l -o -xtype f \) \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile2}")
+				if [ -f "${tmpfile2}" ]; then
 					cat "${tmpfile2}" | while read z; do
 						if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 							echo " Processing: ${z}"
@@ -2670,15 +2676,19 @@ function create_romlist() { # args ${core} "${DIR}"
 					done
 				fi														   
 			fi
-			cat "${tmpfile}" | sort >"${tmpfile2}"
-			# Strip out all duplicate filenames with a fancy awk command
-			awk -F'/' '!seen[$NF]++' "${tmpfile2}" >"${gamelistpath}/${core}_gamelist.txt"
 		fi
-		[ -s "${gamelistpath}/${core}_gamelist.txt" ] && cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
-		[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
-		[ -f "${tmpfile2}" ] && rm "${tmpfile2}" &>/dev/null
 	fi
-
+	# Strip out all duplicate filenames with a fancy awk command
+	if [ -f "${tmpfile}" ]; then
+		echo "" | >"${tmpfile2}" &>/dev/null
+		cat "${tmpfile}" | while read z; do
+			echo "${z}" >>"${tmpfile2}"
+		done
+	fi
+	[ -f "${tmpfile2}" ] && awk -F'/' '!seen[$NF]++' "${tmpfile2}" | sort >"${gamelistpathtmp}/${core}_gamelist.txt"
+	[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/${core}_gamelist.txt" "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
+	[[ -f "${tmpfile}" ]] && rm "${tmpfile}" &>/dev/null
+	[[ -f "${tmpfile2}" ]] && rm "${tmpfile2}" &>/dev/null
 	total_games=$(echo $(cat "${gamelistpath}/${core}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "${core}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
@@ -2688,6 +2698,7 @@ function create_romlist() { # args ${core} "${DIR}"
 	else
 		echo " ${total_games} Games found."
 	fi
+	set +x
 }
 
 function check_romlist() { # args ${core}  "${DIR}"
@@ -2903,7 +2914,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		done
 	fi
 
-	# set -x
 	if [ ${core} == "arcade" ]; then
 		file_to_load="$rompath"
 		# Tell MiSTer to load the next MRA
@@ -2922,11 +2932,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 				fi
 				# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] &&
 				echo "${rompath}" >${amigashared}/ags_boot
-				file_to_load=${amigacore}
 				sleep 1
 			fi
 		fi
-	# else
 		file_to_load="/tmp/SAM_game.mgl"
 		# Create mgl file and launch game
 
@@ -2947,7 +2955,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
 		skipmessage $core &
 	fi
-	# set +x
 }
 
 # ========= MAIN =========
