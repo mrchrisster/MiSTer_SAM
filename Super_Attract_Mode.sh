@@ -31,6 +31,9 @@
 
 trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT TERM
 
+# ======== Testing purposes only =========
+declare - gi amiga_use_mgl=1
+
 # ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
@@ -255,7 +258,7 @@ function sam_prep() {
 		[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is empty sticking with default"
 	fi
 
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory is $amigashared "
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory is ${amigashared} "
 
 	RBF_found=$(find ${misterpath}/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -ic Minimig)
 	if [ "${RBF_found}" -eq 0 ]; then
@@ -265,7 +268,7 @@ function sam_prep() {
 		amigacore=$(find ${misterpath}/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -i ${CORE_LAUNCH[amiga]} | tail -1)
 	fi
 
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amiga RBF is $amigacore "
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amiga RBF is ${amigacore} "
 
 	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ "$(mount | grep -ic '${misterpath}/config')" == "0" ]] && cp -pr --force ${misterpath}/config/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
@@ -2932,10 +2935,12 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 				fi
 				# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] &&
 				echo "${rompath}" >${amigashared}/ags_boot
-				sleep 1
-			fi
 		fi
-		file_to_load="/tmp/SAM_game.mgl"
+		if [ ${core} == "amiga" ] && [ "${amiga_use_mgl}" -eq 0 ]; then
+			file_to_load=${amigacore}
+		else
+			file_to_load="/tmp/SAM_game.mgl"
+		fi
 		# Create mgl file and launch game
 
 		echo "<mistergamedescription>" >$file_to_load
