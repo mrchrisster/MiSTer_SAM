@@ -32,7 +32,7 @@
 trap 'rc=$?;[ $rc = 0 ] && exit;SAM_cleanup' EXIT TERM
 
 # ======== Testing purposes only =========
-declare - gi amiga_use_mgl=1
+declare -gi amiga_use_mgl=1
 
 # ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
@@ -235,27 +235,27 @@ function sam_prep() {
 	declare -g amigacore=""
 	declare -g amigashared="${amigapath}/shared"
 	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
-	[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Grep got $var"
+	[[ "${samdebug}" == "yes" ]] && printf '%s\n' " Grep got $var"
 	if [ ! -z "${var}" ]; then
-		[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is not empty"
+		[[ "${samdebug}" == "yes" ]] && printf '%s\n' " Variable is not empty"
 		if [ ! -d ${var} ]; then
-			[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is not a valid directory"
-			if [  "${var: -1}" != "/" ]; then
-				[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable does not contain / in the last position"
+			[[ "${samdebug}" == "yes" ]] && printf '%s\n' " Variable is not a valid directory"
+			if [ "${var: -1}" != "/" ]; then
+				[[ "${samdebug}" == "yes" ]] && printf '%s\n' " Variable does not contain / in the last position"
 				var=$(echo $var | sed 's:/.$::')
 			fi
 		fi
 		if [ -d ${var} ]; then
-			[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is a valid directory"
+			[[ "${samdebug}" == "yes" ]] && printf '%s\n' " Variable is a valid directory"
 			if [ "${var: -1}" == "/" ]; then
-				[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable contains / in the last position"
+				[[ "${samdebug}" == "yes" ]] && printf '%s\n' " Variable contains / in the last position"
 				var="${var::${#var}-1}"
 			fi
-			[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Setting the amigashared variable"
+			[[ "${samdebug}" == "yes" ]] && printf '%s\n' " Setting the amigashared variable"
 			amigashared="${var}"
 		fi
 	else
-		[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is empty sticking with default"
+		[[ "${samdebug}" == "yes" ]] && printf '%s\n' " Variable is empty sticking with default"
 	fi
 
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory is ${amigashared} "
@@ -1238,7 +1238,7 @@ function start_pipe_readers() {
 	if [[ ! -p ${SAM_Activity_pipe} ]]; then
 		mkfifo ${SAM_Activity_pipe}
 	fi
-	
+
 	if [[ ! -p ${SAM_cmd_pipe} ]]; then
 		mkfifo ${SAM_cmd_pipe}
 	fi
@@ -1840,15 +1840,15 @@ function sam_bgmmenu() {
 }
 
 function write_to_SAM_cmd_pipe() {
-	[[ -p ${SAM_cmd_pipe} ]] &&	echo "${@}" >${SAM_cmd_pipe}
+	[[ -p ${SAM_cmd_pipe} ]] && echo "${@}" >${SAM_cmd_pipe}
 }
 
 function write_to_TTY_cmd_pipe() {
-	[[ -p ${TTY_cmd_pipe} ]] &&	echo "${@}" >${TTY_cmd_pipe}
+	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
 }
 
 function write_to_MCP_cmd_pipe() {
-	[[ -p ${MCP_cmd_pipe} ]] &&	echo "${@}" >${MCP_cmd_pipe}
+	[[ -p ${MCP_cmd_pipe} ]] && echo "${@}" >${MCP_cmd_pipe}
 }
 
 # ======== SAM COMMANDS ========
@@ -1898,7 +1898,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
 		curl_download "/tmp/samindex.zip" "${repository_url}/blob/${branch}/.SuperAttract/samindex.zip?raw=true"
-		unzip -ojq /tmp/samindex.zip -d ${mrsampath} &>/dev/null																								  												  
+		unzip -ojq /tmp/samindex.zip -d ${mrsampath} &>/dev/null
 		get_samstuff .SuperAttract/SAM_splash.gsc
 
 		if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
@@ -2065,7 +2065,7 @@ function sam_stop() {
 		# kill -9 ${pids} &>/dev/null
 		while [ $(kill -15 ${pids} 2>/dev/null)] && [ $tries -gt 0 ]; do
 			((tries--))
-	    	sleep 1
+			sleep 1
 		done
 		pids=$(pidof SuperAttract_MCP)
 		echo " Failed, forcing!"
@@ -2082,7 +2082,7 @@ function sam_stop() {
 		echo -n " | ${pids} "
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
-	    	sleep 1
+			sleep 1
 		done
 		echo " Done!"
 	fi
@@ -2094,7 +2094,7 @@ function sam_stop() {
 		echo -n " | ${pids} "
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
-	    	sleep 1
+			sleep 1
 		done
 		echo " Done!"
 	fi
@@ -2130,8 +2130,8 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		sleep 1
 		echo " Done!"
 		echo " There was an error ${2}" # Pass error messages in ${2}
-	elif [ "${1}" -eq 2 ]; then        # Play Current Game
-		if  [ ${mute} != "no" ]; then
+	elif [ "${1}" -eq 2 ]; then      # Play Current Game
+		if [ ${mute} != "no" ]; then
 			sleep 0.5
 			# if [ ${corename_name,,} == "minimig" ]; then
 			# 	[[ -s ${mrsamtmp}/Amiga_shared/ags_boot ]] && mv ${mrsamtmp}/Amiga_shared/ags_boot ${amigashared}/ags_boot
@@ -2657,7 +2657,7 @@ function create_romlist() { # args ${core} "${DIR}"
 		# Find all files in core's folder with core's extension
 		if [ "${samindex}" == "yes" ] && [ -s "${mrsampath}/samindex" ]; then
 			mkdir -p "${gamelistpathtmp}/samindex"
-			if [ "${samquiet}" == "no" ]; then 
+			if [ "${samquiet}" == "no" ]; then
 				${mrsampath}/samindex -s ${core} -o "${gamelistpathtmp}/samindex"
 			else
 				${mrsampath}/samindex -q -s ${core} -o "${gamelistpathtmp}/samindex"
@@ -2677,7 +2677,7 @@ function create_romlist() { # args ${core} "${DIR}"
 						fi
 						"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${core}]}" >>"${tmpfile}"
 					done
-				fi														   
+				fi
 			fi
 		fi
 	fi
@@ -2701,7 +2701,6 @@ function create_romlist() { # args ${core} "${DIR}"
 	else
 		echo " ${total_games} Games found."
 	fi
-	set +x
 }
 
 function check_romlist() { # args ${core}  "${DIR}"
@@ -2918,7 +2917,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 
 	if [ ${core} == "arcade" ]; then
-		file_to_load="$rompath"
+		file_to_load="${rompath}"
 		# Tell MiSTer to load the next MRA
 	else
 		if [ ${core} == "amiga" ]; then
@@ -2935,6 +2934,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 				fi
 				# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] &&
 				echo "${rompath}" >${amigashared}/ags_boot
+			fi
 		fi
 		if [ ${core} == "amiga" ] && [ "${amiga_use_mgl}" -eq 0 ]; then
 			file_to_load=${amigacore}
@@ -2961,7 +2961,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		skipmessage $core &
 	fi
 }
-
 # ========= MAIN =========
 function main() {
 	if [ ${#} -eq 0 ]; then # No options - show the pre-menu
@@ -2972,7 +2971,7 @@ function main() {
 		while [ ${#} -gt 0 ]; do
 			case "${1,,}" in
 			stop | quit | exit)
-				write_to_SAM_cmd_pipe  ${1-}
+				write_to_SAM_cmd_pipe ${1-}
 				break
 				;;
 			skip | next)
