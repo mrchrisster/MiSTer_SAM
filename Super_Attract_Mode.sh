@@ -98,6 +98,7 @@ function init_vars() {
 	declare -gi rebuild_freq_amiga_int="604800"
 	declare -gi bootsleep="60"
 	declare -gi countdown="nocountdown"
+	declare -g file_to_load=""
 
 	# ======== TTY2OLED =======
 	declare -gl ttyenable="No"
@@ -226,6 +227,7 @@ function init_paths() {
 }
 
 function sam_prep() {
+	declare -g amigacore=""
 	declare -g amigashared="${amigapath}/shared"
 	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
 	[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Grep got $var"
@@ -251,12 +253,22 @@ function sam_prep() {
 		[[ "${samdebug}" == "yes" ]] &&  printf '%s\n' " Variable is empty sticking with default"
 	fi
 
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory $amigashared "
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory is $amigashared "
+
+	RBF_found=$(find /media/fat/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -ic Minimig)
+	if [ "${RBF_found}" -eq 0 ]; then
+		echo "Amiga RBF not found!"
+		corelist=("${corelist[@]/amiga/}")
+	else
+		amigacore=$(find /media/fat/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -i ${CORE_LAUNCH[amiga]} | tail -1)
+	fi
+
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amiga RBF is $amigacore "
 
 	[[ ! -d "/tmp/.SAM_tmp/SAM_config" ]] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[[ -d "/tmp/.SAM_tmp/SAM_config" ]] && [[ "$(mount | grep -ic '/media/fat/config')" == "0" ]] && cp -pr --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
-	[[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ]] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
-	[[ -d "${amigashared}" ]] && [[ "$(mount | grep -ic ${amigashared})" == "0" ]] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigashared}"
+	# [[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ]] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
+	# [[ -d "/tmp/.SAM_tmp/Amiga_shared" ]] && [[ "$(mount | grep -ic '${amigashared}')" == "0" ]] && cp -pr --force ${amigashared}/Disk.info /tmp/.SAM_tmp/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat /tmp/.SAM_tmp/Amiga_shared &>/dev/null && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigashared}"
 	# Disable Bootrom - Make Bootrom folder inaccessible until restart
 	if [ "${disablebootrom}" == "Yes" ]; then
 		[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" == "0" ]] && mount --bind /mnt "${misterpath}/Bootrom"
@@ -269,12 +281,12 @@ function sam_prep() {
 
 function SAM_cleanup() {
 	# Clean up by umounting any mount binds
-	[[ "$(mount | grep -ic /media/fat/config)" == "1" ]] && umount "/media/fat/config"
-	[[ "$(mount | grep -ic ${amigashared})" == "1" ]] && umount "${amigashared}"
-	[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" == "1" ]] && umount "${misterpath}/Bootrom"
-	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot1.rom"
-	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot2.rom"
-	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot3.rom"
+	[[ "$(mount | grep -ic /media/fat/config)" -eq 1 ]] && umount "/media/fat/config"
+	# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] && umount "${amigashared}"
+	[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" -eq 1 ]] && umount "${misterpath}/Bootrom"
+	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" -eq 1 ]] && umount "${misterpath}/Games/NES/boot1.rom"
+	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" -eq 1 ]] && umount "${misterpath}/Games/NES/boot2.rom"
+	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ "$(mount | grep -ic 'nes/boot3.rom')" -eq 1 ]] && umount "${misterpath}/Games/NES/boot3.rom"
 	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
@@ -501,12 +513,12 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
-		["fds"]="NES"
+		["fds"]="fds"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
 		["gba"]="GBA"
 		["genesis"]="Genesis"
-		["gg"]="SMS"
+		["gg"]="gamegear"
 		["megacd"]="MegaCD"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
@@ -1237,7 +1249,11 @@ function start_pipe_readers() {
 					break
 					;;
 				exit)
-					sam_exit ${2}
+					if [ ! -z "${2}" ]; then
+						sam_exit ${2}
+					else
+						sam_exit 0
+					fi
 					break
 					;;
 				skip | next)
@@ -1445,7 +1461,7 @@ function sam_premenu() {
 			break
 		fi
 	done
-	parse_cmd ${premenu}
+	main ${premenu}
 }
 
 function sam_menu() {
@@ -1477,7 +1493,7 @@ function sam_menu() {
 	if [ "$opt" != "0" ]; then
 		exit
 	else
-		parse_cmd ${menuresponse}
+		main ${menuresponse}
 	fi
 
 }
@@ -1500,7 +1516,7 @@ function sam_singlemenu() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	else
-		parse_cmd ${menuresponse}
+		main ${menuresponse}
 	fi
 
 }
@@ -1517,7 +1533,7 @@ function sam_resetmenu() {
 	clear
 
 	[[ "${samquiet}" == "no" ]] && echo " menuresponse: ${menuresponse}"
-	parse_cmd ${menuresponse}
+	main ${menuresponse}
 }
 
 function sam_gamelistmenu() {
@@ -1535,7 +1551,7 @@ function sam_gamelistmenu() {
 	clear
 
 	[[ "${samquiet}" == "no" ]] && echo " menuresponse: ${menuresponse}"
-	parse_cmd ${menuresponse}
+	main ${menuresponse}
 }
 
 function sam_autoplaymenu() {
@@ -1549,7 +1565,7 @@ function sam_autoplaymenu() {
 
 	clear
 	[[ "${samquiet}" == "no" ]] && echo " menuresponse: ${menuresponse}"
-	parse_cmd ${menuresponse}
+	main ${menuresponse}
 }
 
 function sam_configmenu() {
@@ -1568,7 +1584,7 @@ function sam_configmenu() {
 			--msgbox "Changes saved!" 0 0
 	fi
 
-	parse_cmd menu
+	main menu
 }
 
 function sam_gamemodemenu() {
@@ -1830,195 +1846,6 @@ function write_to_MCP_cmd_pipe() {
 	[[ -p ${MCP_cmd_pipe} ]] &&	echo "${@}" >${MCP_cmd_pipe}
 }
 
-function parse_cmd() {
-	if [ ${#} -eq 0 ]; then # No options - show the pre-menu
-		sam_premenu
-	elif [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
-		sam_help
-	else
-		while [ ${#} -gt 0 ]; do
-			case "${1,,}" in
-			stop | quit | exit)
-				write_to_SAM_cmd_pipe  ${1-}
-				break
-				;;
-			skip | next)
-				echo " Skipping to next game..."
-				write_to_SAM_cmd_pipe ${1-}
-				break
-				;;
-			monitor)
-				sam_monitor_new
-				break
-				;;
-			install) # Enable SAM autoplay mode
-				startup_tasks
-				sam_install
-				break
-				;;
-			uninstall) # Disable SAM autoplay
-				startup_tasks
-				sam_uninstall
-				break
-				;;
-			speedtest)
-				startup_tasks
-				speedtest
-				break
-				;;
-			create-gamelists)
-				startup_tasks
-				creategl
-				break
-				;;
-			delete-gamelists)
-				startup_tasks
-				deletegl
-				break
-				;;
-			default) # sam_update relaunches itself
-				startup_tasks
-				sam_update autoconfig
-				break
-				;;
-			update) # Update SAM
-				startup_tasks
-				sam_update
-				break
-				;;
-			autoconfig)
-				tmux kill-session -t MCP &>/dev/null
-				there_can_be_only_one
-				startup_tasks
-				sam_update
-				sam_install
-				break
-				;;
-			favorite)
-				mglfavorite
-				break
-				;;
-			deleteall)
-				deleteall
-				break
-				;;
-			creategl)
-				creategl
-				break
-				;;
-			deletegl)
-				deletegl
-				break
-				;;
-			help)
-				sam_help
-				break
-				;;
-			esac
-
-			startup_tasks
-			sam_prep
-
-			bgm_start
-			if [ ${create_all_gamelists} == "yes" ]; then
-				echo " Checking Gamelists"
-				create_game_lists
-			fi
-
-			if [ "${samtrace}" == "yes" ]; then
-				debug_output
-			fi
-
-			case "${1,,}" in
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
-				# If we're given a core name then we need to set it first
-				if [ ! -z "${2}" ] && [ "${2,,}" == "start_real" ]; then
-					nextcore=${1,,}
-					corelist=$nextcore
-					sam_start_new
-				else
-					sam_start ${1,,}
-				fi
-				break
-				;;
-			start | restart | bootstart) # Start as from init
-				sam_start
-				break
-				;;
-			start_real) # Start looping
-				sam_start_new
-				break
-				;;
-			startmonitor)
-				sam_start_new
-				sam_monitor_new
-				break
-				;;
-			single)
-				sam_singlemenu
-				break
-				;;
-			utility)
-				sam_utilitymenu
-				break
-				;;
-			autoplay)
-				sam_autoplaymenu
-				break
-				;;
-			reset)
-				sam_resetmenu
-				break
-				;;
-			config)
-				sam_configmenu
-				break
-				;;
-			back)
-				sam_menu
-				break
-				;;
-			menu)
-				sam_menu
-				break
-				;;
-			cancel) # Exit
-				echo " It's pitch dark; You are likely to be eaten by a Grue."
-				inmenu=0
-				break
-				;;
-			exclude)
-				samedit_excltags
-				break
-				;;
-			include)
-				samedit_include
-				break
-				;;
-			gamemode)
-				sam_gamemodemenu
-				break
-				;;
-			gamelists)
-				sam_gamelistmenu
-				break
-				;;
-			bgm)
-				sam_bgmmenu
-				break
-				;;
-			*)
-				echo " ERROR! ${1} is unknown."
-				echo " Try $(basename -- ${0}) help"
-				echo " Or check the Github readme."
-				echo "parse_cmd"
-				break
-				;;
-			esac
-		done
-	fi
-}
-
 # ======== SAM COMMANDS ========
 function sam_update() { # sam_update (next command)
 	# Ensure the MiSTer SAM data directory exists
@@ -2271,6 +2098,15 @@ function sam_stop() {
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message or stop
+	set -x
+	[[ "$(mount | grep -ic /media/fat/config)" -eq 1 ]] && umount /media/fat/config
+	while [[ "$(mount | grep -ic /media/fat/config)" -eq 1 ]]; do
+		sleep 1
+	done
+	# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] && umount "${amigashared}"
+	# while [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]]; do
+	# 	sleep 1
+	# done
 	bgm_stop
 	write_to_TTY_cmd_pipe "exit" &
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
@@ -2290,16 +2126,20 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		sleep 1
 		echo " Done!"
 		echo " There was an error ${2}" # Pass error messages in ${2}
-	elif [ ${1} -eq 2 ]; then        # Play Current Game
-		sleep 1
-	elif [ ${1} -eq 3 ]; then # Play Current Game
-		sleep 1
-		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-	fi
-	if [ ${2} ] && [ ${2} == "stop" ]; then
-		sam_stop
-	else
-		ps -ef | grep -i '[S]uper_Attract_Mode.sh' | xargs kill &>/dev/null
+	elif [ "${1}" -eq 2 ]; then        # Play Current Game
+		if  [ ${mute} != "no" ]; then
+			sleep 0.5
+			# if [ ${corename_name,,} == "minimig" ]; then
+			# 	[[ -s /tmp/.SAM_tmp/Amiga_shared/ags_boot ]] && mv /tmp/.SAM_tmp/Amiga_shared/ags_boot ${amigashared}/ags_boot
+			# 	[[ -s /tmp/.SAM_tmp/Amiga_shared/ags_current ]] && mv /tmp/.SAM_tmp/Amiga_shared/ags_current ${amigashared}/ags_boot
+			# 	sleep 1
+			# fi
+			echo "load_core $file_to_load" >/dev/MiSTer_cmd
+			if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
+				skipmessage ${newcore} &
+			fi
+			sleep 1
+		fi
 	fi
 	SAM_cleanup
 	tmux kill-session -t SAM
@@ -2366,7 +2206,7 @@ function deleteall() {
 	else
 		printf "\nGamelist reset successful. Please start SAM now.\n"
 		sleep 1
-		parse_cmd stop
+		main stop
 	fi
 }
 
@@ -3065,56 +2905,245 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		done
 	fi
 
+	set -x
 	if [ ${core} == "arcade" ]; then
+		file_to_load="$rompath"
 		# Tell MiSTer to load the next MRA
-		echo "load_core ${rompath}" >/dev/MiSTer_cmd
-	elif [ ${core} == "amiga" ]; then
-		if [ ! -f "${amigapath}/MegaAGS.hdf" ]; then
-			echo " ERROR - MegaAGS Pack not found in Amiga folder."
-			next_core ${core}
-			return
-		fi
-		amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
-		if [ -s "${amigapath}/listings/games.txt" ]; then
-			# This is for MegaAGS version July 2022 or newer
-			# Special case for demo
-			if [[ "${rompath}" == *"Demo:"* ]]; then
-				rompath=${rompath//Demo: /}
-			fi
-			echo "${rompath}" >"${amigashared}/ags_boot"
-			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-		else
-			# This is for MegaAGS version June 2022 or older
-			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-			sleep 13
-		fi
 	else
-		# Create mgl file and launch game
-		if [ -s /tmp/SAM_game.mgl ]; then
-			mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
+		if [ ${core} == "amiga" ]; then
+			if [ ! -f "${amigapath}/MegaAGS.hdf" ]; then
+				echo " ERROR - MegaAGS Pack not found in Amiga folder."
+				next_core ${core}
+				return
+			fi
+			if [ -s "${amigapath}/listings/games.txt" ]; then
+				# This is for MegaAGS version July 2022 or newer
+				# Special case for demo
+				if [[ "${rompath}" == *"Demo:"* ]]; then
+					rompath=${rompath//Demo: /}
+				fi
+				# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] &&
+				echo "${rompath}" >${amigashared}/ags_boot
+				file_to_load=${amigacore}
+				sleep 1
+			fi
 		fi
+	# else
+		file_to_load="/tmp/SAM_game.mgl"
+		# Create mgl file and launch game
 
-		echo "<mistergamedescription>" >/tmp/SAM_game.mgl
-		echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>/tmp/SAM_game.mgl
+		echo "<mistergamedescription>" >$file_to_load
+		echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>$file_to_load
 
 		if [ ${usedefaultpaths} == "yes" ] || [ $core == "amiga" ]; then
 			corepath="${CORE_PATH[${core}]}/"
 			rompath="${rompath#${corepath}}"
-			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>/tmp/SAM_game.mgl
+			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>$file_to_load
 		else
-			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
+			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"../../../..${rompath}\""/>" >>$file_to_load
 		fi
 
-		echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
-
-		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+		echo "</mistergamedescription>" >>$file_to_load
 	fi
-	skipmessage $core &
+	echo "load_core $file_to_load" >/dev/MiSTer_cmd
+	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
+		skipmessage $core &
+	fi
+	set +x
 }
 
 # ========= MAIN =========
+function main() {
+	if [ ${#} -eq 0 ]; then # No options - show the pre-menu
+		sam_premenu
+	elif [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
+		sam_help
+	else
+		while [ ${#} -gt 0 ]; do
+			case "${1,,}" in
+			stop | quit | exit)
+				write_to_SAM_cmd_pipe  ${1-}
+				break
+				;;
+			skip | next)
+				echo " Skipping to next game..."
+				write_to_SAM_cmd_pipe ${1-}
+				break
+				;;
+			monitor)
+				sam_monitor_new
+				break
+				;;
+			install) # Enable SAM autoplay mode
+				startup_tasks
+				sam_install
+				break
+				;;
+			uninstall) # Disable SAM autoplay
+				startup_tasks
+				sam_uninstall
+				break
+				;;
+			speedtest)
+				startup_tasks
+				speedtest
+				break
+				;;
+			create-gamelists)
+				startup_tasks
+				creategl
+				break
+				;;
+			delete-gamelists)
+				startup_tasks
+				deletegl
+				break
+				;;
+			default) # sam_update relaunches itself
+				startup_tasks
+				sam_update autoconfig
+				break
+				;;
+			update) # Update SAM
+				startup_tasks
+				sam_update
+				break
+				;;
+			autoconfig)
+				tmux kill-session -t MCP &>/dev/null
+				there_can_be_only_one
+				startup_tasks
+				sam_update
+				sam_install
+				break
+				;;
+			favorite)
+				mglfavorite
+				break
+				;;
+			deleteall)
+				deleteall
+				break
+				;;
+			creategl)
+				creategl
+				break
+				;;
+			deletegl)
+				deletegl
+				break
+				;;
+			help)
+				sam_help
+				break
+				;;
+			esac
+
+			startup_tasks
+			sam_prep
+
+			bgm_start
+			if [ ${create_all_gamelists} == "yes" ]; then
+				echo " Checking Gamelists"
+				create_game_lists
+			fi
+
+			if [ "${samtrace}" == "yes" ]; then
+				debug_output
+			fi
+
+			case "${1,,}" in
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+				# If we're given a core name then we need to set it first
+				if [ ! -z "${2}" ] && [ "${2,,}" == "start_real" ]; then
+					nextcore=${1,,}
+					corelist=$nextcore
+					sam_start_new
+				else
+					sam_start ${1,,}
+				fi
+				break
+				;;
+			start | restart | bootstart) # Start as from init
+				sam_start
+				break
+				;;
+			start_real) # Start looping
+				sam_start_new
+				break
+				;;
+			startmonitor)
+				sam_start_new
+				sam_monitor_new
+				break
+				;;
+			single)
+				sam_singlemenu
+				break
+				;;
+			utility)
+				sam_utilitymenu
+				break
+				;;
+			autoplay)
+				sam_autoplaymenu
+				break
+				;;
+			reset)
+				sam_resetmenu
+				break
+				;;
+			config)
+				sam_configmenu
+				break
+				;;
+			back)
+				sam_menu
+				break
+				;;
+			menu)
+				sam_menu
+				break
+				;;
+			cancel) # Exit
+				echo " It's pitch dark; You are likely to be eaten by a Grue."
+				inmenu=0
+				break
+				;;
+			exclude)
+				samedit_excltags
+				break
+				;;
+			include)
+				samedit_include
+				break
+				;;
+			gamemode)
+				sam_gamemodemenu
+				break
+				;;
+			gamelists)
+				sam_gamelistmenu
+				break
+				;;
+			bgm)
+				sam_bgmmenu
+				break
+				;;
+			*)
+				echo " ERROR! ${1} is unknown."
+				echo " Try $(basename -- ${0}) help"
+				echo " Or check the Github readme."
+				echo "main"
+				break
+				;;
+			esac
+		done
+	fi
+}
+
 if [ "${1,,}" == "--source-only" ]; then
 	startup_tasks
 else
-	parse_cmd ${@}
+	main ${@}
 fi
