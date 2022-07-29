@@ -1,40 +1,57 @@
 #!/bin/bash
 trap 'MCP_cleanup' EXIT TERM
 
-#======== INI VARIABLES ========
-# Change these in the INI file
-
-#======== GLOBAL VARIABLES =========
+# ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 declare -g mrsamtmp="/tmp/.SAM_tmp"
+declare -g userstartup="${mrpath}/linux/user-startup.sh"
+declare -g userstartuptpl="${mrpath}/linux/_user-startup.sh"
+declare -g corename_file="/tmp/CORENAME"
+declare -g corename_name="printf '%s\n' $(<${corename_file})"
+
+# Named Pipes
 declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
 declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
-declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
+declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
 declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
+declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
 declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
 declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
-declare -g corename_file="/tmp/CORENAME"
+
+# ======== DEBUG VARIABLES ========
+declare -gl samquiet="Yes"
+declare -gl samdebug="No"
+declare -gl samtrace="No"
+declare -gi speedtest=0
+
+# ======== TTY2OLED =======
+declare -gl ttyenable="No"
+declare -gi ttyupdate_pause=10
+declare -gA tty_currentinfo=(
+	[core_pretty]=""
+	[name]=""
+	[core]=""
+	[counter]=0
+	[name_scroll]=""
+	[name_scroll_position]=0
+	[name_scroll_direction]=1
+	[update_pause]=$ttyupdate_pause
+)
+
+#======== INI VARIABLES ========
+# Change these in the INI file
+
 declare -gl listenmouse="Yes"
 declare -gl listenkeyboard="Yes"
 declare -gl listenjoy="Yes"
 declare -gl menuonly="Yes"
 
-#======== DEBUG VARIABLES ========
-declare -gl samquiet="Yes"
-declare -gl samdebug="No"
-declare -gl samtrace="No"
-
 #======== LOCAL VARIABLES ========
 declare -gi MCP_timeout=60
 declare -gi MCP_counter=${MCP_timeout}
 declare -g MCP_timeout_minutes=""
-declare -g MCP_corename_name=$(<${corename_file})
-
-# ======== TTY2OLED =======
-declare -gl ttyenable="No"
-declare -gl ttyuseack="No"
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
@@ -59,8 +76,8 @@ function MCP_CoreName_Change() {
 
 function MCP_CoreName_Monitor() {
 	# Spawn CORENAME monitoring process.
-	MCP_corename_name=$(<${corename_file})
-	printf '%s\n' ${MCP_corename_name} >${MCP_Corename_Activity_pipe} &
+	corename_name=$(<${corename_file})
+	printf '%s\n' ${corename_name} >${MCP_Corename_Activity_pipe} &
 }
 
 function MCP_jsmonitor() {
@@ -255,7 +272,7 @@ function MCP_monitors() {
 
 	while true; do
 		if read line <${MCP_Corename_Activity_pipe}; then
-			if [ "${line}" != "${MCP_corename_name}" ]; then
+			if [ "${line}" != "${corename_name}" ]; then
 				# If we detect a change to CORENAME:
 				# Spawn CORENAME monitoring process
 				tmux rename-window -t MCP "${line}"
@@ -275,13 +292,13 @@ function MCP_loop() {
 		echo -ne " Starting in ${MCP_counter}...\033[0K\r"
 		sleep 1
 		((MCP_counter--))
-		MCP_corename_name=$(<${corename_file})
-		tmux rename-window -t MCP "$MCP_corename_name"
+		corename_name=$(<${corename_file})
+		tmux rename-window -t MCP "$corename_name"
 	done
-	MCP_corename_name=$(<${corename_file})
-	tmux rename-window -t MCP "$MCP_corename_name"
+	corename_name=$(<${corename_file})
+	tmux rename-window -t MCP "$corename_name"
 	# Only start SAM from main menu
-	if [ "${menuonly}" == "yes" ] && [ "${MCP_corename_name}" == "MENU" ]; then
+	if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
 		printf '%s\n' " Triggered after menuonly=yes"
 		MCP_SAM_trigger
 	elif [ "${menuonly}" == "no" ]; then
@@ -312,8 +329,8 @@ function main() {
 		printf '%s\n' " MCP_timeout: ${MCP_timeout}"
 		printf '%s\n' "********************************************************************************"
 	fi
-	MCP_corename_name=$(<${corename_file})
-	tmux rename-window -t MCP "$MCP_corename_name"
+	corename_name=$(<${corename_file})
+	tmux rename-window -t MCP "$corename_name"
 	if [ ! -z "$1" ] && [ "$1" == "quickstart" ]; then
 		MCP_SAM_trigger
 	fi

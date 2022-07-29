@@ -39,30 +39,49 @@ declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 declare -g mrsamtmp="/tmp/.SAM_tmp"
-declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-declare -g branch="main"
 declare -g userstartup="${mrpath}/linux/user-startup.sh"
 declare -g userstartuptpl="${mrpath}/linux/_user-startup.sh"
-
-# Save our PID and process
-declare -g sampid="${$}"
-declare -g samprocess="$(basename -- ${0})"
+declare -g corename_file="/tmp/CORENAME"
+declare -g corename_name="printf '%s\n' $(<${corename_file})"
 
 # Named Pipes
 declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
 declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
 declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
 declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
+declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
+declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
+declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
+
+# ======== DEBUG VARIABLES ========
+declare -gl samquiet="Yes"
+declare -gl samdebug="No"
+declare -gl samtrace="No"
+declare -gi speedtest=0
+
+# ======== TTY2OLED =======
+declare -gl ttyenable="No"
+declare -gi ttyupdate_pause=10
+declare -gA tty_currentinfo=(
+	[core_pretty]=""
+	[name]=""
+	[core]=""
+	[counter]=0
+	[name_scroll]=""
+	[name_scroll_position]=0
+	[name_scroll_direction]=1
+	[update_pause]=$ttyupdate_pause
+)
+
+# Save our PID and process
+declare -g sampid="${$}"
+declare -g samprocess="$(basename -- ${0})"
+declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+declare -g branch="main"
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
 function init_vars() {
-	# ======== DEBUG VARIABLES ========
-	declare -gl samquiet="Yes"
-	declare -gl samdebug="No"
-	declare -gl samtrace="No"
-	declare -gi speedtest=0
-
 	# ======== LOCAL VARIABLES ========
 	declare -gi inmenu=0
 	declare -gi coreretries=3
@@ -104,20 +123,6 @@ function init_vars() {
 	declare -gi bootsleep="60"
 	declare -gi countdown="nocountdown"
 	declare -g file_to_load=""
-
-	# ======== TTY2OLED =======
-	declare -gl ttyenable="No"
-	declare -gi ttyupdate_pause=10
-	declare -gA tty_currentinfo=(
-		[core_pretty]=""
-		[name]=""
-		[core]=""
-		[counter]=0
-		[name_scroll]=""
-		[name_scroll_position]=0
-		[name_scroll_direction]=1
-		[update_pause]=$ttyupdate_pause
-	)
 
 	# ======== BGM =======
 	declare -gl bgm="No"
@@ -2119,14 +2124,14 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	if [ ! -z "${2}" ] && [ "${2}" == "stop" ]; then
 		sam_stop
 	elif [ "${1}" -eq 0 ]; then # just exit
-		if [ ! ${corename_name,,} == "menu" ]; then
+		if [ ${corename_name,,} != "menu" ]; then
 			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		fi
 		sleep 1
 		echo " Done!"
 		echo " Thanks for playing!"
 	elif [ "${1}" -eq 1 ]; then # Error
-		if [ ! ${corename_name,,} == "menu" ]; then
+		if [ ${corename_name,,} != "menu" ]; then
 			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		fi
 		sleep 1
@@ -2141,7 +2146,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 			# 	sleep 1
 			# fi
 			echo "load_core $file_to_load" >/dev/MiSTer_cmd
-			if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
+			if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${newcore}]}" == "yes" ]; then
 				skipmessage ${newcore} &
 			fi
 			sleep 1
@@ -2942,21 +2947,21 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			file_to_load=${amigacore}
 		else
 			file_to_load="/tmp/SAM_game.mgl"
+			# Create mgl file and launch game
+
+			echo "<mistergamedescription>" >$file_to_load
+			echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>$file_to_load
+
+			if [ ${usedefaultpaths} == "yes" ] || [ $core == "amiga" ]; then
+				corepath="${CORE_PATH[${core}]}/"
+				rompath="${rompath#${corepath}}"
+				echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>$file_to_load
+			else
+				echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"../../../..${rompath}\""/>" >>$file_to_load
+			fi
+
+			echo "</mistergamedescription>" >>$file_to_load
 		fi
-		# Create mgl file and launch game
-
-		echo "<mistergamedescription>" >$file_to_load
-		echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>$file_to_load
-
-		if [ ${usedefaultpaths} == "yes" ] || [ $core == "amiga" ]; then
-			corepath="${CORE_PATH[${core}]}/"
-			rompath="${rompath#${corepath}}"
-			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>$file_to_load
-		else
-			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"../../../..${rompath}\""/>" >>$file_to_load
-		fi
-
-		echo "</mistergamedescription>" >>$file_to_load
 	fi
 	echo "load_core $file_to_load" >/dev/MiSTer_cmd
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then

@@ -26,28 +26,52 @@
 
 trap 'rc=$?;[ $rc = 0 ] && exit;TTY_exit' EXIT TERM
 
-# ======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
+#======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
+declare -g misterscripts="${misterpath}/Scripts"
+declare -g mrsampath="${misterscripts}/.SuperAttract"
+declare -g mrsamtmp="/tmp/.SAM_tmp"
+declare -g userstartup="${misterpath}/linux/user-startup.sh"
+declare -g userstartuptpl="${misterpath}/linux/_user-startup.sh"
+declare -g corename_file="/tmp/CORENAME"
+declare -g corename_name="printf '%s\n' $(<${corename_file})"
+
+# Named Pipes
+declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
+declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
+declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
+declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
+declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
+declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
+declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
+
+# ======== DEBUG VARIABLES ========
+declare -gl samquiet="Yes"
+declare -gl samdebug="No"
+declare -gl samtrace="No"
+declare -gi speedtest=0
+
+# ======== TTY2OLED =======
+declare -gl ttyenable="No"
+declare -gi ttyupdate_pause=10
+declare -gA tty_currentinfo=(
+	[core_pretty]=""
+	[name]=""
+	[core]=""
+	[counter]=0
+	[name_scroll]=""
+	[name_scroll_position]=0
+	[name_scroll_direction]=1
+	[update_pause]=$ttyupdate_pause
+)
 
 # Save our PID and process
 declare -g ttypid="${$}"
 declare -g samprocess="$(basename -- ${0})"
 
-# Named Pipes
-declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
-declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
-declare -g TTY_cmd_pipe="/tmp/.SAM_tmp/TTY_cmd_pipe"
-
 # ======== INI VARIABLES ========
 # Change these in the INI file
-# ======== DEBUG VARIABLES ========
-declare -gl samquiet="Yes"
-declare -gl samdebug="No"
-declare -gl samtrace="No"
-
 # ======== TTY2OLED =======
-declare -gl ttyenable="No"
 declare -g ttydevice="/dev/ttyUSB0"
 declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
 declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
