@@ -7,12 +7,15 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
 declare -g misterpath="/media/fat"
-declare -g userstartup="/media/fat/linux/user-startup.sh"
-declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
+declare -g misterscripts="${misterpath}/Scripts"
+declare -g mrsampath="${misterscripts}/.SuperAttract"
+declare -g mrsamtmp="/tmp/.SAM_tmp"
+declare -g userstartup="${misterpath}/linux/user-startup.sh"
+declare -g userstartuptpl="${misterpath}/linux/_user-startup.sh"
 declare -gi bootsleep="60"
-declare -g corename_name="printf '%s\n' $(</tmp/CORENAME)"
+declare -g corename_file="/tmp/CORENAME"
+declare -g corename_name="printf '%s\n' $(<${corename_file})"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -23,7 +26,7 @@ samdebug="No"
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
-while ! test -d /media/fat/; do
+while ! test -d ${misterpath}/; do
 	sleep 1
 	count=$(expr $count + 1)
 	if test $count -eq 30; then
@@ -32,11 +35,11 @@ while ! test -d /media/fat/; do
 	fi
 done
 
-if [ -f "${misterpath}/Scripts/Super_Attract_Mode.ini" ]; then
-	source "${misterpath}/Scripts/Super_Attract_Mode.ini"
+if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
+	source "${misterscripts}/Super_Attract_Mode.ini"
 fi
 
-[ ! -d /tmp/.SAM_tmp/ ] && mkdir -p /tmp/.SAM_tmp/
+[ ! -d ${mrsamtmp}/ ] && mkdir -p ${mrsamtmp}/
 
 #======== Functions ========
 function start() {
@@ -53,10 +56,10 @@ function quickstart() {
 }
 
 function cleanup() {
-	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
+	corename_name=$(printf '%s\n' $(<${corename_file}))
 	if [ ${corename_name} != "MENU" ]; then
 		[[ "$samdebug" == "yes" ]] && echo -n " Returning to MiSTer Menu..."
-		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+		echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		[[ "$samdebug" == "yes" ]] && echo " Done!"
 	fi
 	tries=5
@@ -156,7 +159,7 @@ function cleanup() {
 
 function SAM_cleanup() {
 	# Clean up by umounting any mount binds
-	mount1=$(mount | grep /media/fat/config | awk '{print $3}')
+	mount1=$(mount | grep ${misterpath}/config | awk '{print $3}')
 	# mount2=$(mount | grep shared | awk '{print $3}')
 	[[ $mount1 ]] && umount $mount1
 	# [[ $mount2 ]] && umount $mount2

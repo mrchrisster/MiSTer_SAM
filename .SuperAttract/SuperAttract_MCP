@@ -5,14 +5,17 @@ trap 'MCP_cleanup' EXIT TERM
 # Change these in the INI file
 
 #======== GLOBAL VARIABLES =========
-declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
 declare -g misterpath="/media/fat"
-declare -g SAM_cmd_pipe="/tmp/.SAM_tmp/SAM_cmd_pipe"
-declare -g MCP_cmd_pipe="/tmp/.SAM_tmp/MCP_cmd_pipe"
-declare -g MCP_Activity_pipe="/tmp/.SAM_tmp/MCP_Activity_pipe"
-declare -g SAM_Activity_pipe="/tmp/.SAM_tmp/SAM_Activity_pipe"
-declare -g MCP_Corename_Activity_pipe="/tmp/.SAM_tmp/MCP_CoreName_Activity_pipe"
-declare -g MCP_CoreName_Change_pipe="/tmp/.SAM_tmp/MCP_CoreName_Change_pipe"
+declare -g misterscripts="${misterpath}/Scripts"
+declare -g mrsampath="${misterscripts}/.SuperAttract"
+declare -g mrsamtmp="/tmp/.SAM_tmp"
+declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
+declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
+declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
+declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
+declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
+declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
+declare -g corename_file="/tmp/CORENAME"
 declare -gl listenmouse="Yes"
 declare -gl listenkeyboard="Yes"
 declare -gl listenjoy="Yes"
@@ -27,7 +30,7 @@ declare -gl samtrace="No"
 declare -gi MCP_timeout=60
 declare -gi MCP_counter=${MCP_timeout}
 declare -g MCP_timeout_minutes=""
-declare -g MCP_corename_name=$(</tmp/CORENAME)
+declare -g MCP_corename_name=$(<${corename_file})
 
 # ======== TTY2OLED =======
 declare -gl ttyenable="No"
@@ -35,7 +38,7 @@ declare -gl ttyuseack="No"
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
-while ! test -d /media/fat/; do
+while ! test -d ${misterpath}/; do
 	sleep 1
 	count=$(expr $count + 1)
 	if test $count -eq 30; then
@@ -44,19 +47,19 @@ while ! test -d /media/fat/; do
 	fi
 done
 
-if [ -f "${misterpath}/Scripts/Super_Attract_Mode.ini" ]; then
-	source "${misterpath}/Scripts/Super_Attract_Mode.ini"
+if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
+	source "${misterscripts}/Super_Attract_Mode.ini"
 fi
 
 #======== FUNCTIONS ========
 function MCP_CoreName_Change() {
 	# Monitor CORENAME for changes (to determine if the menu is currently running)
-	inotifywait --event modify /tmp/CORENAME --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
+	inotifywait --event modify ${corename_file} --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
 }
 
 function MCP_CoreName_Monitor() {
 	# Spawn CORENAME monitoring process.
-	MCP_corename_name=$(</tmp/CORENAME)
+	MCP_corename_name=$(<${corename_file})
 	printf '%s\n' ${MCP_corename_name} >${MCP_Corename_Activity_pipe} &
 }
 
@@ -146,7 +149,7 @@ function MCP_SAM_trigger() {
 			MCP_tty2oled_start
 		fi
 		sleep 1
-		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super_Attract_Mode.sh" start_real &
+		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" start_real &
 		sleep 0.5
 	fi
 }
@@ -272,10 +275,10 @@ function MCP_loop() {
 		echo -ne " Starting in ${MCP_counter}...\033[0K\r"
 		sleep 1
 		((MCP_counter--))
-		MCP_corename_name=$(</tmp/CORENAME)
+		MCP_corename_name=$(<${corename_file})
 		tmux rename-window -t MCP "$MCP_corename_name"
 	done
-	MCP_corename_name=$(</tmp/CORENAME)
+	MCP_corename_name=$(<${corename_file})
 	tmux rename-window -t MCP "$MCP_corename_name"
 	# Only start SAM from main menu
 	if [ "${menuonly}" == "yes" ] && [ "${MCP_corename_name}" == "MENU" ]; then
@@ -309,7 +312,7 @@ function main() {
 		printf '%s\n' " MCP_timeout: ${MCP_timeout}"
 		printf '%s\n' "********************************************************************************"
 	fi
-	MCP_corename_name=$(</tmp/CORENAME)
+	MCP_corename_name=$(<${corename_file})
 	tmux rename-window -t MCP "$MCP_corename_name"
 	if [ ! -z "$1" ] && [ "$1" == "quickstart" ]; then
 		MCP_SAM_trigger

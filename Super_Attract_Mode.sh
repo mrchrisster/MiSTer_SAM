@@ -1279,6 +1279,8 @@ function start_pipe_readers() {
 	while true; do
 		if read line <${SAM_Activity_pipe}; then
 			echo " Activity detected! (${line})"
+			printf '%s ' $(date +%c)
+			printf '\n'
 			play_or_exit
 		fi
 		sleep 0.5
