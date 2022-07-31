@@ -24,7 +24,7 @@
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, venice, Paradox
 
-trap 'rc=$?;[ $rc = 0 ] && exit;TTY_exit' EXIT TERM
+trap 'rc=$?;[ ${rc} = 0 ] && exit;TTY_exit' EXIT TERM
 
 #======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
@@ -62,12 +62,12 @@ declare -gA tty_currentinfo=(
 	[name_scroll]=""
 	[name_scroll_position]=0
 	[name_scroll_direction]=1
-	[update_pause]=$ttyupdate_pause
+	[update_pause]=${ttyupdate_pause}
 )
 
 # Save our PID and process
 declare -g ttypid="${$}"
-declare -g samprocess="$(basename -- ${0})"
+declare -g samprocess=$(basename -- ${0})
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
@@ -81,7 +81,7 @@ declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
 declare -g prev_name_scroll=""
 declare -g prev_counter=""
 declare -gi ttyscroll_speed=1
-declare -gi ttyscroll_speed_int=$(($ttyscroll_speed - 1))
+declare -gi ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
 
 function start_pipe_reader() {
 	[[ "${samquiet}" == "no" ]] && echo " Init tty2oled, starting pipe reader... "
@@ -142,7 +142,7 @@ function tty_init() { # tty_init
 	fi
 
 	# tty2oled initialization
-	declare -gi START="$(date +%s)"
+	declare -gi START=$(date +%s)
 	[[ "${samquiet}" == "no" ]] && echo " Init tty2oled, loading variables... "
 	source ${ttysystemini}
 	source ${ttyuserini}
@@ -185,14 +185,14 @@ function update_loop() {
 }
 
 function set_scroll_speed() {
-	scroll_speed_int=$(($ttyscroll_speed - 1))
+	ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
 }
 
 function update_name_scroll() {
-	if [ $ttyscroll_speed -gt 0 ]; then
+	if [ ${ttyscroll_speed} -gt 0 ]; then
 		if [ ${#tty_currentinfo[name]} -gt 21 ]; then
-			if [ $scroll_speed_int -gt 0 ]; then
-				((scroll_speed_int--))
+			if [ ${ttyscroll_speed_int} -gt 0 ]; then
+				((ttyscroll_speed_int--))
 			else
 				set_scroll_speed
 				if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
@@ -229,16 +229,16 @@ function update_counter() {
 	prev_counter="${tty_currentinfo[counter]}"
 	echo "CMDDUPD" >"${ttydevice}"
 	tty_waitfor
-	if [ $samdebug == "yes" ]; then
-		declare -p tty_currentinfo
+	if [ ${samdebug} == "yes" ]; then
+		declare -p tty_currentinfo | sed 's/declare -A tty_currentinfo=//g'
 	fi
 }
 
 function tty_display() { # tty_update core game
 	args=$(echo "${@}" | sed "s/ -A / -gA /")
-	eval "$args"
-	if [ $samdebug == "yes" ]; then
-		declare -p tty_currentinfo
+	eval "${args}"
+	if [ ${samdebug} == "yes" ]; then
+		declare -p tty_currentinfo | sed 's/declare -A tty_currentinfo=//g'
 	fi
 	# Wait for tty2oled daemon to show the core logo
 	if [ "${ttyuseack}" == "yes" ]; then
@@ -249,7 +249,7 @@ function tty_display() { # tty_update core game
 	fi
 
 	# Wait for tty2oled to show the core logo
-	if [ $samdebug == "yes" ]; then
+	if [ ${samdebug} == "yes" ]; then
 		echo "-------------------------------------------"
 		echo " tty_update got Corename: ${tty_currentinfo[core]} "
 	fi
@@ -280,7 +280,7 @@ function tty_senddata() {
 		[ "${USE_TEXT_PICTURE}" = "no" ] && picfolders="${picfolders//xbm_text/}"
 		for picfolder in ${picfolders}; do
 			for ((c = "${#newcore}"; c >= 1; c--)); do                               # Manipulate string...
-				picfnam="${ttypicture}/${picfolder^^}/${newcore:0:$c}.${picfolder:0:3}" # ...until it matches something
+				picfnam="${ttypicture}/${picfolder^^}/${newcore:0:${c}}.${picfolder:0:3}" # ...until it matches something
 				[ -e "${picfnam}" ] && break
 			done
 			[ -e "${picfnam}" ] && break
@@ -288,7 +288,7 @@ function tty_senddata() {
 	fi
 	if [ -e "${picfnam}" ]; then # Exist?
 		# For testing...
-		if [ $samdebug == "yes" ]; then
+		if [ ${samdebug} == "yes" ]; then
 			echo "-------------------------------------------"
 			echo " tty2oled sending Corename: ${1} "
 			echo " tty2oled found/send Picture : ${picfnam} "

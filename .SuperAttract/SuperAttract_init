@@ -39,7 +39,7 @@ declare -gA tty_currentinfo=(
 	[name_scroll]=""
 	[name_scroll_position]=0
 	[name_scroll_direction]=1
-	[update_pause]=$ttyupdate_pause
+	[update_pause]=${ttyupdate_pause}
 )
 
 #======== INI VARIABLES ========
@@ -58,8 +58,8 @@ samdebug="No"
 # Read INI, Check for mount point presence
 while ! test -d ${misterpath}/; do
 	sleep 1
-	count=$(expr $count + 1)
-	if test $count -eq 30; then
+	count=$(expr ${count} + 1)
+	if test ${count} -eq 30; then
 		echo " Mount timed out!"
 		exit 1
 	fi
@@ -76,7 +76,7 @@ function start() {
 	#======== Start ========
 	cleanup
 	# create_lists &
-	sleep ${bootsleep}
+	sleep "${bootsleep}"
 	mcp_start
 }
 
@@ -88,28 +88,28 @@ function quickstart() {
 function cleanup() {
 	corename_name=$(printf '%s\n' $(<${corename_file}))
 	if [ ${corename_name} != "MENU" ]; then
-		[[ "$samdebug" == "yes" ]] && echo -n " Returning to MiSTer Menu..."
+		[[ "${samdebug}" == "yes" ]] && echo -n " Returning to MiSTer Menu..."
 		echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
-		[[ "$samdebug" == "yes" ]] && echo " Done!"
+		[[ "${samdebug}" == "yes" ]] && echo " Done!"
 	fi
 	tries=5
 	pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping MCP..."
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
-		while [ $(kill -15 ${pids} 2>/dev/null)] && [ $tries -gt 0 ]; do
+		while [ $(kill -15 ${pids} 2>/dev/null)] && [ ${tries} -gt 0 ]; do
 			((tries--))
 	    	sleep 1
 		done
 		pids=$(pidof SuperAttract_MCP)
 		echo " Failed, forcing!"
 		echo -n " Stopping MCP..."
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
 		kill -9 ${pids} &>/dev/null
 		echo " Done!"
 	fi
@@ -117,9 +117,9 @@ function cleanup() {
 	pids=$(pidof SuperAttract_tty2oled)
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping TTY..."
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
@@ -130,9 +130,9 @@ function cleanup() {
 	pids=$(pidof Super_Attract_Mode.sh)
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping SAM..."
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
@@ -146,9 +146,9 @@ function cleanup() {
 	pids=$(ps aux | grep python | grep MCP_Activity_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping Device monitors..."
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
@@ -160,9 +160,9 @@ function cleanup() {
 	pids=$(ps aux | grep inotifywait | grep MCP_Activity_Change_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping Inotifywait Activity instances..."
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
@@ -174,9 +174,9 @@ function cleanup() {
 	pids=$(ps aux | grep inotifywait | grep MCP_CoreName_Change_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
 		echo -n " Stopping Inotifywait Corename Change instances..."
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "$pids"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "$samdebug" == "yes" ]] && echo -n " ${pids} |"
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
@@ -189,21 +189,21 @@ function cleanup() {
 
 function SAM_cleanup() {
 	# Clean up by umounting any mount binds
-	mount1=$(mount | grep ${misterpath}/config | awk '{print $3}')
+	mount1=$(mount | grep "${misterpath}/config" | awk '{print $3}')
 	# mount2=$(mount | grep shared | awk '{print $3}')
-	[[ $mount1 ]] && umount $mount1
-	# [[ $mount2 ]] && umount $mount2
-	[[ -d "${misterpath}/Bootrom" ]] && [[ "$(mount | grep -ic 'bootrom')" == "1" ]] && umount "${misterpath}/Bootrom"
-	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot1.rom"
-	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot2.rom"
-	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ]] && umount "${misterpath}/Games/NES/boot3.rom"
+	[[ ${mount1} ]] && umount ${mount1}
+	# [[ ${mount2} ]] && umount ${mount2}
+	[[ -d "${misterpath}/Bootrom" ]] && [[ $(mount | grep -ic 'bootrom') == "1" ]] && umount "${misterpath}/Bootrom"
+	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot1.rom"
+	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot2.rom"
+	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot3.rom"
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Cleaned up mounts."
 }
 
 function mcp_start() {
 	echo " Starting MCP.."
 	# If the MCP isn't running we need to start it in monitoring only mode
-	if [ -z "$(pidof SuperAttract_MCP)" ]; then
+	if [ -z $(pidof SuperAttract_MCP) ]; then
 		tmux new-session -s MCP -d "${mrsampath}/SuperAttract_MCP" "${@}" &
 	fi
 }

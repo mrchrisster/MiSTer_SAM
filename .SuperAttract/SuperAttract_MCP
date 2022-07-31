@@ -37,7 +37,7 @@ declare -gA tty_currentinfo=(
 	[name_scroll]=""
 	[name_scroll_position]=0
 	[name_scroll_direction]=1
-	[update_pause]=$ttyupdate_pause
+	[update_pause]=${ttyupdate_pause}
 )
 
 #======== INI VARIABLES ========
@@ -57,8 +57,8 @@ declare -g MCP_timeout_minutes=""
 # Read INI, Check for mount point presence
 while ! test -d ${misterpath}/; do
 	sleep 1
-	count=$(expr $count + 1)
-	if test $count -eq 30; then
+	count=$(expr ${count} + 1)
+	if test ${count} -eq 30; then
 		printf '%s\n' " Mount timed out!"
 		exit 1
 	fi
@@ -124,19 +124,19 @@ function MCP_keybmonitor() {
 	for keyboards in "${kbdevents[@]}"; do
 		devpath=$(readlink --canonicalize "/dev/input/by-path/${keyboards}")
 		kbd=${devpath##*/}
-		kbddev+=("$(cat /sys/class/input/${kbd}/device/uevent | grep PHYS | cut -d '=' -f2 | tr -d '""')")
+		kbddev+=($(cat /sys/class/input/${kbd}/device/uevent | grep PHYS | cut -d '=' -f2 | tr -d '""'))
 		#printf '%s\n' "${kbddev[@]}"
 	done
 
 	# Compare if hidraw devices match keyboard device address
 	for f in "${rawinput[@]}"; do
 		kbdraw=${f##*/}
-		rawdev="$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_PHYS | cut -d '=' -f2)"
-		#printf "%s \t %s\n" $kbdraw "$rawdev"
+		rawdev=$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_PHYS | cut -d '=' -f2)
+		#printf "%s \t %s\n" ${kbdraw} "${rawdev}"
 
 		for i in "${kbddev[@]}"; do
-			if [ "$i" == "$rawdev" ]; then
-				printf '%s\n' "$f is a keyboard"
+			if [ "${i}" == "${rawdev}" ]; then
+				printf '%s\n' "${f} is a keyboard"
 				"${mrsampath}/SuperAttract_keyboard.py" "${f}" "${MCP_Activity_pipe}" 2>/dev/null &
 			fi
 		done
@@ -152,13 +152,13 @@ function MCP_msmonitor() {
 function MCP_tty2oled_start() {
 	echo " Starting TTY.."
 	# If the TTY2oled isn't running we need to start it in monitoring only mode
-	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then
+	if [ -z $(pidof SuperAttract_tty2oled) ]; then
 		tmux new-session -s TTY -d "${mrsampath}/SuperAttract_tty2oled" &
 	fi
 }
 
 function MCP_SAM_trigger() {
-	if [ "$(ps aux | grep -ice "[S]uper_Attract_Mode.sh")" == "0" ] && [ "$(ps aux | grep -ice "[u]pdate")" == "0" ]; then
+	if [ $(ps aux | grep -ice "[S]uper_Attract_Mode.sh") == "0" ] && [ $(ps aux | grep -ice "[u]pdate") == "0" ]; then
 		printf '%s\n' " No activity detected for ${MCP_timeout_minutes} minutes. SAM starting..."
 		printf '%s ' $(date +%c)
 		printf '\n'
@@ -293,10 +293,10 @@ function MCP_loop() {
 		sleep 1
 		((MCP_counter--))
 		corename_name=$(<${corename_file})
-		tmux rename-window -t MCP "$corename_name"
+		tmux rename-window -t MCP "${corename_name}"
 	done
 	corename_name=$(<${corename_file})
-	tmux rename-window -t MCP "$corename_name"
+	tmux rename-window -t MCP "${corename_name}"
 	# Only start SAM from main menu
 	if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
 		printf '%s\n' " Triggered after menuonly=yes"
@@ -330,7 +330,7 @@ function main() {
 		printf '%s\n' "********************************************************************************"
 	fi
 	corename_name=$(<${corename_file})
-	tmux rename-window -t MCP "$corename_name"
+	tmux rename-window -t MCP "${corename_name}"
 	if [ ! -z "$1" ] && [ "$1" == "quickstart" ]; then
 		MCP_SAM_trigger
 	fi
