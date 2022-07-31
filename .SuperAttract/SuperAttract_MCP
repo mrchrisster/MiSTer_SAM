@@ -166,7 +166,11 @@ function MCP_SAM_trigger() {
 			MCP_tty2oled_start
 		fi
 		sleep 1
-		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" start_real &
+		if [ -z "${1}" ]; then
+			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" start_real &
+		else
+			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${1}" start_real &
+		fi
 		sleep 0.5
 	fi
 }
@@ -331,8 +335,9 @@ function main() {
 	fi
 	corename_name=$(<${corename_file})
 	tmux rename-window -t MCP "${corename_name}"
-	if [ ! -z "$1" ] && [ "$1" == "quickstart" ]; then
-		MCP_SAM_trigger
+	if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
+		shift
+		MCP_SAM_trigger "${1}"
 	fi
 	trap 'MCP_counter=${MCP_timeout}' INT # Reset MCP_counter for Activity Triggers
 	MCP_loop

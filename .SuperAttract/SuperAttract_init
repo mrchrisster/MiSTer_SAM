@@ -82,7 +82,7 @@ function start() {
 
 function quickstart() {
 	#======== Start ========
-	mcp_start "quickstart"
+	mcp_start "${@,,}" 
 }
 
 function cleanup() {
