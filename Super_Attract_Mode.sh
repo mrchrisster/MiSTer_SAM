@@ -203,20 +203,24 @@ function init_vars() {
 function init_paths() {
 	# Default rom path search directories
 	declare -ga GAMESDIR_FOLDERS=(
-		/media/usb0/games
-		/media/usb1/games
-		/media/usb2/games
-		/media/usb3/games
-		/media/usb4/games
+		/media/usb7/games
+		/media/usb6/games
 		/media/usb5/games
+		/media/usb4/games
+		/media/usb3/games
+		/media/usb2/games
+		/media/usb1/games
+		/media/usb0/games
 		${misterpath}/cifs/games
 		${misterpath}/games
-		/media/usb0
-		/media/usb1
-		/media/usb2
-		/media/usb3
-		/media/usb4
+		/media/usb7
+		/media/usb6
 		/media/usb5
+		/media/usb4
+		/media/usb3
+		/media/usb2
+		/media/usb1
+		/media/usb0
 		${misterpath}/cifs
 		${misterpath}
 	)
@@ -2476,19 +2480,23 @@ function sam_start_new() {
 
 function sam_start() {
 	# If MCP isn't running we need to start it in monitoring only mode
-	if [ -z $(pidof SuperAttract_MCP) ]; then
+	if [ -z "$(pidof SuperAttract_MCP)" ]; then
 		echo " Starting MCP.."
 		tmux new-session -s MCP -d "${mrsampath}/SuperAttract_MCP" &
 	fi
 	# If TTY2oled isn't running we need to start it in monitoring only mode
-	if [ -z $(pidof SuperAttract_tty2oled) ]; then
+	if [ -z "$(pidof SuperAttract_tty2oled)" ]; then
 		echo " Starting TTY.."
 		tmux new-session -s TTY -d "${mrsampath}/SuperAttract_tty2oled" &
 	fi
 	# If SAM isn't running we need to start it in monitoring only mode
-	if [ -z $(pidof SuperAttract_tty2oled) ]; then
+	if [ -z "$(pidof Super_Attract_Mode.sh)" ]; then
 		echo " Starting SAM.."
-		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterpath}/Scripts/Super_Attract_Mode.sh" ${1} start_real &
+		if [ -z "${1}" ]; then
+			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" start_real &
+		else
+			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${1}" start_real &
+		fi
 	fi
 }
 
@@ -2841,37 +2849,36 @@ function next_core() { # next_core (core)
 			set -f -- ${corelist}
 			echo $#
 		))
-		corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
 		corelisttmp_count=$(echo $(
 			IFS=' '
 			set -f -- ${corelisttmp}
 			echo $#
 		))
-		[[ "${samdebug}" == "yes" ]] && echo -e " \e[1mcorelist is ${corelist_count} at start of next_core()\e[0m"
+		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at start of next_core() \e[0m"
 		if [ "${corelist_count}" -gt 0 ]; then
 			if [ "${corelisttmp_count}" -eq 0 ]; then
 				printf -v corelisttmp '%s ' "${corelist}"
-				[[ "${samdebug}" == "yes" ]] && echo "corelisttmp: ${corelisttmp}"
 			fi
 		else
-			if [ "${corelist_count}" -lt 1 ]; then
+			if [ "${corelist_count}" -eq 0 ]; then
 				printf -v corelist '%s ' "${corelisttmp}"
-				[[ "${samdebug}" == "yes" ]] && echo "corelist: ${corelist}"
 			fi
 		fi
+		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist:    ${corelist}! \e[0m"
+		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelisttmp: ${corelisttmp}! \e[0m"
 		corelist=$(echo "${corelist}" | awk '{$2=$2};1')
+		corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
 		corelist_count=$(echo $(
 			IFS=' '
 			set -f -- ${corelist}
 			echo $#
 		))
-		corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
 		corelisttmp_count=$(echo $(
 			IFS=' '
 			set -f -- ${corelisttmp}
 			echo $#
 		))
-		if [ "${corelist_count}" -lt 1 ]; then
+		if [ "${corelist_count}" -eq 0 ]; then
 			corelist="arcade"
 			corelisttmp=${corelist}
 		fi
@@ -2886,8 +2893,7 @@ function next_core() { # next_core (core)
 					set -f -- ${corelist}
 					echo $#
 				))
-				corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
-				[[ "${samdebug}" == "yes" ]] && echo -e " \e[1mcorelist is ${corelist_count} at end of next_core()\e[0m"
+				[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 				next_core ${nextcore}
 				return
 			fi
@@ -2922,8 +2928,7 @@ function next_core() { # next_core (core)
 			set -f -- ${corelist}
 			echo $#
 		))
-		corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
-		[[ "${samdebug}" == "yes" ]] && echo -e " \e[1mcorelist is ${corelist_count} at end of next_core()\e[0m"
+		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 		next_core ${nextcore}
 		return
 	fi
@@ -2941,8 +2946,7 @@ function next_core() { # next_core (core)
 					set -f -- ${corelist}
 					echo $#
 				))
-				corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
-				[[ "${samdebug}" == "yes" ]] && echo -e " \e[1mcorelist is ${corelist_count} at end of next_core()\e[0m"
+				[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 				next_core ${nextcore}
 				return
 			fi
@@ -2962,8 +2966,7 @@ function next_core() { # next_core (core)
 						set -f -- ${corelist}
 						echo $#
 					))
-					corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
-					[[ "${samdebug}" == "yes" ]] && echo -e " \e[1mcorelist is ${corelist_count} at end of next_core()\e[0m"
+					[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 					return 1
 				fi
 			fi
@@ -2985,8 +2988,7 @@ function next_core() { # next_core (core)
 						set -f -- ${corelist}
 						echo $#
 					))
-					corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
-					[[ "${samdebug}" == "yes" ]] && echo -e " \e[1mcorelist is ${corelist_count} at end of next_core()\e[0m"
+					[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 					return 1
 				fi
 			fi
@@ -2999,8 +3001,7 @@ function next_core() { # next_core (core)
 		set -f -- ${corelist}
 		echo $#
 	))
-	corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
-	[[ "${samdebug}" == "yes" ]] && echo -e " \e[1mcorelist is ${corelist_count} at end of next_core()\e[0m"
+	[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 
 	load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
 }
