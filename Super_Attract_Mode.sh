@@ -88,7 +88,7 @@ function init_vars() {
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 	declare -g gamelistpathtmp="/tmp/.SAM_List"
-	declare -g excludepath="${mrsampath}"
+	declare -g excludepath="${mrsampath}/excludes"
 	declare -g tmpfile="${gamelistpathtmp}/tmpfile"
 	declare -g tmpfile2="${gamelistpathtmp}/tmpfile2"
 	declare -g corelisttmpfile="${gamelistpathtmp}/corelist.tmp"
@@ -223,12 +223,7 @@ function init_paths() {
 
 	declare -g GET_SYSTEM_FOLDER_GAMESDIR=""
 	declare -g GET_SYSTEM_FOLDER_RESULT=""
-	# Create folders if they don't exist
-	mkdir -p "${gamelistpath}"
-	mkdir -p "${gamelistpathtmp}"
-	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
-	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
-	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
+
 	if [ ${usedefaultpaths} == "yes" ]; then
 		for core in ${corelistall}; do
 			defaultpath "${core}"
@@ -274,6 +269,13 @@ function sam_prep() {
 	fi
 
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amiga RBF is ${amigacore} "
+
+	# Create folders if they don't exist
+	[[ ! -d "${gamelistpath}" ]] && mkdir -p "${gamelistpath}"
+	[[ ! -d "${gamelistpathtmp}" ]] && mkdir -p "${gamelistpathtmp}"
+	[[ -e "${tmpfile}" ]] && { rm "${tmpfile}"; }
+	[[ -e "${tmpfile2}" ]] && { rm "${tmpfile2}"; }
+	[[ ! -d "${excludepath}" ]] && mkdir -p "${excludepath}"
 
 	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config"/* ${mrsamtmp}/SAM_config &>/dev/null && cp -pr --force ${mrsampath}/Mega_AGS_config/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
@@ -1268,6 +1270,12 @@ function start_pipe_readers() {
 					;;
 				skip | next)
 					tmux send-keys -t SAM C-c ENTER
+					;;
+				ban | exclude)
+					exclude_game
+					;;
+				fakegameslog)
+					fakegameslog
 					;;
 				*)
 					echo " ERROR! ${line} is unknown."
@@ -2293,15 +2301,54 @@ function skipmessage() {
 function mglfavorite() {
 	# Add current game to _Favorites folder
 
-	if [ ! -d "${misterpath}/_Favorites" ]; then
-		mkdir -p "${misterpath}/_Favorites"
-	fi
+	[[ ! -d "${misterpath}/_Favorites" ]] && mkdir -p "${misterpath}/_Favorites"
 	cp /tmp/SAM_game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl" &>/dev/null
+}
 
+function exclude_game() {
+	# Add current game to Exclude list
+	xnextcore=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o '\- (\w*) \-' | sed 's/\s[\-]//' | sed 's/[\-]\s//')
+	xromname=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o "\- ${xnextcore} \- (.*)$" | sed "s/\- ${xnextcore} \- //")
+	xrompath=$(cat "${gamelistpath}/${xnextcore}_gamelist.txt" | grep "${xromname}")
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xnextcore: ${xnextcore}"
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xromname: ${xromname}"
+	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xrompath: ${xrompath}"
+	if [ -f "${excludepath}/${xnextcore}_excludelist.txt" ] && [ ! -z ${xrompath} ]; then
+		echo ${xrompath} >>"${excludepath}/${xnextcore}_excludelist.txt"
+	elif [ ! -z ${xrompath} ]; then
+		echo ${xrompath} >"${excludepath}/${xnextcore}_excludelist.txt"
+	fi
+	next_core ${xnextcore}
+	return
+}
+
+function fakegameslog() {
+	echo "" | >"/tmp/SAM_Games(fake).log"
+	for fcore in ${corelistall}; do
+		frompath=$(cat ${gamelistpath}/${fcore}_gamelist.txt | shuf --head-count=1)
+		fromname=$(basename "${frompath}")
+		fGAMENAME=""
+		if [ ${fcore} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then
+			if [ ${neogeoregion} == "english" ]; then
+				fGAMENAME="${NEOGEO_PRETTY_ENGLISH[${fromname}]}"
+			elif [ ${neogeoregion} == "japanese" ]; then
+				fGAMENAME="${NEOGEO_PRETTY_JAPANESE[${fromname}]}"
+				[[ -z "${fGAMENAME}" ]] && fGAMENAME="${NEOGEO_PRETTY_ENGLISH[${fromname}]}"
+			fi
+		fi
+		if [ -z "${fGAMENAME}" ]; then
+			fGAMENAME="${fromname}"
+		fi
+		local date=$(date '+%H:%M:%S')
+		if [ "${core}" == "neogeo" ] && [ "${useneogeotitles}" == "yes" ]; then
+			echo "${date} - ${core} - ${romname} (${GAMENAME})" >>"/tmp/SAM_Games(fake).log"
+		else
+			echo "${date} - ${core} - ${romname}" >>"/tmp/SAM_Games(fake).log"
+		fi
+	done
 }
 
 function bgm_start() {
-
 	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
@@ -2492,10 +2539,10 @@ function reset_core_gl() { # args ${nextcore}
 
 function speedtest() {
 	speedtest=1
-	[ ! -d "${mrsamtmp}/gl" ] && { mkdir -p ${mrsamtmp}/gl; }
-	[ ! -d "${mrsamtmp}/glt" ] && { mkdir -p ${mrsamtmp}/glt; }
-	[ $(mount | grep -ic '${gamelistpath}') == "0" ] && mount --bind ${mrsamtmp}/gl "${gamelistpath}"
-	[ $(mount | grep -ic '${gamelistpathtmp}') == "0" ] && mount --bind ${mrsamtmp}/glt "${gamelistpathtmp}"
+	[[ ! -d "${mrsamtmp}/gl" ]] && { mkdir -p ${mrsamtmp}/gl; }
+	[[ ! -d "${mrsamtmp}/glt" ]] && { mkdir -p ${mrsamtmp}/glt; }
+	[[ $(mount | grep -ic '${gamelistpath}') == "0" ]] && mount --bind ${mrsamtmp}/gl "${gamelistpath}"
+	[[ $(mount | grep -ic '${gamelistpathtmp}') == "0" ]] && mount --bind ${mrsamtmp}/glt "${gamelistpathtmp}"
 	START=$(date +%s)
 	for core in ${corelistall}; do
 		defaultpath "${core}"
@@ -2898,9 +2945,12 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${core}]}\e[0m: "
 	echo -e "\e[1m${GAMENAME}\e[0m"
-	echo "$(date +%H:%M:%S) - ${core} - ${romname}" $([ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ] && echo "(${GAMENAME})") >>/tmp/SAM_Games.log
-	echo "${romname} (${core}) "$([ ${core} == "neogeo" ] && [ ${useneogeotitles} == "yes" ] && echo "(${GAMENAME})") >/tmp/SAM_Game.txt
-
+	local date=$(date '+%H:%M:%S')
+	if [ "${core}" == "neogeo" ] && [ "${useneogeotitles}" == "yes" ]; then
+		echo "${date} - ${core} - ${romname} (${GAMENAME})" >>"/tmp/SAM_Games.log"
+	else
+		echo "${date} - ${core} - ${romname}" >>"/tmp/SAM_Games.log"
+	fi
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
 			[core_pretty]="${CORE_PRETTY[${core}]}"
@@ -2944,8 +2994,9 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 				if [[ "${rompath}" == *"Demo:"* ]]; then
 					rompath=${rompath//Demo: /}
 				fi
-				# [[ "$(mount | grep -ic ${amigashared})" -eq 1 ]] &&
+				# [[ $(mount | grep -ic ${amigashared}) -eq 1 ]] &&
 				echo "${rompath}" >${amigashared}/ags_boot
+				echo "${rompath}" >${CORE_PATH[${core}]}/${CORE_PATH_EXTRA[${core}]}/shared/ags_boot
 			fi
 		fi
 		if [ ${core} == "amiga" ] && [ "${amiga_use_mgl}" -eq 0 ]; then
@@ -2989,6 +3040,16 @@ function main() {
 				;;
 			skip | next)
 				echo " Skipping to next game..."
+				write_to_SAM_cmd_pipe ${1-}
+				break
+				;;
+			ban | exclude)
+				echo " Excluding the current game and Skipping to next game..."
+				write_to_SAM_cmd_pipe ${1-}
+				break
+				;;
+			fakegameslog)
+				echo " Creating Fake SAM_Games.log..."
 				write_to_SAM_cmd_pipe ${1-}
 				break
 				;;
