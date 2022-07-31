@@ -281,8 +281,9 @@ function sam_prep() {
 	[[ -e "${tmpfile2}" ]] && { rm "${tmpfile2}"; }
 	[[ ! -d "${excludepath}" ]] && mkdir -p "${excludepath}"
 
+	[[ -d "${mrsamtmp}/SAM_config" ]] && rm -rf "${mrsamtmp}/SAM_config"
 	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
-	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config"/* ${mrsamtmp}/SAM_config &>/dev/null && cp -pr --force ${mrsampath}/Mega_AGS_config/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
+	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config"/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
 	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
 	# [[ -d "${mrsamtmp}/Amiga_shared" ]] && [[ $(mount | grep -ic "${amigashared}") == "0" ]] && cp -pr --force ${amigashared}/Disk.info ${mrsamtmp}/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat ${mrsamtmp}/Amiga_shared &>/dev/null && mount --bind "${mrsamtmp}/Amiga_shared" "${amigashared}"
 	# Disable Bootrom - Make Bootrom folder inaccessible until restart
@@ -3111,6 +3112,21 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			echo "</mistergamedescription>" >>${file_to_load}
 		fi
 	fi
+
+	# check for case of config files
+	if [ "${core}" == "arcade" ]; then
+		name=${tty_corename}
+	else
+		name=${CORE_LAUNCH[${core}]}
+	fi
+	shopt -s nullglob
+	if [ "${name}" != ${name,,} ]; then
+		for f in ${mrsamtmp}/SAM_config/${name,,}*; do
+				mv "${f}" "${f//${name,,}/${name}}"
+		done
+	fi
+	shopt -u nullglob
+
 	echo "load_core ${file_to_load}" >/dev/MiSTer_cmd
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
 		skipmessage ${core} &
