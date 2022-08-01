@@ -1411,8 +1411,8 @@ function read_samini() {
 
 	# Create array of coreexclude list names
 	declare -a coreexcludelist
-	for core in ${corelistall}; do
-		coreexcludelist+=("${core}exclude")
+	for excore in ${corelistall}; do
+		coreexcludelist+=("${excore}exclude")
 	done
 
 	# Iterate through coreexclude lists and make list into array
@@ -2338,9 +2338,9 @@ function mglfavorite() {
 
 function exclude_game() {
 	# Add current game to Exclude list
-	xnextcore=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o '\- (\w*) \-' | sed 's/\s[\-]//' | sed 's/[\-]\s//')
-	xromname=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o "\- ${xnextcore} \- (.*)$" | sed "s/\- ${xnextcore} \- //")
-	xrompath=$(cat "${gamelistpath}/${xnextcore}_gamelist.txt" | grep "${xromname}")
+	local xnextcore=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o '\- (\w*) \-' | sed 's/\s[\-]//' | sed 's/[\-]\s//')
+	local xromname=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o "\- ${xnextcore} \- (.*)$" | sed "s/\- ${xnextcore} \- //")
+	local xrompath=$(cat "${gamelistpath}/${xnextcore}_gamelist.txt" | grep "${xromname}")
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xnextcore: ${xnextcore}"
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xromname: ${xromname}"
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xrompath: ${xrompath}"
@@ -2349,7 +2349,7 @@ function exclude_game() {
 	elif [ ! -z ${xrompath} ]; then
 		echo ${xrompath} >"${excludepath}/${xnextcore}_excludelist.txt"
 	fi
-	next_core ${xnextcore}
+	next_core "${xnextcore}"
 	return
 }
 
@@ -2417,7 +2417,7 @@ function core_error() { # core_error core /path/to/ROM
 		((romloadfails++))
 		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${core} rom: ${rompath}"
 		echo " Trying to find another rom..."
-		next_core ${core}
+		next_core "${core}"
 		return
 	else
 		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${core} rom: ${rompath}"
@@ -2425,7 +2425,7 @@ function core_error() { # core_error core /path/to/ROM
 		corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${core}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		echo " List of cores is now: ${corelist[@]}"
 		romloadfails=0
-		next_core ${core}
+		next_core "${core}"
 		return
 	fi
 }
@@ -2502,7 +2502,7 @@ function get_inputmap() {
 
 # ========= SAM START =========
 function sam_start_new() {
-	loop_core ${nextcore}
+	loop_core "${nextcore}"
 }
 
 function sam_start() {
@@ -2544,6 +2544,7 @@ function loop_core() { # loop_core (core)
 	start_pipe_readers
 	while true; do
 		trap 'counter=0' INT #Break out of loop for skip & next command
+		core="${1}"
 		while [ ${counter} -gt 0 ]; do
 			if [[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]]; then
 				echo -ne " Next game in ${counter}...\033[0K\r"
@@ -2561,7 +2562,7 @@ function loop_core() { # loop_core (core)
 		sleep 1
 		if [[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]]; then
 			counter=${gametimer}
-			next_core ${core}
+			next_core "${core}"
 		fi
 	done
 }
@@ -2861,7 +2862,7 @@ function check_romlist() { # args ${core}  "${DIR}"
 
 # This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
-	if [ "${1,,}" == "countdown" ] && [ "$2" ]; then
+	if [ "${1,,}" == "countdown" ] && [ ! -z "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
 	elif [ "${2,,}" == "countdown" ]; then
@@ -2869,18 +2870,10 @@ function next_core() { # next_core (core)
 		countdown="countdown"
 	fi
 	if [ "${countdown}" != "countdown" ]; then
-		core=${1}
+		core="${1}"
 		corelist=$(echo "${corelist}" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-		corelist_count=$(echo $(
-			IFS=' '
-			set -f -- ${corelist}
-			echo $#
-		))
-		corelisttmp_count=$(echo $(
-			IFS=' '
-			set -f -- ${corelisttmp}
-			echo $#
-		))
+		corelist_count=$(echo $(wc -w <<< "${corelist}"))
+		corelisttmp_count=$(echo $(wc -w <<< "${corelisttmp}"))
 		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at start of next_core() \e[0m"
 		if [ "${corelist_count}" -gt 0 ]; then
 			if [ "${corelisttmp_count}" -eq 0 ]; then
@@ -2895,16 +2888,8 @@ function next_core() { # next_core (core)
 		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelisttmp: ${corelisttmp}! \e[0m"
 		corelist=$(echo "${corelist}" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		corelisttmp=$(echo "${corelisttmp}" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-		corelist_count=$(echo $(
-			IFS=' '
-			set -f -- ${corelist}
-			echo $#
-		))
-		corelisttmp_count=$(echo $(
-			IFS=' '
-			set -f -- ${corelisttmp}
-			echo $#
-		))
+		corelist_count=$(echo $(wc -w <<< "${corelist}"))
+		corelisttmp_count=$(echo $(wc -w <<< "${corelisttmp}"))
 		if [ "${corelist_count}" -eq 0 ]; then
 			corelist="arcade"
 			corelisttmp=${corelist}
@@ -2915,13 +2900,9 @@ function next_core() { # next_core (core)
 			if [ "${core}" == "${nextcore}" ]; then
 				[[ "${samquiet}" == "no" ]] && echo -e " Core repeated! \e[1m${nextcore}\e[0m"
 				corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-				corelist_count=$(echo $(
-					IFS=' '
-					set -f -- ${corelist}
-					echo $#
-				))
+				corelist_count=$(echo $(wc -w <<< "${corelist}"))
 				[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
-				next_core ${nextcore}
+				next_core "${nextcore}"
 				return
 			fi
 			corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
@@ -2950,13 +2931,9 @@ function next_core() { # next_core (core)
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
 		[[ "${samquiet}" == "no" ]] && echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"
 		corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-		corelist_count=$(echo $(
-			IFS=' '
-			set -f -- ${corelist}
-			echo $#
-		))
+		corelist_count=$(echo $(wc -w <<< "${corelist}"))
 		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
-		next_core ${nextcore}
+		next_core "${nextcore}"
 		return
 	fi
 
@@ -2968,13 +2945,9 @@ function next_core() { # next_core (core)
 				[[ "${samquiet}" == "no" ]] && printf '%s\n' " Excluded: ${rompath}, trying a different game.."
 				awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 				corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-				corelist_count=$(echo $(
-					IFS=' '
-					set -f -- ${corelist}
-					echo $#
-				))
+				corelist_count=$(echo $(wc -w <<< "${corelist}"))
 				[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
-				next_core ${nextcore}
+				next_core "${nextcore}"
 				return
 			fi
 		done
@@ -2988,17 +2961,13 @@ function next_core() { # next_core (core)
 					[[ "${samquiet}" == "no" ]] && printf '%s\n' " Excluded by user: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 					corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-					corelist_count=$(echo $(
-						IFS=' '
-						set -f -- ${corelist}
-						echo $#
-					))
+					corelist_count=$(echo $(wc -w <<< "${corelist}"))
 					[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 					return 1
 				fi
 			fi
 		done
-		[ $? -eq 1 ] && next_core ${nextcore} && return
+		[ $? -eq 1 ] && next_core "${nextcore}" && return
 	fi
 
 	#Check blacklist
@@ -3010,24 +2979,16 @@ function next_core() { # next_core (core)
 					[[ "${samquiet}" == "no" ]] && printf '%s\n' " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 					corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-					corelist_count=$(echo $(
-						IFS=' '
-						set -f -- ${corelist}
-						echo $#
-					))
+					corelist_count=$(echo $(wc -w <<< "${corelist}"))
 					[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 					return 1
 				fi
 			fi
 		done
-		[ $? -eq 1 ] && next_core ${nextcore} && return
+		[ $? -eq 1 ] && next_core "${nextcore}" && return
 	fi
 
-	corelist_count=$(echo $(
-		IFS=' '
-		set -f -- ${corelist}
-		echo $#
-	))
+	corelist_count=$(echo $(wc -w <<< "${corelist}"))
 	[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
 
 	load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
@@ -3104,7 +3065,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		if [ ${core} == "amiga" ]; then
 			if [ ! -f "${CORE_PATH_FINAL[${core}]}/MegaAGS.hdf" ]; then
 				echo " ERROR - MegaAGS Pack not found in Amiga folder."
-				next_core ${core}
+				next_core "${core}"
 				return
 			fi
 			if [ -s "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ]; then
