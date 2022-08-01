@@ -1956,7 +1956,9 @@ function sam_update() { # sam_update (next command)
 	fi
 
 	echo " Update complete!"
-	return
+	echo " Please restart your Mister. (Hard Reboot)"
+
+	sam_exit 0 "stop"
 
 	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
