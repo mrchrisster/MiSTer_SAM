@@ -85,7 +85,7 @@ function init_vars() {
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 	declare -g gamelistpathtmp="/tmp/.SAM_List"
-	declare -g excludepath="${mrsampath}/excludes"
+	declare -g excludepath="${mrsampath}/SAM_Excludelists"
 	declare -g tmpfile="${gamelistpathtmp}/tmpfile"
 	declare -g tmpfile2="${gamelistpathtmp}/tmpfile2"
 	declare -g corelisttmp=""
@@ -1933,6 +1933,9 @@ function sam_update() { # sam_update (next command)
 		curl_download "/tmp/samindex.zip" "${repository_url}/blob/${branch}/.SuperAttract/samindex.zip?raw=true"
 		unzip -ojq /tmp/samindex.zip -d ${mrsampath} &>/dev/null
 		get_samstuff .SuperAttract/SAM_splash.gsc
+
+		#blacklist files
+		get_samstuff .SuperAttract/SAM_Excludelists/arcade_blacklist.txt ${excludepath}
 
 		if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
 			echo " SAM INI already exists... Merging with new ini."
