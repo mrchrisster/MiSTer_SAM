@@ -286,11 +286,11 @@ function sam_prep() {
 function SAM_cleanup() {
 	# Clean up by umounting any mount binds
 	[[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]] && umount "${misterpath}/config"
-	# [[ $(mount | grep -ic ${amigashared}) -eq 1 ]] && umount "${amigashared}"
-	[[ -d "${misterpath}/Bootrom" ]] && [[ $(mount | grep -ic 'bootrom') -eq 1 ]] && umount "${misterpath}/Bootrom"
-	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') -eq 1 ]] && umount "${misterpath}/Games/NES/boot1.rom"
-	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') -eq 1 ]] && umount "${misterpath}/Games/NES/boot2.rom"
-	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') -eq 1 ]] && umount "${misterpath}/Games/NES/boot3.rom"
+	# [[ $(mount | grep -ic ${amigashared}) != "0" ]] && umount "${amigashared}"
+	[[ -d "${misterpath}/Bootrom" ]] && [[ $(mount | grep -ic 'bootrom') != "0" ]] && umount "${misterpath}/Bootrom"
+	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') != "0" ]] && umount "${misterpath}/Games/NES/boot1.rom"
+	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') != "0" ]] && umount "${misterpath}/Games/NES/boot2.rom"
+	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') != "0" ]] && umount "${misterpath}/Games/NES/boot3.rom"
 	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
@@ -1468,7 +1468,7 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ $(grep -ic "Attract" "${userstartup}") -gt 0 ]; then
+	if [[ $(grep -ic "attract" ${userstartup}) != "0" ]]; then
 		echo " -SAM autoplay ENABLED"
 	else
 		echo " -SAM autoplay DISABLED"
@@ -1993,7 +1993,7 @@ function sam_install() { # Install SAM to startup
 			echo "Building ${userstartup}"
 		fi
 	fi
-	if [ $(grep -ic "mister_sam" ${userstartup}) -eq 0 ] || [ $(grep -ic "attract" ${userstartup}) -eq 0 ]; then
+	if [[ $(grep -ic "mister_sam" ${userstartup}) == "0" ]] || [[ $(grep -ic "attract" ${userstartup}) == "0" ]]; then
 		echo -e "Adding SAM to ${userstartup}\n"
 		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e "${mrsampath}/SuperAttract_init" ]] && "${mrsampath}/SuperAttract_init " \$1 &" >>"${userstartup}"
@@ -2141,12 +2141,12 @@ function sam_stop() {
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message or stop
-	[[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]] && umount "${misterpath}/config"
-	while [[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]]; do
+	[[ $(mount | grep -ic "${misterpath}/config") != "0" ]] && umount "${misterpath}/config"
+	while [[ $(mount | grep -ic "${misterpath}/config") != "0" ]]; do
 		sleep 1
 	done
-	# [[ $(mount | grep -ic ${amigashared}) -eq 1 ]] && umount "${amigashared}"
-	# while [[ $(mount | grep -ic ${amigashared}) -eq 1 ]]; do
+	# [[ $(mount | grep -ic ${amigashared}) != "0" ]] && umount "${amigashared}"
+	# while [[ $(mount | grep -ic ${amigashared}) != "0" ]]; do
 	# 	sleep 1
 	# done
 	bgm_stop
@@ -2538,7 +2538,7 @@ function loop_core() { # loop_core (core)
 		trap 'counter=0' INT #Break out of loop for skip & next command
 		core="${1}"
 		while [ ${counter} -gt 0 ]; do
-			if [[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]]; then
+			if [[ $(mount | grep -ic "${misterpath}/config") != "0" ]]; then
 				echo -ne " Next game in ${counter}...\033[0K\r"
 				sleep 1
 				((counter--))
@@ -2569,8 +2569,8 @@ function speedtest() {
 	speedtest=1
 	[[ ! -d "${mrsamtmp}/gl" ]] && { mkdir -p ${mrsamtmp}/gl; }
 	[[ ! -d "${mrsamtmp}/glt" ]] && { mkdir -p ${mrsamtmp}/glt; }
-	[[ $(mount | grep -ic '${gamelistpath}') == "0" ]] && mount --bind ${mrsamtmp}/gl "${gamelistpath}"
-	[[ $(mount | grep -ic '${gamelistpathtmp}') == "0" ]] && mount --bind ${mrsamtmp}/glt "${gamelistpathtmp}"
+	[[ $(mount | grep -ic "${gamelistpath}") == "0" ]] && mount --bind ${mrsamtmp}/gl "${gamelistpath}"
+	[[ $(mount | grep -ic "${gamelistpathtmp}") == "0" ]] && mount --bind ${mrsamtmp}/glt "${gamelistpathtmp}"
 	START=$(date +%s)
 	for core in ${corelistall}; do
 		defaultpath "${core}"
@@ -2595,8 +2595,8 @@ function speedtest() {
 		done
 	fi
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
-	[ $(mount | grep -ic "${gamelistpath}") -eq 1 ] && umount "${gamelistpath}"
-	[ $(mount | grep -ic "${gamelistpathtmp}") -eq 1 ] && umount "${gamelistpathtmp}"
+	[ $(mount | grep -ic "${gamelistpath}")  != "0" ] && umount "${gamelistpath}"
+	[ $(mount | grep -ic "${gamelistpathtmp}")  != "0" ] && umount "${gamelistpathtmp}"
 	speedtest=0
 }
 
@@ -3066,7 +3066,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 				if [[ "${rompath}" == *"Demo:"* ]]; then
 					rompath=${rompath//Demo: /}
 				fi
-				# [[ $(mount | grep -ic ${amigashared}) -eq 1 ]] &&
+				# [[ $(mount | grep -ic ${amigashared}) != "0" ]] &&
 				echo "${rompath}" >${amigashared}/ags_boot
 				echo "${rompath}" >${CORE_PATH_FINAL[${core}]}/shared/ags_boot
 			fi
