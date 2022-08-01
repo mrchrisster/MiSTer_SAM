@@ -1468,7 +1468,7 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ $(grep -ic "Attract" "${userstartup}") != "0" ]; then
+	if [ $(grep -ic "Attract" "${userstartup}") -gt 0 ]; then
 		echo " -SAM autoplay ENABLED"
 	else
 		echo " -SAM autoplay DISABLED"
@@ -3111,6 +3111,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 # ========= MAIN =========
 function main() {
 	if [ ${#} -eq 0 ]; then # No options - show the pre-menu
+		startup_tasks
 		sam_premenu
 	elif [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
 		sam_help
