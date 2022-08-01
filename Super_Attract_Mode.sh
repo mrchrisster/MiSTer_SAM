@@ -1783,13 +1783,13 @@ function samedit_excltags() {
 		sam_menu
 	else
 		echo " Please wait... creating exclusion lists."
-		if [ ${categ} ]; then
+		if [ -z ${categ} ]; then
 			if [ ! -s "${excludetags}" ]; then
 				echo "${categ} " >"${excludetags}"
 				process_tag
 			else
 				# Check if tag is already excluded
-				if [ $(grep -i "${categ}" "${excludetags}") != 0 ]; then
+				if [ $(grep -i "${categ}" "${excludetags}") -gt 0 ]; then
 					dialog --clear --no-cancel --ascii-lines \
 						--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
 						--msgbox "${categ} has already been excluded. \n\n" 0 0
@@ -1902,7 +1902,7 @@ function sam_update() { # sam_update (next command)
 		# Download the newest Super_Attract_Mode.sh to /tmp
 		get_samstuff Super_Attract_Mode.sh /tmp
 		if [ -f /tmp/Super_Attract_Mode.sh ]; then
-			if [ ${1} ]; then
+			if [ -z ${1} ]; then
 				echo " Continuing setup with latest Super_Attract_Mode.sh..."
 				/tmp/Super_Attract_Mode.sh ${1}
 				return 0
@@ -1991,7 +1991,7 @@ function sam_install() { # Install SAM to startup
 			echo "Building ${userstartup}"
 		fi
 	fi
-	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ] || [ $(grep -ic "attract" ${userstartup}) = "0" ]; then
+	if [ $(grep -ic "mister_sam" ${userstartup}) -eq 0 ] || [ $(grep -ic "attract" ${userstartup}) -eq 0 ]; then
 		echo -e "Adding SAM to ${userstartup}\n"
 		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e "${mrsampath}/SuperAttract_init" ]] && "${mrsampath}/SuperAttract_init " \$1 &" >>"${userstartup}"
@@ -2805,7 +2805,7 @@ function check_romlist() { # args ${core}  "${DIR}"
 
 	# Check if zip still exists
 	if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
-		if [ $(grep -c ".zip" ${gamelistpath}/${core}_gamelist.txt) != "0" ]; then
+		if [ $(grep -c ".zip" ${gamelistpath}/${core}_gamelist.txt) -gt 0 ]; then
 			mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${core}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 			for zips in "${zipsinfile[@]}"; do
 				if [ ! -f "${zips}" ]; then
