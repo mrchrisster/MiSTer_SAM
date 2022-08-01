@@ -237,7 +237,7 @@ function init_paths() {
 
 function sam_prep() {
 	declare -g amigacore=""
-	declare -g amigashared="${amigapath}/shared"
+	declare -g amigashared="${CORE_PATH_FINAL[amiga]}/shared"
 	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
 	[[ "${samdebug}" == "yes" ]] && echo -e " Grep got ${var}"
 	if [ ! -z "${var}" ]; then
@@ -267,7 +267,7 @@ function sam_prep() {
 	RBF_found=$(find ${misterpath}/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -ic Minimig)
 	if [ "${RBF_found}" -eq 0 ]; then
 		echo "Amiga RBF not found!"
-		corelist=("${corelist[@]/amiga/}")
+		corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\bamiga\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 	else
 		amigacore=$(find ${misterpath}/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -i ${CORE_LAUNCH[amiga]} | tail -1)
 	fi
@@ -415,6 +415,32 @@ function init_data() {
 		["tgfx16"]="${tgfx16pathextra}"
 		["tgfx16cd"]="${tgfx16cdpathextra}"
 		["psx"]="${psxpathextra}"
+	)
+
+	# Core to path mappings
+	declare -gA CORE_PATH_FINAL=(
+		["amiga"]="${amigapath}${amigapathextra}"
+		["arcade"]="${arcadepath}${arcadepathextra}"
+		["atari2600"]="${atari2600path}${atari2600pathextra}"
+		["atari5200"]="${atari5200path}${atari5200pathextra}"
+		["atari7800"]="${atari7800path}${atari7800pathextra}"
+		["atarilynx"]="${atarilynxpath}${atarilynxpathextra}"
+		["c64"]="${c64path}${c64pathextra}"
+		["fds"]="${fdspath}${fdspathextra}"
+		["gb"]="${gbpath}${gbpathextra}"
+		["gbc"]="${gbcpath}${gbcpathextra}"
+		["gba"]="${gbapath}${gbapathextra}"
+		["genesis"]="${genesispath}${genesispathextra}"
+		["gg"]="${ggpath}${ggpathextra}"
+		["megacd"]="${megacdpath}${megacdpathextra}"
+		["neogeo"]="${neogeopath}${neogeopathextra}"
+		["nes"]="${nespath}${nespathextra}"
+		["s32x"]="${s32xpath}${s32xpathextra}"
+		["sms"]="${smspath}${smspathextra}"
+		["snes"]="${snespath}${snespathextra}"
+		["tgfx16"]="${tgfx16path}${tgfx16pathextra}"
+		["tgfx16cd"]="${tgfx16cdpath}${tgfx16cdpathextra}"
+		["psx"]="${psxpath}${psxpathextra}"
 	)
 
 	# Core to path mappings for rbf files
@@ -1328,15 +1354,15 @@ function debug_output() {
 	echo " listenkeyboard: ${listenkeyboard}"
 	echo " listenjoy: ${listenjoy}"
 	echo ""
-	echo " arcadepath: ${arcadepath}"
-	echo " gbapath: ${gbapath}"
-	echo " genesispath: ${genesispath}"
-	echo " megacdpath: ${megacdpath}"
-	echo " neogeopath: ${neogeopath}"
-	echo " nespath: ${nespath}"
-	echo " snespath: ${snespath}"
-	echo " tgfx16path: ${tgfx16path}"
-	echo " tgfx16cdpath: ${tgfx16cdpath}"
+	echo " arcadepath: ${CORE_PATH_FINAL[arcade]}"
+	echo " gbapath: ${CORE_PATH_FINAL[gba]}"
+	echo " genesispath: ${CORE_PATH_FINAL[genesis]}"
+	echo " megacdpath: ${CORE_PATH_FINAL[megacd]}"
+	echo " neogeopath: ${CORE_PATH_FINAL[neogeo]}"
+	echo " nespath: ${CORE_PATH_FINAL[nes]}"
+	echo " snespath: ${CORE_PATH_FINAL[snes]}"
+	echo " tgfx16path: ${CORE_PATH_FINAL[tgfx16]}"
+	echo " tgfx16cdpath: ${CORE_PATH_FINAL[tgfx16cd]}"
 	echo ""
 	echo " gbalist: ${gbalist}"
 	echo " genesislist: ${genesislist}"
@@ -1380,8 +1406,8 @@ function read_samini() {
 	fi
 
 	# Setup corelist
-	corelist=$(echo ${corelist} | tr ',' ' ' | awk '{$2=$2};1')
-	corelistall=$(echo ${corelistall} | tr ',' ' ' | awk '{$2=$2};1')
+	corelist=$(echo ${corelist} | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+	corelistall=$(echo ${corelistall} | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 
 	# Create array of coreexclude list names
 	declare -a coreexcludelist
@@ -2294,7 +2320,7 @@ function skipmessage() {
 	if [ ${core} != "amiga" ]; then
 		"${mrsampath}/mbc" raw_seq :31
 	else
-		if [ ! -s "${amigapath}/listings/games.txt" ]; then
+		if [ ! -s "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ]; then
 			# This is for MegaAGS version June 2022 or older
 			"${mrsampath}/mbc" raw_seq {6c
 			"${mrsampath}/mbc" raw_seq O
@@ -2396,7 +2422,7 @@ function core_error() { # core_error core /path/to/ROM
 	else
 		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${core} rom: ${rompath}"
 		echo " ERROR: Core ${core} is blacklisted!"
-		corelist=("${corelist[@]/${core}/}")
+		corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${core}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		echo " List of cores is now: ${corelist[@]}"
 		romloadfails=0
 		next_core ${core}
@@ -2560,7 +2586,7 @@ function speedtest() {
 	START=$(date +%s)
 	echo "" | >"${gamelistpathtmp}/Durations.tmp"
 	for core in ${corelistall}; do
-		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
+		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH_FINAL[${core}]}"))
 		if [ ${core} = " " ] || [ ${core} = "" ] || [ -z ${core} ]; then
 			continue
 		else
@@ -2647,7 +2673,7 @@ function create_game_lists() {
 
 	for core in ${corelistall}; do
 		corelisttmp="${corelist}"
-		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
+		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH_FINAL[${core}]}"))
 		local date_file=""
 
 		if [ ${core} == "arcade" ]; then
@@ -2689,10 +2715,10 @@ function create_romlist() { # args ${core} "${DIR}"
 
 	if [ ${core} == "amiga" ]; then
 		# Check for existing files that define the "ROMs"
-		if [ -f "${amigapath}/listings/games.txt" ]; then
-			[ -s "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" >"${tmpfile}"
+		if [ -f "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ]; then
+			[ -s "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ] && cat "${CORE_PATH_FINAL[${core}]}/listings/demos.txt" >"${tmpfile}"
 			sed -i -e 's/^/Demo: /' "${tmpfile}"
-			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >>"${tmpfile}"
+			[ -f "${CORE_PATH_FINAL[${core}]}/listings/demos.txt" ] && cat "${CORE_PATH_FINAL[${core}]}/listings/games.txt" >>"${tmpfile}"
 		fi
 	elif [ ${core} == "arcade" ]; then
 		# This prints the list of MRA files in a path,
@@ -2844,7 +2870,7 @@ function next_core() { # next_core (core)
 	fi
 	if [ "${countdown}" != "countdown" ]; then
 		core=${1}
-		corelist=$(echo "${corelist}" | awk '{$2=$2};1')
+		corelist=$(echo "${corelist}" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		corelist_count=$(echo $(
 			IFS=' '
 			set -f -- ${corelist}
@@ -2867,8 +2893,8 @@ function next_core() { # next_core (core)
 		fi
 		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist:    ${corelist}! \e[0m"
 		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelisttmp: ${corelisttmp}! \e[0m"
-		corelist=$(echo "${corelist}" | awk '{$2=$2};1')
-		corelisttmp=$(echo "${corelisttmp}" | awk '{$2=$2};1')
+		corelist=$(echo "${corelist}" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+		corelisttmp=$(echo "${corelisttmp}" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		corelist_count=$(echo $(
 			IFS=' '
 			set -f -- ${corelist}
@@ -2888,7 +2914,7 @@ function next_core() { # next_core (core)
 		if [ ${corelisttmp_count} -gt 1 ]; then
 			if [ "${core}" == "${nextcore}" ]; then
 				[[ "${samquiet}" == "no" ]] && echo -e " Core repeated! \e[1m${nextcore}\e[0m"
-				corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | awk '{$2=$2};1')
+				corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				corelist_count=$(echo $(
 					IFS=' '
 					set -f -- ${corelist}
@@ -2898,13 +2924,13 @@ function next_core() { # next_core (core)
 				next_core ${nextcore}
 				return
 			fi
-			corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | awk '{$2=$2};1')
+			corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		fi
 	fi
 
 	[[ "${samquiet}" == "no" ]] && echo -e " Selected core: \e[1m${nextcore^^}\e[0m"
 
-	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
+	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH_FINAL[${nextcore}]}"))
 	check_romlist ${nextcore} "${DIR}"
 
 	if [ -z "${rompath}" ]; then
@@ -2923,7 +2949,7 @@ function next_core() { # next_core (core)
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
 		[[ "${samquiet}" == "no" ]] && echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"
-		corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | awk '{$2=$2};1')
+		corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		corelist_count=$(echo $(
 			IFS=' '
 			set -f -- ${corelist}
@@ -2941,7 +2967,7 @@ function next_core() { # next_core (core)
 			if [ "${excluded}" == "${rompath}" ]; then
 				[[ "${samquiet}" == "no" ]] && printf '%s\n' " Excluded: ${rompath}, trying a different game.."
 				awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-				corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | awk '{$2=$2};1')
+				corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				corelist_count=$(echo $(
 					IFS=' '
 					set -f -- ${corelist}
@@ -2961,7 +2987,7 @@ function next_core() { # next_core (core)
 				if [ "${line}" == "${rompath}" ]; then
 					[[ "${samquiet}" == "no" ]] && printf '%s\n' " Excluded by user: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-					corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | awk '{$2=$2};1')
+					corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 					corelist_count=$(echo $(
 						IFS=' '
 						set -f -- ${corelist}
@@ -2983,7 +3009,7 @@ function next_core() { # next_core (core)
 				if [ "${line}" == *"${rompath}"* ]; then
 					[[ "${samquiet}" == "no" ]] && printf '%s\n' " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-					corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | awk '{$2=$2};1')
+					corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 					corelist_count=$(echo $(
 						IFS=' '
 						set -f -- ${corelist}
@@ -3076,12 +3102,12 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		# Tell MiSTer to load the next MRA
 	else
 		if [ ${core} == "amiga" ]; then
-			if [ ! -f "${amigapath}/MegaAGS.hdf" ]; then
+			if [ ! -f "${CORE_PATH_FINAL[${core}]}/MegaAGS.hdf" ]; then
 				echo " ERROR - MegaAGS Pack not found in Amiga folder."
 				next_core ${core}
 				return
 			fi
-			if [ -s "${amigapath}/listings/games.txt" ]; then
+			if [ -s "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ]; then
 				# This is for MegaAGS version July 2022 or newer
 				# Special case for demo
 				if [[ "${rompath}" == *"Demo:"* ]]; then
@@ -3089,7 +3115,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 				fi
 				# [[ $(mount | grep -ic ${amigashared}) -eq 1 ]] &&
 				echo "${rompath}" >${amigashared}/ags_boot
-				echo "${rompath}" >${CORE_PATH[${core}]}/${CORE_PATH_EXTRA[${core}]}/shared/ags_boot
+				echo "${rompath}" >${CORE_PATH_FINAL[${core}]}/shared/ags_boot
 			fi
 		fi
 		if [ ${core} == "amiga" ] && [ "${amiga_use_mgl}" -eq 0 ]; then
