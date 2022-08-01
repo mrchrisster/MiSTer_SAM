@@ -31,9 +31,6 @@
 
 trap 'rc=$?;[ ${rc} = 0 ] && exit;SAM_cleanup' EXIT TERM
 
-# ======== Testing purposes only =========
-declare -gi amiga_use_mgl=1
-
 # ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
@@ -263,16 +260,6 @@ function sam_prep() {
 	fi
 
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory is ${amigashared} "
-
-	RBF_found=$(find ${misterpath}/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -ic Minimig)
-	if [ "${RBF_found}" -eq 0 ]; then
-		echo "Amiga RBF not found!"
-		corelist=$(echo "${corelist}" | awk '{print $0" "}' | sed "s/\bamiga\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-	else
-		amigacore=$(find ${misterpath}/_Computer/ -iname "*${CORE_LAUNCH[amiga]}*" | grep -i ${CORE_LAUNCH[amiga]} | tail -1)
-	fi
-
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amiga RBF is ${amigacore} "
 
 	# Create folders if they don't exist
 	[[ ! -d "${gamelistpath}" ]] && mkdir -p "${gamelistpath}"
@@ -3079,25 +3066,21 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 				echo "${rompath}" >${CORE_PATH_FINAL[${core}]}/shared/ags_boot
 			fi
 		fi
-		if [ ${core} == "amiga" ] && [ "${amiga_use_mgl}" -eq 0 ]; then
-			file_to_load=${amigacore}
+		file_to_load="/tmp/SAM_game.mgl"
+		# Create mgl file and launch game
+
+		echo "<mistergamedescription>" >${file_to_load}
+		echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>${file_to_load}
+
+		if [ ${usedefaultpaths} == "yes" ] || [ ${core} == "amiga" ]; then
+			corepath="${CORE_PATH[${core}]}/"
+			rompath="${rompath#${corepath}}"
+			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>${file_to_load}
 		else
-			file_to_load="/tmp/SAM_game.mgl"
-			# Create mgl file and launch game
-
-			echo "<mistergamedescription>" >${file_to_load}
-			echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>${file_to_load}
-
-			if [ ${usedefaultpaths} == "yes" ] || [ ${core} == "amiga" ]; then
-				corepath="${CORE_PATH[${core}]}/"
-				rompath="${rompath#${corepath}}"
-				echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>${file_to_load}
-			else
-				echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"../../../..${rompath}\""/>" >>${file_to_load}
-			fi
-
-			echo "</mistergamedescription>" >>${file_to_load}
+			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"../../../..${rompath}\""/>" >>${file_to_load}
 		fi
+
+		echo "</mistergamedescription>" >>${file_to_load}
 	fi
 
 	# check for case of config files
