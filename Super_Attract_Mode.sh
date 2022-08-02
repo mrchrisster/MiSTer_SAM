@@ -1486,7 +1486,9 @@ function sam_premenu() {
 	echo " Or wait for"
 	echo " auto-configuration"
 	echo ""
-
+	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
+	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
+	
 	for i in {5..1}; do
 		echo -ne " Updating SAM in ${i}...\033[0K\r"
 		premenu="Default"
