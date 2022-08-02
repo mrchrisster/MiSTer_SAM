@@ -2494,7 +2494,7 @@ function get_samstuff() { #get_samstuff file (path)
 		return 1
 	fi
 
-	filepath="${2:=${mrsampath}}"
+	filepath="${2:-${mrsampath}}"
 
 	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
 	curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
