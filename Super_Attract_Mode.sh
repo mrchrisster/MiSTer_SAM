@@ -1904,7 +1904,7 @@ function sam_update() { # sam_update (next command)
 		# Download the newest Super_Attract_Mode.sh to /tmp
 		get_samstuff Super_Attract_Mode.sh /tmp
 		if [ -f /tmp/Super_Attract_Mode.sh ]; then
-			if [ ${1} ]; then
+			if [ ! -z ${1} ]; then
 				echo " Continuing setup with latest Super_Attract_Mode.sh..."
 				/tmp/Super_Attract_Mode.sh ${1}
 				return 0
@@ -2091,9 +2091,9 @@ function only_survivor() {
 function sam_stop() {
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
 	if [ ${corename_name} != "MENU" ]; then
-		echo -n " Returning to MiSTer Menu..."
+		samquiet "-n" " Returning to MiSTer Menu..."
 		echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
-		echo " Done!"
+		samquiet " Done!"
 	fi
 
 	SAM_cleanup
@@ -2101,43 +2101,43 @@ function sam_stop() {
 	tries=5
 	pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping MCP..."
-		echo -n " ${pids} "
+		samquiet "-n" " Stopping MCP..."
+		samquiet "-n" " ${pids} "
 		# kill -9 ${pids} &>/dev/null
 		while [ $(kill -15 ${pids} 2>/dev/null)] && [ ${tries} -gt 0 ]; do
 			((tries--))
 			sleep 1
 		done
 		pids=$(pidof SuperAttract_MCP)
-		echo " Failed, forcing!"
-		echo -n " Stopping MCP..."
-		echo -n " ${pids} "
+		samquiet " Failed, forcing!"
+		samquiet "-n" " Stopping MCP..."
+		samquiet "-n" "${pids} "
 		kill -9 ${pids} &>/dev/null
-		echo " Done!"
+		samquiet " Done!"
 	fi
 	sleep 2
 	pids=""
 	pids=$(pidof SuperAttract_tty2oled)
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping TTY..."
-		echo -n " | ${pids} "
+		samquiet "-n" " Stopping TTY..."
+		samquiet "-n" " | ${pids} "
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 			sleep 1
 		done
-		echo " Done!"
+		samquiet " Done!"
 	fi
 	sleep 2
 	pids=""
 	pids=$(pidof Super_Attract_Mode.sh)
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping SAM..."
-		echo -n " | ${pids} "
+		samquiet "-n" " Stopping SAM..."
+		samquiet "-n" " | ${pids} "
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 			sleep 1
 		done
-		echo " Done!"
+		samquiet " Done!"
 	fi
 	pids=""
 	sleep 2
@@ -2376,13 +2376,21 @@ function fakegameslog() {
 
 function samdebug() {
 	if [ "${samdebug}" == "yes" ]; then
-		echo -e "\e[1m\e[31m${1-}\e[0m"
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[31m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[31m${1-}\e[0m"
+		fi
 	fi
 }
 
 function samquiet() {
 	if [ "${samquiet}" == "no" ]; then
-		echo -e "\e[1m\e[32m${1-}\e[0m"
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[32m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[32m${1-}\e[0m"
+		fi
 	fi
 }
 
@@ -2864,7 +2872,7 @@ function check_romlist() { # args ${core}  "${DIR}"
 	else
 		# Repopulate list
 		if [ -s "${gamelistpath}/${core}_gamelist_exclude.txt" ]; then
-			samquiet -n " Exclusion list found. Excluding games now..."
+			samquiet "-n" " Exclusion list found. Excluding games now..."
 			comm -13 <(sort <"${gamelistpath}/${core}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${core}_gamelist.txt") >${tmpfile}
 			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${core}_gamelist.txt"
 			samquiet "Done."
