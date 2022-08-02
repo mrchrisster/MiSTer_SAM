@@ -236,30 +236,30 @@ function sam_prep() {
 	declare -g amigacore=""
 	declare -g amigashared="${CORE_PATH_FINAL[amiga]}/shared"
 	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
-	[[ "${samdebug}" == "yes" ]] && echo -e " Grep got ${var}"
+	samdebug " Grep got ${var}"
 	if [ ! -z "${var}" ]; then
-		[[ "${samdebug}" == "yes" ]] && echo -e " Variable is not empty"
+		samdebug " Variable is not empty"
 		if [ ! -d ${var} ]; then
-			[[ "${samdebug}" == "yes" ]] && echo -e " Variable is not a valid directory"
+			samdebug " Variable is not a valid directory"
 			if [ "${var: -1}" != "/" ]; then
-				[[ "${samdebug}" == "yes" ]] && echo -e " Variable does not contain / in the last position"
+				samdebug " Variable does not contain / in the last position"
 				var=$(echo ${var} | sed 's:/.$::')
 			fi
 		fi
 		if [ -d ${var} ]; then
-			[[ "${samdebug}" == "yes" ]] && echo -e " Variable is a valid directory"
+			samdebug " Variable is a valid directory"
 			if [ "${var: -1}" == "/" ]; then
-				[[ "${samdebug}" == "yes" ]] && echo -e " Variable contains / in the last position"
+				samdebug " Variable contains / in the last position"
 				var="${var::${#var}-1}"
 			fi
-			[[ "${samdebug}" == "yes" ]] && echo -e " Setting the amigashared variable"
+			samdebug " Setting the amigashared variable"
 			amigashared="${var}"
 		fi
 	else
-		[[ "${samdebug}" == "yes" ]] && echo -e " Variable is empty sticking with default"
+		samdebug " Variable is empty sticking with default"
 	fi
 
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory is ${amigashared} "
+	samquiet " Amigashared directory is ${amigashared} "
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config"/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
 	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
 	# [[ -d "${mrsamtmp}/Amiga_shared" ]] && [[ $(mount | grep -ic "${amigashared}") == "0" ]] && cp -pr --force ${amigashared}/Disk.info ${mrsamtmp}/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat ${mrsamtmp}/Amiga_shared &>/dev/null && mount --bind "${mrsamtmp}/Amiga_shared" "${amigashared}"
@@ -285,7 +285,7 @@ function SAM_cleanup() {
 	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
 	[[ -e ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Cleaned up mounts."
+	samquiet " Cleaned up mounts."
 }
 
 # ======== CORE CONFIG ========
@@ -1285,6 +1285,14 @@ function start_pipe_readers() {
 				fakegameslog)
 					fakegameslog
 					;;
+				samdebug | debug)
+					shift
+					samdebug_toggle "${1-}"
+					;;
+				samquiet | quiet)
+					shift
+					samquiet_toggle "${1-}"
+					;;
 				*)
 					echo " ERROR! ${line} is unknown."
 					echo " Try $(basename -- ${0}) help"
@@ -1568,7 +1576,7 @@ function sam_resetmenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " menuresponse: ${menuresponse}"
+	samquiet " menuresponse: ${menuresponse}"
 	main ${menuresponse}
 }
 
@@ -1586,7 +1594,7 @@ function sam_gamelistmenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " menuresponse: ${menuresponse}"
+	samquiet " menuresponse: ${menuresponse}"
 	main ${menuresponse}
 }
 
@@ -1600,7 +1608,7 @@ function sam_autoplaymenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 
 	clear
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " menuresponse: ${menuresponse}"
+	samquiet " menuresponse: ${menuresponse}"
 	main ${menuresponse}
 }
 
@@ -2306,7 +2314,7 @@ function skipmessage() {
 	local core=${1}
 	# Skip past bios/safety warnings
 	sleep 15
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Skipping BIOS/Safety Warnings!"
+	samquiet " Skipping BIOS/Safety Warnings!"
 	if [ ${core} != "amiga" ]; then
 		"${mrsampath}/mbc" raw_seq :31
 	else
@@ -2331,9 +2339,9 @@ function exclude_game() {
 	local xnextcore=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o '\- (\w*) \-' | sed 's/\s[\-]//' | sed 's/[\-]\s//')
 	local xromname=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o "\- ${xnextcore} \- (.*)$" | sed "s/\- ${xnextcore} \- //")
 	local xrompath=$(cat "${gamelistpath}/${xnextcore}_gamelist.txt" | grep "${xromname}")
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xnextcore: ${xnextcore}"
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xromname: ${xromname}"
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " xrompath: ${xrompath}"
+	samquiet " xnextcore: ${xnextcore}"
+	samquiet " xromname: ${xromname}"
+	samquiet " xrompath: ${xrompath}"
 	if [ -f "${excludepath}/${xnextcore}_excludelist.txt" ] && [ ! -z ${xrompath} ]; then
 		echo ${xrompath} >>"${excludepath}/${xnextcore}_excludelist.txt"
 	elif [ ! -z ${xrompath} ]; then
@@ -2367,6 +2375,42 @@ function fakegameslog() {
 			echo "${date} - ${core} - ${romname}" >>"/tmp/SAM_Games(fake).log"
 		fi
 	done
+}
+
+function samdebug() {
+	if [ "${samdebug}" == "yes" ]; then
+		echo -e "\e[1m\e[31m${1-}\e[0m"
+	fi
+}
+
+function samquiet() {
+	if [ "${samquiet}" == "no" ]; then
+		echo -e "\e[1m\e[32m${1-}\e[0m"
+	fi
+}
+
+function samdebug_toggle() {
+	if [ ! -z "${2}" ] && ([ "${2}" == "yes" ] || [ "${2}" == "no" ]); then
+		samdebug="${2}"
+	elif [ "${1}" == "toggle" ]; then
+		if [ "${samdebug}" == "yes" ]; then
+			samdebug="no"
+		elif [ "${samdebug}" == "no" ]; then
+			samdebug="yes"
+		fi
+	fi
+}
+
+function samquiet_toggle() {
+	if [ ! -z "${2}" ] && ([ "${2}" == "yes" ] || [ "${2}" == "no" ]); then
+		samquiet="${2}"
+	elif [ "${1}" == "toggle" ]; then
+		if [ "${samquiet}" == "yes" ]; then
+			samquiet="no"
+		elif [ "${samquiet}" == "no" ]; then
+			samquiet="yes"
+		fi
+	fi
 }
 
 function bgm_start() {
@@ -2719,14 +2763,14 @@ function create_romlist() { # args ${core} "${DIR}"
 		# If there is an empty exclude list ignore it
 		# Otherwise use it to filter the list
 		if echo "${DIR}" | grep -q "_Organized"; then
-			[[ "${samdebug}" == "yes" ]] && echo "_Organized detected!"
+			samdebug "_Organized detected!"
 			if [ ${#arcadeexclude[@]} -eq 0 ]; then
 				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}")
 			else
 				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}") | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${tmpfile}"
 			fi
 		else
-			[[ "${samdebug}" == "yes" ]] && echo "_Organized not detected!"
+			samdebug "_Organized not detected!"
 			if [ ${#arcadeexclude[@]} -eq 0 ]; then
 				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}")
 			else
@@ -2788,19 +2832,19 @@ function check_romlist() { # args ${core}  "${DIR}"
 	local DIR="${2}"
 	# If gamelist is not in gameslist dir, let's put it there
 	if [ ! -s "${gamelistpath}/${core}_gamelist.txt" ]; then
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Creating game list at ${gamelistpath}/${core}_gamelist.txt"
+		samquiet " Creating game list at ${gamelistpath}/${core}_gamelist.txt"
 		create_romlist ${core} "${DIR}"
 	fi
 
 	# If gamelist is not in /tmp dir, let's put it there
 	if [ ! -s "${gamelistpathtmp}/${core}_gamelist.txt" ]; then
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Creating game list at ${gamelistpathtmp}/${core}_gamelist.txt"
+		samquiet " Creating game list at ${gamelistpathtmp}/${core}_gamelist.txt"
 		cp "${gamelistpath}/${core}_gamelist.txt" "${gamelistpathtmp}/${core}_gamelist.txt"
 	fi
 
 	# If folder changed, make new list
 	if [ ${core} != "amiga" ] && [[ ! $(cat ${gamelistpath}/${core}_gamelist.txt | grep -i "${DIR}" | head -1) ]]; then
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Creating new game list because folder "${DIR}" changed in ini."
+		samquiet " Creating new game list because folder "${DIR}" changed in ini."
 		create_romlist ${core} "${DIR}"
 	fi
 
@@ -2810,7 +2854,7 @@ function check_romlist() { # args ${core}  "${DIR}"
 			mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${core}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 			for zips in "${zipsinfile[@]}"; do
 				if [ ! -f "${zips}" ]; then
-					[[ "${samquiet}" == "no" ]] && printf '%s\n' " Creating new game list because zip file[s] seems to have changed."
+					samquiet " Creating new game list because zip file[s] seems to have changed."
 					create_romlist ${core} "${DIR}"
 				fi
 			done
@@ -2823,10 +2867,10 @@ function check_romlist() { # args ${core}  "${DIR}"
 	else
 		# Repopulate list
 		if [ -s "${gamelistpath}/${core}_gamelist_exclude.txt" ]; then
-			[[ "${samquiet}" == "no" ]] && printf '%s\n' -n " Exclusion list found. Excluding games now..."
+			samquiet -n " Exclusion list found. Excluding games now..."
 			comm -13 <(sort <"${gamelistpath}/${core}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${core}_gamelist.txt") >${tmpfile}
 			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${core}_gamelist.txt"
-			[[ "${samquiet}" == "no" ]] && printf '%s\n' "Done."
+			samquiet "Done."
 			rompath=$(cat ${gamelistpathtmp}/${core}_gamelist.txt | shuf --head-count=1)
 		else
 			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpathtmp}/${core}_gamelist.txt"
@@ -2838,15 +2882,15 @@ function check_romlist() { # args ${core}  "${DIR}"
 	# Make sure file exists since we're reading from a static list
 	if [[ "${rompath,,}" != *.zip* ]] && [ ${core} != "amiga" ]; then
 		if [ ! -s "${rompath}" ]; then
-			[[ "${samquiet}" == "no" ]] && printf '%s\n' " Creating new game list because file not found."
+			samquiet " Creating new game list because file not found."
 			create_romlist ${core} "${DIR}"
 		fi
 	fi
 
 	# Delete played game from list
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Selected file: ${rompath}"
+	samquiet " Selected file: ${rompath}"
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${core}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${core}_gamelist.txt"
+		awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${core}_gamelist.txt" >${tmpfile} && mv --force ${tmpfile} "${gamelistpathtmp}/${core}_gamelist.txt"
 	fi
 	[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
 }
@@ -2864,7 +2908,7 @@ function next_core() { # next_core (core)
 		core="${1}"
 		corelist_count=$(echo $(wc -w <<<"${corelist}"))
 		corelisttmp_count=$(echo $(wc -w <<<"${corelisttmp}"))
-		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at start of next_core() \e[0m"
+		samdebug " corelist count is ${corelist_count} at start of next_core()"
 		if [ "${corelist_count}" -gt 0 ]; then
 			if [ "${corelisttmp_count}" -eq 0 ]; then
 				printf -v corelisttmp '%s ' "${corelist}"
@@ -2878,8 +2922,8 @@ function next_core() { # next_core (core)
 				corelist_count=$(echo $(wc -w <<<"${corelist}"))
 			fi
 		fi
-		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist:    ${corelist}! \e[0m"
-		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelisttmp: ${corelisttmp}! \e[0m"
+		samdebug " corelist:    ${corelist}!"
+		samdebug " corelisttmp: ${corelisttmp}!"
 		if [ "${corelist_count}" -eq 0 ]; then
 			corelist="arcade"
 			corelisttmp=${corelist}
@@ -2890,10 +2934,10 @@ function next_core() { # next_core (core)
 		if [ ${corelisttmp_count} -gt 1 ]; then
 			nextcore=$(echo ${corelist} | xargs shuf --head-count=1 --echo)
 			if [ "${core}" == "${nextcore}" ]; then
-				[[ "${samquiet}" == "no" ]] && echo -e " Core repeated! \e[1m${nextcore}\e[0m"
+				samquiet " Core repeated! \e[1m${nextcore}\e[0m"
 				corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				corelist_count=$(echo $(wc -w <<<"${corelist}"))
-				[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
+				samdebug  "corelist count is ${corelist_count} at end of next_core()"
 				next_core "${nextcore}"
 				return
 			fi
@@ -2904,7 +2948,7 @@ function next_core() { # next_core (core)
 		fi
 	fi
 
-	[[ "${samquiet}" == "no" ]] && echo -e " Selected core: \e[1m${nextcore^^}\e[0m"
+	samquiet " Selected core: \e[1m${nextcore^^}\e[0m"
 
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH_FINAL[${nextcore}]}"))
 	check_romlist ${nextcore} "${DIR}"
@@ -2924,10 +2968,10 @@ function next_core() { # next_core (core)
 	extension="${romname##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
-		[[ "${samquiet}" == "no" ]] && echo -e " Wrong Extension! \e[1m${extension^^}\e[0m"
+		samquiet " Wrong Extension! \e[1m${extension^^}\e[0m"
 		corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		corelist_count=$(echo $(wc -w <<<"${corelist}"))
-		[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
+		samdebug " corelist count is ${corelist_count} at end of next_core()"
 		next_core "${nextcore}"
 		return
 	fi
@@ -2937,11 +2981,11 @@ function next_core() { # next_core (core)
 	if [ ${#excludelist[@]} -gt 0 ]; then
 		for excluded in "${excludelist[@]}"; do
 			if [ "${excluded}" == "${rompath}" ]; then
-				[[ "${samquiet}" == "no" ]] && printf '%s\n' " Excluded: ${rompath}, trying a different game.."
+				samquiet " Excluded: ${rompath}, trying a different game.."
 				awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 				corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				corelist_count=$(echo $(wc -w <<<"${corelist}"))
-				[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
+				samdebug " corelist count is ${corelist_count} at end of next_core()"
 				next_core "${nextcore}"
 				return
 			fi
@@ -2949,15 +2993,15 @@ function next_core() { # next_core (core)
 	fi
 
 	if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
-		[[ "${samdebug}" == "yes" ]] && echo " Found exclusion list for core ${nextcore}"
+		samdebug " Found exclusion list for core ${nextcore}"
 		cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
 			if [ "${line}" != "\n" ]; then
 				if [ "${line}" == "${rompath}" ]; then
-					[[ "${samquiet}" == "no" ]] && printf '%s\n' " Excluded by user: ${rompath}, trying a different game.."
+					samquiet " Excluded by user: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 					corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 					corelist_count=$(echo $(wc -w <<<"${corelist}"))
-					[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
+					samdebug " corelist count is ${corelist_count} at end of next_core()"
 					return 1
 				fi
 			fi
@@ -2967,15 +3011,15 @@ function next_core() { # next_core (core)
 
 	#Check blacklist
 	if [ -f "${excludepath}/${nextcore}_blacklist.txt" ]; then
-		[[ "${samdebug}" == "yes" ]] && echo " Found exclusion list for core ${nextcore}"
+		samdebug " Found exclusion list for core ${nextcore}"
 		cat "${excludepath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
 			if [ "${line}" != "\n" ]; then
 				if [ "${line}" == *"${rompath}"* ]; then
-					[[ "${samquiet}" == "no" ]] && printf '%s\n' " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
+					samquiet " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 					corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 					corelist_count=$(echo $(wc -w <<<"${corelist}"))
-					[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
+					samdebug " corelist count is ${corelist_count} at end of next_core()"
 					return 1
 				fi
 			fi
@@ -2984,7 +3028,7 @@ function next_core() { # next_core (core)
 	fi
 
 	corelist_count=$(echo $(wc -w <<<"${corelist}"))
-	[[ "${samdebug}" == "yes" ]] && echo -e "\e[1m corelist is ${corelist_count} at end of next_core() \e[0m"
+	samdebug " corelist count is ${corelist_count} at end of next_core()"
 
 	load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
 }
@@ -3138,6 +3182,26 @@ function main() {
 			fakegameslog)
 				echo " Creating Fake SAM_Games.log..."
 				write_to_SAM_cmd_pipe ${1-}
+				break
+				;;
+			samdebug | debug)
+				if [ ! -z "${2}" ] && ([ "${2,,}" == "yes" ] || [ "${2,,}" == "no" ]); then
+					echo " Toggling ${1,,} to ${2,,}..."
+					write_to_SAM_cmd_pipe ${1-,,}
+				else
+					echo " Toggling ${1,,} ..."
+					write_to_SAM_cmd_pipe "${1,,}" "toggle"
+				fi
+				break
+				;;
+			samquiet | quiet)
+				if [ ! -z "${2}" ] && ([ "${2,,}" == "no" ] || [ "${2,,}" == "yes" ]); then
+					echo " Toggling ${1,,} to ${2,,}..."
+					write_to_SAM_cmd_pipe ${1-,,}
+				else
+					echo " Toggling ${1,,} ..."
+					write_to_SAM_cmd_pipe "${1,,}" "toggle"
+				fi
 				break
 				;;
 			monitor)
