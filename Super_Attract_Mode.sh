@@ -1904,9 +1904,9 @@ function sam_update() { # sam_update (next command)
 		# Download the newest Super_Attract_Mode.sh to /tmp
 		get_samstuff Super_Attract_Mode.sh /tmp
 		if [ -f /tmp/Super_Attract_Mode.sh ]; then
-			if [ -z ${1} ]; then
+			if [ ${1} ]; then
 				echo " Continuing setup with latest Super_Attract_Mode.sh..."
-				/tmp/Super_Attract_Mode.sh update
+				/tmp/Super_Attract_Mode.sh ${1}
 				return 0
 			else
 				echo " Launching latest"
