@@ -1374,21 +1374,18 @@ function debug_output() {
 
 # Read INI
 function read_samini() {
-	if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
-		source "${misterscripts}/Super_Attract_Mode.ini"
-		# Remove trailing slash from paths
-		for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "path=" | cut -f1 -d"="); do
-			declare -g ${var}="${!var%/}"
-		done
-		for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "pathextra=" | cut -f1 -d"="); do
-			declare -g ${var}="${!var%/}"
-		done
-		for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "pathrbf=" | cut -f1 -d"="); do
-			declare -g ${var}="${!var%/}"
-		done
-	else
-		sam_update autoconfig
-	fi
+	env_check
+	source "${misterscripts}/Super_Attract_Mode.ini"
+	# Remove trailing slash from paths
+	for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "path=" | cut -f1 -d"="); do
+		declare -g ${var}="${!var%/}"
+	done
+	for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "pathextra=" | cut -f1 -d"="); do
+		declare -g ${var}="${!var%/}"
+	done
+	for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "pathrbf=" | cut -f1 -d"="); do
+		declare -g ${var}="${!var%/}"
+	done
 
 	# Create array of coreexclude list names
 	declare -a coreexcludelist
@@ -1909,7 +1906,7 @@ function sam_update() { # sam_update (next command)
 		if [ -f /tmp/Super_Attract_Mode.sh ]; then
 			if [ -z ${1} ]; then
 				echo " Continuing setup with latest Super_Attract_Mode.sh..."
-				/tmp/Super_Attract_Mode.sh ${1}
+				/tmp/Super_Attract_Mode.sh update
 				return 0
 			else
 				echo " Launching latest"
