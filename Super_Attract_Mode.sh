@@ -233,6 +233,7 @@ function init_paths() {
 }
 
 function sam_prep() {
+	sam_createfolders
 	declare -g amigacore=""
 	declare -g amigashared="${CORE_PATH_FINAL[amiga]}/shared"
 	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
@@ -260,16 +261,6 @@ function sam_prep() {
 	fi
 
 	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Amigashared directory is ${amigashared} "
-
-	# Create folders if they don't exist
-	[[ ! -d "${gamelistpath}" ]] && mkdir -p "${gamelistpath}"
-	[[ ! -d "${gamelistpathtmp}" ]] && mkdir -p "${gamelistpathtmp}"
-	[[ -e "${tmpfile}" ]] && { rm "${tmpfile}"; }
-	[[ -e "${tmpfile2}" ]] && { rm "${tmpfile2}"; }
-	[[ ! -d "${excludepath}" ]] && mkdir -p "${excludepath}"
-
-	[[ -d "${mrsamtmp}/SAM_config" ]] && rm -rf "${mrsamtmp}/SAM_config"
-	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config"/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
 	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
 	# [[ -d "${mrsamtmp}/Amiga_shared" ]] && [[ $(mount | grep -ic "${amigashared}") == "0" ]] && cp -pr --force ${amigashared}/Disk.info ${mrsamtmp}/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat ${mrsamtmp}/Amiga_shared &>/dev/null && mount --bind "${mrsamtmp}/Amiga_shared" "${amigashared}"
@@ -1415,6 +1406,18 @@ function read_samini() {
 	zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
 }
 
+function sam_createfolders() {
+	# Create folders if they don't exist
+	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
+	[[ ! -d "${gamelistpath}" ]] && mkdir -p "${gamelistpath}"
+	[[ ! -d "${gamelistpathtmp}" ]] && mkdir -p "${gamelistpathtmp}"
+	[[ -e "${tmpfile}" ]] && { rm "${tmpfile}"; }
+	[[ -e "${tmpfile2}" ]] && { rm "${tmpfile2}"; }
+	[[ ! -d "${excludepath}" ]] && mkdir -p "${excludepath}"
+	[[ -d "${mrsamtmp}/SAM_config" ]] && rm -rf "${mrsamtmp}/SAM_config"
+	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
+}
+
 function GET_SYSTEM_FOLDER() {
 	local SYSTEM="${1}"
 	for folder in "${GAMESDIR_FOLDERS[@]}"; do
@@ -1886,9 +1889,8 @@ function write_to_MCP_cmd_pipe() {
 
 # ======== SAM COMMANDS ========
 function sam_update() { # sam_update (next command)
-	# Ensure the MiSTer SAM data directory exists
-	mkdir -p "${mrsampath}" &>/dev/null
 
+	sam_createfolders
 	if [ $(dirname -- ${0}) != "/tmp" ]; then
 		# Warn if using non-default branch for updates
 		if [ "${branch}" != "main" ]; then
