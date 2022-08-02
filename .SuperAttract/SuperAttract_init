@@ -82,6 +82,7 @@ function start() {
 
 function quickstart() {
 	#======== Start ========
+	cleanup
 	mcp_start "${@,,}" 
 }
 
@@ -226,7 +227,7 @@ start)
 	start
 	;;
 quickstart)
-	quickstart
+	quickstart "${@,,}"
 	;;
 stop)
 	cleanup

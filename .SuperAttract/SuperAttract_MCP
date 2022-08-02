@@ -316,6 +316,14 @@ function MCP_loop() {
 
 function main() {
 	#======== Start ========
+	if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
+		shift
+		if [ -z "${1}" ]; then
+			MCP_SAM_trigger
+		else
+			MCP_SAM_trigger "${@}"
+		fi
+	fi
 
 	# Convert seconds to minutes
 	MCP_timeout_minutes=$(echo - | awk -v t=${MCP_timeout} '{print t/60}')
@@ -335,10 +343,6 @@ function main() {
 	fi
 	corename_name=$(<${corename_file})
 	tmux rename-window -t MCP "${corename_name}"
-	if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
-		shift
-		MCP_SAM_trigger "${1}"
-	fi
 	trap 'MCP_counter=${MCP_timeout}' INT # Reset MCP_counter for Activity Triggers
 	MCP_loop
 	trap - INT
