@@ -1965,7 +1965,7 @@ function sam_update() { # sam_update (next command)
 	echo " Update complete!"
 	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
 
-	sam_exit 0 "stop" "update"
+	sam_exit 0 "stop"
 }
 
 function sam_install() { # Install SAM to startup
@@ -2012,7 +2012,7 @@ function sam_install() { # Install SAM to startup
 	echo -e "\e[1m" and show each game for ${gametimer} sec."\e[0m"
 	echo -e "\n\n\n"
 	sleep 5
-	echo " Please restart your Mister. (Hard Reboot)"
+	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
 
 	sam_exit 0 "stop"
 }
@@ -2087,14 +2087,7 @@ function only_survivor() {
 }
 
 function sam_stop() {
-	cmd=${1:="stop"}
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
-	if [ ${corename_name} != "MENU" ] && [ "${cmd}" == "stop" ]; then
-		samquiet "-n" " Returning to MiSTer Menu..."
-		echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
-		samquiet " Done!"
-	fi
-
 	SAM_cleanup
 
 	tries=5
@@ -2136,6 +2129,11 @@ function sam_stop() {
 		while $(kill -15 ${pids} 2>/dev/null); do
 			sleep 1
 		done
+		if [ ${corename_name} != "MENU" ]; then
+			samquiet "-n" " Returning to MiSTer Menu..."
+			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
+			samquiet " Done!"
+		fi
 		samquiet " Done!"
 	fi
 	pids=""
@@ -2155,9 +2153,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	write_to_TTY_cmd_pipe "exit" &
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
 	if [ ! -z "${2}" ] && [ "${2}" == "stop" ]; then
-		shift
-		shift
-		sam_stop "${1}"
+		sam_stop
 	elif [ "${1}" -eq 0 ]; then # just exit
 		if [ ${corename_name,,} != "menu" ]; then
 			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
