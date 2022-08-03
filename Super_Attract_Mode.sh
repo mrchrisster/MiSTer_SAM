@@ -88,7 +88,7 @@ function init_vars() {
 	declare -g excludepath="${mrsampath}/SAM_Excludelists"
 	declare -g tmpfile="${gamelistpathtmp}/tmpfile"
 	declare -g tmpfile2="${gamelistpathtmp}/tmpfile2"
-	declare -g corelisttmp=""
+	declare -g corelist_allowtmp=""
 	declare -gi gametimer=120
 	# Make all cores available for menu
 	declare -gl corelistall="amiga arcade atari2600 atari5200 atari7800 atarilynx c64 fds gb gbc gba genesis gg megacd neogeo nes s32x sms snes tgfx16 tgfx16cd psx"
@@ -1332,7 +1332,7 @@ function debug_output() {
 
 	echo ""
 	echo " gametimer: ${gametimer}"
-	echo " corelist: ${corelist}"
+	echo " corelist: ${corelist_allow}"
 	echo " usezip: ${usezip}"
 
 	echo " listenmouse: ${listenmouse}"
@@ -1708,7 +1708,7 @@ function samedit_include() {
 		sam_menu
 	else
 		echo "Please wait... getting things ready."
-		declare -a corelist=()
+		declare -a corelist_allow=()
 		declare -a gamelists=()
 		categ="${menuresponse}"
 		# echo "${menuresponse}"
@@ -1727,7 +1727,7 @@ function samedit_include() {
 			[[ -s "${gamelistpathtmp}/${listfile}" ]] || rm "${gamelistpathtmp}/${listfile}"
 		done
 
-		corelist=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
+		corelist_allow=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
 
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super_Attract_Mode" --title "[ CATEGORY SELECTION ]" \
@@ -1745,7 +1745,7 @@ function samedit_excltags() {
 	excludetags="${gamelistpath}/.excludetags"
 
 	function process_tag() {
-		for core in ${corelist}; do
+		for core in ${corelist_allow}; do
 			[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${core}_gamelist.txt"
 			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 				grep -i "${categ}" "${gamelistpath}/${core}_gamelist.txt" >>"${gamelistpath}/${core}_gamelist_exclude.txt"
@@ -1805,7 +1805,7 @@ function samedit_excltags() {
 				fi
 			fi
 		else
-			for core in ${corelist}; do
+			for core in ${corelist_allow}; do
 				rm "${gamelistpath}/${core}_gamelist_exclude.txt" 2>/dev/null
 				rm "${excludetags}" 2>/dev/null
 			done
@@ -1950,7 +1950,8 @@ function sam_update() { # sam_update (next command)
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 			sed -i 's/==/--/g' ${misterscripts}/"Super_Attract_Mode.ini"
 			sed -i 's/-=/--/g' ${misterscripts}/"Super_Attract_Mode.ini"
-			sed -i 's/^corelist=/^corelist_allow=/g' ${misterscripts}/"Super_Attract_Mode.ini"
+			sed -i 's/^corelist_allow=/corelist=/g' ${misterscripts}/"Super_Attract_Mode.ini"
+			sed -i 's/^\^corelist_allow=/corelist=/g' ${misterscripts}/"Super_Attract_Mode.ini"
 			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' ${misterscripts}/Super_Attract_Mode.ini /tmp/"Super_Attract_Mode.ini" >/tmp/SuperAttract.tmp && mv --force /tmp/SuperAttract.tmp ${misterscripts}/"Super_Attract_Mode.ini"
 			echo "Done."
 
@@ -2463,8 +2464,8 @@ function core_error() { # core_error core /path/to/ROM
 	else
 		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${core} rom: ${rompath}"
 		echo " ERROR: Core ${core} is blacklisted!"
-		corelist=$(echo "${corelist}"  | sed "s/\b${core}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-		echo " List of cores is now: ${corelist}"
+		corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${core}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+		echo " List of cores is now: ${corelist_allow}"
 		romloadfails=0
 		next_core "${core}"
 		return
@@ -2715,7 +2716,7 @@ function create_game_lists() {
 	esac
 
 	for core in ${corelistall}; do
-		corelisttmp="${corelist}"
+		corelist_allowtmp="${corelist_allow}"
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH_FINAL[${core}]}"))
 		local date_file=""
 
@@ -2732,13 +2733,13 @@ function create_game_lists() {
 					create_romlist ${core} "${DIR}"
 				fi
 			else
-				corelisttmp=$(echo "${corelist}"  | sed "s/\b${core}\b//" | awk '{$2=$2};1')
+				corelist_allowtmp=$(echo "${corelist_allow}"  | sed "s/\b${core}\b//" | awk '{$2=$2};1')
 				rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 			fi
 		else
 			create_romlist ${core} "${DIR}"
 		fi
-		corelist=${corelisttmp}
+		corelist_allow=${corelist_allowtmp}
 	done
 }
 
@@ -2913,43 +2914,43 @@ function next_core() { # next_core (core)
 	fi
 	if [ "${countdown}" != "countdown" ]; then
 		core="${1}"
-		corelist_count=$(echo $(wc -w <<<"${corelist}"))
-		corelisttmp_count=$(echo $(wc -w <<<"${corelisttmp}"))
+		corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
+		corelist_allowtmp_count=$(echo $(wc -w <<<"${corelist_allowtmp}"))
 		samdebug " corelist count is ${corelist_count} at start of next_core()"
 		if [ "${corelist_count}" -gt 0 ]; then
-			if [ "${corelisttmp_count}" -eq 0 ]; then
-				printf -v corelisttmp '%s ' "${corelist}"
-				corelisttmp=$(echo "${corelisttmp}"  | awk '{$2=$2};1')
-				corelisttmp_count=$(echo $(wc -w <<<"${corelisttmp}"))
+			if [ "${corelist_allowtmp_count}" -eq 0 ]; then
+				printf -v corelist_allowtmp '%s ' "${corelist_allow}"
+				corelist_allowtmp=$(echo "${corelist_allowtmp}"  | awk '{$2=$2};1')
+				corelist_allowtmp_count=$(echo $(wc -w <<<"${corelist_allowtmp}"))
 			fi
 		else
 			if [ "${corelist_count}" -eq 0 ]; then
-				printf -v corelist '%s ' "${corelisttmp}"
-				corelist=$(echo "${corelist}"  | awk '{$2=$2};1')
-				corelist_count=$(echo $(wc -w <<<"${corelist}"))
+				printf -v corelist_allow '%s ' "${corelist_allowtmp}"
+				corelist_allow=$(echo "${corelist_allow}"  | awk '{$2=$2};1')
+				corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 			fi
 		fi
-		samdebug " corelist:    ${corelist}!"
-		samdebug " corelisttmp: ${corelisttmp}!"
+		samdebug " corelist:    ${corelist_allow}!"
+		samdebug " corelisttmp: ${corelist_allowtmp}!"
 		if [ "${corelist_count}" -eq 0 ]; then
-			corelist="arcade"
-			corelisttmp=${corelist}
-			corelist_count=$(echo $(wc -w <<<"${corelist}"))
-			corelisttmp_count=$(echo $(wc -w <<<"${corelisttmp}"))
+			corelist_allow="arcade"
+			corelist_allowtmp=${corelist_allow}
+			corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
+			corelist_allowtmp_count=$(echo $(wc -w <<<"${corelist_allowtmp}"))
 		fi
-		# Set ${nextcore} from ${corelist}
-		if [ ${corelisttmp_count} -gt 1 ]; then
-			nextcore=$(echo ${corelist} | xargs shuf --head-count=1 --echo)
+		# Set ${nextcore} from ${corelist_allow}
+		if [ ${corelist_allowtmp_count} -gt 1 ]; then
+			nextcore=$(echo ${corelist_allow} | xargs shuf --head-count=1 --echo)
 			if [ "${core}" == "${nextcore}" ]; then
 				samquiet " Core repeated! \e[1m${nextcore}\e[0m"
-				corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-				corelist_count=$(echo $(wc -w <<<"${corelist}"))
+				corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+				corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 				samdebug  "corelist count is ${corelist_count} at end of next_core()"
 				next_core "${nextcore}"
 				return
 			fi
-			corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-			corelist_count=$(echo $(wc -w <<<"${corelist}"))
+			corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+			corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 		else
 			nextcore=${core}
 		fi
@@ -2976,8 +2977,8 @@ function next_core() { # next_core (core)
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
 		samquiet " Wrong Extension! \e[1m${extension^^}\e[0m"
-		corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-		corelist_count=$(echo $(wc -w <<<"${corelist}"))
+		corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+		corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 		samdebug " corelist count is ${corelist_count} at end of next_core()"
 		next_core "${nextcore}"
 		return
@@ -2990,8 +2991,8 @@ function next_core() { # next_core (core)
 			if [ "${excluded}" == "${rompath}" ]; then
 				samquiet " Excluded: ${rompath}, trying a different game.."
 				awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-				corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-				corelist_count=$(echo $(wc -w <<<"${corelist}"))
+				corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+				corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 				samdebug " corelist count is ${corelist_count} at end of next_core()"
 				next_core "${nextcore}"
 				return
@@ -3006,8 +3007,8 @@ function next_core() { # next_core (core)
 				if [ "${line}" == "${rompath}" ]; then
 					samquiet " Excluded by user: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-					corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-					corelist_count=$(echo $(wc -w <<<"${corelist}"))
+					corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+					corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 					samdebug " corelist count is ${corelist_count} at end of next_core()"
 					return 1
 				fi
@@ -3024,8 +3025,8 @@ function next_core() { # next_core (core)
 				if [ "${line}" == *"${rompath}"* ]; then
 					samquiet " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-					corelist=$(echo "${corelist}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-					corelist_count=$(echo $(wc -w <<<"${corelist}"))
+					corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+					corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 					samdebug " corelist count is ${corelist_count} at end of next_core()"
 					return 1
 				fi
@@ -3034,7 +3035,7 @@ function next_core() { # next_core (core)
 		[ $? -eq 1 ] && next_core "${nextcore}" && return
 	fi
 
-	corelist_count=$(echo $(wc -w <<<"${corelist}"))
+	corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 	samdebug " corelist count is ${corelist_count} at end of next_core()"
 
 	load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
@@ -3297,28 +3298,28 @@ function main() {
 			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				# If we're given a core name then we need to set it first
 				if [ ! -z "${2}" ] && [ "${2,,}" == "start_real" ]; then
-					declare -gl corelist=${1}
+					declare -gl corelist_allow=${1}
 					declare -gl nextcore=${1}
 					sam_start_new
 				else
-					declare -gl corelist=${1}
+					declare -gl corelist_allow=${1}
 					declare -gl nextcore=${1}
 					sam_start ${nextcore}
 				fi
 				break
 				;;
 			start | restart | bootstart) # Start as from init
-				declare -gl corelist=$(echo "${corelist_allow}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+				declare -gl corelist_allow=$(echo "${corelist}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				sam_start
 				break
 				;;
 			start_real) # Start looping
-				declare -gl corelist=$(echo "${corelist_allow}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+				declare -gl corelist_allow=$(echo "${corelist}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				sam_start_new
 				break
 				;;
 			startmonitor)
-				declare -gl corelist=$(echo "${corelist_allow}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+				declare -gl corelist_allow=$(echo "${corelist}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				sam_start_new
 				sam_monitor_new
 				break
