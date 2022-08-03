@@ -1963,15 +1963,9 @@ function sam_update() { # sam_update (next command)
 	fi
 
 	echo " Update complete!"
-	echo " Please restart your Mister. (Hard Reboot)"
+	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
 
-	sam_exit 0 "stop"
-
-	if [ ${inmenu} -eq 1 ]; then
-		sleep 1
-		sam_menu
-	fi
-
+	sam_exit 0 "stop" "update"
 }
 
 function sam_install() { # Install SAM to startup
@@ -2093,8 +2087,9 @@ function only_survivor() {
 }
 
 function sam_stop() {
+	cmd=${1:="stop"}
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
-	if [ ${corename_name} != "MENU" ]; then
+	if [ ${corename_name} != "MENU" ] && [ "${cmd}" == "stop" ]; then
 		samquiet "-n" " Returning to MiSTer Menu..."
 		echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		samquiet " Done!"
@@ -2160,7 +2155,9 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	write_to_TTY_cmd_pipe "exit" &
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
 	if [ ! -z "${2}" ] && [ "${2}" == "stop" ]; then
-		sam_stop
+		shift
+		shift
+		sam_stop "${1}"
 	elif [ "${1}" -eq 0 ]; then # just exit
 		if [ ${corename_name,,} != "menu" ]; then
 			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
