@@ -1940,6 +1940,7 @@ function sam_update() { # sam_update (next command)
 
 		#blacklist files
 		get_samstuff .SuperAttract/SAM_Excludelists/arcade_blacklist.txt ${excludepath}
+		get_samstuff .SuperAttract/SAM_Excludelists/fds_blacklist.txt ${excludepath}
 
 		if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
 			echo " SAM INI already exists... Merging with new ini."
