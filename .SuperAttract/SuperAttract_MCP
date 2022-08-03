@@ -69,6 +69,26 @@ if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
 fi
 
 #======== FUNCTIONS ========
+function samdebug() {
+	if [ "${samdebug}" == "yes" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[31m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[31m${1-}\e[0m"
+		fi
+	fi
+}
+
+function samquiet() {
+	if [ "${samquiet}" == "no" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[32m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[32m${1-}\e[0m"
+		fi
+	fi
+}
+
 function MCP_CoreName_Change() {
 	# Monitor CORENAME for changes (to determine if the menu is currently running)
 	inotifywait --event modify ${corename_file} --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
@@ -102,7 +122,7 @@ function MCP_jsmonitor() {
 	shopt -s nullglob
 	for joystick in ${jsnew[@]}; do
 		if [ ! -z "${joystick}" ]; then
-			[[ "${samquiet}" == "no" ]] && printf '%s\n' " Monitoring controller ${joystick}..."
+			samdebug "-n" " Monitoring controller ${joystick}..."
 			"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" 2>/dev/null &
 		fi
 	done
@@ -136,7 +156,7 @@ function MCP_keybmonitor() {
 
 		for i in "${kbddev[@]}"; do
 			if [ "${i}" == "${rawdev}" ]; then
-				printf '%s\n' "${f} is a keyboard"
+				samdebug "-n" "${f} is a keyboard"
 				"${mrsampath}/SuperAttract_keyboard.py" "${f}" "${MCP_Activity_pipe}" 2>/dev/null &
 			fi
 		done
@@ -145,7 +165,7 @@ function MCP_keybmonitor() {
 
 function MCP_msmonitor() {
 	mouse="/dev/input/mice"
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Monitoring mouse ${mouse}..."
+	samdebug " Monitoring mouse ${mouse}..."
 	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" "${MCP_Activity_pipe}" 2>/dev/null &
 }
 
@@ -221,36 +241,36 @@ function MCP_createpipes() {
 
 function MCP_monitors() {
 	# Start monitoring for CORENAME changes
-	[[ "${samquiet}" == "no" ]] && printf '%s' " Starting CORENAME change monitor..."
+	samquiet "-n" " Starting CORENAME change monitor..."
 	MCP_CoreName_Change
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
+	samquiet " Done!"
 
 	# Spawn CORENAME monitoring process.
-	[[ "${samquiet}" == "no" ]] && printf '%s' " Starting CORENAME monitor..."
+	samquiet "-n" " Starting CORENAME monitor..."
 	MCP_CoreName_Monitor
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
+	samquiet " Done!"
 
 	if [ "${listenjoy}" == "yes" ]; then
 		# Spawn joystick monitoring process per detected joystick device
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting joystick monitor..."
+		samquiet "-n" " Starting joystick monitor..."
 		MCP_jsmonitor
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
+		samquiet " Done!"
 
 	fi
 	if [ "${listenkeyboard}" == "yes" ]; then
 		# Spawn keyboard monitoring processes
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting keyboard monitor..."
+		samquiet "-n" " Starting keyboard monitor..."
 		if [[ /dev/input/by-path/*kbd ]]; then
 			MCP_keybmonitor
 		fi
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
+		samquiet " Done!"
 	fi
 
 	if [ "${listenmouse}" == "yes" ]; then
 		# Spawn mouse monitoring process per detected mouse device
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Starting mouse monitor..."
+		samquiet "-n" " Starting mouse monitor..."
 		MCP_msmonitor
-		[[ "${samquiet}" == "no" ]] && printf '%s\n' " Done!"
+		samquiet " Done!"
 	fi
 
 	while true; do

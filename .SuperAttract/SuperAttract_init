@@ -52,6 +52,26 @@ samquiet="Yes"
 samtrace="No"
 samdebug="No"
 
+function samdebug() {
+	if [ "${samdebug}" == "yes" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[31m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[31m${1-}\e[0m"
+		fi
+	fi
+}
+
+function samquiet() {
+	if [ "${samquiet}" == "no" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[32m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[32m${1-}\e[0m"
+		fi
+	fi
+}
+
 #======== LOCAL VARIABLES ========
 
 #========= PARSE INI =========
@@ -87,58 +107,50 @@ function quickstart() {
 }
 
 function cleanup() {
-	corename_name=$(printf '%s\n' $(<${corename_file}))
-	if [ ${corename_name} != "MENU" ]; then
-		[[ "${samdebug}" == "yes" ]] && echo -n " Returning to MiSTer Menu..."
-		echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
-		[[ "${samdebug}" == "yes" ]] && echo " Done!"
-	fi
+	corename_name=$(printf '%s' $(</tmp/CORENAME))
 	tries=5
 	pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping MCP..."
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samquiet "-n" " Stopping MCP..."
+		samdebug "-n" " | ${pids} "
 		# kill -9 ${pids} &>/dev/null
 		while [ $(kill -15 ${pids} 2>/dev/null)] && [ ${tries} -gt 0 ]; do
 			((tries--))
-	    	sleep 1
+			sleep 1
 		done
 		pids=$(pidof SuperAttract_MCP)
-		echo " Failed, forcing!"
-		echo -n " Stopping MCP..."
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samquiet " Failed, forcing!"
+		samquiet "-n" " Stopping MCP..."
+		samdebug "-n" " | ${pids} "
 		kill -9 ${pids} &>/dev/null
-		echo " Done!"
+		samquiet " Done!"
 	fi
 	pids=""
 	pids=$(pidof SuperAttract_tty2oled)
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping TTY..."
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samquiet "-n" " Stopping TTY..."
+		samdebug "-n" " | ${pids} "
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
-	    	sleep 1
+			sleep 1
 		done
-		echo " Done!"
+		samquiet " Done!"
 	fi
 	pids=""
 	pids=$(pidof Super_Attract_Mode.sh)
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping SAM..."
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
-		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samquiet "-n" " Stopping SAM..."
+		samdebug "-n" " | ${pids} "
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
-	    	sleep 1
+			sleep 1
 		done
-		echo " Done!"
+		if [ ${corename_name} != "MENU" ]; then
+			samquiet "-n" " Returning to MiSTer Menu..."
+			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
+			samquiet " Done!"
+		fi
+		samquiet " Done!"
 	fi
 	pids=""
 	SAM_cleanup
@@ -146,43 +158,43 @@ function cleanup() {
 	# Kill old activity processes
 	pids=$(ps aux | grep python | grep MCP_Activity_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping Device monitors..."
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samquiet "-n" " Stopping Device monitors..."
+		samdebug "-n" " ${pids} |"
 		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samdebug "-n" " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
 		done
-		echo " Done!"
+		samquiet " Done!"
 	fi
 	pids=""
 	
 	pids=$(ps aux | grep inotifywait | grep MCP_Activity_Change_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping Inotifywait Activity instances..."
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samquiet "-n" " Stopping Inotifywait Activity instances..."
+		samdebug "-n" " ${pids} |"
 		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samdebug "-n" " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
 		done
-		echo " Done!"
+		samquiet" Done!"
 	fi
 	pids=""
 	
 	pids=$(ps aux | grep inotifywait | grep MCP_CoreName_Change_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
-		echo -n " Stopping Inotifywait Corename Change instances..."
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samquiet "-n" " Stopping Inotifywait Corename Change instances..."
+		samdebug "-n" " ${pids} |"
 		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
-		[[ "${samdebug}" == "yes" ]] && echo -n " ${pids} |"
+		samdebug "-n" " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
 	    	sleep 1
 		done
-		echo " Done!"
+		samquiet " Done!"
 	fi
 	pids=""
 	killall -q -9 hexdump 2>/dev/null
@@ -198,7 +210,7 @@ function SAM_cleanup() {
 	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot1.rom"
 	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot2.rom"
 	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot3.rom"
-	[[ "${samquiet}" == "no" ]] && printf '%s\n' " Cleaned up mounts."
+	samquiet " Cleaned up mounts."
 }
 
 function mcp_start() {
