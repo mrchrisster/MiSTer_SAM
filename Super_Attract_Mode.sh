@@ -1941,6 +1941,8 @@ function sam_update() { # sam_update (next command)
 		#blacklist files
 		get_samstuff .SuperAttract/SAM_Excludelists/arcade_blacklist.txt ${excludepath}
 		get_samstuff .SuperAttract/SAM_Excludelists/fds_blacklist.txt ${excludepath}
+		get_samstuff .SuperAttract/SAM_Excludelists/megacd_blacklist.txt ${excludepath}
+		#get_samstuff .SuperAttract/SAM_Excludelists/tgfx16cd_blacklist.txt ${excludepath}
 
 		if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
 			echo " SAM INI already exists... Merging with new ini."
@@ -1965,7 +1967,7 @@ function sam_update() { # sam_update (next command)
 	echo " Update complete!"
 	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
 
-	sam_exit 0 "stop"
+	sam_exit 0 "stop" "update"
 }
 
 function sam_install() { # Install SAM to startup
@@ -2012,7 +2014,7 @@ function sam_install() { # Install SAM to startup
 	echo -e "\e[1m" and show each game for ${gametimer} sec."\e[0m"
 	echo -e "\n\n\n"
 	sleep 5
-	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
+	echo " Please restart your Mister. (Hard Reboot)"
 
 	sam_exit 0 "stop"
 }
@@ -2087,7 +2089,14 @@ function only_survivor() {
 }
 
 function sam_stop() {
+	cmd=${1:="stop"}
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
+	if [ ${corename_name} != "MENU" ] && [ "${cmd}" == "stop" ]; then
+		samquiet "-n" " Returning to MiSTer Menu..."
+		echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
+		samquiet " Done!"
+	fi
+
 	SAM_cleanup
 
 	tries=5
@@ -2129,11 +2138,6 @@ function sam_stop() {
 		while $(kill -15 ${pids} 2>/dev/null); do
 			sleep 1
 		done
-		if [ ${corename_name} != "MENU" ]; then
-			samquiet "-n" " Returning to MiSTer Menu..."
-			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
-			samquiet " Done!"
-		fi
 		samquiet " Done!"
 	fi
 	pids=""
@@ -2153,7 +2157,9 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	write_to_TTY_cmd_pipe "exit" &
 	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
 	if [ ! -z "${2}" ] && [ "${2}" == "stop" ]; then
-		sam_stop
+		shift
+		shift
+		sam_stop "${1}"
 	elif [ "${1}" -eq 0 ]; then # just exit
 		if [ ${corename_name,,} != "menu" ]; then
 			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
@@ -3016,7 +3022,7 @@ function next_core() { # next_core (core)
 		samdebug " Found exclusion list for core ${nextcore}"
 		cat "${excludepath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
 			if [ "${line}" != "\n" ]; then
-				if [ "${line}" == *"${rompath}"* ]; then
+				if  [[ "$(echo "${rompath}" | grep "${line}")" ]]; then
 					samquiet " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 					corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
