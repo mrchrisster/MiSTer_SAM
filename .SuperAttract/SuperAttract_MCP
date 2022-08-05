@@ -20,6 +20,8 @@ declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
 declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
 declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
 
+declare -gi bootsleep="60"
+
 # ======== DEBUG VARIABLES ========
 declare -gl samquiet="Yes"
 declare -gl samdebug="No"
@@ -178,19 +180,13 @@ function MCP_tty2oled_start() {
 }
 
 function MCP_SAM_trigger() {
+	samdebug " args: ${@}"
 	if [ $(ps aux | grep -ice "[S]uper_Attract_Mode.sh") == "0" ] && [ $(ps aux | grep -ice "[u]pdate") == "0" ]; then
-		printf '%s\n' " No activity detected for ${MCP_timeout_minutes} minutes. SAM starting..."
-		printf '%s ' $(date +%c)
-		printf '\n'
-		if [ "${ttyenable}" == "yes" ]; then
-			MCP_tty2oled_start
-		fi
+		samquiet " No activity detected for ${MCP_timeout_minutes} minutes. SAM starting..."
+		samdebug " $(date '+%m-%d-%Y_%H:%M:%S' | sed 's/\n/ /g')"
+		[[ "${ttyenable}" == "yes" ]] && MCP_tty2oled_start
 		sleep 1
-		if [ -z "${1}" ]; then
-			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" start_real &
-		else
-			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${1}" start_real &
-		fi
+		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${@}" start_real &
 		sleep 0.5
 	fi
 }
@@ -323,33 +319,31 @@ function MCP_loop() {
 	tmux rename-window -t MCP "${corename_name}"
 	# Only start SAM from main menu
 	if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
-		printf '%s\n' " Triggered after menuonly=yes"
-		MCP_SAM_trigger
+		samdebug " Triggered after menuonly=yes"
+		MCP_SAM_trigger "${@}"
 	elif [ "${menuonly}" == "no" ]; then
-		echo " Triggered after menuonly=no"
-		MCP_SAM_trigger
+		samdebug " Triggered after menuonly=no"
+		MCP_SAM_trigger "${@}"
 	fi
 	MCP_counter=${MCP_timeout}
 	sleep 1
-	MCP_loop
+	MCP_loop "${@}"
 }
 
 function main() {
 	#======== Start ========
-	if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
-		shift
-		if [ -z "${1}" ]; then
-			MCP_SAM_trigger
-		else
-			MCP_SAM_trigger "${@}"
-		fi
-	fi
-
 	# Convert seconds to minutes
 	MCP_timeout_minutes=$(echo - | awk -v t=${MCP_timeout} '{print t/60}')
+	samdebug " args: ${@}"
+	if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
+		shift
+		MCP_SAM_trigger "${@}"
+	fi
 
+	sleep ${bootsleep}
 	MCP_createpipes
 	MCP_monitors
+
 	#======== DEBUG OUTPUT =========
 	if [ "${samtrace}" == "yes" ]; then
 		printf '%s\n' "********************************************************************************"
@@ -364,7 +358,7 @@ function main() {
 	corename_name=$(<${corename_file})
 	tmux rename-window -t MCP "${corename_name}"
 	trap 'MCP_counter=${MCP_timeout}' INT # Reset MCP_counter for Activity Triggers
-	MCP_loop
+	MCP_loop "${@}"
 	trap - INT
 }
 

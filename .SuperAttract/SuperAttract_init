@@ -45,32 +45,10 @@ declare -gA tty_currentinfo=(
 #======== INI VARIABLES ========
 # Change these in the INI file
 
-declare -gi bootsleep="60"
-
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
 samtrace="No"
 samdebug="No"
-
-function samdebug() {
-	if [ "${samdebug}" == "yes" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[31m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[31m${1-}\e[0m"
-		fi
-	fi
-}
-
-function samquiet() {
-	if [ "${samquiet}" == "no" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[32m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[32m${1-}\e[0m"
-		fi
-	fi
-}
 
 #======== LOCAL VARIABLES ========
 
@@ -92,18 +70,24 @@ fi
 [ ! -d ${mrsamtmp}/ ] && mkdir -p ${mrsamtmp}/
 
 #======== Functions ========
-function start() {
-	#======== Start ========
-	cleanup
-	# create_lists &
-	sleep "${bootsleep}"
-	mcp_start
+function samdebug() {
+	if [ "${samdebug}" == "yes" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[31m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[31m${1-}\e[0m"
+		fi
+	fi
 }
 
-function quickstart() {
-	#======== Start ========
-	cleanup
-	mcp_start "${@,,}" 
+function samquiet() {
+	if [ "${samquiet}" == "no" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[32m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[32m${1-}\e[0m"
+		fi
+	fi
 }
 
 function cleanup() {
@@ -215,6 +199,7 @@ function SAM_cleanup() {
 
 function mcp_start() {
 	echo " Starting MCP.."
+	samdebug " args: ${@}"
 	# If the MCP isn't running we need to start it in monitoring only mode
 	if [ -z $(pidof SuperAttract_MCP) ]; then
 		tmux new-session -s MCP -d "${mrsampath}/SuperAttract_MCP" "${@}" &
@@ -236,17 +221,21 @@ fi
 # Parse command line
 case "${1,,}" in
 start)
-	start
+	shift
+	cleanup
+	mcp_start "${@,,}"
 	;;
 quickstart)
-	quickstart "${@,,}"
+	cleanup
+	mcp_start "${@,,}"
 	;;
 stop)
 	cleanup
 	;;
 restart)
+	shift
 	cleanup
-	start
+	mcp_start "${@,,}"
 	;;
 *)
 	echo " Usage: ${userstartup} {start|stop|restart|quickstart}"
