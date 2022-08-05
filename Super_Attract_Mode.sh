@@ -38,8 +38,14 @@ declare -g mrsampath="${misterscripts}/.SuperAttract"
 declare -g mrsamtmp="/tmp/.SAM_tmp"
 declare -g userstartup="${misterpath}/linux/user-startup.sh"
 declare -g userstartuptpl="${misterpath}/linux/_user-startup.sh"
+declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
+declare -g gamelistpathtmp="/tmp/.SAM_List"
+declare -g excludepath="${mrsampath}/SAM_Excludelists"
+declare -g tmpfile="${gamelistpathtmp}/tmpfile"
+declare -g tmpfile2="${gamelistpathtmp}/tmpfile2"
 declare -g corename_file="/tmp/CORENAME"
 declare -g corename_name="printf '%s\n' $(<${corename_file})"
+declare -gl corelistall="amiga arcade atari2600 atari5200 atari7800 atarilynx c64 fds gb gbc gba genesis gg megacd neogeo nes s32x sms snes tgfx16 tgfx16cd psx"
 
 # Named Pipes
 declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
@@ -83,15 +89,9 @@ function init_vars() {
 	declare -gi inmenu=0
 	declare -gi coreretries=3
 	declare -gi romloadfails=0
-	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
-	declare -g gamelistpathtmp="/tmp/.SAM_List"
-	declare -g excludepath="${mrsampath}/SAM_Excludelists"
-	declare -g tmpfile="${gamelistpathtmp}/tmpfile"
-	declare -g tmpfile2="${gamelistpathtmp}/tmpfile2"
 	declare -g corelist_allowtmp=""
 	declare -gi gametimer=120
 	# Make all cores available for menu
-	declare -gl corelistall="amiga arcade atari2600 atari5200 atari7800 atarilynx c64 fds gb gbc gba genesis gg megacd neogeo nes s32x sms snes tgfx16 tgfx16cd psx"
 	declare -gl create_all_gamelists="No"
 	declare -gl skipmessage="Yes"
 	declare -gl usezip="Yes"
@@ -104,7 +104,6 @@ function init_vars() {
 	declare -gl listenkeyboard="Yes"
 	declare -gl listenjoy="Yes"
 	declare -gi counter=0
-	declare -gl usedefaultpaths="Yes"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
 	declare -gl rebuild_freq="Week"
@@ -119,9 +118,14 @@ function init_vars() {
 	declare -gi bootsleep="60"
 	declare -gi countdown="nocountdown"
 	declare -g file_to_load=""
+	declare -gl usedefaultpaths="Yes"
+	declare -g amigashared="${CORE_PATH_FINAL[amiga]}/shared"
 
 	# ======== BGM =======
 	declare -gl bgm="No"
+}
+
+function init_default_path_vars() {
 	# ======== CORE PATHS ========
 	declare -g amigapath="${misterpath}/Games/Amiga"
 	declare -g arcadepath="${misterpath}/_Arcade"
@@ -196,69 +200,12 @@ function init_vars() {
 
 }
 
-function init_paths() {
-	# Default rom path search directories
-	declare -ga GAMESDIR_FOLDERS=(
-		/media/usb7/games
-		/media/usb6/games
-		/media/usb5/games
-		/media/usb4/games
-		/media/usb3/games
-		/media/usb2/games
-		/media/usb1/games
-		/media/usb0/games
-		${misterpath}/cifs/games
-		${misterpath}/games
-		/media/usb7
-		/media/usb6
-		/media/usb5
-		/media/usb4
-		/media/usb3
-		/media/usb2
-		/media/usb1
-		/media/usb0
-		${misterpath}/cifs
-		${misterpath}
-	)
-
-	declare -g GET_SYSTEM_FOLDER_GAMESDIR=""
-	declare -g GET_SYSTEM_FOLDER_RESULT=""
-
-	if [ ${usedefaultpaths} == "yes" ]; then
-		for core in ${corelistall}; do
-			defaultpath "${core}"
-		done
-	fi
+function init_default_paths() {
+	[[ -s ${mrsamtmp}/default_paths ]] && source ${mrsamtmp}/default_paths
 }
 
 function sam_prep() {
-	sam_createfolders
-	declare -g amigacore=""
-	declare -g amigashared="${CORE_PATH_FINAL[amiga]}/shared"
-	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
-	samdebug " Grep got ${var}"
-	if [ ! -z "${var}" ]; then
-		samdebug " Variable is not empty"
-		if [ ! -d ${var} ]; then
-			samdebug " Variable is not a valid directory"
-			if [ "${var: -1}" != "/" ]; then
-				samdebug " Variable does not contain / in the last position"
-				var=$(echo ${var} | sed 's:/.$::')
-			fi
-		fi
-		if [ -d ${var} ]; then
-			samdebug " Variable is a valid directory"
-			if [ "${var: -1}" == "/" ]; then
-				samdebug " Variable contains / in the last position"
-				var="${var::${#var}-1}"
-			fi
-			samdebug " Setting the amigashared variable"
-			amigashared="${var}"
-		fi
-	else
-		samdebug " Variable is empty sticking with default"
-	fi
-
+	[[ -s ${mrsamtmp}/amigashared_path ]] && source ${mrsamtmp}/amigashared_path
 	samquiet " Amigashared directory is ${amigashared} "
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config"/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
 	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
@@ -1309,8 +1256,9 @@ function init_data() {
 
 function startup_tasks() {
 	init_vars
+	init_default_path_vars
 	read_samini
-	init_paths
+	init_default_paths
 	init_data # Setup data arrays
 }
 
@@ -1476,65 +1424,6 @@ function read_samini() {
 
 	# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
 	zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
-}
-
-function sam_createfolders() {
-	# Create folders if they don't exist
-	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
-	[[ ! -d "${gamelistpath}" ]] && mkdir -p "${gamelistpath}"
-	[[ ! -d "${gamelistpathtmp}" ]] && mkdir -p "${gamelistpathtmp}"
-	[[ -e "${tmpfile}" ]] && { rm "${tmpfile}"; }
-	[[ -e "${tmpfile2}" ]] && { rm "${tmpfile2}"; }
-	[[ ! -d "${excludepath}" ]] && mkdir -p "${excludepath}"
-	[[ -d "${mrsamtmp}/SAM_config" ]] && rm -rf "${mrsamtmp}/SAM_config"
-	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
-}
-
-function GET_SYSTEM_FOLDER() {
-	local SYSTEM="${1}"
-	for folder in "${GAMESDIR_FOLDERS[@]}"; do
-		local RESULT=$(find "${folder}" -maxdepth 1 -iname "${SYSTEM}" -printf "%P\n" -quit 2>/dev/null)
-		if [[ "${RESULT}" != "" ]]; then
-			GET_SYSTEM_FOLDER_GAMESDIR="${folder}"
-			GET_SYSTEM_FOLDER_RESULT="${RESULT}"
-			break
-		fi
-	done
-}
-
-function defaultpath() {
-	local SYSTEM="${1}"
-	local SYSTEM_ORG="${SYSTEM}"
-	if [ ${SYSTEM} == "arcade" ]; then
-		SYSTEM="_arcade"
-	fi
-	if [ ${SYSTEM} == "atari2600" ]; then
-		SYSTEM="atari7800"
-	fi
-	if [ ${SYSTEM} == "fds" ]; then
-		SYSTEM="nes"
-	fi
-	if [ ${SYSTEM} == "gb" ]; then
-		SYSTEM="gameboy"
-	fi
-	if [ ${SYSTEM} == "gbc" ]; then
-		SYSTEM="gameboy"
-	fi
-	if [ ${SYSTEM} == "gg" ]; then
-		SYSTEM="sms"
-	fi
-	if [ ${SYSTEM} == "tgfx16cd" ]; then
-		SYSTEM="tgfx16-cd"
-	fi
-	shift
-
-	GET_SYSTEM_FOLDER "${SYSTEM}"
-	local SYSTEM_FOLDER="${GET_SYSTEM_FOLDER_RESULT}"
-	local GAMESDIR="${GET_SYSTEM_FOLDER_GAMESDIR}"
-
-	if [[ "${SYSTEM_FOLDER}" != "" ]]; then
-		eval ${SYSTEM_ORG}"path"="${GAMESDIR}/${GET_SYSTEM_FOLDER_RESULT}"
-	fi
 }
 
 # ======== SAM MENU ========
@@ -1964,9 +1853,7 @@ function write_to_MCP_cmd_pipe() {
 
 # ======== SAM COMMANDS ========
 function sam_update() { # sam_update (next command)
-
-	sam_createfolders
-	[[ -f ${misterscripts}/Super_Attract_Mode.ini ]] && read_samini
+	[[ -s ${misterscripts}/Super_Attract_Mode.ini ]] && read_samini
 	if [ $(dirname -- ${0}) != "/tmp" ]; then
 		# Warn if using non-default branch for updates
 		if [ "${branch}" != "main" ]; then
