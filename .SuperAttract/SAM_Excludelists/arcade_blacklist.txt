@@ -94,7 +94,7 @@ Druaga.mra
 ESP Ra.De..mra
 Eyes (US, Set 1).mra
 Fantasy Zone (Rev A, World, S16A).mra
-Fantasy Zone II - The Tears of Opa-Opa.mra
+Fantasy Zone II - The Tears of Opa-Opa
 Finalizer - Super Transformation (Set 1).mra
 Finalizer - Super Transformation (Set 2) [bl].mra
 Flicky.mra
