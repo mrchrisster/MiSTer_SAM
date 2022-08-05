@@ -122,9 +122,11 @@ function MCP_jsmonitor() {
 
 	# Spawn Joystick monitoring process per detected joystick device (excluding motion sensors)
 	shopt -s nullglob
+	samdebug "-n" " Monitoring controller(s)"
 	for joystick in ${jsnew[@]}; do
 		if [ ! -z "${joystick}" ]; then
-			samdebug "-n" " Monitoring controller ${joystick}..."
+			j=$(echo ${joystick} | sed 's./dev/input/..')
+			samdebug "-n" " ${j}..."
 			"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" 2>/dev/null &
 		fi
 	done
@@ -151,6 +153,7 @@ function MCP_keybmonitor() {
 	done
 
 	# Compare if hidraw devices match keyboard device address
+	samdebug "-n" " Monitoring keyboard(s)"
 	for f in "${rawinput[@]}"; do
 		kbdraw=${f##*/}
 		rawdev=$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_PHYS | cut -d '=' -f2)
@@ -158,7 +161,8 @@ function MCP_keybmonitor() {
 
 		for i in "${kbddev[@]}"; do
 			if [ "${i}" == "${rawdev}" ]; then
-				samdebug "-n" "${f} is a keyboard"
+				k=$(echo ${f} | sed 's./dev/..')
+				samdebug "-n" " ${k}..."
 				"${mrsampath}/SuperAttract_keyboard.py" "${f}" "${MCP_Activity_pipe}" 2>/dev/null &
 			fi
 		done
@@ -167,7 +171,8 @@ function MCP_keybmonitor() {
 
 function MCP_msmonitor() {
 	mouse="/dev/input/mice"
-	samdebug " Monitoring mouse ${mouse}..."
+	m=$(echo ${mouse} | sed 's./dev/input/..')
+	samdebug "-n" " Monitoring all mice through ${m}..."
 	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" "${MCP_Activity_pipe}" 2>/dev/null &
 }
 

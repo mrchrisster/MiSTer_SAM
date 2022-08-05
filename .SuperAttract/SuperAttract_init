@@ -220,7 +220,7 @@ fi
 
 # Parse command line
 case "${1,,}" in
-start)
+start | restart)
 	shift
 	cleanup
 	mcp_start "${@,,}"
@@ -231,11 +231,6 @@ quickstart)
 	;;
 stop)
 	cleanup
-	;;
-restart)
-	shift
-	cleanup
-	mcp_start "${@,,}"
 	;;
 *)
 	echo " Usage: ${userstartup} {start|stop|restart|quickstart}"

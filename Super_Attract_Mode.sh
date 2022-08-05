@@ -2392,9 +2392,9 @@ function skipmessage() {
 	samdebug " game: ${game}"
 	# Skip past bios/safety warnings
 	if [ "${core}" == "amiga" ]; then
-		sleep 15
-		samquiet " Skipping BIOS/Safety Warnings!"
 		if [ ! -s "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ]; then
+			sleep 15
+			samquiet " Skipping BIOS/Safety Warnings!"
 			# This is for MegaAGS version June 2022 or older
 			"${mrsampath}/mbc" raw_seq {6c
 			"${mrsampath}/mbc" raw_seq O
@@ -3021,8 +3021,6 @@ function next_core() { # next_core (core)
 				corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 			fi
 		fi
-		samdebug " corelist:    ${corelist_allow}!"
-		samdebug " corelisttmp: ${corelist_allowtmp}!"
 		if [ "${corelist_count}" -eq 0 ]; then
 			corelist_allow="arcade"
 			corelist_allowtmp=${corelist_allow}
@@ -3127,6 +3125,8 @@ function next_core() { # next_core (core)
 	fi
 
 	corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
+	samdebug " corelist:    ${corelist_allow}!"
+	samdebug " corelisttmp: ${corelist_allowtmp}!"
 	samdebug " corelist count is ${corelist_count} at end of next_core()"
 
 	load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
