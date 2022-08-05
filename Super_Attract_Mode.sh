@@ -1439,6 +1439,10 @@ function debug_output() {
 # Read INI
 function read_samini() {
 	env_check
+	# Setting
+	# grep "^[^#;]*=" "${misterscripts}/Super_Attract_Mode.ini" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\1/p" | sed "s/\"//g"
+	# Value
+	# grep "^[^#;]*=" "${misterscripts}/Super_Attract_Mode.ini" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2/p" | sed "s/\"//g"
 	source "${misterscripts}/Super_Attract_Mode.ini"
 	# Remove trailing slash from paths
 	for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "path=" | cut -f1 -d"="); do
