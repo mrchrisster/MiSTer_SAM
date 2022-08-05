@@ -1488,6 +1488,7 @@ function sam_premenu() {
 	echo ""
 	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
 	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
+	[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
 	
 	for i in {5..1}; do
 		echo -ne " Updating SAM in ${i}...\033[0K\r"
@@ -1963,6 +1964,9 @@ function sam_update() { # sam_update (next command)
 		fi
 
 	fi
+	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
+	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
+	[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
 
 	echo " Update complete!"
 	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
