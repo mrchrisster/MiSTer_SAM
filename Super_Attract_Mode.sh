@@ -3108,7 +3108,7 @@ function next_core() { # next_core (core)
 		samdebug " Found exclusion list for core ${nextcore}"
 		cat "${excludepath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
 			if [ "${line}" != "\n" ]; then
-				if [ "${rompath}" == *"${line}"* ]; then
+				if [[ "${rompath}" == *"${line}"* ]]; then
 					samquiet " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 					corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
