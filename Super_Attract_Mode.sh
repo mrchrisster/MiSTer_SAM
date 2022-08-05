@@ -502,6 +502,7 @@ function init_data() {
 		["A.E."]=L
 		["Activision Decathlon"]=L
 		["Astro Chase"]=R
+		["Atari PAM Diagnostics"]=R
 		["Battlezone"]=R
 		["Beamrider"]=L
 		["BerZerk"]=L
@@ -550,14 +551,18 @@ function init_data() {
 		["Robotron"]=L
 		["Space Dungeon"]=R
 		["Space Shuttle"]=L
+		["Sport Goofy"]=R
 		["Sports Goofy"]=R
 		["Star Raiders"]=R
 		["Star Trek SOS"]=R
+		["Star Trek - Strategic Operations Simulator"]=R
 		["Star Wars The Arcade Game"]=R
+		["Star Wars - The Arcade Game"]=R
 		["Stargate"]=R
 		["Super Pac-Man"]=L
 		["Tempest"]=L
 		["Track & Field"]=L
+		["Track and Field"]=L
 		["Wizard of Wor"]=L
 		["Xari Arena"]=R
 		["Zone Ranger"]=L
