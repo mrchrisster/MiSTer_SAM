@@ -135,6 +135,7 @@ function MCP_jsmonitor() {
 
 function MCP_keybmonitor() {
 
+	# Check if keyboard exists
 	# We check for input on hidraw devices. First let's make sure these devices are keyboards...
 
 	declare -a kbdevents=()
@@ -260,11 +261,13 @@ function MCP_monitors() {
 	fi
 	if [ "${listenkeyboard}" == "yes" ]; then
 		# Spawn keyboard monitoring processes
+		if compgen -G /dev/input/by-path/*kbd > /dev/null; then
 		samquiet "-n" " Starting keyboard monitor..."
-		if [[ /dev/input/by-path/*kbd ]]; then
+										
 			MCP_keybmonitor
-		fi
+	
 		samquiet " Done!"
+		fi
 	fi
 
 	if [ "${listenmouse}" == "yes" ]; then
