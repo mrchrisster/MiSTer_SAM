@@ -477,7 +477,7 @@ function init_data() {
 		["amiga"]="Yes"
 		["arcade"]="No"
 		["atari2600"]="No"
-		["atari5200"]="No"
+		["atari5200"]="Yes"
 		["atari7800"]="No"
 		["atarilynx"]="No"
 		["c64"]="No"
@@ -496,6 +496,71 @@ function init_data() {
 		["tgfx16"]="No"
 		["tgfx16cd"]="Yes"
 		["psx"]="No"
+	)
+
+	declare -gA ATARI5200_GAME_SKIP=(
+		["A.E."]=L
+		["Activision Decathlon"]=L
+		["Astro Chase"]=R
+		["Battlezone"]=R
+		["Beamrider"]=L
+		["BerZerk"]=L
+		["Blaster"]=L
+		["Blue Print"]=L
+		["Bounty Bob Strikes Back"]=R
+		["Buck Rogers - Planet of Zoom"]=R
+		["Centipede"]=R
+		["Choplifter!"]=L
+		["Congo Bongo"]=R
+		["Countermeasure"]=R
+		["Defender"]=R
+		["Dig Dug"]=R
+		["Final Legacy"]=L
+		["Frisky Tom"]=R
+		["Frogger II"]=R
+		["Gyruss"]=R
+		["H.E.R.O."]=L
+		["James Bond"]=R
+		["Joust"]=R
+		["Jr Pac-Man"]=R
+		["Jungle Hunt"]=R
+		["Kangaroo"]=R
+		["Last Star Fighter"]=L
+		["Last StarFighter"]=L
+		["Looney Tunes Hotel"]=R
+		["Meteorites"]=L
+		["Microgammon SB"]=R
+		["Millipede"]=L
+		["Miner 2049er"]=L
+		["Miniature Golf"]=R
+		["Montezuma's Revenge"]=R
+		["Moon Patrol"]=L
+		["Ms. Pac-Man"]=R
+		["Pac-Man"]=R
+		["Pitfall II"]=L
+		["Pole Position"]=R
+		["Popeye"]=R
+		["Qix"]=R
+		["Quest for Quintana Roo"]=L
+		["Realsports Basketball"]=R
+		["Realsports Football"]=R
+		["Realsports Soccer"]=R
+		["Realsports Tennis"]=R
+		["Road Runner"]=R
+		["Robotron"]=L
+		["Space Dungeon"]=R
+		["Space Shuttle"]=L
+		["Sports Goofy"]=R
+		["Star Raiders"]=R
+		["Star Trek SOS"]=R
+		["Star Wars The Arcade Game"]=R
+		["Stargate"]=R
+		["Super Pac-Man"]=L
+		["Tempest"]=L
+		["Track & Field"]=L
+		["Wizard of Wor"]=L
+		["Xari Arena"]=R
+		["Zone Ranger"]=L
 	)
 
 	# Core to input maps mapping
@@ -2181,11 +2246,13 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 			# 	[[ -s ${mrsamtmp}/Amiga_shared/ags_current ]] && mv -- ${mrsamtmp}/Amiga_shared/ags_current ${amigashared}/ags_boot
 			# 	sleep 1
 			# fi
+			local xnextcore=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o '\- (\w*) \-' | sed 's/\s[\-]//' | sed 's/[\-]\s//')
+			local xromname=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o "\- ${xnextcore} \- (.*)$" | sed "s/\- ${xnextcore} \- //")
 			echo "load_core ${file_to_load}" >/dev/MiSTer_cmd
-			if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${newcore}]}" == "yes" ]; then
-				skipmessage ${newcore} &
+			if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${xnextcore}]}" == "yes" ]; then
+				skipmessage "${xnextcore}" "${xromname}"
 			fi
-			sleep 1
+			sleep 5
 		fi
 	fi
 	SAM_cleanup
@@ -2310,19 +2377,35 @@ function creategl() {
 }
 
 function skipmessage() {
-	local core=${1}
+	local core="${1,,}"
+	local game="${2,,}"
+	samdebug " core: ${core}"
+	samdebug " game: ${game}"
 	# Skip past bios/safety warnings
-	sleep 15
-	samquiet " Skipping BIOS/Safety Warnings!"
-	if [ ${core} != "amiga" ]; then
-		"${mrsampath}/mbc" raw_seq :31
-	else
+	if [ "${core}" == "amiga" ]; then
+		sleep 15
+		samquiet " Skipping BIOS/Safety Warnings!"
 		if [ ! -s "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ]; then
 			# This is for MegaAGS version June 2022 or older
 			"${mrsampath}/mbc" raw_seq {6c
 			"${mrsampath}/mbc" raw_seq O
 			"${mrsampath}/mbc" raw_seq }
 		fi
+	elif [ "${core}" == "atari5200" ]; then
+		shopt -s nullglob
+		sleep 5
+		for key in "${!ATARI5200_GAME_SKIP[@]}"; do
+			if [[ "${game}" == *"${key,,}"* ]]; then
+				samquiet " Skipping BIOS/Safety Warnings!"
+				samdebug " Match!"
+				"${mrsampath}/mbc" raw_seq "${ATARI5200_GAME_SKIP[$key]}"
+			fi
+		done
+		shopt -u nullglob
+	else
+		sleep 5
+		samquiet " Skipping BIOS/Safety Warnings!"
+		"${mrsampath}/mbc" raw_seq :31
 	fi
 }
 
@@ -3158,7 +3241,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	echo "load_core ${file_to_load}" >/dev/MiSTer_cmd
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
-		skipmessage ${core} &
+		skipmessage "${core}" "${rompath}" &
 	fi
 }
 
