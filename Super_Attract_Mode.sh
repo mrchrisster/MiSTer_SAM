@@ -1443,7 +1443,6 @@ function debug_output() {
 
 # Read INI
 function read_samini() {
-	env_check
 	# Setting
 	# grep "^[^#;]*=" "${misterscripts}/Super_Attract_Mode.ini" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\1/p" | sed "s/\"//g"
 	# Value
@@ -1967,6 +1966,7 @@ function write_to_MCP_cmd_pipe() {
 function sam_update() { # sam_update (next command)
 
 	sam_createfolders
+	[[ -f ${misterscripts}/Super_Attract_Mode.ini ]] && read_samini
 	if [ $(dirname -- ${0}) != "/tmp" ]; then
 		# Warn if using non-default branch for updates
 		if [ "${branch}" != "main" ]; then
@@ -1978,6 +1978,7 @@ function sam_update() { # sam_update (next command)
 		fi
 
 		# Download the newest Super_Attract_Mode.sh to /tmp
+		[[ -f /tmp/Super_Attract_Mode.sh ]] && rm /tmp/Super_Attract_Mode.sh
 		get_samstuff Super_Attract_Mode.sh /tmp
 		if [ -f /tmp/Super_Attract_Mode.sh ]; then
 			if [ ! -z ${1} ]; then
@@ -2073,7 +2074,11 @@ function sam_install() { # Install SAM to startup
 			echo "Building ${userstartup}"
 		fi
 	fi
-	if [[ $(grep -ic "mister_sam" ${userstartup}) == "0" ]] || [[ $(grep -ic "attract" ${userstartup}) == "0" ]]; then
+	if [[ $(grep -ic "mister_sam" ${userstartup}) != "0" ]]; then
+		sed -i '/[mM]i[sS][tT]er_[sS][aA][mM]/d' ${userstartup}
+	fi
+	
+	if [[ $(grep -ic "attract" ${userstartup}) == "0" ]]; then
 		echo -e "Adding SAM to ${userstartup}\n"
 		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e "${mrsampath}/SuperAttract_init" ]] && "${mrsampath}/SuperAttract_init " \$1 &" >>"${userstartup}"
@@ -2636,6 +2641,7 @@ function sam_start_new() {
 }
 
 function sam_start() {
+	env_check
 	# If MCP isn't running we need to start it in monitoring only mode
 	if [ -z "$(pidof SuperAttract_MCP)" ]; then
 		echo " Starting MCP.."
@@ -3400,6 +3406,7 @@ function main() {
 				break
 				;;
 			start | restart | bootstart) # Start as from init
+				env_check
 				declare -gl corelist_allow=$(echo "${corelist}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				sam_start
 				break
