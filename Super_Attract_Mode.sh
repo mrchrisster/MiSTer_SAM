@@ -207,16 +207,16 @@ function init_default_paths() {
 function sam_prep() {
 	[[ -s ${mrsamtmp}/amigashared_path ]] && source ${mrsamtmp}/amigashared_path
 	samquiet " Amigashared directory is ${amigashared} "
-	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config"/* ${mrsamtmp}/SAM_config &>/dev/null && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
+	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config/" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
 	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
 	# [[ -d "${mrsamtmp}/Amiga_shared" ]] && [[ $(mount | grep -ic "${amigashared}") == "0" ]] && cp -pr --force ${amigashared}/Disk.info ${mrsamtmp}/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat ${mrsamtmp}/Amiga_shared &>/dev/null && mount --bind "${mrsamtmp}/Amiga_shared" "${amigashared}"
 	# Disable Bootrom - Make Bootrom folder inaccessible until restart
-	if [ "${disablebootrom}" == "Yes" ]; then
+	if [ "${disablebootrom}" == "yes" ]; then
 		[[ -d "${misterpath}/Bootrom" ]] && [[ $(mount | grep -ic 'bootrom') == "0" ]] && mount --bind /mnt "${misterpath}/Bootrom"
 		# Disable Nes bootroms except for FDS Bios (boot0.rom)
-		[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${misterpath}/Games/NES/boot1.rom"
-		[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${misterpath}/Games/NES/boot2.rom"
-		[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${misterpath}/Games/NES/boot3.rom"
+		[[ -f "${CORE_PATH_FINAL[NES]}/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${CORE_PATH_FINAL[NES]}/boot1.rom"
+		[[ -f "${CORE_PATH_FINAL[NES]}/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${CORE_PATH_FINAL[NES]}/boot2.rom"
+		[[ -f "${CORE_PATH_FINAL[NES]}/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${CORE_PATH_FINAL[NES]}/boot3.rom"
 	fi
 }
 
@@ -225,9 +225,9 @@ function SAM_cleanup() {
 	[[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]] && umount "${misterpath}/config"
 	# [[ $(mount | grep -ic ${amigashared}) != "0" ]] && umount "${amigashared}"
 	[[ -d "${misterpath}/Bootrom" ]] && [[ $(mount | grep -ic 'bootrom') != "0" ]] && umount "${misterpath}/Bootrom"
-	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') != "0" ]] && umount "${misterpath}/Games/NES/boot1.rom"
-	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') != "0" ]] && umount "${misterpath}/Games/NES/boot2.rom"
-	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') != "0" ]] && umount "${misterpath}/Games/NES/boot3.rom"
+	[[ -f "${CORE_PATH_FINAL[NES]}/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot1.rom"
+	[[ -f "${CORE_PATH_FINAL[NES]}/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot2.rom"
+	[[ -f "${CORE_PATH_FINAL[NES]}/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot3.rom"
 	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
@@ -1282,10 +1282,6 @@ function start_pipe_readers() {
 				set -- junk ${line}
 				shift
 				case "${1}" in
-				stop | quit)
-					sam_exit 0 "stop"
-					break
-					;;
 				exit)
 					if [ ! -z "${2}" ]; then
 						sam_exit ${2}
@@ -3314,10 +3310,24 @@ function main() {
 				fi
 				break
 				;;
-			start | restart | bootstart) # Start as from init
+			stop | quit)
+				${mrsampath}/SuperAttract_init "stop" &
+				jobs -l
+				disown -a
+				break
+				;;
+			start) # quickstart
 				env_check
-				declare -gl corelist_allow=$(echo "${corelist}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-				sam_start
+				${mrsampath}/SuperAttract_init "quickstart" &
+				jobs -l
+				disown -a
+				break
+				;;
+			restart) # stop everything and restart
+				env_check
+				${mrsampath}/SuperAttract_init "restart" &
+				jobs -l
+				disown -a
 				break
 				;;
 			start_real) # Start looping

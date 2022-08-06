@@ -276,6 +276,7 @@ function sam_createfolders() {
 	[[ ! -d "${excludepath}" ]] && mkdir -p "${excludepath}"
 	[[ -d "${mrsamtmp}/SAM_config" ]] && rm -rf "${mrsamtmp}/SAM_config"
 	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
+	[[ ! -d "${misterpath}/Bootrom" ]] && mkdir -p "${misterpath}/Bootrom"
 }
 
 function samdebug() {
