@@ -2009,6 +2009,11 @@ function sam_update() { # sam_update (next command)
 		
 		#blacklist files
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16cd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+
+
 
 	fi
 
@@ -3020,6 +3025,25 @@ function next_core() { # next_core (core)
 			echo " Found exclusion list for core $nextcore"
 			awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		done
+	fi
+	
+	#Check blacklist
+	
+	if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
+		echo " Found exclusion list for core ${nextcore}"
+		cat "${gamelistpath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
+			if [ "${line}" != "\n" ]; then
+				for i in {1..10}; do
+					if [[ "${rompath}" == *"${line}"* ]]; then
+						echo " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
+						awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+						rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+						return 1
+					fi
+				done
+			fi
+		done
+		[ $? -eq 1 ] && next_core "${nextcore}" && return
 	fi
 
 	if [ -z "${rompath}" ]; then
