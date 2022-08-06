@@ -25,6 +25,7 @@ declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
 declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
 declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
 declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
+declare -g MCP_DeviceChange_pipe="${mrsamtmp}/MCP_DeviceChange_pipe"
 
 declare -gi bootsleep="60"
 
@@ -226,7 +227,7 @@ function defaultpath() {
 
 function init_amigashared_path() {
 	var=$(grep shared_folder= ${misterpath}/Mister.ini | sed -e 's/shared_folder=//')
-	samdebug " Grep got ${var}"
+	#samdebug " Grep got ${var}"
 	if [ ! -z "${var}" ]; then
 		samdebug " Variable is not empty"
 		if [ ! -d ${var} ]; then
@@ -245,13 +246,13 @@ function init_amigashared_path() {
 			samdebug " Setting the amigashared variable"
 			amigashared="${var}"
 		fi
-	else
-		samdebug " Variable is empty sticking with default"
+	#else
+		#samdebug " Variable is empty sticking with default"
 	fi
 
 	# write to output file
 	echo "amigashared=${amigashared}" >${mrsamtmp}/amigashared_path
-	samquiet " Amigashared directory is ${amigashared} "
+	#samquiet " Amigashared directory is ${amigashared} "
 }
 
 #========= PARSE INI =========
@@ -302,6 +303,17 @@ function samquiet() {
 function MCP_CoreName_Change() {
 	# Monitor CORENAME for changes (to determine if the menu is currently running)
 	inotifywait --event modify ${corename_file} --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
+}
+
+
+function sam_jschange() {
+	# Monitor joystick devices for changes
+	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --outfile ${MCP_DeviceChange_pipe} 2>/dev/null &
+}
+
+function sam_keybchange() {
+	# Monitor keyboard devices for changes
+	inotifywait -r --quiet --monitor --event create --event delete /dev/input/ --include by-path --outfile ${MCP_DeviceChange_pipe} 2>/dev/null &
 }
 
 function MCP_CoreName_Monitor() {
@@ -408,10 +420,12 @@ function MCP_cleanup() {
 	[[ -p ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
 	[[ -p ${MCP_CoreName_Change_pipe} ]] && rm ${MCP_CoreName_Change_pipe}
 	[[ -p ${MCP_Corename_Activity_pipe} ]] && rm ${MCP_Corename_Activity_pipe}
+	[[ -p ${MCP_DeviceChange_pipe} ]] && rm ${MCP_DeviceChange_pipe}
 	[[ -p ${MCP_Activity_pipe} ]] && rm ${MCP_Activity_pipe}
 	[[ -p ${SAM_Activity_pipe} ]] && rm ${SAM_Activity_pipe}
 	[[ -e ${MCP_cmd_pipe} ]] && rm ${MCP_cmd_pipe}
 	[[ -e ${MCP_CoreName_Change_pipe} ]] && rm ${MCP_CoreName_Change_pipe}
+	[[ -e ${MCP_DeviceChange_pipe} ]] && rm ${MCP_DeviceChange_pipe}
 	[[ -e ${MCP_Corename_Activity_pipe} ]] && rm ${MCP_Corename_Activity_pipe}
 	[[ -e ${MCP_Activity_pipe} ]] && rm ${MCP_Activity_pipe}
 	[[ -e ${SAM_Activity_pipe} ]] && rm ${SAM_Activity_pipe}
@@ -421,6 +435,7 @@ function MCP_createpipes() {
 	[[ ! -p ${MCP_cmd_pipe} ]] && mkfifo ${MCP_cmd_pipe}
 	[[ ! -p ${MCP_CoreName_Change_pipe} ]] && mkfifo ${MCP_CoreName_Change_pipe}
 	[[ ! -p ${MCP_Corename_Activity_pipe} ]] && mkfifo ${MCP_Corename_Activity_pipe}
+	[[ ! -p ${MCP_DeviceChange_pipe} ]] && mkfifo ${MCP_DeviceChange_pipe}
 	[[ ! -p ${MCP_Activity_pipe} ]] && mkfifo ${MCP_Activity_pipe}
 	[[ ! -p ${SAM_Activity_pipe} ]] && mkfifo ${SAM_Activity_pipe}
 
@@ -457,6 +472,12 @@ function MCP_monitors() {
 	samquiet "-n" " Starting CORENAME monitor..."
 	MCP_CoreName_Monitor
 	samquiet " Done!"
+	
+	samquiet "-n" " Starting Device change monitor..."
+	sam_jschange
+	sam_keybchange
+	samquiet " Done!"
+	
 
 	if [ "${listenjoy}" == "yes" ]; then
 		# Spawn joystick monitoring process per detected joystick device
@@ -501,6 +522,7 @@ function MCP_monitors() {
 		fi
 		sleep 0.1
 	done &
+
 
 	while true; do
 		if read line <${MCP_Corename_Activity_pipe}; then
