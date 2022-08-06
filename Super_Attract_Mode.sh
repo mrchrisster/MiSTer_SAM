@@ -1889,6 +1889,7 @@ function sam_update() { # sam_update (next command)
 
 		get_partun
 		get_mbc
+		get_samindex
 		get_inputmap
 		get_samstuff .SuperAttract/SuperAttract_init
 		get_samstuff .SuperAttract/SuperAttract_MCP
@@ -1896,8 +1897,6 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_keyboard.py
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
-		curl_download "/tmp/samindex.zip" "${repository_url}/blob/${branch}/.SuperAttract/samindex.zip?raw=true"
-		unzip -ojq /tmp/samindex.zip -d ${mrsampath} &>/dev/null
 		get_samstuff .SuperAttract/SAM_splash.gsc
 
 		#blacklist files
@@ -2163,7 +2162,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 
 function env_check() {
 	# Check if we've been installed
-	if [ ! -f "${mrsampath}/partun" ] || [ ! -f "${mrsampath}/SuperAttract_MCP" ]; then
+	if [ ! -f "${mrsampath}/bin/partun" ] || [ ! -f "${mrsampath}/SuperAttract_MCP" ]; then
 		echo " SAM required files not found."
 		echo " Surprised? Check your INI."
 		sam_update ${1}
@@ -2192,7 +2191,7 @@ function deleteall() {
 
 	if ls "${misterpath}/config/inputs/*_input_1234_5678_v3.map" 1>/dev/null 2>&1; then
 		echo "Deleting Keyboard mapping files"
-		rm "${misterpath}/Config/inputs/*_input_1234_5678_v3.map"
+		rm "${misterpath}/config/inputs/*_input_1234_5678_v3.map"
 	fi
 	# Remount root as read-write if read-only so we can remove daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
@@ -2288,25 +2287,25 @@ function skipmessage() {
 			sleep 15
 			samquiet " Skipping BIOS/Safety Warnings!"
 			# This is for MegaAGS version June 2022 or older
-			"${mrsampath}/mbc" raw_seq {6c
-			"${mrsampath}/mbc" raw_seq O
-			"${mrsampath}/mbc" raw_seq }
+			"${mrsampath}/bin/mbc" raw_seq {6c
+			"${mrsampath}/bin/mbc" raw_seq O
+			"${mrsampath}/bin/mbc" raw_seq }
 		fi
 	elif [ "${core}" == "atari5200" ]; then
 		shopt -s nullglob
-		sleep 5
+		sleep 15
 		for key in "${!ATARI5200_GAME_SKIP[@]}"; do
 			if [[ "${game}" == *"${key,,}"* ]]; then
 				samquiet " Skipping BIOS/Safety Warnings!"
 				samdebug " Match!"
-				"${mrsampath}/mbc" raw_seq "${ATARI5200_GAME_SKIP[$key]}"
+				"${mrsampath}/bin/mbc" raw_seq "${ATARI5200_GAME_SKIP[$key]}"
 			fi
 		done
 		shopt -u nullglob
 	else
-		sleep 5
+		sleep 15
 		samquiet " Skipping BIOS/Safety Warnings!"
-		"${mrsampath}/mbc" raw_seq :31
+		"${mrsampath}/bin/mbc" raw_seq :31
 	fi
 }
 
@@ -2472,7 +2471,7 @@ function curl_download() { # curl_download ${filepath} ${URL}
 		--fail \
 		--location \
 		-o "${1}" \
-		"${2}"
+		"${2-}"
 }
 
 function get_samstuff() { #get_samstuff file (path)
@@ -2497,28 +2496,51 @@ function get_samstuff() { #get_samstuff file (path)
 }
 
 function get_partun() {
-	REPOSITORY_URL="https://github.com/woelper/partun"
+	local REPO_URL="https://github.com/woelper/partun"
 	echo " Downloading partun - needed for unzipping roms from big archives..."
 	echo " Created for MiSTer by woelper - Talk to him at this year's PartunCon"
-	echo " ${REPOSITORY_URL}"
+	echo " ${REPO_URL}"
 	latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
 	curl_download "/tmp/partun" "${latest}"
-	mv --force "/tmp/partun" "${mrsampath}/partun"
+	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
+	mv --force "/tmp/partun" "${mrsampath}/bin/partun"
+	[[ -f "${mrsampath}/partun" ]] && rm -f "${mrsampath}/partun"
+	echo " Done!"
+}
+
+function get_samindex() {
+	local REPO_URL="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	echo " Downloading samindex - needed for creating gamelists..."
+	echo " Created for MiSTer by wizzo"
+	echo " ${REPO_URL}"
+	latest="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	curl_download "/tmp/samindex.zip" "${latest}"
+	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
+	unzip -ojq /tmp/samindex.zip -d "${mrsampath}/bin" # &>/dev/null
+	# mv --force "/tmp/samindex" "${mrsampath}/bin/samindex"
+	[[ -f "${mrsampath}/samindex" ]] && rm -f "${mrsampath}/samindex"
 	echo " Done!"
 }
 
 function get_mbc() {
+	local REPO_URL="${repository_url}/blob/${branch}/.SuperAttract/bin/mbc?raw=true"
 	echo " Downloading mbc - Control MiSTer from cmd..."
 	echo " Created for MiSTer by pocomane"
-	get_samstuff .SuperAttract/mbc
+	echo " ${REPO_URL}"
+	latest="${repository_url}/blob/${branch}/.SuperAttract/bin/mbc?raw=true"
+	curl_download "/tmp/mbc" "${latest}"
+	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
+	mv --force "/tmp/mbc" "${mrsampath}/bin/mbc"
+	[[ -f "${mrsampath}/mbc" ]] && rm -f "${mrsampath}/mbc"
+	echo " Done!"
 }
 
 function get_inputmap() {
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
-	get_samstuff .SuperAttract/inputs/GBA_input_1234_5678_v3.map ${misterpath}/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/MegaCD_input_1234_5678_v3.map ${misterpath}/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/NES_input_1234_5678_v3.map ${misterpath}/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/TGFX16_input_1234_5678_v3.map ${misterpath}/Config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/GBA_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/MegaCD_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/NES_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/TGFX16_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
 	echo " Done!"
 }
 
@@ -2771,12 +2793,12 @@ function create_romlist() { # args ${core} "${DIR}"
 		fi
 	else
 		# Find all files in core's folder with core's extension
-		if [ "${samindex}" == "yes" ] && [ -s "${mrsampath}/samindex" ]; then
+		if [ "${samindex}" == "yes" ] && [ -s "${mrsampath}/bin/samindex" ]; then
 			mkdir -p "${gamelistpathtmp}/samindex"
 			if [ "${samquiet}" == "no" ]; then
-				${mrsampath}/samindex -s ${core} -o "${gamelistpathtmp}/samindex"
+				${mrsampath}/bin/samindex -s ${core} -o "${gamelistpathtmp}/samindex"
 			else
-				${mrsampath}/samindex -q -s ${core} -o "${gamelistpathtmp}/samindex"
+				${mrsampath}/bin/samindex -q -s ${core} -o "${gamelistpathtmp}/samindex"
 			fi
 			[[ ! -f "${gamelistpathtmp}/samindex/${core}_gamelist.txt" ]] && echo "" | >"${tmpfile}" &>/dev/null
 			[[ -f "${gamelistpathtmp}/samindex/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/samindex/${core}_gamelist.txt" "${tmpfile}" &>/dev/null
@@ -2791,7 +2813,7 @@ function create_romlist() { # args ${core} "${DIR}"
 						if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 							echo " Processing: ${z}"
 						fi
-						"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${core}]}" >>"${tmpfile}"
+						"${mrsampath}/bin/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${core}]}" >>"${tmpfile}"
 					done
 				fi
 			fi
