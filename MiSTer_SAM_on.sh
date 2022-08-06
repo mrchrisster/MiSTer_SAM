@@ -3038,12 +3038,10 @@ function next_core() { # next_core (core)
 						echo " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 						awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 						rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
-						return 1
 					fi
 				done
 			fi
 		done
-		[ $? -eq 1 ] && next_core "${nextcore}" && return
 	fi
 
 	if [ -z "${rompath}" ]; then
