@@ -2105,15 +2105,19 @@ function mglfavorite() {
 function exclude_game() {
 	# Add current game to Exclude list
 	local xnextcore=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o '\- (\w*) \-' | sed 's/\s[\-]//' | sed 's/[\-]\s//')
-	local xromname=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o "\- ${xnextcore} \- (.*)$" | sed "s/\- ${xnextcore} \- //")
+	if [ "${xnextcore}" == "neogeo" ]; then
+		local xromname=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o "\- ${xnextcore} \- (.*)$" | sed "s/\- ${xnextcore} \- //" | sed "s/ \(.*\)//")
+	else
+		local xromname=$(tail -n1 '/tmp/SAM_Games.log' | grep -E -o "\- ${xnextcore} \- (.*)$" | sed "s/\- ${xnextcore} \- //")
+	fi
 	local xrompath=$(cat "${gamelistpath}/${xnextcore}_gamelist.txt" | grep "${xromname}")
 	samquiet " xnextcore: ${xnextcore}"
 	samquiet " xromname: ${xromname}"
 	samquiet " xrompath: ${xrompath}"
-	if [ -f "${excludepath}/${xnextcore}_excludelist.txt" ] && [ ! -z ${xrompath} ]; then
-		echo ${xrompath} >>"${excludepath}/${xnextcore}_excludelist.txt"
-	elif [ ! -z ${xrompath} ]; then
-		echo ${xrompath} >"${excludepath}/${xnextcore}_excludelist.txt"
+	if [ -f "${excludepath}/${xnextcore}_excludelist.txt" ] && [ ! -z "${xromname}" ]; then
+		echo "${xromname}" >>"${excludepath}/${xnextcore}_excludelist.txt"
+	elif [ ! -z "${xromname}" ]; then
+		echo "${xromname}" >"${excludepath}/${xnextcore}_excludelist.txt"
 	fi
 	next_core "${xnextcore}"
 	return
