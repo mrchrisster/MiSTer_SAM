@@ -2410,15 +2410,14 @@ function get_partun() {
 }
 
 function get_samindex() {
-	local REPO_URL="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	local REPO_URL="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
 	echo " Downloading samindex - needed for creating gamelists..."
 	echo " Created for MiSTer by wizzo"
 	echo " ${REPO_URL}"
-	latest="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	latest="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
 	curl_download "/tmp/samindex.zip" "${latest}"
 	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
 	unzip -ojq /tmp/samindex.zip -d "${mrsampath}/bin" # &>/dev/null
-	# mv --force "/tmp/samindex" "${mrsampath}/bin/samindex"
 	[[ -f "${mrsampath}/samindex" ]] && rm -f "${mrsampath}/samindex"
 	echo " Done!"
 }
