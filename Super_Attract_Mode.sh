@@ -2686,17 +2686,13 @@ function next_core() { # next_core (core)
 		fi
 		# Set ${nextcore} from ${corelist_allow}
 		if [ ${corelist_allowtmp_count} -gt 1 ]; then
-			nextcore=$(echo ${corelist_allow} | xargs shuf --head-count=1 --echo)
-			if [ "${core}" == "${nextcore}" ]; then
-				samquiet " Core repeated! \e[1m${nextcore}\e[0m"
+			if [ ! -z "${2}" ] && [ "${2}" == "repeat" ]; then
+				nextcore=${core}
+			else
+				nextcore=$(echo ${corelist_allow} | xargs shuf --head-count=1 --echo)
 				corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
-				samdebug  "corelist count is ${corelist_count} at end of next_core()"
-				next_core "${nextcore}"
-				return
 			fi
-			corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-			corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 		else
 			nextcore=${core}
 		fi
@@ -2723,10 +2719,7 @@ function next_core() { # next_core (core)
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
 		samquiet " Wrong Extension! \e[1m${extension^^}\e[0m"
-		corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-		corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
-		samdebug " corelist count is ${corelist_count} at end of next_core()"
-		next_core "${nextcore}"
+		next_core "${nextcore}" "repeat"
 		return
 	fi
 
@@ -2737,10 +2730,7 @@ function next_core() { # next_core (core)
 			if [ "${excluded}" == "${rompath}" ]; then
 				samquiet " Excluded: ${rompath}, trying a different game.."
 				awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-				corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-				corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
-				samdebug " corelist count is ${corelist_count} at end of next_core()"
-				next_core "${nextcore}"
+				next_core "${nextcore}" "repeat"
 				return
 			fi
 		done
@@ -2753,14 +2743,11 @@ function next_core() { # next_core (core)
 				if [ "${line}" == "${rompath}" ]; then
 					samquiet " Excluded by user: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-					corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-					corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
-					samdebug " corelist count is ${corelist_count} at end of next_core()"
 					return 1
 				fi
 			fi
 		done
-		[ $? -eq 1 ] && next_core "${nextcore}" && return
+		[ $? -eq 1 ] && next_core "${nextcore}" "repeat" && return
 	fi
 
 	#Check blacklist
@@ -2771,14 +2758,11 @@ function next_core() { # next_core (core)
 				if [[ "${rompath}" == *"${line}"* ]]; then
 					samquiet " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-					corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-					corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
-					samdebug " corelist count is ${corelist_count} at end of next_core()"
 					return 1
 				fi
 			fi
 		done
-		[ $? -eq 1 ] && next_core "${nextcore}" && return
+		[ $? -eq 1 ] && next_core "${nextcore}" "repeat" && return
 	fi
 
 	corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
