@@ -36,7 +36,6 @@ function init_vars() {
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
 	declare -gi inmenu=0
-	declare -gi speedtest=0
 
 	# ======== DEBUG VARIABLES ========
 	declare -gl samquiet="Yes"
@@ -75,7 +74,6 @@ function init_vars() {
 	declare -gi counter=0
 	declare -g userstartup="/media/fat/linux/user-startup.sh"
 	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
-	declare -gl usedefaultpaths="No"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
 	declare -gl rebuild_freq="Week"
@@ -89,11 +87,22 @@ function init_vars() {
 	# ======== BGM =======
 	declare -gl bgm="No"
 	# ======== TTY2OLED =======
+	declare -g TTY_cmd_pipe="/tmp/TTY_cmd_pipe"
 	declare -gl ttyenable="No"
+	declare -g ttyuseack="yes"
+	declare -gi ttyupdate_pause=10
+	declare -gA tty_currentinfo=(
+		[core_pretty]=""
+		[name]=""
+		[core]=""
+		[counter]=0
+		[name_scroll]=""
+		[name_scroll_position]=0
+		[name_scroll_direction]=1
+		[update_pause]=${ttyupdate_pause}
+	)
 	declare -g ttydevice="/dev/ttyUSB0"
-	declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
-	declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
-	declare -gl ttyuseack="No"
+
 
 	# ======== CORE PATHS ========
 	declare -g amigapath="/media/fat/Games/Amiga"	
@@ -176,39 +185,13 @@ function update_tasks() {
 }									 
 
 function init_paths() {
-	# Default rom path search directories
-	declare -ga GAMESDIR_FOLDERS=(
-		/media/usb0/games
-		/media/usb1/games
-		/media/usb2/games
-		/media/usb3/games
-		/media/usb4/games
-		/media/usb5/games
-		/media/fat/cifs/games
-		/media/fat/games
-		/media/usb0
-		/media/usb1
-		/media/usb2
-		/media/usb3
-		/media/usb4
-		/media/usb5
-		/media/fat/cifs
-		/media/fat
-	)
-
-	declare -g GET_SYSTEM_FOLDER_GAMESDIR=""
-	declare -g GET_SYSTEM_FOLDER_RESULT=""
 	# Create folders if they don't exist
 	mkdir -p "${mrsampath}/SAM_Gamelists"
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
 	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
-	if [ ${usedefaultpaths} == "yes" ]; then
-		for core in ${corelistall}; do
-			defaultpath "${core}"
-		done
-	fi
+
 }
 
 function sam_prep() {
@@ -222,8 +205,8 @@ function sam_prep() {
 }
 
 function sam_cleanup() {
-	# Clean up by umounting any mount binds
 	tty_exit &
+	# Clean up by umounting any mount binds
 	bgm_stop
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
@@ -240,12 +223,12 @@ function sam_cleanup() {
 function init_data() {
 	# Core to long name mappings
 	declare -gA CORE_PRETTY=(
+		["amiga"]="Commodore Amiga"
 		["arcade"]="MiSTer Arcade"
 		["atari2600"]="Atari 2600"
 		["atari5200"]="Atari 5200"
 		["atari7800"]="Atari 7800"
 		["atarilynx"]="Atari Lynx"
-		["amiga"]="Commodore Amiga"
 		["c64"]="Commodore 64"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
@@ -258,9 +241,9 @@ function init_data() {
 		["nes"]="Nintendo Entertainment System"
 		["s32x"]="Sega 32x"
 		["sms"]="Sega Master System"
-		["snes"]="Super Nintendo Entertainment System"
-		["tgfx16"]="NEC PC Engine / TurboGrafx-16 "
-		["tgfx16cd"]="NEC PC Engine CD / TurboGrafx-16 CD"
+		["snes"]="Super NES"
+		["tgfx16"]="NEC TurboGrafx-16 "
+		["tgfx16cd"]="NEC TurboGrafx-16 CD"
 		["psx"]="Sony Playstation"
 	)
 
@@ -435,6 +418,32 @@ function init_data() {
 		["gba"]="GBA"
 		["genesis"]="Genesis"
 		["gg"]="SMS"
+		["megacd"]="MegaCD"
+		["neogeo"]="NEOGEO"
+		["nes"]="NES"
+		["s32x"]="S32X"
+		["sms"]="SMS"
+		["snes"]="SNES"
+		["tgfx16"]="TGFX16"
+		["tgfx16cd"]="TGFX16"
+		["psx"]="PSX"
+	)
+	
+	# TTY2OLED Core Pic mappings
+	declare -gA TTY2OLED_PIC_NAME=(
+		["amiga"]="Minimig"
+		["arcade"]="Arcade"
+		["atari2600"]="ATARI2600"
+		["atari5200"]="ATARI5200"
+		["atari7800"]="ATARI7800"
+		["atarilynx"]="AtariLynx"
+		["c64"]="C64"
+		["fds"]="fds"
+		["gb"]="GAMEBOY"
+		["gbc"]="GAMEBOY"
+		["gba"]="GBA"
+		["genesis"]="Genesis"
+		["gg"]="gamegear"
 		["megacd"]="MegaCD"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
@@ -1235,58 +1244,6 @@ function read_samini() {
 }
 
 
-function GET_SYSTEM_FOLDER() {
-	local SYSTEM="${1}"
-	for folder in "${GAMESDIR_FOLDERS[@]}"; do
-		local RESULT=$(find "${folder}" -maxdepth 1 -iname "${SYSTEM}" -printf "%P\n" -quit 2>/dev/null)
-		if [[ "${RESULT}" != "" ]]; then
-			GET_SYSTEM_FOLDER_GAMESDIR="${folder}"
-			GET_SYSTEM_FOLDER_RESULT="${RESULT}"
-			break
-		fi
-	done
-}
-
-function defaultpath() {
-	local SYSTEM="${1}"
-	local SYSTEM_ORG="${SYSTEM}"
-	if [ ${SYSTEM} == "arcade" ]; then
-		SYSTEM="_arcade"
-	fi
-	if [ ${SYSTEM} == "atari2600" ]; then
-		SYSTEM="atari7800"
-	fi
-	if [ ${SYSTEM} == "fds" ]; then
-		SYSTEM="nes"
-	fi
-
-	if [ ${SYSTEM} == "gb" ]; then
-		SYSTEM="gameboy"
-	fi
-
-	if [ ${SYSTEM} == "gbc" ]; then
-		SYSTEM="gameboy"
-	fi
-
-	if [ ${SYSTEM} == "gg" ]; then
-		SYSTEM="sms"
-	fi
-
-	if [ ${SYSTEM} == "tgfx16cd" ]; then
-		SYSTEM="tgfx16-cd"
-	fi
-
-	shift
-
-	GET_SYSTEM_FOLDER "${SYSTEM}"
-	local SYSTEM_FOLDER="${GET_SYSTEM_FOLDER_RESULT}"
-	local GAMESDIR="${GET_SYSTEM_FOLDER_GAMESDIR}"
-
-	if [[ "${SYSTEM_FOLDER}" != "" ]]; then
-		eval ${SYSTEM_ORG}"path"="${GAMESDIR}/${GET_SYSTEM_FOLDER_RESULT}"
-	fi
-}
-
 # ======== SAM MENU ========
 function sam_premenu() {
 	echo "+---------------------------+"
@@ -1475,7 +1432,7 @@ function sam_gamemodemenu() {
 			gametimer=${roulettetimer}
 			only_survivor
 			sam_cleanup
-			tty_init
+			#tty_init
 			checkgl
 			mute=no
 			listenmouse="No"
@@ -1487,11 +1444,11 @@ function sam_gamemodemenu() {
 			gametimer=$((timemin*60))
 			only_survivor
 			sam_cleanup
-			tty_init
+			#tty_init
 			checkgl
 			mute=no
 			listenmouse="No"
-			listenkeyboard="No"
+			listenkeyboard="No"${ttydevice}
 			listenjoy="No"
 			loop_core
 		fi
@@ -1554,7 +1511,7 @@ function samedit_include() {
 			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
 		only_survivor
 		sam_prep
-		tty_init
+		#tty_init
 		checkgl
 		loop_core
 	fi
@@ -1777,7 +1734,7 @@ function parse_cmd() {
 				sam_update autoconfig
 				break
 				;;
-			--speedtest | --sourceonly | --create-gamelists)
+			--sourceonly | --create-gamelists)
 				break
 				;;
 			autoconfig | defaultb)
@@ -1803,7 +1760,7 @@ function parse_cmd() {
 				;;
 			start_real) # Start SAM immediately
 				env_check ${1}
-				tty_init
+				##tty_init
 				bgm_start
 				loop_core ${nextcore}
 				break
@@ -1931,6 +1888,10 @@ function parse_cmd() {
 	fi
 }
 
+function write_to_TTY_cmd_pipe() {
+	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
+}
+
 # ======== SAM COMMANDS ========
 function mcp_start() {
 
@@ -1982,10 +1943,13 @@ function sam_update() { # sam_update (next command)
 		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
 
 		get_partun
+		get_samindex
 		get_mbc
 		get_inputmap
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
+		get_samstuff .MiSTer_SAM/SAM_splash.gsc
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
@@ -2212,6 +2176,23 @@ function play_or_exit() {
 	fi
 }
 
+function tty_exit() { # tty_exit
+	if [ "${ttyenable}" == "yes" ]; then
+		# Clear Display	with Random effect
+		echo "CMDCLST,19,1" >${ttydevice}
+		sleep 0.25
+		write_to_TTY_cmd_pipe "exit" &
+
+		# Starting tty2oled daemon only if needed
+	#	if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
+	#		sleep 1
+	#		tmux new -s DAEMONTTY -d "/media/fat/tty2oled/tty2oled.sh"
+	#	fi
+	fi
+}
+
+
+
 
 function env_check() {
 	# Check if we've been installed
@@ -2379,165 +2360,6 @@ function bgm_stop() {
 }
 
 
-# ======== tty2oled FUNCTIONS ========
-
-function tty_init() { # tty_init
-
-	if [ "${ttyenable}" == "yes" ]; then
-		# tty2oled initialization
-
-		if [ "${samquiet}" == "no" ]; then echo " Init tty2oled, loading variables... "; fi
-		source ${ttysystemini}
-		source ${ttyuserini}
-		ttydevice=${TTYDEV}
-		ttypicture=${picturefolder}
-		ttypicture_pri=${picturefolder_pri}
-
-		# Stopping ScreenSaver
-		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled ScreenSaver..."; fi
-		echo "CMDSAVER,0,0,0" >${ttydevice}
-		tty_waitfor
-		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
-		# sleep 2
-
-		# Stopping tty2oled Daemon
-		if [ "${ttyuseack}" == "yes" ]; then
-			if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-			# sleep 3
-			killtty=$(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}' | head -1)
-			for kill in ${killtty}; do
-				[[ ! -z ${killtty} ]] && kill -9 ${kill} >/dev/null
-			done
-			if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
-		fi
-		# sleep 2
-
-
-		echo "CMDCLST,19,1" >${ttydevice}
-		tty_waitfor
-		sleep 0.2
-		echo "CMDTXT,1,15,0,0,9, Welcome to..." >${ttydevice}
-		tty_waitfor
-		sleep 1
-		echo "CMDTXT,3,15,0,47,27, Super" >${ttydevice}
-		tty_waitfor
-		sleep 0.8
-		echo "CMDTXT,3,15,0,97,45, Attract" >${ttydevice}
-		tty_waitfor
-		sleep 0.8
-		echo "CMDTXT,3,15,0,153,63, Mode!" >${ttydevice}
-		tty_waitfor
-		sleep 1
-	fi
-
-}
-
-function tty_waitfor() {
-	if [ "${ttyuseack}" == "yes" ]; then
-		read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
-		ttyresponse=""
-	else
-		sleep 0.25
-	fi
-}
-
-function tty_update() { # tty_update core game
-	if [ "${ttyenable}" == "yes" ]; then
-
-		# Wait for tty2oled daemon to show the core logo
-		if [ "${ttyuseack}" != "yes" ]; then
-			inotifywait -q -e modify /tmp/CORENAME &>/dev/null
-		fi
-
-		# Wait for tty2oled to show the core logo
-		if [ "${ttyuseack}" == "yes" ]; then
-			tty_senddata "${3}"
-		fi
-		tty_waitfor
-		# Show Core-Logo for 10 Secs
-		sleep 10
-		# Clear Display	with Random effect
-		echo "CMDCLST,19,1" >${ttydevice}
-		tty_waitfor
-
-		# Split long lines - length is approximate since fonts are variable width!
-
-		if [ ${#2} -gt 23 ]; then
-			for l in {1..15}; do
-				echo "CMDTXT,103,${l},0,0,20,${2:0:20}..." >${ttydevice}
-				tty_waitfor
-				echo "CMDTXT,103,${l},0,0,40, ${2:20:40}" >${ttydevice}
-				tty_waitfor
-				echo "CMDTXT,2,$((${l} / 3)),0,0,60,${1}" >${ttydevice}
-				tty_waitfor
-				sleep 0.05
-			done
-		else
-			for l in {1..15}; do
-				echo "CMDTXT,103,${l},0,0,20,${2}" >${ttydevice}
-				tty_waitfor
-				echo "CMDTXT,2,$((${l} / 3)),0,0,60,${1}" >${ttydevice}
-				tty_waitfor
-				sleep 0.05
-			done
-
-		fi
-
-	fi
-}
-
-# USB Send-Picture-Data function
-function tty_senddata() {
-	newcore="${1}"
-	unset picfnam
-	if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then # Check for _pri pictures
-		picfnam="${ttypicture_pri}/${newcore}.gsc"
-	elif [ -e "${ttypicture_pri}/${newcore}.xbm" ]; then
-		picfnam="${ttypicture_pri}/${newcore}.xbm"
-	else
-		picfolders="gsc_us xbm_us gsc xbm xbm_text" # If no _pri picture found, try all the others
-		[ "${USE_US_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us xbm_us/}"
-		[ "${USE_GSC_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us/}" && picfolders="${picfolders//gsc/}"
-		[ "${USE_TEXT_PICTURE}" = "no" ] && picfolders="${picfolders//xbm_text/}"
-		for picfolder in ${picfolders}; do
-			for ((c = "${#newcore}"; c >= 1; c--)); do                               # Manipulate string...
-				picfnam="${ttypicture}/${picfolder^^}/${newcore:0:$c}.${picfolder:0:3}" # ...until it matches something
-				[ -e "${picfnam}" ] && break
-			done
-			[ -e "${picfnam}" ] && break
-		done
-	fi
-	if [ -e "${picfnam}" ]; then # Exist?
-		# For testing...
-		if [ "${samdebug}" == "yes" ]; then
-			echo "-------------------------------------------"
-			echo " tty2oled sending Corename: ${1} "
-			echo " tty2oled found/send Picture : ${picfnam} "
-			echo "-------------------------------------------"
-		fi
-		echo "CMDCOR,${1}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
-		sleep 0.02                                        # sleep needed here ?!
-		tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
-	else                                               # No Picture available!
-		echo "${1}" >"${ttydevice}"                       # Send just the CORENAME
-	fi                                                 # End if Picture check
-}
-
-function tty_exit() { # tty_exit
-	if [ "${ttyenable}" == "yes" ]; then
-		# Clear Display	with Random effect
-		echo "CMDCLST,19,1" >${ttydevice}
-		# echo "CMDCLS" >"${ttydevice}"
-		tty_waitfor &
-		# Starting tty2oled daemon only if needed
-		if [ "${ttyuseack}" == "yes" ]; then
-			if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
-				sleep 1
-				tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
-			fi
-		fi
-	fi
-}
 
 # ======== DOWNLOAD FUNCTIONS ========
 function curl_download() { # curl_download ${filepath} ${URL}
@@ -2587,6 +2409,20 @@ function get_partun() {
 	echo " Done!"
 }
 
+function get_samindex() {
+	local REPO_URL="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	echo " Downloading samindex - needed for creating gamelists..."
+	echo " Created for MiSTer by wizzo"
+	echo " ${REPO_URL}"
+	latest="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	curl_download "/tmp/samindex.zip" "${latest}"
+	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
+	unzip -ojq /tmp/samindex.zip -d "${mrsampath}/bin" # &>/dev/null
+	# mv --force "/tmp/samindex" "${mrsampath}/bin/samindex"
+	[[ -f "${mrsampath}/samindex" ]] && rm -f "${mrsampath}/samindex"
+	echo " Done!"
+}
+
 function get_mbc() {
 	echo " Downloading mbc - Control MiSTer from cmd..."
 	echo " Created for MiSTer by pocomane"
@@ -2611,6 +2447,12 @@ function sam_start() {
 	# Terminate any other running SAM processes
 	there_can_be_only_one
 	mcp_start
+	# If TTY2oled isn't running we need to start it in monitoring only mode
+	if [ -z "$(pidof MiSTer_SAM_tty2oled)" ]; then
+		
+		echo " Starting TTY.."
+		tmux new-session -s TTY -d "${mrsampath}/MiSTer_SAM_tty2oled" &
+	fi
 	echo " Starting SAM in the background."
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
 }
@@ -2637,6 +2479,10 @@ function loop_core() { # loop_core (core)
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
+			if [ "${ttyenable}" == "yes" ]; then
+				tty_currentinfo[counter]=$(printf "%03d" ${counter})
+				write_to_TTY_cmd_pipe "update_counter ${tty_currentinfo[counter]}" &
+			fi
 
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse}" == "yes" ]; then
@@ -2685,218 +2531,76 @@ function reset_core_gl() { # args ${nextcore}
 	sync
 }
 
-function speedtest() {
-	speedtest=1
-	[ ! -d "/tmp/gl" ] && { mkdir -p /tmp/gl; }
-	[ ! -d "/tmp/glt" ] && { mkdir -p /tmp/glt; }
-	[ "$(mount | grep -ic '${gamelistpath}')" == "0" ] && mount --bind /tmp/gl "${gamelistpath}"
-	[ "$(mount | grep -ic '${gamelistpathtmp}')" == "0" ] && mount --bind /tmp/glt "${gamelistpathtmp}"
-	START="$(date +%s)"
-	for core in ${corelistall}; do
-		defaultpath "${core}"
-	done
-	DURATION_DP=$(($(date +%s) - ${START}))
-	START="$(date +%s)"
-	echo "" >"${gamelistpathtmp}/Durations.tmp"
-	for core in ${corelistall}; do
-		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
-		if [ ${core} = " " ] || [ ${core} = "" ] || [ -z ${core} ]; then
-			continue
-		elif [ ${core} != "arcade" ]; then
-			START2="$(date +%s)"
-			create_romlist ${core} "${DIR}"
-																								  
-			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
-		elif [ ${core} == "arcade" ]; then
-			START2="$(date +%s)"
-			build_mralist "${DIR}"
-											   
-			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
-		fi
-	done
-	echo "Total: $(($(date +%s) - ${START})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
-	if [ -s "${gamelistpathtmp}/Durations.tmp" ]; then
-		cat "${gamelistpathtmp}/Durations.tmp" | while IFS=$'\n' read line; do
-			echo "${line}"
-		done
+
+function core_error() { # core_error core /path/to/ROM
+	if [ ${romloadfails} -lt ${coreretries} ]; then
+		declare -g romloadfails=$((romloadfails + 1))
+		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+		echo " Trying to find another rom..."
+		next_core ${1}
+	else
+		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+		echo " ERROR: Core ${1} is blacklisted!"
+		declare -g corelist=("${corelist[@]/${1}/}")
+		echo " List of cores is now: ${corelist[@]}"
+		declare -g romloadfails=0
+		# Load a different core
+		next_core
 	fi
-	echo "Searching for Default Paths took ${DURATION_DP} seconds"
-	umount "${gamelistpath}"
-	umount "${gamelistpathtmp}"
-	speedtest=0
 }
 
-function create_game_lists() {
-	case ${rebuild_freq} in
-	hour)
-		rebuild_freq_int=$((3600 * ${regen_duration}))
-		;;
-	day)
-		rebuild_freq_int=$((86400 * ${regen_duration}))
-		;;
-	week)
-		rebuild_freq_int=$((604800 * ${regen_duration}))
-		;;
-	always)
-		rebuild_freq_int=0
-		;;
-	never)
-		rebuild_freq_int=$((3155760000 * ${regen_duration}))
-		;;
-	*)
-		echo "Incorrect regeneration value"
-		;;
-	esac
 
-	case ${rebuild_freq_arcade} in
-	hour)
-		rebuild_freq_arcade_int=$((3600 * ${regen_duration_arcade}))
-		;;
-	day)
-		rebuild_freq_arcade_int=$((86400 * ${regen_duration_arcade}))
-		;;
-	week)
-		rebuild_freq_arcade_int=$((604800 * ${regen_duration_arcade}))
-		;;
-	always)
-		rebuild_freq_arcade_int=0
-		;;
-	never)
-		rebuild_freq_arcade_int=$((3155760000 * ${regen_duration_arcade}))
-		;;
-	*)
-		echo "Incorrect regeneration value"
-		;;
-	esac
-	# TODO integrate this later
-	# if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
-	#	if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
-	# create_romlist ${1} "${2}"
-	# fi
-
-	# If folder changed, make new list
-	# if [[ ! "$(cat ${gamelistpath}/${1}_gamelist.txt | grep "${2}" | head -1)" ]]; then
-	#	if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
-	# create_romlist ${1} "${2}"
-	# fi
-
-	# Check if zip still exists
-	# if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-	#	mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
-	#	for zips in "${zipsinfile[@]}"; do
-	#		if [ ! -f "${zips}" ]; then
-	#			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
-	# create_romlist ${1} "${2}"
-	#		fi
-	#	done
-	# fi
-
-	for core in ${corelistall}; do
-		corelisttmp=${corelist}
-		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${core}]}${CORE_PATH_EXTRA[${core}]}"))
-		local date_file=""
-		if [ ${core} != "arcade" ]; then
-			if [ -f "${gamelistpath}/${core}_gamelist.txt" ]; then
-				if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
-					date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
-					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
-						create_romlist ${core} "${DIR}"
-																									 
-					fi
-				else
-					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
-					rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
-				fi
-			else
-
-				create_romlist ${core} "${DIR}"
-
-																								   
-			fi
-		elif [ ${core} == "arcade" ]; then
-			if [ -f "${mralist}" ]; then
-				if [ -s "${mralist}" ]; then
-					date_file=$(stat -c '%Y' "${mralist}")
-					if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_arcade_int} ]; then
-						build_mralist "${DIR}"
-												  
-					fi
-				else
-					corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${core} //" | tr -s ' ')
-					rm "${mralist}" &>/dev/null
-				fi
-			else
-
-				build_mralist "${DIR}"							
-			fi
-		fi
-					   
-		corelist=${corelisttmp}
-	done
+function disable_bootrom() {
+	if [ "${disablebootrom}" == "Yes" ]; then
+		# Make Bootrom folder inaccessible until restart
+		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
+		# Disable Nes bootroms except for FDS Bios (boot0.rom)
+		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot1.rom"
+		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot2.rom"
+		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot3.rom"
+	fi
 }
+
+function mute() {
+	if [ "${mute}" == "yes" ]; then
+		# Mute Global Volume
+		echo -e "\0020\c" >/media/fat/config/Volume.dat
+	elif [ "${mute}" == "core" ]; then
+		#  Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		# Mute Core Volumes
+		echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
+	elif [ "${mute}" == "no" ]; then
+		#  Global Volume
+		echo -e "\0000\c" >/media/fat/config/Volume.dat
+		#  Core Volumes
+		echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
+	fi
+}
+
+
 
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  ${2}..."
-	else
-		echo -n " Looking for games in  ${2}..."
-	fi
-	# Find all files in core's folder with core's extension
-	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
-	find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
-	# Now find all zips in core's folder and process
-	if [ "${CORE_ZIPPED[${1}]}" == "yes" ]; then
-		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-		if [ -s "${tmpfile2}" ]; then
-			cat "${tmpfile2}" | while read z; do
-				if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-					echo " Processing: ${z}"
-				fi
-				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${1}]}" >>"${tmpfile}"
-			done
-		fi
-	fi
 
-	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt"
-
-	# Strip out all duplicate filenames with a fancy awk command
-	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
-	# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt"
-	rm ${tmpfile} &>/dev/null
-	rm ${tmpfile2} &>/dev/null
-
-	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
-	if [ ${speedtest} -eq 1 ]; then
-		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
-	fi
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo "${total_games} Games found."
-	else
-		echo " ${total_games} Games found."
-	fi
+	${mrsampath}/samindex -s ${nextcore} -o "${gamelistpath}"
 }
 
 function check_list() { # args ${nextcore}  "${DIR}"
 	# If gamelist is not in /tmp dir, let's put it there
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
-		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
-		create_romlist ${1} "${2}"
+		echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"
+		create_romlist
 	fi
 
-	# If folder changed, make new list
-	if [[ ! "$(cat ${gamelistpath}/${1}_gamelist.txt | grep "${2}" | head -1)" ]]; then
-		if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
-		create_romlist ${1} "${2}"
-	fi
 
 	# Check if zip still exists
 	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
 		mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 		for zips in "${zipsinfile[@]}"; do
 			if [ ! -f "${zips}" ]; then
-				if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
-				create_romlist ${1} "${2}"
+				echo " Creating new game list because zip file[s] seems to have changed."
+				create_romlist
 			fi
 		done
 	fi
@@ -2926,7 +2630,7 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because file not found."; fi
-			create_romlist ${1} "${2}"
+			create_romlist 
 		fi
 	fi
 
@@ -3000,9 +2704,9 @@ function next_core() { # next_core (core)
 				
 	if [[ ! "$(echo "${extlist}" | grep -i "${extension}")" ]]; then
 		if [ "${samquiet}" == "no" ]; then echo -e " Wrong extension found: \e[1m${extension^^}\e[0m"; fi
-		if [ "${samquiet}" == "no" ]; then echo -e " Regenerating Game List"; fi
+		if [ "${samquiet}" == "no" ]; then echo -e " Picking new rom.."; fi
 
-		create_romlist ${nextcore} "${DIR}"
+		#create_romlist
 		next_core ${nextcore}
 		return
 	fi
@@ -3037,7 +2741,7 @@ function next_core() { # next_core (core)
 					if [[ "${rompath}" == *"${line}"* ]]; then
 						echo " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 						awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-						rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+						rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 					fi
 				done
 			fi
@@ -3076,15 +2780,27 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo -e "\e[1m${GAMENAME}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" $(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >>/tmp/SAM_Games.log
 	echo "${3} (${1}) "$(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >/tmp/SAM_Game.txt
-	tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}" & # Non blocking Version
-	# tty_update "${CORE_PRETTY[${1}]}" "${GAMENAME}" "${CORE_LAUNCH[${1}]}"    # Blocking Version
-
+	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
 			echo -ne " Loading game in ${i}...\033[0K\r"
 			sleep 1
 		done
+	fi
+
+	if [ "${ttyenable}" == "yes" ]; then
+		tty_currentinfo=(
+			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[name]="${GAMENAME}"
+			[core]=${tty_corename}
+			[counter]=${gametimer}
+			[name_scroll]="${GAMENAME:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+		)
+		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi
 
 	# Create mgl file and launch game
@@ -3096,15 +2812,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >>/tmp/SAM_game.mgl
-
-	if [ ${usedefaultpaths} == "yes" ]; then
-		corepath="${CORE_PATH[${nextcore}]}/"
-		rompath="${rompath#${corepath}}"
-		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"${rompath}\""/>" >>/tmp/SAM_game.mgl
-	else
-		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
-	fi
-
+	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
 	echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
 
 	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
@@ -3119,56 +2827,10 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 }
 
-function core_error() { # core_error core /path/to/ROM
-	if [ ${romloadfails} -lt ${coreretries} ]; then
-		declare -g romloadfails=$((romloadfails + 1))
-		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-		echo " Trying to find another rom..."
-		next_core ${1}
-	else
-		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-		echo " ERROR: Core ${1} is blacklisted!"
-		declare -g corelist=("${corelist[@]/${1}/}")
-		echo " List of cores is now: ${corelist[@]}"
-		declare -g romloadfails=0
-		# Load a different core
-		next_core
-	fi
-}
-
-
-function disable_bootrom() {
-	if [ "${disablebootrom}" == "Yes" ]; then
-		# Make Bootrom folder inaccessible until restart
-		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /mnt "${misterpath}/Bootrom"
-		# Disable Nes bootroms except for FDS Bios (boot0.rom)
-		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot1.rom"
-		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot2.rom"
-		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot3.rom"
-	fi
-}
-
-function mute() {
-	if [ "${mute}" == "yes" ]; then
-		# Mute Global Volume
-		echo -e "\0020\c" >/media/fat/config/Volume.dat
-	elif [ "${mute}" == "core" ]; then
-		#  Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		# Mute Core Volumes
-		echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
-	elif [ "${mute}" == "no" ]; then
-		#  Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		#  Core Volumes
-		echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
-	fi
-}
-
 
 # ======== ARCADE MODE ========
 function build_mralist() {
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
+	if [ "${samquiet}" == "no" ]; then
 		echo " Looking for games in  ${1}..."
 	else
 		echo -n " Looking for games in  ${1}..."
@@ -3194,11 +2856,8 @@ function build_mralist() {
 	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
-	total_games=$(cat "${mralist}" | sed '/^\s*$/d' | wc -l)
-	if [ ${speedtest} -eq 1 ]; then
-		echo -n "Arcade: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
-	fi
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
+
+	if [ "${samquiet}" == "no" ]; then
 		echo "${total_games} Games found."
 	else
 		echo " ${total_games} Games found."
@@ -3252,8 +2911,9 @@ function load_core_arcade() {
 			fi
 		done
 	fi
-		
-		
+	mraname=$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')	
+	tty_corename=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
+
 
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
 
@@ -3262,18 +2922,25 @@ function load_core_arcade() {
 		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}" >${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
 
 	fi
-
-	mraname=$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')
+	
+	if [ "${ttyenable}" == "yes" ]; then
+		tty_currentinfo=(
+			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[name]="{mraname}"
+			[core]=${tty_corename}
+			[counter]=${gametimer}
+			[name_scroll]="${mraname:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+		)
+		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
+	fi
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 	echo -e "\e[1m${mraname}\e[0m"
 	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >>/tmp/SAM_Games.log
 	echo "${mraname} (${nextcore})" >/tmp/SAM_Game.txt
-
-	# Get Setname from MRA needed for tty2oled, thx to RealLarry
-	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
-	tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}" & # Non-Blocking
-	# tty_update "${CORE_PRETTY[${nextcore}]}" "${mraname}" "${mrasetname}"    # Blocking
 
 	mute "${mrasetname}"
 
@@ -3301,7 +2968,7 @@ function create_amigalist () {
 		
 		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 
-		if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
+		if [ "${samquiet}" == "no" ]; then
 			echo "${total_games} Games and Demos found."
 		else
 			echo " ${total_games} Games and Demos found."
@@ -3365,13 +3032,27 @@ function load_core_amiga() {
 		fi
 
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
+		
+		if [ "${ttyenable}" == "yes" ]; then
+			tty_currentinfo=(
+			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[name]="${agpretty}"
+			[core]=${tty_corename}
+			[counter]=${gametimer}
+			[name_scroll]="${agpretty:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+			)
+			write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
+		fi
 
 		echo -n " Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 		echo -e "\e[1m${agpretty}\e[0m"
 		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
 		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
-		tty_update "${CORE_PRETTY[${nextcore}]}" "${agpretty}" "${CORE_LAUNCH[${nextcore}]}" & # Non blocking Version
+		#tty_update "${CORE_PRETTY[${nextcore}]}" "${agpretty}" "${CORE_LAUNCH[${nextcore}]}" & # Non blocking Version
 
 		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 
@@ -3381,37 +3062,25 @@ function load_core_amiga() {
 
 
 # ========= MAIN =========
-function main() {
-	init_vars
 
-	read_samini
+init_vars
 
-	init_paths
+read_samini
 
-	init_data # Setup data arrays
+init_paths
 
-	if [ "${1,,}" == "--speedtest" ]; then
-		speedtest
-	fi
+init_data # Setup data arrays
 
-	if [ "${1,,}" == "--create-gamelists" ]; then
-		creategl
-	fi
+if [ "${samtrace}" == "yes" ]; then
+	debug_output
+fi
 
-	if [ "${samtrace}" == "yes" ]; then
-		debug_output
-	fi
+sam_prep
 
-	sam_prep
+disable_bootrom # Disable Bootrom until Reboot
 
-	disable_bootrom # Disable Bootrom until Reboot
-
-	mute
-
-	parse_cmd ${@} # Parse command line parameters for input
-
-}
+mute
 
 if [ "${1,,}" != "--source-only" ]; then
-	main ${@}
+	parse_cmd ${@} # Parse command line parameters for input
 fi
