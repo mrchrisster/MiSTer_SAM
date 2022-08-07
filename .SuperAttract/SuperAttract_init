@@ -1,95 +1,47 @@
 #!/bin/bash
+
+# https://github.com/mrchrisster/MiSTer_SAM/
+# Copyright (c) 2021 by mrchrisster and Mellified
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# Description
+# This cycles through arcade and console cores periodically
+# Games are randomly pulled from their respective folders
+
+# ======== Credits ========
+# Original concept and implementation: mrchrisster
+# Additional development and script layout: Mellified and Paradox
+#
+# mbc by pocomane
+# partun by woelper
+# samindex by wizzo
+# tty2oled by venice
+#
+# Thanks for the contributions and support:
+# kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
+
 trap "" HUP
 trap "" TERM
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.SuperAttract:.
 
-#======== GLOBAL VARIABLES =========
+# ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-declare -g mrsamtmp="/tmp/.SAM_tmp"
-declare -g userstartup="${misterpath}/linux/user-startup.sh"
-declare -g userstartuptpl="${misterpath}/linux/_user-startup.sh"
-declare -g corename_file="/tmp/CORENAME"
-declare -g corename_name="printf '%s\n' $(<${corename_file})"
-
-# Named Pipes
-declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
-declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
-declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
-declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
-declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
-declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
-declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
-
-# ======== DEBUG VARIABLES ========
-declare -gl samquiet="Yes"
-declare -gl samdebug="No"
-declare -gl samtrace="No"
-declare -gi speedtest=0
-
-# ======== TTY2OLED =======
-declare -gl ttyenable="No"
-declare -gi ttyupdate_pause=10
-declare -gA tty_currentinfo=(
-	[core_pretty]=""
-	[name]=""
-	[core]=""
-	[counter]=0
-	[name_scroll]=""
-	[name_scroll_position]=0
-	[name_scroll_direction]=1
-	[update_pause]=${ttyupdate_pause}
-)
-
-#======== INI VARIABLES ========
-# Change these in the INI file
-
-#======== DEBUG VARIABLES ========
-samquiet="Yes"
-samtrace="No"
-samdebug="No"
+source ${mrsampath}/SuperAttractSystem.ini
 
 #======== LOCAL VARIABLES ========
 
-#========= PARSE INI =========
-# Read INI, Check for mount point presence
-while ! test -d ${misterpath}/; do
-	sleep 1
-	count=$(expr ${count} + 1)
-	if test ${count} -eq 30; then
-		echo " Mount timed out!"
-		exit 1
-	fi
-done
-
-if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
-	source "${misterscripts}/Super_Attract_Mode.ini"
-fi
-
-[ ! -d ${mrsamtmp}/ ] && mkdir -p ${mrsamtmp}/
-
 #======== Functions ========
-function samdebug() {
-	if [ "${samdebug}" == "yes" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[31m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[31m${1-}\e[0m"
-		fi
-	fi
-}
-
-function samquiet() {
-	if [ "${samquiet}" == "no" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[32m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[32m${1-}\e[0m"
-		fi
-	fi
-}
-
 function cleanup() {
 	corename_name=$(printf '%s' $(</tmp/CORENAME))
 	tries=5

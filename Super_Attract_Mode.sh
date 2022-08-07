@@ -35,55 +35,18 @@ trap 'rc=$?;[ ${rc} = 0 ] && exit;SAM_cleanup' EXIT TERM
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-declare -g mrsamtmp="/tmp/.SAM_tmp"
-declare -g userstartup="${misterpath}/linux/user-startup.sh"
-declare -g userstartuptpl="${misterpath}/linux/_user-startup.sh"
-declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
-declare -g gamelistpathtmp="/tmp/.SAM_List"
-declare -g excludepath="${mrsampath}/SAM_Excludelists"
-declare -g tmpfile="${gamelistpathtmp}/tmpfile"
-declare -g tmpfile2="${gamelistpathtmp}/tmpfile2"
-declare -g corename_file="/tmp/CORENAME"
-declare -g corename_name="printf '%s\n' $(<${corename_file})"
-declare -gl corelistall="amiga arcade atari2600 atari5200 atari7800 atarilynx c64 fds gb gbc gba genesis gg megacd neogeo nes s32x sms snes tgfx16 tgfx16cd psx"
+source ${mrsampath}/SuperAttractSystem.ini
 
-# Named Pipes
-declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
-declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
-declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
-declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
-declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
-declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
-declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
+# ======== REDEFINE SOME FUNCTIONS =========
+function init_default_paths() {
+	[[ -s ${mrsamtmp}/default_paths ]] && source ${mrsamtmp}/default_paths
+}
 
-# ======== DEBUG VARIABLES ========
-declare -gl samquiet="Yes"
-declare -gl samdebug="No"
-declare -gl samtrace="No"
-declare -gi speedtest=0
+function init_amigashared_path() {
+	[[ -s ${mrsamtmp}/amigashared_path ]] && source ${mrsamtmp}/amigashared_path
+	samquiet " Amigashared directory is ${amigashared} "
+}
 
-# ======== TTY2OLED =======
-declare -gl ttyenable="No"
-declare -gi ttyupdate_pause=10
-declare -gA tty_currentinfo=(
-	[core_pretty]=""
-	[name]=""
-	[core]=""
-	[counter]=0
-	[name_scroll]=""
-	[name_scroll_position]=0
-	[name_scroll_direction]=1
-	[update_pause]=${ttyupdate_pause}
-)
-
-# Save our PID and process
-declare -g sampid="${$}"
-declare -g samprocess=$(basename -- ${0})
-declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-declare -g branch="main"
-
-# ======== INI VARIABLES ========
-# Change these in the INI file
 function init_vars() {
 	# ======== LOCAL VARIABLES ========
 	declare -gi inmenu=0
@@ -91,123 +54,17 @@ function init_vars() {
 	declare -gi romloadfails=0
 	declare -g corelist_allowtmp=""
 	declare -gi gametimer=120
-	# Make all cores available for menu
-	declare -gl create_all_gamelists="No"
 	declare -gl skipmessage="Yes"
 	declare -gl usezip="Yes"
 	declare -gl norepeat="Yes"
-	declare -gl disablebootrom="Yes"
-	declare -gl mute="Yes"
-	declare -gl samindex="No"
 	declare -gl playcurrentgame="No"
-	declare -gl listenmouse="Yes"
-	declare -gl listenkeyboard="Yes"
-	declare -gl listenjoy="Yes"
 	declare -gi counter=0
-	declare -gl neogeoregion="English"
-	declare -gl useneogeotitles="Yes"
-	declare -gl rebuild_freq="Week"
-	declare -gi regen_duration=4
-	declare -gi rebuild_freq_int="604800"
-	declare -gl rebuild_freq_arcade="Week"
-	declare -gi regen_duration_arcade=1
-	declare -gi rebuild_freq_amiga_int="604800"
-	declare -gl rebuild_freq_amiga="Week"
-	declare -gi regen_duration_amiga=8
-	declare -gi rebuild_freq_amiga_int="604800"
-	declare -gi bootsleep="60"
 	declare -gi countdown="nocountdown"
 	declare -g file_to_load=""
-	declare -gl usedefaultpaths="Yes"
-	declare -g amigashared="${CORE_PATH_FINAL[amiga]}/shared"
-
-	# ======== BGM =======
-	declare -gl bgm="No"
-}
-
-function init_default_path_vars() {
-	# ======== CORE PATHS ========
-	declare -g amigapath="${misterpath}/Games/Amiga"
-	declare -g arcadepath="${misterpath}/_Arcade"
-	declare -g atari2600path="${misterpath}/Games/Atari7800"
-	declare -g atari5200path="${misterpath}/Games/Atari5200"
-	declare -g atari7800path="${misterpath}/Games/Atari7800"
-	declare -g atarilynxpath="${misterpath}/Games/AtariLynx"
-	declare -g c64path="${misterpath}/Games/C64"
-	declare -g fdspath="${misterpath}/Games/NES"
-	declare -g gbpath="${misterpath}/Games/Gameboy"
-	declare -g gbcpath="${misterpath}/Games/Gameboy"
-	declare -g gbapath="${misterpath}/Games/GBA"
-	declare -g genesispath="${misterpath}/Games/Genesis"
-	declare -g ggpath="${misterpath}/Games/SMS"
-	declare -g megacdpath="${misterpath}/Games/MegaCD"
-	declare -g neogeopath="${misterpath}/Games/NeoGeo"
-	declare -g nespath="${misterpath}/Games/NES"
-	declare -g s32xpath="${misterpath}/Games/S32X"
-	declare -g smspath="${misterpath}/Games/SMS"
-	declare -g snespath="${misterpath}/Games/SNES"
-	declare -g tgfx16path="${misterpath}/Games/TGFX16"
-	declare -g tgfx16cdpath="${misterpath}/Games/TGFX16-CD"
-	declare -g psxpath="${misterpath}/Games/PSX"
-
-	# ======== CORE PATHS EXTRA ========
-	declare -g amigapathextra=""
-	declare -g arcadepathextra=""
-	declare -g atari2600pathextra=""
-	declare -g atari5200pathextra=""
-	declare -g atari7800pathextra=""
-	declare -g atarilynxpathextra=""
-	declare -g c64pathextra=""
-	declare -g fdspathextra=""
-	declare -g gbpathextra=""
-	declare -g gbcpathextra=""
-	declare -g gbapathextra=""
-	declare -g genesispathextra=""
-	declare -g ggpathextra=""
-	declare -g megacdpathextra=""
-	declare -g neogeopathextra=""
-	declare -g nespathextra=""
-	declare -g s32xpathextra=""
-	declare -g smspathextra=""
-	declare -g snespathextra=""
-	declare -g tgfx16pathextra=""
-	declare -g tgfx16cdpathextra=""
-	declare -g psxpathextra=""
-
-	# ======== CORE PATHS RBF ========
-	declare -g amigapathrbf="_Computer"
-	declare -g arcadepathrbf="_Arcade"
-	declare -g atari2600pathrbf="_Console"
-	declare -g atari5200pathrbf="_Console"
-	declare -g atari7800pathrbf="_Console"
-	declare -g atarilynxpathrbf="_Console"
-	declare -g c64pathrbf="_Computer"
-	declare -g fdspathrbf="_Console"
-	declare -g gbpathrbf="_Console"
-	declare -g gbcpathrbf="_Console"
-	declare -g gbapathrbf="_Console"
-	declare -g genesispathrbf="_Console"
-	declare -g ggpathrbf="_Console"
-	declare -g megacdpathrbf="_Console"
-	declare -g neogeopathrbf="_Console"
-	declare -g nespathrbf="_Console"
-	declare -g s32xpathrbf="_Console"
-	declare -g smspathrbf="_Console"
-	declare -g snespathrbf="_Console"
-	declare -g tgfx16pathrbf="_Console"
-	declare -g tgfx16cdpathrbf="_Console"
-	declare -g psxpathrbf="_Console"
-
-}
-
-function init_default_paths() {
-	[[ -s ${mrsamtmp}/default_paths ]] && source ${mrsamtmp}/default_paths
 }
 
 function sam_prep() {
-	[[ -s ${mrsamtmp}/amigashared_path ]] && source ${mrsamtmp}/amigashared_path
-	samquiet " Amigashared directory is ${amigashared} "
-	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config/" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config" "${misterpath}/config"
+	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config/config" "${misterpath}/config"
 	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
 	# [[ -d "${mrsamtmp}/Amiga_shared" ]] && [[ $(mount | grep -ic "${amigashared}") == "0" ]] && cp -pr --force ${amigashared}/Disk.info ${mrsamtmp}/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat ${mrsamtmp}/Amiga_shared &>/dev/null && mount --bind "${mrsamtmp}/Amiga_shared" "${amigashared}"
 	# Disable Bootrom - Make Bootrom folder inaccessible until restart
@@ -1254,14 +1111,6 @@ function init_data() {
 	)
 }
 
-function startup_tasks() {
-	init_vars
-	init_default_path_vars
-	read_samini
-	init_default_paths
-	init_data # Setup data arrays
-}
-
 function start_pipe_readers() {
 	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
@@ -1382,44 +1231,6 @@ function debug_output() {
 	echo " tgfx16cdexclude: ${tgfx16cdexclude[@]}"
 	echo " ********************************************************************************"
 	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
-}
-# ========= PARSE INI =========
-
-# Read INI
-function read_samini() {
-	# Setting
-	# grep "^[^#;]*=" "${misterscripts}/Super_Attract_Mode.ini" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\1/p" | sed "s/\"//g"
-	# Value
-	# grep "^[^#;]*=" "${misterscripts}/Super_Attract_Mode.ini" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2/p" | sed "s/\"//g"
-	source "${misterscripts}/Super_Attract_Mode.ini"
-	# Remove trailing slash from paths
-	for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "path=" | cut -f1 -d"="); do
-		declare -g ${var}="${!var%/}"
-	done
-	for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "pathextra=" | cut -f1 -d"="); do
-		declare -g ${var}="${!var%/}"
-	done
-	for var in $(grep "^[^#;]" "${misterscripts}/Super_Attract_Mode.ini" | grep "pathrbf=" | cut -f1 -d"="); do
-		declare -g ${var}="${!var%/}"
-	done
-
-	# Create array of coreexclude list names
-	declare -a coreexcludelist
-	for excore in ${corelistall}; do
-		coreexcludelist+=("${excore}exclude")
-	done
-
-	# Iterate through coreexclude lists and make list into array
-	for excludelist in ${coreexcludelist[@]}; do
-		readarray -t ${excludelist} <<<${!excludelist}
-	done
-
-	# Create folder and file exclusion list
-	folderex=$(for f in "${exclude[@]}"; do echo "-o -iname *${f}*"; done)
-	fileex=$(for f in "${exclude[@]}"; do echo "-and -not -iname *${f}*"; done)
-
-	# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
-	zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
 }
 
 # ======== SAM MENU ========
@@ -1835,18 +1646,6 @@ function sam_bgmmenu() {
 	fi
 }
 
-function write_to_SAM_cmd_pipe() {
-	[[ -p ${SAM_cmd_pipe} ]] && echo "${@}" >${SAM_cmd_pipe}
-}
-
-function write_to_TTY_cmd_pipe() {
-	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
-}
-
-function write_to_MCP_cmd_pipe() {
-	[[ -p ${MCP_cmd_pipe} ]] && echo "${@}" >${MCP_cmd_pipe}
-}
-
 # ======== SAM COMMANDS ========
 function sam_update() { # sam_update (next command)
 	[[ -s ${misterscripts}/Super_Attract_Mode.ini ]] && read_samini
@@ -1894,6 +1693,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
 		get_samstuff .SuperAttract/SAM_splash.gsc
+		get_samstuff .SuperAttract/SuperAttractSystem.ini
 
 		#blacklist files
 		get_samstuff .SuperAttract/SAM_Excludelists/arcade_blacklist.txt ${excludepath}
@@ -2156,16 +1956,6 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	exit $1
 }
 
-function env_check() {
-	# Check if we've been installed
-	if [ ! -f "${mrsampath}/bin/partun" ] || [ ! -f "${mrsampath}/SuperAttract_MCP" ]; then
-		echo " SAM required files not found."
-		echo " Surprised? Check your INI."
-		sam_update ${1}
-		echo " Setup complete."
-	fi
-}
-
 function deleteall() {
 	# In case of issues, reset SAM
 
@@ -2353,50 +2143,6 @@ function fakegameslog() {
 			echo "${date} - ${core} - ${romname}" >>"/tmp/SAM_Games(fake).log"
 		fi
 	done
-}
-
-function samdebug() {
-	if [ "${samdebug}" == "yes" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[31m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[31m${1-}\e[0m"
-		fi
-	fi
-}
-
-function samquiet() {
-	if [ "${samquiet}" == "no" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[32m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[32m${1-}\e[0m"
-		fi
-	fi
-}
-
-function samdebug_toggle() {
-	if [ ! -z "${2}" ] && ([ "${2}" == "yes" ] || [ "${2}" == "no" ]); then
-		samdebug="${2}"
-	elif [ "${1}" == "toggle" ]; then
-		if [ "${samdebug}" == "yes" ]; then
-			samdebug="no"
-		elif [ "${samdebug}" == "no" ]; then
-			samdebug="yes"
-		fi
-	fi
-}
-
-function samquiet_toggle() {
-	if [ ! -z "${2}" ] && ([ "${2}" == "yes" ] || [ "${2}" == "no" ]); then
-		samquiet="${2}"
-	elif [ "${1}" == "toggle" ]; then
-		if [ "${samquiet}" == "yes" ]; then
-			samquiet="no"
-		elif [ "${samquiet}" == "no" ]; then
-			samquiet="yes"
-		fi
-	fi
 }
 
 function bgm_start() {
@@ -3169,6 +2915,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 function main() {
 	if [ ${#} -eq 0 ]; then # No options - show the pre-menu
 		startup_tasks
+		init_data # Setup data arrays
 		sam_premenu
 	elif [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
 		sam_help
@@ -3230,16 +2977,19 @@ function main() {
 				;;
 			speedtest)
 				startup_tasks
+				init_data # Setup data arrays
 				speedtest
 				break
 				;;
 			create-gamelists)
 				startup_tasks
+				init_data # Setup data arrays
 				creategl
 				break
 				;;
 			delete-gamelists)
 				startup_tasks
+				init_data # Setup data arrays
 				deletegl
 				break
 				;;
@@ -3284,6 +3034,7 @@ function main() {
 			esac
 
 			startup_tasks
+			init_data # Setup data arrays
 			sam_prep
 
 			bgm_start
@@ -3408,6 +3159,7 @@ function main() {
 
 if [ "${1,,}" == "--source-only" ]; then
 	startup_tasks
+	init_data # Setup data arrays
 else
 	main ${@}
 fi
