@@ -2416,9 +2416,7 @@ function get_samindex() {
 	echo " ${REPO_URL}"
 	latest="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
 	curl_download "/tmp/samindex.zip" "${latest}"
-	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
-	unzip -ojq /tmp/samindex.zip -d "${mrsampath}/bin" # &>/dev/null
-	[[ -f "${mrsampath}/samindex" ]] && rm -f "${mrsampath}/samindex"
+	unzip -ojq /tmp/samindex.zip -d "${mrsampath}" # &>/dev/null
 	echo " Done!"
 }
 
