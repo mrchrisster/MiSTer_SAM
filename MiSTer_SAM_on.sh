@@ -2410,10 +2410,9 @@ function get_partun() {
 }
 
 function get_samindex() {
-	local REPO_URL="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
 	echo " Downloading samindex - needed for creating gamelists..."
 	echo " Created for MiSTer by wizzo"
-	echo " ${REPO_URL}"
+	echo " https://github.com/wizzomafizzo/mrext"
 	latest="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
 	curl_download "/tmp/samindex.zip" "${latest}"
 	unzip -ojq /tmp/samindex.zip -d "${mrsampath}" # &>/dev/null
