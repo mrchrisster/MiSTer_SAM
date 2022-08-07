@@ -2582,7 +2582,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	${mrsampath}/samindex -s ${nextcore} -o "${gamelistpath}"
 }
 
-function check_list() { # args ${nextcore}  "${DIR}"
+function check_list() { # args ${nextcore} 
 	# If gamelist is not in /tmp dir, let's put it there
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"
@@ -2687,10 +2687,8 @@ function next_core() { # next_core (core)
 		fi
 		return
 	fi
-
-	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
-
-	check_list ${nextcore} "${DIR}"
+	
+	check_list ${nextcore} 
 
 	romname=$(basename "${rompath}")
 
@@ -2714,7 +2712,7 @@ function next_core() { # next_core (core)
 			if [ "${romname}" == "${excluded}" ]; then
 				echo " ${romname} is excluded - SKIPPED"
 				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-				next_core ${nextcore}
+				next_core
 				return
 			fi
 		done
@@ -2722,7 +2720,7 @@ function next_core() { # next_core (core)
 
 	if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
 		cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
-			echo " Found exclusion list for core $nextcore"
+			#if [ "${samquiet}" == "no" ]; then echo " Found exclusion list for core $nextcore". Processing.; fi
 			awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		done
 	fi
@@ -2730,17 +2728,10 @@ function next_core() { # next_core (core)
 	#Check blacklist
 	
 	if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-		echo " Found exclusion list for core ${nextcore}"
+		if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}". Stripping out unwanted games now.; fi
 		cat "${gamelistpath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
-			if [ "${line}" != "\n" ]; then
-				for i in {1..10}; do
-					if [[ "${rompath}" == *"${line}"* ]]; then
-						echo " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
-						awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-						rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
-					fi
-				done
-			fi
+						#echo " ${romname} is blacklisted (boring Attract Mode) - SKIPPED"
+				awk -vLine="${line}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		done
 	fi
 
