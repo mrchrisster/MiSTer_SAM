@@ -33,4 +33,3 @@ while True:
     except FileNotFoundError:
         print(" Keyboard disconnected")
         sys.exit(1)
-

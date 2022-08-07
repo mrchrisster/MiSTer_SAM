@@ -67,12 +67,12 @@ function MCP_CoreName_Change() {
 
 function sam_jschange() {
 	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --outfile ${MCP_DeviceChange_pipe} 2>/dev/null &
+	inotifywait --quiet --monitor --event create /dev/input --include js --outfile ${MCP_DeviceChange_pipe} 2>/dev/null &
 }
 
 function sam_keybchange() {
 	# Monitor keyboard devices for changes
-	inotifywait -r --quiet --monitor --event create --event delete /dev/input/ --include by-path --outfile ${MCP_DeviceChange_pipe} 2>/dev/null &
+	inotifywait -r --quiet --monitor --event create /dev/input/ --include by-path --include kbd --outfile ${MCP_DeviceChange_pipe} 2>/dev/null &
 }
 
 function MCP_CoreName_Monitor() {
@@ -106,7 +106,7 @@ function MCP_jsmonitor() {
 		if [ ! -z "${joystick}" ]; then
 			j=$(echo ${joystick} | sed 's./dev/input/..')
 			samdebug "-n" " ${j}..."
-			"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" 2>/dev/null &
+			"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" > /dev/null 2>&1 &
 		fi
 	done
 	shopt -u nullglob
@@ -142,7 +142,7 @@ function MCP_keybmonitor() {
 			if [ "${i}" == "${rawdev}" ]; then
 				k=$(echo ${f} | sed 's./dev/..')
 				samdebug "-n" " ${k}..."
-				"${mrsampath}/SuperAttract_keyboard.py" "${f}" "${MCP_Activity_pipe}" 2>/dev/null &
+				"${mrsampath}/SuperAttract_keyboard.py" "${f}" "${MCP_Activity_pipe}" > /dev/null 2>&1 &
 			fi
 		done
 	done
@@ -152,7 +152,7 @@ function MCP_msmonitor() {
 	mouse="/dev/input/mice"
 	m=$(echo ${mouse} | sed 's./dev/input/..')
 	samdebug "-n" " Monitoring all mice through ${m}..."
-	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" "${MCP_Activity_pipe}" 2>/dev/null &
+	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" "${MCP_Activity_pipe}" > /dev/null 2>&1 &
 }
 
 function MCP_tty2oled_start() {
@@ -270,6 +270,32 @@ function MCP_monitors() {
 				printf '%s\n' "${line}" >${SAM_Activity_pipe}
 			else
 				[[ -p ${SAM_Activity_pipe} ]] && rm ${SAM_Activity_pipe}
+			fi
+		fi
+		sleep 0.1
+	done &
+
+	while true; do
+		if read line <${MCP_DeviceChange_pipe}; then
+			# printf '%s\n' "${line}"
+			# Wait for devices to stabilize
+			sleep 1
+			if [[ "${line,,}" == *"event-kb"* ]]; then
+				# Kill existing Keyboard monitors
+				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_keyboard.py'| awk '{ print $1 }'); do
+					kill -9 ${otherpid} > /dev/null 2>&1
+					wait ${otherpid} > /dev/null 2>&1
+				done
+				# Spawn keyboard monitoring processes
+				MCP_keybmonitor
+			elif [[ "${line,,}" == *"create js"* ]]; then
+				# Kill existing Joystick monitors
+				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_joy.py'| awk '{ print $1 }'); do
+					kill -9 ${otherpid} > /dev/null 2>&1
+					wait ${otherpid} > /dev/null 2>&1
+				done
+				# Spawn Joystick monitoring processes
+				MCP_jsmonitor
 			fi
 		fi
 		sleep 0.1
