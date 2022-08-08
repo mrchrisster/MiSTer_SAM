@@ -170,6 +170,8 @@ if [ "${samtrace}" == "yes" ]; then
 	echo "********************************************************************************"
 fi
 
+startup_tasks
+
 # Parse command line
 case "${1,,}" in
 start | restart)

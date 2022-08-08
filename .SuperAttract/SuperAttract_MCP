@@ -45,20 +45,6 @@ function init_vars() {
 }
 
 #======== FUNCTIONS ========
-function sam_createfolders() {
-	# Create folders if they don't exist
-	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
-	[[ ! -d ${mrsamtmp}/ ]] && mkdir -p ${mrsamtmp}/
-	[[ ! -d "${gamelistpath}" ]] && mkdir -p "${gamelistpath}"
-	[[ ! -d "${gamelistpathtmp}" ]] && mkdir -p "${gamelistpathtmp}"
-	[[ -e "${tmpfile}" ]] && { rm "${tmpfile}"; }
-	[[ -e "${tmpfile2}" ]] && { rm "${tmpfile2}"; }
-	[[ ! -d "${excludepath}" ]] && mkdir -p "${excludepath}"
-	[[ -d "${mrsamtmp}/SAM_config" ]] && rm -rf "${mrsamtmp}/SAM_config"
-	[[ ! -d "${mrsamtmp}/SAM_config" ]] && mkdir -p "${mrsamtmp}/SAM_config"
-	[[ ! -d "${misterpath}/Bootrom" ]] && mkdir -p "${misterpath}/Bootrom"
-}
-
 function MCP_CoreName_Change() {
 	# Monitor CORENAME for changes (to determine if the menu is currently running)
 	inotifywait --event modify ${corename_file} --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
@@ -352,7 +338,6 @@ function MCP_loop() {
 function main() {
 	#======== Start ========
 	startup_tasks
-	sam_createfolders
 	# Convert seconds to minutes
 	MCP_timeout_minutes=$(echo - | awk -v t=${MCP_timeout} '{print t/60}')
 	samdebug " args: ${@}"

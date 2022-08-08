@@ -38,14 +38,6 @@ declare -g mrsampath="${misterscripts}/.SuperAttract"
 source ${mrsampath}/SuperAttractSystem.ini
 
 # ======== REDEFINE SOME FUNCTIONS =========
-function init_default_paths() {
-	[[ -s ${mrsamtmp}/default_paths ]] && source ${mrsamtmp}/default_paths
-}
-
-function init_amigashared_path() {
-	[[ -s ${mrsamtmp}/amigashared_path ]] && source ${mrsamtmp}/amigashared_path
-	samquiet " Amigashared directory is ${amigashared} "
-}
 
 function init_vars() {
 	# ======== LOCAL VARIABLES ========
@@ -67,9 +59,9 @@ function sam_prep() {
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config/config" "${misterpath}/config"
 	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
 	# [[ -d "${mrsamtmp}/Amiga_shared" ]] && [[ $(mount | grep -ic "${amigashared}") == "0" ]] && cp -pr --force ${amigashared}/Disk.info ${mrsamtmp}/Amiga_shared &>/dev/null && cp -pr --force ${amigashared}//minimig_vadjust.dat ${mrsamtmp}/Amiga_shared &>/dev/null && mount --bind "${mrsamtmp}/Amiga_shared" "${amigashared}"
-	# Disable Bootrom - Make Bootrom folder inaccessible until restart
+	# Disable bootrom - Make bootrom folder inaccessible until restart
 	if [ "${disablebootrom}" == "yes" ]; then
-		[[ -d "${misterpath}/Bootrom" ]] && [[ $(mount | grep -ic 'bootrom') == "0" ]] && mount --bind /mnt "${misterpath}/Bootrom"
+		[[ -d "${misterpath}/bootrom" ]] && [[ $(mount | grep -ic 'bootrom') == "0" ]] && mount --bind /mnt "${misterpath}/bootrom"
 		# Disable Nes bootroms except for FDS Bios (boot0.rom)
 		[[ -f "${CORE_PATH_FINAL[NES]}/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${CORE_PATH_FINAL[NES]}/boot1.rom"
 		[[ -f "${CORE_PATH_FINAL[NES]}/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') == "0" ]] && touch ${mrsamtmp}/brfake && mount --bind ${mrsamtmp}/brfake "${CORE_PATH_FINAL[NES]}/boot2.rom"
@@ -81,7 +73,7 @@ function SAM_cleanup() {
 	# Clean up by umounting any mount binds
 	[[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]] && umount "${misterpath}/config"
 	# [[ $(mount | grep -ic ${amigashared}) != "0" ]] && umount "${amigashared}"
-	[[ -d "${misterpath}/Bootrom" ]] && [[ $(mount | grep -ic 'bootrom') != "0" ]] && umount "${misterpath}/Bootrom"
+	[[ -d "${misterpath}/bootrom" ]] && [[ $(mount | grep -ic 'bootrom') != "0" ]] && umount "${misterpath}/bootrom"
 	[[ -f "${CORE_PATH_FINAL[NES]}/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot1.rom"
 	[[ -f "${CORE_PATH_FINAL[NES]}/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot2.rom"
 	[[ -f "${CORE_PATH_FINAL[NES]}/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot3.rom"
