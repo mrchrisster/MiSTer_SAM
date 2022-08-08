@@ -2501,7 +2501,7 @@ function loop_core() { # loop_core (core)
 	while :; do
 
 		while [ ${counter} -gt 0 ]; do
-			#trap 'counter=0' INT #Break out of loop for skip & next command
+			trap 'counter=0' INT #Break out of loop for skip & next command
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
@@ -2547,7 +2547,7 @@ function loop_core() { # loop_core (core)
 		next_core ${1}
 
 	done
-	#trap - INT
+	trap - INT
 	sleep 1
 }
 
