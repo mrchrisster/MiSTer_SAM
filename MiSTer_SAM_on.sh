@@ -192,6 +192,9 @@ function init_paths() {
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
 	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
+	touch "${tmpfile}"
+	touch "${tmpfile2}"
+	touch "${corelisttmpfile}"
 
 }
 
@@ -2712,7 +2715,7 @@ function next_core() { # next_core (core)
 		for excluded in "${excludelist[@]}"; do
 			if [ "${romname}" == "${excluded}" ]; then
 				echo " ${romname} is excluded - SKIPPED"
-				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
 				next_core
 				return
 			fi
@@ -2724,7 +2727,7 @@ function next_core() { # next_core (core)
 		if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
 			cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
 				#if [ "${samquiet}" == "no" ]; then echo " Found exclusion list for core $nextcore". Processing.; fi
-				awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+				awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
 			done
 		fi
 	
@@ -2733,7 +2736,7 @@ function next_core() { # next_core (core)
 			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}". Stripping out unwanted games now.; fi
 			cat "${gamelistpath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
 							#echo " ${romname} is blacklisted (boring Attract Mode) - SKIPPED"
-					awk -vLine="${line}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+				awk -vLine="${line}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
 			done
 		fi
 		firstrun=1
