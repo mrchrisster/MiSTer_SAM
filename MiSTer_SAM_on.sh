@@ -209,6 +209,7 @@ function init_paths() {
 function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
+	[ -f "/tmp/.SAM_tmp/SAM_config/minimig.cfg" ] && cp /tmp/.SAM_tmp/SAM_config/minimig.cfg /tmp/.SAM_tmp/SAM_config/Minimig.cfg 2>/dev/null
 	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
@@ -216,7 +217,7 @@ function sam_prep() {
 }
 
 function sam_cleanup() {
-	tty_exit
+	tty_exit &
 	bgm_stop
 	# Clean up by umounting any mount binds
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
@@ -1466,7 +1467,7 @@ function sam_gamemodemenu() {
 			sam_menu
 		elif [ "${menuresponse}" == "Roulettetimer" ]; then
 			gametimer=${roulettetimer}
-			only_survivor
+			kill_all_sams
 			sam_cleanup
 			#tty_init
 			checkgl
@@ -1478,7 +1479,7 @@ function sam_gamemodemenu() {
 		else
 			timemin=${menuresponse//Roulette/}
 			gametimer=$((timemin*60))
-			only_survivor
+			kill_all_sams
 			sam_cleanup
 			#tty_init
 			checkgl
@@ -1545,7 +1546,7 @@ function samedit_include() {
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
-		only_survivor
+		kill_all_sams
 		sam_prep
 		#tty_init
 		checkgl
@@ -1924,9 +1925,6 @@ function parse_cmd() {
 	fi
 }
 
-# function write_to_TTY_cmd_pipe() {
-# 	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
-# }
 
 # ======== SAM COMMANDS ========
 function mcp_start() {
@@ -2138,26 +2136,11 @@ function there_can_be_only_one() { # there_can_be_only_one
 	echo " Done!"
 }
 
-function only_survivor() {
+function kill_all_sams() {
 	# Kill all SAM processes except for currently running
 	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
 }
 
-function sam_stop() {
-	# Stop all SAM processes and reboot to menu
-
-	#[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
-
-	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-
-	sleep 1
-
-	echo " Done!"
-	echo " Thanks for playing!"
-	
-	#only_survivor
-						
-}
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
 	sam_cleanup
@@ -2184,11 +2167,6 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 			mute "${CORE_LAUNCH[${nextcore}]}"
 			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 		fi
-	fi
-	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
-		sam_stop
-	else
-		ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
 	fi
 }
 
@@ -2466,25 +2444,46 @@ function get_inputmap() {
 	echo " Done!"
 }
 
-# ========= SAM START =========
+# ========= SAM START AND STOP =========
 function sam_start() {
-	if [ ${create_all_gamelists} == "yes" ]; then
-		create_game_lists
-	fi
-	env_check ${1}
+	env_check
 	# Terminate any other running SAM processes
 	there_can_be_only_one
 	mcp_start
+	if [ "${ttyenable}" == "yes" ]; then echo " Starting tty2oled... "; fi
 	echo " Starting SAM in the background."
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
 }
 
+function sam_stop() {
+	# Stop all SAM processes and reboot to menu
+
+	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
+
+	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+
+	sleep 1
+
+	echo " Done!"
+	echo " Thanks for playing!"
+
+	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
+	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
+	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
+	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
+
+	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
+	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
+	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
+	for kill in ${kill_4}; do
+		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
+	done
+						
+}
+
 # ========= SAM MONITOR =========
 function sam_monitor() {
-	# We can omit -r here. Tradeoff;
-	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
-	# tmux attach-session -t SAM
-	# window size will be wrong/too small, but ctrl-c nonfunctional instead of killing/disconnecting
+
 	tmux attach-session -t SAM
 }
 
@@ -2501,6 +2500,8 @@ function loop_core() { # loop_core (core)
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
+			
+			#tty2oled counter
 			if [ "${ttyenable}" == "yes" ]; then
 				tty_currentinfo[counter]=$(printf "%03d" ${counter})
 				update_counter ${tty_currentinfo[counter]} &
@@ -2550,40 +2551,72 @@ function loop_core() { # loop_core (core)
 # ======== tty2oled FUNCTIONS ========
 
 function tty_init() { # tty_init
+	if [ "${ttyenable}" == "yes" ]; then
+		# Stopping tty2oled Daemon
+		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+		killtty=$(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}' | head -1)
+		for kill in ${killtty}; do
+			[[ ! -z ${killtty} ]] && kill -9 ${kill} >/dev/null
+		done
+		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 
-	# Stopping tty2oled Daemon
-	if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-	killtty=$(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}' | head -1)
-	for kill in ${killtty}; do
-		[[ ! -z ${killtty} ]] && kill -9 ${kill} >/dev/null
-	done
-	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+		# tty2oled initialization
+		declare -gi START=$(date +%s)
+		samquiet " Init tty2oled, loading variables... "
+		source ${ttysystemini}
+		source ${ttyuserini}
+		ttydevice=${TTYDEV}
+		ttypicture=${picturefolder}
+		ttypicture_pri=${picturefolder_pri}
+		set_scroll_speed
+
+		# Clear Serial input buffer first
+		samquiet "-n" " Clear tty2oled Serial Input Buffer..."
+		while read -t 0 sdummy <${ttydevice}; do continue; done
+		samquiet " Done!"
+
+		# Stopping ScreenSaver
+		samquiet "-n" " Stopping tty2oled ScreenSaver..."
+		echo "CMDSAVER,0,0,0" >${ttydevice}
+		sleep 2
+		samquiet " Done!"
+		
+		#Show Splash
+		echo "CMDAPD,SAM_splash" >${ttydevice}
+		tail -n +4 "/media/fat/Scripts/.MiSTer_SAM/SAM_splash.gsc" | xxd -r -p >${ttydevice}
+		echo "CMDSPIC,-1" >${ttydevice}
+		sleep 5
+	fi
+}
+
+function tty_display() { # tty_update core game
+	args=$(echo "${@}" | sed "s/ -A / -gA /")
+	eval "${args}"
+	# Wait for tty2oled daemon to show the core logo
+	tty_senddata "${tty_currentinfo[core]}"
+	sleep 10
+	# Clear Display	with Random effect
+	echo "CMDCLST,-1,0" >"${ttydevice}"
+	sleep 1
+	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
+	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	prev_name_scroll="${tty_currentinfo[name_scroll]}"
+	prev_counter="${tty_currentinfo[counter]}"
+}
 
 
-	# tty2oled initialization
-	declare -gi START=$(date +%s)
-	samquiet " Init tty2oled, loading variables... "
-	source ${ttysystemini}
-	source ${ttyuserini}
-	ttydevice=${TTYDEV}
-	ttypicture=${picturefolder}
-	ttypicture_pri=${picturefolder_pri}
-	set_scroll_speed
-
-	# Clear Serial input buffer first
-	samquiet "-n" " Clear tty2oled Serial Input Buffer..."
-	while read -t 0 sdummy <${ttydevice}; do continue; done
-	samquiet " Done!"
-
-	# Stopping ScreenSaver
-	samquiet "-n" " Stopping tty2oled ScreenSaver..."
-	echo "CMDSAVER,0,0,0" >${ttydevice}
-	sleep 2
-	samquiet " Done!"
-	echo "CMDAPD,SAM_splash" >${ttydevice}
-	tail -n +4 "/media/fat/Scripts/.MiSTer_SAM/SAM_splash.gsc" | xxd -r -p >${ttydevice}
-	echo "CMDSPIC,-1" >${ttydevice}
-	sleep 5
+function update_counter() {
+	tty_currentinfo[counter]="$1"
+	if [ ${tty_currentinfo[update_pause]} -gt 0 ]; then
+		((tty_currentinfo[update_pause]--))
+	else
+		update_name_scroll
+	fi
+	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
+	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	prev_counter="${tty_currentinfo[counter]}"
+	echo "CMDDUPD" >"${ttydevice}"
 }
 
 function set_scroll_speed() {
@@ -2619,46 +2652,11 @@ function update_name_scroll() {
 	fi
 }
 
-function update_counter() {
-	tty_currentinfo[counter]="$1"
-	if [ ${tty_currentinfo[update_pause]} -gt 0 ]; then
-		((tty_currentinfo[update_pause]--))
-	else
-		update_name_scroll
-	fi
-	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
-	prev_counter="${tty_currentinfo[counter]}"
-	echo "CMDDUPD" >"${ttydevice}"
-	sleep 2
-	samdebug $(echo $tty_currentinfo | sed 's/declare -A tty_currentinfo=//g')
-}
 
-function tty_display() { # tty_update core game
-	args=$(echo "${@}" | sed "s/ -A / -gA /")
-	eval "${args}"
-	samdebug $(echo $tty_currentinfo | sed 's/declare -A tty_currentinfo=//g')
-	# Wait for tty2oled daemon to show the core logo
-	tty_senddata "${tty_currentinfo[core]}"
-
-	# Wait for tty2oled to show the core logo
-	samdebug "-------------------------------------------"
-	samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
-	# Show Core-Logo for 5 Secs
-	sleep 10
-	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >"${ttydevice}"
-	sleep 1
-	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
-	prev_name_scroll="${tty_currentinfo[name_scroll]}"
-	prev_counter="${tty_currentinfo[counter]}"
-}
 
 # USB Send-Picture-Data function
 function tty_senddata() {
-	newcore="${nextcore}"
+	newcore="${1}"
 	unset picfnam
 	if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then # Check for _pri pictures
 		picfnam="${ttypicture_pri}/${newcore}.gsc"
@@ -2684,7 +2682,7 @@ function tty_senddata() {
 		samdebug " tty2oled found/send Picture : ${picfnam} "
 		samdebug "-------------------------------------------"
 
-		echo "CMDCOR,${nextcore}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
+		echo "CMDCOR,${1}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
 		tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
 		sleep 1                                    # sleep needed here ?!
 	else         
@@ -2695,14 +2693,16 @@ function tty_senddata() {
 }
 
 function tty_exit() {
-	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >${ttydevice}
-	sleep 2
+	if [ "${ttyenable}" == "yes" ]; then
+		# Clear Display	with Random effect
+		echo "CMDCLST,-1,0" >${ttydevice}
+		sleep 2
 
-	# Starting tty2oled daemon only if needed
-	if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
-		sleep 1
-		tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+		# Starting tty2oled daemon only if needed
+		if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
+			sleep 1
+			tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+		fi
 	fi
 }
 
@@ -2976,6 +2976,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		)
 		tty_display "${tty_currentinfo}" &
 	fi
+	
 
 	# Create mgl file and launch game
 	if [ -s /tmp/SAM_game.mgl ]; then
@@ -3086,8 +3087,8 @@ function load_core_arcade() {
 		done
 	fi
 	mraname=$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')	
-	tty_corename=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
-
+	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
+	tty_corename="${mrasetname}"
 
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
 
@@ -3108,7 +3109,7 @@ function load_core_arcade() {
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
 		)
-		display_info "$(tty_currentinfo)" &
+		tty_display "${tty_currentinfo}" &
 	fi
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
@@ -3206,6 +3207,7 @@ function load_core_amiga() {
 		fi
 
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
+		tty_corename="amiga"
 		
 		if [ "${ttyenable}" == "yes" ]; then
 			tty_currentinfo=(
@@ -3218,8 +3220,10 @@ function load_core_amiga() {
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
 			)
-			display_info "${tty_currentinfo}" &
+			tty_display "${tty_currentinfo}" &
 		fi
+		
+		
 
 		echo -n " Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
