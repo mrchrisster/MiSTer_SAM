@@ -36,6 +36,7 @@ function init_vars() {
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
 	declare -gi inmenu=0
+	declare -gi firstrun=0
 
 	# ======== DEBUG VARIABLES ========
 	declare -gl samquiet="Yes"
@@ -2717,22 +2718,25 @@ function next_core() { # next_core (core)
 			fi
 		done
 	fi
-
-	if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
-		cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
-			#if [ "${samquiet}" == "no" ]; then echo " Found exclusion list for core $nextcore". Processing.; fi
-			awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		done
-	fi
 	
-	#Check blacklist
+	if [ "${firstrun}" == "0" ]; then
+		#Check exclusion
+		if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
+			cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
+				#if [ "${samquiet}" == "no" ]; then echo " Found exclusion list for core $nextcore". Processing.; fi
+				awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			done
+		fi
 	
-	if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-		if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}". Stripping out unwanted games now.; fi
-		cat "${gamelistpath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
-						#echo " ${romname} is blacklisted (boring Attract Mode) - SKIPPED"
-				awk -vLine="${line}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		done
+		#Check blacklist	
+		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
+			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}". Stripping out unwanted games now.; fi
+			cat "${gamelistpath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
+							#echo " ${romname} is blacklisted (boring Attract Mode) - SKIPPED"
+					awk -vLine="${line}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			done
+		fi
+		firstrun=1
 	fi
 
 	if [ -z "${rompath}" ]; then
