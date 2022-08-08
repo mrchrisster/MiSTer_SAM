@@ -36,7 +36,6 @@ function init_vars() {
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
 	declare -gi inmenu=0
-	declare -gi firstrun=0
 
 	# ======== DEBUG VARIABLES ========
 	declare -gl samquiet="Yes"
@@ -275,6 +274,31 @@ function init_data() {
 		["tgfx16"]="pce,sgx"		
 		["tgfx16cd"]="chd,cue"
 		["psx"]="chd,cue,exe"
+	)
+	
+	declare -glA FIRSTRUN=(
+		["amiga"]="0"	
+		["arcade"]="0"
+		["atari2600"]="0"
+		["atari5200"]="0"
+		["atari7800"]="0"
+		["atarilynx"]="0"
+		["c64"]="0"
+		["fds"]="0"
+		["gb"]="0" 		
+		["gbc"]="0" 		
+		["gba"]="0"
+		["genesis"]="0"
+		["gg"]="0"
+		["megacd"]="0"
+		["neogeo"]="0"
+		["nes"]="0"
+		["s32x"]="0"
+		["sms"]="0"
+		["snes"]="0"	
+		["tgfx16"]="0"
+		["tgfx16cd"]="0"
+		["psx"]="0"
 	)
 
 	# Core to path mappings
@@ -2122,6 +2146,8 @@ function sam_stop() {
 
 	echo " Done!"
 	echo " Thanks for playing!"
+	
+	only_survivor
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
@@ -2475,7 +2501,7 @@ function loop_core() { # loop_core (core)
 	while :; do
 
 		while [ ${counter} -gt 0 ]; do
-			trap 'counter=0' INT #Break out of loop for skip & next command
+			#trap 'counter=0' INT #Break out of loop for skip & next command
 			echo -ne " Next game in ${counter}...\033[0K\r"
 			sleep 1
 			((counter--))
@@ -2521,7 +2547,7 @@ function loop_core() { # loop_core (core)
 		next_core ${1}
 
 	done
-	trap - INT
+	#trap - INT
 	sleep 1
 }
 
@@ -2721,14 +2747,14 @@ function next_core() { # next_core (core)
 			fi
 		done
 	fi
-	
-	if [ "${firstrun}" == "0" ]; then
+	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		#Check exclusion
 		if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
 			cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
 				#if [ "${samquiet}" == "no" ]; then echo " Found exclusion list for core $nextcore". Processing.; fi
-				awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
+				awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile}
 			done
+			mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 
 		fi
 	
 		#Check blacklist	
@@ -2736,10 +2762,11 @@ function next_core() { # next_core (core)
 			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}". Stripping out unwanted games now.; fi
 			cat "${gamelistpath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
 							#echo " ${romname} is blacklisted (boring Attract Mode) - SKIPPED"
-				awk -vLine="${line}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
+				awk -vLine="${line}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile}
 			done
+			mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 
 		fi
-		firstrun=1
+		FIRSTRUN[${nextcore}]=1
 	fi
 
 	if [ -z "${rompath}" ]; then
