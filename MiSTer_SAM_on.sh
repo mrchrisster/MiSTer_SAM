@@ -2212,12 +2212,6 @@ function tty_exit() { # tty_exit
 		echo "CMDCLST,19,1" >${ttydevice}
 		sleep 0.25
 		write_to_TTY_cmd_pipe "exit" &
-
-		# Starting tty2oled daemon only if needed
-	#	if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
-	#		sleep 1
-	#		tmux new -s DAEMONTTY -d "/media/fat/tty2oled/tty2oled.sh"
-	#	fi
 	fi
 }
 
@@ -2474,7 +2468,7 @@ function sam_start() {
 	there_can_be_only_one
 	mcp_start
 	# If TTY2oled isn't running we need to start it in monitoring only mode
-	if [ -z "$(pidof MiSTer_SAM_tty2oled)" ]; then
+	if [ -z "$(pidof MiSTer_SAM_tty2oled)" ] && [ "${ttyenable}" == "yes" ]; then
 		
 		echo " Starting TTY.."
 		tmux new-session -s TTY -d "${mrsampath}/MiSTer_SAM_tty2oled" &
@@ -2669,37 +2663,42 @@ function check_list() { # args ${nextcore}
 
 # This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
-	if [ -z "$(echo ${corelist} | sed 's/ //g')" ]; then
-		if [ -s "${corelisttmpfile}" ]; then
-			corelist="$(cat ${corelisttmpfile})"
-		else
-			echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
-			exit 1
-		fi
-	elif [ ! -s "${corelisttmpfile}" ]; then
-		echo "${corelist}" >"${corelisttmpfile}"
+	
+	if [ -z "${corelist[@]//[[:blank:]]/}" ]; then
+		echo " ERROR: FATAL - List of cores is empty. Nothing to do!"
+		exit 1
 	fi
-	if [ "${1,,}" == "countdown" ] && [ "$2" ]; then
+
+	# Set $nextcore from $corelist
+	if [ -z "${1}" ]; then
+		# Don't repeat same core twice
+
+		if [ ! -z ${nextcore} ]; then
+
+			corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
+
+			# Choose the actual core
+			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"
+
+			# If core is single core make sure we don't run out of cores
+			if [ -z ${nextcore} ]; then
+				nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+			fi
+
+		else
+			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+		fi
+
+		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
+
+	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
 	elif [ "${2,,}" == "countdown" ]; then
 		nextcore="${1}"
 		countdown="countdown"
 	fi
-	# If nextcore is passed as an argument e.g "MiSTer_SAM_on.sh snes", don't select core from corelist
-	if [ -z "${1}" ]; then
-		if [ "${countdown}" != "countdown" ]; then
-			# Set $nextcore from $corelist
-			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
-			if [ "${1}" == "${nextcore}" ]; then
-				next_core ${nextcore}
-				return
-			else
-				# Limit corelist to only show games from one core
-				corelist=$(echo ${corelist} | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
-			fi
-		fi
-	fi
+
 	if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
