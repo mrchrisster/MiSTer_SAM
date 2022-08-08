@@ -195,6 +195,7 @@ function update_tasks() {
 function init_paths() {
 	# Create folders if they don't exist
 	mkdir -p "${mrsampath}/SAM_Gamelists"
+	[ -d "/tmp/.SAM_List" ] && rm -rf /tmp/.SAM_List
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
@@ -212,13 +213,12 @@ function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
-
 }
 
 function sam_cleanup() {
-	tty_exit &
-	# Clean up by umounting any mount binds
+	tty_exit
 	bgm_stop
+	# Clean up by umounting any mount binds
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
@@ -1796,7 +1796,7 @@ function parse_cmd() {
 				;;
 			start_real) # Start SAM immediately
 				env_check ${1}
-				##tty_init
+				tty_init
 				bgm_start
 				loop_core ${nextcore}
 				break
@@ -2146,7 +2146,7 @@ function only_survivor() {
 function sam_stop() {
 	# Stop all SAM processes and reboot to menu
 
-	[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
+	#[ ! -z ${samprocess} ] && echo -n " Stopping other running instances of ${samprocess}..."
 
 	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 
@@ -2155,19 +2155,7 @@ function sam_stop() {
 	echo " Done!"
 	echo " Thanks for playing!"
 	
-	only_survivor
-
-	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
-	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
-
-	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
-	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
-	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
-	for kill in ${kill_4}; do
-		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	done
+	#only_survivor
 						
 }
 
@@ -2211,15 +2199,6 @@ function play_or_exit() {
 		sam_exit 2
 	else
 		sam_exit 0
-	fi
-}
-
-function tty_exit() { # tty_exit
-	if [ "${ttyenable}" == "yes" ]; then
-		# Clear Display	with Random effect
-		echo "CMDCLST,19,1" >${ttydevice}
-		sleep 0.25
-		write_to_TTY_cmd_pipe "exit" &
 	fi
 }
 
@@ -2496,12 +2475,6 @@ function sam_start() {
 	# Terminate any other running SAM processes
 	there_can_be_only_one
 	mcp_start
-# 	If TTY2oled isn't running we need to start it in monitoring only mode
-# 	if [ -z "$(pidof MiSTer_SAM_tty2oled)" ] && [ "${ttyenable}" == "yes" ]; then
-# 		
-# 		echo " Starting TTY.."
-# 		tmux new-session -s TTY -d "${mrsampath}/MiSTer_SAM_tty2oled" &
-# 	fi
 	echo " Starting SAM in the background."
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
 }
@@ -2577,10 +2550,15 @@ function loop_core() { # loop_core (core)
 # ======== tty2oled FUNCTIONS ========
 
 function tty_init() { # tty_init
+
 	# Stopping tty2oled Daemon
-	samquiet "-n" " Stopping tty2oled Daemon..."
-	[ ! -f /tmp/tty2oled_sleep ] && touch /tmp/tty2oled_sleep &>/dev/null
-	samquiet " Done!"
+	if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+	killtty=$(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}' | head -1)
+	for kill in ${killtty}; do
+		[[ ! -z ${killtty} ]] && kill -9 ${kill} >/dev/null
+	done
+	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+
 
 	# tty2oled initialization
 	declare -gi START=$(date +%s)
@@ -2600,24 +2578,13 @@ function tty_init() { # tty_init
 	# Stopping ScreenSaver
 	samquiet "-n" " Stopping tty2oled ScreenSaver..."
 	echo "CMDSAVER,0,0,0" >${ttydevice}
-	tty_waitfor
+	sleep 2
 	samquiet " Done!"
 	echo "CMDAPD,SAM_splash" >${ttydevice}
 	tail -n +4 "/media/fat/Scripts/.MiSTer_SAM/SAM_splash.gsc" | xxd -r -p >${ttydevice}
 	echo "CMDSPIC,-1" >${ttydevice}
 	sleep 5
 }
-
-function tty_waitfor() {
-		read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
-		ttyresponse=""
-}
-
-# function update_loop() {
-# 	while [[ -p ${TTY_cmd_pipe} ]]; do
-# 		sleep 0.01
-# 	done
-# }
 
 function set_scroll_speed() {
 	ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
@@ -2663,7 +2630,7 @@ function update_counter() {
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_counter="${tty_currentinfo[counter]}"
 	echo "CMDDUPD" >"${ttydevice}"
-	tty_waitfor
+	sleep 2
 	samdebug $(echo $tty_currentinfo | sed 's/declare -A tty_currentinfo=//g')
 }
 
@@ -2681,7 +2648,7 @@ function tty_display() { # tty_update core game
 	sleep 10
 	# Clear Display	with Random effect
 	echo "CMDCLST,-1,0" >"${ttydevice}"
-	tty_waitfor
+	sleep 1
 	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
 	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
@@ -2719,32 +2686,25 @@ function tty_senddata() {
 
 		echo "CMDCOR,${nextcore}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
 		tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
-		tty_waitfor                                       # sleep needed here ?!
+		sleep 1                                    # sleep needed here ?!
 	else         
 		sleep 0.25                                      # No Picture available!
 		echo "${1}" >"${ttydevice}"                       # Send just the CORENAME
-		tty_waitfor                                       # sleep needed here ?!
+		sleep 1                                         # sleep needed here ?!
 	fi                                                 # End if Picture check
 }
 
 function tty_exit() {
-	samquiet "-n" " Starting tty2oled Daemon..."
-	[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
-	samquiet " Done!"
 	# Clear Display	with Random effect
 	echo "CMDCLST,-1,0" >${ttydevice}
-	tty_waitfor
-	echo "CMDBYE" >${ttydevice}
-	#sleep 5
-	#TTY_cleanup
-}
+	sleep 2
 
-# function TTY_cleanup() {
-# 	samquiet "Cleaned up!"
-# 	# Clean up by umounting any mount binds
-# 	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-# 	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-# }
+	# Starting tty2oled daemon only if needed
+	if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
+		sleep 1
+		tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
+	fi
+}
 
 
 function reset_core_gl() { # args ${nextcore}
@@ -2950,21 +2910,14 @@ function next_core() { # next_core (core)
 	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		#Check exclusion
 		if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
-			cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
-				#if [ "${samquiet}" == "no" ]; then echo " Found exclusion list for core $nextcore". Processing.; fi
-				awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile}
-			done
-			mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 
+			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}". Stripping out unwanted games now.; fi
+			grep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 	
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}". Stripping out unwanted games now.; fi
-			cat "${gamelistpath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
-							#echo " ${romname} is blacklisted (boring Attract Mode) - SKIPPED"
-				awk -vLine="${line}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile}
-			done
-			mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 
+			grep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		FIRSTRUN[${nextcore}]=1
 	fi
