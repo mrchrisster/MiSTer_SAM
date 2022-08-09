@@ -36,13 +36,6 @@ declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 source ${mrsampath}/SuperAttractSystem.ini
-startup_tasks
-
-samdebug " args: ${@}"
-if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
-	shift
-	MCP_SAM_trigger "${@}"
-fi
 
 #======== FUNCTIONS ========
 function MCP_CoreName_Change() {
@@ -337,6 +330,14 @@ function MCP_loop() {
 function main() {
 	#======== Start ========
 	# Convert seconds to minutes
+	startup_tasks
+
+	samdebug " args: ${@}"
+	if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
+		shift
+		MCP_SAM_trigger "${@}"
+	fi
+
 	MCP_timeout_minutes=$(echo - | awk -v t=${MCP_timeout} '{print t/60}')
 	sleep ${bootsleep}
 	MCP_createpipes
