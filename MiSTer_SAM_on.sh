@@ -37,6 +37,7 @@ function init_vars() {
 	declare -g samprocess="$(basename -- ${0})"
 	declare -gi inmenu=0
 	declare -gi tty_counter=0
+	declare -gi first_run_arcade=0
 	
 	# ======== DEBUG VARIABLES ========
 	declare -gl samquiet="Yes"
@@ -113,53 +114,6 @@ function init_vars() {
 	declare -gi ttyscroll_speed=1
 	declare -gi ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
 
-	# ======== CORE PATHS ========
-	declare -g amigapath="/media/fat/Games/Amiga"	
-	declare -g arcadepath="/media/fat/_Arcade"
-	declare -g atari2600path="/media/fat/Games/Atari7800"
-	declare -g atari5200path="/media/fat/Games/Atari5200"
-	declare -g atari7800path="/media/fat/Games/Atari7800"
-	declare -g atarilynxpath="/media/fat/Games/AtariLynx"
-	declare -g c64path="/media/fat/Games/C64"
-	declare -g fdspath="/media/fat/Games/NES"
-	declare -g gbpath="/media/fat/Games/Gameboy"
-	declare -g gbcpath="/media/fat/Games/Gameboy"
-	declare -g gbapath="/media/fat/Games/GBA"
-	declare -g genesispath="/media/fat/Games/Genesis"
-	declare -g ggpath="/media/fat/Games/SMS"
-	declare -g megacdpath="/media/fat/Games/MegaCD"
-	declare -g neogeopath="/media/fat/Games/NeoGeo"
-	declare -g nespath="/media/fat/Games/NES"
-	declare -g s32xpath="/media/fat/Games/S32X"
-	declare -g smspath="/media/fat/Games/SMS"
-	declare -g snespath="/media/fat/Games/SNES"
-	declare -g tgfx16path="/media/fat/Games/TGFX16"
-	declare -g tgfx16cdpath="/media/fat/Games/TGFX16-CD"
-	declare -g psxpath="/media/fat/Games/PSX"
-
-	# ======== CORE PATHS EXTRA ========
-	declare -g amigapathextra=""
-	declare -g arcadepathextra=""
-	declare -g atari2600pathextra=""
-	declare -g atari5200pathextra=""
-	declare -g atari7800pathextra=""
-	declare -g atarilynxpathextra=""
-	declare -g c64pathextra=""
-	declare -g fdspathextra=""
-	declare -g gbpathextra=""
-	declare -g gbcpathextra=""
-	declare -g gbapathextra=""
-	declare -g genesispathextra=""
-	declare -g ggpathextra=""
-	declare -g megacdpathextra=""
-	declare -g neogeopathextra=""
-	declare -g nespathextra=""
-	declare -g s32xpathextra=""
-	declare -g smspathextra=""
-	declare -g snespathextra=""
-	declare -g tgfx16pathextra=""
-	declare -g tgfx16cdpathextra=""
-	declare -g psxpathextra=""
 
 	# ======== CORE PATHS RBF ========
 	declare -g amigapathrbf="_Computer"
@@ -319,57 +273,6 @@ function init_data() {
 		["psx"]="0"
 	)
 
-	# Core to path mappings
-	declare -gA CORE_PATH=(
-		["amiga"]="${amigapath}"
-		["arcade"]="${arcadepath}"
-		["atari2600"]="${atari2600path}"
-		["atari5200"]="${atari5200path}"
-		["atari7800"]="${atari7800path}"
-		["atarilynx"]="${atarilynxpath}"				  
-		["c64"]="${c64path}"
-		["fds"]="${fdspath}"
-		["gb"]="${gbpath}"
-		["gbc"]="${gbcpath}"
-		["gba"]="${gbapath}"
-		["genesis"]="${genesispath}"
-		["gg"]="${ggpath}"
-		["megacd"]="${megacdpath}"
-		["neogeo"]="${neogeopath}"
-		["nes"]="${nespath}"
-		["s32x"]="${s32xpath}"
-		["sms"]="${smspath}"
-		["snes"]="${snespath}"
-		["tgfx16"]="${tgfx16path}"
-		["tgfx16cd"]="${tgfx16cdpath}"
-		["psx"]="${psxpath}"
-	)
-
-	# Core to extra path mappings
-	declare -gA CORE_PATH_EXTRA=(
-		["amiga"]="${amigapathextra}"
-		["arcade"]="${arcadepathextra}"
-		["atari2600"]="${atari2600pathextra}"
-		["atari5200"]="${atari5200pathextra}"
-		["atari7800"]="${atari7800pathextra}"
-		["atarilynx"]="${atarilynxpathextra}"					   
-		["c64"]="${c64pathextra}"
-		["fds"]="${fdspathextra}"
-		["gb"]="${gbpathextra}"
-		["gbc"]="${gbcpathextra}"
-		["gba"]="${gbapathextra}"
-		["genesis"]="${genesispathextra}"
-		["gg"]="${ggpathextra}"
-		["megacd"]="${megacdpathextra}"
-		["neogeo"]="${neogeopathextra}"
-		["nes"]="${nespathextra}"
-		["s32x"]="${s32xpathextra}"
-		["sms"]="${smspathextra}"
-		["snes"]="${snespathextra}"
-		["tgfx16"]="${tgfx16pathextra}"
-		["tgfx16cd"]="${tgfx16cdpathextra}"
-		["psx"]="${psxpathextra}"
-	)
 
 	# Core to path mappings for rbf files
 	declare -gA CORE_PATH_RBF=(
@@ -1190,61 +1093,6 @@ function init_data() {
 
 }
 
-# ======== DEBUG OUTPUT =========
-function debug_output() {
-	echo " ********************************************************************************"
-	# ======== GLOBAL VARIABLES =========
-	echo " mrsampath: ${mrsampath}"
-	echo " misterpath: ${misterpath}"
-	echo " sampid: ${sampid}"
-	echo " samprocess: ${samprocess}"
-	echo ""
-	# ======== LOCAL VARIABLES ========
-	echo " commandline: ${@}"
-	echo " repository_url: ${repository_url}"
-	echo " branch: ${branch}"
-
-	echo ""
-	echo " gametimer: ${gametimer}"
-	echo " corelist: ${corelist}"
-	echo " usezip: ${usezip}"
-
-	echo " mralist: ${mralist_tmp}"
-	echo " listenmouse: ${listenmouse}"
-	echo " listenkeyboard: ${listenkeyboard}"
-	echo " listenjoy: ${listenjoy}"
-	echo ""
-	echo " arcadepath: ${arcadepath}"
-	echo " gbapath: ${gbapath}"
-	echo " genesispath: ${genesispath}"
-	echo " megacdpath: ${megacdpath}"
-	echo " neogeopath: ${neogeopath}"
-	echo " nespath: ${nespath}"
-	echo " snespath: ${snespath}"
-	echo " tgfx16path: ${tgfx16path}"
-	echo " tgfx16cdpath: ${tgfx16cdpath}"
-	echo ""
-	echo " gbalist: ${gbalist}"
-	echo " genesislist: ${genesislist}"
-	echo " megacdlist: ${megacdlist}"
-	echo " neogeolist: ${neogeolist}"
-	echo " neslist: ${neslist}"
-	echo " sneslist: ${sneslist}"
-	echo " tgfx16list: ${tgfx16list}"
-	echo " tgfx16cdlist: ${tgfx16cdlist}"
-	echo ""
-	echo " arcadeexclude: ${arcadeexclude[@]}"
-	echo " gbaexclude: ${gbaexclude[@]}"
-	echo " genesisexclude: ${genesisexclude[@]}"
-	echo " megacdexclude: ${megacdexclude[@]}"
-	echo " neogeoexclude: ${neogeoexclude[@]}"
-	echo " nesexclude: ${nesexclude[@]}"
-	echo " snesexclude: ${snesexclude[@]}"
-	echo " tgfx16exclude: ${tgfx16exclude[@]}"
-	echo " tgfx16cdexclude: ${tgfx16cdexclude[@]}"
-	echo " ********************************************************************************"
-	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
-}
 # ========= PARSE INI =========
 
 # Read INI
@@ -2302,16 +2150,8 @@ function creategl() {
 	read_samini 
 	init_paths 
 	init_data
-	create_all_gamelists_old="${create_all_gamelists}"
-	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
-	rebuild_freq_old="${rebuild_freq}"
-	create_all_gamelists="Yes"
-	rebuild_freq_arcade="Always"
-	rebuild_freq="Always"
-	create_game_lists
-	create_all_gamelists="${create_all_gamelists_old}"
-	rebuild_freq_arcade="${rebuild_freq_arcade_old}"
-	rebuild_freq="${rebuild_freq_old}"
+	${mrsampath}/samindex -o "${gamelistpath}"
+	
 	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
 		sam_menu
@@ -2569,7 +2409,7 @@ function tty_init() { # tty_init
 
 		# tty2oled initialization
 		declare -gi START=$(date +%s)
-		samquiet " Init tty2oled, loading variables... "
+		echo " Loading tty2oled, please wait... "
 		source ${ttysystemini}
 		source ${ttyuserini}
 		ttydevice=${TTYDEV}
@@ -2863,6 +2703,7 @@ function next_core() { # next_core (core)
 		#Special case for first run
 		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
 			"${mrsampath}"/samindex -q -s arcade -o "${gamelistpath}"
+			first_run_arcade=1
 		fi
 		
 		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
@@ -3067,7 +2908,6 @@ function build_mralist() {
 
 function load_core_arcade() {
 
-	#DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
@@ -3159,7 +2999,7 @@ function load_core_arcade() {
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
 	
-	if [ "$(find "${gamelistpath}" -name "arcade_gamelist.txt" | wc -l)" == "1" ]; then
+	if [ "${first_run_arcade}" == "1" ]; then
 	 	nextcore=""
 	fi
 
@@ -3276,10 +3116,6 @@ read_samini
 init_paths
 
 init_data # Setup data arrays
-
-if [ "${samtrace}" == "yes" ]; then
-	debug_output
-fi
 
 sam_prep
 
