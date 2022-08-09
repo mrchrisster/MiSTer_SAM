@@ -39,13 +39,11 @@ declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 source ${mrsampath}/SuperAttractSystem.ini
 
-#======== LOCAL VARIABLES ========
-
 #======== Functions ========
 function cleanup() {
 	corename_name=$(printf '%s' $(</tmp/CORENAME))
-	tries=5
-	pids=$(pidof SuperAttract_MCP)
+	local tries=5
+	local pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then
 		samquiet "-n" " Stopping MCP..."
 		samdebug "-n" " | ${pids} "
@@ -137,6 +135,8 @@ function cleanup() {
 }
 
 function SAM_cleanup() {
+	[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
+	[ -f "${mrsamtmp}/ini_settings" ] && rm "${mrsamtmp}/ini_settings" &>/dev/null
 	# Clean up by umounting any mount binds
 	mount1=$(mount | grep "${misterpath}/config" | awk '{print $3}')
 	# mount2=$(mount | grep shared | awk '{print $3}')
@@ -150,6 +150,10 @@ function SAM_cleanup() {
 }
 
 function mcp_start() {
+	if [ "${samdebug}" == "yes" ]; then
+		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
+		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
+	fi
 	echo " Starting MCP.."
 	samdebug " args: ${@}"
 	# If the MCP isn't running we need to start it in monitoring only mode
@@ -158,29 +162,15 @@ function mcp_start() {
 	fi
 }
 
-#======== DEBUG OUTPUT =========
-if [ "${samtrace}" == "yes" ]; then
-	echo "********************************************************************************"
-	#======== GLOBAL VARIABLES =========
-	echo " mrsampath: ${mrsampath}"
-	echo " misterpath: ${misterpath}"
-	#======== LOCAL VARIABLES ========
-	echo " samtimeout: ${samtimeout}"
-	echo " menuonly: ${menuonly}"
-	echo "********************************************************************************"
-fi
-
-startup_tasks
-
 # Parse command line
 case "${1,,}" in
 start | restart)
 	shift
-	cleanup
+	startup_tasks
 	mcp_start "${@,,}"
 	;;
 quickstart)
-	cleanup
+	startup_tasks
 	mcp_start "${@,,}"
 	;;
 stop)

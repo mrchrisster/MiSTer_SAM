@@ -37,24 +37,6 @@ declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 source ${mrsampath}/SuperAttractSystem.ini
 
-# ======== REDEFINE SOME FUNCTIONS =========
-
-function init_vars() {
-	# ======== LOCAL VARIABLES ========
-	declare -gi inmenu=0
-	declare -gi coreretries=3
-	declare -gi romloadfails=0
-	declare -g corelist_allowtmp=""
-	declare -gi gametimer=120
-	declare -gl skipmessage="Yes"
-	declare -gl usezip="Yes"
-	declare -gl norepeat="Yes"
-	declare -gl playcurrentgame="No"
-	declare -gi counter=0
-	declare -gi countdown="nocountdown"
-	declare -g file_to_load=""
-}
-
 function sam_prep() {
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config/config" "${misterpath}/config"
 	# [[ ! -d "${mrsamtmp}/Amiga_shared" ]] && mkdir -p "${mrsamtmp}/Amiga_shared"
@@ -1211,16 +1193,6 @@ function debug_output() {
 	echo " sneslist: ${sneslist}"
 	echo " tgfx16list: ${tgfx16list}"
 	echo " tgfx16cdlist: ${tgfx16cdlist}"
-	echo ""
-	echo " arcadeexclude: ${arcadeexclude[@]}"
-	echo " gbaexclude: ${gbaexclude[@]}"
-	echo " genesisexclude: ${genesisexclude[@]}"
-	echo " megacdexclude: ${megacdexclude[@]}"
-	echo " neogeoexclude: ${neogeoexclude[@]}"
-	echo " nesexclude: ${nesexclude[@]}"
-	echo " snesexclude: ${snesexclude[@]}"
-	echo " tgfx16exclude: ${tgfx16exclude[@]}"
-	echo " tgfx16cdexclude: ${tgfx16cdexclude[@]}"
 	echo " ********************************************************************************"
 	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
 }
@@ -2329,6 +2301,10 @@ function loop_core() { # loop_core (core)
 	# Reset game log for this session
 	echo "" | >"/tmp/SAM_Games.log"
 	start_pipe_readers
+	if [ "${samdebug}" == "yes" ]; then
+		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
+		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
+	fi
 	while true; do
 		trap 'counter=0' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
@@ -2516,18 +2492,10 @@ function create_romlist() { # args ${core} "${DIR}"
 		# Otherwise use it to filter the list
 		if echo "${DIR}" | grep -q "_Organized"; then
 			samdebug "_Organized detected!"
-			if [ ${#arcadeexclude[@]} -eq 0 ]; then
-				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}")
-			else
-				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}") | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${tmpfile}"
-			fi
+			find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}") | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${tmpfile}"
 		else
 			samdebug "_Organized not detected!"
-			if [ ${#arcadeexclude[@]} -eq 0 ]; then
-				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}")
-			else
-				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}") | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${tmpfile}"
-			fi
+			find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' -o -path '*_Organized*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.mra" \) -fprint >(cat >>"${tmpfile}") | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${tmpfile}"
 		fi
 	else
 		# Find all files in core's folder with core's extension
@@ -2717,19 +2685,6 @@ function next_core() { # next_core (core)
 		samquiet " Wrong Extension! \e[1m${extension^^}\e[0m"
 		next_core "${nextcore}" "repeat"
 		return
-	fi
-
-	# If there is an exclude list check it
-	declare -n excludelist="${nextcore}exclude"
-	if [ ${#excludelist[@]} -gt 0 ]; then
-		for excluded in "${excludelist[@]}"; do
-			if [ "${excluded}" == "${rompath}" ]; then
-				samquiet " Excluded: ${rompath}, trying a different game.."
-				awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-				next_core "${nextcore}" "repeat"
-				return
-			fi
-		done
 	fi
 
 	if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
@@ -3016,8 +2971,8 @@ function main() {
 			startup_tasks
 			init_data # Setup data arrays
 			sam_prep
-
 			bgm_start
+
 			if [ ${create_all_gamelists} == "yes" ]; then
 				echo " Checking Gamelists"
 				create_game_lists

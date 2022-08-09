@@ -67,24 +67,9 @@ declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 source ${mrsampath}/SuperAttractSystem.ini
+startup_tasks
 
-# ======== INI VARIABLES ========
-# Change these in the INI file
-# ======== TTY2OLED =======
-function init_vars() {
-	# ======== LOCAL VARIABLES ========
-	declare -g ttydevice="/dev/ttyUSB0"
-	declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
-	declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
-	declare -gl ttyuseack="No"
-	declare -g ttypicture="/media/fat/tty2oled/pics"
-	declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
-	declare -g prev_name_scroll=""
-	declare -g prev_counter=""
-	declare -gi ttyscroll_speed=1
-	declare -gi ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
-}
-
+# ======== FUNCTIONS ========
 function start_pipe_reader() {
 	samquiet " Init tty2oled, starting pipe reader... "
 	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
@@ -325,10 +310,12 @@ function tty_monitor_new() {
 
 # ========= MAIN =========
 function main() {
-	init_vars
-	read_samini
 	start_pipe_reader
 	tty_init
+	if [ "${samdebug}" == "yes" ]; then
+		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
+		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
+	fi
 	update_loop
 }
 

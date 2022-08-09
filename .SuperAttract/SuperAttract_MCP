@@ -36,13 +36,13 @@ declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 source ${mrsampath}/SuperAttractSystem.ini
+startup_tasks
 
-function init_vars() {
-	# ======== LOCAL VARIABLES ========
-	declare -gi MCP_timeout=60
-	declare -gi MCP_counter=${MCP_timeout}
-	declare -g MCP_timeout_minutes=""
-}
+samdebug " args: ${@}"
+if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
+	shift
+	MCP_SAM_trigger "${@}"
+fi
 
 #======== FUNCTIONS ========
 function MCP_CoreName_Change() {
@@ -50,13 +50,12 @@ function MCP_CoreName_Change() {
 	inotifywait --event modify ${corename_file} --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
 }
 
-
-function sam_jschange() {
+function MCP_jschange() {
 	# Monitor joystick devices for changes
 	inotifywait --quiet --monitor --event create /dev/input --include js --outfile ${MCP_DeviceChange_pipe} 2>/dev/null &
 }
 
-function sam_keybchange() {
+function MCP_keybchange() {
 	# Monitor keyboard devices for changes
 	inotifywait -r --quiet --monitor --event create /dev/input/ --include by-path --include kbd --outfile ${MCP_DeviceChange_pipe} 2>/dev/null &
 }
@@ -219,8 +218,8 @@ function MCP_monitors() {
 	samquiet " Done!"
 	
 	samquiet "-n" " Starting Device change monitor..."
-	sam_jschange
-	sam_keybchange
+	MCP_jschange
+	MCP_keybchange
 	samquiet " Done!"
 	
 
@@ -337,15 +336,8 @@ function MCP_loop() {
 
 function main() {
 	#======== Start ========
-	startup_tasks
 	# Convert seconds to minutes
 	MCP_timeout_minutes=$(echo - | awk -v t=${MCP_timeout} '{print t/60}')
-	samdebug " args: ${@}"
-	if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
-		shift
-		MCP_SAM_trigger "${@}"
-	fi
-
 	sleep ${bootsleep}
 	MCP_createpipes
 	MCP_monitors
@@ -363,6 +355,10 @@ function main() {
 	fi
 	corename_name=$(<${corename_file})
 	tmux rename-window -t MCP "${corename_name}"
+	if [ "${samdebug}" == "yes" ]; then
+		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
+		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
+	fi
 	trap 'MCP_counter=${MCP_timeout}' INT # Reset MCP_counter for Activity Triggers
 	MCP_loop "${@}"
 	trap - INT
