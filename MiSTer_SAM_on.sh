@@ -1996,6 +1996,12 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
+		#blacklist files
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16cd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
@@ -2014,11 +2020,6 @@ function sam_update() { # sam_update (next command)
 			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		fi
 		
-		#blacklist files
-		get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
-		get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16cd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
-		get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
-		get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 
 
 
@@ -2849,7 +2850,7 @@ function next_core() { # next_core (core)
 
 			# Choose the actual core
 			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"
-
+			
 			# If core is single core make sure we don't run out of cores
 			if [ -z ${nextcore} ]; then
 				nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
@@ -2857,6 +2858,23 @@ function next_core() { # next_core (core)
 
 		else
 			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+		fi
+		
+		#Special case for first run
+		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
+			"${mrsampath}"/samindex -q -s arcade -o "${gamelistpath}"
+		fi
+		
+		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
+			echo " Couldn't find Arcade games. Please run update_all.sh first"
+			exit
+		fi
+
+		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then
+			nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | shuf | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}' | head -1)"
+			for core in `echo $corelist`; do
+				"${mrsampath}"/samindex -q -s "${core}" -o "${gamelistpath}" &
+			done
 		fi
 
 		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
@@ -3049,12 +3067,12 @@ function build_mralist() {
 
 function load_core_arcade() {
 
-	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
+	#DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s "${mralist}" ]; then
-		build_mralist "${DIR}"
+		build_mralist 
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
 
@@ -3064,15 +3082,15 @@ function load_core_arcade() {
 	
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
-	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${mra}"))"
 	
 	if [ ! -f "${MRAPATH}" ]; then
 		echo " There is no valid file at ${MRAPATH}... Rebuilding list."
-		build_mralist "${DIR}"
+		build_mralist
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 		mra="$(shuf --head-count=1 ${mralist_tmp})"
-		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${mra}"))"
 	fi
 
 	# If the mra variable is valid this is skipped, but if not we try 5 times
@@ -3080,7 +3098,7 @@ function load_core_arcade() {
 	for i in {1..5}; do
 		if [ ! -f "${MRAPATH}" ]; then
 			mra=$(shuf --head-count=1 ${mralist_tmp})
-			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${mra}"))"
 		fi
 	done
 	
@@ -3090,7 +3108,7 @@ function load_core_arcade() {
 			if [ "$(grep -ic "${mra}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0"  ]; then
 				if [ "${samquiet}" == "no" ]; then echo " Blacklisted because duplicate or boring: ${mra}, trying a different mra.."; fi
 				mra=$(shuf --head-count=1 ${mralist_tmp})
-				MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+				MRAPATH="$(echo $(realpath -s --canonicalize-missing "${mra}"))"
 			fi
 		done
 	fi
@@ -3140,6 +3158,11 @@ function load_core_arcade() {
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
+	
+	if [ "$(find "${gamelistpath}" -name "arcade_gamelist.txt" | wc -l)" == "1" ]; then
+	 	nextcore=""
+	fi
+
 }
 
 function create_amigalist () {
