@@ -36,7 +36,8 @@ function init_vars() {
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
 	declare -gi inmenu=0
-
+	declare -gi tty_counter=0
+	
 	# ======== DEBUG VARIABLES ========
 	declare -gl samquiet="Yes"
 	declare -gl samdebug="No"
@@ -214,6 +215,14 @@ function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+	# Stopping tty2oled Daemon
+	if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+	mapfile -t killtty < <(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}')
+	for kill in ${killtty[@]}; do
+		[[ ! -z "${killtty}" ]] && kill -9 ${kill}
+	done
+	if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
+
 }
 
 function sam_cleanup() {
@@ -2503,8 +2512,11 @@ function loop_core() { # loop_core (core)
 			
 			#tty2oled counter
 			if [ "${ttyenable}" == "yes" ]; then
-				tty_currentinfo[counter]=$(printf "%03d" ${counter})
-				update_counter ${tty_currentinfo[counter]} &
+			((tty_counter++))
+				if [ "${tty_counter}" -gt 11 ]; then
+					tty_currentinfo[counter]=$(printf "%03d" ${counter})
+					update_counter ${tty_currentinfo[counter]} &
+				fi
 			fi
 
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
@@ -2542,6 +2554,7 @@ function loop_core() { # loop_core (core)
 
 		counter=${gametimer}
 		next_core ${1}
+		tty_counter=0
 
 	done
 	trap - INT
@@ -2552,13 +2565,6 @@ function loop_core() { # loop_core (core)
 
 function tty_init() { # tty_init
 	if [ "${ttyenable}" == "yes" ]; then
-		# Stopping tty2oled Daemon
-		if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-		killtty=$(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}' | head -1)
-		for kill in ${killtty}; do
-			[[ ! -z ${killtty} ]] && kill -9 ${kill} >/dev/null
-		done
-		if [ "${samquiet}" == "no" ]; then echo " Done!"; fi
 
 		# tty2oled initialization
 		declare -gi START=$(date +%s)
@@ -2569,6 +2575,7 @@ function tty_init() { # tty_init
 		ttypicture=${picturefolder}
 		ttypicture_pri=${picturefolder_pri}
 		set_scroll_speed
+		
 
 		# Clear Serial input buffer first
 		samquiet "-n" " Clear tty2oled Serial Input Buffer..."
@@ -2598,9 +2605,10 @@ function tty_display() { # tty_update core game
 	# Clear Display	with Random effect
 	echo "CMDCLST,-1,0" >"${ttydevice}"
 	sleep 1
+	#tty_counter=1
 	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
 	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	#echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_name_scroll="${tty_currentinfo[name_scroll]}"
 	prev_counter="${tty_currentinfo[counter]}"
 }
@@ -2936,24 +2944,24 @@ function next_core() { # next_core (core)
 
 function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
-	GAMENAME=""
+	gamename=""
 	if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then
 		if [ ${neogeoregion} == "english" ]; then
-			GAMENAME="${NEOGEO_PRETTY_ENGLISH[${3}]}"
+			gamename="${NEOGEO_PRETTY_ENGLISH[${3}]}"
 		elif [ ${neogeoregion} == "japanese" ]; then
-			GAMENAME="${NEOGEO_PRETTY_JAPANESE[${3}]}"
-			[[ ! "${GAMENAME}" ]] && GAMENAME="${NEOGEO_PRETTY_ENGLISH[${3}]}"
+			gamename="${NEOGEO_PRETTY_JAPANESE[${3}]}"
+			[[ ! "${gamename}" ]] && gamename="${NEOGEO_PRETTY_ENGLISH[${3}]}"
 		fi
 	fi
-	if [ ! "${GAMENAME}" ]; then
-		GAMENAME="${3}"
+	if [ ! "${gamename}" ]; then
+		gamename="${3}"
 	fi
 
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1}]}\e[0m: "
-	echo -e "\e[1m${GAMENAME}\e[0m"
-	echo "$(date +%H:%M:%S) - ${1} - ${3}" $(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >>/tmp/SAM_Games.log
-	echo "${3} (${1}) "$(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${GAMENAME})"; fi) >/tmp/SAM_Game.txt
+	echo -e "\e[1m${gamename}\e[0m"
+	echo "$(date +%H:%M:%S) - ${1} - ${3}" $(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi) >>/tmp/SAM_Games.log
+	echo "${3} (${1}) "$(if [ ${1} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi) >/tmp/SAM_Game.txt
 	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"
 
 	if [ "${4}" == "countdown" ]; then
@@ -2966,10 +2974,10 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
 			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
-			[name]="${GAMENAME}"
+			[name]="${gamename}"
 			[core]=${tty_corename}
 			[counter]=${gametimer}
-			[name_scroll]="${GAMENAME:0:21}"
+			[name_scroll]="${gamename:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
@@ -3165,9 +3173,6 @@ function load_core_amiga() {
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
 
-
-		#tty_update "${CORE_PRETTY[${nextcore}]}" & # Non-Blocking
-
 		if [ "${nextcore}" == "countdown" ]; then
 			for i in {5..1}; do
 				echo " Loading game in ${i}...\033[0K\r"
@@ -3207,7 +3212,7 @@ function load_core_amiga() {
 		fi
 
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
-		tty_corename="amiga"
+		tty_corename="Minimig"
 		
 		if [ "${ttyenable}" == "yes" ]; then
 			tty_currentinfo=(
