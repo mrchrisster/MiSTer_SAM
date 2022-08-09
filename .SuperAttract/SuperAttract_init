@@ -136,7 +136,6 @@ function cleanup() {
 
 function SAM_cleanup() {
 	[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
-	[ -f "${mrsamtmp}/ini_settings" ] && rm "${mrsamtmp}/ini_settings" &>/dev/null
 	# Clean up by umounting any mount binds
 	mount1=$(mount | grep "${misterpath}/config" | awk '{print $3}')
 	# mount2=$(mount | grep shared | awk '{print $3}')
