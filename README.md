@@ -50,7 +50,7 @@ video_mode=512,38,66,64,224,12,20,6,10689
   
 - **Exclusion Lists** - You can exclude any amount of games in the ini that you don't want to have displayed.  
   
-#- **Whitelist Support** - Specify a list of games you would like to display (ignore all other games in the folder). E.g. set `gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"` in MiSTer_SAM.ini
+- **Whitelist Support** - Specify a list of games you would like to display (ignore all other games in the folder). E.g. set `gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"` in MiSTer_SAM.ini
   
 - **Custom Game Directory Support** - You can set a custom directory for your games in `MiSTer_SAM.ini` like `/media/usb0`.
   
