@@ -5,7 +5,7 @@ declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g userstartup="/media/fat/linux/user-startup.sh"
 declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
-declare -g branch="main"
+declare -g branch="named_pipes"
 
 
 if [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
@@ -87,47 +87,57 @@ function sam_update() { # sam_update (next command)
 
 		get_partun
 		get_mbc
+		get_samindex
 		get_inputmap
-        	get_samstuff Super_Attract_Mode.sh /media/fat/Scripts
 		get_samstuff .SuperAttract/SuperAttract_init
 		get_samstuff .SuperAttract/SuperAttract_MCP
 		get_samstuff .SuperAttract/SuperAttract_joy.py
 		get_samstuff .SuperAttract/SuperAttract_keyboard.py
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
+		get_samstuff .SuperAttract/SAM_splash.gsc
+		get_samstuff .SuperAttract/SuperAttractSystem.ini
+
+		#blacklist files
+		get_samstuff .SuperAttract/SAM_Excludelists/arcade_blacklist.txt ${excludepath}
+		get_samstuff .SuperAttract/SAM_Excludelists/fds_blacklist.txt ${excludepath}
+		get_samstuff .SuperAttract/SAM_Excludelists/megacd_blacklist.txt ${excludepath}
+		get_samstuff .SuperAttract/SAM_Excludelists/tgfx16cd_blacklist.txt ${excludepath}
 
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/Super_Attract_Mode.ini
 		fi
 		
-		if [ -f /media/fat/Scripts/Super_Attract_Mode.ini ]; then
-			echo " MiSTer SAM INI already exists... Merging with new ini."
-			get_samstuff Super_Attract_Mode.ini /tmp
+		if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
+			echo " SAM INI already exists... Merging with new ini."
+			get_samstuff "Super_Attract_Mode.ini" /tmp
 			echo " Backing up Super_Attract_Mode.ini to Super_Attract_Mode.ini.bak"
-			cp /media/fat/Scripts/Super_Attract_Mode.ini /media/fat/Scripts/Super_Attract_Mode.ini.bak
+			cp ${misterscripts}/"Super_Attract_Mode.ini" ${misterscripts}/"Super_Attract_Mode.ini.bak" &>/dev/null
 			echo -n " Merging ini values.."
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
-			sed -i 's/==/--/g' /media/fat/Scripts/Super_Attract_Mode.ini
-			sed -i 's/-=/--/g' /media/fat/Scripts/Super_Attract_Mode.ini
-			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/Super_Attract_Mode.ini /tmp/Super_Attract_Mode.ini >/tmp/SuperAttract.tmp && mv --force /tmp/SuperAttract.tmp /media/fat/Scripts/Super_Attract_Mode.ini
+			sed -i 's/==/--/g' ${misterscripts}/"Super_Attract_Mode.ini"
+			sed -i 's/-=/--/g' ${misterscripts}/"Super_Attract_Mode.ini"
+			sed -i 's/^corelist_allow=/corelist=/g' ${misterscripts}/"Super_Attract_Mode.ini"
+			sed -i 's/^\^corelist_allow=/corelist=/g' ${misterscripts}/"Super_Attract_Mode.ini"
+			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' ${misterscripts}/Super_Attract_Mode.ini /tmp/"Super_Attract_Mode.ini" >/tmp/SuperAttract.tmp && mv --force /tmp/SuperAttract.tmp ${misterscripts}/"Super_Attract_Mode.ini"
 			echo "Done."
 
 		else
-			get_samstuff Super_Attract_Mode.ini /media/fat/Scripts
+			get_samstuff "Super_Attract_Mode.ini" ${misterscripts}
 		fi
 		
-		#blacklist files
-		get_samstuff .SuperAttract/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.SuperAttract/SAM_Gamelists
-
 	fi
 
     sam_bootmigrate
 
+	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
+	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
+	[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
+
 	echo " Update complete!"
+	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
 
-
-    return
-
+	sam_exit 0 "stop"
 }
 
 # ======== UPDATER FUNCTIONS ========
@@ -193,40 +203,17 @@ function get_inputmap() {
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
-	tty_exit &
-	bgm_stop
-	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
-	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
-	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
-	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
-	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
-	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleaned up mounts."; fi
-}
-
-function tty_exit() { # tty_exit
-	if [ "${ttyenable}" == "yes" ]; then
-		# Clear Display	with Random effect
-		echo "CMDCLST,19,1" >${ttydevice}
-		# echo "CMDCLS" >"${ttydevice}"
-		tty_waitfor &
-		# Starting tty2oled daemon only if needed
-		if [ "${ttyuseack}" == "yes" ]; then
-			if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
-				sleep 1
-				tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
-			fi
-		fi
-	fi
-}
-
-function bgm_stop() {
-
-	if [ "${bgm}" == "yes" ]; then
-		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-	fi
-
+	[[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]] && umount "${misterpath}/config"
+	# [[ $(mount | grep -ic ${amigashared}) != "0" ]] && umount "${amigashared}"
+	[[ -d "${misterpath}/bootrom" ]] && [[ $(mount | grep -ic 'bootrom') != "0" ]] && umount "${misterpath}/bootrom"
+	[[ -f "${CORE_PATH_FINAL[NES]}/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot1.rom"
+	[[ -f "${CORE_PATH_FINAL[NES]}/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot2.rom"
+	[[ -f "${CORE_PATH_FINAL[NES]}/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot3.rom"
+	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
+	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
+	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
+	[[ -e ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
+	samquiet " Cleaned up mounts."
 }
 
 function sam_bootmigrate() {

@@ -42,7 +42,7 @@ else
 	exit
 fi
 
-trap 'rc=$?;[ ${rc} = 0 ] && exit;SAM_cleanup' EXIT TERM
+trap 'rc=$?;[ ${rc} = 0 ] && exit;sam_cleanup' EXIT TERM
 
 function sam_prep() {
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config/config" "${misterpath}/config"
@@ -360,7 +360,7 @@ function sam_gamemodemenu() {
 	elif [ "${menuresponse}" == "Roulettetimer" ]; then
 		gametimer=${roulettetimer}
 		only_survivor
-		SAM_cleanup
+		sam_cleanup
 		tty_init
 		checkgl
 		mute=no
@@ -372,7 +372,7 @@ function sam_gamemodemenu() {
 		timemin=${menuresponse//Roulette/}
 		gametimer=$((timemin * 60))
 		only_survivor
-		SAM_cleanup
+		sam_cleanup
 		tty_init
 		checkgl
 		mute=no
@@ -796,7 +796,7 @@ function only_survivor() {
 
 function sam_stop() {
 	corename_name=$(<${corenamefile})
-	SAM_cleanup
+	sam_cleanup
 
 	local tries=5
 	local pids=$(pidof SuperAttract_MCP)
@@ -893,7 +893,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 			sleep 5
 		fi
 	fi
-	SAM_cleanup
+	sam_cleanup
 	tmux kill-session -t SAM
 	exit $1
 }
