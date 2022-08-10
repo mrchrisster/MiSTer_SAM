@@ -1,4 +1,5 @@
 #!/bin/bash
+compgen -v | sed s/=.\*// >/tmp/$$
 
 # https://github.com/mrchrisster/MiSTer_SAM/
 # Copyright (c) 2021 by mrchrisster and Mellified
@@ -240,9 +241,7 @@ function tty_display() { # tty_update core game
 	args=$(echo "${@}" | sed "s/ -A / -gA /")
 	eval "${args}"
 	if [ "${samdebug}" == "yes" ]; then
-		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
-		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
-		declare -p tty_currentinfo | sed 's/declare -A tty_currentinfo=//g'
+		vardebug_out
 	fi
 	# Wait for tty2oled daemon to show the core logo
 	if [ "${ttyuseack}" == "yes" ]; then

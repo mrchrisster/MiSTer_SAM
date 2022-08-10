@@ -1,4 +1,5 @@
 #!/bin/bash
+compgen -v | sed s/=.\*// >/tmp/$$
 
 # https://github.com/mrchrisster/MiSTer_SAM/
 # Copyright (c) 2021 by mrchrisster and Mellified
@@ -145,13 +146,12 @@ function cleanup() {
 
 function mcp_start() {
 	if [ "${samdebug}" == "yes" ]; then
-		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
-		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
+		vardebug_out
 	fi
 	echo " Starting MCP.."
 	samdebug " args: ${@}"
 	# If the MCP isn't running we need to start it in monitoring only mode
-	if [ -z $(pidof SuperAttract_MCP) ]; then
+	if [ -z "$(pidof SuperAttract_MCP)" ]; then
 		tmux new-session -s MCP -d "${mrsampath}/SuperAttract_MCP" "${@}" &
 	fi
 }
@@ -160,11 +160,13 @@ function mcp_start() {
 case "${1,,}" in
 start | restart)
 	shift
+	cleanup
 	startup_tasks
 	mcp_start "${@,,}"
 	;;
 quickstart)
 	startup_tasks
+	cleanup
 	mcp_start "${@,,}"
 	;;
 stop)

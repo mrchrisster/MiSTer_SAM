@@ -1,4 +1,5 @@
 #!/bin/bash
+compgen -v | sed s/=.\*// >/tmp/$$
 
 # https://github.com/mrchrisster/MiSTer_SAM/
 # Copyright (c) 2021 by mrchrisster and Mellified
@@ -85,6 +86,9 @@ function start_pipe_readers() {
 						sam_exit 0
 					fi
 					break
+					;;
+				stop | quit)
+					sam_stop
 					;;
 				skip | next)
 					tmux send-keys -t SAM C-c ENTER
@@ -794,60 +798,6 @@ function only_survivor() {
 	# done
 }
 
-function sam_stop() {
-	corename_name=$(<${corenamefile})
-	sam_cleanup
-
-	local tries=5
-	local pids=$(pidof SuperAttract_MCP)
-	if [ ! -z "${pids}" ]; then
-		samquiet "-n" " Stopping MCP..."
-		samquiet "-n" " ${pids} "
-		# kill -9 ${pids} &>/dev/null
-		while [ $(kill -15 ${pids} 2>/dev/null)] && [ ${tries} -gt 0 ]; do
-			((tries--))
-			sleep 1
-		done
-		local pids=$(pidof SuperAttract_MCP)
-		samquiet " Failed, forcing!"
-		samquiet "-n" " Stopping MCP..."
-		samquiet "-n" "${pids} "
-		kill -9 ${pids} &>/dev/null
-		samquiet " Done!"
-	fi
-	sleep 2
-	local pids=""
-	local pids=$(pidof SuperAttract_tty2oled)
-	if [ ! -z "${pids}" ]; then
-		samquiet "-n" " Stopping TTY..."
-		samquiet "-n" " | ${pids} "
-		# kill -9 ${pids} &>/dev/null
-		while $(kill -15 ${pids} 2>/dev/null); do
-			sleep 1
-		done
-		samquiet " Done!"
-	fi
-	sleep 2
-	local pids=""
-	local pids=$(pidof Super_Attract_Mode.sh)
-	if [ ! -z "${pids}" ]; then
-		samquiet "-n" " Stopping SAM..."
-		samquiet "-n" " | ${pids} "
-		# kill -9 ${pids} &>/dev/null
-		while $(kill -15 ${pids} 2>/dev/null); do
-			sleep 1
-		done
-		if [ ${corename_name} != "MENU" ]; then
-			samquiet "-n" " Returning to MiSTer Menu..."
-			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
-			samquiet " Done!"
-		fi
-		samquiet " Done!"
-	fi
-	local pids=""
-	sleep 2
-}
-
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message or stop
 	[[ $(mount | grep -ic "${misterpath}/config") != "0" ]] && umount "${misterpath}/config"
 	while [[ $(mount | grep -ic "${misterpath}/config") != "0" ]]; do
@@ -1237,6 +1187,12 @@ function sam_start_new() {
 	loop_core "${nextcore}"
 }
 
+function sam_restart() {
+	${mrsampath}/SuperAttract_init "${@}" &
+	jobs -l
+	disown -a
+}
+
 function sam_start() {
 	env_check
 	# If MCP isn't running we need to start it in monitoring only mode
@@ -1260,6 +1216,12 @@ function sam_start() {
 	fi
 }
 
+function sam_stop() {
+	(${mrsampath}/SuperAttract_init "stop")
+	jobs -l
+	disown -a
+}
+
 # ========= SAM MONITOR =========
 function sam_monitor_new() {
 	# We can omit -r here. Tradeoff;
@@ -1280,8 +1242,7 @@ function loop_core() { # loop_core (core)
 	echo "" | >"/tmp/SAM_Games.log"
 	start_pipe_readers
 	if [ "${samdebug}" == "yes" ]; then
-		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
-		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
+		vardebug_out
 	fi
 	while true; do
 		trap 'SECONDS=$gametimer' INT #Break out of loop for skip & next command
@@ -1973,24 +1934,9 @@ function main() {
 				fi
 				break
 				;;
-			stop | quit)
-				${mrsampath}/SuperAttract_init "stop" &
-				jobs -l
-				disown -a
-				break
-				;;
-			start) # quickstart
+			start | quickstart | restart) # quickstart
 				env_check
-				${mrsampath}/SuperAttract_init "quickstart" &
-				jobs -l
-				disown -a
-				break
-				;;
-			restart) # stop everything and restart
-				env_check
-				${mrsampath}/SuperAttract_init "restart" &
-				jobs -l
-				disown -a
+				sam_start_restart "${@}"
 				break
 				;;
 			start_real) # Start looping

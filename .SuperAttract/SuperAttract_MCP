@@ -1,4 +1,5 @@
 #!/bin/bash
+compgen -v | sed s/=.\*// >/tmp/$$
 
 # https://github.com/mrchrisster/MiSTer_SAM/
 # Copyright (c) 2021 by mrchrisster and Mellified
@@ -380,8 +381,7 @@ function main() {
 	corename_name=$(<${corenamefile})
 	tmux rename-window -t MCP "${corename_name}"
 	if [ "${samdebug}" == "yes" ]; then
-		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
-		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
+		vardebug_out
 	fi
 	trap 'MCP_counter=${MCP_timeout}' INT # Reset MCP_counter for Activity Triggers
 	MCP_loop "${@}"
