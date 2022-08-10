@@ -1284,7 +1284,7 @@ function loop_core() { # loop_core (core)
 		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
 	fi
 	while true; do
-		trap 'counter=0' INT #Break out of loop for skip & next command
+		trap 'SECONDS=$gametimer' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
 			echo -ne " Next game in $(($gametimer - $SECONDS))...\033[0K\r"
 			sleep 0.8
