@@ -50,11 +50,9 @@ video_mode=512,38,66,64,224,12,20,6,10689
   
 - **Exclusion Lists** - You can exclude any amount of games in the ini that you don't want to have displayed.  
   
-- **Whitelist Support** - Specify a list of games you would like to display (ignore all other games in the folder). E.g. set `gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"` in MiSTer_SAM.ini
+- **Auto Folder Detection** - No matter if your games are on SD or USV, SAM will find your default game folders.
   
-- **Custom Game Directory Support** - You can set a custom directory for your games in `MiSTer_SAM.ini` like `/media/usb0`.
-  
-  
+- **Curated Blacklists** - The SAM Team is currently recording every game's attract mode to short video so we can detect if a game is worthy to be shown or should be blacklisted (like a lot of Mahjong and other games with a static screen)
   
 ## Reset to Defaults
 This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.  
