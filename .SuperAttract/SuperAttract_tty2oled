@@ -222,7 +222,7 @@ function tty_display() { # tty_update core game
 	if [ "${ttyuseack}" == "yes" ]; then
 		tty_senddata "${tty_currentinfo[core]}"
 	elif [ "${ttyuseack}" == "no" ]; then
-		inotifywait -q -e modify /tmp/CORENAME &>/dev/null
+		inotifywait -q -e modify ${corenamefile} &>/dev/null
 		sleep 1
 	fi
 

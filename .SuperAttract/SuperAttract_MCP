@@ -40,7 +40,7 @@ source ${mrsampath}/SuperAttractSystem.ini
 #======== FUNCTIONS ========
 function MCP_CoreName_Change() {
 	# Monitor CORENAME for changes (to determine if the menu is currently running)
-	inotifywait --event modify ${corename_file} --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
+	inotifywait --event modify ${corenamefile} --outfile ${MCP_CoreName_Change_pipe} 2>/dev/null &
 }
 
 function MCP_jschange() {
@@ -55,7 +55,7 @@ function MCP_keybchange() {
 
 function MCP_CoreName_Monitor() {
 	# Spawn CORENAME monitoring process.
-	corename_name=$(<${corename_file})
+	corename_name=$(<${corenamefile})
 	printf '%s\n' ${corename_name} >${MCP_Corename_Activity_pipe} &
 }
 
@@ -309,10 +309,10 @@ function MCP_loop() {
 		echo -ne " Starting in ${MCP_counter}...\033[0K\r"
 		sleep 1
 		((MCP_counter--))
-		corename_name=$(<${corename_file})
+		corename_name=$(<${corenamefile})
 		tmux rename-window -t MCP "${corename_name}"
 	done
-	corename_name=$(<${corename_file})
+	corename_name=$(<${corenamefile})
 	tmux rename-window -t MCP "${corename_name}"
 	# Only start SAM from main menu
 	if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
@@ -354,7 +354,7 @@ function main() {
 		printf '%s\n' " MCP_timeout: ${MCP_timeout}"
 		printf '%s\n' "********************************************************************************"
 	fi
-	corename_name=$(<${corename_file})
+	corename_name=$(<${corenamefile})
 	tmux rename-window -t MCP "${corename_name}"
 	if [ "${samdebug}" == "yes" ]; then
 		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"

@@ -41,7 +41,7 @@ source ${mrsampath}/SuperAttractSystem.ini
 
 #======== Functions ========
 function cleanup() {
-	corename_name=$(printf '%s' $(</tmp/CORENAME))
+	corename_name=$(<${corenamefile})
 	local tries=5
 	local pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then

@@ -798,7 +798,7 @@ function only_survivor() {
 }
 
 function sam_stop() {
-	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
+	corename_name=$(<${corenamefile})
 	SAM_cleanup
 
 	tries=5
@@ -862,7 +862,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	# done
 	bgm_stop
 	write_to_TTY_cmd_pipe "exit" &
-	corename_name=$(printf '%s\n' $(</tmp/CORENAME))
+	corename_name=$(<${corenamefile})
 	if [ ! -z "${2}" ] && [ "${2}" == "stop" ]; then
 		sam_stop
 	elif [ "${1}" -eq 0 ]; then # just exit
