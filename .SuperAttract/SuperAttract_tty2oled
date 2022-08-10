@@ -60,13 +60,21 @@
 # Thanks for the contributions and support:
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
 
-trap 'rc=$?;[ ${rc} = 0 ] && exit;TTY_exit' EXIT TERM
-
 # ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-source ${mrsampath}/SuperAttractSystem.ini
+if [ -s SuperAttractSystem.ini ]; then
+	source SuperAttractSystem.ini
+elif [ -s ${mrsampath}/SuperAttractSystem.ini ]; then
+	source ${mrsampath}/SuperAttractSystem.ini
+else
+	echo "Error! SuperAttractSystem.ini not found!"
+	exit
+fi
+
+trap 'rc=$?;[ ${rc} = 0 ] && exit;TTY_exit' EXIT TERM
+
 startup_tasks
 
 # ======== FUNCTIONS ========

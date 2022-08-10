@@ -37,7 +37,14 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-source ${mrsampath}/SuperAttractSystem.ini
+if [ -s SuperAttractSystem.ini ]; then
+	source SuperAttractSystem.ini
+elif [ -s ${mrsampath}/SuperAttractSystem.ini ]; then
+	source ${mrsampath}/SuperAttractSystem.ini
+else
+	echo "Error! SuperAttractSystem.ini not found!"
+	exit
+fi
 
 #======== Functions ========
 function cleanup() {

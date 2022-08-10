@@ -29,13 +29,20 @@
 # Thanks for the contributions and support:
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
 
-trap 'rc=$?;[ ${rc} = 0 ] && exit;SAM_cleanup' EXIT TERM
-
 # ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-source ${mrsampath}/SuperAttractSystem.ini
+if [ -s SuperAttractSystem.ini ]; then
+	source SuperAttractSystem.ini
+elif [ -s ${mrsampath}/SuperAttractSystem.ini ]; then
+	source ${mrsampath}/SuperAttractSystem.ini
+else
+	echo "Error! SuperAttractSystem.ini not found!"
+	exit
+fi
+
+trap 'rc=$?;[ ${rc} = 0 ] && exit;SAM_cleanup' EXIT TERM
 
 function sam_prep() {
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config/config" "${misterpath}/config"
@@ -531,6 +538,8 @@ function sam_bgmmenu() {
 
 	local opt=$?
 	local menuresponse=$(<"/tmp/.SAMmenu")
+	local REPO_URL=${repository_url}
+	local REPO_branch=${branch}
 
 	if [ "${opt}" != "0" ]; then
 		sam_menu
@@ -555,8 +564,8 @@ function sam_bgmmenu() {
 			sed -i '/mute=/c\mute=Core' ${misterscripts}/Super_Attract_Mode.ini
 			${misterscripts}/bgm.sh
 			sync
-			local repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-			local branch="main"
+			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+			branch="main"
 			get_samstuff Media/80s.pls ${misterpath}/music
 			[[ ! $(grep -i "bgm" ${misterscripts}/Super_Attract_Mode.ini) ]] && echo "bgm=Yes" >>${misterscripts}/Super_Attract_Mode.ini
 			sed -i '/bgm=/c\bgm=Yes' ${misterscripts}/Super_Attract_Mode.ini
@@ -573,6 +582,8 @@ function sam_bgmmenu() {
 			sed -i '/bgm=/c\bgm=No' ${misterscripts}/Super_Attract_Mode.ini
 			echo " Done."
 		fi
+		repository_url=${REPO_URL}
+		branch=${REPO_branch}
 	fi
 }
 
@@ -592,6 +603,7 @@ function sam_update() { # sam_update (next command)
 		# Download the newest Super_Attract_Mode.sh to /tmp
 		[[ -f /tmp/Super_Attract_Mode.sh ]] && rm /tmp/Super_Attract_Mode.sh
 		get_samstuff Super_Attract_Mode.sh /tmp
+		get_samstuff .SuperAttract/SuperAttractSystem.ini /tmp
 		if [ -f /tmp/Super_Attract_Mode.sh ]; then
 			if [ ! -z ${1} ]; then
 				echo " Continuing setup with latest Super_Attract_Mode.sh..."

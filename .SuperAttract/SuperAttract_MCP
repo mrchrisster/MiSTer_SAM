@@ -29,13 +29,20 @@
 # Thanks for the contributions and support:
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
 
-trap 'MCP_cleanup' EXIT TERM
-
 # ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-source ${mrsampath}/SuperAttractSystem.ini
+if [ -s SuperAttractSystem.ini ]; then
+	source SuperAttractSystem.ini
+elif [ -s ${mrsampath}/SuperAttractSystem.ini ]; then
+	source ${mrsampath}/SuperAttractSystem.ini
+else
+	echo "Error! SuperAttractSystem.ini not found!"
+	exit
+fi
+
+trap 'MCP_cleanup' EXIT TERM
 
 #======== FUNCTIONS ========
 function MCP_CoreName_Change() {
