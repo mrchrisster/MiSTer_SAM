@@ -163,7 +163,7 @@ function MCP_SAM_trigger() {
 	if [ $(ps aux | grep -ice "[S]uper_Attract_Mode.sh") == "0" ] && [ $(ps aux | grep -ice "[u]pdate") == "0" ]; then
 		samquiet " No activity detected for ${MCP_timeout_minutes} minutes. SAM starting..."
 		samdebug " $(date '+%m-%d-%Y_%H:%M:%S' | sed 's/\n/ /g')"
-		[[ "${ttyenable}" == "yes" ]] && MCP_tty2oled_start
+		MCP_tty2oled_start
 		sleep 1
 		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${@}" start_real &
 		sleep 0.5

@@ -1286,17 +1286,14 @@ function loop_core() { # loop_core (core)
 	while true; do
 		trap 'counter=0' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
-			if [[ $(mount | grep -ic "${misterpath}/config") != "0" ]]; then
-				echo -ne " Next game in ${counter}...\033[0K\r"
-				sleep 1
-				((counter--))
-				if [ "${ttyenable}" == "yes" ]; then
-					tty_currentinfo[counter]=$(printf "%03d" ${counter})
-					write_to_TTY_cmd_pipe "update_counter ${tty_currentinfo[counter]}" &
-				fi
-			else
-				break
-			fi
+			echo -ne " Next game in $(($gametimer - $SECONDS))...\033[0K\r"
+			sleep 0.8
+			counter=$(($gametimer - $SECONDS))
+			#((counter--))
+			# if [ "${ttyenable}" == "yes" ]; then
+			# 	tty_currentinfo[counter]=$(printf "%03d" ${counter})
+			# 	write_to_TTY_cmd_pipe "update_counter ${tty_currentinfo[counter]}" &
+			# fi
 		done
 		trap - INT
 		sleep 1
@@ -1756,7 +1753,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
 		)
-		write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
 	fi
 
 	if [ ${core} != "arcade" ]; then
@@ -1825,6 +1821,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	shopt -u nullglob
 
 	echo "load_core ${file_to_load}" >/dev/MiSTer_cmd
+	write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
+	SECONDS=0
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
 		skipmessage "${core}" "${romname}" &
 	fi

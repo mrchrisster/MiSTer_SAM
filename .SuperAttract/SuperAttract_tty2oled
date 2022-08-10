@@ -99,11 +99,10 @@ function start_pipe_reader() {
 					;;
 				display_info)
 					shift
-					tty_display ${@}
+					tty_display "${@}"
 					;;
 				update_counter)
-					shift
-					update_counter ${1}
+					update_counter
 					;;
 				*)
 					echo " ERROR! ${line} is unknown."
@@ -167,7 +166,8 @@ function tty_waitfor() {
 
 function update_loop() {
 	while [[ -p ${TTY_cmd_pipe} ]]; do
-		sleep 0.01
+		sleep 0.8
+		write_to_TTY_cmd_pipe "update_counter" &
 	done
 }
 
@@ -205,7 +205,7 @@ function update_name_scroll() {
 }
 
 function update_counter() {
-	tty_currentinfo[counter]="$1"
+	tty_currentinfo[counter]=$(($gametimer - $SECONDS))
 	if [ ${tty_currentinfo[update_pause]} -gt 0 ]; then
 		((tty_currentinfo[update_pause]--))
 	else
@@ -222,9 +222,12 @@ function update_counter() {
 }
 
 function tty_display() { # tty_update core game
+	SECONDS=0
 	args=$(echo "${@}" | sed "s/ -A / -gA /")
 	eval "${args}"
-	if [ ${samdebug} == "yes" ]; then
+	if [ "${samdebug}" == "yes" ]; then
+		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
+		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
 		declare -p tty_currentinfo | sed 's/declare -A tty_currentinfo=//g'
 	fi
 	# Wait for tty2oled daemon to show the core logo
@@ -234,7 +237,6 @@ function tty_display() { # tty_update core game
 		inotifywait -q -e modify ${corenamefile} &>/dev/null
 		sleep 1
 	fi
-
 	# Wait for tty2oled to show the core logo
 	samdebug "-------------------------------------------"
 	samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
@@ -321,10 +323,6 @@ function tty_monitor_new() {
 function main() {
 	start_pipe_reader
 	tty_init
-	if [ "${samdebug}" == "yes" ]; then
-		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
-		declare -p >>"${mrsamtmp}/vardump_${samprocess}.log"
-	fi
 	update_loop
 }
 
