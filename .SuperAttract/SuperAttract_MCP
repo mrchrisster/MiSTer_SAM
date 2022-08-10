@@ -64,6 +64,10 @@ function MCP_jsmonitor() {
 	declare -a jsdevices=()
 	declare -a excludejoy=()
 	declare -a jsnew=()
+	local excludejoy
+	local jsnew
+	local joystick
+	local j
 
 	# Make a list of all js devices on system
 	shopt -s nullglob
@@ -98,8 +102,15 @@ function MCP_keybmonitor() {
 	declare -a rawinput=()
 	declare -a kbddev=()
 
-	kbdevents=($(ls /dev/input/by-path | grep "event-kbd")) # We know these are keyboards
-	rawinput=($(ls /dev/hidraw*))
+	local kbdevents=($(ls /dev/input/by-path | grep "event-kbd")) # We know these are keyboards
+	local rawinput=($(ls /dev/hidraw*))
+	local devpath
+	local kbd
+	local kbdraw
+	local rawdev
+	local f
+	local i
+	local k
 
 	# Collect all connected keyboards by physical address
 	for keyboards in "${kbdevents[@]}"; do
@@ -115,7 +126,6 @@ function MCP_keybmonitor() {
 		kbdraw=${f##*/}
 		rawdev=$(cat /sys/class/hidraw/${kbdraw}/device/uevent | grep HID_PHYS | cut -d '=' -f2)
 		#printf "%s \t %s\n" ${kbdraw} "${rawdev}"
-
 		for i in "${kbddev[@]}"; do
 			if [ "${i}" == "${rawdev}" ]; then
 				k=$(echo ${f} | sed 's./dev/..')
@@ -127,8 +137,8 @@ function MCP_keybmonitor() {
 }
 
 function MCP_msmonitor() {
-	mouse="/dev/input/mice"
-	m=$(echo ${mouse} | sed 's./dev/input/..')
+	local mouse="/dev/input/mice"
+	local m=$(echo ${mouse} | sed 's./dev/input/..')
 	samdebug "-n" " Monitoring all mice through ${m}..."
 	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" "${MCP_Activity_pipe}" > /dev/null 2>&1 &
 }
@@ -177,6 +187,7 @@ function MCP_createpipes() {
 	[[ ! -p ${SAM_Activity_pipe} ]] && mkfifo ${SAM_Activity_pipe}
 
 	while true; do
+		local line
 		if [[ -p ${MCP_cmd_pipe} ]]; then
 			if read line <${MCP_cmd_pipe}; then
 				set -- junk ${line}
@@ -240,6 +251,7 @@ function MCP_monitors() {
 	fi
 
 	while true; do
+		local line
 		if read line <${MCP_Activity_pipe}; then
 			tmux send-keys -t MCP C-c ENTER
 			echo -ne "\033[0K\r\033[A"
@@ -254,6 +266,8 @@ function MCP_monitors() {
 	done &
 
 	while true; do
+		local line
+		local otherpid
 		if read line <${MCP_DeviceChange_pipe}; then
 			# printf '%s\n' "${line}"
 			# Wait for devices to stabilize
@@ -280,6 +294,7 @@ function MCP_monitors() {
 	done &
 
 	while true; do
+		local line
 		if read line <${MCP_CoreName_Change_pipe}; then
 			MCP_CoreName_Monitor
 		fi
@@ -288,6 +303,7 @@ function MCP_monitors() {
 
 
 	while true; do
+		local line
 		if read line <${MCP_Corename_Activity_pipe}; then
 			if [ "${line}" != "${corename_name}" ]; then
 				# If we detect a change to CORENAME:

@@ -79,6 +79,7 @@ function start_pipe_reader() {
 	fi
 
 	while true; do
+		local line
 		if [[ -p ${TTY_cmd_pipe} ]]; then
 			if read line <${TTY_cmd_pipe}; then
 				set -- junk ${line}
@@ -243,7 +244,7 @@ function tty_display() { # tty_update core game
 
 # USB Send-Picture-Data function
 function tty_senddata() {
-	newcore="${1}"
+	local newcore="${1}"
 	unset picfnam
 	if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then # Check for _pri pictures
 		picfnam="${ttypicture_pri}/${newcore}.gsc"
@@ -319,4 +320,6 @@ function main() {
 	update_loop
 }
 
-main ${@}
+if [ "${ttyenable}" == "yes" ]; then
+	main ${@}
+fi

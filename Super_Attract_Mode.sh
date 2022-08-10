@@ -51,21 +51,6 @@ function sam_prep() {
 	fi
 }
 
-function SAM_cleanup() {
-	# Clean up by umounting any mount binds
-	[[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]] && umount "${misterpath}/config"
-	# [[ $(mount | grep -ic ${amigashared}) != "0" ]] && umount "${amigashared}"
-	[[ -d "${misterpath}/bootrom" ]] && [[ $(mount | grep -ic 'bootrom') != "0" ]] && umount "${misterpath}/bootrom"
-	[[ -f "${CORE_PATH_FINAL[NES]}/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot1.rom"
-	[[ -f "${CORE_PATH_FINAL[NES]}/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot2.rom"
-	[[ -f "${CORE_PATH_FINAL[NES]}/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') != "0" ]] && umount "${CORE_PATH_FINAL[NES]}/boot3.rom"
-	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
-	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
-	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
-	[[ -e ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
-	samquiet " Cleaned up mounts."
-}
-
 function start_pipe_readers() {
 	[[ -p ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
@@ -205,7 +190,7 @@ function sam_premenu() {
 	
 	for i in {5..1}; do
 		echo -ne " Updating SAM in ${i}...\033[0K\r"
-		premenu="Default"
+		local premenu="Default"
 		read -r -s -N 1 -t 1 key
 		if [[ "${key}" == "A" ]]; then
 			premenu="Menu"
@@ -243,8 +228,8 @@ function sam_menu() {
 		Reset "Reset or uninstall SAM" \
 		Autoplay "Autoplay Configuration" 2>"/tmp/.SAMmenu"
 
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local opt=$?
+	local menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
 	if [ "${opt}" != "0" ]; then
@@ -266,8 +251,8 @@ function sam_singlemenu() {
 		--backtitle "Super Attract Mode" --title "[ Single System Select ]" \
 		--menu "Which system?" 0 0 0 \
 		"${menulist[@]}" 2>"/tmp/.SAMmenu"
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local opt=$?
+	local menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
 	if [ "${opt}" != "0" ]; then
@@ -286,7 +271,7 @@ function sam_resetmenu() {
 		Deleteall "Reset/Delete all files" \
 		Default "Reinstall SAM and enable Autostart" \
 		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
 	samquiet " menuresponse: ${menuresponse}"
@@ -304,7 +289,7 @@ function sam_gamelistmenu() {
 		CreateGL "Create all Game Lists" \
 		DeleteGL "Delete all Game Lists" \
 		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
 	samquiet " menuresponse: ${menuresponse}"
@@ -318,7 +303,7 @@ function sam_autoplaymenu() {
 		Enable "Enable Autoplay" \
 		Disable "Disable Autoplay" \
 		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local menuresponse=$(<"/tmp/.SAMmenu")
 
 	clear
 	samquiet " menuresponse: ${menuresponse}"
@@ -360,8 +345,8 @@ function sam_gamemodemenu() {
 		Roulette30 "Play a random game for 30 minutes. " \
 		Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in Super_Attract_Mode.ini). " 2>"/tmp/.SAMmenu"
 
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local opt=$?
+	local menuresponse=$(<"/tmp/.SAMmenu")
 
 	if [ "${opt}" != "0" ]; then
 		sam_menu
@@ -414,8 +399,8 @@ function samedit_include() {
 		translations "Only Translated Games" \
 		homebrew "Only Homebrew" 2>"/tmp/.SAMmenu"
 
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local opt=$?
+	local menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
 	if [ "${opt}" != "0" ]; then
@@ -424,17 +409,17 @@ function samedit_include() {
 		echo "Please wait... getting things ready."
 		declare -a corelist_allow=()
 		declare -a gamelists=()
-		categ="${menuresponse}"
+		local categ="${menuresponse}"
 		# echo "${menuresponse}"
 		# Delete all temporary Game lists
 		if compgen -G "${gamelistpathtmp}/*_gamelist.txt" &>/dev/null; then
 			rm ${gamelistpathtmp}/*_gamelist.txt
 		fi
-		gamelists=($(find "${gamelistpath}" -name "*_gamelist.txt"))
+		local gamelists=($(find "${gamelistpath}" -name "*_gamelist.txt"))
 
 		# echo ${gamelists[@]}
 		for list in ${gamelists[@]}; do
-			listfile=$(basename "${list}")
+			local listfile=$(basename "${list}")
 			# awk -v category="${categ}" 'tolower($0) ~ category' "${list}" > "${gamelistpathtmp}/${listfile}"
 			grep -i "${categ}" "${list}" >"${tmpfile}"
 			awk -F'/' '!seen[$NF]++' "${tmpfile}" >"${gamelistpathtmp}/${listfile}"
@@ -456,7 +441,7 @@ function samedit_include() {
 }
 
 function samedit_excltags() {
-	excludetags="${gamelistpath}/.excludetags"
+	local excludetags="${gamelistpath}/.excludetags"
 
 	function process_tag() {
 		for core in ${corelist_allow}; do
@@ -493,10 +478,10 @@ function samedit_excltags() {
 		Europe "Europe" \
 		'' "Reset Exclusion Lists" 2>"/tmp/.SAMmenu"
 
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local opt=$?
+	local menuresponse=$(<"/tmp/.SAMmenu")
 
-	categ="${menuresponse}"
+	local categ="${menuresponse}"
 
 	if [ "${opt}" != "0" ]; then
 		sam_menu
@@ -544,8 +529,8 @@ function sam_bgmmenu() {
 		Enablebgm "Enable BGM for SAM" \
 		Disablebgm "Disable BGM for SAM" 2>"/tmp/.SAMmenu"
 
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	local opt=$?
+	local menuresponse=$(<"/tmp/.SAMmenu")
 
 	if [ "${opt}" != "0" ]; then
 		sam_menu
@@ -570,8 +555,8 @@ function sam_bgmmenu() {
 			sed -i '/mute=/c\mute=Core' ${misterscripts}/Super_Attract_Mode.ini
 			${misterscripts}/bgm.sh
 			sync
-			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-			branch="main"
+			local repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+			local branch="main"
 			get_samstuff Media/80s.pls ${misterpath}/music
 			[[ ! $(grep -i "bgm" ${misterscripts}/Super_Attract_Mode.ini) ]] && echo "bgm=Yes" >>${misterscripts}/Super_Attract_Mode.ini
 			sed -i '/bgm=/c\bgm=Yes' ${misterscripts}/Super_Attract_Mode.ini
@@ -713,7 +698,7 @@ function sam_install() { # Install SAM to startup
 	echo "Done."
 	echo " SAM install complete."
 	echo -e "\n\n\n"
-	boot_samtimeout=$((${samtimeout} + ${bootsleep}))
+	local boot_samtimeout=$((${samtimeout} + ${bootsleep}))
 	echo -ne "\e[1m" SAM will start ${boot_samtimeout} sec. after boot"\e[0m"
 	if [ "${menuonly}" == "yes" ]; then
 		echo -ne "\e[1m" in the main menu"\e[0m"
@@ -773,9 +758,9 @@ function there_can_be_only_one() { # there_can_be_only_one
 	# This can happen if the script is started multiple times
 	echo -n " Stopping other running instances of ${samprocess}..."
 
-	kill_1=$(ps -o pid,args | grep '[S]uper_Attract_init start' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh start_real' | awk '{print $1}')
-	kill_3=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh bootstart' | awk '{print $1}' | head -1)
+	local kill_1=$(ps -o pid,args | grep '[S]uper_Attract_init start' | awk '{print $1}' | head -1)
+	local kill_2=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh start_real' | awk '{print $1}')
+	local kill_3=$(ps -o pid,args | grep '[S]uper_Attract_Mode.sh bootstart' | awk '{print $1}' | head -1)
 
 	[[ ${kill_1} ]] && kill -9 ${kill_1} >/dev/null
 	for kill in ${kill_2}; do
@@ -801,8 +786,8 @@ function sam_stop() {
 	corename_name=$(<${corenamefile})
 	SAM_cleanup
 
-	tries=5
-	pids=$(pidof SuperAttract_MCP)
+	local tries=5
+	local pids=$(pidof SuperAttract_MCP)
 	if [ ! -z "${pids}" ]; then
 		samquiet "-n" " Stopping MCP..."
 		samquiet "-n" " ${pids} "
@@ -811,7 +796,7 @@ function sam_stop() {
 			((tries--))
 			sleep 1
 		done
-		pids=$(pidof SuperAttract_MCP)
+		local pids=$(pidof SuperAttract_MCP)
 		samquiet " Failed, forcing!"
 		samquiet "-n" " Stopping MCP..."
 		samquiet "-n" "${pids} "
@@ -819,8 +804,8 @@ function sam_stop() {
 		samquiet " Done!"
 	fi
 	sleep 2
-	pids=""
-	pids=$(pidof SuperAttract_tty2oled)
+	local pids=""
+	local pids=$(pidof SuperAttract_tty2oled)
 	if [ ! -z "${pids}" ]; then
 		samquiet "-n" " Stopping TTY..."
 		samquiet "-n" " | ${pids} "
@@ -831,8 +816,8 @@ function sam_stop() {
 		samquiet " Done!"
 	fi
 	sleep 2
-	pids=""
-	pids=$(pidof Super_Attract_Mode.sh)
+	local pids=""
+	local pids=$(pidof Super_Attract_Mode.sh)
 	if [ ! -z "${pids}" ]; then
 		samquiet "-n" " Stopping SAM..."
 		samquiet "-n" " | ${pids} "
@@ -847,7 +832,7 @@ function sam_stop() {
 		fi
 		samquiet " Done!"
 	fi
-	pids=""
+	local pids=""
 	sleep 2
 }
 
@@ -984,19 +969,19 @@ function deletegl() {
 function creategl() {
 	mkdir -p "${gamelistpath}"
 	mkdir -p "${gamelistpathtmp}"
-	create_all_gamelists_old="${create_all_gamelists}"
-	rebuild_freq_amiga_old="${rebuild_freq_amiga}"
-	rebuild_freq_arcade_old="${rebuild_freq_arcade}"
-	rebuild_freq_old="${rebuild_freq}"
-	create_all_gamelists="Yes"
-	rebuild_freq_amiga="Always"
-	rebuild_freq_arcade="Always"
-	rebuild_freq="Always"
+	local create_all_gamelists_old="${create_all_gamelists}"
+	local rebuild_freq_amiga_old="${rebuild_freq_amiga}"
+	local rebuild_freq_arcade_old="${rebuild_freq_arcade}"
+	local rebuild_freq_old="${rebuild_freq}"
+	local create_all_gamelists="Yes"
+	local rebuild_freq_amiga="Always"
+	local rebuild_freq_arcade="Always"
+	local rebuild_freq="Always"
 	create_game_lists
-	create_all_gamelists="${create_all_gamelists_old}"
-	rebuild_freq_amiga="${rebuild_freq_amiga_old}"
-	rebuild_freq_arcade="${rebuild_freq_arcade_old}"
-	rebuild_freq="${rebuild_freq_old}"
+	local create_all_gamelists="${create_all_gamelists_old}"
+	local rebuild_freq_amiga="${rebuild_freq_amiga_old}"
+	local rebuild_freq_arcade="${rebuild_freq_arcade_old}"
+	local rebuild_freq="${rebuild_freq_old}"
 	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
 		sam_menu
@@ -1071,9 +1056,9 @@ function exclude_game() {
 function fakegameslog() {
 	echo "" | >"/tmp/SAM_Games(fake).log"
 	for fcore in ${corelistall}; do
-		frompath=$(cat ${gamelistpath}/${fcore}_gamelist.txt | shuf --head-count=1)
-		fromname=$(basename "${frompath}")
-		fgamename=""
+		local frompath=$(cat ${gamelistpath}/${fcore}_gamelist.txt | shuf --head-count=1)
+		local fromname=$(basename "${frompath}")
+		local fgamename
 		if [ ${fcore} == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then
 			if [ ${neogeoregion} == "english" ]; then
 				fgamename="${NEOGEO_PRETTY_ENGLISH[${fromname}]}"
@@ -1083,7 +1068,7 @@ function fakegameslog() {
 			fi
 		fi
 		if [ -z "${fgamename}" ]; then
-			fgamename="${fromname}"
+			local fgamename="${fromname}"
 		fi
 		local date=$(date '+%H:%M:%S')
 		if [ "${core}" == "neogeo" ] && [ "${useneogeotitles}" == "yes" ]; then
@@ -1170,7 +1155,7 @@ function get_samstuff() { #get_samstuff file (path)
 		return 1
 	fi
 
-	filepath="${2:-${mrsampath}}"
+	local filepath="${2:-${mrsampath}}"
 
 	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
 	curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
@@ -1191,7 +1176,7 @@ function get_partun() {
 	echo " Downloading partun - needed for unzipping roms from big archives..."
 	echo " Created for MiSTer by woelper - Talk to him at this year's PartunCon"
 	echo " ${REPO_URL}"
-	latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
+	local latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
 	curl_download "/tmp/partun" "${latest}"
 	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
 	mv --force "/tmp/partun" "${mrsampath}/bin/partun"
@@ -1204,7 +1189,7 @@ function get_samindex() {
 	echo " Downloading samindex - needed for creating gamelists..."
 	echo " Created for MiSTer by wizzo"
 	echo " ${REPO_URL}"
-	latest="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	local latest="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
 	curl_download "/tmp/samindex.zip" "${latest}"
 	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
 	unzip -ojq /tmp/samindex.zip -d "${mrsampath}/bin" # &>/dev/null
@@ -1218,7 +1203,7 @@ function get_mbc() {
 	echo " Downloading mbc - Control MiSTer from cmd..."
 	echo " Created for MiSTer by pocomane"
 	echo " ${REPO_URL}"
-	latest="${repository_url}/blob/${branch}/.SuperAttract/bin/mbc?raw=true"
+	local latest="${repository_url}/blob/${branch}/.SuperAttract/bin/mbc?raw=true"
 	curl_download "/tmp/mbc" "${latest}"
 	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
 	mv --force "/tmp/mbc" "${mrsampath}/bin/mbc"
@@ -1305,7 +1290,7 @@ function loop_core() { # loop_core (core)
 		sleep 1
 		if [[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]]; then
 			counter=${gametimer}
-			core=$(get_nextcore)
+			local core=$(get_nextcore)
 			next_core "${core}"
 		fi
 	done
@@ -1323,19 +1308,19 @@ function speedtest() {
 	[[ ! -d "${mrsamtmp}/glt" ]] && { mkdir -p ${mrsamtmp}/glt; }
 	[[ $(mount | grep -ic "${gamelistpath}") == "0" ]] && mount --bind ${mrsamtmp}/gl "${gamelistpath}"
 	[[ $(mount | grep -ic "${gamelistpathtmp}") == "0" ]] && mount --bind ${mrsamtmp}/glt "${gamelistpathtmp}"
-	START=$(date +%s)
+	local START=$(date +%s)
 	for core in ${corelistall}; do
 		defaultpath "${core}"
 	done
-	DURATION_DP=$(($(date +%s) - ${START}))
-	START=$(date +%s)
+	local DURATION_DP=$(($(date +%s) - ${START}))
+	local START=$(date +%s)
 	echo "" | >"${gamelistpathtmp}/Durations.tmp"
 	for core in ${corelistall}; do
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH_FINAL[${core}]}"))
 		if [ ${core} = " " ] || [ ${core} = "" ] || [ -z ${core} ]; then
 			continue
 		else
-			START2=$(date +%s)
+			local START2=$(date +%s)
 			create_romlist ${core} "${DIR}"
 			echo " in $(($(date +%s) - ${START2})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 		fi
@@ -1415,16 +1400,16 @@ function create_game_lists() {
 		echo "Incorrect regeneration value"
 		;;
 	esac
-
+	local core
 	for core in ${corelistall}; do
-		corelist_allowtmp="${corelist_allow}"
+		local corelist_allowtmp="${corelist_allow}"
 		local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH_FINAL[${core}]}"))
-		local date_file=""
+		local date_file
 
 		if [ ${core} == "arcade" ]; then
-			rebuild_freq_int=${rebuild_freq_arcade_int}
+			local rebuild_freq_int=${rebuild_freq_arcade_int}
 		elif [ ${core} == "amiga" ]; then
-			rebuild_freq_int=${rebuild_freq_amiga_int}
+			local rebuild_freq_int=${rebuild_freq_amiga_int}
 		fi
 
 		if [ -f "${gamelistpath}/${core}_gamelist.txt" ]; then
@@ -1490,7 +1475,7 @@ function create_romlist() { # args ${core} "${DIR}"
 			[[ ! -f "${gamelistpathtmp}/samindex/${core}_gamelist.txt" ]] && echo "" | >"${tmpfile}" &>/dev/null
 			[[ -f "${gamelistpathtmp}/samindex/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/samindex/${core}_gamelist.txt" "${tmpfile}" &>/dev/null
 		else
-			extlist=$(echo ${CORE_EXT[${core}]} | sed -e "s/,/ -o -iname *.${f}/g")
+			local extlist=$(echo ${CORE_EXT[${core}]} | sed -e "s/,/ -o -iname *.${f}/g")
 			find -L "${DIR}" \( -xtype l -o -xtype d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' \( -xtype l -o -xtype f \) \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
 			# Now find all zips in core's folder and process
 			if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
@@ -1517,7 +1502,7 @@ function create_romlist() { # args ${core} "${DIR}"
 	[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/${core}_gamelist.txt" "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 	[[ -f "${tmpfile}" ]] && rm "${tmpfile}" &>/dev/null
 	[[ -f "${tmpfile2}" ]] && rm "${tmpfile2}" &>/dev/null
-	total_games=$(echo $(cat "${gamelistpath}/${core}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
+	local total_games=$(echo $(cat "${gamelistpath}/${core}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "${core}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
 	fi
@@ -1598,6 +1583,11 @@ function check_romlist() { # args ${core}  "${DIR}"
 
 # This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
+	local core
+	local nextcore
+	local countdown
+	local corelist_count
+	local corelist_allowtmp_count
 	if [ "${1,,}" == "countdown" ] && [ ! -z "$2" ]; then
 		countdown="countdown"
 		nextcore="${2}"
@@ -1657,11 +1647,11 @@ function next_core() { # next_core (core)
 		fi
 	fi
 
-	romname=$(basename "${rompath}")
+	local romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
-	extension="${romname##*.}"
-	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
+	local extension="${romname##*.}"
+	local extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 	if [ ! $(echo "${extlist}" | grep -i -w -q "${extension}" | echo $?) ]; then
 		samquiet " Wrong Extension! \e[1m${extension^^}\e[0m"
 		next_core "${nextcore}" "repeat"
@@ -1697,7 +1687,7 @@ function next_core() { # next_core (core)
 		[ $? -eq 1 ] && next_core "${nextcore}" "repeat" && return
 	fi
 
-	corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
+	local corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 	samdebug " corelist:    ${corelist_allow}!"
 	samdebug " corelisttmp: ${corelist_allowtmp}!"
 	samdebug " corelist count is ${corelist_count} at end of next_core()"
@@ -1710,7 +1700,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	local rompath=${2}
 	local romname=${3}
 	local countdown=${4}
-	gamename=""
+	local gamename
+	local tty_corename
 	if [ "${core}" == "neogeo" ] && [ "${useneogeotitles}" == "yes" ]; then
 		if [ ${neogeoregion} == "english" ]; then
 			gamename="${NEOGEO_PRETTY_ENGLISH[${romname}]}"
@@ -1797,7 +1788,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>" >>${file_to_load}
 
 		if [ ${usedefaultpaths} == "yes" ] || [ ${core} == "amiga" ]; then
-			corepath="${CORE_PATH_FINAL[${core}]}/"
+			local corepath="${CORE_PATH_FINAL[${core}]}/"
 			rompath="${rompath#${corepath}}"
 			echo "<file delay="${MGL_DELAY[${core}]}" type="${MGL_TYPE[${core}]}" index="${MGL_INDEX[${core}]}" path="\"${rompath}\""/>" >>${file_to_load}
 		else

@@ -134,20 +134,6 @@ function cleanup() {
 	killall -q -9 hexdump 2>/dev/null
 }
 
-function SAM_cleanup() {
-	[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
-	# Clean up by umounting any mount binds
-	mount1=$(mount | grep "${misterpath}/config" | awk '{print $3}')
-	# mount2=$(mount | grep shared | awk '{print $3}')
-	[[ ${mount1} ]] && umount ${mount1}
-	# [[ ${mount2} ]] && umount ${mount2}
-	[[ -d "${misterpath}/Bootrom" ]] && [[ $(mount | grep -ic 'bootrom') == "1" ]] && umount "${misterpath}/Bootrom"
-	[[ -f "${misterpath}/Games/NES/boot1.rom" ]] && [[ $(mount | grep -ic 'nes/boot1.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot1.rom"
-	[[ -f "${misterpath}/Games/NES/boot2.rom" ]] && [[ $(mount | grep -ic 'nes/boot2.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot2.rom"
-	[[ -f "${misterpath}/Games/NES/boot3.rom" ]] && [[ $(mount | grep -ic 'nes/boot3.rom') == "1" ]] && umount "${misterpath}/Games/NES/boot3.rom"
-	samquiet " Cleaned up mounts."
-}
-
 function mcp_start() {
 	if [ "${samdebug}" == "yes" ]; then
 		echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
