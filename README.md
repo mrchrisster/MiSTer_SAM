@@ -48,7 +48,7 @@ vsync_adjust=1
 video_mode=512,38,66,64,224,12,20,6,10689
 ```
   
-- **Exclusion Lists** - You can exclude any amount of games in the ini that you don't want to have displayed.  
+- **Exclusion Lists** - You can exclude any amount of games that you don't want to have displayed by adding a file called for example `snes_exclude.txt` in /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists folder. One line per game, can be full file path or just the game name.
   
 - **Auto Folder Detection** - No matter if your games are on SD or USB, SAM will find your default game folders.
   
