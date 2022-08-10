@@ -73,7 +73,7 @@ else
 	exit
 fi
 
-trap 'rc=$?;[ ${rc} = 0 ] && exit;TTY_exit' EXIT TERM
+trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM
 
 startup_tasks
 
@@ -153,6 +153,20 @@ function tty_init() { # tty_init
 	tty_waitfor
 	echo "CMDSPIC,-1" >/dev/ttyUSB0
 	sleep 5
+}
+
+function tty_exit() {
+	if [ "${ttyuseack}" == "yes" ]; then
+		samquiet "-n" " Starting tty2oled Daemon..."
+		[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
+		samquiet " Done!"
+	fi
+	# Clear Display	with Random effect
+	echo "CMDCLST,-1,0" >${ttydevice}
+	tty_waitfor
+	echo "CMDBYE" >${ttydevice}
+	sleep 5
+	tty_cleanup
 }
 
 function tty_waitfor() {
@@ -287,27 +301,6 @@ function tty_senddata() {
 		echo "${1}" >"${ttydevice}"                       # Send just the CORENAME
 		tty_waitfor                                       # sleep needed here ?!
 	fi                                                 # End if Picture check
-}
-
-function tty_exit() {
-	if [ "${ttyuseack}" == "yes" ]; then
-		samquiet "-n" " Starting tty2oled Daemon..."
-		[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
-		samquiet " Done!"
-	fi
-	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >${ttydevice}
-	tty_waitfor
-	echo "CMDBYE" >${ttydevice}
-	sleep 5
-	TTY_cleanup
-}
-
-function TTY_cleanup() {
-	samquiet "Cleaned up!"
-	# Clean up by umounting any mount binds
-	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
 }
 
 # ========= TTY MONITOR =========

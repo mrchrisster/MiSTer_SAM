@@ -42,7 +42,7 @@ else
 	exit
 fi
 
-trap 'MCP_cleanup' EXIT TERM
+trap 'mcp_cleanup' EXIT TERM
 
 #======== FUNCTIONS ========
 function MCP_CoreName_Change() {
