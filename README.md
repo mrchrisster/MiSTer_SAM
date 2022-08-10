@@ -50,7 +50,7 @@ video_mode=512,38,66,64,224,12,20,6,10689
   
 - **Exclusion Lists** - You can exclude any amount of games in the ini that you don't want to have displayed.  
   
-- **Whitelist Support** - Specify a list of games you would like to display (ignore all other games in the folder). E.g. set `gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"` in MiSTer_SAM.ini
+#- **Whitelist Support** - Specify a list of games you would like to display (ignore all other games in the folder). E.g. set `gbawhitelist="/media/fat/Scripts/MiSTer_SAM_whitelist_gba.txt"` in MiSTer_SAM.ini
   
 - **Custom Game Directory Support** - You can set a custom directory for your games in `MiSTer_SAM.ini` like `/media/usb0`.
   
@@ -188,7 +188,8 @@ Some commands to control SAM from the command line
    
    
 ## Release History
-- 24 June 2022 - Added category exclusion mode, atari core support and BGM support
+- 10 Aug 2022 - tty2oled and gamelist updates. Default blacklists now filter out bring attract screens
+- 24 Jun 2022 - Added category exclusion mode, atari core support and BGM support
 - 25 Apr 2022 - Added gb,gbc,gg and s32x support. SAM now uses game lists for faster load times and better exclusion options.
 - 22 Mar 2022 - Added support for Famicom Disk System and `MiSTer_SAM_on.sh favorite`
 - 17 Mar 2022 - SAM is now using MGL to launch games. Also added PSX support
