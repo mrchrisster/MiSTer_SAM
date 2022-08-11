@@ -38,12 +38,12 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/m
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-if [ -s SuperAttractSystem.ini ]; then
-	source SuperAttractSystem.ini
-elif [ -s ${mrsampath}/SuperAttractSystem.ini ]; then
-	source ${mrsampath}/SuperAttractSystem.ini
+if [ -s SuperAttractSystem ]; then
+	source SuperAttractSystem
+elif [ -s ${mrsampath}/SuperAttractSystem ]; then
+	source ${mrsampath}/SuperAttractSystem
 else
-	echo "Error! SuperAttractSystem.ini not found!"
+	echo "Error! SuperAttractSystem not found!"
 	exit
 fi
 
@@ -104,45 +104,46 @@ function cleanup() {
 	if [ ! -z "${pids}" ]; then
 		samquiet "-n" " Stopping Device monitors..."
 		samdebug "-n" " ${pids} |"
-		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		pids=$(echo "${pids}" | tr " " "\n" | sort | uniq | tr "\n" " ")
 		samdebug "-n" " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
-	    	sleep 1
+			sleep 1
 		done
 		samquiet " Done!"
 	fi
 	pids=""
-	
+
 	pids=$(ps aux | grep inotifywait | grep MCP_Activity_Change_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
 		samquiet "-n" " Stopping Inotifywait Activity instances..."
 		samdebug "-n" " ${pids} |"
-		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		pids=$(echo "${pids}" | tr " " "\n" | sort | uniq | tr "\n" " ")
 		samdebug "-n" " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
-	    	sleep 1
+			sleep 1
 		done
 		samquiet" Done!"
 	fi
 	pids=""
-	
+
 	pids=$(ps aux | grep inotifywait | grep MCP_CoreName_Change_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
 		samquiet "-n" " Stopping Inotifywait Corename Change instances..."
 		samdebug "-n" " ${pids} |"
-		pids=$(echo "${pids}"|tr " " "\n"|sort|uniq|tr "\n" " ")
+		pids=$(echo "${pids}" | tr " " "\n" | sort | uniq | tr "\n" " ")
 		samdebug "-n" " ${pids} |"
 		# kill -9 ${pids} &>/dev/null
 		while $(kill -15 ${pids} 2>/dev/null); do
-	    	sleep 1
+			sleep 1
 		done
 		samquiet " Done!"
 	fi
 	pids=""
 	killall -q -9 hexdump 2>/dev/null
-	sync; echo 3 > /proc/sys/vm/drop_caches
+	sync
+	echo 3 >/proc/sys/vm/drop_caches
 }
 
 function mcp_start() {

@@ -54,6 +54,7 @@ function sam_update() { # sam_update (next command)
 
 		# Download the newest MiSTer_SAM_on.sh to /tmp
 		get_samstuff MiSTer_SAM_on.sh /tmp
+		get_samstuff .SuperAttract/SuperAttractSystem /tmp
 		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
 			if [ ${1} ]; then
 				echo " Continuing setup with latest MiSTer_SAM_on.sh..."
@@ -96,7 +97,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
 		get_samstuff .SuperAttract/SAM_splash.gsc
-		get_samstuff .SuperAttract/SuperAttractSystem.ini
+		get_samstuff .SuperAttract/SuperAttractSystem
 
 		#blacklist files
 		get_samstuff .SuperAttract/SAM_Excludelists/arcade_blacklist.txt ${excludepath}

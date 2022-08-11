@@ -34,12 +34,12 @@ compgen -v | sed s/=.\*// >/tmp/$$
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-if [ -s SuperAttractSystem.ini ]; then
-	source SuperAttractSystem.ini
-elif [ -s ${mrsampath}/SuperAttractSystem.ini ]; then
-	source ${mrsampath}/SuperAttractSystem.ini
+if [ -s SuperAttractSystem ]; then
+	source SuperAttractSystem
+elif [ -s ${mrsampath}/SuperAttractSystem ]; then
+	source ${mrsampath}/SuperAttractSystem
 else
-	echo "Error! SuperAttractSystem.ini not found!"
+	echo "Error! SuperAttractSystem not found!"
 	exit
 fi
 
@@ -96,7 +96,7 @@ function MCP_jsmonitor() {
 		if [ ! -z "${joystick}" ]; then
 			j=$(echo ${joystick} | sed 's./dev/input/..')
 			samdebug "-n" " ${j}..."
-			"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" > /dev/null 2>&1 &
+			"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" >/dev/null 2>&1 &
 		fi
 	done
 	shopt -u nullglob
@@ -138,7 +138,7 @@ function MCP_keybmonitor() {
 			if [ "${i}" == "${rawdev}" ]; then
 				k=$(echo ${f} | sed 's./dev/..')
 				samdebug "-n" " ${k}..."
-				"${mrsampath}/SuperAttract_keyboard.py" "${f}" "${MCP_Activity_pipe}" > /dev/null 2>&1 &
+				"${mrsampath}/SuperAttract_keyboard.py" "${f}" "${MCP_Activity_pipe}" >/dev/null 2>&1 &
 			fi
 		done
 	done
@@ -148,7 +148,7 @@ function MCP_msmonitor() {
 	local mouse="/dev/input/mice"
 	local m=$(echo ${mouse} | sed 's./dev/input/..')
 	samdebug "-n" " Monitoring all mice through ${m}..."
-	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" "${MCP_Activity_pipe}" > /dev/null 2>&1 &
+	"${mrsampath}/SuperAttract_mouse.py" "${mouse}" "${MCP_Activity_pipe}" >/dev/null 2>&1 &
 }
 
 function MCP_tty2oled_start() {
@@ -225,12 +225,11 @@ function MCP_monitors() {
 	samquiet "-n" " Starting CORENAME monitor..."
 	MCP_CoreName_Monitor
 	samquiet " Done!"
-	
+
 	samquiet "-n" " Starting Device change monitor..."
 	MCP_jschange
 	MCP_keybchange
 	samquiet " Done!"
-	
 
 	if [ "${listenjoy}" == "yes" ]; then
 		# Spawn joystick monitoring process per detected joystick device
@@ -241,7 +240,7 @@ function MCP_monitors() {
 	fi
 	if [ "${listenkeyboard}" == "yes" ]; then
 		# Spawn keyboard monitoring processes
-		if compgen -G /dev/input/by-path/*kbd > /dev/null; then
+		if compgen -G /dev/input/by-path/*kbd >/dev/null; then
 			samquiet "-n" " Starting keyboard monitor..."
 			MCP_keybmonitor
 			samquiet " Done!"
@@ -277,17 +276,17 @@ function MCP_monitors() {
 			# Wait for devices to stabilize
 			if [[ "${line,,}" == *"event-kb"* ]]; then
 				# Kill existing Keyboard monitors
-				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_keyboard.py'| awk '{ print $1 }'); do
-					kill -9 ${otherpid} > /dev/null 2>&1
-					wait ${otherpid} > /dev/null 2>&1
+				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_keyboard.py' | awk '{ print $1 }'); do
+					kill -9 ${otherpid} >/dev/null 2>&1
+					wait ${otherpid} >/dev/null 2>&1
 				done
 				# Spawn keyboard monitoring processes
 				MCP_keybmonitor
 			elif [[ "${line,,}" == *"create js"* ]]; then
 				# Kill existing Joystick monitors
-				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_joy.py'| awk '{ print $1 }'); do
-					kill -9 ${otherpid} > /dev/null 2>&1
-					wait ${otherpid} > /dev/null 2>&1
+				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_joy.py' | awk '{ print $1 }'); do
+					kill -9 ${otherpid} >/dev/null 2>&1
+					wait ${otherpid} >/dev/null 2>&1
 				done
 				# Spawn Joystick monitoring processes
 				MCP_jsmonitor
@@ -301,7 +300,6 @@ function MCP_monitors() {
 			MCP_CoreName_Monitor
 		fi
 	done &
-
 
 	while true; do
 		local line

@@ -34,12 +34,12 @@ compgen -v | sed s/=.\*// >/tmp/$$
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-if [ -s SuperAttractSystem.ini ]; then
-	source SuperAttractSystem.ini
-elif [ -s ${mrsampath}/SuperAttractSystem.ini ]; then
-	source ${mrsampath}/SuperAttractSystem.ini
+if [ -s SuperAttractSystem ]; then
+	source SuperAttractSystem
+elif [ -s ${mrsampath}/SuperAttractSystem ]; then
+	source ${mrsampath}/SuperAttractSystem
 else
-	echo "Error! SuperAttractSystem.ini not found!"
+	echo "Error! SuperAttractSystem not found!"
 	exit
 fi
 
@@ -197,7 +197,7 @@ function sam_premenu() {
 	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
 	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
 	[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
-	
+
 	for i in {5..1}; do
 		echo -ne " Updating SAM in ${i}...\033[0K\r"
 		local premenu="Default"
@@ -606,7 +606,7 @@ function sam_update() { # sam_update (next command)
 		# Download the newest Super_Attract_Mode.sh to /tmp
 		[[ -f /tmp/Super_Attract_Mode.sh ]] && rm /tmp/Super_Attract_Mode.sh
 		get_samstuff Super_Attract_Mode.sh /tmp
-		get_samstuff .SuperAttract/SuperAttractSystem.ini /tmp
+		get_samstuff .SuperAttract/SuperAttractSystem /tmp
 		if [ -f /tmp/Super_Attract_Mode.sh ]; then
 			if [ ! -z ${1} ]; then
 				echo " Continuing setup with latest Super_Attract_Mode.sh..."
@@ -638,7 +638,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
 		get_samstuff .SuperAttract/SAM_splash.gsc
-		get_samstuff .SuperAttract/SuperAttractSystem.ini
+		get_samstuff .SuperAttract/SuperAttractSystem
 
 		#blacklist files
 		get_samstuff .SuperAttract/SAM_Excludelists/arcade_blacklist.txt ${excludepath}
@@ -704,7 +704,7 @@ function sam_install() { # Install SAM to startup
 	if [[ $(grep -ic "mister_sam" ${userstartup}) != "0" ]]; then
 		sed -i '/[mM]i[sS][tT]er_[sS][aA][mM]/d' ${userstartup}
 	fi
-	
+
 	if [[ $(grep -ic "attract" ${userstartup}) == "0" ]]; then
 		echo -e "Adding SAM to ${userstartup}\n"
 		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
@@ -798,7 +798,8 @@ function only_survivor() {
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message or stop
-	sync; echo 3 > /proc/sys/vm/drop_caches
+	sync
+	echo 3 >/proc/sys/vm/drop_caches
 	[[ $(mount | grep -ic "${misterpath}/config") != "0" ]] && umount "${misterpath}/config"
 	while [[ $(mount | grep -ic "${misterpath}/config") != "0" ]]; do
 		sleep 1
@@ -1081,7 +1082,7 @@ function core_error() { # core_error core /path/to/ROM
 	else
 		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${core} rom: ${rompath}"
 		echo " ERROR: Core ${core} is blacklisted!"
-		corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${core}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+		corelist_allow=$(echo "${corelist_allow}" | sed "s/\b${core}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 		echo " List of cores is now: ${corelist_allow}"
 		romloadfails=0
 		next_core "${core}"
@@ -1249,7 +1250,8 @@ function loop_core() { # loop_core (core)
 			sleep 1
 		done
 		trap - INT
-		sync; echo 3 > /proc/sys/vm/drop_caches
+		sync
+		echo 3 >/proc/sys/vm/drop_caches
 		sleep 1
 		if [[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]]; then
 			counter=${gametimer}
@@ -1382,7 +1384,7 @@ function create_game_lists() {
 					create_romlist ${core} "${DIR}"
 				fi
 			else
-				corelist_allowtmp=$(echo "${corelist_allow}"  | sed "s/\b${core}\b//" | awk '{$2=$2};1')
+				corelist_allowtmp=$(echo "${corelist_allow}" | sed "s/\b${core}\b//" | awk '{$2=$2};1')
 				rm "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 			fi
 		else
@@ -1566,13 +1568,13 @@ function next_core() { # next_core (core)
 		if [ "${corelist_count}" -gt 0 ]; then
 			if [ "${corelist_allowtmp_count}" -eq 0 ]; then
 				printf -v corelist_allowtmp '%s ' "${corelist_allow}"
-				corelist_allowtmp=$(echo "${corelist_allowtmp}"  | awk '{$2=$2};1')
+				corelist_allowtmp=$(echo "${corelist_allowtmp}" | awk '{$2=$2};1')
 				corelist_allowtmp_count=$(echo $(wc -w <<<"${corelist_allowtmp}"))
 			fi
 		else
 			if [ "${corelist_count}" -eq 0 ]; then
 				printf -v corelist_allow '%s ' "${corelist_allowtmp}"
-				corelist_allow=$(echo "${corelist_allow}"  | awk '{$2=$2};1')
+				corelist_allow=$(echo "${corelist_allow}" | awk '{$2=$2};1')
 				corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 			fi
 		fi
@@ -1588,7 +1590,7 @@ function next_core() { # next_core (core)
 				nextcore=${core}
 			else
 				nextcore=$(echo ${corelist_allow} | xargs shuf --head-count=1 --echo)
-				corelist_allow=$(echo "${corelist_allow}"  | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+				corelist_allow=$(echo "${corelist_allow}" | sed "s/\b${nextcore}\b//" | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
 			fi
 		else
@@ -1627,7 +1629,7 @@ function next_core() { # next_core (core)
 			if [ "${line}" != "\n" ]; then
 				if [ "${line}" == "${rompath}" ]; then
 					samquiet " Excluded by user: ${rompath}, trying a different game.."
-					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 					return 1
 				fi
 			fi
@@ -1642,7 +1644,7 @@ function next_core() { # next_core (core)
 			if [ "${line}" != "\n" ]; then
 				if [[ "${rompath}" == *"${line}"* ]]; then
 					samquiet " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
-					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} &&  mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 					return 1
 				fi
 			fi
@@ -1756,7 +1758,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	shopt -s nullglob
 	if [ "${name}" != ${name,,} ]; then
 		for f in ${mrsamtmp}/SAM_config/${name,,}*; do
-			 mv --force "${f}" "${f//${name,,}/${name}}"
+			mv --force "${f}" "${f//${name,,}/${name}}"
 		done
 	fi
 	shopt -u nullglob
@@ -1777,7 +1779,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		)
 	fi
 
-	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' > "${tty_currentinfo_file}"
+	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
 	write_to_TTY_cmd_pipe "display_info" &
 	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 	SECONDS=${elapsed}
@@ -1937,12 +1939,12 @@ function main() {
 				break
 				;;
 			start_real) # Start looping
-				declare -gl corelist_allow=$(echo "${corelist}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+				declare -gl corelist_allow=$(echo "${corelist}" | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				sam_start_new
 				break
 				;;
 			startmonitor)
-				declare -gl corelist_allow=$(echo "${corelist}"  | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
+				declare -gl corelist_allow=$(echo "${corelist}" | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
 				sam_start_new
 				sam_monitor_new
 				break

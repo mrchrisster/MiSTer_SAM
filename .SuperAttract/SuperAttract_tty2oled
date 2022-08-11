@@ -66,12 +66,12 @@ trap '' INT
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
-if [ -s SuperAttractSystem.ini ]; then
-	source SuperAttractSystem.ini
-elif [ -s ${mrsampath}/SuperAttractSystem.ini ]; then
-	source ${mrsampath}/SuperAttractSystem.ini
+if [ -s SuperAttractSystem ]; then
+	source SuperAttractSystem
+elif [ -s ${mrsampath}/SuperAttractSystem ]; then
+	source ${mrsampath}/SuperAttractSystem
 else
-	echo "Error! SuperAttractSystem.ini not found!"
+	echo "Error! SuperAttractSystem not found!"
 	exit
 fi
 
@@ -289,7 +289,7 @@ function tty_senddata() {
 		[ "${USE_GSC_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us/}" && picfolders="${picfolders//gsc/}"
 		[ "${USE_TEXT_PICTURE}" = "no" ] && picfolders="${picfolders//xbm_text/}"
 		for picfolder in ${picfolders}; do
-			for ((c = "${#newcore}"; c >= 1; c--)); do                               # Manipulate string...
+			for ((c = "${#newcore}"; c >= 1; c--)); do                                 # Manipulate string...
 				picfnam="${ttypicture}/${picfolder^^}/${newcore:0:${c}}.${picfolder:0:3}" # ...until it matches something
 				[ -e "${picfnam}" ] && break
 			done
