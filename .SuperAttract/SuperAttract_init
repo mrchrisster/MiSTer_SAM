@@ -142,6 +142,7 @@ function cleanup() {
 	fi
 	pids=""
 	killall -q -9 hexdump 2>/dev/null
+	sync; echo 3 > /proc/sys/vm/drop_caches
 }
 
 function mcp_start() {

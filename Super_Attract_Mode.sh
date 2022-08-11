@@ -117,7 +117,6 @@ function start_pipe_readers() {
 				esac
 			fi
 		fi
-		sleep 0.1
 	done &
 
 	while true; do
@@ -126,7 +125,6 @@ function start_pipe_readers() {
 			samdebug " $(date '+%m-%d-%Y_%H:%M:%S')"
 			play_or_exit
 		fi
-		sleep 0.5
 	done &
 }
 
@@ -800,6 +798,7 @@ function only_survivor() {
 }
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message or stop
+	sync; echo 3 > /proc/sys/vm/drop_caches
 	[[ $(mount | grep -ic "${misterpath}/config") != "0" ]] && umount "${misterpath}/config"
 	while [[ $(mount | grep -ic "${misterpath}/config") != "0" ]]; do
 		sleep 1
@@ -817,19 +816,16 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		if [ ${corename_name,,} != "menu" ]; then
 			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		fi
-		sleep 1
 		echo " Done!"
 		echo " Thanks for playing!"
 	elif [ "${1}" -eq 1 ]; then # Error
 		if [ ${corename_name,,} != "menu" ]; then
 			echo "load_core ${misterpath}/menu.rbf" >/dev/MiSTer_cmd
 		fi
-		sleep 1
 		echo " Done!"
 		echo " There was an error ${2}" # Pass error messages in ${2}
 	elif [ "${1}" -eq 2 ]; then      # Play Current Game
 		if [ ${mute} != "no" ]; then
-			sleep 0.5
 			# if [ ${corename_name,,} == "minimig" ]; then
 			# 	[[ -s ${mrsamtmp}/Amiga_shared/ags_boot ]] && mv -- ${mrsamtmp}/Amiga_shared/ags_boot ${amigashared}/ags_boot
 			# 	[[ -s ${mrsamtmp}/Amiga_shared/ags_current ]] && mv -- ${mrsamtmp}/Amiga_shared/ags_current ${amigashared}/ags_boot
@@ -899,7 +895,7 @@ function deleteall() {
 	else
 		printf "\nGamelist reset successful. Please start SAM now.\n"
 		sleep 1
-		main stop
+		sam_exit 0 "stop"
 	fi
 }
 
@@ -1253,6 +1249,7 @@ function loop_core() { # loop_core (core)
 			sleep 1
 		done
 		trap - INT
+		sync; echo 3 > /proc/sys/vm/drop_caches
 		sleep 1
 		if [[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]]; then
 			counter=${gametimer}

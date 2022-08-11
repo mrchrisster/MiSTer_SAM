@@ -115,7 +115,6 @@ function start_pipe_reader() {
 				esac
 			fi
 		fi
-		sleep 0.1
 	done &
 }
 

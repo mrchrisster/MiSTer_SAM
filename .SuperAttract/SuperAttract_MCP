@@ -165,9 +165,7 @@ function MCP_SAM_trigger() {
 		samquiet " No activity detected for ${MCP_timeout_minutes} minutes. SAM starting..."
 		samdebug " $(date '+%m-%d-%Y_%H:%M:%S' | sed 's/\n/ /g')"
 		MCP_tty2oled_start
-		sleep 1
 		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${@}" start_real &
-		sleep 0.5
 	fi
 }
 
@@ -214,7 +212,6 @@ function MCP_createpipes() {
 				esac
 			fi
 		fi
-		sleep 0.1
 	done &
 }
 
@@ -270,7 +267,6 @@ function MCP_monitors() {
 				[[ -p ${SAM_Activity_pipe} ]] && rm ${SAM_Activity_pipe}
 			fi
 		fi
-		sleep 0.1
 	done &
 
 	while true; do
@@ -279,7 +275,6 @@ function MCP_monitors() {
 		if read line <${MCP_DeviceChange_pipe}; then
 			# printf '%s\n' "${line}"
 			# Wait for devices to stabilize
-			sleep 1
 			if [[ "${line,,}" == *"event-kb"* ]]; then
 				# Kill existing Keyboard monitors
 				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_keyboard.py'| awk '{ print $1 }'); do
@@ -298,7 +293,6 @@ function MCP_monitors() {
 				MCP_jsmonitor
 			fi
 		fi
-		sleep 0.1
 	done &
 
 	while true; do
@@ -306,7 +300,6 @@ function MCP_monitors() {
 		if read line <${MCP_CoreName_Change_pipe}; then
 			MCP_CoreName_Monitor
 		fi
-		sleep 0.1
 	done &
 
 
@@ -323,7 +316,6 @@ function MCP_monitors() {
 			fi
 			# printf '%s\n' "${line}"
 		fi
-		sleep 0.1
 	done &
 }
 
@@ -347,7 +339,6 @@ function MCP_loop() {
 		MCP_SAM_trigger "${@}"
 	fi
 	MCP_counter=${MCP_timeout}
-	sleep 1
 	MCP_loop "${@}"
 }
 
