@@ -60,6 +60,7 @@ compgen -v | sed s/=.\*// >/tmp/$$
 #
 # Thanks for the contributions and support:
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
+trap '' INT
 
 # ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
@@ -154,6 +155,10 @@ function tty_init() { # tty_init
 	tty_waitfor
 	echo "CMDSPIC,-1" >/dev/ttyUSB0
 	sleep 5
+	if [ "${samdebug}" == "yes" ]; then
+		vardebug_out
+	fi
+	write_to_TTY_cmd_pipe "display_info" &
 }
 
 function tty_exit() {
@@ -181,7 +186,7 @@ function tty_waitfor() {
 
 function update_loop() {
 	while [[ -p ${TTY_cmd_pipe} ]]; do
-		sleep 0.8
+		sleep 1
 		write_to_TTY_cmd_pipe "update_counter" &
 	done
 }
@@ -220,11 +225,15 @@ function update_name_scroll() {
 }
 
 function update_counter() {
-	tty_currentinfo[counter]=$(($gametimer - $SECONDS))
 	if [ ${tty_currentinfo[update_pause]} -gt 0 ]; then
 		((tty_currentinfo[update_pause]--))
 	else
 		update_name_scroll
+	fi
+	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+	tty_currentinfo[counter]=$((gametimer - elapsed))
+	if [ ${tty_currentinfo[counter]} -lt 1 ]; then
+		tty_currentinfo[counter]=0
 	fi
 	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
@@ -237,32 +246,34 @@ function update_counter() {
 }
 
 function tty_display() { # tty_update core game
-	SECONDS=0
-	args=$(echo "${@}" | sed "s/ -A / -gA /")
-	eval "${args}"
-	if [ "${samdebug}" == "yes" ]; then
-		vardebug_out
-	fi
-	# Wait for tty2oled daemon to show the core logo
 	if [ "${ttyuseack}" == "yes" ]; then
-		tty_senddata "${tty_currentinfo[core]}"
-	elif [ "${ttyuseack}" == "no" ]; then
-		inotifywait -q -e modify ${corenamefile} &>/dev/null
-		sleep 1
+		[ ! -f /tmp/tty2oled_sleep ] && touch /tmp/tty2oled_sleep &>/dev/null
 	fi
-	# Wait for tty2oled to show the core logo
-	samdebug "-------------------------------------------"
-	samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
-	# Show Core-Logo for 5 Secs
-	sleep 5
-	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >"${ttydevice}"
-	tty_waitfor
-	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
-	prev_name_scroll="${tty_currentinfo[name_scroll]}"
-	prev_counter="${tty_currentinfo[counter]}"
+	if [ "${tty_info[core]}" == "" ]; then
+		source "${tty_currentinfo_file}"
+		# Wait for tty2oled daemon to show the core logo
+		if [ "${ttyuseack}" == "yes" ]; then
+			tty_senddata "${tty_currentinfo[core]}"
+		elif [ "${ttyuseack}" == "no" ]; then
+			inotifywait -q -e modify ${corenamefile} &>/dev/null
+			sleep 1
+		fi
+		# Wait for tty2oled to show the core logo
+		samdebug "-------------------------------------------"
+		samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
+		# Show Core-Logo for 5 Secs
+		sleep 5
+		# Clear Display	with Random effect
+		echo "CMDCLST,-1,0" >"${ttydevice}"
+		tty_waitfor
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		tty_currentinfo[counter]=$((gametimer - elapsed))
+		echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+		echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
+		echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+		prev_name_scroll="${tty_currentinfo[name_scroll]}"
+		prev_counter="${tty_currentinfo[counter]}"
+	fi
 }
 
 # USB Send-Picture-Data function
@@ -321,3 +332,4 @@ function main() {
 if [ "${ttyenable}" == "yes" ]; then
 	main ${@}
 fi
+trap - INT

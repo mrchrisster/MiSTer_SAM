@@ -75,6 +75,7 @@ function start_pipe_readers() {
 
 	while true; do
 		if [[ -p ${SAM_cmd_pipe} ]]; then
+			local line
 			if read line <${SAM_cmd_pipe}; then
 				set -- junk ${line}
 				shift
@@ -1247,14 +1248,9 @@ function loop_core() { # loop_core (core)
 	while true; do
 		trap 'SECONDS=$gametimer' INT #Break out of loop for skip & next command
 		while [ ${counter} -gt 0 ]; do
-			echo -ne " Next game in $(($gametimer - $SECONDS))...\033[0K\r"
-			sleep 0.8
-			counter=$(($gametimer - $SECONDS))
-			#((counter--))
-			# if [ "${ttyenable}" == "yes" ]; then
-			# 	tty_currentinfo[counter]=$(printf "%03d" ${counter})
-			# 	write_to_TTY_cmd_pipe "update_counter ${tty_currentinfo[counter]}" &
-			# fi
+			counter=$((gametimer - SECONDS))
+			echo -ne " Next game in ${counter}...\033[0K\r"
+			sleep 1
 		done
 		trap - INT
 		sleep 1
@@ -1703,19 +1699,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	else
 		echo "${date} - ${core} - ${romname}" >>"/tmp/SAM_Games.log"
 	fi
-	if [ "${ttyenable}" == "yes" ]; then
-		tty_currentinfo=(
-			[core_pretty]="${CORE_PRETTY[${core}]}"
-			[name]="${gamename}"
-			[core]=${tty_corename}
-			[counter]=${gametimer}
-			[name_scroll]="${gamename:0:21}"
-			[name_scroll_position]=0
-			[name_scroll_direction]=1
-			[update_pause]=${ttyupdate_pause}
-		)
-	fi
-
 	if [ ${core} != "arcade" ]; then
 		mute "${CORE_LAUNCH[${core}]}"
 	else
@@ -1782,8 +1765,25 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	shopt -u nullglob
 
 	echo "load_core ${file_to_load}" >/dev/MiSTer_cmd
-	write_to_TTY_cmd_pipe "display_info $(declare -p tty_currentinfo)" &
-	SECONDS=0
+
+	if [ "${ttyenable}" == "yes" ]; then
+		tty_currentinfo=(
+			[core_pretty]="${CORE_PRETTY[${core}]}"
+			[name]="${gamename}"
+			[core]=${tty_corename}
+			[date]=$EPOCHSECONDS
+			[counter]=${gametimer}
+			[name_scroll]="${gamename:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+		)
+	fi
+
+	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' > "${tty_currentinfo_file}"
+	write_to_TTY_cmd_pipe "display_info" &
+	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+	SECONDS=${elapsed}
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
 		skipmessage "${core}" "${romname}" &
 	fi
