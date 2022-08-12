@@ -52,7 +52,6 @@ function init_vars() {
 	declare -g excludepath="${mrsampath}"
 	declare -g mralist_old="${mrsampath}/SAM_Gamelists/arcade_romlist"
 	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
-	declare -g mralist_tmp_old="/tmp/.SAM_List/arcade_romlist"
 	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
@@ -2777,14 +2776,14 @@ function next_core() { # next_core (core)
 	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		#Check exclusion
 		if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}". Stripping out unwanted games now.; fi
-			grep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
+			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 	
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}". Stripping out unwanted games now.; fi
-			grep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
+			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		FIRSTRUN[${nextcore}]=1
 	fi
@@ -2872,15 +2871,20 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 # ======== ARCADE MODE ========
 function build_mralist() {
+
+	arcadepath="$(${mrsampath}/samindex -s arcade -d | awk -F':' '{print $2}')"
+
+	#${mrsampath}/samindex -s ${nextcore} -o "${gamelistpath}"
 	if [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  ${1}..."
+		echo " Looking for games in  "${arcadepath}"..."
 	else
-		echo -n " Looking for games in  ${1}..."
+		echo -n " Looking for games in  "${arcadepath}"..."
 	fi
+
 	# If no MRAs found - suicide!
-	find "${1}" -type f \( -iname "*.mra" \) &>/dev/null
+	find "${arcadepath}" -type f \( -iname "*.mra" \) &>/dev/null
 	if [ ! ${?} == 0 ]; then
-		echo " The path '${1}' contains no MRA files!"
+		echo " The path '${arcadepath}' contains no MRA files!"
 		loop_core
 	fi
 
@@ -2890,13 +2894,11 @@ function build_mralist() {
 
 	# If there is an empty exclude list ignore it
 	# Otherwise use it to filter the list
-	if [ ${#arcadeexclude[@]} -eq 0 ]; then
-		find "${1}" -maxdepth 1 -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- >"${mralist}"
-	else
-		find "${1}" -maxdepth 1 -not -path '*/.*' -type f \( -iname "*.mra" \) | cut -c $(($(echo ${#1}) + 2))- | grep -vFf <(printf '%s\n' ${arcadeexclude[@]}) >"${mralist}"
-	fi
+	find "${arcadepath}" -not -path '*/.*' -type f \( -iname "*.mra" \) >"${mralist}"
+	
 	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
+		if [ "${samquiet}" == "no" ]; then echo " Copying gamelist to /tmp"; fi
+		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 	fi
 
 	if [ "${samquiet}" == "no" ]; then
@@ -2904,59 +2906,60 @@ function build_mralist() {
 	else
 		echo " ${total_games} Games found."
 	fi
+
 }
 
-function load_core_arcade() {
+function load_core_arcade() {	
 
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s "${mralist}" ]; then
+	
 		build_mralist 
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
 
 	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
+		if [ "${samquiet}" == "no" ]; then echo " Copy gamelist to /tmp"; fi
+
+		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 	fi
 	
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
-	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${mra}"))"
 	
-	if [ ! -f "${MRAPATH}" ]; then
-		echo " There is no valid file at ${MRAPATH}... Rebuilding list."
-		build_mralist
-		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
-		mra="$(shuf --head-count=1 ${mralist_tmp})"
-		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${mra}"))"
-	fi
 
 	# If the mra variable is valid this is skipped, but if not we try 5 times
 	# Partially protects against typos from manual editing and strange character parsing problems
 	for i in {1..5}; do
-		if [ ! -f "${MRAPATH}" ]; then
+		if [ ! -f "${mra}" ]; then
 			mra=$(shuf --head-count=1 ${mralist_tmp})
-			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${mra}"))"
 		fi
 	done
 	
 	#Check blacklist
-	if [ -f ${gamelistpath}/${nextcore}_blacklist.txt ]; then
-		for i in {1..10}; do
-			if [ "$(grep -ic "${mra}" ${gamelistpath}/${nextcore}_blacklist.txt)" != "0"  ]; then
-				if [ "${samquiet}" == "no" ]; then echo " Blacklisted because duplicate or boring: ${mra}, trying a different mra.."; fi
-				mra=$(shuf --head-count=1 ${mralist_tmp})
-				MRAPATH="$(echo $(realpath -s --canonicalize-missing "${mra}"))"
-			fi
-		done
+	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+	
+		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
+			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
+			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
+		fi
+		
+		#Check path filter
+		if [ ! -z "${arcadepathextra}" ]; then
+			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
+			cat "${mralist}" | grep "${arcadepathextra}" > "${mralist_tmp}"
+		fi
+		FIRSTRUN[${nextcore}]=1	
 	fi
+	
+	
 	mraname=$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')	
-	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
+	mrasetname=$(grep "<setname>" "${mra}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	tty_corename="${mrasetname}"
 
-	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
+	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${mraname}"; fi
 
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
