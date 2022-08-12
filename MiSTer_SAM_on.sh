@@ -2613,7 +2613,7 @@ function mute() {
 # ======== ROMFINDER ========
 function create_romlist() { # args ${nextcore} "${DIR}"
 
-	${mrsampath}/samindex -s ${nextcore} -o "${gamelistpath}"
+	${mrsampath}/samindex -s ${nextcore} -nofilter -o "${gamelistpath}"
 }
 
 function check_list() { # args ${nextcore} 
@@ -2701,7 +2701,7 @@ function next_core() { # next_core (core)
 		
 		#Special case for first run
 		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
-			"${mrsampath}"/samindex -q -s arcade -o "${gamelistpath}"
+			"${mrsampath}"/samindex -q -s arcade -nofilter -o "${gamelistpath}"
 			first_run_arcade=1
 		fi
 		
@@ -2713,7 +2713,7 @@ function next_core() { # next_core (core)
 		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then
 			nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | shuf | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}' | head -1)"
 			for core in `echo $corelist`; do
-				"${mrsampath}"/samindex -q -s "${core}" -o "${gamelistpath}" &
+				"${mrsampath}"/samindex -q -s "${core}" -nofilter "${gamelistpath}" &
 			done
 		fi
 
