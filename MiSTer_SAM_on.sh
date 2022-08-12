@@ -49,7 +49,6 @@ function init_vars() {
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 	declare -g gamelistpathtmp="/tmp/.SAM_List/"
-	declare -g excludepath="${mrsampath}"
 	declare -g mralist_old="${mrsampath}/SAM_Gamelists/arcade_romlist"
 	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
 	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
@@ -2115,7 +2114,7 @@ function deletegl() {
 	there_can_be_only_one
 	if [ -d "${mrsampath}/SAM_Gamelists" ]; then
 		echo "Deleting MiSTer_SAM Gamelist folder"
-		rm -rf "${mrsampath}/SAM_Gamelists"
+		rm  "${mrsampath}"/SAM_Gamelists/*_gamelist.txt
 	fi
 
 	if [ -d "${mrsampath}/SAM_Count" ]; then
@@ -2775,7 +2774,7 @@ function next_core() { # next_core (core)
 	fi
 	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		#Check exclusion
-		if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
+		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
 			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
