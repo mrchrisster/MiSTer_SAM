@@ -149,7 +149,7 @@ function update_tasks() {
 function init_paths() {
 	# Create folders if they don't exist
 	mkdir -p "${mrsampath}/SAM_Gamelists"
-	[ -d "/tmp/.SAM_List" ] && rm -rf /tmp/.SAM_List
+	#[ -d "/tmp/.SAM_List" ] && rm -rf /tmp/.SAM_List
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
@@ -2785,6 +2785,14 @@ function next_core() { # next_core (core)
 			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
 			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
+		
+		#Check path filter
+		if [ ! -z "${nextcore}pathextra" ]; then
+			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${nextcore}pathextra" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		fi
+		
+		
 		FIRSTRUN[${nextcore}]=1
 	fi
 
@@ -2901,12 +2909,6 @@ function build_mralist() {
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 	fi
 
-	if [ "${samquiet}" == "no" ]; then
-		echo "${total_games} Games found."
-	else
-		echo " ${total_games} Games found."
-	fi
-
 }
 
 function load_core_arcade() {	
@@ -2915,7 +2917,7 @@ function load_core_arcade() {
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s "${mralist}" ]; then
-	
+		if [ "${samquiet}" == "no" ]; then echo " Rebuilding mra list. No file found."; fi
 		build_mralist 
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
