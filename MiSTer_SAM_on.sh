@@ -2880,30 +2880,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 # ======== ARCADE MODE ========
 function build_mralist() {
 
-	arcadepath="$(${mrsampath}/samindex -s arcade -d | awk -F':' '{print $2}')"
+	${mrsampath}/samindex -s arcade -nofilter -o "${gamelistpath}" 
 
-	#${mrsampath}/samindex -s ${nextcore} -o "${gamelistpath}"
-	if [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  "${arcadepath}"..."
-	else
-		echo -n " Looking for games in  "${arcadepath}"..."
-	fi
-
-	# If no MRAs found - suicide!
-	find "${arcadepath}" -type f \( -iname "*.mra" \) &>/dev/null
-	if [ ! ${?} == 0 ]; then
-		echo " The path '${arcadepath}' contains no MRA files!"
-		loop_core
-	fi
-
-	# This prints the list of MRA files in a path,
-	# Cuts the string to just the file name,
-	# Then saves it to the mralist file.
-
-	# If there is an empty exclude list ignore it
-	# Otherwise use it to filter the list
-	find "${arcadepath}" -not -path '*/.*' -type f \( -iname "*.mra" \) >"${mralist}"
-	
 	if [ ! -s "${mralist_tmp}" ]; then
 		if [ "${samquiet}" == "no" ]; then echo " Copying gamelist to /tmp"; fi
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
