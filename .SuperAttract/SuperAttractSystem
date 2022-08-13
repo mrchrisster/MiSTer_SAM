@@ -122,7 +122,6 @@ function startup_tasks() {
         declare -g prev_counter=
         # From ini
         declare -gi gametimer=${ini_settings[gametimer]:=120}
-        declare -gl ttyuseack=${ini_settings[ttyuseack]:="no"}
         declare -gi ttyscroll_speed=${ini_settings[ttyscroll_speed]:=1}
         declare -gi ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
         declare -g ttysystemini=${ini_settings[ttysystemini]:="/media/fat/tty2oled/tty2oled-system.ini"}
