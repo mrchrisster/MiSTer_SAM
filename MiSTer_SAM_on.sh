@@ -1,6 +1,8 @@
 #!/bin/bash
 
-declare -g mrsampath="/media/fat/Scripts/.SuperAttract"
+declare -g misterpath="/media/fat"
+declare -g misterscripts="${misterpath}/Scripts"
+declare -g mrsampath="${misterscripts}/.SuperAttract"
 declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g userstartup="/media/fat/linux/user-startup.sh"
@@ -150,22 +152,20 @@ function curl_download() { # curl_download ${filepath} ${URL}
 		--fail \
 		--location \
 		-o "${1}" \
-		"${2}"
+		"${2-}"
 }
+
 function get_samstuff() { #get_samstuff file (path)
 	if [ -z "${1}" ]; then
 		return 1
 	fi
 
-	filepath="${2}"
-	if [ -z "${filepath}" ]; then
-		filepath="${mrsampath}"
-	fi
+	local filepath="${2:-${mrsampath}}"
 
 	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
 	curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
 
-	if [ ! "${filepath}" == "/tmp" ]; then
+	if [ "${filepath}" != "/tmp" ]; then
 		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
 	fi
 
@@ -177,28 +177,51 @@ function get_samstuff() { #get_samstuff file (path)
 }
 
 function get_partun() {
-	REPOSITORY_URL="https://github.com/woelper/partun"
+	local REPO_URL="https://github.com/woelper/partun"
 	echo " Downloading partun - needed for unzipping roms from big archives..."
 	echo " Created for MiSTer by woelper - Talk to him at this year's PartunCon"
-	echo " ${REPOSITORY_URL}"
-	latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
+	echo " ${REPO_URL}"
+	local latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
 	curl_download "/tmp/partun" "${latest}"
-	mv --force "/tmp/partun" "${mrsampath}/partun"
+	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
+	mv --force "/tmp/partun" "${mrsampath}/bin/partun"
+	[[ -f "${mrsampath}/partun" ]] && rm -f "${mrsampath}/partun"
+	echo " Done!"
+}
+
+function get_samindex() {
+	local REPO_URL="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	echo " Downloading samindex - needed for creating gamelists..."
+	echo " Created for MiSTer by wizzo"
+	echo " ${REPO_URL}"
+	local latest="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	curl_download "/tmp/samindex.zip" "${latest}"
+	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
+	unzip -ojq /tmp/samindex.zip -d "${mrsampath}/bin" # &>/dev/null
+	# mv --force "/tmp/samindex" "${mrsampath}/bin/samindex"
+	[[ -f "${mrsampath}/samindex" ]] && rm -f "${mrsampath}/samindex"
 	echo " Done!"
 }
 
 function get_mbc() {
+	local REPO_URL="${repository_url}/blob/${branch}/.SuperAttract/bin/mbc?raw=true"
 	echo " Downloading mbc - Control MiSTer from cmd..."
 	echo " Created for MiSTer by pocomane"
-	get_samstuff .SuperAttract/mbc
+	echo " ${REPO_URL}"
+	local latest="${repository_url}/blob/${branch}/.SuperAttract/bin/mbc?raw=true"
+	curl_download "/tmp/mbc" "${latest}"
+	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
+	mv --force "/tmp/mbc" "${mrsampath}/bin/mbc"
+	[[ -f "${mrsampath}/mbc" ]] && rm -f "${mrsampath}/mbc"
+	echo " Done!"
 }
 
 function get_inputmap() {
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
-	get_samstuff .SuperAttract/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .SuperAttract/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/GBA_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/MegaCD_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/NES_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
+	get_samstuff .SuperAttract/inputs/TGFX16_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
 	echo " Done!"
 }
 
@@ -214,7 +237,6 @@ function sam_cleanup() {
 	[[ -e ${SAM_Activity_pipe} ]] && rm -f ${SAM_Activity_pipe}
 	[[ -p ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
 	[[ -e ${SAM_cmd_pipe} ]] && rm -f ${SAM_cmd_pipe}
-	samquiet " Cleaned up mounts."
 }
 
 function sam_bootmigrate() {
