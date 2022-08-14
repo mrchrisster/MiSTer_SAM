@@ -177,9 +177,6 @@ function tty_init() { # tty_init
 }
 
 function tty_exit() {
-	samquiet "-n" " Starting tty2oled Daemon..."
-	[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
-	samquiet " Done!"
 	# Clear Display	with Random effect
 	echo "CMDCLST,-1,0" >${ttydevice}
 	tty_waitfor
