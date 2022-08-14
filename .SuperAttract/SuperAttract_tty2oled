@@ -149,10 +149,10 @@ function tty_init() { # tty_init
 	tty_waitfor
 	samquiet " Done!"
 
-	echo "CMDAPD,SAM_splash" >/dev/ttyUSB0
-	tail -n +4 "/media/fat/Scripts/.SuperAttract/SAM_splash.gsc" | xxd -r -p >/dev/ttyUSB0
+	echo "CMDAPD,SAM_splash" >${ttydevice}
+	tail -n +4 "/media/fat/Scripts/.SuperAttract/SAM_splash.gsc" | xxd -r -p >${ttydevice}
 	tty_waitfor
-	echo "CMDSPIC,-1" >/dev/ttyUSB0
+	echo "CMDSPIC,-1" >${ttydevice}
 	sleep 5
 }
 
