@@ -31,7 +31,6 @@ compgen -v | sed s/=.\*// >/tmp/$$
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
 
 trap "" HUP
-trap "" TERM
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.SuperAttract:.
 
 # ======== GLOBAL VARIABLES =========
@@ -46,7 +45,7 @@ else
 	echo "Error! SuperAttractSystem not found!"
 	exit
 fi
-
+trap 'rc=$?;[ ${rc} = 0 ] && exit;cleanup' EXIT TERM
 #======== Functions ========
 function cleanup() {
 	corename_name=$(<${corenamefile})

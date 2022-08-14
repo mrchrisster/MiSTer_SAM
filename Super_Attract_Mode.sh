@@ -1808,6 +1808,11 @@ function main() {
 	else
 		while [ ${#} -gt 0 ]; do
 			case "${1,,}" in
+			start | quickstart | restart) # quickstart
+				env_check
+				sam_restart "${@}"
+				break
+				;;
 			stop | quit | exit)
 				write_to_SAM_cmd_pipe ${1-}
 				break
@@ -1941,11 +1946,6 @@ function main() {
 					declare -gl nextcore=${1}
 					sam_start ${nextcore}
 				fi
-				break
-				;;
-			start | quickstart | restart) # quickstart
-				env_check
-				sam_start_restart "${@}"
 				break
 				;;
 			start_real) # Start looping

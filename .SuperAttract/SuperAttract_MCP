@@ -43,7 +43,7 @@ else
 	exit
 fi
 
-trap 'mcp_cleanup' EXIT TERM
+trap 'rc=$?;[ ${rc} = 0 ] && exit;mcp_cleanup' EXIT TERM
 
 #======== FUNCTIONS ========
 function MCP_CoreName_Change() {

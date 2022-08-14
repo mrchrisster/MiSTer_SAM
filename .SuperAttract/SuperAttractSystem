@@ -564,10 +564,10 @@ function sam_cleanup() {
 
 function tty_cleanup() {
     # Clean up by umounting any mount binds
-	if [ -f /tmp/tty2oled_sleep ]; then
-	    samquiet "-n" " Starting tty2oled Daemon..."
+    if [ -f /tmp/tty2oled_sleep ]; then
+        samquiet "-n" " Starting tty2oled Daemon..."
         rm /tmp/tty2oled_sleep &>/dev/null
-	    samquiet " Done!"
+        samquiet " Done!"
     fi
     samquiet " TTY Cleaned up!"
     [ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
@@ -1536,6 +1536,11 @@ declare -gl samdebug="yes"
 declare -gl samtrace="no"
 
 case "${1}" in
+start| restart | quickstart)
+    if [ "${samprocess}" == "Super_Attract_Mode.sh" ]; then
+        return
+    fi
+    ;;
 stop | quit | exit)
     return
     ;;
