@@ -161,10 +161,10 @@ function tty_init() { # tty_init
 		# Wait for tty2oled to show the core logo
 		samdebug "-------------------------------------------"
 		samdebug " tty_update got Corename: SAM_splash "
-				# echo "CMDAPD,SAM_splash" >/dev/ttyUSB0
-				# tail -n +4 "/media/fat/Scripts/.SuperAttract/tty2oled_pics/SAM_splash.gsc" | xxd -r -p >/dev/ttyUSB0
+				# echo "CMDAPD,SAM_splash" >${ttydevice}
+				# tail -n +4 "/media/fat/Scripts/.SuperAttract/tty2oled_pics/SAM_splash.gsc" | xxd -r -p >${ttydevice}
 				# tty_waitfor
-				# echo "CMDSPIC,-1" >/dev/ttyUSB0
+				# echo "CMDSPIC,-1" >${ttydevice}
 		# Show Core-Logo for 5 Secs
 		sleep 5
 		if [ -z ${tty_currentinfo} ]; then
