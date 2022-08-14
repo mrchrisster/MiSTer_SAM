@@ -1,5 +1,4 @@
 #!/bin/bash
-compgen -v | sed s/=.\*// >/tmp/$$
 
 # https://github.com/mrchrisster/MiSTer_SAM/
 # Copyright (c) 2021 by mrchrisster and Mellified
@@ -29,14 +28,20 @@ compgen -v | sed s/=.\*// >/tmp/$$
 #
 # Thanks for the contributions and support:
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
-
-trap "" HUP
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/media/fat/linux:/media/fat/Scripts:/media/fat/Scripts/.SuperAttract:.
 
+trap "" HUP
+
 # ======== GLOBAL VARIABLES =========
+# Save our PID and process
+declare -g sampid="${$}"
+declare -g samprocess=$(basename -- ${0})
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
+declare -g mrsamtmp="/tmp/.SAM_tmp"
+compgen -v | sed s/=.\*// >/tmp/$samprocess
+
 if [ -s SuperAttractSystem ]; then
 	source SuperAttractSystem
 elif [ -s ${mrsampath}/SuperAttractSystem ]; then
@@ -45,6 +50,7 @@ else
 	echo "Error! SuperAttractSystem not found!"
 	exit
 fi
+
 trap 'rc=$?;[ ${rc} = 0 ] && exit;cleanup' EXIT TERM
 #======== Functions ========
 function cleanup() {

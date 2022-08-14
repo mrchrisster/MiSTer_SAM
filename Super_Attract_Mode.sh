@@ -1,5 +1,4 @@
 #!/bin/bash
-compgen -v | sed s/=.\*// >/tmp/$$
 
 # https://github.com/mrchrisster/MiSTer_SAM/
 # Copyright (c) 2021 by mrchrisster and Mellified
@@ -31,9 +30,15 @@ compgen -v | sed s/=.\*// >/tmp/$$
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
 
 # ======== GLOBAL VARIABLES =========
+# Save our PID and process
+declare -g sampid="${$}"
+declare -g samprocess=$(basename -- ${0})
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
+declare -g mrsamtmp="/tmp/.SAM_tmp"
+compgen -v | sed s/=.\*// >/tmp/$samprocess
+
 if [ -s SuperAttractSystem ]; then
 	source SuperAttractSystem
 elif [ -s ${mrsampath}/SuperAttractSystem ]; then

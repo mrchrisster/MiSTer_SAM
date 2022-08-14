@@ -29,10 +29,6 @@
 # Thanks for the contributions and support:
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
 
-# Save our PID and process
-declare -g sampid="${$}"
-declare -g samprocess=$(basename -- ${0})
-declare -g mrsamtmp="/tmp/.SAM_tmp"
 declare -g userstartup="${misterpath}/linux/user-startup.sh"
 declare -g userstartuptpl="${misterpath}/linux/_user-startup.sh"
 declare -g corenamefile="/tmp/CORENAME"
@@ -109,6 +105,7 @@ function startup_tasks() {
 		createfolders
 		init_game_path_final
 		init_amigashared_path
+		init_tty2oled_vars
 	elif [ "${samprocess}" == "SuperAttract_MCP" ]; then
 		declare -gi MCP_timeout=60
 		declare -gi MCP_counter=${MCP_timeout}
@@ -1568,8 +1565,8 @@ function regen_ini_settings() {
 
 function vardebug_out() {
 	echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
-	declare -p | grep -wvf /tmp/$$ | grep -v ^\" | grep -v ^\" >>"${mrsamtmp}/vardump_${samprocess}.log"
-	rm /tmp/$$
+	declare -p | grep -wvf /tmp/${samprocess} | grep -v ^\" | grep -v ^\" >>"${mrsamtmp}/vardump_${samprocess}.log"
+	rm /tmp/${samprocess}
 }
 
 if [[ -s "${mrsamtmp}/ini_settings" ]]; then
