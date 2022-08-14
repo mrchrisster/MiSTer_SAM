@@ -100,19 +100,19 @@ function tty_init() { # tty_init
 	set_scroll_speed
 
 	# Stopping tty2oled Daemon
-	if [ -f /tmp/tty2oled_sleep ]; then
-		sleepfile_expiration=$(</tmp/tty2oled_sleep)
+	if [ -f ${tty_sleepfile} ]; then
+		sleepfile_expiration=$(<${tty_sleepfile})
 		samdebug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
-		if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ]; then
+		if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ] && [ -s ${tty_currentinfo_file} ]; then
 			write_to_TTY_cmd_pipe "display_info" &
 		else
-			rm /tmp/tty2oled_sleep
+			rm ${tty_sleepfile}
 		fi
 	fi
-	if [ ! -f /tmp/tty2oled_sleep ]; then
+	if [ ! -f ${tty_sleepfile} ]; then
 		samquiet "-n" " Stopping tty2oled Daemon..."
 		sleepfile_expiration=$((EPOCHSECONDS + (gametimer + 10)))
-		echo "${sleepfile_expiration}" >/tmp/tty2oled_sleep
+		echo "${sleepfile_expiration}" >${tty_sleepfile}
 		samquiet " Done!"
 
 		# Clear Serial input buffer first
@@ -132,7 +132,7 @@ function tty_init() { # tty_init
 		samdebug " tty_update got Corename: SAM_splash "
 		# Show Core-Logo for 5 Secs
 		sleep 5
-		if [ -z ${tty_currentinfo} ]; then
+		if [ -z ${tty_currentinfo} ] && [ -s ${tty_currentinfo_file} ]; then
 			write_to_TTY_cmd_pipe "display_info" &
 		fi
 	fi
@@ -217,26 +217,28 @@ function update_counter() {
 }
 
 function tty_display() { # tty_update core game
-	source "${tty_currentinfo_file}"
-	sleepfile_expiration=$((tty_currentinfo[date] + (tty_currentinfo[counter] + 10)))
-	echo "${sleepfile_expiration}" >/tmp/tty2oled_sleep
-	# Wait for tty2oled daemon to show the core logo
-	tty_senddata "${tty_currentinfo[core]}"
-	# Wait for tty2oled to show the core logo
-	samdebug "-------------------------------------------"
-	samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
-	# Show Core-Logo for 5 Secs
-	sleep 5
-	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >"${ttydevice}"
-	tty_waitfor
-	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
-	tty_currentinfo[counter]=$((gametimer - elapsed))
-	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
-	prev_name_scroll="${tty_currentinfo[name_scroll]}"
-	prev_counter="${tty_currentinfo[counter]}"
+	if [ -s ${tty_currentinfo_file} ]; then
+		source "${tty_currentinfo_file}"
+		sleepfile_expiration=$((tty_currentinfo[date] + (tty_currentinfo[counter] + 10)))
+		echo "${sleepfile_expiration}" >${tty_sleepfile}
+		# Wait for tty2oled daemon to show the core logo
+		tty_senddata "${tty_currentinfo[core]}"
+		# Wait for tty2oled to show the core logo
+		samdebug "-------------------------------------------"
+		samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
+		# Show Core-Logo for 5 Secs
+		sleep 5
+		# Clear Display	with Random effect
+		echo "CMDCLST,-1,0" >"${ttydevice}"
+		tty_waitfor
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		tty_currentinfo[counter]=$((gametimer - elapsed))
+		echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+		echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
+		echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+		prev_name_scroll="${tty_currentinfo[name_scroll]}"
+		prev_counter="${tty_currentinfo[counter]}"
+	fi
 }
 
 # USB Send-Picture-Data function

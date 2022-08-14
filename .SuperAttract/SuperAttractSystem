@@ -64,6 +64,7 @@ function init_tty2oled_vars() {
 	declare -gl ttyenable=${ini_settings[ttyenable]:="no"}
 	declare -gi ttyupdate_pause=10
 	declare -g tty_currentinfo_file=${mrsamtmp}/tty_currentinfo
+	declare -g tty_sleepfile="/tmp/tty2oled_sleep"
 	declare -gA tty_currentinfo=(
 		[core_pretty]=
 		[name]=
@@ -548,6 +549,16 @@ function env_check() {
 }
 
 function sam_cleanup() {
+	if [ -f ${tty_sleepfile} ]; then
+		samquiet "-n" " Starting tty2oled Daemon..."
+		rm ${tty_sleepfile} &>/dev/null
+		samquiet " Done!"
+	fi
+	if [ -f ${tty_currentinfo_file} ]; then
+		samquiet "-n" " Removing ${tty_currentinfo_file}..."
+		rm ${tty_currentinfo_file} &>/dev/null
+		samquiet " Done!"
+	fi
 	# Clean up by umounting any mount binds
 	[[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]] && umount "${misterpath}/config"
 	# [[ $(mount | grep -ic ${amigashared}) != "0" ]] && umount "${amigashared}"
