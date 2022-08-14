@@ -11,7 +11,7 @@ compgen -v | sed s/=.\*// >/tmp/$$
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # Description
@@ -1197,7 +1197,6 @@ function sam_start_new() {
 
 function sam_restart() {
 	${mrsampath}/SuperAttract_init "${@}" &
-	jobs -l
 	disown -a
 }
 
@@ -1217,16 +1216,15 @@ function sam_start() {
 	if [ -z "$(pidof Super_Attract_Mode.sh)" ]; then
 		echo " Starting SAM.."
 		if [ -z "${1}" ]; then
-			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" start_real &
+			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" start_real &
 		else
-			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${1}" start_real &
+			tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${1}" start_real &
 		fi
 	fi
 }
 
 function sam_stop() {
 	(${mrsampath}/SuperAttract_init "stop")
-	jobs -l
 	disown -a
 }
 
@@ -1410,9 +1408,9 @@ function create_romlist() { # args ${core} "${DIR}"
 	local DIR="${2}"
 	local total_games=0
 	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  ${DIR}..."
+		echo " Looking for games in ${DIR}..."
 	else
-		echo -n " Looking for games in  ${DIR}..."
+		echo -n " Looking for games in ${DIR}..."
 	fi
 	rm "${gamelistpathtmp}/${core}_gamelist.txt" &>/dev/null
 	[[ -f "${tmpfile}" ]] && rm "${tmpfile}" &>/dev/null
@@ -1488,7 +1486,7 @@ function create_romlist() { # args ${core} "${DIR}"
 	fi
 }
 
-function check_romlist() { # args ${core}  "${DIR}"
+function check_romlist() { # args ${core} "${DIR}"
 	local core=${1}
 	local DIR="${2}"
 	# If gamelist is not in gameslist dir, let's put it there
@@ -1663,7 +1661,7 @@ function next_core() { # next_core (core)
 	fi
 
 	local corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
-	samdebug " corelist:    ${corelist_allow}!"
+	samdebug " corelist:	${corelist_allow}!"
 	samdebug " corelisttmp: ${corelist_allowtmp}!"
 	samdebug " corelist count is ${corelist_count} at end of next_core()"
 

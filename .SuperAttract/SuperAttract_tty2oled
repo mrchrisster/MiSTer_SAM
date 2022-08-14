@@ -11,38 +11,7 @@ compgen -v | sed s/=.\*// >/tmp/$$
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# Description
-# This cycles through arcade and console cores periodically
-# Games are randomly pulled from their respective folders
-
-# ======== Credits ========
-# Original concept and implementation: mrchrisster
-# Additional development and script layout: Mellified and Paradox
-#
-# mbc by pocomane
-# partun by woelper
-# samindex by wizzo
-# tty2oled by venice
-#
-# Thanks for the contributions and support:
-# kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
-
-#!/bin/bash
-
-# https://github.com/mrchrisster/MiSTer_SAM/
-# Copyright (c) 2021 by mrchrisster and Mellified
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # Description
@@ -142,8 +111,8 @@ function tty_init() { # tty_init
 	fi
 	if [ ! -f /tmp/tty2oled_sleep ]; then
 		samquiet "-n" " Stopping tty2oled Daemon..."
-		sleepfile_expiration=$((EPOCHSECONDS + (gametimer + 10) ))
-		echo "${sleepfile_expiration}" > /tmp/tty2oled_sleep
+		sleepfile_expiration=$((EPOCHSECONDS + (gametimer + 10)))
+		echo "${sleepfile_expiration}" >/tmp/tty2oled_sleep
 		samquiet " Done!"
 
 		# Clear Serial input buffer first
@@ -249,8 +218,8 @@ function update_counter() {
 
 function tty_display() { # tty_update core game
 	source "${tty_currentinfo_file}"
-	sleepfile_expiration=$((tty_currentinfo[date] + (tty_currentinfo[counter] + 10) ))
-	echo "${sleepfile_expiration}" > /tmp/tty2oled_sleep
+	sleepfile_expiration=$((tty_currentinfo[date] + (tty_currentinfo[counter] + 10)))
+	echo "${sleepfile_expiration}" >/tmp/tty2oled_sleep
 	# Wait for tty2oled daemon to show the core logo
 	tty_senddata "${tty_currentinfo[core]}"
 	# Wait for tty2oled to show the core logo

@@ -11,7 +11,7 @@ compgen -v | sed s/=.\*// >/tmp/$$
 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # Description
@@ -165,7 +165,7 @@ function MCP_SAM_trigger() {
 		samquiet " No activity detected for ${MCP_timeout_minutes} minutes. SAM starting..."
 		samdebug " $(date '+%m-%d-%Y_%H:%M:%S' | sed 's/\n/ /g')"
 		MCP_tty2oled_start
-		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d  =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${@}" start_real &
+		tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b d =-" -s SAM -d "${misterscripts}/Super_Attract_Mode.sh" "${@}" start_real &
 	fi
 }
 
