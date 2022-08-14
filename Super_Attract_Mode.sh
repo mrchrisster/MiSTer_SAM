@@ -631,16 +631,18 @@ function sam_update() { # sam_update (next command)
 		get_mbc
 		get_samindex
 		get_inputmap
+		# TTY2OLED custom pics
+		get_tty2oled_pics
+
 		get_samstuff .SuperAttract/SuperAttract_init
 		get_samstuff .SuperAttract/SuperAttract_MCP
 		get_samstuff .SuperAttract/SuperAttract_joy.py
 		get_samstuff .SuperAttract/SuperAttract_keyboard.py
 		get_samstuff .SuperAttract/SuperAttract_mouse.py
 		get_samstuff .SuperAttract/SuperAttract_tty2oled
-		get_samstuff .SuperAttract/SAM_splash.gsc
 		get_samstuff .SuperAttract/SuperAttractSystem
 
-		#blacklist files
+		# blacklist files
 		get_samstuff .SuperAttract/SAM_Excludelists/arcade_blacklist.txt ${excludepath}
 		get_samstuff .SuperAttract/SAM_Excludelists/fds_blacklist.txt ${excludepath}
 		get_samstuff .SuperAttract/SAM_Excludelists/megacd_blacklist.txt ${excludepath}
@@ -1178,6 +1180,14 @@ function get_inputmap() {
 	get_samstuff .SuperAttract/inputs/NES_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
 	get_samstuff .SuperAttract/inputs/TGFX16_input_1234_5678_v3.map ${misterpath}/config/inputs >/dev/null
 	echo " Done!"
+}
+
+function get_tty2oled_pics() {
+	get_samstuff .SuperAttract/tty2oled_pics/FDS_alt1.gsc /media/fat/tty2oled/pics/GSC >/dev/null
+	get_samstuff .SuperAttract/tty2oled_pics/GB.gsc /media/fat/tty2oled/pics/GSC >/dev/null
+	get_samstuff .SuperAttract/tty2oled_pics/SAM_splash.gsc /media/fat/tty2oled/pics/GSC >/dev/null
+	# get_samstuff .SuperAttract/tty2oled_pics/sg1000.gsc /media/fat/tty2oled/pics/GSC >/dev/null
+	# get_samstuff .SuperAttract/tty2oled_pics/SGB_alt1.gsc /media/fat/tty2oled/pics/GSC >/dev/null
 }
 
 # ========= SAM START =========

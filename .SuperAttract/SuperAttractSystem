@@ -823,8 +823,8 @@ function init_data() {
         ["atari7800"]="ATARI7800"
         ["atarilynx"]="AtariLynx"
         ["c64"]="C64"
-        ["fds"]="fds"
-        ["gb"]="GAMEBOY"
+        ["fds"]="FDS"
+        ["gb"]="GB"
         ["gbc"]="GAMEBOY"
         ["gba"]="GBA"
         ["genesis"]="Genesis"
@@ -836,7 +836,7 @@ function init_data() {
         ["sms"]="SMS"
         ["snes"]="SNES"
         ["tgfx16"]="TGFX16"
-        ["tgfx16cd"]="TGFX16"
+        ["tgfx16cd"]="TGFX16CD"
         ["psx"]="PSX"
     )
 

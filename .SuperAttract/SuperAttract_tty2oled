@@ -157,11 +157,19 @@ function tty_init() { # tty_init
 		tty_waitfor
 		samquiet " Done!"
 
-		echo "CMDAPD,SAM_splash" >/dev/ttyUSB0
-		tail -n +4 "/media/fat/Scripts/.SuperAttract/SAM_splash.gsc" | xxd -r -p >/dev/ttyUSB0
-		tty_waitfor
-		echo "CMDSPIC,-1" >/dev/ttyUSB0
+		tty_senddata "SAM_splash"
+		# Wait for tty2oled to show the core logo
+		samdebug "-------------------------------------------"
+		samdebug " tty_update got Corename: SAM_splash "
+				# echo "CMDAPD,SAM_splash" >/dev/ttyUSB0
+				# tail -n +4 "/media/fat/Scripts/.SuperAttract/tty2oled_pics/SAM_splash.gsc" | xxd -r -p >/dev/ttyUSB0
+				# tty_waitfor
+				# echo "CMDSPIC,-1" >/dev/ttyUSB0
+		# Show Core-Logo for 5 Secs
 		sleep 5
+		if [ -z ${tty_currentinfo} ]; then
+			write_to_TTY_cmd_pipe "display_info" &
+		fi
 	fi
 	if [ "${samdebug}" == "yes" ]; then
 		vardebug_out
