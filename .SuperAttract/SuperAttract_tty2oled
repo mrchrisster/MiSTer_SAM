@@ -60,7 +60,6 @@ compgen -v | sed s/=.\*// >/tmp/$$
 #
 # Thanks for the contributions and support:
 # kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
-trap '' INT
 
 # ======== GLOBAL VARIABLES =========
 declare -g misterpath="/media/fat"
@@ -75,7 +74,7 @@ else
 	exit
 fi
 
-trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM
+trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM INT
 
 startup_tasks
 
@@ -133,18 +132,18 @@ function tty_init() { # tty_init
 
 	# Stopping tty2oled Daemon
 	if [ -f /tmp/tty2oled_sleep ]; then
-        sleepfile_creation=$(</tmp/tty2oled_sleep)
-        sleepfile_age=$((EPOCHSECONDS - sleepfile_creation))
-        samdebug "! $sleepfile_creation ! $sleepfile_age !"
-        if [ ${sleepfile_age} -lt "${gametimer}" ]; then
- 			write_to_TTY_cmd_pipe "display_info" &
+		sleepfile_expiration=$(</tmp/tty2oled_sleep)
+		samdebug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
+		if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ]; then
+			write_to_TTY_cmd_pipe "display_info" &
 		else
 			rm /tmp/tty2oled_sleep
 		fi
 	fi
 	if [ ! -f /tmp/tty2oled_sleep ]; then
 		samquiet "-n" " Stopping tty2oled Daemon..."
-		echo "$EPOCHSECONDS" > /tmp/tty2oled_sleep
+		sleepfile_expiration=$((EPOCHSECONDS + (gametimer + 10) ))
+		echo "${sleepfile_expiration}" > /tmp/tty2oled_sleep
 		samquiet " Done!"
 
 		# Clear Serial input buffer first
@@ -248,8 +247,9 @@ function update_counter() {
 }
 
 function tty_display() { # tty_update core game
-	echo "$EPOCHSECONDS" > /tmp/tty2oled_sleep
 	source "${tty_currentinfo_file}"
+	sleepfile_expiration=$((tty_currentinfo[date] + (tty_currentinfo[counter] + 10) ))
+	echo "${sleepfile_expiration}" > /tmp/tty2oled_sleep
 	# Wait for tty2oled daemon to show the core logo
 	tty_senddata "${tty_currentinfo[core]}"
 	# Wait for tty2oled to show the core logo
