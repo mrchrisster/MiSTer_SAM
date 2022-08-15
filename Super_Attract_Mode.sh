@@ -133,51 +133,6 @@ function start_pipe_readers() {
 	done &
 }
 
-# ======== DEBUG OUTPUT =========
-function debug_output() {
-	echo " ********************************************************************************"
-	# ======== GLOBAL VARIABLES =========
-	echo " mrsampath: ${mrsampath}"
-	echo " misterpath: ${misterpath}"
-	echo " sampid: ${sampid}"
-	echo " samprocess: ${samprocess}"
-	echo ""
-	# ======== LOCAL VARIABLES ========
-	echo " commandline: ${@}"
-	echo " repository_url: ${repository_url}"
-	echo " branch: ${branch}"
-
-	echo ""
-	echo " gametimer: ${gametimer}"
-	echo " corelist: ${corelist_allow}"
-	echo " usezip: ${usezip}"
-
-	echo " listenmouse: ${listenmouse}"
-	echo " listenkeyboard: ${listenkeyboard}"
-	echo " listenjoy: ${listenjoy}"
-	echo ""
-	echo " arcadepath: ${CORE_PATH_FINAL[arcade]}"
-	echo " gbapath: ${CORE_PATH_FINAL[gba]}"
-	echo " genesispath: ${CORE_PATH_FINAL[genesis]}"
-	echo " megacdpath: ${CORE_PATH_FINAL[megacd]}"
-	echo " neogeopath: ${CORE_PATH_FINAL[neogeo]}"
-	echo " nespath: ${CORE_PATH_FINAL[nes]}"
-	echo " snespath: ${CORE_PATH_FINAL[snes]}"
-	echo " tgfx16path: ${CORE_PATH_FINAL[tgfx16]}"
-	echo " tgfx16cdpath: ${CORE_PATH_FINAL[tgfx16cd]}"
-	echo ""
-	echo " gbalist: ${gbalist}"
-	echo " genesislist: ${genesislist}"
-	echo " megacdlist: ${megacdlist}"
-	echo " neogeolist: ${neogeolist}"
-	echo " neslist: ${neslist}"
-	echo " sneslist: ${sneslist}"
-	echo " tgfx16list: ${tgfx16list}"
-	echo " tgfx16cdlist: ${tgfx16cdlist}"
-	echo " ********************************************************************************"
-	read -p " Continuing in 5 seconds or press any key..." -n 1 -t 5 -r -s
-}
-
 # ======== SAM MENU ========
 function sam_premenu() {
 	echo "+---------------------------+"
@@ -636,9 +591,6 @@ function sam_update() { # sam_update (next command)
 		get_mbc
 		get_samindex
 		get_inputmap
-		# TTY2OLED custom pics
-		get_tty2oled_pics
-
 		get_samstuff .SuperAttract/SuperAttract_init
 		get_samstuff .SuperAttract/SuperAttract_MCP
 		get_samstuff .SuperAttract/SuperAttract_joy.py
@@ -1187,16 +1139,8 @@ function get_inputmap() {
 	echo " Done!"
 }
 
-function get_tty2oled_pics() {
-	get_samstuff .SuperAttract/tty2oled_pics/FDS_alt1.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-	get_samstuff .SuperAttract/tty2oled_pics/GB.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-	get_samstuff .SuperAttract/tty2oled_pics/SAM_splash.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-	# get_samstuff .SuperAttract/tty2oled_pics/sg1000.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-	# get_samstuff .SuperAttract/tty2oled_pics/SGB_alt1.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-}
-
 # ========= SAM START =========
-function sam_start_new() {
+function sam_start_new() { # Obsolete, for now
 	loop_core "${nextcore}"
 }
 
@@ -1933,32 +1877,28 @@ function main() {
 				create_game_lists
 			fi
 
-			if [ "${samtrace}" == "yes" ]; then
-				debug_output
-			fi
-
 			case "${1,,}" in
 			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				# If we're given a core name then we need to set it first
 				if [ ! -z "${2}" ] && [ "${2,,}" == "start_real" ]; then
 					declare -gl corelist_allow=${1}
 					declare -gl nextcore=${1}
-					sam_start_new
+					loop_core "${nextcore}"
 				else
 					declare -gl corelist_allow=${1}
 					declare -gl nextcore=${1}
-					sam_start ${nextcore}
+					loop_core "${nextcore}"
 				fi
 				break
 				;;
 			start_real) # Start looping
 				declare -gl corelist_allow=$(echo "${corelist}" | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-				sam_start_new
+				loop_core "${nextcore}"
 				break
 				;;
 			startmonitor)
 				declare -gl corelist_allow=$(echo "${corelist}" | tr ',' ' ' | tr -d '[:cntrl:]' | awk '{$2=$2};1')
-				sam_start_new
+				loop_core "${nextcore}"
 				sam_monitor_new
 				break
 				;;
