@@ -2017,7 +2017,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		if [ "${nextcore}" == "arcade" ]; then
 			mute=no
 			mute "${mrasetname}"
-			echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
+			echo "load_core ${mra}" >/dev/MiSTer_cmd
 		else
 			mute=no
 			mute "${CORE_LAUNCH[${nextcore}]}"
@@ -2900,8 +2900,6 @@ function load_core_arcade() {
 	fi
 
 	if [ ! -s "${mralist_tmp}" ]; then
-		if [ "${samquiet}" == "no" ]; then echo " Copy gamelist to /tmp"; fi
-
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 	fi
 	
@@ -2975,7 +2973,7 @@ function load_core_arcade() {
 	fi
 
 	# Tell MiSTer to load the next MRA
-	echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
+	echo "load_core ${mra}" >/dev/MiSTer_cmd
 	sleep 1
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
