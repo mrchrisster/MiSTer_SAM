@@ -2024,6 +2024,11 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 		fi
 	fi
+	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
+		sam_stop
+	else
+		ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
+	fi
 }
 
 function play_or_exit() {
