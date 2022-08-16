@@ -1098,10 +1098,7 @@ function read_samini() {
 	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 		source "${misterpath}/Scripts/MiSTer_SAM.ini"
 		# Remove trailing slash from paths
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
-			declare -g ${var}="${!var%/}"
-		done
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathextra=" | cut -f1 -d"="); do
+		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"="); do
 			declare -g ${var}="${!var%/}"
 		done
 		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
@@ -2024,11 +2021,10 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 		fi
 	fi
-	if [ ! -z ${2} ] && [ ${2} == "stop" ]; then
-		sam_stop
-	else
-		ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
-	fi
+	
+	#	Exit SAM
+	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
+
 }
 
 function play_or_exit() {
@@ -2738,6 +2734,12 @@ function next_core() { # next_core (core)
 	fi
 	if [ "${nextcore}" == "amiga" ]; then
 		# If this is Amiga core we go to special code
+		
+		if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+			amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
+			FIRSTRUN[${nextcore}]=1
+		fi
+		
 		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
 			load_core_amiga
 		else
@@ -2791,9 +2793,9 @@ function next_core() { # next_core (core)
 		fi
 		
 		#Check path filter
-		if [ ! -z "${nextcore}pathextra" ]; then
+		if [ ! -z "${nextcore}pathfilter" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${nextcore}pathextra" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${nextcore}pathfilter" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		
 		
@@ -2929,9 +2931,9 @@ function load_core_arcade() {
 		fi
 		
 		#Check path filter
-		if [ ! -z "${arcadepathextra}" ]; then
+		if [ ! -z "${arcadepathfilter}" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
-			cat "${mralist}" | grep "${arcadepathextra}" > "${mralist_tmp}"
+			cat "${mralist}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
 		FIRSTRUN[${nextcore}]=1	
 	fi
