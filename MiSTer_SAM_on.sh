@@ -246,6 +246,32 @@ function init_data() {
 		["psx"]="chd,cue,exe"
 	)
 	
+	# Core to path mappings
+	declare -gA PATHFILTER=(
+		["amiga"]="${amigapathfilter}"
+		["arcade"]="${arcadepathfilter}"
+		["atari2600"]="${atari2600pathfilter}"
+		["atari5200"]="${atari5200pathfilter}"
+		["atari7800"]="${atari7800pathfilter}"
+		["atarilynx"]="${atarilynxpathfilter}"				  
+		["c64"]="${c64pathfilter}"
+		["fds"]="${fdspathfilter}"
+		["gb"]="${gbpathfilter}"
+		["gbc"]="${gbcpathfilter}"
+		["gba"]="${gbapathfilter}"
+		["genesis"]="${genesispathfilter}"
+		["gg"]="${ggpathfilter}"
+		["megacd"]="${megacdpathfilter}"
+		["neogeo"]="${neogeopathfilter}"
+		["nes"]="${nespathfilter}"
+		["s32x"]="${s32xpathfilter}"
+		["sms"]="${smspathfilter}"
+		["snes"]="${snespathfilter}"
+		["tgfx16"]="${tgfx16pathfilter}"
+		["tgfx16cd"]="${tgfx16cdpathfilter}"
+		["psx"]="${psxpathfilter}"
+	)
+	
 	declare -glA FIRSTRUN=(
 		["amiga"]="0"	
 		["arcade"]="0"
@@ -2617,12 +2643,11 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 }
 
 function check_list() { # args ${nextcore} 
-	# If gamelist is not in /tmp dir, let's put it there
+	
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"
 		create_romlist
 	fi
-
 
 	# Check if zip still exists
 	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
@@ -2636,25 +2661,36 @@ function check_list() { # args ${nextcore}
 	fi
 
 	# If gamelist is not in /tmp dir, let's put it there
-	if [ -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-
-		# Pick the actual game
-		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
-	else
-
-		# Repopulate list
-		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
-			comm -13 <(sort <"${gamelistpath}/${1}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${1}_gamelist.txt") >${tmpfile}
-			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${1}_gamelist.txt"
-			if [ "${samquiet}" == "no" ]; then echo "Done."; fi
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
-		else
-			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
-			# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
-		fi
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+	
+		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
+		
 	fi
+	
+	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+		#Check exclusion
+		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
+			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
+			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		fi
+	
+		#Check blacklist	
+		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
+			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
+			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		fi
+		
+		#Check path filter
+		if [ ! -z "${PATHFILTER[${nextcore}]}"  ]; then 
+			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${PATHFILTER[${nextcore}]}"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		fi
+		FIRSTRUN[${nextcore}]=1
+	fi
+	
+	
+	# Pick the actual game
+	rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 
 	# Make sure file exists since we're reading from a static list
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
@@ -2778,28 +2814,6 @@ function next_core() { # next_core (core)
 				return
 			fi
 		done
-	fi
-	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
-		#Check exclusion
-		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
-			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-	
-		#Check blacklist	
-		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
-			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-		
-		#Check path filter
-		if [ ! -z "${nextcore}pathfilter" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${nextcore}pathfilter" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-		
-		
-		FIRSTRUN[${nextcore}]=1
 	fi
 
 	if [ -z "${rompath}" ]; then
