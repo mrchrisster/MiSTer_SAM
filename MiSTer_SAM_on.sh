@@ -2655,17 +2655,19 @@ function check_list() { # args ${nextcore}
 			if [ ! -f "${zips}" ]; then
 				echo " Creating new game list because zip file[s] seems to have changed."
 				create_romlist
+				break
 			fi
 		done
 	fi
 
-	
-	# If gamelist is not in /tmp dir, let's put it there. Also strip out duplicates, exclude and blacklist roms
-	
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+	# If gamelist is not in /tmp dir, let's put it there
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 	
 		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
 		
+	fi
+	
+	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		#Check exclusion
 		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
@@ -2918,7 +2920,7 @@ function load_core_arcade() {
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
 	
-	#Check blacklist and copy gamelist to tmp
+	#Check blacklist nad copy tmp gamelist
 	if [ ! -s "${mralist_tmp}" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 	
