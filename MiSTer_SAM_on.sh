@@ -246,6 +246,32 @@ function init_data() {
 		["psx"]="chd,cue,exe"
 	)
 	
+	# Core to path mappings
+	declare -gA PATHFILTER=(
+		["amiga"]="${amigapathfilter}"
+		["arcade"]="${arcadepathfilter}"
+		["atari2600"]="${atari2600pathfilter}"
+		["atari5200"]="${atari5200pathfilter}"
+		["atari7800"]="${atari7800pathfilter}"
+		["atarilynx"]="${atarilynxpathfilter}"				  
+		["c64"]="${c64pathfilter}"
+		["fds"]="${fdspathfilter}"
+		["gb"]="${gbpathfilter}"
+		["gbc"]="${gbcpathfilter}"
+		["gba"]="${gbapathfilter}"
+		["genesis"]="${genesispathfilter}"
+		["gg"]="${ggpathfilter}"
+		["megacd"]="${megacdpathfilter}"
+		["neogeo"]="${neogeopathfilter}"
+		["nes"]="${nespathfilter}"
+		["s32x"]="${s32xpathfilter}"
+		["sms"]="${smspathfilter}"
+		["snes"]="${snespathfilter}"
+		["tgfx16"]="${tgfx16pathfilter}"
+		["tgfx16cd"]="${tgfx16cdpathfilter}"
+		["psx"]="${psxpathfilter}"
+	)
+	
 	declare -glA FIRSTRUN=(
 		["amiga"]="0"	
 		["arcade"]="0"
@@ -1098,10 +1124,7 @@ function read_samini() {
 	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 		source "${misterpath}/Scripts/MiSTer_SAM.ini"
 		# Remove trailing slash from paths
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
-			declare -g ${var}="${!var%/}"
-		done
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathextra=" | cut -f1 -d"="); do
+		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"="); do
 			declare -g ${var}="${!var%/}"
 		done
 		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
@@ -2017,13 +2040,17 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		if [ "${nextcore}" == "arcade" ]; then
 			mute=no
 			mute "${mrasetname}"
-			echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
+			echo "load_core ${mra}" >/dev/MiSTer_cmd
 		else
 			mute=no
 			mute "${CORE_LAUNCH[${nextcore}]}"
 			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 		fi
 	fi
+	
+	#	Exit SAM
+	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
+
 }
 
 function play_or_exit() {
@@ -2616,12 +2643,11 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 }
 
 function check_list() { # args ${nextcore} 
-	# If gamelist is not in /tmp dir, let's put it there
+	
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"
 		create_romlist
 	fi
-
 
 	# Check if zip still exists
 	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
@@ -2635,25 +2661,36 @@ function check_list() { # args ${nextcore}
 	fi
 
 	# If gamelist is not in /tmp dir, let's put it there
-	if [ -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-
-		# Pick the actual game
-		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
-	else
-
-		# Repopulate list
-		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
-			comm -13 <(sort <"${gamelistpath}/${1}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${1}_gamelist.txt") >${tmpfile}
-			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${1}_gamelist.txt"
-			if [ "${samquiet}" == "no" ]; then echo "Done."; fi
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
-		else
-			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
-			# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
-		fi
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+	
+		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
+		
 	fi
+	
+	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+		#Check exclusion
+		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
+			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
+			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		fi
+	
+		#Check blacklist	
+		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
+			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
+			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		fi
+		
+		#Check path filter
+		if [ ! -z "${PATHFILTER[${nextcore}]}"  ]; then 
+			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${PATHFILTER[${nextcore}]}"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		fi
+		FIRSTRUN[${nextcore}]=1
+	fi
+	
+	
+	# Pick the actual game
+	rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 
 	# Make sure file exists since we're reading from a static list
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
@@ -2733,6 +2770,12 @@ function next_core() { # next_core (core)
 	fi
 	if [ "${nextcore}" == "amiga" ]; then
 		# If this is Amiga core we go to special code
+		
+		if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+			amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
+			FIRSTRUN[${nextcore}]=1
+		fi
+		
 		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
 			load_core_amiga
 		else
@@ -2771,28 +2814,6 @@ function next_core() { # next_core (core)
 				return
 			fi
 		done
-	fi
-	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
-		#Check exclusion
-		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
-			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-	
-		#Check blacklist	
-		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
-			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-		
-		#Check path filter
-		if [ ! -z "${nextcore}pathextra" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${nextcore}pathextra" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-		
-		
-		FIRSTRUN[${nextcore}]=1
 	fi
 
 	if [ -z "${rompath}" ]; then
@@ -2900,8 +2921,6 @@ function load_core_arcade() {
 	fi
 
 	if [ ! -s "${mralist_tmp}" ]; then
-		if [ "${samquiet}" == "no" ]; then echo " Copy gamelist to /tmp"; fi
-
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 	fi
 	
@@ -2926,9 +2945,9 @@ function load_core_arcade() {
 		fi
 		
 		#Check path filter
-		if [ ! -z "${arcadepathextra}" ]; then
+		if [ ! -z "${arcadepathfilter}" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
-			cat "${mralist}" | grep "${arcadepathextra}" > "${mralist_tmp}"
+			cat "${mralist}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
 		FIRSTRUN[${nextcore}]=1	
 	fi
@@ -2975,7 +2994,7 @@ function load_core_arcade() {
 	fi
 
 	# Tell MiSTer to load the next MRA
-	echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
+	echo "load_core ${mra}" >/dev/MiSTer_cmd
 	sleep 1
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
