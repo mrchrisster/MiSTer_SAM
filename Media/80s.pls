@@ -1,6 +1,5 @@
 [playlist]
 NumberOfEntries=1
-File1=http://us2.internet-radio.com:8075/stream
-Title1=Classic Hits Global HD
+File1=http://webradio.antennevorarlberg.at:80/80er
+Title1=Antenne Vorarlberg Die 80er
 Length1=-1
-Version=2
