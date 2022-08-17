@@ -2615,19 +2615,21 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ "${mute}" == "yes" ]; then
-		# Mute Global Volume
-		echo -e "\0020\c" >/media/fat/config/Volume.dat
-	elif [ "${mute}" == "core" ]; then
-		#  Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		# Mute Core Volumes
-		echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
-	elif [ "${mute}" == "no" ]; then
-		#  Global Volume
-		echo -e "\0000\c" >/media/fat/config/Volume.dat
-		#  Core Volumes
-		echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
+	if mountpoint -q -- "/media/fat/config"; then
+		if [ "${mute}" == "yes" ]; then
+			# Mute Global Volume
+			echo -e "\0020\c" >/media/fat/config/Volume.dat
+		elif [ "${mute}" == "core" ]; then
+			#  Global Volume
+			echo -e "\0000\c" >/media/fat/config/Volume.dat
+			# Mute Core Volumes
+			echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
+		elif [ "${mute}" == "no" ]; then
+			#  Global Volume
+			echo -e "\0000\c" >/media/fat/config/Volume.dat
+			#  Core Volumes
+			echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
+		fi
 	fi
 }
 
