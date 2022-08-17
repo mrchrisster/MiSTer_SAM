@@ -5,6 +5,8 @@ import time
 import sys
 import os
 
+DEBUG = False
+
 ACTIVITY_FILE = "/tmp/.SAM_Joy_Activity"
 POLL_RATE = 0.2
 AXIS_DEADZONE = 2000
@@ -72,11 +74,15 @@ def get_activity(
         if pe["type"] & BUTTON == BUTTON:
             # button depresses count as an activity currently
             if pe["value"] != np["value"]:
+                if DEBUG:
+                    print("Button ID: {}".format(pe["number"]))
                 event_type = "button"
                 activity = ACTIVITIES["default"]
                 break
         elif pe["type"] & AXIS == AXIS:
             if abs(pe["value"] - np["value"]) > AXIS_DEADZONE:
+                if DEBUG:
+                    print("Axis ID: {}".format(pe["number"]))
                 event_type = "axis"
                 activity = ACTIVITIES["default"]
                 break
@@ -128,6 +134,8 @@ if __name__ == "__main__":
     try:
         events = read_state(sys.argv[1])
         device_id = get_device_id(sys.argv[1])
+        if DEBUG and device_id:
+            print("Device ID: {}".format(device_id))
     except FileNotFoundError:
         print("Joystick does not exist: {}".format(sys.argv[1]))
         sys.exit(1)
