@@ -5,7 +5,7 @@ import time
 import sys
 import os
 
-DEBUG = False
+DEBUG = True
 
 ACTIVITY_FILE = "/tmp/.SAM_Joy_Activity"
 POLL_RATE = 0.2
@@ -17,6 +17,13 @@ ACTIVITIES = {"start": "Start", "default": "Button pushed"}
 CONTROLLERS = {
     "054c_05c4": {
         "name": "Sony DualShock 4",
+        "button": {
+            "start": 9,
+        },
+        "axis": {},
+    },
+    "054c_0268": {
+        "name": "Sony PS3 DualShock",
         "button": {
             "start": 9,
         },
