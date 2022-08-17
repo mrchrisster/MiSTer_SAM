@@ -2659,14 +2659,13 @@ function check_list() { # args ${nextcore}
 		done
 	fi
 
-	# If gamelist is not in /tmp dir, let's put it there
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+	
+	# If gamelist is not in /tmp dir, let's put it there. Also strip out duplicates, exclude and blacklist roms
+	
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 	
 		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
 		
-	fi
-	
-	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		#Check exclusion
 		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
@@ -2918,25 +2917,10 @@ function load_core_arcade() {
 		build_mralist 
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
-
-	if [ ! -s "${mralist_tmp}" ]; then
+	
+	#Check blacklist and copy gamelist to tmp
+	if [ ! -s "${mralist_tmp}" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
-	fi
-	
-	# Get a random game from the list
-	mra="$(shuf --head-count=1 ${mralist_tmp})"
-	
-
-	# If the mra variable is valid this is skipped, but if not we try 5 times
-	# Partially protects against typos from manual editing and strange character parsing problems
-	for i in {1..5}; do
-		if [ ! -f "${mra}" ]; then
-			mra=$(shuf --head-count=1 ${mralist_tmp})
-		fi
-	done
-	
-	#Check blacklist
-	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
@@ -2950,6 +2934,19 @@ function load_core_arcade() {
 		fi
 		FIRSTRUN[${nextcore}]=1	
 	fi
+	
+	
+	# Get a random game from the list
+	mra="$(shuf --head-count=1 ${mralist_tmp})"
+	
+
+	# If the mra variable is valid this is skipped, but if not we try 5 times
+	# Partially protects against typos from manual editing and strange character parsing problems
+	for i in {1..5}; do
+		if [ ! -f "${mra}" ]; then
+			mra=$(shuf --head-count=1 ${mralist_tmp})
+		fi
+	done
 	
 	
 	mraname=$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')	
