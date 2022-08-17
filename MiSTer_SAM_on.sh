@@ -2144,9 +2144,6 @@ function deletegl() {
 		rm  "${mrsampath}"/SAM_Gamelists/*_gamelist.txt
 	fi
 
-	if [ -d "${mrsampath}/SAM_Count" ]; then
-		rm -rf "${mrsampath}/SAM_Count"
-	fi
 	if [ -d /tmp/.SAM_List ]; then
 		rm -rf /tmp/.SAM_List
 	fi
@@ -2909,7 +2906,7 @@ function build_mralist() {
 
 }
 
-function load_core_arcade() {	
+function load_core_arcade() {
 
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
@@ -2957,7 +2954,7 @@ function load_core_arcade() {
 	mrasetname=$(grep "<setname>" "${mra}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	tty_corename="${mrasetname}"
 
-	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${mraname}"; fi
+	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${mra}"; fi
 
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
