@@ -5,7 +5,7 @@ import time
 import sys
 import os
 
-DEBUG = True
+DEBUG = False
 
 ACTIVITY_FILE = "/tmp/.SAM_Joy_Activity"
 POLL_RATE = 0.2
