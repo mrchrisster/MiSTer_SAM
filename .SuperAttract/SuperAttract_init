@@ -100,10 +100,6 @@ function cleanup() {
 		samquiet " Done!"
 	fi
 	pids=""
-	sam_cleanup
-	tty_cleanup
-	mcp_cleanup
-
 	# Kill old activity processes
 	pids=$(ps aux | grep python | grep MCP_Activity_pipe | grep -v grep | awk '{print $1}') 2>/dev/null
 	if [ ! -z "${pids}" ]; then
@@ -149,6 +145,10 @@ function cleanup() {
 	killall -q -9 hexdump 2>/dev/null
 	sync
 	echo 3 >/proc/sys/vm/drop_caches
+	sam_cleanup
+	tty_cleanup
+	mcp_cleanup
+	return 1
 }
 
 function mcp_start() {
@@ -176,7 +176,8 @@ quickstart)
 	cleanup
 	mcp_start "${@,,}"
 	;;
-stop)
+stop | quit | exit)
+	startup_tasks
 	cleanup
 	;;
 *)

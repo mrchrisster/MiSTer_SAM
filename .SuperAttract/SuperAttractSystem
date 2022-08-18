@@ -1533,30 +1533,6 @@ function init_data() {
 	)
 }
 
-declare -gl samquiet="no"
-declare -gl samdebug="yes"
-declare -gl samtrace="no"
-
-case "${1}" in
-start | restart | quickstart)
-	if [ "${samprocess}" == "Super_Attract_Mode.sh" ]; then
-		return
-	fi
-	;;
-stop | quit | exit)
-	return
-	;;
-reset)
-	shift
-	rm --force ${mrsamtmp}/amigashared_path $ >/dev/null
-	rm --force ${mrsamtmp}/default_paths $ >/dev/null
-	rm --force ${mrsamtmp}/ini_settings $ >/dev/null
-	samquiet "All tmp settings files deleted..."
-	samquiet "Run script again without reset to start..."
-	return
-	;;
-esac
-
 function regen_ini_settings() {
 	echo -n " Please wait while settings are loaded..."
 	read_samini
@@ -1568,6 +1544,32 @@ function vardebug_out() {
 	declare -p | grep -wvf /tmp/${samprocess}.tmp | grep -v ^\" | grep -v ^\" >>"${mrsamtmp}/vardump_${samprocess}.log"
 	rm /tmp/${samprocess}.tmp
 }
+
+declare -gl samquiet="no"
+declare -gl samdebug="yes"
+declare -gl samtrace="no"
+
+case "${1}" in
+start | restart | quickstart)
+	if [ "${samprocess}" == "Super_Attract_Mode.sh" ]; then
+		return
+	fi
+	;;
+stop | quit | exit)
+	if [ "${samprocess}" == "Super_Attract_Mode.sh" ]; then
+		return
+	fi
+	;;
+reset)
+	shift
+	rm --force ${mrsamtmp}/amigashared_path $ >/dev/null
+	rm --force ${mrsamtmp}/default_paths $ >/dev/null
+	rm --force ${mrsamtmp}/ini_settings $ >/dev/null
+	samquiet "All tmp settings files deleted..."
+	samquiet "Run script again without reset to start..."
+	return
+	;;
+esac
 
 if [[ -s "${mrsamtmp}/ini_settings" ]]; then
 	ini_file_md5=$(md5sum ${misterscripts}/Super_Attract_Mode.ini | awk '{print $1}')
