@@ -101,7 +101,11 @@ function MCP_jsmonitor() {
 		if [ ! -z "${joystick}" ]; then
 			j=$(echo ${joystick} | sed 's./dev/input/..')
 			samdebug "-n" " ${j}..."
-			"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" >/dev/null 2>&1 &
+			if [ "${samdebug}" == "no" ]; then
+				"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" >/dev/null 2>&1 &
+			else
+				"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" "True" &
+			fi
 		fi
 	done
 	shopt -u nullglob
