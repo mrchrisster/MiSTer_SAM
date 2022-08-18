@@ -37,7 +37,7 @@ declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 declare -g mrsamtmp="/tmp/.SAM_tmp"
-compgen -v | sed s/=.\*// >/tmp/$samprocess
+compgen -v | sed s/=.\*// >/tmp/${samprocess}.tmp
 
 if [ -s SuperAttractSystem ]; then
 	source SuperAttractSystem
@@ -45,10 +45,7 @@ elif [ -s ${mrsampath}/SuperAttractSystem ]; then
 	source ${mrsampath}/SuperAttractSystem
 else
 	echo "Error! SuperAttractSystem not found!"
-	exit
 fi
-
-trap 'rc=$?;[ ${rc} = 0 ] && exit;sam_cleanup' EXIT TERM
 
 function sam_prep() {
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config/config" "${misterpath}/config"
@@ -155,6 +152,7 @@ function sam_premenu() {
 	echo " auto-configuration"
 	echo ""
 	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
+	[[ -f "/tmp/SuperAttractSystem" ]] && rm -f "/tmp/SuperAttractSystem"
 	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
 	[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
 
@@ -552,7 +550,6 @@ function sam_bgmmenu() {
 
 # ======== SAM COMMANDS ========
 function sam_update() { # sam_update (next command)
-	[[ -s ${misterscripts}/Super_Attract_Mode.ini ]] && read_samini
 	if [ $(dirname -- ${0}) != "/tmp" ]; then
 		# Warn if using non-default branch for updates
 		if [ "${branch}" != "main" ]; then
@@ -570,14 +567,13 @@ function sam_update() { # sam_update (next command)
 		if [ -f /tmp/Super_Attract_Mode.sh ]; then
 			if [ ! -z ${1} ]; then
 				echo " Continuing setup with latest Super_Attract_Mode.sh..."
-				/tmp/Super_Attract_Mode.sh ${1}
-				return 0
+				/tmp/Super_Attract_Mode.sh "${1}"
 			else
 				echo " Launching latest"
 				echo " Super_Attract_Mode.sh..."
 				/tmp/Super_Attract_Mode.sh update
-				return 0
 			fi
+			return 0
 		else
 			# /tmp/Super_Attract_Mode.sh isn't there!
 			echo " SAM update FAILED"
@@ -624,14 +620,17 @@ function sam_update() { # sam_update (next command)
 		fi
 
 	fi
-	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
-	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
-	[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
 
-	echo " Update complete!"
-	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
-
-	sam_exit 0 "stop"
+	if [ -z "${1}" ] && [ "${1}" == "autoconfig" ]; then
+		sam_install
+	else
+		[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
+		[[ -f "/tmp/SuperAttractSystem" ]] && rm -f "/tmp/SuperAttractSystem"
+		[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
+		[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
+		echo " Update complete!"
+		echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
+	fi
 }
 
 function sam_install() { # Install SAM to startup
@@ -681,10 +680,14 @@ function sam_install() { # Install SAM to startup
 	fi
 	echo -e "\e[1m" and show each game for ${gametimer} sec."\e[0m"
 	echo -e "\n\n\n"
+	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
+	[[ -f "/tmp/SuperAttractSystem" ]] && rm -f "/tmp/SuperAttractSystem"
+	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
+	[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
 	sleep 5
-	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
 
-	sam_exit 0 "stop"
+	echo " Update complete!"
+	echo " Please reboot your Mister. (Cold Reboot) or start SAM from the menu"
 }
 
 function sam_uninstall() { # Uninstall SAM from startup
@@ -1108,7 +1111,7 @@ function get_samindex() {
 	echo " Downloading samindex - needed for creating gamelists..."
 	echo " Created for MiSTer by wizzo"
 	echo " ${REPO_URL}"
-	local latest="${repository_url}/blob/${branch}/.SuperAttract/bin/samindex.zip?raw=true"
+	local latest="${REPO_URL}"
 	curl_download "/tmp/samindex.zip" "${latest}"
 	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
 	unzip -ojq /tmp/samindex.zip -d "${mrsampath}/bin" # &>/dev/null
@@ -1122,7 +1125,7 @@ function get_mbc() {
 	echo " Downloading mbc - Control MiSTer from cmd..."
 	echo " Created for MiSTer by pocomane"
 	echo " ${REPO_URL}"
-	local latest="${repository_url}/blob/${branch}/.SuperAttract/bin/mbc?raw=true"
+	local latest="${REPO_URL}"
 	curl_download "/tmp/mbc" "${latest}"
 	[[ ! -d "${mrsampath}/bin" ]] && mkdir -p "${mrsampath}/bin"
 	mv --force "/tmp/mbc" "${mrsampath}/bin/mbc"
@@ -1803,13 +1806,25 @@ function main() {
 				sam_monitor_new
 				break
 				;;
-			install) # Enable SAM autoplay mode
+			default) # sam_update relaunches itself
+				sam_update autoconfig
+				break
+				;;
+			update) # Update SAM
+				shift
+				sam_update "${@}"
+				break
+				;;
+			autoconfig) # Update SAM
 				startup_tasks
+				sam_update "${@}"
+				break
+				;;
+			install) # Enable SAM autoplay mode
 				sam_install
 				break
 				;;
 			uninstall) # Disable SAM autoplay
-				startup_tasks
 				sam_uninstall
 				break
 				;;
@@ -1826,24 +1841,6 @@ function main() {
 			delete-gamelists)
 				startup_tasks
 				deletegl
-				break
-				;;
-			default) # sam_update relaunches itself
-				startup_tasks
-				sam_update autoconfig
-				break
-				;;
-			update) # Update SAM
-				startup_tasks
-				sam_update
-				break
-				;;
-			autoconfig)
-				tmux kill-session -t MCP &>/dev/null
-				there_can_be_only_one
-				startup_tasks
-				sam_update
-				sam_install
 				break
 				;;
 			favorite)
@@ -1966,6 +1963,30 @@ function main() {
 		done
 	fi
 }
+
+if [ $(dirname -- ${0}) == "/tmp" ] && [ ! -s /tmp/SuperAttractSystem ]; then
+	declare -gA ini_settings=()
+	while read line; do
+		local value1=$(echo "$line" | grep "^[^#;]*epository_url=" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2\n/p" | sed "s/\"//g")
+		local value2=$(echo "$line" | grep "^[^#;]*ranch=" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2\n/p" | sed "s/\"//g")
+		declare -g repository_url=${value1:="https://github.com/mrchrisster/MiSTer_SAM"}
+		declare -g branch="${value2:="named-pipes"}"
+	done <${misterscripts}/Super_Attract_Mode.ini
+	ini_settings[repository_url]=$repository_url
+	ini_settings[branch]=$branch
+	ini_settings[md5sum]=$(md5sum ${misterscripts}/Super_Attract_Mode.ini | awk '{print $1}')
+	# write to output file
+	printf "%s\n" "declare -gA ini_settings=(" >"${mrsamtmp}/ini_settings"
+	printf "[%s]=%s\n" "repository_url" "${ini_settings[repository_url]}" >"${mrsamtmp}/ini_settings"
+	printf "[%s]=%s\n" "branch" "${ini_settings[branch]}" >"${mrsamtmp}/ini_settings"
+	printf "[%s]=%s\n" "md5sum" "${ini_settings[md5sum]}" >"${mrsamtmp}/ini_settings"
+	printf "%s\n" ")"
+	get_samstuff .SuperAttract/SuperAttractSystem /tmp
+	/tmp/Super_Attract_Mode.sh autoconfig
+	exit
+fi
+
+trap 'rc=$?;[ ${rc} = 0 ] && exit;sam_cleanup' EXIT TERM
 
 if [ "${1,,}" == "--source-only" ]; then
 	startup_tasks

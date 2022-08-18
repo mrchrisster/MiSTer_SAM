@@ -37,7 +37,7 @@ declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
 declare -g mrsampath="${misterscripts}/.SuperAttract"
 declare -g mrsamtmp="/tmp/.SAM_tmp"
-compgen -v | sed s/=.\*// >/tmp/$samprocess
+compgen -v | sed s/=.\*// >/tmp/${samprocess}.tmp
 
 if [ -s SuperAttractSystem ]; then
 	source SuperAttractSystem

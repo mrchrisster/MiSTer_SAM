@@ -14,28 +14,6 @@ if [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
 	source "/media/fat/Scripts/MiSTer_SAM.ini"
 fi
 
-function parse_cmd() {
-	while [ ${#} -gt 0 ]; do
-        case "${1,,}" in
-			default) # sam_update relaunches itself
-				sam_update autoconfig
-				break
-				;;
-			autoconfig | defaultb | update) # Update SAM
-				sam_cleanup
-				sam_update
-				break
-				;;
-			*)
-				echo " ERROR! ${1} is unknown."
-				echo " Try $(basename -- ${0}) help"
-				echo " Or check the Github readme."
-				break
-				;;
-		esac
-	done
-}
-
 function sam_update() { # sam_update (next command)
 	# End script through button push
 
@@ -92,9 +70,6 @@ function sam_update() { # sam_update (next command)
 		get_mbc
 		get_samindex
 		get_inputmap
-		# TTY2OLED custom pics
-		get_tty2oled_pics
-
 		get_samstuff .SuperAttract/SuperAttract_init
 		get_samstuff .SuperAttract/SuperAttract_MCP
 		get_samstuff .SuperAttract/SuperAttract_joy.py
@@ -112,7 +87,7 @@ function sam_update() { # sam_update (next command)
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/Super_Attract_Mode.ini
 		fi
-		
+
 		if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
 			echo " SAM INI already exists... Merging with new ini."
 			get_samstuff "Super_Attract_Mode.ini" /tmp
@@ -130,7 +105,7 @@ function sam_update() { # sam_update (next command)
 		else
 			get_samstuff "Super_Attract_Mode.ini" ${misterscripts}
 		fi
-		
+
 	fi
 
     sam_bootmigrate
@@ -227,14 +202,6 @@ function get_inputmap() {
 	echo " Done!"
 }
 
-function get_tty2oled_pics() {
-	get_samstuff .SuperAttract/tty2oled_pics/FDS_alt1.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-	get_samstuff .SuperAttract/tty2oled_pics/GB.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-	get_samstuff .SuperAttract/tty2oled_pics/SAM_splash.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-	# get_samstuff .SuperAttract/tty2oled_pics/sg1000.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-	# get_samstuff .SuperAttract/tty2oled_pics/SGB_alt1.gsc /media/fat/tty2oled/pics/GSC >/dev/null
-}
-
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	[[ $(mount | grep -ic "${misterpath}/config") -eq 1 ]] && umount "${misterpath}/config"
@@ -280,7 +247,7 @@ function sam_bootmigrate() {
 		echo -e "\n# Startup Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e ${mrsampath}/SuperAttract_init ]] && ${mrsampath}/SuperAttract_init \$1 &" >>"${userstartup}"
 	fi
-	
+
 	if [ -d /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists ]; then
 		echo -e " Migrating Gamelists..."
 		rsync -avx "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/" "/media/fat/Scripts/.SuperAttract/SAM_Gamelists/" >/dev/null
@@ -288,4 +255,26 @@ function sam_bootmigrate() {
 	fi
 }
 
-parse_cmd ${@}
+function main() {
+	while [ ${#} -gt 0 ]; do
+        case "${1,,}" in
+			default) # sam_update relaunches itself
+				sam_update autoconfig
+				break
+				;;
+			autoconfig | defaultb | update) # Update SAM
+				sam_cleanup
+				sam_update
+				break
+				;;
+			*)
+				echo " ERROR! ${1} is unknown."
+				echo " Try $(basename -- ${0}) help"
+				echo " Or check the Github readme."
+				break
+				;;
+		esac
+	done
+}
+
+main ${@}

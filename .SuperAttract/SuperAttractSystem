@@ -1565,8 +1565,8 @@ function regen_ini_settings() {
 
 function vardebug_out() {
 	echo "" | >"${mrsamtmp}/vardump_${samprocess}.log"
-	declare -p | grep -wvf /tmp/${samprocess} | grep -v ^\" | grep -v ^\" >>"${mrsamtmp}/vardump_${samprocess}.log"
-	rm /tmp/${samprocess}
+	declare -p | grep -wvf /tmp/${samprocess}.tmp | grep -v ^\" | grep -v ^\" >>"${mrsamtmp}/vardump_${samprocess}.log"
+	rm /tmp/${samprocess}.tmp
 }
 
 if [[ -s "${mrsamtmp}/ini_settings" ]]; then
