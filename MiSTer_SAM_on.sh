@@ -7,10 +7,12 @@ declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 declare -g userstartup="/media/fat/linux/user-startup.sh"
 declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
-declare -g branch="named_pipes"
+declare -g branch="named-pipes"
 
 
-if [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
+if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
+	source "/media/fat/Scripts/Super_Attract_Mode.ini"
+elif [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
 	source "/media/fat/Scripts/MiSTer_SAM.ini"
 fi
 
@@ -34,7 +36,6 @@ function sam_update() { # sam_update (next command)
 
 		# Download the newest MiSTer_SAM_on.sh to /tmp
 		get_samstuff MiSTer_SAM_on.sh /tmp
-		get_samstuff .SuperAttract/SuperAttractSystem /tmp
 		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
 			if [ ${1} ]; then
 				echo " Continuing setup with latest MiSTer_SAM_on.sh..."
@@ -53,23 +54,24 @@ function sam_update() { # sam_update (next command)
 			exit 1
 		fi
 	else # We're running from /tmp - download dependencies and proceed
-		#cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
-
-        echo ""
-        echo ""
-		echo " !!! PLEASE NOTE !!!"
-        echo " MiSTer_SAM_on.sh has been renamed to Super_Attract_Mode.sh"
-        echo ""
-		for i in {5..1}; do
-			echo -en " Migrating to new file naming convention in ${i}...\r"
-			sleep 1
-		done
-        echo ""
+		if [ -f ${misterscripts}/MiSTer_SAM_on.sh ]; then
+			echo ""
+			echo ""
+			echo " !!! PLEASE NOTE !!!"
+			echo " MiSTer_SAM_on.sh has been renamed to Super_Attract_Mode.sh"
+			echo ""
+			for i in {5..1}; do
+				echo -en " Migrating to new file naming convention in ${i}...\r"
+				sleep 1
+			done
+			echo ""
+		fi
 
 		get_partun
 		get_mbc
 		get_samindex
 		get_inputmap
+		get_samstuff Super_Attract_Mode.sh ${misterscripts}
 		get_samstuff .SuperAttract/SuperAttract_init
 		get_samstuff .SuperAttract/SuperAttract_MCP
 		get_samstuff .SuperAttract/SuperAttract_joy.py
@@ -103,15 +105,17 @@ function sam_update() { # sam_update (next command)
 			echo "Done."
 
 		else
-			get_samstuff "Super_Attract_Mode.ini" ${misterscripts}
+			get_samstuff Super_Attract_Mode.ini ${misterscripts}
 		fi
 
 	fi
 
     sam_bootmigrate
 
+	[[ -f "/tmp/MiSTer_SAM_on.sh" ]] && rm -f "/tmp/MiSTer_SAM_on.sh"
 	[[ -f "/tmp/Super_Attract_Mode.sh" ]] && rm -f "/tmp/Super_Attract_Mode.sh"
 	[[ -f "/tmp/Super_Attract_Mode.ini" ]] && rm -f "/tmp/Super_Attract_Mode.ini"
+	[[ -f "/tmp/SuperAttractSystem" ]] && rm -f "/tmp/SuperAttractSystem"
 	[[ -f "/tmp/samindex.zip" ]] && rm -f "/tmp/samindex.zip"
 
 	echo " Update complete!"

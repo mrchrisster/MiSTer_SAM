@@ -45,7 +45,10 @@ elif [ -s ${mrsampath}/SuperAttractSystem ]; then
 	source ${mrsampath}/SuperAttractSystem
 else
 	echo "Error! SuperAttractSystem not found!"
+	exit
 fi
+
+trap 'rc=$?;[ ${rc} = 0 ] && exit;sam_cleanup' EXIT TERM
 
 function sam_prep() {
 	[[ -d "${mrsamtmp}/SAM_config" ]] && [[ $(mount | grep -ic "${misterpath}/config") == "0" ]] && cp -pr --force "${misterpath}/config" ${mrsamtmp}/SAM_config && mount --bind "${mrsamtmp}/SAM_config/config" "${misterpath}/config"
@@ -560,33 +563,31 @@ function sam_update() { # sam_update (next command)
 			echo ""
 		fi
 
-		# Download the newest Super_Attract_Mode.sh to /tmp
-		[[ -f /tmp/Super_Attract_Mode.sh ]] && rm /tmp/Super_Attract_Mode.sh
-		get_samstuff Super_Attract_Mode.sh /tmp
-		get_samstuff .SuperAttract/SuperAttractSystem /tmp
-		if [ -f /tmp/Super_Attract_Mode.sh ]; then
-			if [ ! -z ${1} ]; then
-				echo " Continuing setup with latest Super_Attract_Mode.sh..."
-				/tmp/Super_Attract_Mode.sh "${1}"
+		# Download the newest MiSTer_SAM_on.sh to /tmp
+		get_samstuff MiSTer_SAM_on.sh /tmp
+		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
+			if [ ${1} ]; then
+				echo " Continuing setup with latest MiSTer_SAM_on.sh..."
+				/tmp/MiSTer_SAM_on.sh ${1}
+				exit 0
 			else
 				echo " Launching latest"
-				echo " Super_Attract_Mode.sh..."
-				/tmp/Super_Attract_Mode.sh update
+				echo " MiSTer_SAM_on.sh..."
+				/tmp/MiSTer_SAM_on.sh update
+				exit 0
 			fi
-			return 0
 		else
-			# /tmp/Super_Attract_Mode.sh isn't there!
+			# /tmp/MiSTer_SAM_on.sh isn't there!
 			echo " SAM update FAILED"
 			echo " No Internet?"
-			return 1
+			exit 1
 		fi
 	else # We're running from /tmp - download dependencies and proceed
-		cp --force "/tmp/Super_Attract_Mode.sh" "${misterscripts}/Super_Attract_Mode.sh" &>/dev/null
-
 		get_partun
 		get_mbc
 		get_samindex
 		get_inputmap
+		get_samstuff Super_Attract_Mode.sh ${misterscripts}
 		get_samstuff .SuperAttract/SuperAttract_init
 		get_samstuff .SuperAttract/SuperAttract_MCP
 		get_samstuff .SuperAttract/SuperAttract_joy.py
@@ -616,7 +617,7 @@ function sam_update() { # sam_update (next command)
 			echo "Done."
 
 		else
-			get_samstuff "Super_Attract_Mode.ini" ${misterscripts}
+			get_samstuff Super_Attract_Mode.ini ${misterscripts}
 		fi
 
 	fi
@@ -1963,30 +1964,6 @@ function main() {
 		done
 	fi
 }
-
-if [ $(dirname -- ${0}) == "/tmp" ] && [ ! -s /tmp/SuperAttractSystem ]; then
-	declare -gA ini_settings=()
-	while read line; do
-		local value1=$(echo "$line" | grep "^[^#;]*epository_url=" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2\n/p" | sed "s/\"//g")
-		local value2=$(echo "$line" | grep "^[^#;]*ranch=" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2\n/p" | sed "s/\"//g")
-		declare -g repository_url=${value1:="https://github.com/mrchrisster/MiSTer_SAM"}
-		declare -g branch="${value2:="named-pipes"}"
-	done <${misterscripts}/Super_Attract_Mode.ini
-	ini_settings[repository_url]=$repository_url
-	ini_settings[branch]=$branch
-	ini_settings[md5sum]=$(md5sum ${misterscripts}/Super_Attract_Mode.ini | awk '{print $1}')
-	# write to output file
-	printf "%s\n" "declare -gA ini_settings=(" >"${mrsamtmp}/ini_settings"
-	printf "[%s]=%s\n" "repository_url" "${ini_settings[repository_url]}" >"${mrsamtmp}/ini_settings"
-	printf "[%s]=%s\n" "branch" "${ini_settings[branch]}" >"${mrsamtmp}/ini_settings"
-	printf "[%s]=%s\n" "md5sum" "${ini_settings[md5sum]}" >"${mrsamtmp}/ini_settings"
-	printf "%s\n" ")"
-	get_samstuff .SuperAttract/SuperAttractSystem /tmp
-	/tmp/Super_Attract_Mode.sh autoconfig
-	exit
-fi
-
-trap 'rc=$?;[ ${rc} = 0 ] && exit;sam_cleanup' EXIT TERM
 
 if [ "${1,,}" == "--source-only" ]; then
 	startup_tasks
