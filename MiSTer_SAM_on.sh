@@ -10,12 +10,6 @@ declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 declare -g branch="named-pipes"
 
 
-if [ -f "/media/fat/Scripts/Super_Attract_Mode.ini" ]; then
-	source "/media/fat/Scripts/Super_Attract_Mode.ini"
-elif [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
-	source "/media/fat/Scripts/MiSTer_SAM.ini"
-fi
-
 function sam_update() { # sam_update (next command)
 	# End script through button push
 
@@ -86,8 +80,8 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .SuperAttract/SAM_Excludelists/megacd_blacklist.txt ${excludepath}
 		get_samstuff .SuperAttract/SAM_Excludelists/tgfx16cd_blacklist.txt ${excludepath}
 
-		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
-			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/Super_Attract_Mode.ini
+		if [ -f ${misterscripts}/MiSTer_SAM.ini ]; then
+			cp ${misterscripts}/MiSTer_SAM.ini ${misterscripts}/Super_Attract_Mode.ini
 		fi
 
 		if [ -f "${misterscripts}/Super_Attract_Mode.ini" ]; then
@@ -252,9 +246,9 @@ function sam_bootmigrate() {
 		echo -e "[[ -e ${mrsampath}/SuperAttract_init ]] && ${mrsampath}/SuperAttract_init \$1 &" >>"${userstartup}"
 	fi
 
-	if [ -d /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists ]; then
+	if [ -d ${misterscripts}/.MiSTer_SAM/SAM_Gamelists ]; then
 		echo -e " Migrating Gamelists..."
-		rsync -avx "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/" "/media/fat/Scripts/.SuperAttract/SAM_Gamelists/" >/dev/null
+		rsync -avx "${misterscripts}/.MiSTer_SAM/SAM_Gamelists/" "${misterscripts}/.SuperAttract/SAM_Gamelists/" >/dev/null
 		echo " Done."
 	fi
 }

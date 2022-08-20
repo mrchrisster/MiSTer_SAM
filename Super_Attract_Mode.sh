@@ -693,7 +693,7 @@ function sam_install() { # Install SAM to startup
 
 function sam_uninstall() { # Uninstall SAM from startup
 
-	echo -n " Uninstallling SAM..."
+	echo -n " Uninstalling SAM..."
 	# Clean out existing processes to ensure we can update
 
 	if [ -f /etc/init.d/S93mistersam ] || [ -f /etc/init.d/_S93mistersam ]; then
