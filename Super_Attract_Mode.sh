@@ -892,19 +892,13 @@ function deletegl() {
 function creategl() {
 	mkdir -p "${gamelistpath}"
 	mkdir -p "${gamelistpathtmp}"
-	local create_all_gamelists_old="${create_all_gamelists}"
-	local rebuild_freq_amiga_old="${rebuild_freq_amiga}"
-	local rebuild_freq_arcade_old="${rebuild_freq_arcade}"
-	local rebuild_freq_old="${rebuild_freq}"
-	local create_all_gamelists="Yes"
-	local rebuild_freq_amiga="Always"
-	local rebuild_freq_arcade="Always"
-	local rebuild_freq="Always"
+	create_all_gamelists_old="${create_all_gamelists}"
+	rebuild_freq_old="${rebuild_freq}"
+	create_all_gamelists="Yes"
+	rebuild_freq="Always"
 	create_game_lists
-	local create_all_gamelists="${create_all_gamelists_old}"
-	local rebuild_freq_amiga="${rebuild_freq_amiga_old}"
-	local rebuild_freq_arcade="${rebuild_freq_arcade_old}"
-	local rebuild_freq="${rebuild_freq_old}"
+	create_all_gamelists="${create_all_gamelists_old}"
+	rebuild_freq="${rebuild_freq_old}"
 	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
 		sam_menu
@@ -1253,9 +1247,9 @@ function speedtest() {
 	done
 	echo "Total: $(($(date +%s) - ${START})) seconds" >>"${gamelistpathtmp}/Durations.tmp"
 	if [ -s "${gamelistpathtmp}/Durations.tmp" ]; then
-		cat "${gamelistpathtmp}/Durations.tmp" | while IFS=$'\n' read line; do
+		while read line; do
 			echo "${line}"
-		done
+		done <"${gamelistpathtmp}/Durations.tmp"
 	fi
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
 	[ $(mount | grep -ic "${gamelistpath}") != "0" ] && umount "${gamelistpath}"
@@ -1285,47 +1279,6 @@ function create_game_lists() {
 		;;
 	esac
 
-	case ${rebuild_freq_arcade} in
-	hour)
-		rebuild_freq_arcade_int=$((3600 * ${regen_duration_arcade}))
-		;;
-	day)
-		rebuild_freq_arcade_int=$((86400 * ${regen_duration_arcade}))
-		;;
-	week)
-		rebuild_freq_arcade_int=$((604800 * ${regen_duration_arcade}))
-		;;
-	always)
-		rebuild_freq_arcade_int=0
-		;;
-	never)
-		rebuild_freq_arcade_int=$((3155760000 * ${regen_duration_arcade}))
-		;;
-	*)
-		echo "Incorrect regeneration value"
-		;;
-	esac
-
-	case ${rebuild_freq_amiga} in
-	hour)
-		rebuild_freq_amiga_int=$((3600 * ${regen_duration_amiga}))
-		;;
-	day)
-		rebuild_freq_amiga_int=$((86400 * ${regen_duration_amiga}))
-		;;
-	week)
-		rebuild_freq_amiga_int=$((604800 * ${regen_duration_amiga}))
-		;;
-	always)
-		rebuild_freq_amiga_int=0
-		;;
-	never)
-		rebuild_freq_amiga_int=$((3155760000 * ${regen_duration_amiga}))
-		;;
-	*)
-		echo "Incorrect regeneration value"
-		;;
-	esac
 	local core
 	for core in ${corelistall}; do
 		local corelist_allowtmp="${corelist_allow}"
@@ -1333,12 +1286,32 @@ function create_game_lists() {
 		local date_file
 
 		if [ ${core} == "arcade" ]; then
-			local rebuild_freq_int=${rebuild_freq_arcade_int}
+			local md5sum_new=$(md5sum ${misterscripts}/.config/arcade-organizer/installed_names.txt | awk '{print $1}')
+			if [ -s ${gamelistpath}/.arcade_md5sum ]; then
+				local md5sum_old=$(<${gamelistpath}/.arcade_md5sum)
+			else
+				local md5sum_old=0
+			fi
+			if [[ "${md5sum_new}" != "${md5sum_old}" ]]; then
+				create_romlist ${core} "${DIR}"
+			fi
 		elif [ ${core} == "amiga" ]; then
-			local rebuild_freq_int=${rebuild_freq_amiga_int}
-		fi
-
-		if [ -f "${gamelistpath}/${core}_gamelist.txt" ]; then
+			local md5sum_games_new=$(md5sum "${CORE_PATH_FINAL[${core}]}/listings/games.txt" | awk '{print $1}')
+			local md5sum_demos_new=$(md5sum "${CORE_PATH_FINAL[${core}]}/listings/demos.txt" | awk '{print $1}')
+			if [ -s ${gamelistpath}/.amiga_games_md5sum ]; then
+				local md5sum_games_old=$(<${gamelistpath}/.amiga_games_md5sum)
+			else
+				local md5sum_games_old=0
+			fi
+			if [ -s ${gamelistpath}/.amiga_demos_md5sum ]; then
+				local md5sum_demos_old=$(<${gamelistpath}/.amiga_demos_md5sum)
+			else
+				local md5sum_demos_old=0
+			fi
+			if [[ "${md5sum_games_new}" != "${md5sum_games_old}" ]] || [[ "${md5sum_demos_new}" != "${md5sum_demos_old}" ]]; then
+				create_romlist ${core} "${DIR}"
+			fi
+		elif [ -f "${gamelistpath}/${core}_gamelist.txt" ]; then
 			if [ -s "${gamelistpath}/${core}_gamelist.txt" ]; then
 				date_file=$(stat -c '%Y' "${gamelistpath}/${core}_gamelist.txt")
 				if [ $(($(date +%s) - ${date_file})) -gt ${rebuild_freq_int} ]; then
@@ -1370,6 +1343,17 @@ function create_romlist() { # args ${core} "${DIR}"
 	[[ -f "${tmpfile2}" ]] && rm "${tmpfile2}" &>/dev/null
 
 	if [ ${core} == "amiga" ]; then
+		local inputfile="${CORE_PATH_FINAL[${core}]}/listings/demos.txt"
+		if [ -s "$inputfile" ] && [ "$(tail -c1 "$inputfile"; echo x)" != $'\nx' ]; then
+			echo "" >>"$inputfile"
+		fi
+		local inputfile="${CORE_PATH_FINAL[${core}]}/listings/games.txt"
+		if [ -s "$inputfile" ] && [ "$(tail -c1 "$inputfile"; echo x)" != $'\nx' ]; then
+			echo "" >>"$inputfile"
+		fi
+		unset inputfile
+		echo $(md5sum "${CORE_PATH_FINAL[${core}]}/listings/games.txt" | awk '{print $1}') > ${gamelistpath}/.amiga_games_md5sum
+		echo $(md5sum "${CORE_PATH_FINAL[${core}]}/listings/demos.txt" | awk '{print $1}') > ${gamelistpath}/.amiga_demos_md5sum
 		# Check for existing files that define the "ROMs"
 		if [ -f "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ]; then
 			[ -s "${CORE_PATH_FINAL[${core}]}/listings/games.txt" ] && cat "${CORE_PATH_FINAL[${core}]}/listings/demos.txt" >"${tmpfile}"
@@ -1377,6 +1361,7 @@ function create_romlist() { # args ${core} "${DIR}"
 			[ -f "${CORE_PATH_FINAL[${core}]}/listings/demos.txt" ] && cat "${CORE_PATH_FINAL[${core}]}/listings/games.txt" >>"${tmpfile}"
 		fi
 	elif [ ${core} == "arcade" ]; then
+		echo $(md5sum "${misterscripts}/.config/arcade-organizer/installed_names.txt" | awk '{print $1}') > ${gamelistpath}/.arcade_md5sum
 		# This prints the list of MRA files in a path,
 		# Cuts the string to just the file name,
 		# Then saves it to the games list file.
@@ -1401,30 +1386,33 @@ function create_romlist() { # args ${core} "${DIR}"
 			[[ ! -f "${gamelistpathtmp}/samindex/${core}_gamelist.txt" ]] && echo "" | >"${tmpfile}" &>/dev/null
 			[[ -f "${gamelistpathtmp}/samindex/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/samindex/${core}_gamelist.txt" "${tmpfile}" &>/dev/null
 		else
-			local extlist=$(echo ${CORE_EXT[${core}]} | sed -e "s/,/ -o -iname *.${f}/g")
-			find -L "${DIR}" \( -xtype l -o -xtype d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' \( -xtype l -o -xtype f \) \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
+			local extlist=$(echo ${CORE_EXT[${core}]} | sed -e 's/,/ -o -iname "*."/g')
+			find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*."${extlist} \) -fprint >(cat >>"${tmpfile}")
 			# Now find all zips in core's folder and process
+			# set -vx
 			if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
-				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' \( -xtype l -o -xtype f \) \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile2}")
+				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.zip" \) -fprint >(cat >>"${tmpfile2}")
 				if [ -f "${tmpfile2}" ]; then
-					cat "${tmpfile2}" | while read z; do
+					while read z; do
 						if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 							echo " Processing: ${z}"
 						fi
-						"${mrsampath}/bin/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${core}]}" >>"${tmpfile}"
-					done
+						# samdebug "${z} ! ${CORE_EXT[${core}]}"
+						"${mrsampath}/bin/partun" "${z}" -l --include-archive-name --ext "${CORE_EXT[${core}]}" >>"${tmpfile}"
+					done <"${tmpfile2}"
 				fi
 			fi
+			# set +vx
 		fi
 	fi
 	# Strip out all duplicate filenames with a fancy awk command
 	if [ -f "${tmpfile}" ]; then
 		echo "" | >"${tmpfile2}" &>/dev/null
-		cat "${tmpfile}" | while read z; do
-			echo "${z}" >>"${tmpfile2}"
-		done
+		while read line; do
+			echo "${line}" >>"${tmpfile2}"
+		done <"${tmpfile}"
 	fi
-	[ -f "${tmpfile2}" ] && awk -F'/' '!seen[$NF]++' "${tmpfile2}" | sort >"${gamelistpathtmp}/${core}_gamelist.txt"
+	[[ -f "${tmpfile2}" ]] && awk -F'/' '!seen[$NF]++' "${tmpfile2}" | sort >"${gamelistpathtmp}/${core}_gamelist.txt"
 	[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/${core}_gamelist.txt" "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 	[[ -f "${tmpfile}" ]] && rm "${tmpfile}" &>/dev/null
 	[[ -f "${tmpfile2}" ]] && rm "${tmpfile2}" &>/dev/null
@@ -1586,31 +1574,29 @@ function next_core() { # next_core (core)
 
 	if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
 		samdebug " Found exclusion list for core ${nextcore}"
-		cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
+		while read line; do
 			if [ "${line}" != "\n" ]; then
 				if [ "${line}" == "${rompath}" ]; then
 					samquiet " Excluded by user: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-					return 1
+					next_core "${nextcore}" "repeat" && return
 				fi
 			fi
-		done
-		[ $? -eq 1 ] && next_core "${nextcore}" "repeat" && return
+		done <"${excludepath}/${nextcore}_excludelist.txt"
 	fi
 
 	#Check blacklist
 	if [ -f "${excludepath}/${nextcore}_blacklist.txt" ]; then
 		samdebug " Found exclusion list for core ${nextcore}"
-		cat "${excludepath}/${nextcore}_blacklist.txt" | while IFS=$'\n' read line; do
+		while read line; do
 			if [ "${line}" != "\n" ]; then
 				if [[ "${rompath}" == *"${line}"* ]]; then
 					samquiet " Blacklisted because duplicate or boring: ${rompath}, trying a different game.."
 					awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv --force ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-					return 1
+					next_core "${nextcore}" "repeat" && return
 				fi
 			fi
-		done
-		[ $? -eq 1 ] && next_core "${nextcore}" "repeat" && return
+		done <"${excludepath}/${nextcore}_blacklist.txt"
 	fi
 
 	local corelist_count=$(echo $(wc -w <<<"${corelist_allow}"))
@@ -1717,7 +1703,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		name=${CORE_LAUNCH[${core}]}
 	fi
 	shopt -s nullglob
-	if [ "${name}" != ${name,,} ]; then
+	if [ "${name}" != "${name,,}" ]; then
 		for f in ${mrsamtmp}/SAM_config/${name,,}*; do
 			mv --force "${f}" "${f//${name,,}/${name}}"
 		done

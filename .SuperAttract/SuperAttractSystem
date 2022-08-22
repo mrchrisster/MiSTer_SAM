@@ -40,16 +40,9 @@ function init_gamelist_vars() {
 	declare -gl rebuild_freq=${ini_settings[rebuild_freq]:="week"}
 	declare -gi regen_duration=${ini_settings[regen_duration]:=4}
 	declare -gi rebuild_freq_int=${ini_settings[rebuild_freq_int]:=604800}
-	declare -gl rebuild_freq_arcade=${ini_settings[rebuild_freq_arcade]:="week"}
-	declare -gi regen_duration_arcade=${ini_settings[regen_duration_arcade]:=1}
-	declare -gi rebuild_freq_arcade_int=${ini_settings[rebuild_freq_arcade_int]:=604800}
-	declare -gl rebuild_freq_amiga=${ini_settings[rebuild_freq_amiga]:="week"}
-	declare -gi regen_duration_amiga=${ini_settings[regen_duration_amiga]:=8}
-	declare -gi rebuild_freq_amiga_int=${ini_settings[rebuild_freq_amiga_int]:=604800}
 	declare -gl samindex=${ini_settings[samindex]:="no"}
 	declare -gl neogeoregion=${ini_settings[neogeoregion]:="english"}
 	declare -gl useneogeotitles=${ini_settings[useneogeotitles]:="yes"}
-	init_excludes
 	[[ ! -d "${gamelistpath}" ]] && mkdir -p "${gamelistpath}"
 	[[ ! -d "${gamelistpathtmp}" ]] && mkdir -p "${gamelistpathtmp}"
 	[[ ! -d "${excludepath}" ]] && mkdir -p "${excludepath}"
@@ -198,28 +191,30 @@ function init_game_path_vars() {
 	declare -g psxpath=${ini_settings[psxpath]:="${misterpath}/Games/PSX"}
 
 	# ======== CORE PATHS EXTRA ========
-	declare -g amigapathextra=${ini_settings[amigapathextra]:=}
 	declare -g arcadepathextra=${ini_settings[arcadepathextra]:=}
-	declare -g atari2600pathextra=${ini_settings[atari2600pathextra]:=}
-	declare -g atari5200pathextra=${ini_settings[atari5200pathextra]:=}
-	declare -g atari7800pathextra=${ini_settings[atari7800pathextra]:=}
-	declare -g atarilynxpathextra=${ini_settings[atarilynxpathextra]:=}
-	declare -g c64pathextra=${ini_settings[c64pathextra]:=}
-	declare -g fdspathextra=${ini_settings[fdspathextra]:=}
-	declare -g gbpathextra=${ini_settings[gbpathextra]:=}
-	declare -g gbcpathextra=${ini_settings[gbcpathextra]:=}
-	declare -g gbapathextra=${ini_settings[gbapathextra]:=}
-	declare -g genesispathextra=${ini_settings[genesispathextra]:=}
-	declare -g ggpathextra=${ini_settings[ggpathextra]:=}
-	declare -g megacdpathextra=${ini_settings[megacdpathextra]:=}
-	declare -g neogeopathextra=${ini_settings[neogeopathextra]:=}
-	declare -g nespathextra=${ini_settings[nespathextra]:=}
-	declare -g s32xpathextra=${ini_settings[s32xpathextra]:=}
-	declare -g smspathextra=${ini_settings[smspathextra]:=}
-	declare -g snespathextra=${ini_settings[snespathextra]:=}
-	declare -g tgfx16pathextra=${ini_settings[tgfx16pathextra]:=}
-	declare -g tgfx16cdpathextra=${ini_settings[tgfx16cdpathextra]:=}
-	declare -g psxpathextra=${ini_settings[psxpathextra]:=}
+	if [ "${usedefaultpaths}" == "no" ]; then
+		declare -g amigapathextra=${ini_settings[amigapathextra]:=}
+		declare -g atari2600pathextra=${ini_settings[atari2600pathextra]:=}
+		declare -g atari5200pathextra=${ini_settings[atari5200pathextra]:=}
+		declare -g atari7800pathextra=${ini_settings[atari7800pathextra]:=}
+		declare -g atarilynxpathextra=${ini_settings[atarilynxpathextra]:=}
+		declare -g c64pathextra=${ini_settings[c64pathextra]:=}
+		declare -g fdspathextra=${ini_settings[fdspathextra]:=}
+		declare -g gbpathextra=${ini_settings[gbpathextra]:=}
+		declare -g gbcpathextra=${ini_settings[gbcpathextra]:=}
+		declare -g gbapathextra=${ini_settings[gbapathextra]:=}
+		declare -g genesispathextra=${ini_settings[genesispathextra]:=}
+		declare -g ggpathextra=${ini_settings[ggpathextra]:=}
+		declare -g megacdpathextra=${ini_settings[megacdpathextra]:=}
+		declare -g neogeopathextra=${ini_settings[neogeopathextra]:=}
+		declare -g nespathextra=${ini_settings[nespathextra]:=}
+		declare -g s32xpathextra=${ini_settings[s32xpathextra]:=}
+		declare -g smspathextra=${ini_settings[smspathextra]:=}
+		declare -g snespathextra=${ini_settings[snespathextra]:=}
+		declare -g tgfx16pathextra=${ini_settings[tgfx16pathextra]:=}
+		declare -g tgfx16cdpathextra=${ini_settings[tgfx16cdpathextra]:=}
+		declare -g psxpathextra=${ini_settings[psxpathextra]:=}
+	fi
 }
 
 function kill_game_path_vars() {
@@ -274,30 +269,57 @@ function kill_game_path_vars() {
 
 function init_final_paths() {
 	# Core to path mappings
-	declare -gA CORE_PATH_FINAL=(
-		["amiga"]="${amigapath}${amigapathextra}"
-		["arcade"]="${arcadepath}${arcadepathextra}"
-		["atari2600"]="${atari2600path}${atari2600pathextra}"
-		["atari5200"]="${atari5200path}${atari5200pathextra}"
-		["atari7800"]="${atari7800path}${atari7800pathextra}"
-		["atarilynx"]="${atarilynxpath}${atarilynxpathextra}"
-		["c64"]="${c64path}${c64pathextra}"
-		["fds"]="${fdspath}${fdspathextra}"
-		["gb"]="${gbpath}${gbpathextra}"
-		["gbc"]="${gbcpath}${gbcpathextra}"
-		["gba"]="${gbapath}${gbapathextra}"
-		["genesis"]="${genesispath}${genesispathextra}"
-		["gg"]="${ggpath}${ggpathextra}"
-		["megacd"]="${megacdpath}${megacdpathextra}"
-		["neogeo"]="${neogeopath}${neogeopathextra}"
-		["nes"]="${nespath}${nespathextra}"
-		["s32x"]="${s32xpath}${s32xpathextra}"
-		["sms"]="${smspath}${smspathextra}"
-		["snes"]="${snespath}${snespathextra}"
-		["tgfx16"]="${tgfx16path}${tgfx16pathextra}"
-		["tgfx16cd"]="${tgfx16cdpath}${tgfx16cdpathextra}"
-		["psx"]="${psxpath}${psxpathextra}"
-	)
+	if [ "${usedefaultpaths}" == "no" ]; then
+		declare -gA CORE_PATH_FINAL=(
+			["arcade"]="${arcadepath}${arcadepathextra}"
+			["amiga"]="${amigapath}${amigapathextra}"
+			["atari2600"]="${atari2600path}${atari2600pathextra}"
+			["atari5200"]="${atari5200path}${atari5200pathextra}"
+			["atari7800"]="${atari7800path}${atari7800pathextra}"
+			["atarilynx"]="${atarilynxpath}${atarilynxpathextra}"
+			["c64"]="${c64path}${c64pathextra}"
+			["fds"]="${fdspath}${fdspathextra}"
+			["gb"]="${gbpath}${gbpathextra}"
+			["gbc"]="${gbcpath}${gbcpathextra}"
+			["gba"]="${gbapath}${gbapathextra}"
+			["genesis"]="${genesispath}${genesispathextra}"
+			["gg"]="${ggpath}${ggpathextra}"
+			["megacd"]="${megacdpath}${megacdpathextra}"
+			["neogeo"]="${neogeopath}${neogeopathextra}"
+			["nes"]="${nespath}${nespathextra}"
+			["s32x"]="${s32xpath}${s32xpathextra}"
+			["sms"]="${smspath}${smspathextra}"
+			["snes"]="${snespath}${snespathextra}"
+			["tgfx16"]="${tgfx16path}${tgfx16pathextra}"
+			["tgfx16cd"]="${tgfx16cdpath}${tgfx16cdpathextra}"
+			["psx"]="${psxpath}${psxpathextra}"
+		)
+	else
+		declare -gA CORE_PATH_FINAL=(
+			["arcade"]="${arcadepath}${arcadepathextra}"
+			["amiga"]="${amigapath}"
+			["atari2600"]="${atari2600path}"
+			["atari5200"]="${atari5200path}"
+			["atari7800"]="${atari7800path}"
+			["atarilynx"]="${atarilynxpath}"
+			["c64"]="${c64path}"
+			["fds"]="${fdspath}"
+			["gb"]="${gbpath}"
+			["gbc"]="${gbcpath}"
+			["gba"]="${gbapath}"
+			["genesis"]="${genesispath}"
+			["gg"]="${ggpath}"
+			["megacd"]="${megacdpath}"
+			["neogeo"]="${neogeopath}"
+			["nes"]="${nespath}"
+			["s32x"]="${s32xpath}"
+			["sms"]="${smspath}"
+			["snes"]="${snespath}"
+			["tgfx16"]="${tgfx16path}"
+			["tgfx16cd"]="${tgfx16cdpath}"
+			["psx"]="${psxpath}"
+		)
+	fi
 }
 
 function init_game_path_final() {
@@ -504,23 +526,14 @@ function read_samini() {
 		if [ ! -z "$setting" ]; then
 			# Remove trailing slash from paths
 			if [ "${value: -1}" == "/" ]; then
-				value=${value%/}
+				value="${value%/}"
 			fi
-			ini_settings[${setting}]="${value:=''}"
+			ini_settings[${setting}]="${value:=}"
 		fi
 	done <${misterscripts}/Super_Attract_Mode.ini
 	ini_settings[md5sum]=$(md5sum ${misterscripts}/Super_Attract_Mode.ini | awk '{print $1}')
 	# write to output file
 	echo $(printarr ini_settings) >"${mrsamtmp}/ini_settings"
-}
-
-function init_excludes() {
-	# Create folder and file exclusion list
-	folderex="-o -iname *\bBIOS\b*"
-	fileex="-and -not -iname *\bBIOS\b*"
-
-	# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
-	zipex="\bBIOS\b"
 }
 
 function write_to_SAM_cmd_pipe() {
@@ -649,7 +662,7 @@ function init_data() {
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
 		["amiga"]="hdf" #This is just a placeholder
-		["arcade"]="mra"
+		["arcade"]="mra" #This is just a placeholder
 		["atari2600"]="a26"	 # Should we include? "bin"
 		["atari5200"]="a52,car" # Should we include? "bin,rom"
 		["atari7800"]="a78"	 # Should we include? "bin"
@@ -1535,7 +1548,12 @@ function init_data() {
 
 function regen_ini_settings() {
 	echo -n " Please wait while settings are loaded..."
+	rm --force ${mrsamtmp}/amigashared_path $ >/dev/null
+	rm --force ${mrsamtmp}/default_paths $ >/dev/null
+	rm --force ${mrsamtmp}/ini_settings $ >/dev/null
 	read_samini
+	init_game_path_final
+	init_amigashared_path
 	echo " Done!"
 }
 
