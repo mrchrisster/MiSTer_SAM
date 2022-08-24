@@ -1224,8 +1224,8 @@ function reset_core_gl() { # args ${nextcore}
 
 function speedtest() {
 	speedtest=1
-	[[ ! -d "${mrsamtmp}/gl" ]] && { mkdir -p ${mrsamtmp}/gl; }
-	[[ ! -d "${mrsamtmp}/glt" ]] && { mkdir -p ${mrsamtmp}/glt; }
+	[[ ! -d "${mrsamtmp}/gl" ]] && mkdir -p ${mrsamtmp}/gl
+	[[ ! -d "${mrsamtmp}/glt" ]] && mkdir -p ${mrsamtmp}/glt
 	[[ $(mount | grep -ic "${gamelistpath}") == "0" ]] && mount --bind ${mrsamtmp}/gl "${gamelistpath}"
 	[[ $(mount | grep -ic "${gamelistpathtmp}") == "0" ]] && mount --bind ${mrsamtmp}/glt "${gamelistpathtmp}"
 	local START=$(date +%s)
@@ -1254,6 +1254,8 @@ function speedtest() {
 	echo "Searching for Default Paths took ${DURATION_DP} seconds"
 	[ $(mount | grep -ic "${gamelistpath}") != "0" ] && umount "${gamelistpath}"
 	[ $(mount | grep -ic "${gamelistpathtmp}") != "0" ] && umount "${gamelistpathtmp}"
+	[[ -d "${mrsamtmp}/gl" ]] && rm -rf ${mrsamtmp}/gl
+	[[ -d "${mrsamtmp}/glt" ]] && rm -rf ${mrsamtmp}/glt
 	speedtest=0
 }
 
@@ -1392,7 +1394,12 @@ function create_romlist() { # args ${core} "${DIR}"
 			# set -vx
 			if [ "${CORE_ZIPPED[${core}]}" == "yes" ]; then
 				find -L "${DIR}" \( -xtype l -o -xtype d \) \( -path '*/.*' \) -prune -o \( -xtype l -o -xtype f \) \( -iname "*.zip" \) -fprint >(cat >>"${tmpfile2}")
-				if [ -f "${tmpfile2}" ]; then
+				sleep 0.5
+				if [ -s "${tmpfile2}" ]; then
+					if [ "$(tail -c1 "${tmpfile2}"; echo x)" != $'\nx' ]; then
+						echo "" >>"${tmpfile2}"
+					fi
+					[[ ! -s "${tmpfile}" ]] && echo "" | >"${tmpfile}" &>/dev/null
 					while read z; do
 						if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
 							echo " Processing: ${z}"
@@ -1406,14 +1413,8 @@ function create_romlist() { # args ${core} "${DIR}"
 		fi
 	fi
 	# Strip out all duplicate filenames with a fancy awk command
-	if [ -f "${tmpfile}" ]; then
-		echo "" | >"${tmpfile2}" &>/dev/null
-		while read line; do
-			echo "${line}" >>"${tmpfile2}"
-		done <"${tmpfile}"
-	fi
-	[[ -f "${tmpfile2}" ]] && awk -F'/' '!seen[$NF]++' "${tmpfile2}" | sort >"${gamelistpathtmp}/${core}_gamelist.txt"
-	[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/${core}_gamelist.txt" "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
+	[[ -s "${tmpfile}" ]]  && awk -F'/' '!seen[$NF]++' "${tmpfile}" | sort >"${gamelistpathtmp}/${core}_gamelist.txt"
+	[[ -s "${gamelistpathtmp}/${core}_gamelist.txt" ]] && cp "${gamelistpathtmp}/${core}_gamelist.txt" "${gamelistpath}/${core}_gamelist.txt" &>/dev/null
 	[[ -f "${tmpfile}" ]] && rm "${tmpfile}" &>/dev/null
 	[[ -f "${tmpfile2}" ]] && rm "${tmpfile2}" &>/dev/null
 	local total_games=$(echo $(cat "${gamelistpath}/${core}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
@@ -1480,11 +1481,17 @@ function check_romlist() { # args ${core} "${DIR}"
 	fi
 
 	# Make sure file exists since we're reading from a static list
-	if [[ "${rompath,,}" != *.zip* ]] && [ ${core} != "amiga" ]; then
+	if [[ "${rompath,,}" != *".zip"* ]] && [ ${core} != "amiga" ]; then
 		if [ ! -s "${rompath}" ]; then
 			samquiet " Creating new game list because file not found."
 			create_romlist ${core} "${DIR}"
 		fi
+	fi
+
+	# Make sure file exists since we're reading from a static list
+	if [[ "${rompath,,}" == *".zip" ]] && [ ${core} != "amiga" ]; then
+		samquiet " Creating new game list because files in zip not processed."
+		create_romlist ${core} "${DIR}"
 	fi
 
 	# Delete played game from list
@@ -1492,7 +1499,6 @@ function check_romlist() { # args ${core} "${DIR}"
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="${rompath}" '!index($0,Line)' "${gamelistpathtmp}/${core}_gamelist.txt" >${tmpfile} && mv --force ${tmpfile} "${gamelistpathtmp}/${core}_gamelist.txt"
 	fi
-	[ -f "${tmpfile}" ] && rm "${tmpfile}" &>/dev/null
 }
 
 # This function will pick a random rom from the game list.

@@ -338,7 +338,7 @@ function MCP_loop() {
 	corename_name=$(<${corenamefile})
 	tmux rename-window -t MCP "${corename_name}"
 	# Only start SAM from main menu
-	if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ]; then
+	if [ "${menuonly}" == "yes" ] && [ "${corename_name}" == "MENU" ] && [ $(ps aux | grep -ice "[S]uper_Attract_Mode.sh") == "0" ]; then
 		samdebug " Triggered after menuonly=yes"
 		MCP_SAM_trigger "${@}"
 	elif [ "${menuonly}" == "no" ]; then
@@ -357,7 +357,9 @@ function main() {
 	samdebug " args: ${@}"
 	if [ ! -z "${1}" ] && [ "${1}" == "quickstart" ]; then
 		shift
-		MCP_SAM_trigger "${@}"
+		bootsleep=1
+		MCP_timeout=5
+		MCP_counter=${MCP_timeout}
 	fi
 
 	MCP_timeout_minutes=$(echo - | awk -v t=${MCP_timeout} '{print t/60}')
