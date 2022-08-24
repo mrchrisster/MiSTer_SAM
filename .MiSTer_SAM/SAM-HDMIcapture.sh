@@ -1,29 +1,7 @@
 #!/bin/bash
 
-# https://github.com/mrchrisster/MiSTer_SAM/
-# Copyright (c) 2021 by mrchrisster and Mellified
 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# Description
-# This cycles through arcade and console cores periodically
-# Games are randomly pulled from their respective folders
-
-# ======== Credits ========
-# Original concept and implementation: mrchrisster
-# Additional development and script layout: Mellified and Paradox
-#
-# Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond
-# tty2oled improvements by venice
 
 
 # ======== INI VARIABLES ========
@@ -50,13 +28,13 @@ function init_vars() {
 	declare -g gamelistpathtmp="/tmp/.SAM_List/"
 	declare -g excludepath="${mrsampath}"
 	declare -g mralist_old="${mrsampath}/SAM_Gamelists/arcade_romlist"
-	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
+	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_hdmi.txt"
 	declare -g mralist_tmp_old="/tmp/.SAM_List/arcade_romlist"
-	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
+	declare -g mralist_tmp="/tmp/.SAM_List/arcade_hdmi.txt"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"													 
-	declare -gi gametimer=120
+	declare -gi gametimer=110
 	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
@@ -169,6 +147,8 @@ function init_vars() {
 
 
 }
+
+
 
 function update_tasks() {
 	[ -s "${mralist_old}" ] && { mv "${mralist_old}" "${mralist}"; }
@@ -391,7 +371,7 @@ function init_data() {
 		["sms"]="No"
 		["snes"]="No"
 		["tgfx16"]="No"
-		["tgfx16cd"]="Yes"
+		["tgfx16cd"]="No"
 		["psx"]="No"
 	)
 
@@ -528,22 +508,134 @@ function init_data() {
 
 # Read INI
 function read_samini() {
-	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-		source "${misterpath}/Scripts/MiSTer_SAM.ini"
-		# Remove trailing slash from paths
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "path=" | cut -f1 -d"="); do
-			declare -g ${var}="${!var%/}"
-		done
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathextra=" | cut -f1 -d"="); do
-			declare -g ${var}="${!var%/}"
-		done
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
-			declare -g ${var}="${!var%/}"
-		done
-		
-	else
-		sam_enable
-	fi
+
+	samtimeout=60
+	gametimer=2
+	menuonly="Yes"
+	corelist="arcade,amiga,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	mute=no
+	playcurrentgame="No" 
+	roulettetimer="30"
+	ttyenable="No"
+	exclude=( readme )
+	listenmouse="No"
+	listenkeyboard="No"
+	listenjoy="No"
+
+	# Default - all arcade games
+	amigapath="/media/fat/Games/Amiga"
+	arcadepath="/media/fat/_Arcade"
+	atari2600path="/media/fat/Games/Atari7800"
+	atari5200path="/media/fat/Games/Atari5200"
+	atari7800path="/media/fat/Games/Atari7800"
+	atarilynxpath="/media/fat/Games/AtariLynx"
+	c64path="/media/fat/Games/C64"
+	fdspath="/media/fat/games/NES"
+	gbpath="/media/fat/Games/Gameboy"
+	gbcpath="/media/fat/Games/Gameboy"
+	gbapath="/media/fat/games/GBA"
+	genesispath="/media/fat/games/Genesis"
+	ggpath="/media/fat/games/SMS"
+	megacdpath="/media/fat/games/MegaCD"
+	neogeopath="/media/fat/games/NeoGeo"
+	nespath="/media/fat/games/NES"
+	s32xpath="/media/fat/Games/Genesis"
+	smspath="/media/fat/Games/SMS"
+	snespath="/media/fat/games/SNES"
+	tgfx16path="/media/fat/games/TGFX16"
+	tgfx16cdpath="/media/fat/games/TGFX16-CD"
+	psxpath="/media/fat/games/PSX"
+
+	#-------- CORE PATHS EXTRA --------
+
+	amigapathextra=""
+	arcadepathextra=""
+	atari2600pathextra=""
+	atari5200pathextra=""
+	atari7800pathextra=""
+	atarilynxpathextra=""
+	c64pathextra=""
+	fdspathextra=""
+	gbpathextra=""
+	gbcpathextra=""
+	gbapathextra=""
+	genesispathextra=""
+	ggpathextra=""
+	megacdpathextra=""
+	neogeopathextra=""
+	nespathextra=""
+	s32xpathextra=""
+	smspathextra=""
+	snespathextra=""
+	tgfx16pathextra=""
+	tgfx16cdpathextra=""
+	psxpathextra=""
+
+	#-------- CORE PATHS RBF --------
+	amigapathrbf="_Computer"
+	arcadepathrbf="_Arcade"
+	atari2600pathrbf="_Console"
+	atari5200pathrbf="_Console"
+	atari7800pathrbf="_Console"
+	atarilynxpathrbf="_Console"
+	c64pathrbf="_Computer"
+	fdspathrbf="_Console"
+	gbpathrbf="_Console"
+	gbcpathrbf="_Console"
+	gbapathrbf="_Console"
+	genesispathrbf="_Console"
+	ggpathrbf="_Console"
+	megacdpathrbf="_Console"
+	neogeopathrbf="_Console"
+	nespathrbf="_Console"
+	s32xpathrbf="_Console"
+	smspathrbf="_Console"
+	snespathrbf="_Console"
+	tgfx16pathrbf="_Console"
+	tgfx16cdpathrbf="_Console"
+	psxpathrbf="_Console"
+
+	# The following option uses the default rom locations that MiSTer and all cores use by default
+	# Setting this to "yes" is only recommended if you have trouble with the default method. 
+	# It can cause significant delay on startup.
+	usedefaultpaths="No"
+
+	# -------- NeoGeo Full Titles -------
+	# Options are English and JAPANESE
+	# Not all games have an alternate Japanese Name, in that case, The English Title is used
+	neogeoregion="English"
+	useneogeotitles="Yes"
+
+	# -------- TTY2OLED ADVCANCED SETTINGS -------
+	# All needed values are read from the tty2oled INI files
+
+	ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
+	ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
+	ttyuseack="Yes"
+
+	# BGM settings
+	# SAM support BGM ( https://github.com/wizzomafizzo/MiSTer_BGM ) but you have to set it up in the SAM menu first (Select "Background Music Player")
+	bgm=No
+
+	# SAM will play every game on your system once before starting from the beginning
+	norepeat="Yes"
+
+	# -------- DEBUG --------
+	# These are intended for debugging SAM - use with care!
+
+	# Can be used to find issues with rom detection in SAM. Set to No to ignore zip files in your directory
+	usezip="Yes"
+
+	# Show variables
+	samtrace="No"
+
+	# Should SAM be quiet - disable for extra logging - only useful via ssh
+	samquiet="No"
+
+	# GitHub branch to download updates from
+	# Valid choices are: "main" or "test"
+	branch="main"
+
 
 	# Setup corelist
 	corelist="$(echo ${corelist} | tr ',' ' ' | tr -s ' ')"
@@ -817,7 +909,7 @@ function loop_core() { # loop_core (core)
 
 function reset_core_gl() { # args ${nextcore}
 	echo " Deleting old game lists for ${1^^}..."
-	rm "${gamelistpath}/${1}_gamelist.txt" &>/dev/null
+	rm "${gamelistpath}/${1}_gamelist_hdmi.txt" &>/dev/null
 	sync
 }
 
@@ -846,15 +938,15 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 		fi
 	fi
 
-	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist.txt"
+	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist_hdmi.txt"
 
 	# Strip out all duplicate filenames with a fancy awk command
-	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
-	# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt"
+	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist_hdmi.txt" >"${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
+	# cp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
 	rm ${tmpfile} &>/dev/null
 	rm ${tmpfile2} &>/dev/null
 
-	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
+	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist_hdmi.txt" | sed '/^\s*$/d' | wc -l))
 	if [ ${speedtest} -eq 1 ]; then
 		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
 	fi
@@ -867,20 +959,20 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 
 function check_list() { # args ${nextcore}  "${DIR}"
 	# If gamelist is not in /tmp dir, let's put it there
-	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
-		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"; fi
+	if [ ! -f "${gamelistpath}/${1}_gamelist_hdmi.txt" ]; then
+		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist_hdmi.txt"; fi
 		create_romlist ${1} "${2}"
 	fi
 
 	# If folder changed, make new list
-	if [[ ! "$(cat ${gamelistpath}/${1}_gamelist.txt | grep "${2}" | head -1)" ]]; then
+	if [[ ! "$(cat ${gamelistpath}/${1}_gamelist_hdmi.txt | grep "${2}" | head -1)" ]]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
 		create_romlist ${1} "${2}"
 	fi
 
 	# Check if zip still exists
-	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-		mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
+	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist_hdmi.txt)" != "0" ]; then
+		mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist_hdmi.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 		for zips in "${zipsinfile[@]}"; do
 			if [ ! -f "${zips}" ]; then
 				if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
@@ -890,24 +982,28 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	fi
 
 	# If gamelist is not in /tmp dir, let's put it there
-	if [ -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+	if [ -f "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" ]; then
 
 		# Pick the actual game
-		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist_hdmi.txt | head -n1)"
 	else
 
 		# Repopulate list
 		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
-			comm -13 <(sort <"${gamelistpath}/${1}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${1}_gamelist.txt") >${tmpfile}
-			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${1}_gamelist.txt"
+			comm -13 <(sort <"${gamelistpath}/${1}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${1}_gamelist_hdmi.txt") >${tmpfile}
+			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
 			if [ "${samquiet}" == "no" ]; then echo "Done."; fi
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist_hdmi.txt | shuf --head-count=1)"
 		else
-			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
-			# cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" &>/dev/null
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist_hdmi.txt" >"${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
+			# cp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" &>/dev/null
+			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist_hdmi.txt | shuf --head-count=1)"
 		fi
+	fi
+	
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" ]; then
+		kill -9 $sampid
 	fi
 
 	# Make sure file exists since we're reading from a static list
@@ -921,11 +1017,10 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	# Delete played game from list
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
 	fi
 }
 
-# This function will pick a random rom from the game list.
 function next_core() { # next_core (core)
 	if [ -z "$(echo ${corelist} | sed 's/ //g')" ]; then
 		if [ -s "${corelisttmpfile}" ]; then
@@ -1076,16 +1171,19 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
 
 	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
+		sleep 5
+		skipmessage
+	fi
+	sleep 20
+	ssh chelm@192.168.1.64 'mkdir "c:\SAM\'${nextcore}'"'
+	ssh chelm@192.168.1.64 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
 
-	sleep 1
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
 
-	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		sleep 3
-		skipmessage
-	fi
+
 }
 
 function core_error() { # core_error core /path/to/ROM
@@ -1149,39 +1247,27 @@ function build_mralist() {
 function load_core_arcade() {
 
 	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
-
+	
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s "${mralist}" ]; then
-		build_mralist "${DIR}"
+		build_mralist "${arcadepath}"
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
 
-	if [ ! -s "${mralist_tmp}" ]; then
+	if [ ! -f "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" &>/dev/null
 	fi
+	
+	if [ ! -s "${mralist_tmp}" ]; then
+		kill -9 $sampid
+	fi
+	
 
 	# Get a random game from the list
-	mra="$(head -n 1 ${mralist_tmp})"
+	mra="$(head -n1 ${mralist_tmp})"
 	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
 	
-	if [ ! -f "${MRAPATH}" ]; then
-		echo " There is no valid file at ${MRAPATH}... Rebuilding list."
-		build_mralist "${DIR}"
-		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
-		mra="$(shuf --head-count=1 ${mralist_tmp})"
-		MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
-	fi
-
-	# If the mra variable is valid this is skipped, but if not we try 5 times
-	# Partially protects against typos from manual editing and strange character parsing problems
-	for i in {1..5}; do
-		if [ ! -f "${MRAPATH}" ]; then
-			mra=$(shuf --head-count=1 ${mralist_tmp})
-			MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
-		fi
-	done
 
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
 
@@ -1195,12 +1281,6 @@ function load_core_arcade() {
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 	echo -e "\e[1m${mraname}\e[0m"
-	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >>/tmp/SAM_Games.log
-	echo "${mraname} (${nextcore})" >/tmp/SAM_Game.txt
-
-	# Get Setname from MRA needed for tty2oled, thx to RealLarry
-	mrasetname=$(grep "<setname>" "${MRAPATH}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
-
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
@@ -1211,7 +1291,8 @@ function load_core_arcade() {
 
 	# Tell MiSTer to load the next MRA
 	echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
-	sleep 1
+	sleep 10
+	ssh chelm@192.168.1.64 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\arcade\'${mraname}'".mp4'
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
@@ -1307,6 +1388,9 @@ function load_core_amiga() {
 
 # ========= MAIN =========
 function main() {
+	
+
+	
 	init_vars
 
 	read_samini
