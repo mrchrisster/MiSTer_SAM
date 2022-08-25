@@ -33,6 +33,15 @@ declare -g userstartup="${misterpath}/linux/user-startup.sh"
 declare -g userstartuptpl="${misterpath}/linux/_user-startup.sh"
 declare -g corenamefile="/tmp/CORENAME"
 declare -g corename_name=$(<${corenamefile})
+# Named Pipes
+declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
+declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
+declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
+declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
+declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
+declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
+declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
+declare -g MCP_DeviceChange_pipe="${mrsamtmp}/MCP_DeviceChange_pipe"
 
 function init_gamelist_vars() {
 	# ======== GAMELIST VARIABLES =========
@@ -68,16 +77,6 @@ function init_tty2oled_vars() {
 }
 
 function startup_tasks() {
-	# Named Pipes
-	declare -g SAM_cmd_pipe="${mrsamtmp}/SAM_cmd_pipe"
-	declare -g MCP_cmd_pipe="${mrsamtmp}/MCP_cmd_pipe"
-	declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
-	declare -g SAM_Activity_pipe="${mrsamtmp}/SAM_Activity_pipe"
-	declare -g MCP_Activity_pipe="${mrsamtmp}/MCP_Activity_pipe"
-	declare -g MCP_Corename_Activity_pipe="${mrsamtmp}/MCP_CoreName_Activity_pipe"
-	declare -g MCP_CoreName_Change_pipe="${mrsamtmp}/MCP_CoreName_Change_pipe"
-	declare -g MCP_DeviceChange_pipe="${mrsamtmp}/MCP_DeviceChange_pipe"
-
 	# ======== GLOBAL VARIABLES =========
 	declare -gl listenmouse=${ini_settings[listenmouse]:="yes"}
 	declare -gl listenkeyboard=${ini_settings[listenkeyboard]:="yes"}
@@ -1563,10 +1562,6 @@ function vardebug_out() {
 	rm /tmp/${samprocess}.tmp
 }
 
-declare -gl samquiet="no"
-declare -gl samdebug="yes"
-declare -gl samtrace="no"
-
 case "${1}" in
 start | restart | quickstart)
 	if [ "${samprocess}" == "Super_Attract_Mode.sh" ]; then
@@ -1575,8 +1570,44 @@ start | restart | quickstart)
 	;;
 stop | quit | exit)
 	if [ "${samprocess}" == "Super_Attract_Mode.sh" ]; then
-		return
+		write_to_SAM_cmd_pipe ${1-}
+		exit
 	fi
+	;;
+skip | next)
+	echo " Skipping to next game..."
+	write_to_SAM_cmd_pipe ${1-}
+	exit
+	;;
+ban | exclude)
+	echo " Excluding the current game and Skipping to next game..."
+	write_to_SAM_cmd_pipe ${1-}
+	exit
+	;;
+fakegameslog)
+	echo " Creating Fake SAM_Games.log..."
+	write_to_SAM_cmd_pipe ${1-}
+	exit
+	;;
+samdebug | debug)
+	if [ ! -z "${2}" ] && ([ "${2,,}" == "yes" ] || [ "${2,,}" == "no" ]); then
+		echo " Toggling ${1,,} to ${2,,}..."
+		write_to_SAM_cmd_pipe ${1-,,}
+	else
+		echo " Toggling ${1,,} ..."
+		write_to_SAM_cmd_pipe "${1,,}" "toggle"
+	fi
+	exit
+	;;
+samquiet | quiet)
+	if [ ! -z "${2}" ] && ([ "${2,,}" == "no" ] || [ "${2,,}" == "yes" ]); then
+		echo " Toggling ${1,,} to ${2,,}..."
+		write_to_SAM_cmd_pipe ${1-,,}
+	else
+		echo " Toggling ${1,,} ..."
+		write_to_SAM_cmd_pipe "${1,,}" "toggle"
+	fi
+	exit
 	;;
 reset)
 	shift

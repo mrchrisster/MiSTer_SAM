@@ -1756,45 +1756,6 @@ function main() {
 				sam_restart "${@}"
 				break
 				;;
-			stop | quit | exit)
-				write_to_SAM_cmd_pipe ${1-}
-				break
-				;;
-			skip | next)
-				echo " Skipping to next game..."
-				write_to_SAM_cmd_pipe ${1-}
-				break
-				;;
-			ban | exclude)
-				echo " Excluding the current game and Skipping to next game..."
-				write_to_SAM_cmd_pipe ${1-}
-				break
-				;;
-			fakegameslog)
-				echo " Creating Fake SAM_Games.log..."
-				write_to_SAM_cmd_pipe ${1-}
-				break
-				;;
-			samdebug | debug)
-				if [ ! -z "${2}" ] && ([ "${2,,}" == "yes" ] || [ "${2,,}" == "no" ]); then
-					echo " Toggling ${1,,} to ${2,,}..."
-					write_to_SAM_cmd_pipe ${1-,,}
-				else
-					echo " Toggling ${1,,} ..."
-					write_to_SAM_cmd_pipe "${1,,}" "toggle"
-				fi
-				break
-				;;
-			samquiet | quiet)
-				if [ ! -z "${2}" ] && ([ "${2,,}" == "no" ] || [ "${2,,}" == "yes" ]); then
-					echo " Toggling ${1,,} to ${2,,}..."
-					write_to_SAM_cmd_pipe ${1-,,}
-				else
-					echo " Toggling ${1,,} ..."
-					write_to_SAM_cmd_pipe "${1,,}" "toggle"
-				fi
-				break
-				;;
 			monitor)
 				sam_monitor_new
 				break
