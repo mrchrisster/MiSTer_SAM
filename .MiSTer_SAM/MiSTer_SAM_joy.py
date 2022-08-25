@@ -5,7 +5,6 @@ import time
 import sys
 import os
 
-DEBUG = False
 
 ACTIVITY_FILE = "/tmp/.SAM_Joy_Activity"
 POLL_RATE = 0.2
@@ -15,15 +14,15 @@ AXIS_DEADZONE = 2000
 ACTIVITIES = {"start": "Start", "default": "Button pushed"}
 # each key in the button/axis sections should match back to an activity key
 CONTROLLERS = {
-    "054c_05c4": {
-        "name": "Sony DualShock 4",
+    "054c_0268": {
+        "name": "PLAYSTATION(R)3 Controller",
         "button": {
             "start": 9,
         },
         "axis": {},
     },
-    "054c_0268": {
-        "name": "Sony PS3 DualShock",
+    "054c_05c4": {
+        "name": "Sony DualShock 4",
         "button": {
             "start": 9,
         },
@@ -41,6 +40,7 @@ BUTTON = 0x01
 AXIS = 0x02
 INIT = 0x80
 
+CINFO = sys.argv[2]
 
 def read_event(buf: list[bytes]) -> dict[str, int]:
     timestamp, value, type_, number = struct.unpack("IhBB", buf)
@@ -81,15 +81,16 @@ def get_activity(
         if pe["type"] & BUTTON == BUTTON:
             # button depresses count as an activity currently
             if pe["value"] != np["value"]:
-                if DEBUG:
-                    print("Button ID: {}".format(pe["number"]))
+                if CINFO == "start":
+                    print(format(pe["number"]))
+                    sys.exit(1)
                 event_type = "button"
                 activity = ACTIVITIES["default"]
                 break
         elif pe["type"] & AXIS == AXIS:
             if abs(pe["value"] - np["value"]) > AXIS_DEADZONE:
-                if DEBUG:
-                    print("Axis ID: {}".format(pe["number"]))
+                if CINFO == "axis":
+                    print(format(pe["number"]))
                 event_type = "axis"
                 activity = ACTIVITIES["default"]
                 break
@@ -132,7 +133,7 @@ def get_device_id(dev_path: str) -> str:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Usage: {} /dev/input/jsX".format(sys.argv[0]))
         sys.exit(1)
 
@@ -141,8 +142,10 @@ if __name__ == "__main__":
     try:
         events = read_state(sys.argv[1])
         device_id = get_device_id(sys.argv[1])
-        if DEBUG and device_id:
-            print("Device ID: {}".format(device_id))
+        if CINFO == "id" and device_id:
+            print(format(device_id))
+            sys.exit(1)
+            
     except FileNotFoundError:
         print("Joystick does not exist: {}".format(sys.argv[1]))
         sys.exit(1)
