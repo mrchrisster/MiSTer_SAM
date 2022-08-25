@@ -1,13 +1,13 @@
 #!/bin/bash
 
-id="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 id)"
+pyfile="/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py"
+id="$($pyfile /dev/input/js0 id)"
+name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
 
 echo Please press start button now
-startbutton="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 start)"
+startbutton="$($pyfile /dev/input/js0 start)"
 echo This is start value: $startbutton
 echo id is: $id
-name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
-pyfile="/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py"
 
 
 if [ "$(grep -c $id $pyfile)" == "0" ]; then 
@@ -22,10 +22,6 @@ else
 	echo "$name already added"
 fi
 
-
-
-
-
-
-
-
+if [ "$(grep -c $id $pyfile)" == "1" ]; then 
+	echo "Controller added successfully."
+fi
