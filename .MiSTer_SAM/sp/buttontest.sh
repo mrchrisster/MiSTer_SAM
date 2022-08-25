@@ -18,10 +18,7 @@ if [ "$(grep -c $id $pyfile)" == "0" ]; then
 	sed -i '16 a\        \"button": {' "$pyfile"
 	sed -i '16 a\        \"name": "'"$name"'",' "$pyfile"
 	sed -i '16 a\    \"'"$id"'": {' "$pyfile"
+	echo "$name added successfully."
 else
 	echo "$name already added"
-fi
-
-if [ "$(grep -c $id $pyfile)" == "1" ]; then 
-	echo "Controller added successfully."
 fi
