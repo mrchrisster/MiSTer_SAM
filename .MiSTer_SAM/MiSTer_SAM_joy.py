@@ -14,13 +14,13 @@ AXIS_DEADZONE = 2000
 ACTIVITIES = {"start": "Start", "default": "Button pushed"}
 # each key in the button/axis sections should match back to an activity key
 CONTROLLERS = {
-    "054c_0268": {
-        "name": "PLAYSTATION(R)3 Controller",
-        "button": {
-            "start": 9,
-        },
-        "axis": {},
-    },
+    "054c_0268": { 
+		"name": "PLAYSTATION(R)3 Controller", 
+		"button": { 
+			"start": 9, 
+		}, 
+		"axis": {}, 
+	},
     "054c_05c4": {
         "name": "Sony DualShock 4",
         "button": {
@@ -39,8 +39,8 @@ CONTROLLERS = {
 BUTTON = 0x01
 AXIS = 0x02
 INIT = 0x80
+ARGS = sys.argv[1:] 
 
-CINFO = sys.argv[2]
 
 def read_event(buf: list[bytes]) -> dict[str, int]:
     timestamp, value, type_, number = struct.unpack("IhBB", buf)
@@ -81,7 +81,7 @@ def get_activity(
         if pe["type"] & BUTTON == BUTTON:
             # button depresses count as an activity currently
             if pe["value"] != np["value"]:
-                if CINFO == "start":
+                if "start" in ARGS:
                     print(format(pe["number"]))
                     sys.exit(1)
                 event_type = "button"
@@ -133,7 +133,7 @@ def get_device_id(dev_path: str) -> str:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) <= 1:
         print("Usage: {} /dev/input/jsX".format(sys.argv[0]))
         sys.exit(1)
 
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     try:
         events = read_state(sys.argv[1])
         device_id = get_device_id(sys.argv[1])
-        if CINFO == "id" and device_id:
+        if "id" in ARGS:
             print(format(device_id))
             sys.exit(1)
             
