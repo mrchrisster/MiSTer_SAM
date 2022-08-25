@@ -6,8 +6,8 @@ name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{
 
 echo Please press start button now
 startbutton="$($pyfile /dev/input/js0 start)"
-echo This is start value: $startbutton
-echo id is: $id
+echo start button: $startbutton
+echo controller id: $id
 
 
 if [ "$(grep -c $id $pyfile)" == "0" ]; then 
