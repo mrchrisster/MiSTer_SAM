@@ -519,9 +519,14 @@ function read_samini() {
 	# Value
 	# grep "^[^#;]*=" "${misterscripts}/Super_Attract_Mode.ini" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2/p" | sed "s/\"//g"
 	declare -gA ini_settings=()
+	[[ ! -s "${mrsamtmp}/ini_tmp" ]] && echo "" | >"${mrsamtmp}/ini_tmp" &>/dev/null
+	grep "^[^#;]*=" ${misterscripts}/Super_Attract_Mode.ini | grep -v "exclude=" >> ${mrsamtmp}/ini_tmp
+	if [ "$(tail -c1 "${mrsamtmp}/ini_tmp"; echo x)" != $'\nx' ]; then
+		echo "" >>"${mrsamtmp}/ini_tmp"
+	fi
 	while read line; do
-		local setting=$(echo "$line" | grep "^[^#;]*=" | grep -v "exclude=" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\1\n/p" | sed "s/\"//g")
-		local value=$(echo "$line" | grep "^[^#;]*=" | grep -v "exclude=" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2\n/p" | sed "s/\"//g")
+		local setting=$(echo "$line" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\1\n/p" | sed "s/\"//g")
+		local value=$(echo "$line" | sed -n "s/^\s*\(\S*\)=\(.*$\)/\2\n/p" | sed "s/\"//g")
 		if [ ! -z "$setting" ]; then
 			# Remove trailing slash from paths
 			if [ "${value: -1}" == "/" ]; then
@@ -529,7 +534,8 @@ function read_samini() {
 			fi
 			ini_settings[${setting}]="${value:=}"
 		fi
-	done <${misterscripts}/Super_Attract_Mode.ini
+	done <${mrsamtmp}/ini_tmp
+	[[ -f "${mrsamtmp}/ini_tmp" ]] && rm "${mrsamtmp}/ini_tmp" &>/dev/null
 	ini_settings[md5sum]=$(md5sum ${misterscripts}/Super_Attract_Mode.ini | awk '{print $1}')
 	# write to output file
 	echo $(printarr ini_settings) >"${mrsamtmp}/ini_settings"
@@ -1546,14 +1552,12 @@ function init_data() {
 }
 
 function regen_ini_settings() {
-	echo -n " Please wait while settings are loaded..."
 	rm --force ${mrsamtmp}/amigashared_path $ >/dev/null
 	rm --force ${mrsamtmp}/default_paths $ >/dev/null
 	rm --force ${mrsamtmp}/ini_settings $ >/dev/null
 	read_samini
 	init_game_path_final
 	init_amigashared_path
-	echo " Done!"
 }
 
 function vardebug_out() {
@@ -1624,11 +1628,13 @@ if [[ -s "${mrsamtmp}/ini_settings" ]]; then
 	ini_file_md5=$(md5sum ${misterscripts}/Super_Attract_Mode.ini | awk '{print $1}')
 	source "${mrsamtmp}/ini_settings"
 	if [[ "${ini_settings[md5sum]}" != "${ini_file_md5}" ]]; then
+		echo -n " Please wait while settings are loaded..."
 		regen_ini_settings
 	else
 		echo -n " Please wait while settings are loaded from file..."
-		echo " Done!"
 	fi
 elif [[ ! -s "${mrsamtmp}/ini_settings" ]]; then
+	echo -n " Please wait while settings are loaded..."
 	regen_ini_settings
 fi
+echo " Done!"

@@ -286,19 +286,18 @@ function MCP_monitors() {
 			if [[ "${line,,}" == *"event-kb"* ]]; then
 				# Kill existing Keyboard monitors
 				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_keyboard.py' | awk '{ print $1 }'); do
-					kill -9 ${otherpid} >/dev/null 2>&1
-					wait ${otherpid} >/dev/null 2>&1
+					kill -9 ${otherpid}
 				done
 				# Spawn keyboard monitoring processes
 				MCP_keybmonitor
 			elif [[ "${line,,}" == *"create js"* ]]; then
-				# Kill existing Joystick monitors
-				for otherpid in $(ps -o pid,args | grep -e '[S]uperAttract_joy.py' | awk '{ print $1 }'); do
-					kill -9 ${otherpid} >/dev/null 2>&1
-					wait ${otherpid} >/dev/null 2>&1
-				done
-				# Spawn Joystick monitoring processes
-				MCP_jsmonitor
+				# Spawn Joystick monitoring process
+				local joystick=${line/' CREATE '/}
+				if [ "${samdebug}" == "no" ]; then
+					"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" >/dev/null 2>&1 &
+				else
+					"${mrsampath}/SuperAttract_joy.py" "${joystick}" "${MCP_Activity_pipe}" "True" &
+				fi
 			fi
 		fi
 	done &
