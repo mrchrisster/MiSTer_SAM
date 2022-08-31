@@ -3,7 +3,7 @@
 #Usage options "scene noscene nostamp nofilter brackets"
 
 args="$(echo "$@")"
-scene="0.005"
+scene="005"
 
 if [ -z ${2} ]; then
 	scene="$(echo ${2} | awk -F'.' '{print $2}')"
@@ -13,7 +13,7 @@ fi
 if [[ "${args}" != *"noscene"* ]]; then
 	echo -n "Detecting scene changes..."
 	for f in *.mp4; do
-		   ffmpeg -i "${f}" -filter:v "select='gt(scene,${2})',showinfo" -y -f null - 2> "${f%.mp4}.ff${scene}"
+		   ffmpeg -i "${f}" -filter:v "select='gt(scene,0.${scene})',showinfo" -y -f null - 2> "${f%.mp4}.ff${scene}"
 	done
 	echo "Done."
 
