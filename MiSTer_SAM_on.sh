@@ -1871,6 +1871,8 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/neogeo_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 
