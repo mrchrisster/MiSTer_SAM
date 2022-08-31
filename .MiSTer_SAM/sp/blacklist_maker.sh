@@ -68,9 +68,10 @@ for f in *.stf${scene}; do
 done
 
 if [[ "${args}" != *"brackets"* ]]; then
- 	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.stf"${scene}" '{print $1}' | cut -d "[" -f1 | awk '!seen[$0]++' > ${1}_bl.txt
-else
 	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.stf"${scene}" '{print $1}'| awk '!seen[$0]++' > ${1}_bl.txt
+else
+	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.stf"${scene}" '{print $1}' | cut -d "[" -f1 | awk '!seen[$0]++' > ${1}_bl.txt
+
 fi
 echo "Done."
 
