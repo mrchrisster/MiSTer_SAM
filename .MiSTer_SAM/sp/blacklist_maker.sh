@@ -1,8 +1,14 @@
 #!/bin/bash
-#Usage "blacklist_maker.sh system scene noscene nostamp nofilter brackets"
+#Usage "blacklist_maker.sh system"
+#Usage options "scene noscene nostamp nofilter brackets"
 
-scene="$(echo ${2} | awk -F'.' '{print $2}')"
 args="$(echo "$@")"
+scene="0.005"
+
+if [ -z ${2} ]; then
+	scene="$(echo ${2} | awk -F'.' '{print $2}')"
+fi
+
 
 if [[ "${args}" != *"noscene"* ]]; then
 	echo -n "Detecting scene changes..."
