@@ -1,5 +1,5 @@
 #!/bin/bash
-#Usage "blacklist_maker.sh system scene noscene nostamp nofilter"
+#Usage "blacklist_maker.sh system scene noscene nostamp nofilter brackets"
 
 scene="$(echo ${2} | awk -F'.' '{print $2}')"
 args="$(echo "$@")"
