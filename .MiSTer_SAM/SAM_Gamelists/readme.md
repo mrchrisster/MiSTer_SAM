@@ -1,4 +1,4 @@
-ARCADE:  
+**ARCADE** 
 The following games currently show the OSD when the core is loaded so they get blacklisted. This will hopefully improve in the future:  
 ```Astro Flash (Japan)
 Fantasy Zone II - The Tears of Opa-Opa
