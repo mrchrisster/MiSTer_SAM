@@ -1,296 +1,34 @@
-1943 Kai Midway Kaisen.mra
-1943 The Battle of Midway.mra
-1944 The Loop Master (USA 000620).mra
-280Z-ZZAP (US).mra
-280Z-ZZAP.mra
-280z.mra
-Action Fighter (World, S16A) [FD1089A 317-0018].mra
-Alex Kidd The Lost Stars (Set 2, World, S16A).mra
-Alien Arena (Stargate upgrade).mra
-Alien Arena.mra
-Amazing Maze.mra
-Amidar (Scramble).mra
-Amidar.mra
-Arkanoid (Japan).mra
-Arkanoid (US).mra
-Arkanoid (Unl. Lives, slower) [hb].mra
-Arkanoid (Unl. lives) [hb].mra
-Arkanoid (Unlimited Lives).mra
-Arkanoid (W).mra
-Arkanoid (World).mra
-Arkanoid (unl.lives, slower).mra
-Arkanoid.mra
-Asteroids Deluxe.mra
-Asteroids.mra
-Attack Force.mra
-Azurian Attack.mra
-Balloon Bomber.mra
-Battle Road.mra
-Beastie Feastie.mra
-Berzerk.mra
-Birdiy.mra
-Black Hole.mra
-Black Widow.mra
-Blasto.mra
-Blockade.mra
-Blue Shark.mra
-Body Slam (World, S16) [8751 317-0015].mra
-Boot Hill.mra
-Botanic (English, Spanish, Set 1).mra
-Botanic.mra
-Breakout (TTL).mra
-Breakout.mra
-Bubble Bobble (US, Ver 5.1).mra
-Bubble Bobble.mra
-Burger Time.mra
-Canyon Bomber.mra
-Centipede (Rev 3).mra
-Centipede (Rev 4).mra
-Centipede (revision 4).mra
-Centipede.mra
-Clean Sweep (TTL).mra
-Clean Sweep.mra
-Clowns.mra
-CoMotion.mra
-Colony 7 (Set 1).mra
-Colony 7.mra
-Computer Space.mra
-Contra (US 3).mra
-Cosmic Alien.mra
-Cosmic Avenger.mra
-Cosmo.mra
-Crater Raider.mra
-Crazy Kong (Orca bootleg).mra
-Crazy Kong Part II.mra
-Crazy Kong.mra
-Crush Roller.mra
-Dark Planet (no bkg).mra
-Dark Planet.mra
-Defender (Red Label).mra
-Defender.mra
-Demolition Derby.mra
-Devil Fish (Galaxian Hardware).mra
-Devil Fish.mra
-Dig Dug.mra
-DigDug2.mra
-Discs of Tron.mra
-DoDonPachi (Japan).mra
-DoDonPachi (no warn).mra
-DoDonPachi Trainer (Japan).mra
-DoDonPachi.mra
-Dominos.mra
-DonPachi.mra
-Donkey Kong (Spanish Crazy Kong bootleg).mra
-Donkey Kong 3 (bootleg).mra
-Donkey Kong 3.mra
-Donkey Kong Junior.mra
-Donkey Kong.mra
-Dorodon.mra
-Dottori-Kun (new).mra
-Dottori-Kun (old).mra
-Dottori-Man Jr.mra
-Double Dragon.mra
-Druaga.mra
-ESP Ra.De..mra
-Eyes (US, Set 1).mra
-Fantasy Zone (Rev A, World, S16A).mra
-Fantasy Zone II - The Tears of Opa-Opa.mra
-Finalizer - Super Transformation (Set 1).mra
-Finalizer - Super Transformation (Set 2) [bl].mra
-Flicky.mra
-Food Fight.mra
-Frenzy (Rev RA1).mra
-Frenzy.mra
-Frogger (Sega, Set 2).mra
-Frogger.mra
-Galaga 3 (GP3 Rev D).mra
-Galaga 3 (GP3 rev. D).mra
-Galaga.mra
-Galaxian (Namco, Set 1).mra
-Galaxian.mra
-Galaxy Wars (Universal, Set 1).mra
-Galaxy Wars.mra
-Ganbare! Marine Kun -Japan 2K0411-.mra
-Gaplus (GP2 Rev B).mra
-Gaplus (GP2 rev. B).mra
-Gauntlet (rev 14).mra
-Ghosts'n Goblins (World Set 1).mra
-Ghosts'n Goblins.mra
-Ghouls'n Ghosts -patched-.mra
-Gorf (Program 1).mra
-Gorf (Speech).mra
-Gorf - Program 1.mra
-Gorodki.mra
-Gravitar (Ver 3).mra
-Gravitar.mra
-Grobda (W, New Ver.).mra
-Gun Fight.mra
-Guwange.mra
-Gyruss (Centuri).mra
-Gyruss.mra
-Heavy Barrel (World).mra
-Hellfire (2P set).mra
-Horizon.mra
-Hustle.mra
-I'm Sorry.mra
-Jackal (W).mra
-Jackal (W, Rotary).mra
-Jin.mra
-Kid Niki - Radical Ninja.mra
-King And Balloon (Japan).mra
-King And Balloon.mra
-King and Balloon (US).mra
-Konek Gorbunok.mra
-Kozmik Krooz'r.mra
-Kozmik Kroozr.mra
-Kung-Fu Master.mra
-Lode Runner (Set 1).mra
-Lode Runner IV - Teikoku Karano Dasshutsu.mra
-Lode Runner.mra
-Lucky Today.mra
-Lunar Battle (Prototype).mra
-Lunar Battle.mra
-Lunar Lander.mra
-Lunar Rescue.mra
-Lupin III (Set 2).mra
-Lupin III.mra
-Mad Planets.mra
-Magical Spot.mra
-Mappy.mra
-Mario Bros.mra
-Mars.mra
-Max RPM.mra
-Mayday (Set 1).mra
-Mayday.mra
-Megumi Rescue (Japan).mra
-Mighty Monkey.mra
-Mighty! Pang (USA 001010).mra
-Mister Viking.mra
-Moon Cresta (Galaxian Hardware) [bl].mra
-Moon Cresta.mra
-Mr. Do Fixed.mra
-Mr. Do Nightmare.mra
-Mr. Do! Fixed.mra
-Mr. Do.mra
-Ms. Pacman.mra
-My Hero.mra
-Number Crash.mra
-Opa Opa.mra
-Orbitron.mra
-Out Zone.mra
-Pac-Man (Midway).mra
-Pac-Man Plus.mra
-Pac-Manic Miner.mra
-Pacman Plus.mra
-Pacmanic Miner.mra
-Pang (World).mra
-Pengo.mra
-Phoenix (Amstar, Set 1).mra
-Phoenix.mra
-Pickin'.mra
-Pisces.mra
-Pitfall II.mra
-Playball (Prototype).mra
-Playball.mra
-Pleiads (Centuri).mra
-Pleiads (Tehkan).mra
-Pleiads.mra
-Poly Play 2.mra
-Poly Play 2c.mra
-Poly Play.mra
-PolyPlay 2.mra
-PolyPlay 2c.mra
-PolyPlay.mra
-Pong (Rev E).mra
-Pong.mra
-Pooyan.mra
-Popeye.mra
-Puck Man (JP, Set 1).mra
-Puck Man (Japan set 1).mra
-Puzzle Uo Poko.mra
-QBert Qubes.mra
-Quiz Nanairo Dreams Nijiirochou no Kiseki (Japan 96086).mra
-Radar Scope (rev. D).mra
-Rafflesia.mra
-Rally-X.mra
-Rampage.mra
-Regulus.mra
-River Patrol.mra
-S.O.S..mra
-SOS.mra
-Scramble.mra
-Sea Wolf (Set 1).mra
-Sea Wolf II.mra
-Sea Wolf.mra
-Seawolf II.mra
-Sega Ninja.mra
-Shinobi (Set 6, World, S16A).mra
-Shot Rider.mra
-Shuffleboard.mra
-Shuttle Invader.mra
-Solar Fox.mra
-Solomon no Kagi (Japan).mra
-Space Encounters.mra
-Space Invaders (Samples).mra
-Space Invaders II (Midway, cocktail).mra
-Space Invaders Part II (Taito, Bigger ROMs).mra
-Space Invaders Part II.mra
-Space Invaders.mra
-Space Race [TTL].mra
-Space Race.mra
-Spatter.mra
-Spelunker II - 23 no Kagi.mra
-Sprint 1.mra
-Sprint 2.mra
-Spy Hunter.mra
-Squash.mra
-Star Jacker.mra
-Street Fighter Zero -CPS Changer, Japan 951020-.mra
-Street Fighter Zero 2 Alpha (Japan 960805).mra
-Super Breakout (Rev 04).mra
-Super Breakout.mra
-Super Glob.mra
-Super Pac-Man.mra
-Super Pacman.mra
-Super Pang (World 900914).mra
-Super Puzzle Fighter II Turbo (Hispanic 960531) [Decrypted].mra
-Super Puzzle Fighter II Turbo (USA 960620).mra
-Super Puzzle Fighter II X (Japan 960531) [Decrypted].mra
-Swat.mra
-Tapper.mra
-Tazz-Mania (Set 1).mra
-Tazz-Mania.mra
-TeddyBoy Blues.mra
-Tetris (Japan, System E).mra
-Tetris (Set 4, Japan, S16A) [FD1094 317-0093].mra
-Tetris (cocktail set 1).mra
-Tetris.mra
-The End.mra
-The Glob.mra
-The Tower of Druaga.mra
-Time Pilot '84 (Set 2).mra
-Time Pilot '84 (Set 3).mra
-Time Pilot.mra
-Top Gunner (US).mra
-Tough Turf (set 2, Japan) (8751 317-0104).mra
-Traverse USA - Zippy Race.mra
-Tron.mra
-Turbo Tag.mra
-Turtles.mra
-Two Tigers.mra
-Ultra Tank.mra
-UniWar S.mra
-V'Ball (US).mra
-Vampire Savior The Lord of Vampire (Euro 970519).mra
-Van-Van Car.mra
-Venus (bootleg of Gyruss).mra
-Vigilante (World, Rev E).mra
-Vortex.mra
-War of the Bugs.mra
-Water Match.mra
-Wizard of Wor - Speech.mra
-Wizard of Wor.mra
-Woodpecker (Set 1).mra
-Youjyuden.mra
-Zero Wing (2P set).mra
-Zig Zag.mra
+280Z-ZZAP
+Astro Flash (Japan)
+Body Slam (World, S16) [8751 317-0015]
+Burger Time
+DoDonPachi (no warn)
+DoDonPachi Trainer (Japan)
+Double Dragon
+Fantasy Zone II - The Tears of Opa-Opa
+Galaga
+Hang On Jr
+Hellfire (2P set)
+King And Balloon
+King And Balloon (Japan)
+King and Balloon (US)
+Lupin III
+Megumi Rescue (Japan)
+Opa Opa
+Opa Opa (Rev A, unprotected)
+Out Zone
+Pac-Manic Miner
+Pacman Plus
+Pacmanic Miner
+Pang (World)
+PolyPlay
+Popeye
+Riddle of Pythagoras (Japan)
+Shuttle Invader
+Slap Shooter
+Super Pang (World 900914)
+Super Puzzle Fighter II Turbo (Hispanic 960531) [Decrypted]
+Super Puzzle Fighter II X (Japan 960531) [Decrypted]
+Tetris (Japan, System E)
+Tough Turf (set 2, Japan) (8751 317-0104)
+Transformer
