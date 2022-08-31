@@ -5,7 +5,7 @@
 args="$(echo "$@")"
 scene="005"
 
-if [ -z ${2} ]; then
+if [ ! -z ${2} ]; then
 	scene="$(echo ${2} | awk -F'.' '{print $2}')"
 fi
 
