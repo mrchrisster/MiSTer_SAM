@@ -36,10 +36,13 @@ if [[ "${args}" != *"nofilter"* ]]; then
 		fi
 			   prev="${line}"
 		done
+		
 		if [ -f st.tmp ]; then
-			mv st.tmp "${f}"
+			mv st.tmp "${f%.st${scene}}.stf${scene}"
+		elif [[ $(cat "${f}" | wc -l) -gt "3" ]]; then
+			cat "${f}" > "${f%.st${scene}}.stf${scene}"
 		else
-			echo ""> "${f}"
+			echo ""> "${f%.st${scene}}.stf${scene}"
 		fi
 		
 	done
@@ -52,13 +55,13 @@ if [ -f "${1}_bl.tmp" ]; then
 fi
 
 echo -n "Create final list..."
-for f in *.st${scene}; do
-        if [[ "$(cat "${f}" | wc -l)" -lt "2" ]]; then
-                echo "${f}" >> ${1}_bl.tmp
-        fi
+for f in *.stf${scene}; do
+	if [[ "$(cat "${f}" | wc -l)" -lt "2" ]]; then
+			echo "${f}" >> ${1}_bl.tmp
+	fi
 done
 
-cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.st"${scene}" '{print $1}'| awk '!seen[$0]++' > ${1}_bl.txt
+cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.stf"${scene}" '{print $1}'| awk '!seen[$0]++' > ${1}_bl.txt
 echo "Done."
 
 
