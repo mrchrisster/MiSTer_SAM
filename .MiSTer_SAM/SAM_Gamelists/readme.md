@@ -9,6 +9,7 @@ Opa Opa
 Riddle of Pythagoras (Japan)
 Slap Shooter
 Tetris (Japan, System E)
-Transformer```
+Transformer
+```
   
 This will hopefully improve in the future
