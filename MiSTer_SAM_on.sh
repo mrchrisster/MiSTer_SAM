@@ -161,9 +161,9 @@ function init_paths() {
 
 function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
-	[ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
+	[ ${mute} == "yes" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	[ -f "/tmp/.SAM_tmp/SAM_config/minimig.cfg" ] && cp /tmp/.SAM_tmp/SAM_config/minimig.cfg /tmp/.SAM_tmp/SAM_config/Minimig.cfg 2>/dev/null
-	[ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
+	[ ${mute} == "yes" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
@@ -2727,31 +2727,26 @@ function next_core() { # next_core (core)
 
 			# Choose the actual core
 			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"
-			
-			# If core is single core make sure we don't run out of cores
-			if [ -z ${nextcore} ]; then
-				nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
-			fi
 
 		else
+			# If core is single core make sure we don't run out of cores
 			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
 		fi
 		
 		#Special case for first run
-		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
+		if [ "${first_run_arcade}" == "0" ] && [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
 			"${mrsampath}"/samindex -q -s arcade -nofilter -o "${gamelistpath}"
+			if [ "$(cat "${gamelistpath}/arcade_gamelist.txt" | wc -l)" == "0" ]; then
+				echo " Couldn't find Arcade games. Please run update_all.sh first"
+				exit
+			fi
 			first_run_arcade=1
-		fi
-		
-		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
-			echo " Couldn't find Arcade games. Please run update_all.sh first"
-			exit
 		fi
 
 		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then
-			nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | shuf | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}' | head -1)"
+			nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
 			for core in `echo $corelist`; do
-				"${mrsampath}"/samindex -q -s "${core}" -nofilter "${gamelistpath}" &
+				"${mrsampath}"/samindex -q -s "${core}" -nofilter -o "${gamelistpath}" &
 			done
 		fi
 
