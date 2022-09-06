@@ -1819,13 +1819,8 @@ function sam_update() { # sam_update (next command)
 	else
 		echo " No connection to Github. Please use offline install."
 		sleep 5
-		exit
+		exit 1
 	fi
-
-	# Close SAM for update
-	echo -n " Stopping SAM..."
-	kill_all_sams
-	echo " Done."
 	
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
