@@ -1130,9 +1130,6 @@ function read_samini() {
 		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
 			declare -g ${var}="${!var%/}"
 		done
-		
-	else
-		sam_update autoconfig
 	fi
 
 	# Setup corelist
@@ -1182,7 +1179,7 @@ function sam_premenu() {
 	echo ""
 
 	for i in {5..1}; do
-		echo -ne " Updating SAM in ${i}...\033[0K\r"
+		echo -ne " Updating SAM in ${i} secs...\033[0K\r"
 		premenu="Default"
 		read -r -s -N 1 -t 1 key
 		if [[ "${key}" == "A" ]]; then
@@ -1816,8 +1813,12 @@ function mcp_start() {
 }
 
 function sam_update() { # sam_update (next command)
-	# End script through button push
-	echo "Button push." >/tmp/.SAM_Joy_Activity
+
+	# Close SAM for update
+	echo -n " Stopping SAM..."
+	kill_all_sams
+	echo " Done."
+	
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
 	mkdir --parents "${gamelistpath}" &>/dev/null
@@ -1899,6 +1900,8 @@ function sam_update() { # sam_update (next command)
 
 	echo " Update complete!"
 	return
+	
+	mcp_start
 
 	if [ ${inmenu} -eq 1 ]; then
 		sleep 1
@@ -2260,6 +2263,7 @@ function curl_download() { # curl_download ${filepath} ${URL}
 
 # ======== UPDATER FUNCTIONS ========
 function get_samstuff() { #get_samstuff file (path)
+	
 	if [ -z "${1}" ]; then
 		return 1
 	fi
