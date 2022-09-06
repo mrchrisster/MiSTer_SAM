@@ -1814,6 +1814,14 @@ function mcp_start() {
 
 function sam_update() { # sam_update (next command)
 
+	if ping -4 -q -w 1 -c 1 github.com > /dev/null; then 
+		echo " Connection established"
+	else
+		echo " No connection to Github. Please use offline install."
+		sleep 5
+		exit
+	fi
+
 	# Close SAM for update
 	echo -n " Stopping SAM..."
 	kill_all_sams
