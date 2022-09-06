@@ -64,7 +64,7 @@ function init_vars() {
 	declare -gl usezip="Yes"
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
-	declare -gl mute="Yes"
+	declare -gl mute="No"
 	declare -gl playcurrentgame="No"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
