@@ -74,7 +74,9 @@ function start_pipe_reader() {
 					;;
 				display_info)
 					shift
-					tty_display "${@}"
+					if [ -c ${ttydevice} ]; then
+						tty_display "${@}"
+					fi
 					;;
 				update_counter)
 					update_counter
@@ -104,6 +106,16 @@ function tty_init() { # tty_init
 	ttypicture_pri=${picturefolder_pri}
 	set_scroll_speed
 
+	### Wait for USB module and start tty2oled daemon
+	WAITEND=$((SECONDS+10))
+	while !  [ -c ${ttydevice} ] && [ ${SECONDS} -lt ${WAITEND} ]; do
+		sleep 0.1
+	done
+	if ! [ -c ${ttydevice} ]; then
+		echo "Could not find the needed USB module ${TTYDEV}. Exiting."
+		exit 1
+	fi
+
 	# Stopping tty2oled Daemon
 	if [ -f ${tty_sleepfile} ]; then
 		sleepfile_expiration=$(<${tty_sleepfile})
@@ -127,7 +139,7 @@ function tty_init() { # tty_init
 
 		# Stopping ScreenSaver
 		samquiet "-n" " Stopping tty2oled ScreenSaver..."
-		echo "CMDSAVER,0,0,0" >${ttydevice}
+		[[ -c ${ttydevice} ]] && echo "CMDSAVER,0,0,0" >${ttydevice}
 		tty_waitfor
 		samquiet " Done!"
 
@@ -148,15 +160,15 @@ function tty_init() { # tty_init
 
 function tty_exit() {
 	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >${ttydevice}
+	[[ -c ${ttydevice} ]] && echo "CMDCLST,-1,0" >${ttydevice}
 	tty_waitfor
-	echo "CMDBYE" >${ttydevice}
+	[[ -c ${ttydevice} ]] && echo "CMDBYE" >${ttydevice}
 	sleep 5
 	tty_cleanup
 }
 
 function tty_waitfor() {
-	read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
+	[[ -c ${ttydevice} ]] && read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
 	ttyresponse=""
 }
 
@@ -192,8 +204,8 @@ function update_name_scroll() {
 					fi
 				fi
 				tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
-				echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
-				echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+				[[ -c ${ttydevice} ]] && echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
+				[[ -c ${ttydevice} ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
 				prev_name_scroll="${tty_currentinfo[name_scroll]}"
 			fi
 		fi
@@ -211,10 +223,10 @@ function update_counter() {
 	if [ ${tty_currentinfo[counter]} -lt 1 ]; then
 		tty_currentinfo[counter]=0
 	fi
-	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	[[ -c ${ttydevice} ]] && echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
+	[[ -c ${ttydevice} ]] && echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_counter="${tty_currentinfo[counter]}"
-	echo "CMDDUPD" >"${ttydevice}"
+	[[ -c ${ttydevice} ]] && echo "CMDDUPD" >${ttydevice}
 	tty_waitfor
 	if [ ${samtrace} == "yes" ]; then
 		declare -p tty_currentinfo | sed 's/declare -A tty_currentinfo=//g'
@@ -238,9 +250,9 @@ function tty_display() { # tty_update core game
 		tty_waitfor
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		tty_currentinfo[counter]=$((gametimer - elapsed))
-		echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-		echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
-		echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 		prev_name_scroll="${tty_currentinfo[name_scroll]}"
 		prev_counter="${tty_currentinfo[counter]}"
 	fi
@@ -274,11 +286,11 @@ function tty_senddata() {
 		samdebug " tty2oled found/send Picture : ${picfnam} "
 		samdebug "-------------------------------------------"
 
-		echo "CMDCOR,${1}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
-		tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
+		[[ -c ${ttydevice} ]] && echo "CMDCOR,${1}" >${ttydevice}                # Send CORECHANGE" Command and Corename
+		[[ -c ${ttydevice} ]] && tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
 		tty_waitfor                                       # sleep needed here ?!
 	else                                               # No Picture available!
-		echo "${1}" >"${ttydevice}"                       # Send just the CORENAME
+		[[ -c ${ttydevice} ]] && echo "${1}" >${ttydevice}                       # Send just the CORENAME
 		tty_waitfor                                       # sleep needed here ?!
 	fi                                                 # End if Picture check
 }

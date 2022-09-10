@@ -1551,10 +1551,14 @@ function init_data() {
 	)
 }
 
-function regen_ini_settings() {
+function reset_settings() {
 	rm --force ${mrsamtmp}/amigashared_path $ >/dev/null
 	rm --force ${mrsamtmp}/default_paths $ >/dev/null
 	rm --force ${mrsamtmp}/ini_settings $ >/dev/null
+}
+
+function regen_ini_settings() {
+	reset_settings
 	read_samini
 	init_game_path_final
 	init_amigashared_path
@@ -1615,9 +1619,7 @@ samquiet | quiet)
 	;;
 reset)
 	shift
-	rm --force ${mrsamtmp}/amigashared_path $ >/dev/null
-	rm --force ${mrsamtmp}/default_paths $ >/dev/null
-	rm --force ${mrsamtmp}/ini_settings $ >/dev/null
+	reset_settings
 	samquiet "All tmp settings files deleted..."
 	samquiet "Run script again without reset to start..."
 	return
