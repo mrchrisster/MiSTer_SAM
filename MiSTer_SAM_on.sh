@@ -161,9 +161,9 @@ function init_paths() {
 
 function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
-	[ ${mute} == "yes" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
+	[ ${mute} == "yes" ] || [ ${mute} == "core" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	[ -f "/tmp/.SAM_tmp/SAM_config/minimig.cfg" ] && cp /tmp/.SAM_tmp/SAM_config/minimig.cfg /tmp/.SAM_tmp/SAM_config/Minimig.cfg 2>/dev/null
-	[ ${mute} == "yes" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
+	[ ${mute} == "yes" ] || [ ${mute} == "core" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
@@ -1877,6 +1877,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/neogeo_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/s32x_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 
