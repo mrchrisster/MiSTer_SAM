@@ -1,14 +1,9 @@
 #!/bin/bash
 #Usage "blacklist_maker.sh system"
-#Usage options "scene noscene nostamp nofilter brackets"
+#Usage options "noscene nostamp filter brackets"
 
 args="$(echo "$@")"
-scene="005"
-
-if [ ! -z ${2} ]; then
-	scene="$(echo ${2} | awk -F'.' '{print $2}')"
-fi
-
+scene="1"
 
 if [[ "${args}" != *"noscene"* ]]; then
 	echo -n "Detecting scene changes..."
@@ -28,7 +23,7 @@ if [[ "${args}" != *"nostamp"* ]]; then
 fi
 
 
-if [[ "${args}" != *"nofilter"* ]]; then
+if [[ "${args}" == *"filter"* ]]; then
 	echo -n "Filtering consecutive frames out..."
 	for f in *.st${scene}; do
 		cat "${f}" | while read line; do
@@ -44,11 +39,11 @@ if [[ "${args}" != *"nofilter"* ]]; then
 		done
 		
 		if [ -f st.tmp ]; then
-			mv st.tmp "${f%.st${scene}}.stf${scene}"
+			mv st.tmp "${f%.st${scene}}.st${scene}"
 		elif [[ $(cat "${f}" | wc -l) -gt "3" ]]; then
-			cat "${f}" > "${f%.st${scene}}.stf${scene}"
+			cat "${f}" > "${f%.st${scene}}.st${scene}"
 		else
-			echo ""> "${f%.st${scene}}.stf${scene}"
+			echo ""> "${f%.st${scene}}.st${scene}"
 		fi
 		
 	done
@@ -60,18 +55,24 @@ if [ -f "${1}_bl.tmp" ]; then
         rm ${1}_bl.tmp
 fi
 
-echo -n "Create final list..."
-for f in *.stf${scene}; do
+echo -n "Creating final list..."
+
+for f in *.st${scene}; do
 	if [[ "$(cat "${f}" | wc -l)" -lt "2" ]]; then
 			echo "${f}" >> ${1}_bl.tmp
 	fi
 done
 
-if [[ "${args}" != *"brackets"* ]]; then
-	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.stf"${scene}" '{print $1}'| awk '!seen[$0]++' > ${1}_bl.txt
-else
-	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.stf"${scene}" '{print $1}' | cut -d "[" -f1 | awk '!seen[$0]++' > ${1}_bl.txt
 
+if [[ "${args}" != *"brackets"* ]]; then
+	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.st"${scene}" '{print $1}'| awk '!seen[$0]++' > ${1}_bl.txt
+else
+	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.st"${scene}" '{print $1}' | cut -d "[" -f1 | awk '!seen[$0]++' > ${1}_bl.txt
+
+fi
+
+if [[ "${args}" == *"nobrackets"* ]]; then
+	cat ${1}_bl.tmp | cut -d "(" -f1 | awk -F.st"${scene}" '{print $1}'| awk '!seen[$0]++' > ${1}_bl.txt
 fi
 echo "Done."
 
