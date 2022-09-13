@@ -2736,6 +2736,11 @@ function next_core() { # next_core (core)
 			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"			
 		fi
 		
+		# Single core mode
+		if [ -z "${corelisttmp[@]//[[:blank:]]/}" ]; then
+			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+		fi
+		
 		#Special case for first run
 		if [ "${first_run_arcade}" == "0" ] && [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
 			"${mrsampath}"/samindex -q -s arcade -nofilter -o "${gamelistpath}"
@@ -2759,11 +2764,6 @@ function next_core() { # next_core (core)
 	elif [ "${2,,}" == "countdown" ]; then
 		nextcore="${1}"
 		countdown="countdown"	
-	fi
-	
-	# Single core mode
-	if [ -z "${corelisttmp[@]//[[:blank:]]/}" ]; then
-		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
 	fi
 		
 
