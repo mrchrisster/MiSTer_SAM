@@ -2081,8 +2081,8 @@ function env_check() {
 	# Check if we've been installed
 	if [ ! -f "${mrsampath}/partun" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
 		echo " SAM required files not found."
-		echo " Surprised? Check your INI."
-		sam_update ${1}
+		echo " Installing now."
+		sam_update default
 		echo " Setup complete."
 	fi
 }
