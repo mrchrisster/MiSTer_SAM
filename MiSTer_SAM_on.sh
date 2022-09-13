@@ -2746,7 +2746,8 @@ function next_core() { # next_core (core)
 			first_run_arcade=1
 		fi
 
-		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then		
+		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then	
+			nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
 			"${mrsampath}"/samindex -q -nofilter -o "${gamelistpath}" &
 		fi
 
