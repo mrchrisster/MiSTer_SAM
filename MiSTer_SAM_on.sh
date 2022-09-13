@@ -1878,6 +1878,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/neogeo_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 		get_samstuff .MiSTer_SAM/SAM_Gamelists/s32x_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists
 
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 
@@ -2752,10 +2753,11 @@ function next_core() { # next_core (core)
 		fi
 
 		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then
-			nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-			for core in `echo $corelist`; do
-				"${mrsampath}"/samindex -q -s "${core}" -nofilter -o "${gamelistpath}" &
-			done
+			#nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+			#for core in `echo $corelist`; do
+			#	"${mrsampath}"/samindex -q -s "${core}" -nofilter -o "${gamelistpath}" &
+			#done
+			"${mrsampath}"/samindex -q -nofilter -o "${gamelistpath}" &
 		fi
 
 		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
