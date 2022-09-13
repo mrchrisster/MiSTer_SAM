@@ -2307,6 +2307,7 @@ function get_samindex() {
 	echo " Downloading samindex - needed for creating gamelists..."
 	echo " Created for MiSTer by wizzo"
 	echo " https://github.com/wizzomafizzo/mrext"
+	latest=$(curl -s -L --insecure https://api.github.com/repos/wizzomafizzo/mrext/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
 	latest="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
 	curl_download "/tmp/samindex.zip" "${latest}"
 	unzip -ojq /tmp/samindex.zip -d "${mrsampath}" # &>/dev/null
@@ -2731,15 +2732,9 @@ function next_core() { # next_core (core)
 		# Don't repeat same core twice
 
 		if [ ! -z ${nextcore} ]; then
-
 			corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
-
 			# Choose the actual core
-			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"
-
-		else
-			# If core is single core make sure we don't run out of cores
-			nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+			nextcore="$(echo ${corelisttmp} | xargs shuf --head-count=1 --echo)"			
 		fi
 		
 		#Special case for first run
@@ -2752,11 +2747,10 @@ function next_core() { # next_core (core)
 			first_run_arcade=1
 		fi
 
-		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then
-			#nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-			#for core in `echo $corelist`; do
-			#	"${mrsampath}"/samindex -q -s "${core}" -nofilter -o "${gamelistpath}" &
-			#done
+		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then		
+			for core in `echo $corelist`; do
+				"${mrsampath}"/samindex -q -s "${core}" -nofilter -o "${gamelistpath}" &
+			done
 			"${mrsampath}"/samindex -q -nofilter -o "${gamelistpath}" &
 		fi
 
@@ -2767,8 +2761,14 @@ function next_core() { # next_core (core)
 		nextcore="${2}"
 	elif [ "${2,,}" == "countdown" ]; then
 		nextcore="${1}"
-		countdown="countdown"
+		countdown="countdown"	
 	fi
+	
+	# Single core mode
+	if [ -z "${corelisttmp[@]//[[:blank:]]/}" ]; then
+		nextcore="$(echo ${corelist} | xargs shuf --head-count=1 --echo)"
+	fi
+		
 
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
@@ -3004,6 +3004,7 @@ function load_core_arcade() {
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
+	
 	
 	if [ "${first_run_arcade}" == "1" ]; then
 	 	nextcore=""
