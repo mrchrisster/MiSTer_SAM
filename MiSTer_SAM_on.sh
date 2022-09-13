@@ -2307,7 +2307,6 @@ function get_samindex() {
 	echo " Downloading samindex - needed for creating gamelists..."
 	echo " Created for MiSTer by wizzo"
 	echo " https://github.com/wizzomafizzo/mrext"
-	latest=$(curl -s -L --insecure https://api.github.com/repos/wizzomafizzo/mrext/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
 	latest="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
 	curl_download "/tmp/samindex.zip" "${latest}"
 	unzip -ojq /tmp/samindex.zip -d "${mrsampath}" # &>/dev/null
