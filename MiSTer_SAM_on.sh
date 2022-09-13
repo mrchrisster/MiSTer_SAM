@@ -2727,10 +2727,10 @@ function next_core() { # next_core (core)
 		exit 1
 	fi
 
-	# Set $nextcore from $corelist
+	# No corename was supplied with MiSTer_SAM_on.sh
 	if [ -z "${1}" ]; then
+	
 		# Don't repeat same core twice
-
 		if [ ! -z ${nextcore} ]; then
 			corelisttmp=$(echo "$corelist" | awk '{print $0" "}' | sed "s/${nextcore} //" | tr -s ' ')
 			# Choose the actual core
@@ -2748,9 +2748,6 @@ function next_core() { # next_core (core)
 		fi
 
 		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then		
-			for core in `echo $corelist`; do
-				"${mrsampath}"/samindex -q -s "${core}" -nofilter -o "${gamelistpath}" &
-			done
 			"${mrsampath}"/samindex -q -nofilter -o "${gamelistpath}" &
 		fi
 
