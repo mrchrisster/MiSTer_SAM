@@ -6,14 +6,14 @@
     "default_options": {},
     "files": {
 	"Scripts/MiSTer_SAM_on.sh": {
-	    "hash": "b3ab9eadc6053a59161d40d2a1ccc285",
-	    "size": 95905,
+	    "hash": "715d857b5596a6a7e162158524454f2d",
+	    "size": 96019,
 	    "url": "https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/main/MiSTer_SAM_on.sh"
 	}
     },
     "folders": {
 	"Scripts": {}
     },
-    "timestamp": 1663091261,
+    "timestamp": 1663091564,
     "zips": {}
 }
