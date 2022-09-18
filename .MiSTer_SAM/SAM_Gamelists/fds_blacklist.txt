@@ -418,10 +418,7 @@ Solomon no Kagi
 Solomon no Kagi (Japan) (Disk Writer)
 Souseiki Fammy - ROM-QD for 256K+64K 
 Souseiki Fammy - ROM-QD for 256K+64K (Japan) (Unl)
-Sunsoft Dev Disk Lot - 'E180L05' no. 1 (Japan)
-Sunsoft Dev Disk Lot - 'F266F13' (Japan)
-Sunsoft Dev Disk Lot - 'G188D21N' no. 2 (Japan)
-Sunsoft Dev Disk Lot - 'J226I22' no. 3 (Japan)
+Sunsoft Dev Disk Lot
 Super Boy Allan 
 Super Boy Allan (Japan)
 Super Lode Runner 
