@@ -1,5 +1,6 @@
-086 Kaettekita Mario Bros. 
+086 Kaettekita Mario Bros. 					   
 086 Kaettekita Mario Bros. (1988)(Nintendo)
+1986-02-21 Mahjong (Japan)
 1986-02-21 Zelda no Densetsu - The Hyrule Fantasy 
 1986-02-21 Zelda no Densetsu - The Hyrule Fantasy (Japan) (v1.0)
 1986-04-14 Nazo no Murasame Jou 
@@ -11,13 +12,19 @@
 1986-09-19 Koneko Monogatari - The Adventures of Chatran (Japan)
 1986-09-26 I Am a Teacher - Teami no Kiso 
 1986-09-26 I Am a Teacher - Teami no Kiso (Japan) [b]
+1986-10-21 Pro Wres - Famicom Wrestling Association(Japan)
+1986-11-13 Family Computer Othello (Japan)
 1986-11-20 Dead Zone 
 1986-11-28 Monitor Puzzle Kineko, The - Kinetic Connection 
 1986-11-28 Monitor Puzzle Kineko, The - Kinetic Connection (Japan)
 1986-12-12 Adian no Tsue 
 1986-12-12 Adian no Tsue (Japan)
+1986-12-13 Nazo no Kabe - Block Kuzushi (Japan) [b]
+1986-12-15 Breeder (1986)(Soft Pro)
+1986-12-20 Kieta Princess (Japan)
 1986-12-25 Professional Mahjong Gokuu 
 1986-12-25 Professional Mahjong Gokuu (Japan)
+1986-12-26 Electrician (Japan)
 Adian no Tsue 
 Adian no Tsue (Japan)
 Adian no Tsue (Japan) (Beta) 
@@ -26,12 +33,18 @@ Aliens - Alien 2
 Aliens - Alien 2 (Japan) (Proto) 
 Aliens FDS Fix 
 Aliens FDS Fix (Hack) v1 lancuster
+Apple Town Monogatari - Little Computer People (Japan)
+Aspic - Majaou no Noroi (Japan)
+Backgammon (1990)(Nintendo)
+Backgammon (Japan)
+Backgammon (Japan) [b]
 Big Challenge! Go! Go! Bowling 
 Big Challenge! Go! Go! Bowling (Japan)
 Big Challenge! Gun Fighter 
 Big Challenge! Gun Fighter (Japan)
 Big Challenge! Juudou Senshuken 
 Big Challenge! Juudou Senshuken (Japan)
+Bio Miracle Bokutte Upa (Japan) (3DS Virtual Console)
 Bishoujo Alien Battle (Japan) (Alt 1) 
 Bishoujo Alien Battle (Japan) (Unl)
 Bishoujo Control 
@@ -40,6 +53,12 @@ Bishoujo Hanafuda Club Vol.1 - Oichokabu Hen
 Bishoujo Kachinuki Renju - Gomoku Narabe 
 Bishoujo Kachinuki Renju - Gomoku Narabe (Japan) (Unl)
 Bishoujo Mahjong Club 
+Bishoujo Mahjong Club (Japan) (Unl)
+Bishoujo Sexy Derby (Japan) (Unl)
+Bishoujo Sexy Derby (Japan) (Unl)[t-Eng]
+Bishoujo Sexy Derby T+Eng v1.31 Spinner 8
+Bishoujo Sexy Puzzle (Japan) (Unl)
+Bishoujo Sexy Slot (Japan) (Unl)
 Bishoujo Shashinkan - Moving School 
 Bishoujo Shashinkan - Moving School (Japan) (Unl)
 Bishoujo Shashinkan - Studio Cut 
@@ -51,6 +70,9 @@ Bodyconquest I - Abakareshi Musumetachi (Japan) (Disk 1)
 Bodyconquest I - Abakareshi Musumetachi (Japan) (Disk 2) 
 Bodyconquest I - Abakareshi Musumetachi (Japan) (Unl) [Merged]
 Bodyconquest I - Abakareshi Musumetachi T+Eng v1 DvD Translations
+Breeder (J) T+Eng1.0 Psyklax
+Breeder (Japan)
+Breeder T+Eng v1.0 Psyklax
 Bubble Bobble (Japan)
 Bubble Bobble (Japan) (3DS Virtual Console)
 Bubble Bobble (Japan) (Wii and Wii U Virtual Console)
@@ -60,6 +82,13 @@ Cleopatra no Mahou
 Cleopatra no Mahou (Japan)
 Cleopatra no Mahou (Japan) [b]
 Cleopatra no Mahou T+Eng v1 DvD Translations
+Cocona World (Japan)
+Comic Sakka Series Touma Senki #1 - Mashoujo Gakuen Evil (Japan) (Unl)
+Comic Sakka Series Touma Senki #2 - Mermaid no Gyakushuu (Japan) (Unl)
+Comic Sakka Series Touma Senki #3 - Ryuujin Sensei Kikiippatsu (Japan) (Unl)
+Comic Sakka Series Touma Senki #4 - Tenkuu Ryuumaou Fukkatsu (Japan) (Unl)
+Comic Sakka Series Touma Senki #5 - Youjuu Rudo no Chousen (Japan) (Unl)
+Dandy - Zeuon no Fukkatsu (Japan)
 Date de Blackjack 
 Date de Blackjack (Japan) (Unl)
 Dead Zone 
@@ -90,6 +119,9 @@ Egger Land (Japan)[t-Eng]
 Egger Land - Souzou e no Tabidachi 
 Egger Land - Souzou e no Tabidachi (Japan) (Beta) 
 Egger Land T+Eng v1.0 necrosaro
+Electrician (Japan)
+Electrician (Japan)[t-Eng]
+Electrician T+Eng v1.0 KingMike
 Emi-chan no Moero Yakyuuken! 
 Exciting Baseball 
 Exciting Baseball (Japan)
@@ -104,17 +136,38 @@ Fairytale
 Fairytale (Japan)
 Falsion 
 Falsion (Japan)
+Famicom Grand Prix II - 3D Hot Rally (Japan)
+Famicom Grand Prix II - 3D Hot Rally (Japan) (DV 5)
+Famicom Grand Prix II - 3D Hot Rally (Japan) (DV 7)
+Famicom Grand Prix II - 3D Hot Rally (Japan) (DV 8) 
+Famicom Grand Prix II - 3D Hot Rally (Japan)[t-Eng]
+Famicom Grand Prix II - 3D Hot Rally T+Eng v1.0 MrRichard999
+Famicom Tantei Club - Kieta Koukeisha (Japan) (3DS Virtual Console) [Merged]
+Famicom Tantei Club - Kieta Koukeisha (Japan) (Wii and Wii U Virtual Console) [Merged]
+Famicom Tantei Club - Kieta Koukeisha (Japan) [Merged]
 Famicom Tantei Club - Kieta Koukeisha - Kouhen 
 Famicom Tantei Club - Kieta Koukeisha - Kouhen (Japan)
 Famicom Tantei Club - Kieta Koukeisha - Kouhen (Japan) (3DS Virtual Console)
+Famicom Tantei Club - Kieta Koukeisha - Zenpen (Japan)
+Famicom Tantei Club - Kieta Koukeisha - Zenpen (Japan) (DV 1, 3)
+Famicom Tantei Club - Kieta Koukeisha - Zenpen (Japan) (DV 3) 
 Famicom Tantei Club Part II - Ushiro ni Tatsu Shoujo - Kouhen 
 Famicom Tantei Club Part II - Ushiro ni Tatsu Shoujo - Kouhen (Japan) (DV 3, 4)
 Famicom Tantei Club Part II - Ushiro ni Tatsu Shoujo - Kouhen (Japan) (DV 4)
 Famicom Tantei Club Part II - Ushiro ni Tatsu Shoujo - Kouhen (Japan) (DV 4) 
+Famicom Tantei Kurabu - Kieta Koukeisha (1988)(Nintendo)
+Family Composer (Japan) (Disk Writer)
+Family Composer (Japan) (Rev 1)
+Family Composer (Japan) [b]
 Famimaga Disk Vol. 2 - Panic Space 
+Famimaga Disk Vol. 2 - Panic Space (Japan) (Disk Writer)
 Famimaga Disk Vol. 3 - All 1 
+Famimaga Disk Vol. 3 - All 1 (Japan) (Disk Writer)
 Famimaga Disk Vol. 4 - Clox 
+Famimaga Disk Vol. 4 - Clox (Japan) (Disk Writer)
+Famimaga Disk Vol. 5 - Puyo Puyo (Japan) (Disk Writer)
 Famimaga Disk Vol. 6 - Janken Disk Jou 
+Fire Rock (Japan)
 Fruits Mahjong 1 - Dai H Taikai 
 Fruits Mahjong 1 - Dai H Taikai (Japan) (Unl) [Merged]
 Fruits Mahjong 1 - Disk 1 - Mahjong Game Hontai 
@@ -147,13 +200,19 @@ Fruits Mahjong 4 - Disk 2 - Daitan H na Hirusagari
 Fruits Mahjong 4 - Disk 2 - Daitan H na Hirusagari (Japan) (Unl)
 Fuuun Shourin Ken - Ankoku no Maou 
 Fuuun Shourin Ken - Ankoku no Maou (Japan)
+Game no Tatsujin - Money Wars (Japan) (Unl)
 German Tanteidan MarinGumi - Maruhi Jigomar Sousa File (Japan)
 Gokuraku Yuugi - Game Tengoku 
 Gokuraku Yuugi - Game Tengoku (Japan)
+Golf - US Course (Japan)
+Golf - US Course (Japan) (DV 2) 
 Golf, The - Bishoujo Classic 
 Golf, The - Bishoujo Classic (Japan) (Unl)
 Gomoku Narabe Renju 
 Graphic Editor Hokusai - Ver 1.2 (Japan) (Unl)
+Gun.Smoke (Japan)
+Halley Wars (Japan)
+Halley Wars (Japan) [b]
 Hayama Reiko no Date de Blackjack 
 Hayama Reiko no Date de Blackjack (Japan) (Unl)
 I Am a Teacher - Super Mario no Sweater 
@@ -174,6 +233,8 @@ Jingorou
 Jingorou (Japan) (Unl)
 Kaettekita Mario Bros. 
 Kaettekita Mario Bros. (J) T+ENG v0.98 MrRichard999
+Kaettekita Mario Bros. (Japan) (Disk Writer)
+Kaettekita Mario Bros. T+Eng v0.98 MrRichard999
 Kaettekita Mario Brothers 
 Kaettekita Mario Brothers (Japan) (Disk Writer)
 Kaettekita Mario Brothers (Japan) (Disk Writer) [b]
@@ -183,19 +244,34 @@ Kalin no Tsurugi (Japan)
 Kalin no Tsurugi (Japan)[t-Eng]
 Kalin no Tsurugi T+Eng v1.0 KingMike
 Karate Champ 
+Karate Champ (Japan)
 Kick Challenger - Air Foot - Yasai no Kuni no Ashi Senshi 
+Kick Challenger - Air Foot - Yasai no Kuni no Ashi Senshi (Japan)
+Kieta Princess (Japan)
+Kiki Kaikai - Dotou Hen (Japan) (Rev 1) 
+Kikikai-kai - Dotou Hen (Japan) (Rev 1) [b]
 Kind Gal's 
 Kind Gal's (Japan) (Disk 2) 
 Kobayashi Hitomi Shocking Tennis 
+Kobayashi Hitomi Shocking Tennis (Japan) (Unl)
 Kobayashi Hitomi no Hold Up 
 Kobayashi Hitomi no Hold Up (Japan) (Unl)
 Konami Tennis 
+Konami Tennis (1988)(Konami)
 Konamic Tennis 
+Konamic Tennis (Japan)
+Konamic Tennis (Japan) (Beta) 
 Koneko Monogatari - The Adventures of Chatran 
 Koneko Monogatari - The Adventures of Chatran (Japan)
 Koneko Monogatari - The Adventures of Chatran (Japan) (Sample) 
 Kosodate Gokko 
 Kosodate Gokko (Japan) (Unl)
+Legend of Zelda 2, The - Link no Bouken (Japan) (v1.1)
+Link no Bouken - The Legend of Zelda 2 (J) T+Eng v2.33 columbo
+Link no Bouken - The Legend of Zelda 2 (Japan)
+Link no Bouken - The Legend of Zelda 2 (Japan) (Rev 1)
+Link no Bouken - The Legend of Zelda 2 (Japan) (Rev 1) 
+Link no Bouken - The Legend of Zelda 2 T+Eng v2.33 columbo
 Lipstick #.5 - Stewardess Hen 
 Lipstick #.5 - Stewardess Hen (Japan) (Unl)
 Lipstick #1 - Lolita Hen 
@@ -213,16 +289,23 @@ Lutter (Japan) (Disk Writer)
 Lutter (Japan) (Disk Writer) [b]
 Lutter (Japan) (Disk Writer) [b][t-Eng]
 Lutter T+Eng v1.0 Mute
+Maerchen Veil (Japan)
+Mahjong (J) T+Eng v1.0 Psyklax
+Mahjong (Japan)
 Mahjong Kazoku 
 Mahjong Kazoku (1987)(Irem Corp.)
 Mahjong Kazoku (Japan)
+Mahjong T+Eng v1.0 Psyklax Arabic Numerals
+Mahjong T+Eng v1.0 Psyklax Original Numerals
 Meikyuu Jiin Dababa 
 Meikyuu Jiin Dababa (Japan)
 Meikyuu Jiin Dababa (Japan) T+Eng v1 FlashPV
 Meikyuu Jiin Dababa T+Eng v1.0 FlashPV
+Metroid T+Eng v1 AlanMidas
 Michael English Daibouken 
 Michael English Daibouken (Japan)
 Michael English Daibouken (Japan) (Sample) 
+Money Game, The (Japan) (Proto)
 Monitor Puzzle Kineko, The - Kinetic Connection 
 Monitor Puzzle Kineko, The - Kinetic Connection (Japan)
 Monitor Puzzle Kineko, The - Kinetic Connection (Japan) (Rev 1)
@@ -231,6 +314,7 @@ Monitor Puzzle Kineko, The - Kinetic Connection II (Japan) (Disk Writer)
 Monitor Puzzle, The - Kineko Vol. II - Kinetic Connection 
 Monitor Puzzle, The - Kineko Vol. II - Kinetic Connection (1987)(Irem Corp.)
 Moonball Magic 
+Moonball Magic (Japan) (Disk Writer)
 Nakayama Miho no Tokimeki High School 
 Nakayama Miho no Tokimeki High School (1987)(Nintendo)
 Namida no Soukoban Special 
@@ -240,6 +324,8 @@ Namida no Soukoban Special T+Eng v1.0 KingMike
 Nankin no Adventure 
 Nankin no Adventure (Japan) (Disk Writer)
 Nankin no Adventure (Japan) [b]
+Nazo no Kabe - Block Kuzushi (Japan)
+Nazo no Kabe - Block Kuzushi (Japan) [b]
 Nazo no Murasame Jou 
 Nazo no Murasamejou 
 Nazoler Land - Dai 2 Gou 
@@ -255,19 +341,32 @@ Nazoler Land - Soukan Gou (Japan)
 Nazoler Land - Soukangou 
 Nazoler Land - Soukangou (Japan)
 Nazoler Land Special!! - Quiz Ou wo Sagase (Japan)
+Neunzehn (Japan) [b]
+Neunzehn (Japan) [b][t-Eng]
+Neunzehn - 19 (Japan)
+Neunzehn - 19 [Original Font] T+Eng v1.0 MrRichard999
+Neunzehn - 19 [Regular NES Font] T+Eng v1.0 MrRichard999
+Nomura no Famicom Trade (Japan) (Proto) 
 Omoikkiri Tanteidan HaadoGumi - Matenrou no Chousenjou 
 Omoikkiri Tanteidan HaadoGumi - Matenrou no Chousenjou (Japan)
+Othello (Japan) (DV 2)
+Othello (Japan) (DV 3)
+Othello (Japan) (DV 3, 5) 
 Otocky 
 Otocky (Japan)
 Otocky (Japan) (Beta) 
 Otocky (Japan) [b]
+Pachinko Grand Prix (Japan)
 Patlabor - The Mobile Police - Dai 2 Shoutai Shutsudou Seyo! 
 Patlabor - The Mobile Police - Daini Shoutai Shutsudou seyo! 
 Pirate Pops Music Disk 
 Pirate Pops Music Disk (PD) v1 dadako 2016
+Pro Golfer Saru - Kage no Tournament (Japan)
+Pro Wres (Japan) (En)
 Professional Mahjong Gokuu 
 Professional Mahjong Gokuu (Japan)
 Pulsar no Hikari - Space Wars Simulation 
+Pulsar no Hikari - Space Wars Simulation (Japan)
 Putt Putt Golf 
 Putt Putt Golf (Japan)
 Puzzle Boys 
@@ -278,11 +377,15 @@ Quick Hunter (Japan) (Unl)
 Quick Hunter - Parameter Disk Vol.1 
 Quick Hunter - Parameter Disk Vol.1 (Japan) (Unl)
 Reflect World 
+Reflect World (Japan)
+Reflect World (Japan) [b]
 Relics - Ankoku Yousai 
 Relics - Ankoku Yousai (Japan)
 Replicart 
+Replicart (Japan)
 Return of the Mario Bros 
 Return of the Mario Bros (J) T+ENG v0.96 MrRichard999
+Risa no Yousei Densetsu (Japan)
 Roger Rabbit (Japan)
 Sailor Fuku Bishoujo Zukan Vol. 1 
 Sailor Fuku Bishoujo Zukan Vol. 1 (Japan) (Unl)
@@ -296,6 +399,13 @@ Sailor Fuku Bishoujo Zukan Vol. 5
 Sailor Fuku Bishoujo Zukan Vol. 5 (Japan) (Unl)
 Sailor Fuku Bishoujo Zukan Vol. 6 
 Sailor Fuku Bishoujo Zukan Vol. 6 (Japan) (Unl)
+Samurai Sword (Japan)
+Samurai Sword (Japan) [b]
+Samurai Sword (Japan) [b][t-Eng]
+Samurai Sword T+Eng v1.0 Mute
+Santa Claus no Takarabako (Japan)
+Santa Claus no Takarabako (Japan)[t-Eng]
+Santa Claus no Takarabako T+Eng v1.01 Gil Galad
 Shanghai 
 Shanghai (Japan) (Proto) 
 Shanghai II 
@@ -308,6 +418,10 @@ Solomon no Kagi
 Solomon no Kagi (Japan) (Disk Writer)
 Souseiki Fammy - ROM-QD for 256K+64K 
 Souseiki Fammy - ROM-QD for 256K+64K (Japan) (Unl)
+Sunsoft Dev Disk Lot - 'E180L05' no. 1 (Japan)
+Sunsoft Dev Disk Lot - 'F266F13' (Japan)
+Sunsoft Dev Disk Lot - 'G188D21N' no. 2 (Japan)
+Sunsoft Dev Disk Lot - 'J226I22' no. 3 (Japan)
 Super Boy Allan 
 Super Boy Allan (Japan)
 Super Lode Runner 
@@ -329,11 +443,15 @@ Tarot Uranai
 Tarot Uranai (Japan)
 Tarot Uranai (Japan) [b]
 Tenshitachi no Houkago 
+Tenshitachi no Houkago (Japan) (Disk 1) 
 Tenshitachi no Houkago (Japan) (Disk 2) 
+Tenshitachi no Houkago (Japan) (Unl) [Merged]
 Time Twist - Rekishi no Katasumi de (Japan)
 Time Twist - Rekishi no Katasumi de... (Japan) [Merged]
 Time Twist - Rekishi no Katasumi de... - Zenpen 
 Time Twist - Rekishi no Katasumi de... - Zenpen (Japan)
+Titanic Mystery - Ao no Senritsu (Japan)
+Tobidase Daisakusen
 Tobidase Daisakusen (Japan)
 Tobidase Daisakusen.mp4
 Tonkachi Editor 
@@ -354,6 +472,11 @@ Ultraman Club - Chikyuu Dakkan Sakusen
 Ultraman Club - Chikyuu Dakkan Sakusen (Japan)
 Ultraman Club - Chikyuu Dakkan Sakusen (Japan) (Rev 1)
 Wardner no Mori 
+Wardner no Mori (Japan)
+Winter Games (Japan)
+Youkai Yashiki (Japan)
+Youkai Yashiki (Japan) [b][t-Eng]
+Youkai Yashiki T+Eng v1.0 KingMike
 Yume Koujou Doki Doki Panic 
 Yume Koujou Doki Doki Panic (J) T+Eng v1 Vice
 Yume Koujou Doki Doki Panic (Japan) (DV 1)
@@ -364,6 +487,7 @@ Yume Koujou Doki Doki Panic (Japan)[t-Eng]
 Yume Koujou Doki Doki Panic - SMB2 Platform 
 Yume Koujou Doki Doki Panic - SMB2 Platform (Japan) [b]
 Yume Koujou Doki Doki Panic T+Eng v1.1 Vice
+Yuu Maze (Japan)
 Zatsugaku Olympic Quiz - Watanabe Wataru Hen 
 Zatsugaku Olympic Quiz - Watanabe Wataru Hen (Japan) (Unl)
 Zatsugaku Olympic Quiz Part II 
@@ -378,129 +502,3 @@ Zelda no Densetsu - The Hyrule Fantasy (Japan) (Rev 1)
 Zelda no Densetsu - The Hyrule Fantasy (Japan) (Virtual Console)
 Zelda no Densetsu - The Hyrule Fantasy (Japan) (v1.1)
 Zelda no Densetsu - The Hyrule Fantasy T+Eng v1.1 Jordiway73
-
-086 Kaettekita Mario Bros. 					   
-1986-02-21 Mahjong (Japan)
-1986-10-21 Pro Wres - Famicom Wrestling Association(Japan)
-1986-11-13 Family Computer Othello (Japan)
-1986-12-13 Nazo no Kabe - Block Kuzushi (Japan) [b]
-1986-12-15 Breeder (1986)(Soft Pro)
-1986-12-20 Kieta Princess (Japan)
-1986-12-26 Electrician (Japan)
-Apple Town Monogatari - Little Computer People (Japan)
-Aspic - Majaou no Noroi (Japan)
-Backgammon (1990)(Nintendo)
-Backgammon (Japan) [b]
-Backgammon (Japan)
-Bio Miracle Bokutte Upa (Japan) (3DS Virtual Console)
-Bishoujo Mahjong Club (Japan) (Unl)
-Bishoujo Sexy Derby (Japan) (Unl)
-Bishoujo Sexy Derby (Japan) (Unl)[t-Eng]
-Bishoujo Sexy Derby T+Eng v1.31 Spinner 8
-Bishoujo Sexy Puzzle (Japan) (Unl)
-Bishoujo Sexy Slot (Japan) (Unl)
-Breeder (J) T+Eng1.0 Psyklax
-Breeder (Japan)
-Breeder T+Eng v1.0 Psyklax
-Cocona World (Japan)
-Comic Sakka Series Touma Senki #1 - Mashoujo Gakuen Evil (Japan) (Unl)
-Comic Sakka Series Touma Senki #2 - Mermaid no Gyakushuu (Japan) (Unl)
-Comic Sakka Series Touma Senki #3 - Ryuujin Sensei Kikiippatsu (Japan) (Unl)
-Comic Sakka Series Touma Senki #4 - Tenkuu Ryuumaou Fukkatsu (Japan) (Unl)
-Comic Sakka Series Touma Senki #5 - Youjuu Rudo no Chousen (Japan) (Unl)
-Dandy - Zeuon no Fukkatsu (Japan)
-Electrician (Japan)
-Electrician (Japan)[t-Eng]
-Electrician T+Eng v1.0 KingMike
-Famicom Grand Prix II - 3D Hot Rally (Japan) (DV 5)
-Famicom Grand Prix II - 3D Hot Rally (Japan) (DV 7)
-Famicom Grand Prix II - 3D Hot Rally (Japan) (DV 8) 
-Famicom Grand Prix II - 3D Hot Rally (Japan)
-Famicom Grand Prix II - 3D Hot Rally (Japan)[t-Eng]
-Famicom Grand Prix II - 3D Hot Rally T+Eng v1.0 MrRichard999
-Famicom Tantei Club - Kieta Koukeisha (Japan) (3DS Virtual Console) [Merged]
-Famicom Tantei Club - Kieta Koukeisha (Japan) (Wii and Wii U Virtual Console) [Merged]
-Famicom Tantei Club - Kieta Koukeisha (Japan) [Merged]
-Famicom Tantei Club - Kieta Koukeisha - Zenpen (Japan) (DV 1, 3)
-Famicom Tantei Club - Kieta Koukeisha - Zenpen (Japan) (DV 3) 
-Famicom Tantei Club - Kieta Koukeisha - Zenpen (Japan)
-Famicom Tantei Kurabu - Kieta Koukeisha (1988)(Nintendo)
-Family Composer (Japan) (Disk Writer)
-Family Composer (Japan) (Rev 1)
-Family Composer (Japan) [b]
-Famimaga Disk Vol. 2 - Panic Space (Japan) (Disk Writer)
-Famimaga Disk Vol. 3 - All 1 (Japan) (Disk Writer)
-Famimaga Disk Vol. 4 - Clox (Japan) (Disk Writer)
-Famimaga Disk Vol. 5 - Puyo Puyo (Japan) (Disk Writer)
-Fire Rock (Japan)
-Game no Tatsujin - Money Wars (Japan) (Unl)
-Golf - US Course (Japan) (DV 2) 
-Golf - US Course (Japan)
-Gun.Smoke (Japan)
-Halley Wars (Japan) [b]
-Halley Wars (Japan)
-Kaettekita Mario Bros. (Japan) (Disk Writer)
-Kaettekita Mario Bros. T+Eng v0.98 MrRichard999
-Karate Champ (Japan)
-Kick Challenger - Air Foot - Yasai no Kuni no Ashi Senshi (Japan)
-Kieta Princess (Japan)
-Kiki Kaikai - Dotou Hen (Japan) (Rev 1) 
-Kikikai-kai - Dotou Hen (Japan) (Rev 1) [b]
-Kobayashi Hitomi Shocking Tennis (Japan) (Unl)
-Konami Tennis (1988)(Konami)
-Konamic Tennis (Japan) (Beta) 
-Konamic Tennis (Japan)
-Legend of Zelda 2, The - Link no Bouken (Japan) (v1.1)
-Link no Bouken - The Legend of Zelda 2 (J) T+Eng v2.33 columbo
-Link no Bouken - The Legend of Zelda 2 (Japan) (Rev 1) 
-Link no Bouken - The Legend of Zelda 2 (Japan) (Rev 1)
-Link no Bouken - The Legend of Zelda 2 (Japan)
-Link no Bouken - The Legend of Zelda 2 T+Eng v2.33 columbo
-Maerchen Veil (Japan)
-Mahjong (J) T+Eng v1.0 Psyklax
-Mahjong (Japan)
-Mahjong T+Eng v1.0 Psyklax Arabic Numerals
-Mahjong T+Eng v1.0 Psyklax Original Numerals
-Metroid T+Eng v1 AlanMidas
-Money Game, The (Japan) (Proto)
-Moonball Magic (Japan) (Disk Writer)
-Nazo no Kabe - Block Kuzushi (Japan) [b]
-Nazo no Kabe - Block Kuzushi (Japan)
-Neunzehn (Japan) [b]
-Neunzehn (Japan) [b][t-Eng]
-Neunzehn - 19 (Japan)
-Neunzehn - 19 [Original Font] T+Eng v1.0 MrRichard999
-Neunzehn - 19 [Regular NES Font] T+Eng v1.0 MrRichard999
-Nomura no Famicom Trade (Japan) (Proto) 
-Othello (Japan) (DV 2)
-Othello (Japan) (DV 3)
-Othello (Japan) (DV 3, 5) 
-Pachinko Grand Prix (Japan)
-Pro Golfer Saru - Kage no Tournament (Japan)
-Pro Wres (Japan) (En)
-Pulsar no Hikari - Space Wars Simulation (Japan)
-Reflect World (Japan) [b]
-Reflect World (Japan)
-Replicart (Japan)
-Risa no Yousei Densetsu (Japan)
-Samurai Sword (Japan) [b]
-Samurai Sword (Japan) [b][t-Eng]
-Samurai Sword (Japan)
-Samurai Sword T+Eng v1.0 Mute
-Santa Claus no Takarabako (Japan)
-Santa Claus no Takarabako (Japan)[t-Eng]
-Santa Claus no Takarabako T+Eng v1.01 Gil Galad
-Sunsoft Dev Disk Lot - 'E180L05' no. 1 (Japan)
-Sunsoft Dev Disk Lot - 'F266F13' (Japan)
-Sunsoft Dev Disk Lot - 'G188D21N' no. 2 (Japan)
-Sunsoft Dev Disk Lot - 'J226I22' no. 3 (Japan)
-Tenshitachi no Houkago (Japan) (Disk 1) 
-Tenshitachi no Houkago (Japan) (Unl) [Merged]
-Titanic Mystery - Ao no Senritsu (Japan)
-Tobidase Daisakusen
-Wardner no Mori (Japan)
-Winter Games (Japan)
-Youkai Yashiki (Japan) [b][t-Eng]
-Youkai Yashiki (Japan)
-Youkai Yashiki T+Eng v1.0 KingMike
-Yuu Maze (Japan)
