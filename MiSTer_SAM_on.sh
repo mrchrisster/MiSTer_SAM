@@ -165,6 +165,7 @@ function init_paths() {
 }
 
 function sam_prep() {
+	[[ -f /tmp/SAM_game.previous.mgl ]] && rm /tmp/SAM_game.previous.mgl
 	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
 	[[ ! -d "${mrsamtmp}" ]] && mkdir -p "${mrsamtmp}"
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
@@ -2462,8 +2463,8 @@ function tty_exit() {
 		#if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
 			#sleep 1
 			#tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh" &
-			rm /tmp/tty2oled_sleep
 		#fi
+		rm /tmp/tty2oled_sleep
 	fi
 }
 
@@ -2553,20 +2554,21 @@ function check_list() { # args ${nextcore}
 	
 	# If gamelist is not in /tmp dir, let's put it there. Also strip out duplicates, exclude and blacklist roms
 	
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 	
-		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" >"${gamelistpathtmp}/${1}_gamelist.txt"
+		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		
 		#Check exclusion
 		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
 			echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."
-			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 	
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			echo " Found default blacklist for core ${nextcore}. Stripping out static screens games now."
-			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			echo " Found default blacklist for core ${nextcore}. Stripping out games with static screens now."
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		
 		#Check path filter
@@ -2578,11 +2580,14 @@ function check_list() { # args ${nextcore}
 	fi
 	
 	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+	
+	cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l
 		
 	if [ -f ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
 		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	else
 		echo "Something went wrong, trying something else..."
+		
 		rompath="$(cat ${gamelistpath}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	fi
 
@@ -2592,6 +2597,7 @@ function check_list() { # args ${nextcore}
 			if [ "${samquiet}" == "no" ]; then echo "${rompath} not found."; fi
 			if [ "${samquiet}" == "no" ]; then echo "Creating new game list now..."; fi
 			create_romlist 
+			rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 		fi
 	fi
 
@@ -2765,7 +2771,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
 	# First launch wait for core logo
-	if [ ! -f /tmp/SAM_game.previous.mgl]; then sleep 5; fi 
+	if [ ! -f /tmp/SAM_game.previous.mgl ]; then sleep 5; fi 
 	write_to_TTY_cmd_pipe "display_info" &
 	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 	SECONDS=${elapsed}
