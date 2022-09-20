@@ -74,45 +74,23 @@ function tty_init() { # tty_init
 		exit 1
 	fi
 
+	# Clear Serial input buffer first
+	samquiet "-n" " Clear tty2oled Serial Input Buffer..."
+	while read -t 0 sdummy <${ttydevice}; do continue; done
+	samquiet " Done!"
 
-	if [ -f ${tty_sleepfile} ]; then
-		sleepfile_expiration=$(<${tty_sleepfile})
-		samdebug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
-		if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ] && [ -s ${tty_currentinfo_file} ]; then
-			write_to_TTY_cmd_pipe "display_info" &
-		else
-			rm ${tty_sleepfile}
-		fi
-	fi
-	if [ ! -f ${tty_sleepfile} ]; then
-		samquiet "-n" " Stopping tty2oled Daemon..."
-		sleepfile_expiration=$((EPOCHSECONDS + (gametimer + 10)))
-		echo "${sleepfile_expiration}" >${tty_sleepfile}
-		samquiet " Done!"
-
-		# Clear Serial input buffer first
-		samquiet "-n" " Clear tty2oled Serial Input Buffer..."
-		while read -t 0 sdummy <${ttydevice}; do continue; done
-		samquiet " Done!"
-
-		# Stopping ScreenSaver
-		samquiet "-n" " Stopping tty2oled ScreenSaver..."
-		sleep 1
-		[[ -c ${ttydevice} ]] && echo "CMDSAVER,0,0,0" >${ttydevice}
-		tty_waitfor
-		samquiet " Done!"
-		sleep 2
-		tty_senddata "SAM_splash"
-
-		# Wait for tty2oled to show the core logo
-		samdebug "-------------------------------------------"
-		samdebug " tty_update got Corename: SAM_splash "
-		# Show Core-Logo for 5 Secs
-		sleep 10
-		if [ -z ${tty_currentinfo} ] && [ -s ${tty_currentinfo_file} ]; then
-			write_to_TTY_cmd_pipe "display_info" &
-		fi
-	fi
+	# Stopping ScreenSaver
+	samquiet "-n" " Stopping tty2oled ScreenSaver..."
+	echo "CMDSAVER,0,0,0" >${ttydevice}
+	sleep 2
+	samquiet " Done!"
+	
+	#Show Splash
+	echo "CMDAPD,SAM_splash" >${ttydevice}
+	tail -n +4 "/media/fat/tty2oled/pics/GSC/SAM_splash.gsc" | xxd -r -p >${ttydevice}
+	echo "CMDSPIC,-1" >${ttydevice}
+	sleep 5
+	
 }
 
 
