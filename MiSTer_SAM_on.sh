@@ -32,6 +32,7 @@ function init_vars() {
 	# ======== GLOBAL VARIABLES =========
 	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 	declare -g misterpath="/media/fat"
+	declare -g mrsamtmp="/tmp/.SAM_tmp"
 	# Save our PID and process
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
@@ -89,14 +90,18 @@ function init_vars() {
 
 	# ======== TTY2OLED =======
 
+	declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
 	declare -gl ttyenable="No"
 	declare -gi ttyupdate_pause=10
+	declare -g tty_currentinfo_file=${mrsamtmp}/tty_currentinfo
+	declare -g tty_sleepfile="/tmp/tty2oled_sleep"
 	declare -gA tty_currentinfo=(
-		[core_pretty]=""
-		[name]=""
-		[core]=""
+		[core_pretty]=
+		[name]=
+		[core]=
+		[date]=0
 		[counter]=0
-		[name_scroll]=""
+		[name_scroll]=
 		[name_scroll_position]=0
 		[name_scroll_direction]=1
 		[update_pause]=${ttyupdate_pause}
@@ -160,6 +165,8 @@ function init_paths() {
 }
 
 function sam_prep() {
+	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
+	[[ ! -d "${mrsamtmp}" ]] && mkdir -p "${mrsamtmp}"
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ ${mute} == "yes" ] || [ ${mute} == "core" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	[ -f "/tmp/.SAM_tmp/SAM_config/minimig.cfg" ] && cp /tmp/.SAM_tmp/SAM_config/minimig.cfg /tmp/.SAM_tmp/SAM_config/Minimig.cfg 2>/dev/null
@@ -1672,6 +1679,9 @@ function parse_cmd() {
 				;;
 			start_real) # Start SAM immediately
 				env_check ${1}
+				sam_prep
+				disable_bootrom # Disable Bootrom until Reboot
+				mute
 				tty_init
 				bgm_start
 				loop_core ${nextcore}
@@ -2334,6 +2344,8 @@ function sam_start() {
 	# Terminate any other running SAM processes
 	there_can_be_only_one
 	mcp_start
+	echo " Starting TTY.."
+	tmux new-session -s OLED -d "${mrsampath}/SuperAttract_tty2oled.sh" &
 	if [ "${ttyenable}" == "yes" ]; then echo " Starting tty2oled... "; fi
 	echo " Starting SAM in the background."
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
@@ -2355,6 +2367,7 @@ function sam_stop() {
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
 	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
+	kill_5=$(ps -o pid,args | grep '[T]TY' | awk '{print $1}' | head -1)
 
 	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
 	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
@@ -2362,6 +2375,7 @@ function sam_stop() {
 	for kill in ${kill_4}; do
 		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
 	done
+	[[ ! -z ${kill_5} ]] && tmux kill-session -t TTY &>/dev/null
 						
 }
 
@@ -2385,14 +2399,7 @@ function loop_core() { # loop_core (core)
 			sleep 1
 			((counter--))
 			
-			#tty2oled counter
-			if [ "${ttyenable}" == "yes" ]; then
-			((tty_counter++))
-				if [ "${tty_counter}" -gt 11 ]; then
-					tty_currentinfo[counter]=$(printf "%03d" ${counter})
-					update_counter ${tty_currentinfo[counter]} &
-				fi
-			fi
+
 
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse}" == "yes" ]; then
@@ -2437,6 +2444,10 @@ function loop_core() { # loop_core (core)
 }
 
 # ======== tty2oled FUNCTIONS ========
+
+function write_to_TTY_cmd_pipe() {
+	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
+}
 
 function tty_init() { # tty_init
 	if [ "${ttyenable}" == "yes" ]; then
@@ -2495,6 +2506,11 @@ function update_counter() {
 		((tty_currentinfo[update_pause]--))
 	else
 		update_name_scroll
+	fi
+	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+	tty_currentinfo[counter]=$((gametimer - elapsed))
+	if [ ${tty_currentinfo[counter]} -lt 1 ]; then
+		tty_currentinfo[counter]=0
 	fi
 	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
 	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
@@ -2706,7 +2722,8 @@ function check_list() { # args ${nextcore}
 	# Make sure file exists since we're reading from a static list
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because file not found."; fi
+			if [ "${samquiet}" == "no" ]; then echo "${rompath} not found."; fi
+			if [ "${samquiet}" == "no" ]; then echo "Creating new game list now..."; fi
 			create_romlist 
 		fi
 	fi
@@ -2863,18 +2880,22 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
-			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[core_pretty]="${CORE_PRETTY[${core}]}"
 			[name]="${gamename}"
 			[core]=${tty_corename}
+			[date]=$EPOCHSECONDS
 			[counter]=${gametimer}
 			[name_scroll]="${gamename:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
 		)
-		tty_display "${tty_currentinfo}" &
 	fi
-	
+
+	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+	write_to_TTY_cmd_pipe "display_info" &
+	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+	SECONDS=${elapsed}
 
 	# Create mgl file and launch game
 	if [ -s /tmp/SAM_game.mgl ]; then
@@ -3120,12 +3141,6 @@ read_samini
 init_paths
 
 init_data # Setup data arrays
-
-sam_prep
-
-disable_bootrom # Disable Bootrom until Reboot
-
-mute
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd ${@} # Parse command line parameters for input
