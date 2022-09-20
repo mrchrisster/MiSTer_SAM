@@ -1,5 +1,6 @@
 NSF-to-NES
 .nsf
+Unsupported or Glitches
 !Clik! (PD)
 '89 Dennou Kyuusei Uranai (Japan)
 100m Hurdles (Unl)
