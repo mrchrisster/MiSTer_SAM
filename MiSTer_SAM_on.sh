@@ -2791,7 +2791,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "" | >/tmp/.SAM_Keyboard_Activity
 
 	# Skip bios screen for FDS or MegaCD
-	skipmessage
+	skipmessage &
 
 }
 
@@ -2861,21 +2861,25 @@ function load_core_arcade() {
 		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}" >${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
 
 	fi
-	
-	if [ "${ttyenable}" == "yes" ]; then
+		if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
 			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
-			[name]="{mraname}"
+			[name]="${mraname}"
 			[core]=${tty_corename}
+			[date]=$EPOCHSECONDS
 			[counter]=${gametimer}
 			[name_scroll]="${mraname:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
 		)
-		#tty_display "${tty_currentinfo}" &
-		write_to_TTY_cmd_pipe "display_info" &
 	fi
+
+	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+	write_to_TTY_cmd_pipe "display_info" &
+	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+	SECONDS=${elapsed}
+
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 	echo -e "\e[1m${mraname}\e[0m"
@@ -2978,20 +2982,24 @@ function load_core_amiga() {
 		tty_corename="Minimig"
 		
 		if [ "${ttyenable}" == "yes" ]; then
-			tty_currentinfo=(
-			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
-			[name]="${agpretty}"
-			[core]=${tty_corename}
-			[counter]=${gametimer}
-			[name_scroll]="${agpretty:0:21}"
-			[name_scroll_position]=0
-			[name_scroll_direction]=1
-			[update_pause]=${ttyupdate_pause}
+		tty_currentinfo=(
+				[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+				[name]="${agpretty}"
+				[core]=${tty_corename}
+				[date]=$EPOCHSECONDS
+				[counter]=${gametimer}
+				[name_scroll]="${agpretty:0:21}"
+				[name_scroll_position]=0
+				[name_scroll_direction]=1
+				[update_pause]=${ttyupdate_pause}
 			)
-			tty_display "${tty_currentinfo}" &
 		fi
-		
-		
+
+	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+	write_to_TTY_cmd_pipe "display_info" &
+	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+	SECONDS=${elapsed}
+
 
 		echo -n " Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
