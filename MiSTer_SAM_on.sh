@@ -174,20 +174,11 @@ function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
-	# Stopping tty2oled Daemon
-	[ -f /tmp/.SAM_tmp/tty_currentinfo ] && rm /tmp/.SAM_tmp/tty_currentinfo 
-	if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
-	mapfile -t killtty < <(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}')
-	for kill in ${killtty[@]}; do
-		[[ ! -z "${killtty}" ]] && kill -9 ${kill}
-	done
 	if [ "${samquiet}" == "no" ]; then echo " Done."; fi
 
 }
 
 function sam_cleanup() {
-	tty_exit &
-	bgm_stop
 	# Clean up by umounting any mount binds
 	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
@@ -1679,7 +1670,6 @@ function parse_cmd() {
 				break
 				;;
 			start_real) # Start SAM immediately
-				env_check ${1}
 				bgm_start
 				loop_core ${nextcore}
 				break
@@ -1689,10 +1679,11 @@ function parse_cmd() {
 				tmux send-keys -t SAM C-c ENTER
 				# break
 				;;
-			stop) # Stop SAM immediately
+			stop) # Stop SAM immediately		
 				sam_cleanup
+				tty_exit &
+				bgm_stop
 				sam_stop
-				exit
 				break
 				;;
 			update) # Update SAM
@@ -2363,18 +2354,18 @@ function sam_stop() {
 
 	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
+	kill_5=$(ps -o pid,args | grep '[O]LED' | awk '{print $1}' | head -1)
 	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
 	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
-	kill_5=$(ps -o pid,args | grep '[O]LED' | awk '{print $1}' | head -1)
 
-	[[ ! -z ${kill_1} ]] && tmux kill-session -t MCP &>/dev/null
-	[[ ! -z ${kill_2} ]] && tmux kill-session -t SAM &>/dev/null
-	[[ ! -z ${kill_3} ]] && kill -9 ${kill_4} &>/dev/null
-	for kill in ${kill_4}; do
-		[[ ! -z ${kill_4} ]] && kill -9 ${kill} &>/dev/null
-	done
-	[[ ! -z ${kill_5} ]] && tmux kill-session -t OLED &>/dev/null
-						
+
+	[[ ! -z ${kill_1} ]] && timeout 5 tmux kill-session -t MCP &>/dev/null
+	[[ ! -z ${kill_2} ]] && timeout 5 tmux kill-session -t SAM &>/dev/null
+	[[ ! -z ${kill_5} ]] && timeout 5 tmux kill-session -t OLED &>/dev/null
+	[[ ! -z ${kill_3} ]] && timeout 5 kill -9 ${kill_3} &>/dev/null
+	[[ ! -z ${kill_4} ]] && timeout 5 kill -9 ${kill_4} &>/dev/null
+
+	exit				
 }
 
 # ========= SAM MONITOR =========
@@ -2432,7 +2423,6 @@ function loop_core() { # loop_core (core)
 
 		counter=${gametimer}
 		next_core ${1}
-		#tty_counter=0
 
 	done
 	trap - INT
@@ -2443,6 +2433,16 @@ function loop_core() { # loop_core (core)
 
 function tty_start() {
 	if [ "${ttyenable}" == "yes" ]; then 
+		# Stopping tty2oled Daemon
+		[ -f /tmp/.SAM_tmp/tty_currentinfo ] && rm /tmp/.SAM_tmp/tty_currentinfo 
+		#if [ "${samquiet}" == "no" ]; then echo -n " Stopping tty2oled Daemon..."; fi
+		#mapfile -t killtty < <(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}')
+		#for kill in ${killtty[@]}; do
+		#	[[ ! -z "${killtty}" ]] && kill -9 ${kill}
+		#done
+		#sleep 2
+		touch /tmp/tty2oled_sleep
+		sleep 5
 		echo -n " Starting tty2oled... "
 		tmux new -s OLED -d "/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_tty2oled"
 		echo "Done."
@@ -2459,13 +2459,13 @@ function tty_exit() {
 		echo "CMDCLST,-1,0" >${ttydevice}
 		write_to_TTY_cmd_pipe "exit" &
 		sleep 1
-		tmux kill-session -t OLED
-		sleep 2
+		tmux kill-session -t OLED &>/dev/null
 		# Starting tty2oled daemon only if needed
-		if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
-			sleep 1
-			tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh"
-		fi
+		#if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
+			#sleep 1
+			#tmux new -s TTY -d "/media/fat/tty2oled/tty2oled.sh" &
+			rm /tmp/tty2oled_sleep
+		#fi
 	fi
 }
 
@@ -2561,32 +2561,28 @@ function check_list() { # args ${nextcore}
 		
 		#Check exclusion
 		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."; fi
+			echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."
 			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 	
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
+			echo " Found default blacklist for core ${nextcore}. Stripping out static screens games now."
 			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		
 		#Check path filter
 		if [ ! -z "${PATHFILTER[${nextcore}]}"  ]; then 
-			if [ "${samquiet}" == "no" ]; then echo " Found path filter for Arcade core. Stripping out unwanted games now."; fi
+			echo " Found path filter for Arcade core. Setting path to ${PATHFILTER[${nextcore}]}."
 			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${PATHFILTER[${nextcore}]}"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		FIRSTRUN[${nextcore}]=1
-		sync
 	fi
-
-	
-	# Pick the actual game
-	rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"	
 		
-	if [ ! -f "${rompath}" ]; then
-		sleep 5
+	if [ -f ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
 		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
+	else
+		echo "Something went wrong"
 	fi
 
 	# Make sure file exists since we're reading from a static list
