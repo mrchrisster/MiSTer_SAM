@@ -1680,9 +1680,6 @@ function parse_cmd() {
 				;;
 			start_real) # Start SAM immediately
 				env_check ${1}
-				sam_prep
-				disable_bootrom # Disable Bootrom until Reboot
-				mute
 				bgm_start
 				loop_core ${nextcore}
 				break
@@ -2344,6 +2341,9 @@ function sam_start() {
 	# Terminate any other running SAM processes
 	there_can_be_only_one
 	mcp_start
+	sam_prep
+	disable_bootrom # Disable Bootrom until Reboot
+	mute
 	tty_start
 	echo " Starting SAM in the background."
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
