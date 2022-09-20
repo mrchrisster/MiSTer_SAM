@@ -174,7 +174,6 @@ function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
-	if [ "${samquiet}" == "no" ]; then echo " Done."; fi
 
 }
 
@@ -2442,7 +2441,6 @@ function tty_start() {
 		#done
 		#sleep 2
 		touch /tmp/tty2oled_sleep
-		sleep 5
 		echo -n " Starting tty2oled... "
 		tmux new -s OLED -d "/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_tty2oled"
 		echo "Done."
@@ -2578,11 +2576,14 @@ function check_list() { # args ${nextcore}
 		fi
 		FIRSTRUN[${nextcore}]=1
 	fi
+	
+	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		
 	if [ -f ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
 		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	else
-		echo "Something went wrong"
+		echo "Something went wrong, trying something else..."
+		rompath="$(cat ${gamelistpath}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	fi
 
 	# Make sure file exists since we're reading from a static list
@@ -2763,6 +2764,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 
 	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+	# First launch wait for core logo
+	if [ ! -f /tmp/SAM_game.previous.mgl]; then sleep 5; fi 
 	write_to_TTY_cmd_pipe "display_info" &
 	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 	SECONDS=${elapsed}
