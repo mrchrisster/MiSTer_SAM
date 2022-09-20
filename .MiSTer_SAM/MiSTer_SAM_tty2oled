@@ -1,24 +1,57 @@
 #!/bin/bash
-trap 'rc=$?;[ ${rc} = 0 ] && exit;TTY_exit' EXIT TERM
 
+# https://github.com/mrchrisster/MiSTer_SAM/
+# Copyright (c) 2021 by mrchrisster and Mellified
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
+# Description
+# This cycles through arcade and console cores periodically
+# Games are randomly pulled from their respective folders
+
+# ======== Credits ========
+# Original concept and implementation: mrchrisster
+# Additional development and script layout: Mellified and Paradox
+#
+# mbc by pocomane
+# partun by woelper
+# samindex by wizzo
+# tty2oled by venice
+#
+# Thanks for the contributions and support:
+# kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
+
+# ======== GLOBAL VARIABLES =========
 # Save our PID and process
-declare -g ttypid="${$}"
+declare -g sampid="${$}"
 declare -g samprocess=$(basename -- ${0})
-declare -g TTY_cmd_pipe="/tmp/TTY_cmd_pipe"
+declare -g misterpath="/media/fat"
+declare -g misterscripts="${misterpath}/Scripts"
+declare -g mrsampath="${misterscripts}/.MiSTer_SAM"
+declare -g mrsamtmp="/tmp/.SAM_tmp"
 
-
-# ======== INI VARIABLES ========
-# Change these in the INI file
-# ======== TTY2OLED =======
-
-declare -gl ttyenable="No"
+declare -gl ttyenable="Yes"
+declare -gi gametimer=120
+declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
+compgen -v | sed s/=.\*// >/tmp/${samprocess}.tmp
 declare -gi ttyupdate_pause=10
+declare -g tty_currentinfo_file=${mrsamtmp}/tty_currentinfo
+declare -g tty_sleepfile="/tmp/tty2oled_sleep"
 declare -gA tty_currentinfo=(
-	[core_pretty]=""
-	[name]=""
-	[core]=""
+	[core_pretty]=
+	[name]=
+	[core]=
+	[date]=0
 	[counter]=0
-	[name_scroll]=""
+	[name_scroll]=
 	[name_scroll_position]=0
 	[name_scroll_direction]=1
 	[update_pause]=${ttyupdate_pause}
@@ -33,15 +66,19 @@ declare -g prev_name_scroll=""
 declare -g prev_counter=""
 declare -gi ttyscroll_speed=1
 declare -gi ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
+samquiet=no
+samdebug=yes
+samtrace=yes
 
-function samdebug() {
-	if [ "${samdebug}" == "yes" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[31m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[31m${1-}\e[0m"
-		fi
-	fi
+trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM INT
+
+source "${misterpath}/Scripts/MiSTer_SAM.ini"
+
+# ======== FUNCTIONS ========
+
+
+function write_to_TTY_cmd_pipe() {
+	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
 }
 
 function samquiet() {
@@ -50,6 +87,16 @@ function samquiet() {
 			echo -en "\e[1m\e[32m${2-}\e[0m"
 		else
 			echo -e "\e[1m\e[32m${1-}\e[0m"
+		fi
+	fi
+}
+
+function samdebug() {
+	if [ "${samdebug}" == "yes" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[31m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[31m${1-}\e[0m"
 		fi
 	fi
 }
@@ -63,6 +110,7 @@ function start_pipe_reader() {
 	fi
 
 	while true; do
+		local line
 		if [[ -p ${TTY_cmd_pipe} ]]; then
 			if read line <${TTY_cmd_pipe}; then
 				set -- junk ${line}
@@ -74,11 +122,12 @@ function start_pipe_reader() {
 					;;
 				display_info)
 					shift
-					tty_display ${@}
+					if [ -c ${ttydevice} ]; then
+						tty_display "${@}"
+					fi
 					;;
 				update_counter)
-					shift
-					update_counter ${1}
+					update_counter
 					;;
 				*)
 					echo " ERROR! ${line} is unknown."
@@ -89,27 +138,18 @@ function start_pipe_reader() {
 				esac
 			fi
 		fi
-		sleep 0.1
 	done &
 }
 
-# ========= PARSE INI =========
-
-# Read INI
-function read_samini() {
-	if [ -f "${misterpath}/Scripts/MiSTer_SAM" ]; then
-		source "${misterpath}/Scripts/MiSTer_SAM.ini"
-	fi
+function tty_cleanup() {
+	samquiet " TTY Cleaned up!"
+	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
+	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
 }
 
 # ======== tty2oled FUNCTIONS ========
 
 function tty_init() { # tty_init
-	# Stopping tty2oled Daemon
-	samquiet "-n" " Stopping tty2oled Daemon..."
-	[ ! -f /tmp/tty2oled_sleep ] && touch /tmp/tty2oled_sleep &>/dev/null
-	samquiet " Done!"
-
 	# tty2oled initialization
 	declare -gi START=$(date +%s)
 	samquiet " Init tty2oled, loading variables... "
@@ -120,30 +160,73 @@ function tty_init() { # tty_init
 	ttypicture_pri=${picturefolder_pri}
 	set_scroll_speed
 
-	# Clear Serial input buffer first
-	samquiet "-n" " Clear tty2oled Serial Input Buffer..."
-	while read -t 0 sdummy <${ttydevice}; do continue; done
-	samquiet " Done!"
+	### Wait for USB module and start tty2oled daemon
+	WAITEND=$((SECONDS+10))
+	while !  [ -c ${ttydevice} ] && [ ${SECONDS} -lt ${WAITEND} ]; do
+		sleep 0.1
+	done
+	if ! [ -c ${ttydevice} ]; then
+		echo "Could not find the needed USB module ${TTYDEV}. Exiting."
+		exit 1
+	fi
 
-	# Stopping ScreenSaver
-	samquiet "-n" " Stopping tty2oled ScreenSaver..."
-	echo "CMDSAVER,0,0,0" >${ttydevice}
+	# Stopping tty2oled Daemon
+	if [ -f ${tty_sleepfile} ]; then
+		sleepfile_expiration=$(<${tty_sleepfile})
+		samdebug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
+		if [ ${sleepfile_expiration} -gt ${EPOCHSECONDS} ] && [ -s ${tty_currentinfo_file} ]; then
+			write_to_TTY_cmd_pipe "display_info" &
+		else
+			rm ${tty_sleepfile}
+		fi
+	fi
+	if [ ! -f ${tty_sleepfile} ]; then
+		samquiet "-n" " Stopping tty2oled Daemon..."
+		sleepfile_expiration=$((EPOCHSECONDS + (gametimer + 10)))
+		echo "${sleepfile_expiration}" >${tty_sleepfile}
+		samquiet " Done!"
+
+		# Clear Serial input buffer first
+		samquiet "-n" " Clear tty2oled Serial Input Buffer..."
+		while read -t 0 sdummy <${ttydevice}; do continue; done
+		samquiet " Done!"
+
+		# Stopping ScreenSaver
+		samquiet "-n" " Stopping tty2oled ScreenSaver..."
+		[[ -c ${ttydevice} ]] && echo "CMDSAVER,0,0,0" >${ttydevice}
+		tty_waitfor
+		samquiet " Done!"
+
+		tty_senddata "SAM_splash"
+		# Wait for tty2oled to show the core logo
+		samdebug "-------------------------------------------"
+		samdebug " tty_update got Corename: SAM_splash "
+		# Show Core-Logo for 5 Secs
+		sleep 5
+		if [ -z ${tty_currentinfo} ] && [ -s ${tty_currentinfo_file} ]; then
+			write_to_TTY_cmd_pipe "display_info" &
+		fi
+	fi
+}
+
+function tty_exit() {
+	# Clear Display	with Random effect
+	[[ -c ${ttydevice} ]] && echo "CMDCLST,-1,0" >${ttydevice}
 	tty_waitfor
-	samquiet " Done!"
-	echo "CMDAPD,SAM_splash" >${ttydevice}
-	tail -n +4 "/media/fat/Scripts/.MiSTer_SAM/SAM_splash.gsc" | xxd -r -p >${ttydevice}
-	echo "CMDSPIC,-1" >${ttydevice}
+	[[ -c ${ttydevice} ]] && echo "CMDBYE" >${ttydevice}
 	sleep 5
+	tty_cleanup
 }
 
 function tty_waitfor() {
-		read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
-		ttyresponse=""
+	[[ -c ${ttydevice} ]] && read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
+	ttyresponse=""
 }
 
 function update_loop() {
 	while [[ -p ${TTY_cmd_pipe} ]]; do
-		sleep 0.01
+		sleep 1
+		write_to_TTY_cmd_pipe "update_counter" &
 	done
 }
 
@@ -172,54 +255,66 @@ function update_name_scroll() {
 					fi
 				fi
 				tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
-				echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
-				echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+				[[ -c ${ttydevice} ]] && echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
+				[[ -c ${ttydevice} ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
 				prev_name_scroll="${tty_currentinfo[name_scroll]}"
 			fi
 		fi
 	fi
 }
 
+
 function update_counter() {
-	tty_currentinfo[counter]="$1"
 	if [ ${tty_currentinfo[update_pause]} -gt 0 ]; then
 		((tty_currentinfo[update_pause]--))
 	else
 		update_name_scroll
 	fi
-	echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+	tty_currentinfo[counter]=$((gametimer - elapsed))
+	if [ ${tty_currentinfo[counter]} -lt 1 ]; then
+		tty_currentinfo[counter]=0
+	fi
+	[[ -c ${ttydevice} ]] && echo "CMDTXT,102,0,0,0,60,Next game in ${prev_counter}" >${ttydevice}
+	[[ -c ${ttydevice} ]] && echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 	prev_counter="${tty_currentinfo[counter]}"
-	echo "CMDDUPD" >"${ttydevice}"
+	[[ -c ${ttydevice} ]] && echo "CMDDUPD" >${ttydevice}
 	tty_waitfor
-	samdebug $(echo declare -p tty_currentinfo | sed 's/declare -A tty_currentinfo=//g')
+	if [ ${samtrace} == "yes" ]; then
+		declare -p tty_currentinfo | sed 's/declare -A tty_currentinfo=//g'
+	fi
 }
 
 function tty_display() { # tty_update core game
-	args=$(echo "${@}" | sed "s/ -A / -gA /")
-	eval "${args}"
-	samdebug $(echo declare -p tty_currentinfo | sed 's/declare -A tty_currentinfo=//g')
-	# Wait for tty2oled daemon to show the core logo
-	tty_senddata "${tty_currentinfo[core]}"
-
-	# Wait for tty2oled to show the core logo
-	samdebug "-------------------------------------------"
-	samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
-	# Show Core-Logo for 5 Secs
-	sleep 10
-	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >"${ttydevice}"
-	tty_waitfor
-	echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-	echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
-	echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
-	prev_name_scroll="${tty_currentinfo[name_scroll]}"
-	prev_counter="${tty_currentinfo[counter]}"
+	if [ -s ${tty_currentinfo_file} ]; then
+		source "${tty_currentinfo_file}"
+		sleepfile_expiration=$((tty_currentinfo[date] + (tty_currentinfo[counter] + 10)))
+		echo "${sleepfile_expiration}" >${tty_sleepfile}
+		# Wait for tty2oled daemon to show the core logo
+		tty_senddata "${tty_currentinfo[core]}"
+		# Wait for tty2oled to show the core logo
+		samdebug "-------------------------------------------"
+		samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
+		samdebug "-------------------------------------------"
+		samdebug " tty_update counter: ${tty_currentinfo[counter]} "
+		# Show Core-Logo for 5 Secs
+		sleep 5
+		# Clear Display	with Random effect
+		echo "CMDCLST,-1,0" >"${ttydevice}"
+		tty_waitfor
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		tty_currentinfo[counter]=$((gametimer - elapsed))
+		[[ -c ${ttydevice} ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
+		prev_name_scroll="${tty_currentinfo[name_scroll]}"
+		prev_counter="${tty_currentinfo[counter]}"
+	fi
 }
 
 # USB Send-Picture-Data function
 function tty_senddata() {
-	newcore="${1}"
+	local newcore="${1}"
 	unset picfnam
 	if [ -e "${ttypicture_pri}/${newcore}.gsc" ]; then # Check for _pri pictures
 		picfnam="${ttypicture_pri}/${newcore}.gsc"
@@ -231,7 +326,7 @@ function tty_senddata() {
 		[ "${USE_GSC_PICTURE}" = "no" ] && picfolders="${picfolders//gsc_us/}" && picfolders="${picfolders//gsc/}"
 		[ "${USE_TEXT_PICTURE}" = "no" ] && picfolders="${picfolders//xbm_text/}"
 		for picfolder in ${picfolders}; do
-			for ((c = "${#newcore}"; c >= 1; c--)); do                               # Manipulate string...
+			for ((c = "${#newcore}"; c >= 1; c--)); do                                 # Manipulate string...
 				picfnam="${ttypicture}/${picfolder^^}/${newcore:0:${c}}.${picfolder:0:3}" # ...until it matches something
 				[ -e "${picfnam}" ] && break
 			done
@@ -245,33 +340,13 @@ function tty_senddata() {
 		samdebug " tty2oled found/send Picture : ${picfnam} "
 		samdebug "-------------------------------------------"
 
-		echo "CMDCOR,${1}" >"${ttydevice}"                # Send CORECHANGE" Command and Corename
-		tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
+		[[ -c ${ttydevice} ]] && echo "CMDCOR,${1}" >${ttydevice}                # Send CORECHANGE" Command and Corename
+		[[ -c ${ttydevice} ]] && tail -n +4 "${picfnam}" | xxd -r -p >${ttydevice} # The Magic, send the Picture-Data up from Line 4 and proces
 		tty_waitfor                                       # sleep needed here ?!
-	else         
-		sleep 0.25                                      # No Picture available!
-		echo "${1}" >"${ttydevice}"                       # Send just the CORENAME
+	else                                               # No Picture available!
+		[[ -c ${ttydevice} ]] && echo "${1}" >${ttydevice}                       # Send just the CORENAME
 		tty_waitfor                                       # sleep needed here ?!
 	fi                                                 # End if Picture check
-}
-
-function tty_exit() {
-	samquiet "-n" " Starting tty2oled Daemon..."
-	[ -f /tmp/tty2oled_sleep ] && rm /tmp/tty2oled_sleep &>/dev/null
-	samquiet " Done!"
-	# Clear Display	with Random effect
-	echo "CMDCLST,-1,0" >${ttydevice}
-	tty_waitfor
-	echo "CMDBYE" >${ttydevice}
-	sleep 5
-	TTY_cleanup
-}
-
-function TTY_cleanup() {
-	samquiet "Cleaned up!"
-	# Clean up by umounting any mount binds
-	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
 }
 
 # ========= TTY MONITOR =========
@@ -285,10 +360,12 @@ function tty_monitor_new() {
 
 # ========= MAIN =========
 function main() {
-	read_samini
 	start_pipe_reader
 	tty_init
 	update_loop
 }
 
-main ${@}
+if [ "${ttyenable}" == "yes" ]; then
+	main ${@}
+fi
+trap - INT
