@@ -2454,9 +2454,10 @@ function tty_exit() {
 	if [ "${ttyenable}" == "yes" ]; then
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" >${ttydevice}
+		write_to_TTY_cmd_pipe "exit" &
+		sleep 1
 		tmux kill-session -t OLED
 		sleep 2
-		write_to_TTY_cmd_pipe "exit" &
 		# Starting tty2oled daemon only if needed
 		if [[ ! $(ps -o pid,args | grep '[t]ty2oled.sh' | awk '{print $1}') ]]; then
 			sleep 1
@@ -2580,7 +2581,7 @@ function check_list() { # args ${nextcore}
 	# Pick the actual game
 	rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"	
 		
-	if [ -z "${rompath}" ]; then
+	if [ ! -f "${rompath}" ]; then
 		sleep 5
 		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	fi
