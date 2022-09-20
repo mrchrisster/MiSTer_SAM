@@ -1,33 +1,7 @@
 #!/bin/bash
 
-# https://github.com/mrchrisster/MiSTer_SAM/
-# Copyright (c) 2021 by mrchrisster and Mellified
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-
-# Description
-# This cycles through arcade and console cores periodically
-# Games are randomly pulled from their respective folders
-
-# ======== Credits ========
-# Original concept and implementation: mrchrisster
-# Additional development and script layout: Mellified and Paradox
-#
-# mbc by pocomane
-# partun by woelper
-# samindex by wizzo
-# tty2oled by venice
-#
-# Thanks for the contributions and support:
-# kaloun34, redsteakraw, RetroDriven, LamerDeluxe, InquisitiveCoder, Sigismond
+# https://github.com/Paradox
+# TTY2OLED module created for SAM by paradox
 
 # ======== GLOBAL VARIABLES =========
 # Save our PID and process
@@ -74,78 +48,8 @@ trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM INT
 
 source "${misterpath}/Scripts/MiSTer_SAM.ini"
 
-# ======== FUNCTIONS ========
+gametimer=$((gametimer + 3))
 
-
-function write_to_TTY_cmd_pipe() {
-	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
-}
-
-function samquiet() {
-	if [ "${samquiet}" == "no" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[32m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[32m${1-}\e[0m"
-		fi
-	fi
-}
-
-function samdebug() {
-	if [ "${samdebug}" == "yes" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[31m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[31m${1-}\e[0m"
-		fi
-	fi
-}
-
-function start_pipe_reader() {
-	samquiet " Init tty2oled, starting pipe reader... "
-	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-	if [[ ! -p ${TTY_cmd_pipe} ]]; then
-		mkfifo ${TTY_cmd_pipe}
-	fi
-
-	while true; do
-		local line
-		if [[ -p ${TTY_cmd_pipe} ]]; then
-			if read line <${TTY_cmd_pipe}; then
-				set -- junk ${line}
-				shift
-				case "${1}" in
-				stop | quit | exit)
-					tty_exit
-					break
-					;;
-				display_info)
-					shift
-					if [ -c ${ttydevice} ]; then
-						tty_display "${@}"
-					fi
-					;;
-				update_counter)
-					update_counter
-					;;
-				*)
-					echo " ERROR! ${line} is unknown."
-					echo " Try $(basename -- ${0}) help"
-					echo " Or check the Github readme."
-					echo " Named Pipe"
-					;;
-				esac
-			fi
-		fi
-	done &
-}
-
-function tty_cleanup() {
-	samquiet " TTY Cleaned up!"
-	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-}
 
 # ======== tty2oled FUNCTIONS ========
 
@@ -170,7 +74,7 @@ function tty_init() { # tty_init
 		exit 1
 	fi
 
-	# Stopping tty2oled Daemon
+
 	if [ -f ${tty_sleepfile} ]; then
 		sleepfile_expiration=$(<${tty_sleepfile})
 		samdebug "! Expires: ${sleepfile_expiration} ! Now: ${EPOCHSECONDS} !"
@@ -193,41 +97,28 @@ function tty_init() { # tty_init
 
 		# Stopping ScreenSaver
 		samquiet "-n" " Stopping tty2oled ScreenSaver..."
+		sleep 1
 		[[ -c ${ttydevice} ]] && echo "CMDSAVER,0,0,0" >${ttydevice}
 		tty_waitfor
 		samquiet " Done!"
-
+		sleep 2
 		tty_senddata "SAM_splash"
+
 		# Wait for tty2oled to show the core logo
 		samdebug "-------------------------------------------"
 		samdebug " tty_update got Corename: SAM_splash "
 		# Show Core-Logo for 5 Secs
-		sleep 5
+		sleep 10
 		if [ -z ${tty_currentinfo} ] && [ -s ${tty_currentinfo_file} ]; then
 			write_to_TTY_cmd_pipe "display_info" &
 		fi
 	fi
 }
 
-function tty_exit() {
-	# Clear Display	with Random effect
-	[[ -c ${ttydevice} ]] && echo "CMDCLST,-1,0" >${ttydevice}
-	tty_waitfor
-	[[ -c ${ttydevice} ]] && echo "CMDBYE" >${ttydevice}
-	sleep 5
-	tty_cleanup
-}
 
 function tty_waitfor() {
 	[[ -c ${ttydevice} ]] && read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
 	ttyresponse=""
-}
-
-function update_loop() {
-	while [[ -p ${TTY_cmd_pipe} ]]; do
-		sleep 1
-		write_to_TTY_cmd_pipe "update_counter" &
-	done
 }
 
 function set_scroll_speed() {
@@ -349,14 +240,95 @@ function tty_senddata() {
 	fi                                                 # End if Picture check
 }
 
-# ========= TTY MONITOR =========
-function tty_monitor_new() {
-	# We can omit -r here. Tradeoff;
-	# window size size is correct, can disconnect with ctrl-C but ctrl-C kills MCP
-	# tmux attach-session -t SAM
-	# window size will be wrong/too small, but ctrl-c nonfunctional instead of killing/disconnecting
-	tmux attach-session -t TTY
+# ======== FUNCTIONS ========
+
+function samquiet() {
+	if [ "${samquiet}" == "no" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[32m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[32m${1-}\e[0m"
+		fi
+	fi
 }
+
+function samdebug() {
+	if [ "${samdebug}" == "yes" ]; then
+		if [ "${1}" == "-n" ]; then
+			echo -en "\e[1m\e[31m${2-}\e[0m"
+		else
+			echo -e "\e[1m\e[31m${1-}\e[0m"
+		fi
+	fi
+}
+
+function tty_cleanup() {
+	samquiet " TTY Cleaned up!"
+	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
+	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
+}
+
+function tty_exit() {
+	# Clear Display	with Random effect
+	[[ -c ${ttydevice} ]] && echo "CMDCLST,-1,0" >${ttydevice}
+	tty_waitfor
+	[[ -c ${ttydevice} ]] && echo "CMDBYE" >${ttydevice}
+	sleep 5
+	tty_cleanup
+}
+
+function write_to_TTY_cmd_pipe() {
+	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
+}
+
+
+function update_loop() {
+	while [[ -p ${TTY_cmd_pipe} ]]; do
+		sleep 1
+		write_to_TTY_cmd_pipe "update_counter" &
+	done
+}
+
+function start_pipe_reader() {
+	samquiet " Init tty2oled, starting pipe reader... "
+	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
+	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
+	if [[ ! -p ${TTY_cmd_pipe} ]]; then
+		mkfifo ${TTY_cmd_pipe}
+	fi
+
+	while true; do
+		local line
+		if [[ -p ${TTY_cmd_pipe} ]]; then
+			if read line <${TTY_cmd_pipe}; then
+				set -- junk ${line}
+				shift
+				case "${1}" in
+				stop | quit | exit)
+					tty_exit
+					break
+					;;
+				display_info)
+					shift
+					if [ -c ${ttydevice} ]; then
+						tty_display "${@}"
+					fi
+					;;
+				update_counter)
+					update_counter
+					;;
+				*)
+					echo " ERROR! ${line} is unknown."
+					echo " Try $(basename -- ${0}) help"
+					echo " Or check the Github readme."
+					echo " Named Pipe"
+					;;
+				esac
+			fi
+		fi
+	done &
+}
+
 
 # ========= MAIN =========
 function main() {
