@@ -1680,6 +1680,9 @@ function parse_cmd() {
 				;;
 			start_real) # Start SAM immediately
 				env_check ${1}
+				sam_prep
+				disable_bootrom # Disable Bootrom until Reboot
+				mute
 				bgm_start
 				loop_core ${nextcore}
 				break
@@ -3013,10 +3016,6 @@ read_samini
 init_paths
 
 init_data # Setup data arrays
-
-sam_prep
-disable_bootrom # Disable Bootrom until Reboot
-mute
 
 
 if [ "${1,,}" != "--source-only" ]; then
