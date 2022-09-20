@@ -2581,7 +2581,7 @@ function check_list() { # args ${nextcore}
 	
 	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		
-	if [ ! -s ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
+	if [ -s ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
 		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	else
 		echo "Something went wrong, trying something else..."	
