@@ -2580,14 +2580,11 @@ function check_list() { # args ${nextcore}
 	fi
 	
 	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-	
-	cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l
 		
-	if [ -f ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
+	if [ ! -s ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
 		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	else
-		echo "Something went wrong, trying something else..."
-		
+		echo "Something went wrong, trying something else..."	
 		rompath="$(cat ${gamelistpath}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	fi
 
