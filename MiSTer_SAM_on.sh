@@ -222,7 +222,7 @@ function init_data() {
 		["nes"]="Nintendo Entertainment System"
 		["s32x"]="Sega 32x"
 		["sms"]="Sega Master System"
-		["snes"]="Super NES"
+		["snes"]="Super Nintendo"
 		["tgfx16"]="NEC TurboGrafx-16 "
 		["tgfx16cd"]="NEC TurboGrafx-16 CD"
 		["psx"]="Sony Playstation"
