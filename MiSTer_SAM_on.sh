@@ -49,7 +49,7 @@ function init_vars() {
 	declare -gi coreretries=3
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
-	declare -g gamelistpathtmp="/tmp/.SAM_List/"
+	declare -g gamelistpathtmp="/tmp/.SAM_List"
 	declare -g mralist_old="${mrsampath}/SAM_Gamelists/arcade_romlist"
 	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
 	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
@@ -2044,7 +2044,7 @@ function check_list() { # args ${nextcore}
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		sync
 		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		if [ "${samquiet}" == "no" ]; then echo "Stripped out $("${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games."; fi
+		if [ "${samquiet}" == "no" ]; then echo " $(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games in list after removing duplicates."; fi
 		
 		#Check exclusion
 		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
@@ -2056,7 +2056,7 @@ function check_list() { # args ${nextcore}
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
 			echo " Found default blacklist for core ${nextcore}. Stripping out games with static screens now."
 			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-			if [ "${samquiet}" == "no" ]; then echo "Gamelist now $("${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games."; fi
+			if [ "${samquiet}" == "no" ]; then echo " $(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games after removing blacklisted."; fi
 		fi
 		
 		#Check path filter
