@@ -2584,7 +2584,7 @@ function check_list() { # args ${nextcore}
 	if [ -s ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
 		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	else
-		echo "Something went wrong, trying something else..."	
+		echo " Something went wrong, trying something else..."	
 		rompath="$(cat ${gamelistpath}/${nextcore}_gamelist.txt | shuf --head-count=1)"
 	fi
 
