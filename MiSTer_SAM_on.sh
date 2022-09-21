@@ -2557,24 +2557,24 @@ function check_list() { # args ${nextcore}
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 	
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		
 		#Check exclusion
 		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
 			echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 	
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
 			echo " Found default blacklist for core ${nextcore}. Stripping out games with static screens now."
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		
 		#Check path filter
 		if [ ! -z "${PATHFILTER[${nextcore}]}"  ]; then 
 			echo " Found path filter for Arcade core. Setting path to ${PATHFILTER[${nextcore}]}."
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${PATHFILTER[${nextcore}]}"  > ${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${PATHFILTER[${nextcore}]}"  > ${tmpfile} && mv ${tmpfile} -f "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		FIRSTRUN[${nextcore}]=1
 	fi
