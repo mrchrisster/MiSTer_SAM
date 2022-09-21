@@ -250,8 +250,13 @@ function tty_exit() {
 	# Clear Display	with Random effect
 	[[ -c ${ttydevice} ]] && echo "CMDCLST,-1,0" >${ttydevice}
 	tty_waitfor
-	[[ -c ${ttydevice} ]] && echo "CMDBYE" >${ttydevice}
+	#[[ -c ${ttydevice} ]] && echo "CMDBYE" >${ttydevice}
+	
 	sleep 5
+	#echo "CMDAPD,MENU" >${ttydevice}
+	#tail -n +4 "/media/fat/tty2oled/pics/GSC/$(cat /tmp/CORENAME).gsc" | xxd -r -p >${ttydevice}
+	#echo "CMDSPIC,-1" >${ttydevice}
+	tty_senddata $(cat /tmp/CORENAME)
 	tty_cleanup
 }
 
