@@ -2574,7 +2574,7 @@ function check_list() { # args ${nextcore}
 		#Check path filter
 		if [ ! -z "${PATHFILTER[${nextcore}]}"  ]; then 
 			echo " Found path filter for Arcade core. Setting path to ${PATHFILTER[${nextcore}]}."
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${PATHFILTER[${nextcore}]}"  > ${tmpfile} && mv ${tmpfile} -f "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | grep "${PATHFILTER[${nextcore}]}"  > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 		FIRSTRUN[${nextcore}]=1
 	fi
