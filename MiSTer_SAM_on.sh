@@ -1866,6 +1866,14 @@ function play_or_exit() {
 
 # ======== UTILITY FUNCTIONS ========
 
+function mcp_start() {
+	# MCP monitors when SAM should be launched. "menuonly" and "samtimeout" determine when MCP launches SAM
+	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
+
+		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP"
+	fi
+}
+
 function update_tasks() {
 	[ -s "${mralist_old}" ] && { mv "${mralist_old}" "${mralist}"; }
 	[ -s "${mralist_tmp_old}" ] && { mv "${mralist_tmp_old}" "${mralist_tmp}"; }
@@ -1905,14 +1913,6 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
 	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleanup done."; fi
-}
-
-function mcp_start() {
-	# If the MCP isn't running we need to start it in monitoring only mode
-	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-		# ${mrsampath}/MiSTer_SAM_MCP monitoronly &
-		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP"
-	fi
 }
 
 function sam_monitor() {
