@@ -2216,6 +2216,12 @@ function sam_help() { # sam_help
 function bgm_start() {
 
 	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
+		if [ ! "$(ps -o pid,args | grep '[b]gm' | head -1)" ]; then
+			/media/fat/Scripts/bgm.sh
+		else
+			echo " BGM already running."
+		fi
+		sleep 2
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 	fi
