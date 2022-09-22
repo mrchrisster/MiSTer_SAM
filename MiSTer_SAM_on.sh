@@ -877,7 +877,6 @@ function parse_cmd() {
 				break
 				;;
 			start_real) # Start SAM immediately
-				bgm_start
 				loop_core ${nextcore}
 				break
 				;;
@@ -1446,6 +1445,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 
 	corepath="$("${mrsampath}"/samindex -q -s ${nextcore} -d |awk -F':' '{print $2}')"
+	umount /media/fat/Games/SAM >/dev/null
+	sync
 	mount --bind ${corepath} /media/fat/Games/SAM
 
 	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
@@ -1756,6 +1757,7 @@ function sam_start() {
 	sam_prep
 	disable_bootrom # Disable Bootrom until Reboot
 	mute
+	bgm_start
 	tty_start
 	echo " Starting SAM in the background."
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
