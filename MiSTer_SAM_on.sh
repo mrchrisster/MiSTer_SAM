@@ -1904,7 +1904,7 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleaned up mounts."; fi
+	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleanup done."; fi
 }
 
 function mcp_start() {
