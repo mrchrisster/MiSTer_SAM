@@ -1339,15 +1339,14 @@ function check_list() { # args ${nextcore}
 		#Check exclusion
 		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
 			echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" > ${tmpfile} && sync && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 	
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
 			echo " Found default blacklist for core ${nextcore}. Stripping out games with static screens now."
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" > ${tmpfile} 
-			sync
-			mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error
+			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 			if [ "${samquiet}" == "no" ]; then echo " $(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games after removing blacklisted."; fi
 		fi
 		
