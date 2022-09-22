@@ -877,6 +877,7 @@ function parse_cmd() {
 				break
 				;;
 			start_real) # Start SAM immediately
+				bgm_start
 				loop_core ${nextcore}
 				break
 				;;
@@ -1338,14 +1339,13 @@ function check_list() { # args ${nextcore}
 		#Check exclusion
 		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
 			echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."
-			fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 	
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
 			echo " Found default blacklist for core ${nextcore}. Stripping out games with static screens now."
-			# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error
-			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 			if [ "${samquiet}" == "no" ]; then echo " $(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games after removing blacklisted."; fi
 		fi
 		
@@ -1444,14 +1444,10 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
 	fi
 
-	corepath="$("${mrsampath}"/samindex -q -s ${nextcore} -d |awk -F':' '{print $2}')"
-	umount /media/fat/Games/SAM >/dev/null
-	sync
-	mount --bind ${corepath} /media/fat/Games/SAM
+	mute "${CORE_LAUNCH[${nextcore}]}"
 
 	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >>/tmp/SAM_game.mgl
-	echo "<setname>SAM</setname>" >>/tmp/SAM_game.mgl
 	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
 	echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
 
@@ -1558,20 +1554,17 @@ function load_core_arcade() {
 	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >>/tmp/SAM_Games.log
 	echo "${mraname} (${nextcore})" >/tmp/SAM_Game.txt
 
+	mute "${mrasetname}"
+
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
 			echo " Loading game in ${i}...\033[0K\r"
 			sleep 1
 		done
 	fi
-	
-	# set name to SAM to mute core
-	cp "${mra}" /tmp/tmp.mra
-	sed -i '/setname/c\<setname>SAM</setname>.' /tmp/tmp.mra
-	
 
 	# Tell MiSTer to load the next MRA
-	echo "load_core /tmp/tmp.mra" >/dev/MiSTer_cmd
+	echo "load_core ${mra}" >/dev/MiSTer_cmd
 	sleep 1
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
@@ -1607,12 +1600,7 @@ function load_core_amiga() {
 
 	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 	
-	# Mute amiga core. Special case since it doesn't support MGL format
-	if [ -f "/media/fat/config/Minimig_volume.cfg" ]; then
-		if [[ "$(xxd "/media/fat/config/Minimig_volume.cfg" |awk '{print $2}')" != 06 ]]; then
-			echo -e "\0006\c" >"/media/fat/config/Minimig_volume.cfg"
-		fi
-	fi
+	mute "${CORE_LAUNCH[${nextcore}]}"
 
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
 		# This is for MegaAGS version June 2022 or older
@@ -1757,7 +1745,6 @@ function sam_start() {
 	sam_prep
 	disable_bootrom # Disable Bootrom until Reboot
 	mute
-	bgm_start
 	tty_start
 	echo " Starting SAM in the background."
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
@@ -1835,15 +1822,18 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	elif [ ${1} -eq 3 ]; then # Play Current Game, relaunch because of mute
 		sleep 1
 		if [ "${nextcore}" == "arcade" ]; then
+			mute=no
+			mute "${mrasetname}"
 			echo "load_core ${mra}" >/dev/MiSTer_cmd
 		else
+			mute=no
+			mute "${CORE_LAUNCH[${nextcore}]}"
 			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 		fi
 	fi
 	
 	#	Exit SAM
 	tty_exit
-	bgm_stop
 	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
 
 }
@@ -1884,16 +1874,18 @@ function sam_prep() {
 	[[ -f /tmp/SAM_game.previous.mgl ]] && rm /tmp/SAM_game.previous.mgl
 	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
 	[[ ! -d "${mrsamtmp}" ]] && mkdir -p "${mrsamtmp}"
-	mkdir -p /media/fat/Games/SAM &>/dev/null
+	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
+	[ ${mute} == "yes" ] || [ ${mute} == "core" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
+	[ -f "/tmp/.SAM_tmp/SAM_config/minimig.cfg" ] && cp /tmp/.SAM_tmp/SAM_config/minimig.cfg /tmp/.SAM_tmp/SAM_config/Minimig.cfg 2>/dev/null
+	[ ${mute} == "yes" ] || [ ${mute} == "core" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
-	mute
 }
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
-	[ -f "/media/fat/config/Minimig_volume.cfg" ] && rm "/media/fat/config/Minimig_volume.cfg"
+	[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
 	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
@@ -2163,12 +2155,21 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ -f "/media/fat/config/SAM_volume.cfg" ]; then
-		if [ "${mute}" == "yes" ] || [ "${mute}" == "core" ] && [[ "$(xxd "/media/fat/config/SAM_volume.cfg" |awk '{print $2}')" != 06 ]]; then
-			echo -e "\0006\c" >"/media/fat/config/SAM_volume.cfg"
+	if mountpoint -q -- "/media/fat/config"; then
+		if [ "${mute}" == "yes" ]; then
+			# Mute Global Volume
+			echo -e "\0020\c" >/media/fat/config/Volume.dat
+		elif [ "${mute}" == "core" ]; then
+			#  Global Volume
+			echo -e "\0000\c" >/media/fat/config/Volume.dat
+			# Mute Core Volumes
+			echo -e "\0006\c" >"/media/fat/config/${1}_volume.cfg"
+		elif [ "${mute}" == "no" ]; then
+			#  Global Volume
+			echo -e "\0000\c" >/media/fat/config/Volume.dat
+			#  Core Volumes
+			echo -e "\0000\c" >"/media/fat/config/${1}_volume.cfg"
 		fi
-	else
-		echo -e "\0006\c" >"/media/fat/config/SAM_volume.cfg"
 	fi
 }
 
@@ -2216,12 +2217,6 @@ function sam_help() { # sam_help
 function bgm_start() {
 
 	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
-		if [ ! "$(ps -o pid,args | grep '[b]gm' | head -1)" ]; then
-			/media/fat/Scripts/bgm.sh
-		else
-			echo " BGM already running."
-		fi
-		sleep 2
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 	fi
@@ -2232,7 +2227,7 @@ function bgm_stop() {
 
 	if [ "${bgm}" == "yes" ]; then
 		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-		#echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 	fi
 
 }
