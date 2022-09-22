@@ -1606,7 +1606,12 @@ function load_core_amiga() {
 
 	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 	
-	mute "${CORE_LAUNCH[${nextcore}]}"
+	# Mute amiga core. Special case since it doesn't support MGL format
+	if [ -f "/media/fat/config/Minimig_volume.cfg" ]; then
+		if [[ "$(xxd "/media/fat/config/Minimig_volume.cfg" |awk '{print $2}')" != 06 ]]; then
+			echo -e "\0006\c" >"/media/fat/config/Minimig_volume.cfg"
+		fi
+	fi
 
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
 		# This is for MegaAGS version June 2022 or older
@@ -1877,11 +1882,7 @@ function sam_prep() {
 	[[ -f /tmp/SAM_game.previous.mgl ]] && rm /tmp/SAM_game.previous.mgl
 	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
 	[[ ! -d "${mrsamtmp}" ]] && mkdir -p "${mrsamtmp}"
-	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
-	#[ ${mute} == "yes" ] || [ ${mute} == "core" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && cp -r --force /media/fat/config/* /tmp/.SAM_tmp/SAM_config &>/dev/null
 	mkdir -p /media/fat/Games/SAM &>/dev/null
-	[ -f "/tmp/.SAM_tmp/SAM_config/minimig.cfg" ] && cp /tmp/.SAM_tmp/SAM_config/minimig.cfg /tmp/.SAM_tmp/SAM_config/Minimig.cfg 2>/dev/null
-	#[ ${mute} == "yes" ] || [ ${mute} == "core" ] && [ -d "/tmp/.SAM_tmp/SAM_config" ] && [ "$(mount | grep -ic '/media/fat/config')" == "0" ] && mount --bind "/tmp/.SAM_tmp/SAM_config" "/media/fat/config"
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
@@ -1890,7 +1891,7 @@ function sam_prep() {
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
-	#[ "$(mount | grep -ic '/media/fat/config')" == "1" ] && umount "/media/fat/config"
+	[ -f "/media/fat/config/Minimig_volume.cfg" ] && rm "/media/fat/config/Minimig_volume.cfg"
 	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
