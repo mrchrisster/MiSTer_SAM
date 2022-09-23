@@ -1489,7 +1489,6 @@ function build_mralist() {
 
 function load_core_arcade() {
 
-
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s "${mralist}" ]; then
@@ -1920,6 +1919,7 @@ function sam_prep() {
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
+	[ -f "/media/fat/config/Volume.dat" ] && [ ${mute} == "yes" ] && rm "/media/fat/config/Volume.dat"
 	[ -f "/media/fat/config/Minimig_volume.cfg" ] && rm "/media/fat/config/Minimig_volume.cfg"
 	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
@@ -2192,13 +2192,24 @@ function disable_bootrom() {
 }
 
 function mute() {
-
-	if [ -f "/media/fat/config/SAM_volume.cfg" ]; then
-		if [ "${mute}" == "yes" ] || [ "${mute}" == "core" ] && [[ "$(xxd "/media/fat/config/SAM_volume.cfg" |awk '{print $2}')" != 06 ]]; then
+	if [ "${mute}" == "yes" ]; then
+		if [ -f "/media/fat/config/Volume.dat" ]; then
+	 		if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+				# Mute Global Volume
+				echo -e "\0020\c" >/media/fat/config/Volume.dat
+			fi
+		else
+			echo -e "\0020\c" >/media/fat/config/Volume.dat
+		fi
+			
+	elif [ "${mute}" == "core" ]; then
+		if [ -f "/media/fat/config/SAM_volume.cfg" ]; then
+			if [[ "$(xxd "/media/fat/config/SAM_volume.cfg" |awk '{print $2}')" != 06 ]]; then
+				echo -e "\0006\c" >"/media/fat/config/SAM_volume.cfg"
+			fi
+		else
 			echo -e "\0006\c" >"/media/fat/config/SAM_volume.cfg"
 		fi
-	else
-		echo -e "\0006\c" >"/media/fat/config/SAM_volume.cfg"
 	fi
 }
 
@@ -2761,6 +2772,7 @@ read_samini
 init_paths
 
 init_data # Setup data arrays
+
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd ${@} # Parse command line parameters for input
