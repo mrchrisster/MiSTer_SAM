@@ -1504,7 +1504,7 @@ function load_core_arcade() {
 	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
 			if [ "${samquiet}" == "no" ]; then echo " Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
-			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
+			stdbuf -o0 fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
 		fi
 		
 		#Check path filter
@@ -1514,6 +1514,8 @@ function load_core_arcade() {
 		fi
 		FIRSTRUN[${nextcore}]=1	
 	fi
+	
+	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 	
 	
 	# Get a random game from the list
@@ -1552,12 +1554,13 @@ function load_core_arcade() {
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
 		)
+		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+		write_to_TTY_cmd_pipe "display_info" &
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		SECONDS=${elapsed}
 	fi
 
-	declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-	write_to_TTY_cmd_pipe "display_info" &
-	local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
-	SECONDS=${elapsed}
+
 
 	echo -n " Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
@@ -1577,6 +1580,10 @@ function load_core_arcade() {
 		cp "${mra}" /tmp/tmp.mra
 		sed -i '/setname/c\<setname>SAM</setname>.' /tmp/tmp.mra
 		touch /media/fat/_Arcade/tmp.mra
+		if mountpoint -q -- /media/fat/_Arcade/tmp.mra; then
+			umount /media/fat/_Arcade/tmp.mra
+			sync
+		fi
 		mount --bind /tmp/tmp.mra /media/fat/_Arcade/tmp.mra
 		# Tell MiSTer to load the next MRA
 		echo "load_core /media/fat/_Arcade/tmp.mra" >/dev/MiSTer_cmd
@@ -2185,6 +2192,7 @@ function disable_bootrom() {
 }
 
 function mute() {
+
 	if [ -f "/media/fat/config/SAM_volume.cfg" ]; then
 		if [ "${mute}" == "yes" ] || [ "${mute}" == "core" ] && [[ "$(xxd "/media/fat/config/SAM_volume.cfg" |awk '{print $2}')" != 06 ]]; then
 			echo -e "\0006\c" >"/media/fat/config/SAM_volume.cfg"
@@ -2753,7 +2761,6 @@ read_samini
 init_paths
 
 init_data # Setup data arrays
-
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd ${@} # Parse command line parameters for input
