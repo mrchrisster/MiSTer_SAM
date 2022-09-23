@@ -1998,7 +1998,7 @@ function env_check() {
 	if [ ! -f "${mrsampath}/partun" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
 		echo " SAM required files not found."
 		echo " Installing now."
-		sam_update default
+		sam_update autoconfig
 		echo " Setup complete."
 	fi
 }
