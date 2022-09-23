@@ -47,6 +47,9 @@ samtrace=yes
 trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM INT
 
 source "${misterpath}/Scripts/MiSTer_SAM.ini"
+source ${ttysystemini}
+source ${ttyuserini}
+ttydevice=${TTYDEV}
 
 gametimer=$((gametimer + 3))
 
@@ -57,9 +60,6 @@ function tty_init() { # tty_init
 	# tty2oled initialization
 	declare -gi START=$(date +%s)
 	samquiet " Init tty2oled, loading variables... "
-	source ${ttysystemini}
-	source ${ttyuserini}
-	ttydevice=${TTYDEV}
 	ttypicture=${picturefolder}
 	ttypicture_pri=${picturefolder_pri}
 	set_scroll_speed
