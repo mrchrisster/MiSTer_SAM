@@ -803,17 +803,7 @@ function read_samini() {
 		coreexcludelist+=("${core}exclude")
 	done
 
-	# Iterate through coreexclude lists and make list into array
-	for excludelist in ${coreexcludelist[@]}; do
-		readarray -t ${excludelist} <<<${!excludelist}
-	done
 
-	# Create folder and file exclusion list
-	folderex=$(for f in "${exclude[@]}"; do echo "-o -iname *$f*"; done)
-	fileex=$(for f in "${exclude[@]}"; do echo "-and -not -iname *$f*"; done)
-
-	# Create file and folder exclusion list for zips. Always exclude BIOS files as a default
-	zipex=$(printf "%s," "${exclude[@]}" && echo "bios")
 }
 
 
@@ -1276,7 +1266,7 @@ function next_core() { # next_core (core)
 		return
 	fi
 
-	# If there is an exclude list check it
+	# This is obsolete because of gamelist excludes. It can still be used as an alternative.
 	declare -n excludelist="${nextcore}exclude"
 	if [ ${#excludelist[@]} -gt 1 ]; then
 		for excluded in "${excludelist[@]}"; do
@@ -1336,11 +1326,11 @@ function check_list() { # args ${nextcore}
 	
 	# If gamelist is not in /tmp dir, let's put it there. Also strip out duplicates, exclude and blacklist roms
 	
-	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ] ; then
 	
-		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
 		sync
-		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 
 		if [ "${samquiet}" == "no" ]; then echo " $(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games in list after removing duplicates."; fi
 		
 		#Check exclusion
@@ -1348,6 +1338,11 @@ function check_list() { # args ${nextcore}
 			echo " Found excludelist for core ${nextcore}. Stripping out unwanted games now."
 			stdbuf -o0 fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
+		
+		#Check ini exclusion
+		for e in "${exclude[@]}"; do
+			fgrep -viw "$e" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		done
 	
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
@@ -2778,7 +2773,6 @@ read_samini
 init_paths
 
 init_data # Setup data arrays
-
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd ${@} # Parse command line parameters for input
