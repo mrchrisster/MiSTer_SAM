@@ -1219,7 +1219,8 @@ function next_core() { # next_core (core)
 			first_run_arcade=1
 		fi
 
-		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ]; then	
+		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ] && [ ! -e "${gamelistpath}"/.freshinstall ]; then	
+			touch "${gamelistpath}"/.freshinstall
 			nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
 			"${mrsampath}"/samindex -q -nofilter -o "${gamelistpath}" &
 		fi
@@ -1454,7 +1455,10 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >>/tmp/SAM_game.mgl
-	echo "<setname>SAM</setname>" >>/tmp/SAM_game.mgl
+	
+	if ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
+		echo "<setname>SAM</setname>" >>/tmp/SAM_game.mgl
+	fi
 	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
 	echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
 
@@ -1568,13 +1572,17 @@ function load_core_arcade() {
 		done
 	fi
 	
-	# set name to SAM to mute core
-	cp "${mra}" /tmp/tmp.mra
-	sed -i '/setname/c\<setname>SAM</setname>.' /tmp/tmp.mra
-	
-
-	# Tell MiSTer to load the next MRA
-	echo "load_core /tmp/tmp.mra" >/dev/MiSTer_cmd
+	if ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
+		# set name to SAM to mute core
+		cp "${mra}" /tmp/tmp.mra
+		sed -i '/setname/c\<setname>SAM</setname>.' /tmp/tmp.mra
+		touch /media/fat/_Arcade/tmp.mra
+		mount --bind /tmp/tmp.mra /media/fat/_Arcade/tmp.mra
+		# Tell MiSTer to load the next MRA
+		echo "load_core /media/fat/_Arcade/tmp.mra" >/dev/MiSTer_cmd
+	else
+		echo "load_core ${mra}" >/dev/MiSTer_cmd
+	fi
 	sleep 1
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
@@ -1869,7 +1877,6 @@ function play_or_exit() {
 function mcp_start() {
 	# MCP monitors when SAM should be launched. "menuonly" and "samtimeout" determine when MCP launches SAM
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-
 		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP"
 	fi
 }
@@ -2113,15 +2120,17 @@ function creategl() {
 
 function skipmessage() {
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		# Skip past bios/safety warnings
-		if [ ! -f "/media/fat/config/inputs/SAM_input_1234_5678_v3.map" ]; then 
-			touch "/media/fat/config/inputs/SAM_input_1234_5678_v3.map"
+		if ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
+			# Skip past bios/safety warnings
+			if [ ! -f "/media/fat/config/inputs/SAM_input_1234_5678_v3.map" ]; then 
+				touch "/media/fat/config/inputs/SAM_input_1234_5678_v3.map"
+			fi
+			if mountpoint -q -- "/media/fat/config/inputs/SAM_input_1234_5678_v3.map"; then
+				umount "/media/fat/config/inputs/SAM_input_1234_5678_v3.map"
+				sync
+			fi
+			mount --bind /media/fat/config/inputs/"${CORE_LAUNCH[${nextcore}]}"_input_1234_5678_v3.map /media/fat/config/inputs/SAM_input_1234_5678_v3.map
 		fi
-		if mountpoint -q -- "/media/fat/config/inputs/SAM_input_1234_5678_v3.map"; then
-			umount "/media/fat/config/inputs/SAM_input_1234_5678_v3.map"
-			sync
-		fi
-		mount --bind /media/fat/config/inputs/"${CORE_LAUNCH[${nextcore}]}"_input_1234_5678_v3.map /media/fat/config/inputs/SAM_input_1234_5678_v3.map
 		sleep 10
 		"${mrsampath}/mbc" raw_seq :31
 	fi
