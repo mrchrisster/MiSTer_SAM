@@ -1343,7 +1343,8 @@ function check_list() { # args ${nextcore}
 		for e in "${exclude[@]}"; do
 			fgrep -viw "$e" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		done
-	
+		if [ "${samquiet}" == "no" ]; then echo " Excluded from list: ${exclude[@]}"; fi
+
 		#Check blacklist	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
 			echo " Found default blacklist for core ${nextcore}. Stripping out games with static screens now."
@@ -2732,7 +2733,9 @@ function sam_bgmmenu() {
 				mv --force /tmp/bgm.sh /media/fat/Scripts/
 			else
 				echo " BGM script is installed already. Updating just in case..."
-				/media/fat/Scripts/bgm.sh stop &>/dev/null
+				echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+				kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
+				rm /tmp/bgm.sock 2>/dev/null
 				repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
 				get_samstuff bgm.sh /tmp
 				mv --force /tmp/bgm.sh /media/fat/Scripts/
@@ -2773,6 +2776,7 @@ read_samini
 init_paths
 
 init_data # Setup data arrays
+
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd ${@} # Parse command line parameters for input
