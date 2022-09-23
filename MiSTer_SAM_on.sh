@@ -1314,6 +1314,12 @@ function check_list() { # args ${nextcore}
 		echo " Creating game list at ${gamelistpath}/${1}_gamelist.txt"
 		create_romlist
 	fi
+	
+	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
+		echo " Can't find games for ${CORE_PRETTY[${1}]}"
+		next_core
+	fi
+	
 
 	# Check if zip still exists
 	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
