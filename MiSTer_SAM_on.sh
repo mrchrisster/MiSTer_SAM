@@ -1446,19 +1446,19 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
 	fi
 
-	corepath="$("${mrsampath}"/samindex -q -s ${nextcore} -d |awk -F':' '{print $2}')"
-	if mountpoint -q -- "/media/fat/Games/SAM"; then
-		umount /media/fat/Games/SAM 
-		sync
-	fi
-	mount --bind ${corepath} /media/fat/Games/SAM
-
 	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >>/tmp/SAM_game.mgl
 	
 	if ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
+		corepath="$("${mrsampath}"/samindex -q -s ${nextcore} -d |awk -F':' '{print $2}')"
+		if mountpoint -q -- "/media/fat/Games/SAM"; then
+			umount /media/fat/Games/SAM 
+			sync
+		fi
+		mount --bind ${corepath} /media/fat/Games/SAM
 		echo "<setname>SAM</setname>" >>/tmp/SAM_game.mgl
 	fi
+	
 	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
 	echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
 
