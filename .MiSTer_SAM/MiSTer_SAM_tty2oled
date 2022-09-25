@@ -84,15 +84,18 @@ function tty_init() { # tty_init
 	# Stopping ScreenSaver
 	samquiet "-n" " Stopping tty2oled ScreenSaver..."
 	echo "CMDSAVER,0,0,0" >${ttydevice}
-	sleep 2
+	tty_waitfor
+	#sleep 2
 	samquiet " Done!"
 	
 	#Show Splash
 	echo "CMDAPD,SAM_splash" >${ttydevice}
 	tail -n +4 "/media/fat/tty2oled/pics/GSC/SAM_splash.gsc" | xxd -r -p >${ttydevice}
+	tty_waitfor
 	echo "CMDSPIC,-1" >${ttydevice}
-	sleep 5
-	
+	tty_waitfor
+	sleep 4
+	#sleep 5
 }
 
 
