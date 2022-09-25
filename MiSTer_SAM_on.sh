@@ -1632,6 +1632,8 @@ function load_core_amiga() {
 			if [[ "$(xxd "/media/fat/config/Minimig_volume.cfg" |awk '{print $2}')" != 06 ]]; then
 				echo -e "\0006\c" >"/media/fat/config/Minimig_volume.cfg"
 			fi
+		else 
+			echo -e "\0006\c" >"/media/fat/config/Minimig_volume.cfg"
 		fi
 	fi
 
@@ -2296,6 +2298,7 @@ function tty_exit() {
 	if [ "${ttyenable}" == "yes" ]; then
 		echo -n " Stopping tty2oled... "
 		tmux kill-session -t OLED &>/dev/null
+		sleep 1
 		rm "${tty_sleepfile}" &>/dev/null
 		echo "Done."
 	fi
