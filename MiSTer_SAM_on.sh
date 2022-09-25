@@ -1629,13 +1629,10 @@ function load_core_amiga() {
 	
 	# Mute amiga core. Special case since it doesn't support MGL format
 	if ([ ${mute} == "yes" ] || [ ${mute} == "core" ]); then
-		if [ -f "/media/fat/config/Minimig_volume.cfg" ]; then
-			if [[ "$(xxd "/media/fat/config/Minimig_volume.cfg" |awk '{print $2}')" != 06 ]]; then
-				echo -e "\0006\c" >"/media/fat/config/Minimig_volume.cfg"
-			fi
-		else 
-			echo -e "\0006\c" >"/media/fat/config/Minimig_volume.cfg"
+		if [ ! -f "/tmp/Minimig_volume.cfg" ] || [[ "$(xxd "/tmp/Minimig_volume.cfg" |awk '{print $2}')" != 06 ]]; then
+			echo -e "\0006\c" >"/tmp/Minimig_volume.cfg"
 		fi
+		[ "$(mount | grep -ic Minimig_volume.cfg)" == "0" ] && mount --bind "/tmp/Minimig_volume.cfg" "/media/fat/config/Minimig_volume.cfg"
 	fi
 
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
@@ -1925,12 +1922,12 @@ function sam_prep() {
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	[ -f "/media/fat/config/Volume.dat" ] && [ ${mute} == "yes" ] && rm "/media/fat/config/Volume.dat"
-	[ -f "/media/fat/config/Minimig_volume.cfg" ] && rm "/media/fat/config/Minimig_volume.cfg"
 	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	[ "$(mount | grep -ic Minimig_volume.cfg)" != "0" ] && umount /media/fat/config/Minimig_volume.cfg
 	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleanup done."; fi
 }
 
