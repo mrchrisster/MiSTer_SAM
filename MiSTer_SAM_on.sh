@@ -1195,6 +1195,7 @@ function next_core() { # next_core (core)
 			"${mrsampath}"/samindex -q -s arcade -nofilter -o "${gamelistpath}"
 			if [ "$(cat "${gamelistpath}/arcade_gamelist.txt" | wc -l)" == "0" ]; then
 				echo " Couldn't find Arcade games. Please run update_all.sh first"
+				sleep 15
 				exit
 			fi
 			first_run_arcade=1
@@ -1833,6 +1834,7 @@ function kill_all_sams() {
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
 	sam_cleanup
+	bgm_stop
 	if [ ${1} -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
@@ -1854,7 +1856,6 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	
 	#	Exit SAM
 	tty_exit
-	bgm_stop
 	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
 
 }
@@ -2202,6 +2203,8 @@ function mute() {
 		else
 			echo -e "\0006\c" >"/media/fat/config/SAM_volume.cfg"
 		fi
+	elif [ "${mute}" == "no" ] && [ -f "/media/fat/config/SAM_volume.cfg" ]; then
+		rm "/media/fat/config/SAM_volume.cfg"
 	fi
 }
 
@@ -2263,9 +2266,9 @@ function bgm_start() {
 
 function bgm_stop() {
 
-	if [ "${bgm}" == "yes" ]; then
+	if [ "${bgm,,}" == "yes" ]; then
 		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-		[ "${bgmstop}" == "yes" ] && echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		[ "${bgmstop,,}" == "yes" ] && echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 	fi
 
 }
@@ -2767,7 +2770,6 @@ read_samini
 init_paths
 
 init_data # Setup data arrays
-
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd ${@} # Parse command line parameters for input
