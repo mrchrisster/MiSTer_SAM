@@ -5,10 +5,19 @@
 args="$(echo "$@")"
 scene="1"
 
+cd /mnt/c/SAM/${1}
+
+if [[ -z "${1}" ]]; then
+	echo "Specify system. Aborting.."
+	exit
+fi
+
 if [[ "${args}" != *"noscene"* ]]; then
 	echo -n "Detecting scene changes..."
 	for f in *.mp4; do
+		if [[ ! -e "${f%.mp4}.ff${scene}" ]]; then
 		   ffmpeg -i "${f}" -filter:v "select='gt(scene,0.${scene})',showinfo" -y -f null - 2> "${f%.mp4}.ff${scene}"
+		fi
 	done
 	echo "Done."
 
@@ -17,7 +26,9 @@ fi
 if [[ "${args}" != *"nostamp"* ]]; then
 	echo -n "Creating .st${scene} files..."
 	for f in *.ff${scene}; do
+		if [[ ! -e "${f%.ff${scene}}.st${scene}" ]]; then
 			grep showinfo "${f}" | grep pts_time:[0-9.]* -o | cut -c10- | awk '{print ($0-int($0)<0.499)?int($0):int($0)+1}' | awk '$0>5' | awk '!seen[$0]++' > "${f%.ff${scene}}.st${scene}"
+		fi
 	done
 	echo "Done."
 fi
@@ -78,3 +89,8 @@ echo "Done."
 
 
 echo "${1}_bl.txt was created"
+
+if [[ -e /mnt/c/SAM/${1}_blacklist.txt ]]; then
+	sort /mnt/c/SAM/${1}/${1}_bl.txt /mnt/c/SAM/${1}_blacklist.txt | awk '!seen[$0]++' > /mnt/c/SAM/tmp && cp --force /mnt/c/SAM/tmp /mnt/c/SAM/${1}_blacklist.txt
+	echo "${1}_blacklist.txt merge successful"
+fi
