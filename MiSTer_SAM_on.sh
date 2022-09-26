@@ -889,6 +889,10 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
+			playcurrent)
+				sam_exit 2
+				break
+				;;
 			startmonitor)
 				sam_start
 				sam_monitor
@@ -1127,7 +1131,6 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
-		get_samstuff .MiSTer_SAM/SAM_splash.gsc
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
@@ -2157,11 +2160,13 @@ function mute() {
 		fi
 			
 	elif [ "${mute}" == "core" ] || [ "${mute}" == "yes" ]; then
+		# Create empty volume files. Only SD card write operation necessary for mute to work.
 		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
 		echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
 		if [ "$(mount | grep -ic ${1}_volume.cfg)" == "0" ]; then
 			mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg"
 		fi
+		# Only keep one volume.cfg file mounted
 		if [ ! -z "${prevcore}" ] && [ "${prevcore}" != "${1}" ]; then
 			umount /media/fat/config/"${prevcore}_volume.cfg"
 		fi	
