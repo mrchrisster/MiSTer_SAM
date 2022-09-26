@@ -444,7 +444,7 @@ function init_data() {
 		["s32x"]="0"
 		["sms"]="1"
 		["snes"]="0"
-		["tgfx16"]="0"
+		["tgfx16"]="1"
 		["tgfx16cd"]="0"
 		["psx"]="1"
 	)
@@ -1444,11 +1444,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	# Create mgl file and launch game
 	if [ -s /tmp/SAM_game.mgl ]; then
 		mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
-	fi
-	
-	# Support for Super GFX
-	if [ "${MGL_CORE[${nextcore}]}" == "TurboGrafx16" ] && [[ "${rompath}" == *".sgx"* ]]; then
-		MGL_INDEX[${nextcore}]=1
 	fi
 
 	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
