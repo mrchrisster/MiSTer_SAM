@@ -1304,8 +1304,8 @@ function check_list() { # args ${nextcore}
 	
 
 	# Check if zip still exists
-	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-		mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
+	if [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
+		mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 		for zips in "${zipsinfile[@]}"; do
 			if [ ! -f "${zips}" ]; then
 				echo "Creating new game list because zip file[s] seems to have changed."
@@ -2159,11 +2159,14 @@ function mute() {
 	elif [ "${mute}" == "core" ] || [ "${mute}" == "yes" ]; then
 		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
 		echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
-		if [ "$(mount | grep -ic ${1}_volume.cfg)" != "0" ]; then
-			umount "/media/fat/config/${1}_volume.cfg" 2>/dev/null
-			sync
+		if [ "$(mount | grep -ic ${1}_volume.cfg)" == "0" ]; then
+			mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg"
+		fi
+		if [ ! -z "${prevcore}" ] && [ "${prevcore}" != "${1}" ]; then
+			umount /media/fat/config/"${prevcore}_volume.cfg"
 		fi	
-		mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg"
+		prevcore=${1}
+
 	fi
 }
 
