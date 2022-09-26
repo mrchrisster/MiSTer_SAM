@@ -588,7 +588,7 @@ function read_samini() {
 
 
 function parse_cmd() {
-	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
+	if [ ${#} -gt 3 ]; then # We don't accept more than 2 parameters
 		sam_help
 	elif [ ${#} -eq 0 ]; then # No options - show the pre-menu
 		sam_premenu
@@ -755,12 +755,6 @@ function parse_cmd() {
 				;;
 			help)
 				sam_help
-				break
-				;;
-			*)
-				echo " ERROR! ${1} is unknown."
-				echo " Try $(basename -- ${0}) help"
-				echo " Or check the Github readme."
 				break
 				;;
 			esac
@@ -1378,7 +1372,7 @@ function main() {
 		compare_mp4-gl ${1}
 	fi
 	
-	parse_cmd ${@} # Parse command line parameters for input
+	parse_cmd ${1} # Parse command line parameters for input
 
 }
 
