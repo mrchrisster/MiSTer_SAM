@@ -7,6 +7,7 @@ function init_vars() {
 	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 	declare -g misterpath="/media/fat"
 	# Save our PID and process
+
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
 	declare -gi inmenu=0
@@ -1322,8 +1323,6 @@ function load_core_amiga() {
 		fi
 		
 		if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" |wc -l)" == "0" ]]; then
-			echo "Create blacklist? y/n"
-			read yesno
 			if [[ "$yesno" == y ]]; then
 				ssh chelm@192.168.1.64 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
 			fi
@@ -1357,12 +1356,18 @@ function main() {
 
 	init_data # Setup data arrays
 	
-	echo "Create new romlist? y/n"
-	read answer
-	echo "Update existing list? y/n"
-	read answer
-	echo "Create blacklist? y/n"
-	read yesno
+	args="$(echo "$@")"
+	if [[ "${args}" != *"-y"* ]]; then
+		echo "Create new romlist? y/n"
+		read answer
+		echo "Update existing list? y/n"
+		read answer
+		echo "Create blacklist? y/n"
+		read yesno
+	else
+		answer=y
+		yesno=y
+	fi
 
 	if [[ "$answer" == y ]]; then
 		create_romlist ${1} ${CORE_PATH[${1}]}
@@ -1380,3 +1385,4 @@ function main() {
 if [ "${1,,}" != "--source-only" ]; then
 	main ${@}
 fi
+
