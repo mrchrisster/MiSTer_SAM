@@ -1552,6 +1552,8 @@ function load_core_arcade() {
 	echo -e "\e[1m${mraname}\e[0m"
 	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >>/tmp/SAM_Games.log
 	echo "${mraname} (${nextcore})" >/tmp/SAM_Game.txt
+	
+	mute "${mrasetname}"
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
@@ -1560,7 +1562,8 @@ function load_core_arcade() {
 		done
 	fi
 	
-	mute "${mrasetname}"
+	# Tell MiSTer to load the next MRA
+	echo "load_core ${mra}" >/dev/MiSTer_cmd
 	
 	sleep 1
 	echo "" | >/tmp/.SAM_Joy_Activity
