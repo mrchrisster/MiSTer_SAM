@@ -87,7 +87,8 @@ function init_vars() {
 	declare -gi countdown="nocountdown"								
 	# ======== BGM =======
 	declare -gl bgm="No"
-
+	declare -gl bgmstop="Yes"
+	
 	# ======== TTY2OLED =======
 
 	declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
@@ -106,17 +107,6 @@ function init_vars() {
 		[name_scroll_direction]=1
 		[update_pause]=${ttyupdate_pause}
 	)
-
-	declare -g ttydevice="/dev/ttyUSB0"
-	declare -g ttysystemini="/media/fat/tty2oled/tty2oled-system.ini"
-	declare -g ttyuserini="/media/fat/tty2oled/tty2oled-user.ini"
-	declare -g ttypicture="/media/fat/tty2oled/pics"
-	declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
-	declare -g prev_name_scroll=""
-	declare -g prev_counter=""
-	declare -gi ttyscroll_speed=1
-	declare -gi ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
-
 
 	# ======== CORE PATHS RBF ========
 	declare -g amigapathrbf="_Computer"
