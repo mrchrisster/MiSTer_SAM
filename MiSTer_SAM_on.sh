@@ -2275,7 +2275,7 @@ function bgm_stop() {
 
 	if [ "${bgm}" == "yes" ]; then
 		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-		#echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		[ "${bgmstop}" == "yes" ] && echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 	fi
 
 }
