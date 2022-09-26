@@ -1,9 +1,5 @@
 #!/bin/bash
 
-
-
-
-
 # ======== INI VARIABLES ========
 # Change these in the INI file
 function init_vars() {
@@ -522,78 +518,7 @@ function read_samini() {
 	listenkeyboard="No"
 	listenjoy="No"
 
-	# Default - all arcade games
-	amigapath="/media/fat/Games/Amiga"
-	arcadepath="/media/fat/_Arcade"
-	atari2600path="/media/fat/Games/Atari7800"
-	atari5200path="/media/fat/Games/Atari5200"
-	atari7800path="/media/fat/Games/Atari7800"
-	atarilynxpath="/media/fat/Games/AtariLynx"
-	c64path="/media/fat/Games/C64"
-	fdspath="/media/fat/games/NES"
-	gbpath="/media/fat/Games/Gameboy"
-	gbcpath="/media/fat/Games/Gameboy"
-	gbapath="/media/fat/games/GBA"
-	genesispath="/media/fat/games/Genesis"
-	ggpath="/media/fat/games/SMS"
-	megacdpath="/media/fat/games/MegaCD"
-	neogeopath="/media/fat/games/NeoGeo"
-	nespath="/media/fat/games/NES"
-	s32xpath="/media/fat/Games/Genesis"
-	smspath="/media/fat/Games/SMS"
-	snespath="/media/fat/games/SNES"
-	tgfx16path="/media/fat/games/TGFX16"
-	tgfx16cdpath="/media/fat/games/TGFX16-CD"
-	psxpath="/media/fat/games/PSX"
 
-	#-------- CORE PATHS EXTRA --------
-
-	amigapathextra=""
-	arcadepathextra=""
-	atari2600pathextra=""
-	atari5200pathextra=""
-	atari7800pathextra=""
-	atarilynxpathextra=""
-	c64pathextra=""
-	fdspathextra=""
-	gbpathextra=""
-	gbcpathextra=""
-	gbapathextra=""
-	genesispathextra=""
-	ggpathextra=""
-	megacdpathextra=""
-	neogeopathextra=""
-	nespathextra=""
-	s32xpathextra=""
-	smspathextra=""
-	snespathextra=""
-	tgfx16pathextra=""
-	tgfx16cdpathextra=""
-	psxpathextra=""
-
-	#-------- CORE PATHS RBF --------
-	amigapathrbf="_Computer"
-	arcadepathrbf="_Arcade"
-	atari2600pathrbf="_Console"
-	atari5200pathrbf="_Console"
-	atari7800pathrbf="_Console"
-	atarilynxpathrbf="_Console"
-	c64pathrbf="_Computer"
-	fdspathrbf="_Console"
-	gbpathrbf="_Console"
-	gbcpathrbf="_Console"
-	gbapathrbf="_Console"
-	genesispathrbf="_Console"
-	ggpathrbf="_Console"
-	megacdpathrbf="_Console"
-	neogeopathrbf="_Console"
-	nespathrbf="_Console"
-	s32xpathrbf="_Console"
-	smspathrbf="_Console"
-	snespathrbf="_Console"
-	tgfx16pathrbf="_Console"
-	tgfx16cdpathrbf="_Console"
-	psxpathrbf="_Console"
 
 	# The following option uses the default rom locations that MiSTer and all cores use by default
 	# Setting this to "yes" is only recommended if you have trouble with the default method. 
@@ -604,7 +529,7 @@ function read_samini() {
 	# Options are English and JAPANESE
 	# Not all games have an alternate Japanese Name, in that case, The English Title is used
 	neogeoregion="English"
-	useneogeotitles="Yes"
+	useneogeotitles="No"
 
 	# -------- TTY2OLED ADVCANCED SETTINGS -------
 	# All needed values are read from the tty2oled INI files
@@ -941,7 +866,7 @@ function create_romlist() { # args ${nextcore} "${DIR}"
 	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist_hdmi.txt"
 
 	# Strip out all duplicate filenames with a fancy awk command
-	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist_hdmi.txt" >"${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
+	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist_hdmi.txt" > $tmpfile && mv -f $tmpfile "${gamelistpath}/${1}_gamelist_hdmi.txt"
 	# cp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
 	rm ${tmpfile} &>/dev/null
 	rm ${tmpfile2} &>/dev/null
@@ -1014,12 +939,20 @@ function check_list() { # args ${nextcore}  "${DIR}"
 		fi
 	fi
 
-	# Delete played game from list
-	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
-	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
+}
+
+function compare_mp4-gl() {
+	nextcore=${1}
+	ssh chelm@192.168.1.64 'dir /b "c:\SAM\'${nextcore}'\*.mp4"' /s | rev | cut -c6- | rev | awk -F'\\' '{print $NF}' |sort > "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt"
+	fgrep -vf "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt" "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" > "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt"
+	if [ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l)" == "0" ]; then
+		echo " No new games found"
+		exit
+	else
+		echo " $(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l) Games left to capture"
 	fi
 }
+	
 
 function next_core() { # next_core (core)
 	if [ -z "$(echo ${corelist} | sed 's/ //g')" ]; then
@@ -1072,9 +1005,8 @@ function next_core() { # next_core (core)
 	fi
 
 	local DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
-
-	check_list ${nextcore} "${DIR}"
-
+		
+	rompath="$(cat ${gamelistpathtmp}/${1}_gamelist_hdmi.txt | head -n1)"
 	romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
@@ -1089,16 +1021,22 @@ function next_core() { # next_core (core)
 		next_core ${nextcore}
 		return
 	fi
+	
+	if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l)" == "0" ]]; then
+		if [[ "$yesno" == y ]]; then
+			ssh chelm@192.168.1.64 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
+		fi
+		exit
+	fi
+	
 
 	# If there is an exclude list check it
 	declare -n excludelist="${nextcore}exclude"
 	if [ ${#excludelist[@]} -gt 0 ]; then
 		for excluded in "${excludelist[@]}"; do
 			if [ "${romname}" == "${excluded}" ]; then
-				echo " ${romname} is excluded - SKIPPED"
-				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-				next_core ${nextcore}
-				return
+				echo " {romname} empty."
+				exit
 			fi
 		done
 	fi
@@ -1175,13 +1113,21 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		sleep 5
 		skipmessage
 	fi
-	sleep 20
+	sleep 30
+	
 	ssh chelm@192.168.1.64 'mkdir "c:\SAM\'${nextcore}'"'
 	ssh chelm@192.168.1.64 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
 
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
+	
+	# Delete played game from list
+	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
+	if [ "${norepeat}" == "yes" ]; then
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
+	fi
+
 
 
 }
@@ -1288,6 +1234,11 @@ function load_core_arcade() {
 			sleep 1
 		done
 	fi
+	if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" |wc -l)" == "0" ]]; then
+			if [[ "$yesno" == y ]]; then
+				ssh chelm@192.168.1.64 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
+			fi
+	fi
 
 	# Tell MiSTer to load the next MRA
 	echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
@@ -1369,6 +1320,15 @@ function load_core_amiga() {
 		if [ "${norepeat}" == "yes" ]; then
 			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
+		
+		if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" |wc -l)" == "0" ]]; then
+			echo "Create blacklist? y/n"
+			read yesno
+			if [[ "$yesno" == y ]]; then
+				ssh chelm@192.168.1.64 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
+			fi
+		fi
+
 
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
 
@@ -1388,9 +1348,7 @@ function load_core_amiga() {
 
 # ========= MAIN =========
 function main() {
-	
 
-	
 	init_vars
 
 	read_samini
@@ -1398,13 +1356,23 @@ function main() {
 	init_paths
 
 	init_data # Setup data arrays
+	
+	echo "Create new romlist? y/n"
+	read answer
+	echo "Update existing list? y/n"
+	read answer
+	echo "Create blacklist? y/n"
+	read yesno
 
-	#sam_prep
+	if [[ "$answer" == y ]]; then
+		create_romlist ${1} ${CORE_PATH[${1}]}
+	fi
+	
 
-	#disable_bootrom # Disable Bootrom until Reboot
-
-	#mute
-
+	if [[ "$answer" == y ]]; then
+		compare_mp4-gl ${1}
+	fi
+	
 	parse_cmd ${@} # Parse command line parameters for input
 
 }
