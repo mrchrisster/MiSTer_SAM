@@ -1,6 +1,4 @@
 [playlist]
 NumberOfEntries=1
-File1=http://uk5.internet-radio.com:8011/stream
-Title1=TOP 80 radio
+File1=http://server5.radio-streams.net:8001/live
 Length1=-1
-Version=2
