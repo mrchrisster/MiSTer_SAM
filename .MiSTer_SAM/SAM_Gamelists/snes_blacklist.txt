@@ -1,3 +1,4 @@
+.spc
 012 Final Fantasy IV (J) T+Eng v3.21 J2e Translations
 014 Final Fantasy IV (J) T+Eng v3.21 J2e Translations
 020 Final Fantasy V (J) T-Eng v1.03 DeJap
