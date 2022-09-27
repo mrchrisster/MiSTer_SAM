@@ -77,7 +77,7 @@ function init_vars() {
 	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
-	declare -gl checkzipsondisk="No"
+	declare -gl checkzipsondisk="Yes"
 	declare -gl rebuild_freq="Week"
 	declare -gi regen_duration=4
 	declare -gi rebuild_freq_int="604800"
@@ -1309,37 +1309,41 @@ function check_list() { # args ${nextcore}
 	
 
 	# Check if zip still exists
-	if [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
+	if [ "${FIRSTRUN[${nextcore}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
 		unset zipsondisk
 		unset zipsinfile
+		unset files
+		unset newfiles
 		mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 		for zips in "${zipsinfile[@]}"; do
 			if [ ! -f "${zips}" ]; then
 				echo "Creating new game list because zip file[s] seems to have changed."
 				create_romlist
+				unset zipsinfile
+				mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 				break
 			fi
 		done
-		if [ "${checkzipsondisk}" == "yes" ]; then # Off by default since slow
+		if [ "${checkzipsondisk}" == "yes" ]; then 
 			# Check for new zips
 			corepath="$("${mrsampath}"/samindex -q -s ${1} -d |awk -F':' '{print $2}')"
 			readarray -t files <<< $(find "${corepath}" -maxdepth 2 -type f -name "*.zip")
-			extlistarr=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/\\\|/g")
+			extgrep=$(echo "${CORE_EXT[${1}]}" | sed -e "s/,/\\\|/g")
 			# Check which files have valid roms
-			for f in "${files[@]}"; do
-				if [ "$("${mrsampath}"/partun -l "${f}" | grep -m 1 "${extlistarr}")" ]; then
-					zipsondisk+=( "${f}" )
-				fi
-			done
-			
-			if [[ ${zipsondisk[@]} ]]; then
-				result="$(printf '%s\n'  "${zipsinfile[@]}" "${zipsondisk[@]}" | sort | uniq -u)"
+			readarray -t newfiles <<< $(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}" | awk -F"/" '{print $NF}' | sort | uniq -u)
+			if [[ "${newfiles[@]}" ]]; then
+				for f in "${newfiles[@]}"; do
+					if [ "$("${mrsampath}"/partun -l "${corepath}"/"${f}" | grep -m 1 "${extgrep}")" ]; then
+						zipsondisk+=( "${f}" )
+					fi
+				done
+			fi
+			if [[ "${zipsondisk[@]}" ]]; then
+				result="$(printf '%s\n' "${zipsondisk[@]}")"
 				if [[ "${result}" ]]; then
 					echo "Found new zip files: ${result##*/}"
-					#create_romlist	
+					create_romlist	
 				fi
-			else
-				echo "No zip files found"
 			fi
 		fi
 	fi
