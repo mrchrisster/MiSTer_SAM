@@ -2206,35 +2206,28 @@ function check_zips() { # check_zips core
 
 function romfilter() { # romfilter core
 	
-	cp "${gamelistpathtmp}/${1}_gamelist.txt" "${tmpfilefilter}"
-	
 	#Check exclusion
 	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
 		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
-		stdbuf -o0 fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
-	else
-		mv "${tmpfilefilter}" "${tmpfilefilter2}"
+		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 	
 	#Check ini exclusion
 	if [[ "${exclude[@]}" ]]; then 
 		for e in "${exclude[@]}"; do
-			fgrep -viw "$e" "${tmpfilefilter2}" > "${tmpfilefilter}"
+			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		done
-	else
-		mv "${tmpfilefilter2}" "${tmpfilefilter}"
+
 	fi
 	#if [ "${samquiet}" == "no" ]; then echo "Excluded from list: ${exclude[@]}"; fi
 
 	#Check blacklist	
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. stdbuf doesn't fix it either
-		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NR>2 {print last} {last=$0}' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted. (Next run of $nextcore)"; fi
-	else
-		mv "${tmpfilefilter}" "${tmpfilefilter2}"
+		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NR>1 {print last} {last=$0}' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted. (Next run of $1)"; fi
 	fi
-	mv  "${tmpfilefilter2}" "${gamelistpathtmp}/${1}_gamelist.txt"
+
 }
 
 
