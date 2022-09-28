@@ -26,6 +26,8 @@
 # tty2oled improvements by venice
 
 
+# TODO implement playcurrentgame for amiga
+
 # ======== INI VARIABLES ========
 # Change these in the INI file
 function init_vars() {
@@ -1214,7 +1216,7 @@ function next_core() { # next_core (core)
 			"${mrsampath}"/samindex -q -o "${gamelistpath}" &
 		fi
 
-		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
+		samquiet "Selected core: \e[1m${nextcore^^}\e[0m"
 
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
@@ -1258,8 +1260,8 @@ function next_core() { # next_core (core)
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 				
 	if [[ ! "$(echo "${extlist}" | grep -i "${extension}")" ]]; then
-		if [ "${samquiet}" == "no" ]; then echo -e " Wrong extension found: \e[1m${extension^^}\e[0m"; fi
-		if [ "${samquiet}" == "no" ]; then echo -e " Picking new rom.."; fi
+		samquiet " Wrong extension found: \e[1m${extension^^}\e[0m"
+		samquiet " Picking new rom.."
 
 		#create_romlist
 		next_core ${nextcore}
@@ -1329,7 +1331,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	if [ "${fastmode}" == "no" ] && [ "${FIRSTRUN[${1}]}" == "0" ] ; then
 		# Exclusion and blacklist filter		
 		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games in list after removing duplicates."; fi
+		samquiet "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games in list after removing duplicates."
 	
 		# Filter roms in bg
 		romfilter ${1} &
@@ -1364,7 +1366,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	fi
 
 	# Delete played game from list
-	if [ "${samquiet}" == "no" ]; then echo "Selected file: ${rompath}"; fi
+	samquiet "Selected file: ${rompath}"
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
@@ -1456,7 +1458,6 @@ function build_mralist() {
 	${mrsampath}/samindex -s arcade -o "${gamelistpath}" 
 
 	if [ ! -s "${mralist_tmp}" ]; then
-		if [ "${samquiet}" == "no" ]; then echo "Copying gamelist to /tmp"; fi
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 	fi
 
@@ -1467,7 +1468,7 @@ function load_core_arcade() {
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s "${mralist}" ]; then
-		if [ "${samquiet}" == "no" ]; then echo "Rebuilding mra list. No file found."; fi
+		samquiet "Rebuilding mra list. No file found."
 		build_mralist 
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
@@ -1482,7 +1483,7 @@ function load_core_arcade() {
 		
 		#Check path filter
 		if [ ! -z "${arcadepathfilter}" ]; then
-			if [ "${samquiet}" == "no" ]; then echo "Found path filter for Arcade core. Stripping out unwanted games now."; fi
+			samquiet "Found path filter for Arcade core. Stripping out unwanted games now."
 			cat "${mralist}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
 		FIRSTRUN[${nextcore}]=1	
@@ -1508,7 +1509,7 @@ function load_core_arcade() {
 	mrasetname=$(grep "<setname>" "${mra}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	tty_corename="${mrasetname}"
 
-	if [ "${samquiet}" == "no" ]; then echo "Selected file: ${mra}"; fi
+	samquiet "Selected file: ${mra}"
 
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
@@ -1574,11 +1575,9 @@ function create_amigalist () {
 		
 		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 
-		if [ "${samquiet}" == "no" ]; then
-			echo "${total_games} Games and Demos found."
-		else
-			echo "${total_games} Games and Demos found."
-		fi
+
+		samquiet "${total_games} Games and Demos found."
+
 	fi
 
 }
@@ -1629,7 +1628,7 @@ function load_core_amiga() {
 		fi
 
 		# Delete played game from list
-		if [ "${samquiet}" == "no" ]; then echo "Selected file: ${rompath}"; fi
+		samquiet "Selected file: ${rompath}"
 		if [ "${norepeat}" == "yes" ]; then
 			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
@@ -1668,7 +1667,7 @@ function load_core_amiga() {
 }
 
 function loop_core() { # loop_core (core)
-	echo -e " Starting Super Attract Mode...\n Let Mortal Kombat begin!\n"
+	echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
 	# Reset game log for this session
 	echo "" | >/tmp/SAM_Games.log
 
@@ -1732,45 +1731,16 @@ function sam_start() {
 	disable_bootrom # Disable Bootrom until Reboot
 	bgm_start
 	tty_start
-	echo " Starting SAM in the background."
+	echo "Starting SAM in the background."
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
 }
 
-function sam_stop() {
-	# Stop all SAM processes and reboot to menu
-
-	[ ! -z ${samprocess} ] && echo -n "Stopping other running instances of ${samprocess}..."
-
-	echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-
-	echo " Done."
-	echo " Thanks for playing!"
-
-
-
-	kill_1=$(ps -o pid,args | grep '[M]CP' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[S]AM' | awk '{print $1}' | head -1)
-	kill_5=$(ps -o pid,args | grep '[O]LED' | awk '{print $1}' | head -1)
-	kill_3=$(ps -o pid,args | grep '[i]notifywait.*SAM' | awk '{print $1}' | head -1)
-	kill_4=$(ps -o pid,args | grep -i '[M]iSTer_SAM' | awk '{print $1}')
-
-
-	[[ ! -z ${kill_1} ]] && timeout 5 tmux kill-session -t MCP &>/dev/null
-	[[ ! -z ${kill_2} ]] && timeout 5 tmux kill-session -t SAM &>/dev/null
-	[[ ! -z ${kill_5} ]] && timeout 5 tmux kill-session -t OLED &>/dev/null
-	[[ ! -z ${kill_3} ]] && timeout 5 kill -9 ${kill_3} &>/dev/null
-	[[ ! -z ${kill_4} ]] && timeout 5 kill -9 ${kill_4} &>/dev/null
-	
-
-	sleep 5
-	exit				
-}
 
 
 function there_can_be_only_one() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
-	echo -n " Stopping other running instances of ${samprocess}..."
+	echo -n "Stopping other running instances of ${samprocess}..."
 
 	kill_1=$(ps -o pid,args | grep '[M]iSTer_SAM_init start' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}')
@@ -1799,7 +1769,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	if [ ${1} -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
-		echo " Thanks for playing!"
+		echo "Thanks for playing!"
 	elif [ ${1} -eq 1 ]; then # Error
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
@@ -1881,7 +1851,7 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
 	[ ${mute} != "no" ] && [ "$(mount | grep -ic _volume.cfg)" != "0" ] && umount /media/fat/config/* 2>/dev/null
-	if [ "${samquiet}" == "no" ]; then printf '%s\n' " Cleanup done."; fi
+	samquiet "Cleanup done."
 }
 
 function sam_monitor() {
@@ -2166,6 +2136,7 @@ function mute() {
 
 function check_zips() { # check_zips core
 	# Check if zip still exists
+	samquiet -n "Checking zips in file..."
 	unset zipsondisk
 	unset zipsinfile
 	unset files
@@ -2180,6 +2151,8 @@ function check_zips() { # check_zips core
 			break
 		fi
 	done
+	samquiet "Done."
+	samquiet -n "Checking zips on disk..."
 	if [ "${checkzipsondisk}" == "yes" ]; then 
 		# Check for new zips
 		corepath="$("${mrsampath}"/samindex -q -s ${1} -d |awk -F':' '{print $2}')"
@@ -2202,6 +2175,7 @@ function check_zips() { # check_zips core
 			fi
 		fi
 	fi
+	samquiet "Done."
 }
 
 function romfilter() { # romfilter core
@@ -2225,7 +2199,7 @@ function romfilter() { # romfilter core
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
 		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted. (Next run of $1)"; fi
+		samquiet "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted. (Next run of $1)"
 	fi
 
 }
@@ -2275,7 +2249,6 @@ function bgm_start() {
 
 	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
 		if [ ! "$(ps -o pid,args | grep '[b]gm' | head -1)" ]; then
-			echo -n " "
 			/media/fat/Scripts/bgm.sh
 		else
 			echo " BGM already running."
@@ -2290,7 +2263,7 @@ function bgm_start() {
 function bgm_stop() {
 
 	if [ "${bgm}" == "yes" ]; then
-		echo -n " Stopping Background Music Player... "
+		echo -n "Stopping Background Music Player... "
 		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		if [ "${bgmstop}" == "yes" ]; then
 			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
@@ -2308,7 +2281,7 @@ function tty_start() {
 	if [ "${ttyenable}" == "yes" ]; then 
 		[ -f /tmp/.SAM_tmp/tty_currentinfo ] && rm /tmp/.SAM_tmp/tty_currentinfo 
 		touch "${tty_sleepfile}"
-		echo -n " Starting tty2oled... "
+		echo -n "Starting tty2oled... "
 		tmux new -s OLED -d "/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_tty2oled" &>/dev/null
 		echo "Done."
 	fi
@@ -2316,7 +2289,7 @@ function tty_start() {
 
 function tty_exit() {
 	if [ "${ttyenable}" == "yes" ]; then
-		echo -n " Stopping tty2oled... "
+		echo -n "Stopping tty2oled... "
 		tmux kill-session -t OLED &>/dev/null
 		sleep 1
 		rm "${tty_sleepfile}" &>/dev/null
@@ -2439,7 +2412,7 @@ function sam_resetmenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	samquiet "menuresponse: ${menuresponse}"
 	parse_cmd ${menuresponse}
 }
 
@@ -2457,7 +2430,7 @@ function sam_gamelistmenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	samquiet  "menuresponse: ${menuresponse}"
 	parse_cmd ${menuresponse}
 }
 
@@ -2471,7 +2444,7 @@ function sam_autoplaymenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 
 	clear
-	if [ "${samquiet}" == "no" ]; then echo " menuresponse: ${menuresponse}"; fi
+	samquiet  "menuresponse: ${menuresponse}"
 	parse_cmd ${menuresponse}
 }
 
