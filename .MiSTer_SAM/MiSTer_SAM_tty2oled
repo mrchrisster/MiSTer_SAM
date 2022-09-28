@@ -16,7 +16,7 @@ declare -gl ttyenable="Yes"
 declare -gi gametimer=120
 declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
 compgen -v | sed s/=.\*// >/tmp/${samprocess}.tmp
-declare -gi ttyupdate_pause=10
+declare -gi ttyupdate_pause=1
 declare -g tty_currentinfo_file=${mrsamtmp}/tty_currentinfo
 declare -g tty_sleepfile="/tmp/tty2oled_sleep"
 declare -gA tty_currentinfo=(
@@ -43,6 +43,7 @@ declare -gi ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
 samquiet=no
 samdebug=yes
 samtrace=yes
+splash=0
 
 trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM INT
 
@@ -87,15 +88,7 @@ function tty_init() { # tty_init
 	tty_waitfor
 	#sleep 2
 	samquiet " Done!"
-	
-	#Show Splash
-	echo "CMDAPD,SAM_splash" >${ttydevice}
-	tail -n +4 "/media/fat/tty2oled/pics/GSC/SAM_splash.gsc" | xxd -r -p >${ttydevice}
-	tty_waitfor
-	echo "CMDSPIC,-1" >${ttydevice}
-	tty_waitfor
-	sleep 4
-	#sleep 5
+
 }
 
 
@@ -161,6 +154,16 @@ function update_counter() {
 
 function tty_display() { # tty_update core game
 	if [ -s ${tty_currentinfo_file} ]; then
+		if [ "${splash}" == "0" ]; then
+			#Show Splash
+			echo "CMDAPD,SAM_splash" >${ttydevice}
+			tail -n +4 "/media/fat/tty2oled/pics/GSC/SAM_splash.gsc" | xxd -r -p >${ttydevice}
+			tty_waitfor
+			echo "CMDSPIC,-1" >${ttydevice}
+			tty_waitfor
+			sleep 5
+			splash=1
+		fi
 		source "${tty_currentinfo_file}"
 		sleepfile_expiration=$((tty_currentinfo[date] + (tty_currentinfo[counter] + 10)))
 		echo "${sleepfile_expiration}" >${tty_sleepfile}
