@@ -1326,12 +1326,12 @@ function check_list_and_pick_rom() { # args ${nextcore}
 		cat "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "${PATHFILTER[${1}]}"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 	
-	# Exclusion and blacklist filter		
-	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
-	if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games in list after removing duplicates."; fi
-	
-	# Filter roms in bg
 	if [ "${fastmode}" == "no" ] && [ "${FIRSTRUN[${1}]}" == "0" ] ; then
+		# Exclusion and blacklist filter		
+		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games in list after removing duplicates."; fi
+	
+		# Filter roms in bg
 		romfilter ${1} &
 		FIRSTRUN[${1}]=1
 	fi
@@ -2230,7 +2230,7 @@ function romfilter() { # romfilter core
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. stdbuf doesn't fix it either
 		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NR>2 {print last} {last=$0}' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted."; fi
+		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted. (Next run of $nextcore)"; fi
 	else
 		mv "${tmpfilefilter}" "${tmpfilefilter2}"
 	fi
