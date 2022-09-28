@@ -2223,8 +2223,8 @@ function romfilter() { # romfilter core
 
 	#Check blacklist	
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
-		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. stdbuf doesn't fix it either
-		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NR>1 {print last} {last=$0}' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
+		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted. (Next run of $1)"; fi
 	fi
 
