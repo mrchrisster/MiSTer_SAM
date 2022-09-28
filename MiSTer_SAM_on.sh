@@ -55,6 +55,8 @@ function init_vars() {
 	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
+	declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
+	declare -g tmpfilefilter2="/tmp/.SAM_List/tmpfilefilter2"	
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"													 
 	declare -gi gametimer=120
 	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
@@ -78,6 +80,7 @@ function init_vars() {
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
 	declare -gl checkzipsondisk="Yes"
+	declare -gl fastmode="No"
 	declare -gl rebuild_freq="Week"
 	declare -gi regen_duration=4
 	declare -gi rebuild_freq_int="604800"
@@ -1066,15 +1069,15 @@ function get_inputmap() {
 function get_blacklist() {
 	echo -n " Downloading blacklist files - SAM can auto-detect games with static screens and filter them out..."
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/neogeo_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/s32x_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-get_samstuff .MiSTer_SAM/SAM_Gamelists/sms_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/s32x_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/sms_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16cd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	echo " Done."
@@ -1196,7 +1199,7 @@ function next_core() { # next_core (core)
 		
 		#Special case for first run
 		if [ "${first_run_arcade}" == "0" ] && [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
-			"${mrsampath}"/samindex -q -s arcade -nofilter -o "${gamelistpath}"
+			"${mrsampath}"/samindex -q -s arcade -o "${gamelistpath}"
 			if [ "$(cat "${gamelistpath}/arcade_gamelist.txt" | wc -l)" == "0" ]; then
 				echo "Couldn't find Arcade games. Please run update_all.sh first"
 				sleep 15
@@ -1208,7 +1211,7 @@ function next_core() { # next_core (core)
 		if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ] && [ ! -e "${gamelistpath}"/.freshinstall ]; then	
 			touch "${gamelistpath}"/.freshinstall
 			nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-			"${mrsampath}"/samindex -q -nofilter -o "${gamelistpath}" &
+			"${mrsampath}"/samindex -q -o "${gamelistpath}" &
 		fi
 
 		if [ "${samquiet}" == "no" ]; then echo -e " Selected core: \e[1m${nextcore^^}\e[0m"; fi
@@ -1246,7 +1249,7 @@ function next_core() { # next_core (core)
 	fi
 	
 	
-	check_list ${nextcore} 
+	check_list_and_pick_rom ${nextcore} 
 
 	romname=$(basename "${rompath}")
 
@@ -1260,6 +1263,7 @@ function next_core() { # next_core (core)
 
 		#create_romlist
 		next_core ${nextcore}
+		#next_core
 		return
 	fi
 
@@ -1291,11 +1295,11 @@ function next_core() { # next_core (core)
 # Romfinder
 function create_romlist() { # args ${nextcore} "${DIR}"
 
-	${mrsampath}/samindex -s ${nextcore} -nofilter -o "${gamelistpath}"
+	${mrsampath}/samindex -s ${nextcore} -o "${gamelistpath}"
 }
 
 # Pick Rom
-function check_list() { # args ${nextcore} 
+function check_list_and_pick_rom() { # args ${nextcore} 
 	
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		echo "Creating game list at ${gamelistpath}/${1}_gamelist.txt"
@@ -1307,103 +1311,55 @@ function check_list() { # args ${nextcore}
 		next_core
 	fi
 	
+	if [ "${fastmode}" == "no" ] && [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
+		check_zips ${1}
+	fi
 
-	# Check if zip still exists
-	if [ "${FIRSTRUN[${nextcore}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-		unset zipsondisk
-		unset zipsinfile
-		unset files
-		unset newfiles
-		mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
-		for zips in "${zipsinfile[@]}"; do
-			if [ ! -f "${zips}" ]; then
-				echo "Creating new game list because zip file[s] seems to have changed."
-				create_romlist
-				unset zipsinfile
-				mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
-				break
-			fi
-		done
-		if [ "${checkzipsondisk}" == "yes" ]; then 
-			# Check for new zips
-			corepath="$("${mrsampath}"/samindex -q -s ${1} -d |awk -F':' '{print $2}')"
-			readarray -t files <<< $(find "${corepath}" -maxdepth 2 -type f -name "*.zip")
-			extgrep=$(echo "${CORE_EXT[${1}]}" | sed -e "s/,/\\\|/g")
-			# Check which files have valid roms
-			readarray -t newfiles <<< $(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}" | awk -F"/" '{print $NF}' | sort | uniq -u)
-			if [[ "${newfiles[@]}" ]]; then
-				for f in "${newfiles[@]}"; do
-					if [ "$("${mrsampath}"/partun -l "${corepath}"/"${f}" | grep -m 1 "${extgrep}")" ]; then
-						zipsondisk+=( "${f}" )
-					fi
-				done
-			fi
-			if [[ "${zipsondisk[@]}" ]]; then
-				result="$(printf '%s\n' "${zipsondisk[@]}")"
-				if [[ "${result}" ]]; then
-					echo "Found new zip files: ${result##*/}"
-					create_romlist	
-				fi
-			fi
-		fi
+	# Copy to gamelist to tmp
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
+	fi
+	
+	#Check path filter
+	if [ ! -z "${PATHFILTER[${1}]}"  ]; then 
+		echo "Found path filter for Arcade core. Setting path to ${PATHFILTER[${1}]}."
+		cat "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "${PATHFILTER[${1}]}"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
+	
+	# Exclusion and blacklist filter		
+	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games in list after removing duplicates."; fi
+	
+	# Filter roms in bg
+	if [ "${fastmode}" == "no" ] && [ "${FIRSTRUN[${1}]}" == "0" ] ; then
+		romfilter ${1} &
+		FIRSTRUN[${1}]=1
 	fi
 
 
-
-	
-	# If gamelist is not in /tmp dir, let's put it there. Also strip out duplicates, exclude and blacklist roms
-	
-	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ] ; then
-	
-		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
-		sync
-		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 
-		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games in list after removing duplicates."; fi
+	sed -i '/^$/d' "${gamelistpathtmp}/${1}_gamelist.txt"
 		
-		#Check exclusion
-		if [ -f "${gamelistpath}/${nextcore}_excludelist.txt" ]; then
-			echo "Found excludelist for core ${nextcore}. Stripping out unwanted games now."
-			stdbuf -o0 fgrep -vf "${gamelistpath}/${nextcore}_excludelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-		
-		#Check ini exclusion
-		for e in "${exclude[@]}"; do
-			fgrep -viw "$e" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		done
-		if [ "${samquiet}" == "no" ]; then echo "Excluded from list: ${exclude[@]}"; fi
-
-		#Check blacklist	
-		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			echo "Found default blacklist for core ${nextcore}. Stripping out games with static screens now."
-			# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error
-			stdbuf -o0 fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-			if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | wc -l) Games after removing blacklisted."; fi
-		fi
-		
-		#Check path filter
-		if [ ! -z "${PATHFILTER[${nextcore}]}"  ]; then 
-			echo "Found path filter for Arcade core. Setting path to ${PATHFILTER[${nextcore}]}."
-			cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" | stdbuf -o0 grep "${PATHFILTER[${nextcore}]}"  > ${tmpfile} && mv -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-		FIRSTRUN[${nextcore}]=1
-	fi
-	
-	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		
-	if [ -s ${gamelistpathtmp}/${nextcore}_gamelist.txt ]; then
-		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
+	if [ -s ${gamelistpathtmp}/${1}_gamelist.txt ]; then
+		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
 	else
 		echo "Blacklist creation failed. Will try again on next core launch. Trying another rom..."	
-		rompath="$(cat ${gamelistpath}/${nextcore}_gamelist.txt | shuf --head-count=1)"
+		rompath="$(cat ${gamelistpath}/${1}_gamelist.txt | shuf --head-count=1)"
 	fi
 
 	# Make sure file exists since we're reading from a static list
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
-			if [ "${samquiet}" == "no" ]; then echo "${rompath} not found."; fi
-			if [ "${samquiet}" == "no" ]; then echo "Creating new game list now..."; fi
+			echo "${rompath} File not found."
+			echo "Creating new game list now..."
 			create_romlist 
-			rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist.txt | shuf --head-count=1)"
+			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist.txt | shuf --head-count=1)"
+		fi
+	elif [ "${fastmode}" == "yes" ]; then
+		zipfile="$(echo $rompath | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
+		if [ ! -f "${zipfile}" ]; then
+			echo "${zipfile} Zipfile not found."
+			echo "Creating new game list now..."
+			create_romlist 
 		fi
 	fi
 
@@ -1465,9 +1421,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		)
 	
 		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-		# First launch wait for core logo
-		if [ ! -f /tmp/SAM_game.previous.mgl ]; then sleep 5; fi 
-		write_to_TTY_cmd_pipe "display_info" &
+		write_to_TTY_cmd_pipe "display_info" &		
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		SECONDS=${elapsed}
 	fi
@@ -1499,7 +1453,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 # ARCADE MODE
 function build_mralist() {
 
-	${mrsampath}/samindex -s arcade -nofilter -o "${gamelistpath}" 
+	${mrsampath}/samindex -s arcade -o "${gamelistpath}" 
 
 	if [ ! -s "${mralist_tmp}" ]; then
 		if [ "${samquiet}" == "no" ]; then echo "Copying gamelist to /tmp"; fi
@@ -1523,7 +1477,6 @@ function load_core_arcade() {
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo "Found blacklist for core ${nextcore}. Stripping out unwanted games now."; fi
 			stdbuf -o0 fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
 		fi
 		
@@ -1685,7 +1638,7 @@ function load_core_amiga() {
 		tty_corename="Minimig"
 		
 		if [ "${ttyenable}" == "yes" ]; then
-		tty_currentinfo=(
+			tty_currentinfo=(
 				[core_pretty]="${CORE_PRETTY[${nextcore}]}"
 				[name]="${agpretty}"
 				[core]=${tty_corename}
@@ -1697,10 +1650,12 @@ function load_core_amiga() {
 				[update_pause]=${ttyupdate_pause}
 			)
 			declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-		write_to_TTY_cmd_pipe "display_info" &
-		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
-		SECONDS=${elapsed}
+			write_to_TTY_cmd_pipe "display_info" &
+			local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+			SECONDS=${elapsed}
 		fi
+		
+
 
 		echo -n "Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
@@ -2197,14 +2152,89 @@ function mute() {
 		echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
 		if [ "$(mount | grep -ic ${1}_volume.cfg)" == "0" ]; then
 			mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg"
+			sync
 		fi
 		# Only keep one volume.cfg file mounted
 		if [ ! -z "${prevcore}" ] && [ "${prevcore}" != "${1}" ]; then
 			umount /media/fat/config/"${prevcore}_volume.cfg"
+			sync
 		fi	
 		prevcore=${1}
 
 	fi
+}
+
+function check_zips() { # check_zips core
+	# Check if zip still exists
+	unset zipsondisk
+	unset zipsinfile
+	unset files
+	unset newfiles
+	mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
+	for zips in "${zipsinfile[@]}"; do
+		if [ ! -f "${zips}" ]; then
+			echo "Creating new game list because zip file[s] seems to have changed."
+			create_romlist
+			unset zipsinfile
+			mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
+			break
+		fi
+	done
+	if [ "${checkzipsondisk}" == "yes" ]; then 
+		# Check for new zips
+		corepath="$("${mrsampath}"/samindex -q -s ${1} -d |awk -F':' '{print $2}')"
+		readarray -t files <<< $(find "${corepath}" -maxdepth 2 -type f -name "*.zip")
+		extgrep=$(echo ".${CORE_EXT[${1}]}" | sed -e "s/,/\\\|/g"| sed 's/,/,./g')
+		# Check which files have valid roms
+		readarray -t newfiles <<< $(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )
+		if [[ "${newfiles[@]}" ]]; then
+			for f in "${newfiles[@]}"; do
+				if [ "$("${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -m 1 "${extgrep}")" ]; then
+					zipsondisk+=( "${f}" )
+				fi
+			done
+		fi
+		if [[ "${zipsondisk[@]}" ]]; then
+			result="$(printf '%s\n' "${zipsondisk[@]}")"
+			if [[ "${result}" ]]; then
+				echo "Found new zip files: ${result##*/}"
+				create_romlist	
+			fi
+		fi
+	fi
+}
+
+function romfilter() { # romfilter core
+	
+	cp "${gamelistpathtmp}/${1}_gamelist.txt" "${tmpfilefilter}"
+	
+	#Check exclusion
+	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
+		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
+		stdbuf -o0 fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
+	else
+		mv "${tmpfilefilter}" "${tmpfilefilter2}"
+	fi
+	
+	#Check ini exclusion
+	if [[ "${exclude[@]}" ]]; then 
+		for e in "${exclude[@]}"; do
+			fgrep -viw "$e" "${tmpfilefilter2}" > "${tmpfilefilter}"
+		done
+	else
+		mv "${tmpfilefilter2}" "${tmpfilefilter}"
+	fi
+	#if [ "${samquiet}" == "no" ]; then echo "Excluded from list: ${exclude[@]}"; fi
+
+	#Check blacklist	
+	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
+		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. stdbuf doesn't fix it either
+		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NR>2 {print last} {last=$0}' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		if [ "${samquiet}" == "no" ]; then echo "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted."; fi
+	else
+		mv "${tmpfilefilter}" "${tmpfilefilter2}"
+	fi
+	mv  "${tmpfilefilter2}" "${gamelistpathtmp}/${1}_gamelist.txt"
 }
 
 
