@@ -1079,7 +1079,7 @@ function next_core() { # next_core (core)
 			#echo "glclex: ${glclex[@]}"
 			
 			readarray -t glondisk <<< $(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')
-			if [[ ! "${glondisk[@]}" ]]; then	
+			if [[ "${glondisk[@]}" != *"arcade"* ]]; then	
 				"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
 				corelisttmp=(arcade)
 			fi
