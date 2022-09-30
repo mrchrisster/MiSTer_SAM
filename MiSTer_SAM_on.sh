@@ -1062,16 +1062,14 @@ function next_core() { # next_core (core)
 	# No corename was supplied with MiSTer_SAM_on.sh
 	if [ -z "${1}" ]; then
 	
-		if [ -s "${corelisttmpfile}" ]; then 
-			unset corelisttmp
-			mapfile -t corelisttmp <${corelisttmpfile}
-		fi
+		# // TODO avoid tmp file here
 		if [ -s "${corelistfile}" ]; then
 			unset corelist 
 			mapfile -t corelist <${corelistfile}
 		fi
 		
 		#echo "corelist: ${corelist[@]}"
+		#echo "corelisttmp: ${corelisttmp[@]}"
 
 		# Create all gamelists in the background
 		if [[ "$(for a in "${glclex[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
@@ -1081,12 +1079,15 @@ function next_core() { # next_core (core)
 			readarray -t glondisk <<< $(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')
 			if [[ "${glondisk[@]}" != *"arcade"* ]]; then	
 				"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
-				corelisttmp=(arcade)
 			fi
+			
 			if [ "$(cat "${gamelistpath}/arcade_gamelist.txt" | wc -l)" == "0" ]; then
 				echo "Couldn't find Arcade games. Please run update_all.sh first"
 				sleep 15
 				exit
+			fi
+			if [[ ! "${glondisk[@]}" ]]; then
+				readarray -t glondisk <<< $(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')
 			fi
 			
 			# Check if more gamelists have been created
@@ -1104,7 +1105,6 @@ function next_core() { # next_core (core)
 				corelisttmp=(${glclex[@]})
 			fi
 			
-			first_run_arcade=1
 		fi
 		
 		
@@ -1119,6 +1119,7 @@ function next_core() { # next_core (core)
 		if [[ ! "${corelisttmp[@]}" ]]; then
 			corelisttmp="${corelist[@]}"
 		fi
+		
 		nextcore=$(printf "%s\n" ${corelisttmp[@]} | shuf | head -1)
 		
 		if [[ ! "${nextcore}" ]]; then
@@ -1306,7 +1307,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		gamename="${3}"
 	fi
 	
-	mute "${CORE_LAUNCH[${nextcore}]}"
+	mute "${CORE_LAUNCH[${1}]}"
 	
 
 	echo -n "Starting now on the "
@@ -1942,7 +1943,7 @@ function delete_from_corelist() { # delete_from_corelist core tmp
 				unset 'corelisttmp[i]'
 			fi
 		done
-		printf "%s\n" ${corelisttmp[@]} > ${corelisttmpfile}
+		#printf "%s\n" ${corelisttmp[@]} > ${corelisttmpfile}
 	fi
 }
 
@@ -2101,7 +2102,7 @@ function check_gamelists() {
 			[ -s "${corelistfile}" ] && corelistupdate="$(echo "corelist="'"'$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')'"'"")"
 			sed -i '/corelist=/c\'"$corelistupdate"'' /media/fat/Scripts/MiSTer_SAM.ini	
 			echo "SAM now has the following cores disabled in MiSTer_SAM.ini: $( echo ${nogames[@]}| tr ' ' ',') "
-			echo "Please add cores again once you add games for them."
+			echo "Please enable a core in MiSTer_SAM.ini once you put games in the core's folder"
 		fi 
 		
 	fi
@@ -2220,13 +2221,13 @@ function tty_start() {
 
 function tty_exit() {
 	if [ "${ttyenable}" == "yes" ]; then
-		#echo -n "Stopping tty2oled... "
+		echo -n "Stopping tty2oled... "
 		tmux kill-session -t OLED &>/dev/null
 		rm "${tty_sleepfile}" >/dev/null
 		#/media/fat/tty2oled/S60tty2oled restart 
 		#sleep 5
 
-		#echo "Done."
+		echo "Done."
 	fi
 }
 
