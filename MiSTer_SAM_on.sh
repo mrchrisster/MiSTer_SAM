@@ -60,7 +60,8 @@ function init_vars() {
 	declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
 	declare -g tmpfilefilter2="/tmp/.SAM_List/tmpfilefilter2"	
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"
-	declare -gl singlecore="0"	
+	declare -gi singlecore="0"	
+	declare -gi creationdone="0"
 	declare -gi gametimer=120
 	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
@@ -83,7 +84,6 @@ function init_vars() {
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
 	declare -gl checkzipsondisk="Yes"
-	declare -gl fastmode="No"
 	declare -gl rebuild_freq="Week"
 	declare -gi regen_duration=4
 	declare -gi rebuild_freq_int="604800"
@@ -897,7 +897,7 @@ function parse_cmd() {
 				sam_exit 2
 				break
 				;;
-			startmonitor)
+			startmonitor | sm)
 				sam_start
 				sam_monitor
 				break
@@ -1061,37 +1061,53 @@ function next_core() { # next_core (core)
 	# No corename was supplied with MiSTer_SAM_on.sh
 	if [ -z "${1}" ]; then
 	
-		# Create gamelists in background
-		check_nextcore
+		# Create all gamelists in the background
+		if [[ "$(for a in "${glclex[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
+			samquiet "Gamelist check"
+			echo "glclex: ${glclex[@]}"
+			echo "corelist: ${corelist[@]}"
+			readarray -t glondisk <<< $(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')
+			if [[ ! "${glondisk[@]}" ]]; then	
+				"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
+				corelisttmp=(arcade)
+			fi
+			if [ "$(cat "${gamelistpath}/arcade_gamelist.txt" | wc -l)" == "0" ]; then
+				echo "Couldn't find Arcade games. Please run update_all.sh first"
+				sleep 15
+				exit
+			fi
+			
+			# Check if more gamelists have been created
+			unset glclex
+			for g in "${glondisk[@]}"; do 
+				for c in "${corelist[@]}"; do 
+					if [[ "$c" == "$g" ]]; then 
+						glclex+=($c)
+					fi
+				done 
+			done
+			# Create gamelists in background
+			check_nextcore &
+			if [[ "${glclex[@]}" ]]; then
+				corelisttmp=(${glclex[@]})
+			fi
+			
+			first_run_arcade=1
+		fi
+		
 		
 		# Don't repeat same core twice
-		if [ "singlecore" == "0" ]; then
+		if [[ "${singlecore}" == "0" ]]; then
 			delete_from_corelist $nextcore tmp
 		fi
+		
+		if [ ${#corelisttmp[@]} -eq 0 ]; then declare -ga corelisttmp=(${glclex[@]}); fi
 	
 		#Pick core
 		nextcore=$(printf "%s\n" ${corelisttmp[@]} | shuf | head -1)
 		
-		echo "Current corelist ${corelisttmp[@]}"
-		
-		# #Special case for first run
-		# if [ "${first_run_arcade}" == "0" ] && [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "0" ]; then
-			# "${mrsampath}"/samindex -q -s arcade -o "${gamelistpath}"
-			# if [ "$(cat "${gamelistpath}/arcade_gamelist.txt" | wc -l)" == "0" ]; then
-				# echo "Couldn't find Arcade games. Please run update_all.sh first"
-				# sleep 15
-				# exit
-			# fi
-			# first_run_arcade=1
-		# fi
+		#echo "Current corelist ${corelisttmp[@]}"
 
-		# if [ "$(find "${gamelistpath}" -name "*_gamelist.txt" | wc -l)" == "1" ] && [ ! -e "${gamelistpath}"/.freshinstall ]; then	
-			# touch "${gamelistpath}"/.freshinstall
-			# nextcore="$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}' |shuf --head-count=1 )"
-			# "${mrsampath}"/samindex -q -o "${gamelistpath}" &
-		# fi
-
-	
 
 	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
 		countdown="countdown"
@@ -1139,7 +1155,7 @@ function next_core() { # next_core (core)
 		samquiet " Wrong extension found: \e[1m${extension^^}\e[0m"
 		samquiet " Picking new rom.."
 
-		create_romlist ${nextcore}
+		create_romlist ${nextcore} &
 		next_core ${nextcore}
 		#next_core
 		return
@@ -1189,12 +1205,12 @@ function check_list_and_pick_rom() { # args ${nextcore}
 		return
 	fi
 	
-	
-	#if [ "${fastmode}" == "no" ] && [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
+	# Takes too long, better to just check current zip
+	#if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
 	#	check_zips ${1}
 	#fi
 
-	# Copy to gamelist to tmp
+	# Copy gamelist to tmp
 	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 	fi
@@ -1205,7 +1221,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 		cat "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "${PATHFILTER[${1}]}"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 	
-	if [ "${fastmode}" == "yes" ] && [ "${FIRSTRUN[${1}]}" == "0" ] ; then
+	if [ "${FIRSTRUN[${1}]}" == "0" ] ; then
 		# Exclusion and blacklist filter		
 		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		samquiet "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games in list after removing duplicates."
@@ -1446,15 +1462,14 @@ function load_core_arcade() {
 function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
-		sed -i -e 's/^/Demo: /' ${gamelistpath}/${nextcore}_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
+		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
 		
-		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
-
-
+		total_games=$(echo $(cat "${gamelistpath}/amiga_gamelist.txt" | sed '/^\s*$/d' | wc -l))
 		samquiet "${total_games} Games and Demos found."
-
+	else
+		touch "${gamelistpath}/amiga_gamelist.txt"
 	fi
 
 }
@@ -1490,7 +1505,7 @@ function load_core_amiga() {
 		echo "" | >/tmp/.SAM_Keyboard_Activity
 	else
 		# This is for MegaAGS version July 2022 or newer
-		[ ! -f ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
+		[ ! -s ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
 		
 		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 			cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
@@ -1903,8 +1918,8 @@ function delete_from_corelist() { # delete_from_corelist core tmp
 				unset 'corelisttmp[i]'
 			fi
 		done
+		echo ${corelist} > ${corelisttmpfile
 	fi
-	if [ ${#corelisttmp[@]} -eq 0 ]; then declare -ga corelisttmp=(${glondisk[@]}); fi
 }
 
 
@@ -2024,24 +2039,14 @@ function check_zips() { # check_zips core
 	fi
 	samquiet "Done."
 }
-
+	
+	
 function check_nextcore() {
-	
-	unset glcreate
 
-	readarray -t glondisk <<< $(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')
-	if [[ ! "${glondisk[@]}" ]]; then	
-		"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
-		glondisk=(arcade)
-	fi
-	
-	if [ "$(cat "${gamelistpath}/arcade_gamelist.txt" | wc -l)" == "0" ]; then
-		echo "Couldn't find Arcade games. Please run update_all.sh first"
-		sleep 15
-		exit
-	fi
+	corelist=("$(cat ${corelisttmpfile})")
+	unset glcreate
 	readarray -t glexistcl <<< $(printf '%s\n'  "${corelist[@]}" "${glondisk[@]}"  | sort | uniq -iu )
-	
+
 	for g in "${glexistcl[@]}"; do 
 		for c in "${corelist[@]}"; do 
 			if [[ "$c" == "$g" ]]; then 
@@ -2050,14 +2055,24 @@ function check_nextcore() {
 		done 
 	done
 	
-	sleep 5
-	if [[ "${glcreate[@]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
-		"${mrsampath}"/samindex -q -s $(echo "${glcreate[@]}" | tr ' ' ','| tr -s ' ') -o "${gamelistpath}" &
-		sleep 1
+	if [[ "${glcreate[@]}" == *"amiga"* ]]; then
+		create_amigalist &
+		glcreate=( "${glcreate[@]/amiga}" )
 	fi
 
-	corelisttmp=(${glondisk[@]})
-	echo " corelisttmp is : ${corelisttmp[@]}"
+	if [[ "${glcreate[@]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
+		samquiet "Starting gamelist check. Gamelists for ${glcreate[@]}"
+		nogames=($("${mrsampath}"/samindex -s $(echo "${glcreate[@]}" | tr ' ' ','| tr -s ' ') -o "${gamelistpath}" |fgrep "(0 games" -B 1 | head -1 | awk -F"/" '{print $NF}')) 
+		if [[ "${nogames[@]}" ]]; then
+			for f in "${nogames[@],,}"; do
+				delete_from_corelist ${f}
+				delete_from_corelist ${f} tmp 
+				echo "Can't find games for ${CORE_PRETTY[${f}]}"
+			done
+			echo "corelist now ${corelist[@]}"
+			echo "corelisttmp now ${corelisttmp[@]}"
+		fi 
+	fi
 
 }
 
@@ -2175,9 +2190,10 @@ function tty_exit() {
 	if [ "${ttyenable}" == "yes" ]; then
 		#echo -n "Stopping tty2oled... "
 		tmux kill-session -t OLED &>/dev/null
-		/media/fat/tty2oled/S60tty2oled restart 
-		sleep 3
 		rm "${tty_sleepfile}" >/dev/null
+		#/media/fat/tty2oled/S60tty2oled restart 
+		#sleep 5
+
 		#echo "Done."
 	fi
 }
@@ -2838,7 +2854,7 @@ read_samini
 
 init_paths
 
-init_data # Setup data arrays
+init_data
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd ${@} # Parse command line parameters for input
