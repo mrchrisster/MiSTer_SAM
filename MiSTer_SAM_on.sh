@@ -1099,7 +1099,7 @@ function next_core() { # next_core (core)
 				done 
 			done
 			# Create gamelists in background
-			check_samindex &
+			check_gamelists &
 			if [[ "${glclex[@]}" ]]; then
 				corelisttmp=(${glclex[@]})
 			fi
@@ -1338,7 +1338,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	
 		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
 		write_to_TTY_cmd_pipe "display_info" &		
-
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		SECONDS=${elapsed}
 	fi
 
 
@@ -2064,7 +2065,7 @@ function check_zips() { # check_zips core
 }
 	
 	
-function check_samindex() {
+function check_gamelists() {
 
 	unset glcreate
 	readarray -t glexistcl <<< $(printf '%s\n'  "${corelist[@]}" "${glondisk[@]}"  | sort | uniq -iu )
@@ -2083,20 +2084,24 @@ function check_samindex() {
 	fi
 
 	if [[ "${glcreate[@]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
-		#echo "Starting gamelist check. Gamelists missing for ${glcreate[@]}"
-		nogames=($("${mrsampath}"/samindex -s $(echo "${glcreate[@]}" | tr ' ' ','| tr -s ' ') -o "${gamelistpath}" |fgrep "(0 games" -B 1 | head -1 | awk -F"/" '{print $NF}')) 
-		#echo "nogames: ${nogames[@]}"
+		unset nogames
+		for c in "${glcreate[@]}"; do
+			"${mrsampath}"/samindex -q -s $c -o "${gamelistpath}"
+			if [ $? -gt 1 ]; then
+				nogames+=($c)
+			fi
+		done
 		
 		if [[ "${nogames[@]}" ]]; then
 			for f in "${nogames[@],,}"; do
 				delete_from_corelist ${f}
 				delete_from_corelist ${f} tmp 
-				echo "Can't find games for ${CORE_PRETTY[${f}]}"
-				echo "Disabling core $f in MiSTer_SAM.ini for now."
-				[ -s "${corelistfile}" ] && corelistupdate="$(echo "corelist="'"'$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')'"'"")"
-				#corelistcurrent="$(fgrep 'corelist="' /media/fat/Scripts/MiSTer_SAM.ini |tail -1)"
-				sed -i '/corelist=/c\'"$corelistupdate"'' /media/fat/Scripts/MiSTer_SAM.ini			
+				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
 			done
+			[ -s "${corelistfile}" ] && corelistupdate="$(echo "corelist="'"'$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')'"'"")"
+			sed -i '/corelist=/c\'"$corelistupdate"'' /media/fat/Scripts/MiSTer_SAM.ini	
+			echo "SAM now has the following cores disabled in MiSTer_SAM.ini: $( echo ${nogames[@]}| tr ' ' ',') "
+			echo "Please add cores again once you add games for them."
 		fi 
 		
 	fi
