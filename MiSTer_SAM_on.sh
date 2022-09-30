@@ -1060,12 +1060,19 @@ function next_core() { # next_core (core)
 
 	# No corename was supplied with MiSTer_SAM_on.sh
 	if [ -z "${1}" ]; then
+		if [ -s "${corelisttmpfile}" ]; then 
+			unset corelist 
+			mapfile -t corelist <${corelisttmpfile}
+		fi
+		
+
+		#echo "corelist: ${corelist[@]}"
 	
 		# Create all gamelists in the background
 		if [[ "$(for a in "${glclex[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
 			samquiet "Gamelist check"
-			echo "glclex: ${glclex[@]}"
-			echo "corelist: ${corelist[@]}"
+			#echo "glclex: ${glclex[@]}"
+			
 			readarray -t glondisk <<< $(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')
 			if [[ ! "${glondisk[@]}" ]]; then	
 				"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
@@ -1918,8 +1925,8 @@ function delete_from_corelist() { # delete_from_corelist core tmp
 				unset 'corelisttmp[i]'
 			fi
 		done
-		echo ${corelist} > ${corelisttmpfile
 	fi
+	printf "%s\n" ${corelist[@]} > ${corelisttmpfile}
 }
 
 
@@ -2043,7 +2050,6 @@ function check_zips() { # check_zips core
 	
 function check_nextcore() {
 
-	corelist=("$(cat ${corelisttmpfile})")
 	unset glcreate
 	readarray -t glexistcl <<< $(printf '%s\n'  "${corelist[@]}" "${glondisk[@]}"  | sort | uniq -iu )
 
@@ -2069,8 +2075,9 @@ function check_nextcore() {
 				delete_from_corelist ${f} tmp 
 				echo "Can't find games for ${CORE_PRETTY[${f}]}"
 			done
-			echo "corelist now ${corelist[@]}"
-			echo "corelisttmp now ${corelisttmp[@]}"
+			#echo "corelist now ${corelist[@]}"
+			#echo "corelisttmp now ${corelisttmp[@]}"
+			echo "${corelist[@]}" > "${corelisttmpfile}"
 		fi 
 	fi
 
