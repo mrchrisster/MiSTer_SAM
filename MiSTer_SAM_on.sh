@@ -59,7 +59,8 @@ function init_vars() {
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
 	declare -g tmpfilefilter2="/tmp/.SAM_List/tmpfilefilter2"	
-	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"
+	declare -g corelisttmpfile="/tmp/.SAM_List/corelisttmp.tmp"
+	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi singlecore="0"	
 	declare -gi creationdone="0"
 	declare -gi gametimer=120
@@ -1060,14 +1061,18 @@ function next_core() { # next_core (core)
 
 	# No corename was supplied with MiSTer_SAM_on.sh
 	if [ -z "${1}" ]; then
+	
 		if [ -s "${corelisttmpfile}" ]; then 
+			unset corelisttmp
+			mapfile -t corelisttmp <${corelisttmpfile}
+		fi
+		if [ -s "${corelistfile}" ]; then
 			unset corelist 
-			mapfile -t corelist <${corelisttmpfile}
+			mapfile -t corelist <${corelistfile}
 		fi
 		
-
 		#echo "corelist: ${corelist[@]}"
-	
+
 		# Create all gamelists in the background
 		if [[ "$(for a in "${glclex[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
 			samquiet "Gamelist check"
@@ -1094,7 +1099,7 @@ function next_core() { # next_core (core)
 				done 
 			done
 			# Create gamelists in background
-			check_nextcore &
+			check_samindex &
 			if [[ "${glclex[@]}" ]]; then
 				corelisttmp=(${glclex[@]})
 			fi
@@ -1111,7 +1116,15 @@ function next_core() { # next_core (core)
 		if [ ${#corelisttmp[@]} -eq 0 ]; then declare -ga corelisttmp=(${glclex[@]}); fi
 	
 		#Pick core
+		if [[ ! "${corelisttmp[@]}" ]]; then
+			corelisttmp="${corelist[@]}"
+		fi
 		nextcore=$(printf "%s\n" ${corelisttmp[@]} | shuf | head -1)
+		
+		if [[ ! "${nextcore}" ]]; then
+			samquiet "nextcore empty. Using arcade core for now"
+			nextcore=arcade
+		fi
 		
 		#echo "Current corelist ${corelisttmp[@]}"
 
@@ -1670,8 +1683,10 @@ function init_paths() {
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
 	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
+	[ -e "${corelistfile}" ] && { rm "${corelistfile}"; }
 	touch "${tmpfile}"
 	touch "${tmpfile2}"
+	touch "${corelistfile}"
 	touch "${corelisttmpfile}"
 
 }
@@ -1919,14 +1934,15 @@ function delete_from_corelist() { # delete_from_corelist core tmp
 				unset 'corelist[i]'
 			fi
 		done
+		printf "%s\n" ${corelist[@]} > ${corelistfile}
 	else
 		for i in "${!corelisttmp[@]}"; do
 			if [[ ${corelisttmp[i]} = $1 ]]; then
 				unset 'corelisttmp[i]'
 			fi
 		done
+		printf "%s\n" ${corelisttmp[@]} > ${corelisttmpfile}
 	fi
-	printf "%s\n" ${corelist[@]} > ${corelisttmpfile}
 }
 
 
@@ -2048,7 +2064,7 @@ function check_zips() { # check_zips core
 }
 	
 	
-function check_nextcore() {
+function check_samindex() {
 
 	unset glcreate
 	readarray -t glexistcl <<< $(printf '%s\n'  "${corelist[@]}" "${glondisk[@]}"  | sort | uniq -iu )
@@ -2067,18 +2083,22 @@ function check_nextcore() {
 	fi
 
 	if [[ "${glcreate[@]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
-		samquiet "Starting gamelist check. Gamelists for ${glcreate[@]}"
+		#echo "Starting gamelist check. Gamelists missing for ${glcreate[@]}"
 		nogames=($("${mrsampath}"/samindex -s $(echo "${glcreate[@]}" | tr ' ' ','| tr -s ' ') -o "${gamelistpath}" |fgrep "(0 games" -B 1 | head -1 | awk -F"/" '{print $NF}')) 
+		#echo "nogames: ${nogames[@]}"
+		
 		if [[ "${nogames[@]}" ]]; then
 			for f in "${nogames[@],,}"; do
 				delete_from_corelist ${f}
 				delete_from_corelist ${f} tmp 
 				echo "Can't find games for ${CORE_PRETTY[${f}]}"
+				echo "Disabling core $f in MiSTer_SAM.ini for now."
+				[ -s "${corelistfile}" ] && corelistupdate="$(echo "corelist="'"'$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')'"'"")"
+				#corelistcurrent="$(fgrep 'corelist="' /media/fat/Scripts/MiSTer_SAM.ini |tail -1)"
+				sed -i '/corelist=/c\'"$corelistupdate"'' /media/fat/Scripts/MiSTer_SAM.ini			
 			done
-			#echo "corelist now ${corelist[@]}"
-			#echo "corelisttmp now ${corelisttmp[@]}"
-			echo "${corelist[@]}" > "${corelisttmpfile}"
 		fi 
+		
 	fi
 
 }
