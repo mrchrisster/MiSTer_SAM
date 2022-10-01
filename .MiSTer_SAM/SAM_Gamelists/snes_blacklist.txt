@@ -6,9 +6,12 @@
 091 Front Mission (J) v1.0 T+Eng 1.0b FH
 10 Yard Fight (Hack) Anthrox & Swat A&S NES
 101 Dalmations (Beethoven's 2nd Hack) TegPeru
+126-Buddies-Thicker-Than-Water_1962
 16 BIT XMAS 2011 (PD) retroUSB
 240p Test Suite NTSC (PD) Artemio v1.03
+240p Test Suite NTSC (PD) Artemio v1.061
 240p Test Suite PAL (PD) Artemio v1.03
+240p Test Suite PAL (PD) Artemio v1.061
 46 Okunen Monogatari - Harukanaru Eden e (Japan)
 700 Club - VGM Music (PD) MIC
 7th Saga, The (U) 
@@ -62,6 +65,7 @@ Angelique (Japan)
 Angelique (Japan) (Premium Box)
 Animaniacs (E) 
 Animaniacs (E) T+Ger v1.00 Star-Trans
+Animaniacs (E) [T+Ger1.00_Star]
 Animaniacs (Europe)
 Antarctic Adventure (Hack) Anthrox & Swat A&S NES
 Arabian Nights - Sabaku no Seirei Ou (Japan)
@@ -282,6 +286,9 @@ BS Zootto Mahjong! Event Version (J)
 BS Zootto Mahjong! Event Version (J) 
 BS Zootto Mahjong! Preview Version (J)
 BS Zootto Mahjong! Preview Version (J) 
+BS_F-Zero_Grand_Prix_2_(Japan)_(MSU1)
+BS_Legend_of_Zelda_-_Ancient_Stone_Tablets_-_Chapter_3,_The_(Japan)_(MSU1)_[T-En]_[n]
+BS_Legend_of_Zelda_-_Ancient_Stone_Tablets_-_Chapter_4,_The_(Japan)_(MSU1)_[T-En]_[n]
 Batman (USA) (Proto)
 Batman (USA) (Proto) 
 Batman Forever (Europe)
@@ -329,6 +336,7 @@ Brandish 2 - The Planet Buster (Japan)
 Brawl Brothers (USA)
 Brawl Brothers - Rival Turf! 2 (Europe)
 Brawl Brothers - Rival Turf! 2 PAL-to-NTSC Patched (Europe) v2 GhostlyDark
+Breath of Fire (U) [T+Ger005b_Reaper]
 Breath of Fire 2 Retranslation (Hack) v1.2b Ryusui
 Breath of Fire II (U) T+Ger v1.00 d4s
 Breath of Fire II Unfusing Less+Retranslation+Original Music (Hack) v1 PHA_PHX_PHY_PHP, T+Eng v1.2b d4s, Watercrown
@@ -351,6 +359,7 @@ Campus Challenge '92 Menu (USA)
 Captain Toad Treasure Tracker (SA-1 SMW hack) zacmario 2016-12-28
 Captain Toad Treasure Tracker II (SA-1 SMW hack) v1.2 zacmario
 Captain Tsubasa III - Koutei no Chousen (J) 
+Captain Tsubasa III - Koutei no Chousen (J) [T-Ger0.71_StarTrans]
 Captain Tsubasa IV - Pro no Rival Tachi (J) 
 Captain Tsubasa V - Hasha no Shougou Canpione (J) 
 Card Master - Rimusaria no Fuuin (Japan)
@@ -368,10 +377,12 @@ Chou Mahou Tairiku WOZZ (J) T+Eng v1.1 TransCorp
 Choukou Gasshin Xardion (Japan)
 Christmas 1994 Leftovers (PD) Anthrox
 Christmas Craze (PD) v1 Shiru
+Christmas Craze (World) (Aftermarket) 
 Christmas Demo (PD) Therapy
 Chrono Trigger (U) 
 Chrono Trigger - Flames of Eternity
 Chrono Trigger - Music Library (J) T+Eng v1.00e Terminus
+Chrono Trigger Crimson Echoes (Hack) Kajar Laboratories
 Chrono Trigger Crimson Echoes (hack) Kajar Laboratories
 Chrono Trigger Retranslation
 Chuck Rock (Europe)
@@ -391,12 +402,14 @@ Clock Tower (Japan) (Beta)
 Commodore 64 Collection NTSC (PD)
 Computer Nouryoku Kaiseki - Ultra Baken (Japan)
 Conker's High Rule Tail (ALTTP Hack) v1.27B SePH
+Conker's_High_Rule_Tail_(Unl)_(MSU1)
 Console Horizons - PlayXTR Demo (PD)
 Console World - Feb. '94 Charts (PD) Console World
 Console World - Mar. '94 Charts (PD) Console World
 Contra Spirits (Japan) (Demo)
 Controller Strobe Behavior Test (PD) Blargg 2010-03-14
 Cool World (Europe)
+Cool World (Spain) (En)
 Cool World PAL-to-NTSC Patched (Spain) v2 GhostlyDark
 Cooly Skunk (Proto)
 Crayon Shin-chan - Nagagutsu Dobon!! (Japan)
@@ -405,6 +418,8 @@ Creepy Bird (USA) (Unl)
 Cyber Knight (J) T+Eng v1.01 AGTP
 Cyber Knight (Japan)
 DSP1 Tech Demo (USA) (Demo)
+DSP1 Tech Demo (USA) (Tech Demo)
+Daft_Punk_-_Epilogue
 Daikaijuu Monogatari II (J) T+Eng v0.90 Dynamic-Designs
 Daily Ritual (PD) v1 MrValdez 2016
 Dark Kingdom (Japan)
@@ -436,6 +451,7 @@ Dorque & Imp (Europe) (Proto)
 Dorque & Imp (Mine Level) (Europe) 
 Dorque & Imp (Palace Level) (Europe) 
 Dorque & Imp (Woods Level) (Europe) 
+Dottie - Dreads Nought (World) (v1.1) 
 Dough Boy (Hack) Anthrox & Swat A&S NES
 Dr. Mario (Japan) (En) 
 Dragon - The Bruce Lee Story (Europe)
@@ -446,7 +462,10 @@ Dragon Quest I & II (J) T+Eng v2.0 RPGONE
 Dragon Quest I & II (J) T+Eng v2.0 RPGONE, Bugfix v1.053rtm Rod Merida
 Dragon Quest I & II (J) T+Eng v2.0 RPGONE, Bugfix v1.053rtm Rod Merida, Doubled v1 Psyklax
 Dragon Quest I & II (J) T+Eng v2.0 RPGONE, Doubled v1 Psyklax
+Dragon Quest I & II (J) T+Eng v2.0 [DQ] RPGONE
+Dragon Quest I & II (J) T+Eng v2.0 [DQ] RPGONE, Doubled v1 Psyklax
 Dragon Quest I & II (Japan)
+Dragon Quest III (J) T+Eng v1.1 DQ Translations
 Dragon Quest V - Tenkuu no Hanayome (J) T+Eng v0.91 Byuu
 Dragon Quest V - Tenkuu no Hanayome (J) T+Eng v2.01F DeJap
 Dragon Quest V - Tenkuu no Hanayome (Japan)
@@ -495,7 +514,9 @@ Fatal Fury Special (Europe) (Beta)
 Fever Pitch Soccer (Europe) (En,Fr,De,Es,It)
 Fever Pitch Soccer PAL-to-NTSC Patched (Europe) (En,Fr,De,Es,It) v2 GhostlyDark
 Final Fantasy II (U) (V1.0) 
+Final Fantasy II (U) (V1.0) [T+Ger90%_TranX]
 Final Fantasy II (U) (V1.1) 
+Final Fantasy II (U) (V1.1) [T+Ger90%_TranX]
 Final Fantasy II (U) T+Ger v1.0 Trans-X
 Final Fantasy II (USA)
 Final Fantasy II (USA) (Rev 1)
@@ -504,6 +525,11 @@ Final Fantasy II - HardType V1.2 (Hack)
 Final Fantasy II - Impossible V1.0 by JCE3000GT (Hack)
 Final Fantasy II - The Non-Cheeseball Edition (Hack)
 Final Fantasy II - Turbo (Hack) v0.1 b0ardface
+Final Fantasy III (U) (V1.0) [T+Ger1.00_Star]
+Final Fantasy III (U) (V1.1) [T+Ger1.00_Star]
+Final Fantasy III (U) (V1.1) [T+Ger120a_manuloewe]
+Final Fantasy III (U) (V1.1) [T+Ger120b_manuloewe]
+Final Fantasy III (U) (V1.1) [T+Ger_Cyan][a1]
 Final Fantasy III Divergent Paths (Hack) v1.1 PowerPanda
 Final Fantasy IV (J) 
 Final Fantasy IV (J) (V1.1) 
@@ -530,8 +556,10 @@ Final Fantasy V GBA Script Port+Ginger Battle Galuf+Bugfixes, Sprite Touch-Ups (
 Final Fantasy V Legend of the Crystals (Unl) T+Eng Spooniest, RPGe, HatZen08, STARWIN, Leet Sketcher
 Final Fantasy V Monster Count Leet Sketcher (J) T+Eng v1.1 RPGe
 Final Fantasy VI (J) T+Ger v1.00 Tomy
+Final Fantasy VI (J) [T+Ger1.00_Tomy]
 Final Fantasy VI Return of the Dark Sorcerer (Hack) v1.8.3 GiNattak
 Final Fight 2 (MAME SNES bootleg)
+Final_Fantasy_VI_(USA)_(MSU1)
 Fire Emblem - Monshou no Nazo (J) (V1.0) 
 Fire Emblem - Monshou no Nazo (J) T+Eng v0.98 RPGuy96, VincentASM
 Fire Emblem - Monshou no Nazo (Japan)
@@ -559,6 +587,8 @@ Flintstones, The - The Treasure of Sierra Madrock (USA) (Beta)
 Flintstones, The - The Treasure of Sierra Madrock PAL-to-NTSC Patched (Europe) v2 GhostlyDark
 Flintstones, The PAL-to-NTSC Patched (Europe) (En,Fr,De,Es,It) 
 Flintstones, The PAL-to-NTSC Patched (Europe) (En,Fr,De,Es,It) v2 GhostlyDark
+Fmv Player (Ntsc)
+Fmv Player (Pal)
 Foreman for Real (Europe)
 Fortune Quest - Dice o Korogase (Japan)
 Front Mission (J) (V1.0) 
@@ -587,6 +617,7 @@ Gekisou Sentai Car Rangers + ST BIOS (ST)
 Gekisou Sentai Carranger - Zenkai! Racer Senshi (Japan)
 Get in the Hole (Japan)
 Ghost Chaser Densei (J) T+Eng v1 AgentOrange, MrRichard999, rainponcho
+Gimme_More
 Ginga Sengoku Gunyuuden Rai (Japan)
 Glory of Heracles III - Heracles no Eikou III - Kamigami no Chinmoku (J) T+Eng v1.1a DQ
 Glory of Heracles IV, The (J) T+Eng v1.1 Translation Corporation
@@ -608,6 +639,7 @@ Happy New Year 96 (PD) Ryu-J
 Havoc (USA) (Beta)
 Havoc (USA) (Demo)
 Hayazashi Nidan Morita Shougi 2 (Japan)
+Heartthrob Memorial
 Hebereke's Popoitto (Europe)
 Hebereke's Popoon (Europe)
 Heiwa Pachinko World (Japan)
@@ -620,8 +652,10 @@ Hiouden - Mamono-tachi to no Chikai (Japan)
 Hissatsu Pachinko Collection 2 (Japan)
 Hisshou 777 Fighter - Pachi-Slot Ryuuguu Densetsu (Japan)
 Hokuto no Ken 5 - Tenma Ryuuseiden Ai Zetsu Shou (Japan)
+Home Improvement (U) [T+Ger]
 Hong Kong '97 (Japan) (En,Ja,Zh-Hant) 
 Hong Kong 97 (PD) (Alt)
+Hong_Kong_97_(Unl)_(MSU1)
 Honkaku Shougi - Fuuunji Ryuuou (Japan)
 Horizontal Shooter (PD) v1 Undisbeliever
 Human Grand Prix (Japan) (En)
@@ -701,6 +735,8 @@ Kirby's Fun Pak (E)
 Kirby's Fun Pak (E) T+Ger v0.95 Alemanic Translations
 Kirby's Fun Pak (Europe)
 Kirby's Ghost Trap (E) T+Ger v1.00 Alemanic Translation, Zelgadis
+Kirby's Ghost Trap (E) [T+Ger1.00ALT_alemanic]
+Kirby's Ghost Trap (E) [T+Ger1.00_alemanic]
 Kirby's Ghost Trap (Europe)
 Kishin Douji Zenki - Tenchi Meidou (Japan)
 Kouryuu no Mimi (J) 
@@ -738,8 +774,10 @@ Lode Runner (Hack) Anthrox & Swat A&S NES
 Lothar Matthaeus Super Soccer (Germany)
 Lucky Luke (Europe) (En,Fr,De,Es)
 Lucky Luke (Europe) (En,Fr,De,Es) 
+Lufia & The Fortress of Doom (U) [T+Ger.04_alemanic]
 Luigi's Revenge! (SA-1 SMW Hack) Kaisaan Siddiqui et al 2017-04-25
 MACS Basic Rifle Marksmanship (USA) 
+MEDUSA(1)
 MVP Baseball (Japan) (En)
 Magic Boy (Europe)
 Magic Boy (USA)
@@ -762,11 +800,16 @@ Mario is Missing Done Right (Hack) v1 Gamma V
 Mario's Time Machine (Germany)
 Mario's Time Machine PAL-to-NTSC Patched (Germany) v2 GhostlyDark
 Marvel Super Heroes - War of the Gems (USA) (Beta)
+Marvelous - Another Treasure Island (J) T+Eng v1.06 DackR
 Maten Densetsu - Senritsu no Ooparts (Japan)
+MazezaM (Europe) (v2.1) 
+MazezaM (USA) (v2.1) 
 MazezaM Challenge (PD) v2.0 Malcolm Tyrrell
 Mega Man X (U) (V1.1) 
+Mega Man X (U) (V1.1) [T+Ger.99_g-trans
 Mega Man X 2 (U) 
 Mega Man X 3 (U) 
+Mega Man X 3 (U) [T+Ger100%_TranX]
 Mega Man X3 (U) T+Ger v1.11 Ice Man, Trans-X
 Mega lo Mania (Europe) (En,Fr,De) 
 Mega lo Mania PAL-to-NTSC Patched (Europe) (En,Fr,De) 
@@ -841,6 +884,7 @@ Nuts & Milk (Hack) Anthrox & Swat A&S NES
 Olivia no Mystery (Japan)
 Otogirisou (Japan)
 Ou-chan no Oekaki Logic (Japan)
+Out_of_this_World_(USA)_(MSU1)
 PGA Tour Golf (Europe)
 PGA Tour Golf (USA)
 PGA Tour Golf (USA) (Rev 1)
@@ -923,6 +967,7 @@ Pro Yakyuu Nettou Puzzle Stadium (Japan)
 Pro Yakyuu Nettou Puzzle Stadium (Japan) (Beta)
 Project II (FFII Hack_vivify9) 
 Psycho Dream (Japan)
+Puggsy (USA) (Proto)
 Push-Over (Europe) (En,Fr,De,Es)
 Push-Over (Europe) (En,Fr,De,Es) 
 Push-Over PAL-to-NTSC Patched (Europe) (En,Fr,De,Es) v2 GhostlyDark
@@ -951,6 +996,8 @@ Rejoice - Aretha Oukoku no Kanata (Japan)
 Relief Pitcher (USA)
 Relief Pitcher (USA) (Beta)
 Rendering Ranger R2 (Japan) (En)
+Rendering Ranger R2 (Japan) Fixed
+Rendering Ranger R2 Bugfix (Hack) v1 sluffy
 Revolution X (Europe)
 Revolution X (Germany)
 Road Fighter (Hack) Anthrox & Swat A&S NES
@@ -1000,6 +1047,7 @@ SD Gundam Generation F - Colony Kaku Senki + ST BIOS (ST)
 SD Ultra Battle - Seven Densetsu (Japan)
 SD Ultra Battle - Ultraman Densetsu (Japan)
 SD Ultra Battle - Ultraman Densetsu + ST BIOS (ST) 
+SD2SNES_Teaser
 SM Choukyoushi Hitomi (Japan) (Beta) 
 SM Choukyoushi Hitomi (Japan) (Unl)
 SM Choukyoushi Hitomi - Bangai Hen (Japan) (Unl)
@@ -1098,6 +1146,7 @@ Secret of Mana (United Kingdom)
 Secret of Mana (United Kingdom, Australia) (Rev 1)
 Secret of Mana (World) (De) 
 Secret of Mana (World) (Fr) 
+Secret of Mana 2 - Seiken Densetsu 3 (J) (T+Ger v2.03 G-Trans, 3-Player-Hack, SOM Logo
 Secret of Mana Drop Table Balance (Hack) v1.0 Kethinov
 Secret of Mana Early Luna (Hack) v1 Kethinov
 Secret of Mana PAL-to-NTSC Patched (Europe) (Rev 1) v2 GhostlyDark
@@ -1142,6 +1191,7 @@ SimCity Jr. (Japan)
 SimCity PAL-to-NTSC Patched (Europe) v2 GhostlyDark
 SimCity PAL-to-NTSC Patched (France) v2 GhostlyDark
 SimCity PAL-to-NTSC Patched (Germany) v2 GhostlyDark
+Sim_City_(USA)_(MSU1)
 Skuljagger - Revolt of the Westicans (USA) (Beta)
 Sky Destroyer (Hack) Anthrox & Swat A&S NES
 Sky Mission (Japan) (En)
@@ -1149,6 +1199,9 @@ Sleep (Japan) (Proto)
 Smart Ball (USA)
 Soccer Kid (Europe) (En,Fr,De,Es,It)
 Soccer Shootout (Europe)
+Something_About_Donkey_Kong_Country_ANIMATED_(Flashing_Lights_Loud_Sound_Warning)
+Something_About_Super_Mario_World_ANIMATED_(Loud_Sound_Warning)
+Something_About_Yoshis_Island_ANIMATED_(Loud_Sound_Warning)
 Song Master (Japan)
 Sonic Blast Man 2 Special Turbo (MAME SNES bootleg)
 Sonic The Hedgehog 4 (World) (Unl) 
@@ -1159,6 +1212,7 @@ Soul Blade (World) (Pirate)
 Soul Blade (World) (Unl) 
 Soul Blazer (France)
 Soul Blazer (Germany)
+Soul Blazer (Scandinavia) (En)
 Soul Blazer (U) 
 Soul Blazer (USA)
 Soul Blazer PAL-to-NTSC Patched (Europe) v2 GhostlyDark
@@ -1177,6 +1231,7 @@ Star Fox - Super Weekend Competition (U)
 Star Fox 2 (Japan) (Beta) 
 Star Glider (Japan) (Beta) 
 Star Ocean (J) 
+Star Ocean (J) T+Eng v1 DeJap & SDD1 Patched
 Star Ocean (J) T+Eng v1.0 DeJap
 Star Ocean (J) T+Ger v1.00 snes-projects
 Star Ocean (Japan)
@@ -1211,6 +1266,7 @@ Super 8 (USA) (Unl)
 Super Bases Loaded 3 - License to Steal (USA)
 Super Big 2 (China) (Unl)
 Super Billiard - Championship Pool (Japan)
+Super Boss Gaiden (Japan) (En) 
 Super Boss Gaiden (PD) v1.2 superbossgaiden.superfamicom.org
 Super Casino 2 (Japan)
 Super Chip8x - Chip-8 Emulator+Games (PD) Ersanio
@@ -1293,7 +1349,14 @@ Super Turrican 2 (USA) (Beta 1)
 Super Wild Card V2.8CC 06-28-94 BIOS 
 Super X-Terminator 2 Sasuke (Japan) (Unl) 
 Super Yakyuudou (Japan)
+SuperRoadBlaster
+Super_Mario_Collection_SNES_-_COMERCIAL_JAPAN
+Super_Nintendo_Startup_Screen
+Super_Road_Blaster_(Unl)_(MSU1)
 Superman (USA) (Demo) 
+Sure Instinct (World) (v1.0) 
+Sure Instinct (World) (v1.0.1) 
+Sure Instinct (World) (v1.0.2) 
 Sutte Hakkun (J) T+Eng v1 RaccoonSam
 Sutte Hakkun (Japan)
 Sword World SFC (Japan)
@@ -1348,6 +1411,7 @@ The Source BBS-Tro Intro (PD) Ayt
 They're Coming Demo (PD) Molive NOVA 4-2017
 Time Pilot (PD)
 Time Pilot by TegPeru (Space Invaders Hack)
+Time Pilot standalone (Ganbare Goemon 4 Hack) v1 Svambo
 Time Slip (Europe) (Beta)
 Time Slip (USA) (Beta)
 Time Slip PAL-to-NTSC Patched (Europe) (Beta) v2 GhostlyDark
@@ -1355,9 +1419,12 @@ Tintin - Prisoners of the Sun (Europe) (En,Fr,De,Es)
 Tintin in Tibet (Europe) (En,Es,Sv)
 Tintin in Tibet (Europe) (En,Fr,De,Nl)
 Tiny Toon Adventures - Wild & Wacky Sports (E) (V1.0) T+Ger v0.95 Alemanic Translations
+Tiny Toon Adventures - Wild & Wacky Sports (E) (V1.0) [T+Ger95%_alemanic]
 Tiny Toon Adventures - Wild & Wacky Sports (E) (V1.1) T+Ger v0.95 Alemanic Translations
+Tiny Toon Adventures - Wild & Wacky Sports (E) (V1.1) [T+Ger95%_alemanic]
 Tiny Toon Adventures - Wild & Wacky Sports (Europe)
 Tiny Toon Adventures - Wild & Wacky Sports (Europe) (Rev 1)
+Tokimeki Memorial - Densetsu no Ki no Shita de (J) T+Eng v3 Tom
 Tokimeki Memorial - Densetsu no Ki no Shita de (Japan)
 Tokimeki Memorial - Densetsu no Ki no Shita de (Japan) (Rev 1)
 Tom & Jerry (USA) (Proto) 
@@ -1367,6 +1434,7 @@ Top Gear 2 (USA)
 Top Management II (Japan)
 Total Carnage (USA) (Beta 1)
 Touhou Mario Imperishable Night (SA-1 SMW Hack) Vitor Vilela, Wakana 2014-01-11
+Touhou_Bad_Apple!!_PV
 Toy Story Slide Show (PD) Lions Slideshow v2.0
 Treasure Hunter G (J) T+Eng vPostBeta2 MetalHawk
 Treasure Hunter G (Japan)
@@ -1400,6 +1468,7 @@ Utopia - The Creation of a Nation (Europe)
 Utopia - The Creation of a Nation PAL-to-NTSC Patched (Europe) v2 GhostlyDark
 Utopia PAL-to-NTSC Patched (Germany) v2 GhostlyDark
 Uwol - Quest For Money (PD) v1 Mojon Twins, Alekmaul
+VIDEO15FPS16ColInterlace
 VLDC10 
 Volguard 2 (Hack) Anthrox & Swat A&S NES
 Voxel Demo (PD)
@@ -1438,6 +1507,7 @@ X-Kaliber 2097 (Europe)
 X-Kaliber 2097 (U) 
 X-Kaliber 2097 (USA)
 X-Men - Mutant Apocalypse (U) 
+X-Men - Mutant Apocalypse (U) [T+Ger99%_TranX]
 X-Men Mutant Apocalypse (U) 
 X-Men vs. Street Fighter (World) (Pirate)
 X-Men vs. Street Fighter (World) (Unl) 
@@ -1453,6 +1523,11 @@ Yoshi's Island Difficult Myhack 2 (SMW2 Hack)
 Yoshi's Safari (Europe)
 Ys V - Expert (Japan)
 Ys V - Ushinawareta Suna no Miyako Kefin (Japan)
+Ys_V_-_Kefin,_Lost_Kingdom_of_Sand_(Japan)_(MSU1)_[T-En]
+YuYuHakusho
+Yu_Yu_Hakusho_Ending_2
+Yu_Yu_Hakusho_Ending_4
+Yu_Yu_Hakusho_Ending_5
 Yuujin Janjuu Gakuen (Japan)
 Yuujin no Furi Furi Girls (Japan)
 Zaitaku Touhyou System - SPAT4 Cassette (Japan) (TOAJ)
@@ -1462,3 +1537,16 @@ Zenkoku Koukou Soccer (Japan)
 Zombies (Europe)
 Zombies (Europe) (Virtual Console)
 Zoom Demo (PD) Infernal Byte Systems
+bszelda_ast3
+bszelda_ast4
+conker
+daft_punk_voyager
+f-zero_msu1
+hongkong97
+metroid-msu1
+ra-nggyu
+retro song
+rrr2j-msu1
+smo_msu1
+tg2_msu1
+zpw
