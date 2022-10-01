@@ -1212,7 +1212,12 @@ function create_romlist() { # args ${nextcore}
 
 	samquiet "Creating gamelist for ${1}"
 	if [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
-		${mrsampath}/samindex -s ${1} -o "${gamelistpath}" |fgrep "(0 games" && delete_from_corelist ${1}; echo "Can't find games for ${CORE_PRETTY[${1}]}" 
+		${mrsampath}/samindex -s ${1} -o "${gamelistpath}" 
+		if [ $? -gt 1 ]; then
+			delete_from_corelist ${1}
+			echo "Can't find games for ${CORE_PRETTY[${1}]}" 
+		fi
+
 	fi
 
 }
@@ -2102,7 +2107,7 @@ function check_gamelists() {
 			[ -s "${corelistfile}" ] && corelistupdate="$(echo "corelist="'"'$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')'"'"")"
 			sed -i '/corelist=/c\'"$corelistupdate"'' /media/fat/Scripts/MiSTer_SAM.ini	
 			echo "SAM now has the following cores disabled in MiSTer_SAM.ini: $( echo ${nogames[@]}| tr ' ' ',') "
-			echo "Please enable a core in MiSTer_SAM.ini once you put games in the core's folder"
+			echo "No games were found for these cores."
 		fi 
 		
 	fi
