@@ -61,8 +61,7 @@ function init_vars() {
 	declare -g tmpfilefilter2="/tmp/.SAM_List/tmpfilefilter2"	
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelisttmp.tmp"
 	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
-	declare -gi singlecore="0"	
-	declare -gi creationdone="0"
+	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
 	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
@@ -73,6 +72,7 @@ function init_vars() {
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl mute="No"
+	declare -gi coreweight="0"
 	declare -gl playcurrentgame="No"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
@@ -80,6 +80,7 @@ function init_vars() {
 	declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 	declare -g branch="main"
 	declare -gi counter=0
+	declare -gA corewc
 	declare -g userstartup="/media/fat/linux/user-startup.sh"
 	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 	declare -gl neogeoregion="English"
@@ -92,7 +93,8 @@ function init_vars() {
 	declare -gi regen_duration_arcade=1
 	declare -gi rebuild_freq_arcade_int="604800"
 	declare -gi bootsleep="60"
-	declare -gi countdown="nocountdown"								
+	declare -gi countdown="nocountdown"	
+	declare -gi totalgamecount							
 	# ======== BGM =======
 	declare -gl bgm="No"
 	declare -gl bgmstop="Yes"
@@ -817,7 +819,7 @@ function parse_cmd() {
 			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
-				singlecore=1
+				disablecoredel=1
 				;;
 			esac
 		done
@@ -1104,12 +1106,11 @@ function next_core() { # next_core (core)
 			if [[ "${glclex[@]}" ]]; then
 				corelisttmp=(${glclex[@]})
 			fi
-			
 		fi
 		
 		
 		# Don't repeat same core twice
-		if [[ "${singlecore}" == "0" ]]; then
+		if [[ "${disablecoredel}" == "0" ]]; then
 			delete_from_corelist $nextcore tmp
 		fi
 		
@@ -1126,6 +1127,29 @@ function next_core() { # next_core (core)
 			samquiet "nextcore empty. Using arcade core for now"
 			nextcore=arcade
 		fi
+		
+		#Pick a core weighted by games
+		
+		if [[ ! "${corewc[@]}" ]] && [[ "$coreweight" == "1" ]]; then
+			#Pick a core weighted by games
+			for c in "${corelist[@]}"; do 
+				corewc[$c]=$(cat "${gamelistpath}/${c}_gamelist.txt" | wc -l)
+			done
+			totalgamecount=$(printf "%s\n" ${corewc[@]} | awk '{s+=$1} END {printf "%.0f\n", s}')
+			disablecoredel=1
+			samquiet "Starting weighted core mode"
+		elif [[ "$coreweight" == "1" ]]; then
+			game=0
+			pickgame=$(shuf -i 1-$totalgamecount -n 1)
+			for c in "${!corewc[@]}"; do 
+				let game+=${corewc[$c]}
+				if [[ "$game" -gt "$pickgame" ]]; 
+					then nextcore=$c
+					break 
+				fi
+			done
+		fi
+
 		
 		#echo "Current corelist ${corelisttmp[@]}"
 
