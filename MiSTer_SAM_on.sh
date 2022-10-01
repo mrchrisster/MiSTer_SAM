@@ -1170,11 +1170,11 @@ function next_core() { # next_core (core)
 				done
 				totalgamecount=$(printf "%s\n" ${corewc[@]} | awk '{s+=$1} END {printf "%.0f\n", s}')
 				disablecoredel=1
-				game=0
 				samdebug "List of games: \n$(for x in "${!corewc[@]}"; do printf "[%s]=%s\n" "$x" "${corewc[$x]}" ; done)"
 				samdebug "Total game count: $totalgamecount"
 
 			fi
+			game=0
 			pickgame=$(shuf -i 1-$totalgamecount -n 1)
 			for c in "${!corewc[@]}"; do 
 				let game+=${corewc[$c]}
