@@ -81,6 +81,7 @@ function init_vars() {
 	declare -g branch="main"
 	declare -gi counter=0
 	declare -gA corewc
+	declare -gA corep
 	declare -g userstartup="/media/fat/linux/user-startup.sh"
 	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 	declare -gl neogeoregion="English"
@@ -1169,9 +1170,14 @@ function next_core() { # next_core (core)
 					corewc[$c]=$(cat "${gamelistpathtmp}/${c}_gamelist.txt" | wc -l)
 				done
 				totalgamecount=$(printf "%s\n" ${corewc[@]} | awk '{s+=$1} END {printf "%.0f\n", s}')
-				disablecoredel=1
 				samdebug "List of games: \n$(for x in "${!corewc[@]}"; do printf "[%s]=%s\n" "$x" "${corewc[$x]}" ; done)"
 				samdebug "Total game count: $totalgamecount"
+				for x in "${!corewc[@]}"; do  
+					played_perc=$((corewc[$x]*100/totalgamecount))
+					corep[$x]=$(echo $played_perc)
+				done
+				samdebug "\nPercentage: \n$(for x in "${!corep[@]}"; do printf "[%s]=%s\n" "$x" "${corep[$x]}%" ; done)"
+				disablecoredel=1
 
 			fi
 			game=0
