@@ -1141,7 +1141,7 @@ function next_core() { # next_core (core)
 		# Pick a core weighted by how many games a core's library has
 		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
 			if [[ ! "${corewc[@]}" ]] && [[ "$coreweight" == "yes" ]]; then
-				samquiet "Starting weighted core mode"
+				echo "Starting weighted core mode"
 				readarray -t gltmpondisk <<< $(find "${gamelistpathtmp}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')
 				unset gltmpclondisk
 				for g in "${gltmpondisk[@]}"; do 
@@ -1168,22 +1168,32 @@ function next_core() { # next_core (core)
 				
 				for c in "${corelist[@]}"; do 
 					corewc[$c]=$(cat "${gamelistpathtmp}/${c}_gamelist.txt" | wc -l)
-				done
+				done					 
+				
 				totalgamecount=$(printf "%s\n" ${corewc[@]} | awk '{s+=$1} END {printf "%.0f\n", s}')
-				samdebug "List of games: \n$(for x in "${!corewc[@]}"; do printf "[%s]=%s\n" "$x" "${corewc[$x]}" ; done)"
+				#samdebug "List of games: \n$(for x in "${!coresort[@]}"; do printf "[%s]=%s\n" "$x" "${coresort[$x]}" ; done)"
 				samdebug "Total game count: $totalgamecount"
-				for x in "${!corewc[@]}"; do  
-					played_perc=$((corewc[$x]*100/totalgamecount))
-					corep[$x]=$(echo $played_perc)
-				done
-				samdebug "\nPercentage: \n$(for x in "${!corep[@]}"; do printf "[%s]=%s\n" "$x" "${corep[$x]}%" ; done)"
+				
+				i=5
+				while IFS= read -r line; do 
+					played_perc=$((${line#*=}*100/totalgamecount))
+					if [ "$played_perc" -lt "5" ]; then 
+						played_perc=$i
+						if [ $i -gt 2 ]; then ((i--)); fi #minimum core display is 2% of the time
+					fi
+					corep[${line%%=*}]=$(echo $played_perc)
+				done <<< $(for k in "${!corewc[@]}"; do echo $k'='${corewc["$k"]};done | sort -k2 -t'=' -nr )
+
+				totalpcount=$(printf "%s\n" ${corep[@]} | awk '{s+=$1} END {printf "%.0f\n", s}')
+				#samdebug "\nPercentage: \n$(for x in "${!corep[@]}"; do printf "[%s]=%s\n" "$x" "${corep[$x]}%" ; done)"
+				samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo [$k] '=' ${corep["$k"]}; done | sort -rn -k3)"
 				disablecoredel=1
 
 			fi
 			game=0
-			pickgame=$(shuf -i 1-$totalgamecount -n 1)
-			for c in "${!corewc[@]}"; do 
-				let game+=${corewc[$c]}
+			pickgame=$(shuf -i 1-$totalpcount -n 1)
+			for c in "${!corep[@]}"; do 
+				let game+=${corep[$c]}
 				if [[ "$game" -gt "$pickgame" ]]; 
 					then nextcore=$c
 					samdebug "Selected game number: $pickgame / $c"
