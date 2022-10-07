@@ -39,6 +39,7 @@ function init_vars() {
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
 	declare -gi inmenu=0
+	declare -gi shown=0
 	declare -gi tty_counter=0
 	declare -gi first_run_arcade=0
 	
@@ -1193,17 +1194,19 @@ function next_core() { # next_core (core)
 				samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo [$k] '=' ${corep["$k"]}; done | sort -rn -k3)"
 				disablecoredel=1
 
+			elif [[ "$coreweight" == "yes" ]]; then
+				game=0
+				echo "totalpcount: $totalpcount"
+				pickgame=$(shuf -i 1-$totalpcount -n 1)
+				for c in "${!corep[@]}"; do 
+					let game+=${corep[$c]}
+					if [[ "$game" -gt "$pickgame" ]]; 
+						then nextcore=$c
+						samdebug "Selected game number: $pickgame / $c"
+						break 
+					fi
+				done
 			fi
-			game=0
-			pickgame=$(shuf -i 1-$totalpcount -n 1)
-			for c in "${!corep[@]}"; do 
-				let game+=${corep[$c]}
-				if [[ "$game" -gt "$pickgame" ]]; 
-					then nextcore=$c
-					samdebug "Selected game number: $pickgame / $c"
-					break 
-				fi
-			done
 			
 		fi
 
@@ -2581,7 +2584,7 @@ function sam_settings() {
 		--backtitle "Super Attract Mode" --title "[ Settings ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		sam_corelist "Select Core List" \
-		sam_corelist_preset "Select Core List presets" \
+		sam_corelist_preset "Select Core List Presets" \
 		sam_timer "Select Timers" \
 		sam_controller "Setup Controller" \
 		sam_mute "Mute Cores while SAM is on" \
@@ -2604,11 +2607,142 @@ function sam_settings() {
 		sam_timer
 	elif [[ "${menuresponse,,}" == "sam_controller" ]]; then
 		sam_controller
+	elif [[ "${menuresponse,,}" == "sam_tty" ]]; then
+		sam_tty
+	elif [[ "${menuresponse,,}" == "sam_mute" ]]; then
+		sam_mute
+	elif [[ "${menuresponse,,}" == "sam_bgm" ]]; then
+		sam_bgmmenu	
+	elif [[ "${menuresponse,,}" == "sam_misc" ]]; then
+		sam_misc	
 	else 
 		parse_cmd ${menuresponse}
 	fi
 
 }
+
+function sam_tty() {
+	dialog --clear --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ MISCELLANEOUS OPTIONS ]" \
+		--menu "Select from the following options?" 0 0 0 \
+		enabletty "Enable TTY2OLED support for SAM" \
+		disabletty "Disable TTY2OLED support for SAM" 2>"/tmp/.SAMmenu" 
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	elif [[ "${menuresponse,,}" == "enabletty" ]]; then
+		sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disabletty" ]]; then
+		sed -i '/ttyenablee=/c\ttyenable="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	fi
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ Settings ]" \
+	--msgbox "Changes saved!" 0 0
+	sam_settings
+}
+
+function sam_misc() {
+	dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+		--msgbox "Alternative Core Mode will prefer cores with larger libraries so you don't have many game repeats.\n\nPlay current game means the game SAM is showing can be played by pushing any button.\n\nPlease set up controller in main menu instead of using Play Current Game if possible." 0 0
+
+	dialog --clear --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ MISCELLANEOUS OPTIONS ]" \
+		--menu "Select from the following options?" 0 0 0 \
+		enablemenuonly "Start SAM only in MiSTer Menu" \
+		disablemenuonly "Start SAM outside of MiSTer Menu" \
+		enablealtcore "Enable Alternative Core Selection Mode" \
+		disablealtcore "Disable Alternative Core Selection Mode" \
+		enableplaycurrent "Enable play current game" \
+		disableplaycurrent "Disable play current game" \
+		arcadehoriz "Only show Horizontal Arcade Games" \
+		arcadevert "Only show Vertical Arcade Games" \
+		arcadedisable "Show all Arcade Games" \
+		enablelistenjoy "Enable Joystick detection" \
+		disablelistenjoy "Disable Joystick detection" \
+		enablelistenkey "Enable Keyboard detection" \
+		disablelistenkey "Enable Keyboard detection" \
+		enablelistenmouse "Enable Mouse detection" \
+		disablelistenmouse "Disable Mouse detection" 2>"/tmp/.SAMmenu" 
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	elif [[ "${menuresponse,,}" == "enablemenuonly" ]]; then
+		sed -i '/menuonly=/c\menuonly="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disablemenuonly" ]]; then
+		sed -i '/menuonly=/c\menuonly="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "enablealtcore" ]]; then
+		sed -i '/coreweight=/c\coreweight="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disablealtcore" ]]; then
+		sed -i '/coreweight=/c\coreweight="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "enableplaycurrent" ]]; then
+		sed -i '/playcurrentgame=/c\playcurrentgame="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
+		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "arcadehoriz" ]]; then
+		sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "arcadevert" ]]; then
+		sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Vertical"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "arcadedisable" ]]; then
+		sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "enablelistenjoy" ]]; then
+		sed -i '/listenjoy=/c\listenjoy="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disablelistenjoy" ]]; then
+		sed -i '/listenjoy=/c\listenjoy="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "enablelistenkey" ]]; then
+		sed -i '/listenkeyboard=/c\listenkeyboard="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disablelistenkey" ]]; then
+		sed -i '/listenkeyboard=/c\listenkeyboard="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "enablelistenmouse" ]]; then
+		sed -i '/listenmouse=/c\listenmouse="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disablelistenmouse" ]]; then
+		sed -i '/listenmouse=/c\listenmouse="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	fi
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ Settings ]" \
+	--msgbox "Changes saved!" 0 0
+	sam_settings
+}
+
+
+
+function sam_mute() {
+	dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+		--msgbox "SAM uses the core mute feature of MiSTer which will turn the volume low.\n\nYou might still hear a bit of the core's sounds.\n\nYou can also use global mute but it's not as well supported with SAM." 0 0
+
+	dialog --clear --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
+		--menu "Select from the following options?" 0 0 0 \
+		enablemute "Mute Volume for all Cores" \
+		disablemute "Unmute Volume fore all Cores" \
+		globalmute "Mute Global Volume (not recommended)" 2>"/tmp/.SAMmenu" 
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	elif [[ "${menuresponse,,}" == "enablemute" ]]; then
+		sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disablemute" ]]; then
+		sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "globalmute" ]]; then
+		sed -i '/mute=/c\mute="'"Global"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	fi
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ Settings ]" \
+	--msgbox "Changes saved!" 0 0
+	sam_settings
+			
+}
+
 
 function sam_controller() {
 	dialog --clear --no-cancel --ascii-lines \
@@ -2653,10 +2787,12 @@ function sam_controller() {
 }
 
 function sam_timer() {
-	dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
-		--msgbox "Super Attract Mode starts after you haven't used your controller for a certain amount of time\n\n\nConfigure how long before SAM shows games and how long SAM shows games." 0 0
-	dialog --clear --ascii-lines --no-tags \
+	if [[ "$shown" == "0" ]]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
+			--msgbox "Super Attract Mode starts after you haven't used your controller for a certain amount of time\n\n\nConfigure when SAM should start showing games and how long SAM shows games for." 0 0
+	fi
+	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
 		--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
 		--menu "Select an option" 0 0 0 \
 		samtimeout1 "Wait 1 minute before showing games" \
@@ -2675,22 +2811,24 @@ function sam_timer() {
 		
 		if [ "$opt" != "0" ]; then
 			sam_menu
-		elif [[ "${menuresponse}]" == *"samtimeout"* ]]; then
+		elif [[ "${menuresponse}" == *"samtimeout"* ]]; then
 			timemin=${menuresponse//samtimeout/}
 			samtimeout=$((timemin*60))
 			sed -i '/samtimeout=/c\samtimeout="'"$samtimeout"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
 			--msgbox "Changes saved. Wait now for $samtimeout seconds" 0 0
-			sam_menu
-		elif [[ "${menuresponse}]" == *"gametimer"* ]]; then
+			shown=1
+			sam_timer
+		elif [[ "${menuresponse}" == *"gametimer"* ]]; then
 			timemin=${menuresponse//gametimer/}
 			gametimer=$((timemin*60))
 			sed -i '/gametimer=/c\gametimer="'"$gametimer"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
 			--msgbox "Changes saved. Show games now for $gametimer seconds" 0 0
-			sam_menu
+			shown=1
+			sam_timer
 		fi
 }
 
@@ -2734,95 +2872,50 @@ function sam_corelist() {
 	sam_menu
 }
 
-
 function sam_corelist_preset() {
-	cmd=(dialog --separate-output --checklist "Corelist Config:" 0 0 0)
-	options=("1" "Show Arcade & Console Cores" OFF
-			 "2" "Show Handheld Cores" OFF 
-			 "3" "Show Computer Cores" OFF 
-			 "4" "Show only Arcade and NeoGeo games" OFF 
-			 "5" "Show Selection of cores 3rd gen - 5th gen" OFF)
-	choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
-	clear
-	for choice in $choices; do
-		case $choice in
-			0)
-				sam_configmenu
+	dialog --clear --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
+		--menu "Select an option" 0 0 0 \
+		1 "Only Arcade and NeoGeo games" \
+		2 "Only Arcade & Console Cores" \
+		3 "Only Handheld Cores" \
+		4 "Only Computer Cores" \
+		5 "Only Cores from 1990s onwards (no handheld)" \
+		6 "mrchrisster's Selection of favorite cores" 2>"/tmp/.SAMmenu"	
+	
+		opt=$?
+		menuresponse=$(<"/tmp/.SAMmenu")
+		
+		if [ "$opt" != "0" ]; then
+			sam_menu
+		elif [[ "${menuresponse}" == "1" ]]; then
+			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		elif [[ "${menuresponse}" == "2" ]]; then
+			sed -i '/corelist=/c\corelist="'"arcade,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		elif [[ "${menuresponse}" == "3" ]]; then
+			sed -i '/corelist=/c\corelist="'"gb,gbc,gba,gg,atarilynx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		elif [[ "${menuresponse}" == "4" ]]; then
+			sed -i '/corelist=/c\corelist="'"amiga,c64"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		elif [ "${menuresponse}" -eq "5" ]; then
+			dialog --clear --ascii-lines --no-cancel \
+			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
+			--yesno "Set Arcade Path Filter to 1990's?\nYou can remove the filter later by clicking No here." 0 0
+			response=$?
+			case $response in
+			   0) sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_The 1990s"'"' /media/fat/Scripts/MiSTer_SAM.ini
 				;;
-			1)
-				console="arcade,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx,"
+			   1) sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
 				;;
-			2)
-				handheld="gb,gbc,gba,gg,atarilynx,"
-				;;
-			3)
-				computer="amiga,c64,"
-				;;
-			4)
-				sed -i '/corelist=/c\corelist="arcade,neogeo"' /media/fat/Scripts/MiSTer_SAM.ini
-				 dialog --clear --no-cancel --ascii-lines --colors \
-					--backtitle "Super Attract Mode" --title "[ CCORELIST ]" \
-					--msgbox "corelist="arcade,neogeo" updated in SAM's ini file." 0 0
-				clear
-				;;
-			5)
-				sed -i '/corelist=/c\corelist="amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"' /media/fat/Scripts/MiSTer_SAM.ini
-				dialog --clear --no-cancel --ascii-lines --colors \
-					--backtitle "Super Attract Mode" --title "[ CCORELIST ]" \
-					--msgbox "corelist="amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"\n\n updated in SAM's ini file." 0 0
-				;;
-			6)
-				sed -i '/ttyenable=/c\ttyenable=Yes' /media/fat/Scripts/MiSTer_SAM.ini
-				;;
-			7)
-				if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
-					echo " Installing BGM to Scripts folder"
-					repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-					get_samstuff bgm.sh /tmp
-					mv --force /tmp/bgm.sh /media/fat/Scripts/
-				else
-					echo " BGM script is installed already. Updating just in case..."
-					echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-					kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
-					rm /tmp/bgm.sock 2>/dev/null
-					repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-					get_samstuff bgm.sh /tmp
-					mv --force /tmp/bgm.sh /media/fat/Scripts/
-					echo " Resetting BGM now."
-				fi
-				echo " Updating MiSTer_SAM.ini to use Mute=Core"
-				sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
-				/media/fat/Scripts/bgm.sh
-				sync
-				repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-				get_samstuff Media/80s.pls /media/fat/music
-				[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
-				sed -i '/bgm=/c\bgm=Yes' /media/fat/Scripts/MiSTer_SAM.ini
-				#echo " All Done. Starting SAM now."
-				dialog --clear --no-cancel --ascii-lines --colors \
-				--backtitle "Super Attract Mode" --title "[ CCORELIST ]" \
-				--msgbox "BGM successfully installed." 0 0
-				#/media/fat/Scripts/MiSTer_SAM_on.sh start
-
-				;;
-			8)
-				echo " Uninstalling BGM, please wait..."
-				echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-				[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
-				[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
-				[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
-				rm /tmp/bgm.sock 2>/dev/null
-				sed -i '/bgm.sh/d' ${userstartup}
-				sed -i '/Startup BGM/d' ${userstartup}
-				sed -i '/bgm=/c\bgm=No' /media/fat/Scripts/MiSTer_SAM.ini
-				sed -i '/mute=/c\mute=No' /media/fat/Scripts/MiSTer_SAM.ini
-				echo " Done."
-				;;
-			9)
-				sed -i '/coreweight=/c\coreweight=Yes' /media/fat/Scripts/MiSTer_SAM.ini
-				;;
-		esac
-	done
+			   255) exit;;
+			esac
+			sed -i '/corelist=/c\corelist="'"arcade,genesis,megacd,neogeo,s32x,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		elif [[ "${menuresponse}" == "6" ]]; then
+			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		fi
+		dialog --clear --ascii-lines --no-cancel \
+		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
+		--msgbox "Changes saved!" 0 0
+		sam_settings
 }
 
 
@@ -3186,13 +3279,13 @@ function sam_bgmmenu() {
 				echo " Resetting BGM now."
 			fi
 			echo " Updating MiSTer_SAM.ini to use Mute=Core"
-			sed -i '/mute=/c\mute=Core' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			/media/fat/Scripts/bgm.sh
 			sync
 			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 			get_samstuff Media/80s.pls /media/fat/music
 			[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
-			sed -i '/bgm=/c\bgm=Yes' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			echo " All Done. Starting SAM now."
 			/media/fat/Scripts/MiSTer_SAM_on.sh start
 
@@ -3205,8 +3298,8 @@ function sam_bgmmenu() {
 			rm /tmp/bgm.sock 2>/dev/null
 			sed -i '/bgm.sh/d' ${userstartup}
 			sed -i '/Startup BGM/d' ${userstartup}
-			sed -i '/bgm=/c\bgm=No' /media/fat/Scripts/MiSTer_SAM.ini
-			sed -i '/mute=/c\mute=No' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			echo " Done."
 		fi
 	fi
