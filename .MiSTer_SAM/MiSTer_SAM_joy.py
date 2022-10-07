@@ -14,6 +14,13 @@ AXIS_DEADZONE = 2000
 ACTIVITIES = {"start": "Start", "default": "Button pushed"}
 # each key in the button/axis sections should match back to an activity key
 CONTROLLERS = {
+    "054c_0ce6": { 
+		"name": "Wireless Controller", 
+		"button": { 
+			"start": 10, 
+		}, 
+		"axis": {}, 
+	},
     "054c_0268": { 
 		"name": "PLAYSTATION(R)3 Controller", 
 		"button": { 
@@ -31,7 +38,9 @@ CONTROLLERS = {
     # TODO: not currently used
     "default": {
         "name": "Generic Controller",
-        "button": {},
+        "button": {
+        	"start": 9, 
+        },
         "axis": {},
     },
 }
