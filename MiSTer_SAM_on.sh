@@ -1040,14 +1040,14 @@ function loop_core() { # loop_core (core)
 			fi
 
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
-				if [ "${listenjoy}" == "yes" ]; then
+				if [ "${listenjoy}" == "yes" ] && [[ "$(cat /tmp/.SAM_Joy_Activity)" != "Start" ]]; then
 					echo " Controller activity detected!"
 					play_or_exit
-				elif [ "${listenmouse}" == "yes" ] && [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Start" ]]; then
-					sam_exit 3
-				else
+				elif [ "${listenmouse}" == "no" ]; then		
 					echo " Controller activity ignored!"
 					echo "" | >/tmp/.SAM_Joy_Activity
+				else
+					sam_exit 3
 				fi
 			fi
 
