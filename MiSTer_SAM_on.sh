@@ -2575,19 +2575,20 @@ function sam_menu() {
 	fi
 
 }
+
 function sam_settings() {
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
 		--backtitle "Super Attract Mode" --title "[ Settings ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		sam_corelist "Select Core List" \
 		sam_corelist_preset "Select Core List presets" \
-		sam_timer "Select Timers" \ 
+		sam_timer "Select Timers" \
 		sam_controller "Setup Controller" \
 		sam_mute "Mute Cores while SAM is on" \
 		sam_tty "TTY2OLED Hardware Add-On" \
 		sam_bgm "Background Music Player" \
-		sam_misc "Miscallanous Options"
-		sam_configmenu "Manual Settings Editor (MiSTer_SAM.ini)" 2>"/tmp/.SAMmenu"
+		sam_misc "Miscallanous Options" \
+		config "Manual Settings Editor (MiSTer_SAM.ini)" 2>"/tmp/.SAMmenu"
 	
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -2601,7 +2602,8 @@ function sam_settings() {
 		sam_corelist_preset
 	elif [[ "${menuresponse,,}" == "sam_timer" ]]; then
 		sam_timer
-		
+	elif [[ "${menuresponse,,}" == "sam_controller" ]]; then
+		sam_controller
 	else 
 		parse_cmd ${menuresponse}
 	fi
@@ -2609,53 +2611,86 @@ function sam_settings() {
 }
 
 function sam_controller() {
+	dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+		--msgbox "Configure your controller so that pushing the start button will play the current game.\nAny other button will exit SAM. " 0 0
+	dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+		--msgbox "Connect one controller at a time.\nPush start button when ready! " 0 0
+		pyfile="/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py"
+		id="$($pyfile /dev/input/js0 id)"
+		name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
+		
+		startbutton="$($pyfile /dev/input/js0 start)"
+		echo start button: $startbutton
+		echo controller id: $id
 
+		if [[ "$startbutton" == *"not exist"* ]]; then
+			dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+			--msgbox "No joysticks connected. " 0 0
+			sam_menu
+		else
+			if [ "$(grep -c $id $pyfile)" == "0" ]; then 
+				sed -i '16 a\    \"'"$id"'": { \
+					"name": "'"$name"'", \
+					"button": { \
+						"start": '"$startbutton"', \
+					}, \
+					"axis": {}, \
+				},' $pyfile
+				dialog --clear --no-cancel --ascii-lines \
+				--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+				--msgbox "$name added successfully. " 0 0
+				sam_menu
+			else
+				dialog --clear --no-cancel --ascii-lines \
+				--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+				--msgbox "$name was already added. " 0 0
+				sam_menu
+			fi
+		fi
 }
 
 function sam_timer() {
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
-		--msgbox "Super Attract Mode starts after you haven't used your controller for a certain time" 0 0
+		--msgbox "Super Attract Mode starts after you haven't used your controller for a certain amount of time\n\n\nConfigure how long before SAM shows games and how long SAM shows games." 0 0
 	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
+		--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
 		--menu "Select an option" 0 0 0 \
-		Roulette2 "Play a random game for 2 minutes. " \
-		Roulette5 "Play a random game for 5 minutes. " \
-		Roulette10 "Play a random game for 10 minutes. " \
-		Roulette15 "Play a random game for 15 minutes. " \
-		Roulette20 "Play a random game for 20 minutes. " \
-		Roulette25 "Play a random game for 25 minutes. " \
-		Roulette30 "Play a random game for 30 minutes. " \
-		Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in MiSTer_SAM.ini). " 2>"/tmp/.SAMmenu"	
+		samtimeout1 "Wait 1 minute before showing games" \
+		samtimeout2 "Wait 2 minutes before showing games" \
+		samtimeout3 "Wait 3 minutes before showing games" \
+		samtimeout5 "Wait 5 minutes before showing games" \
+		gametimer1 "Show Games for 1 minute" \
+		gametimer2 "Show Games for 2 minutes" \
+		gametimer3 "Show Games for 3 minutes" \
+		gametimer5 "Show Games for 5 minutes" \
+		gametimer10 "Show Games for 10 minutes" \
+		gametimer15 "Show Games for 15 minutes" 2>"/tmp/.SAMmenu"	
 	
 		opt=$?
 		menuresponse=$(<"/tmp/.SAMmenu")
 		
 		if [ "$opt" != "0" ]; then
 			sam_menu
-		elif [ "${menuresponse}" == "Roulettetimer" ]; then
-			gametimer=${roulettetimer}
-			kill_all_sams
-			sam_cleanup
-			#tty_init
-			checkgl
-			mute=no
-			listenmouse="No"
-			listenkeyboard="No"
-			listenjoy="No"
-			loop_core	
-		else
-			timemin=${menuresponse//Roulette/}
+		elif [[ "${menuresponse}]" == *"samtimeout"* ]]; then
+			timemin=${menuresponse//samtimeout/}
+			samtimeout=$((timemin*60))
+			sed -i '/samtimeout=/c\samtimeout="'"$samtimeout"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			dialog --clear --ascii-lines --no-cancel \
+			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
+			--msgbox "Changes saved. Wait now for $samtimeout seconds" 0 0
+			sam_menu
+		elif [[ "${menuresponse}]" == *"gametimer"* ]]; then
+			timemin=${menuresponse//gametimer/}
 			gametimer=$((timemin*60))
-			kill_all_sams
-			sam_cleanup
-			#tty_init
-			checkgl
-			mute=no
-			listenmouse="No"
-			listenkeyboard="No"${ttydevice}
-			listenjoy="No"
-			loop_core
+			sed -i '/gametimer=/c\gametimer="'"$gametimer"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			dialog --clear --ascii-lines --no-cancel \
+			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
+			--msgbox "Changes saved. Show games now for $gametimer seconds" 0 0
+			sam_menu
 		fi
 }
 
@@ -2679,7 +2714,7 @@ function sam_corelist() {
 	clear
 	
 	if [ "$opt" != "0" ]; then
-		sam_menu
+		sam_settings
 	else 
 		declare -a corelistnew=()
 		for choice in ${menuresponse}; do
