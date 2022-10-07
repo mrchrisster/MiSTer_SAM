@@ -1177,7 +1177,9 @@ function next_core() { # next_core (core)
 				done					 
 				
 				totalgamecount=$(printf "%s\n" ${corewc[@]} | awk '{s+=$1} END {printf "%.0f\n", s}')
-				samdebug "Total game count: $totalgamecount"
+				samdebug "\n\n$(for k in "${!corewc[@]}"; do   echo [$k] '=' ${corewc["$k"]}; done | sort -rn -k3)"
+
+				samquiet "Total game count: $totalgamecount"
 				
 				i=5
 				# Sorting cores by games
@@ -1191,7 +1193,7 @@ function next_core() { # next_core (core)
 				done <<< $(for k in "${!corewc[@]}"; do echo $k'='${corewc["$k"]};done | sort -k2 -t'=' -nr )
 
 				totalpcount=$(printf "%s\n" ${corep[@]} | awk '{s+=$1} END {printf "%.0f\n", s}')
-				samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo [$k] '=' ${corep["$k"]}; done | sort -rn -k3)"
+				samquiet "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo [$k] '=' ${corep["$k"]}; done | sort -rn -k3)"
 				disablecoredel=1
 
 			elif [[ "$coreweight" == "yes" ]]; then
@@ -2312,7 +2314,7 @@ function tty_exit() {
 	if [ "${ttyenable}" == "yes" ]; then
 		echo -n "Stopping tty2oled... "
 		tmux kill-session -t OLED &>/dev/null
-		rm "${tty_sleepfile}" >/dev/null
+		rm "${tty_sleepfile}" &>/dev/null
 		#/media/fat/tty2oled/S60tty2oled restart 
 		#sleep 5
 
@@ -2645,28 +2647,38 @@ function sam_tty() {
 }
 
 function sam_misc() {
-	dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-		--msgbox "Alternative Core Mode will prefer cores with larger libraries so you don't have many game repeats.\n\nPlay current game means the game SAM is showing can be played by pushing any button.\n\nPlease set up controller in main menu instead of using Play Current Game if possible." 0 0
-
+	if [[ "$shown" == "0" ]]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+			--msgbox "Alternative Core Mode will prefer cores with larger libraries so you don't have many game repeats.\n\nPlay current game means the game SAM is showing can be played by pushing any button.\n\nPlease set up controller in main menu instead of using Play Current Game if possible." 0 0
+	fi
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ MISCELLANEOUS OPTIONS ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		enablemenuonly "Start SAM only in MiSTer Menu" \
 		disablemenuonly "Start SAM outside of MiSTer Menu" \
+		----- "-----------------------------" \
 		enablealtcore "Enable Alternative Core Selection Mode" \
 		disablealtcore "Disable Alternative Core Selection Mode" \
+		----- "-----------------------------" \
 		enableplaycurrent "Enable play current game" \
 		disableplaycurrent "Disable play current game" \
+		----- "-----------------------------" \
 		arcadehoriz "Only show Horizontal Arcade Games" \
 		arcadevert "Only show Vertical Arcade Games" \
 		arcadedisable "Show all Arcade Games" \
+		----- "-----------------------------" \
 		enablelistenjoy "Enable Joystick detection" \
 		disablelistenjoy "Disable Joystick detection" \
 		enablelistenkey "Enable Keyboard detection" \
 		disablelistenkey "Enable Keyboard detection" \
 		enablelistenmouse "Enable Mouse detection" \
-		disablelistenmouse "Disable Mouse detection" 2>"/tmp/.SAMmenu" 
+		disablelistenmouse "Disable Mouse detection" \
+		----- "-----------------------------" \
+		enablequiet "Enable More Output in SSH (samquiet)" \
+		disablequiet "Disable More Output in SSH (samquiet)" \
+		enabledebug "Enable Debug" \
+		disabledebug  "Disable Debug" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -2675,6 +2687,9 @@ function sam_misc() {
 		sam_menu
 	elif [[ "${menuresponse,,}" == "enablemenuonly" ]]; then
 		sed -i '/menuonly=/c\menuonly="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "-----" ]]; then
+		shown=1	
+		sam_misc
 	elif [[ "${menuresponse,,}" == "disablemenuonly" ]]; then
 		sed -i '/menuonly=/c\menuonly="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "enablealtcore" ]]; then
@@ -2703,11 +2718,20 @@ function sam_misc() {
 		sed -i '/listenmouse=/c\listenmouse="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disablelistenmouse" ]]; then
 		sed -i '/listenmouse=/c\listenmouse="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "enablequiet" ]]; then
+		sed -i '/samquiet=/c\samquiet="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disablequiet" ]]; then
+		sed -i '/samquiet=/c\samquiet="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "enabledebug" ]]; then
+		sed -i '/samdebug=/c\samdebug="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disabledebug" ]]; then
+		sed -i '/samdebug=/c\samdebug="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
 	fi
 	dialog --clear --ascii-lines --no-cancel \
 	--backtitle "Super Attract Mode" --title "[ Settings ]" \
 	--msgbox "Changes saved!" 0 0
-	sam_settings
+	shown=1	
+	sam_misc
 }
 
 
