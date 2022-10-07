@@ -1194,17 +1194,19 @@ function next_core() { # next_core (core)
 				samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo [$k] '=' ${corep["$k"]}; done | sort -rn -k3)"
 				disablecoredel=1
 
+			elif [[ "$coreweight" == "yes" ]]; then
+				game=0
+				echo "totalpcount: $totalpcount"
+				pickgame=$(shuf -i 1-$totalpcount -n 1)
+				for c in "${!corep[@]}"; do 
+					let game+=${corep[$c]}
+					if [[ "$game" -gt "$pickgame" ]]; 
+						then nextcore=$c
+						samdebug "Selected game number: $pickgame / $c"
+						break 
+					fi
+				done
 			fi
-			game=0
-			pickgame=$(shuf -i 1-$totalpcount -n 1)
-			for c in "${!corep[@]}"; do 
-				let game+=${corep[$c]}
-				if [[ "$game" -gt "$pickgame" ]]; 
-					then nextcore=$c
-					samdebug "Selected game number: $pickgame / $c"
-					break 
-				fi
-			done
 			
 		fi
 
