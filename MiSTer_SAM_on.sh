@@ -2671,7 +2671,7 @@ function sam_misc() {
 		enablelistenjoy "Enable Joystick detection" \
 		disablelistenjoy "Disable Joystick detection" \
 		enablelistenkey "Enable Keyboard detection" \
-		disablelistenkey "Enable Keyboard detection" \
+		disablelistenkey "Disable Keyboard detection" \
 		enablelistenmouse "Enable Mouse detection" \
 		disablelistenmouse "Disable Mouse detection" \
 		----- "-----------------------------" \
