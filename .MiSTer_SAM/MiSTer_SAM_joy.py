@@ -98,8 +98,6 @@ def get_activity(
                 break
         elif pe["type"] & AXIS == AXIS:
             if abs(pe["value"] - np["value"]) > AXIS_DEADZONE:
-                if CINFO == "axis":
-                    print(format(pe["number"]))
                 event_type = "axis"
                 activity = ACTIVITIES["default"]
                 break
