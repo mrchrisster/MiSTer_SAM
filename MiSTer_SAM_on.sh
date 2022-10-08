@@ -2421,13 +2421,13 @@ function get_blacklist() {
 
 function sam_update() { # sam_update (next command)
 
-	if ping -4 -q -w 1 -c 1 github.com > /dev/null; then 
-		echo " Connection established"
-	else
-		echo " No connection to Github. Please use offline install."
-		sleep 5
-		exit 1
-	fi
+	#if ping -4 -q -w 1 -c 1 github.com > /dev/null; then 
+	#	echo " Connection established"
+	#else
+	#	echo " No connection to Github. Please use offline install."
+	#	sleep 5
+	#	exit 1
+	#fi
 	
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
