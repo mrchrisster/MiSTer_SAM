@@ -99,6 +99,7 @@ function init_vars() {
 	declare -gi totalgamecount							
 	# ======== BGM =======
 	declare -gl bgm="No"
+	declare -gl bgmplay="Yes"
 	declare -gl bgmstop="Yes"
 	
 	# ======== TTY2OLED =======
@@ -2278,7 +2279,9 @@ function bgm_start() {
 		fi
 		sleep 2
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		if [ "${bgmplay}" == "yes" ]; then
+			echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		fi
 	fi
 
 }
@@ -2421,13 +2424,13 @@ function get_blacklist() {
 
 function sam_update() { # sam_update (next command)
 
-	#if ping -4 -q -w 1 -c 1 github.com > /dev/null; then 
-	#	echo " Connection established"
-	#else
-	#	echo " No connection to Github. Please use offline install."
-	#	sleep 5
-	#	exit 1
-	#fi
+	if ping -4 -q -w 1 -c 1 github.com > /dev/null; then 
+		echo " Connection established"
+	else
+		echo "No connection to Github. Please use offline install."
+		sleep 5
+		#exit 1
+	fi
 	
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
@@ -2531,7 +2534,7 @@ function sam_premenu() {
 	echo " auto-configuration"
 	echo ""
 
-	for i in {10..1}; do
+	for i in {5..1}; do
 		echo -ne " Updating SAM in ${i} secs...\033[0K\r"
 		premenu="Default"
 		read -r -s -N 1 -t 1 key
@@ -3273,13 +3276,14 @@ function samedit_excltags_old() {
 
 function sam_bgmmenu() {
 	dialog --clear --no-cancel --ascii-lines \
-	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
+	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
 	--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
 	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
+		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
 		--menu "Select from the following options?" 0 0 0 \
-		Enablebgm "Enable BGM for SAM" \
-		Disablebgm "Disable BGM for SAM" 2>"/tmp/.SAMmenu" 
+		enablebgm "Enable BGM for SAM" \
+		disableplay "Disable Play (in case songs play twice)" \
+		disablebgm "Disable BGM for SAM" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -3311,8 +3315,10 @@ function sam_bgmmenu() {
 			get_samstuff Media/80s.pls /media/fat/music
 			[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
 			sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			echo " All Done. Starting SAM now."
-			/media/fat/Scripts/MiSTer_SAM_on.sh start
+			#echo " All Done. Starting SAM now."
+			#/media/fat/Scripts/MiSTer_SAM_on.sh start
+		elif [[ "${menuresponse,,}" == "disableplay" ]]; then
+			sed -i '/bgmplay=/c\bgmplay="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 
 		elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
 			echo " Uninstalling BGM, please wait..."
@@ -3325,8 +3331,12 @@ function sam_bgmmenu() {
 			sed -i '/Startup BGM/d' ${userstartup}
 			sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			echo " Done."
+			#echo " Done."
 		fi
+		dialog --clear --ascii-lines --no-cancel \
+		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
+		--msgbox "Changes saved!" 0 0
+		sam_settings
 	fi
 }
 
