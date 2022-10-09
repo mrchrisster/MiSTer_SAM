@@ -2534,7 +2534,7 @@ function sam_premenu() {
 	echo " auto-configuration"
 	echo ""
 
-	for i in {5..1}; do
+	for i in {10..1}; do
 		echo -ne " Updating SAM in ${i} secs...\033[0K\r"
 		premenu="Default"
 		read -r -s -N 1 -t 1 key
