@@ -1444,7 +1444,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
 	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >>/tmp/SAM_game.mgl
-	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
+	echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
 	echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
 
 	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
