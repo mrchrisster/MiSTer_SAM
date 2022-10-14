@@ -87,6 +87,7 @@ function init_vars() {
 	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 	declare -gl neogeoregion="English"
 	declare -gl useneogeotitles="Yes"
+	declare -gl arcadeorient
 	declare -gl checkzipsondisk="Yes"
 	declare -gl rebuild_freq="Week"
 	declare -gi regen_duration=4
@@ -1487,7 +1488,12 @@ function load_core_arcade() {
 		#Check path filter
 		if [ ! -z "${arcadepathfilter}" ]; then
 			samquiet "Found path filter for Arcade core. Stripping out unwanted games now."
-			cat "${mralist}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
+			cat "${mralist}" | fgrep "${arcadepathfilter}" > "${mralist_tmp}"
+			if [ ! -z "${arcadeorient}" ]; then
+				cat "${mralist}" |fgrep -i "${arcadeorient}" | awk -F"/" '{print $NF}' > $tmpfile	
+				fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
+				#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
+			fi
 		fi
 	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
@@ -2644,11 +2650,12 @@ function arcade_orient() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	elif [[ "${menuresponse,,}" == "arcadehoriz" ]]; then
-		sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		#sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "arcadevert" ]]; then
-		sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Vertical"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i '/arcadeorient=/c\arcadeorient="'"vertical"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "arcadedisable" ]]; then
-		sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i '/arcadeorient=/c\arcadeorient="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
 	fi
 	dialog --clear --ascii-lines --no-cancel \
 	--backtitle "Super Attract Mode" --title "[ Settings ]" \
@@ -2947,10 +2954,10 @@ function sam_corelist_preset() {
 		elif [ "${menuresponse}" -eq "5" ]; then
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
-			--yesno "This will set Arcade Path Filter to 1990's?\nYou can remove the filter later by clicking No here." 0 0
+			--yesno "This will set Arcade Path Filter to 1990's\nYou can remove the filter later by clicking No here." 0 0
 			response=$?
 			case $response in
-			   0) sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_The 1990s"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			   0) sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_The 1990s"'"' /media/fat/Scripts/MiSTer_SAM.ini	   
 				;;
 			   1) sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
 				;;
@@ -2960,7 +2967,7 @@ function sam_corelist_preset() {
 		elif [ "${menuresponse}" -eq "6" ]; then
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
-			--yesno "This will set Arcade Path Filter to 1990's?\nYou can remove the filter later by clicking No here." 0 0
+			--yesno "This will set Arcade Path Filter to 1990's\nYou can remove the filter later by clicking No here." 0 0
 			response=$?
 			case $response in
 			   0) sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_The 1990s"'"' /media/fat/Scripts/MiSTer_SAM.ini
