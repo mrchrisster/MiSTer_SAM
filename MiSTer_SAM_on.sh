@@ -1181,7 +1181,7 @@ function next_core() { # next_core (core)
 				totalgamecount=$(printf "%s\n" ${corewc[@]} | awk '{s+=$1} END {printf "%.0f\n", s}')
 				samdebug "\n\n$(for k in "${!corewc[@]}"; do   echo [$k] '=' ${corewc["$k"]}; done | sort -rn -k3)"
 
-				samquiet "Total game count: $totalgamecount"
+				echo "Total game count: $totalgamecount"
 				
 				i=5
 				# Sorting cores by games
@@ -1200,7 +1200,7 @@ function next_core() { # next_core (core)
 
 			elif [[ "$coreweight" == "yes" ]]; then
 				game=0
-				echo "totalpcount: $totalpcount"
+				#echo "totalpcount: $totalpcount"
 				pickgame=$(shuf -i 1-$totalpcount -n 1)
 				for c in "${!corep[@]}"; do 
 					let game+=${corep[$c]}
@@ -1484,16 +1484,16 @@ function load_core_arcade() {
 	#Check blacklist and copy gamelist to tmp
 	if [ ! -s "${mralist_tmp}" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
-	
-		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			stdbuf -o0 fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
-		fi
-		
 		#Check path filter
 		if [ ! -z "${arcadepathfilter}" ]; then
 			samquiet "Found path filter for Arcade core. Stripping out unwanted games now."
 			cat "${mralist}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
+	
+		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
+			stdbuf -o0 fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
+		fi
+		
 		FIRSTRUN[${nextcore}]=1	
 	fi
 	
@@ -2564,9 +2564,10 @@ function sam_menu() {
 		Update "Update SAM to latest" \
 		Settings "Settings" \
 		'' "" \
+		sam_corelist "Select Core List" \
+		sam_corelist_preset "Select Core List Presets" \
 		Single "Single core selection" \
 		Include "Single category selection" \
-		Exclude "Exclude categories" \
 		Gamemode "Game roulette" \
 		Favorite "Copy current game to _Favorites folder" \
 		Gamelists "Game Lists - Create or Delete" \
@@ -2579,6 +2580,10 @@ function sam_menu() {
 	
 	if [ "$opt" != "0" ]; then
 		exit
+	elif [[ "${menuresponse,,}" == "sam_corelist" ]]; then
+		sam_corelist
+	elif [[ "${menuresponse,,}" == "sam_corelist_preset" ]]; then
+		sam_corelist_preset
 	else 
 		parse_cmd ${menuresponse}
 	fi
@@ -2589,9 +2594,9 @@ function sam_settings() {
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
 		--backtitle "Super Attract Mode" --title "[ Settings ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
-		sam_corelist "Select Core List" \
-		sam_corelist_preset "Select Core List Presets" \
 		sam_timer "Select Timers" \
+		arcade_orient "Orientation for Arcade Games" \
+		exclude "Exclude categories" \
 		sam_controller "Setup Controller" \
 		sam_mute "Mute Cores while SAM is on" \
 		sam_tty "TTY2OLED Hardware Add-On" \
@@ -2605,10 +2610,6 @@ function sam_settings() {
 	
 	if [ "$opt" != "0" ]; then
 		sam_menu
-	elif [[ "${menuresponse,,}" == "sam_corelist" ]]; then
-		sam_corelist
-	elif [[ "${menuresponse,,}" == "sam_corelist_preset" ]]; then
-		sam_corelist_preset
 	elif [[ "${menuresponse,,}" == "sam_timer" ]]; then
 		sam_timer
 	elif [[ "${menuresponse,,}" == "sam_controller" ]]; then
@@ -2621,10 +2622,38 @@ function sam_settings() {
 		sam_bgmmenu	
 	elif [[ "${menuresponse,,}" == "sam_misc" ]]; then
 		sam_misc	
+	elif [[ "${menuresponse,,}" == "arcade_orient" ]]; then
+		arcade_orient
 	else 
 		parse_cmd ${menuresponse}
 	fi
 
+}
+
+function arcade_orient() {
+	dialog --clear --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ MISCELLANEOUS OPTIONS ]" \
+		--menu "Select from the following options?" 0 0 0 \
+		arcadehoriz "Only show Horizontal Arcade Games" \
+		arcadevert "Only show Vertical Arcade Games" \
+		arcadedisable "Show all Arcade Games" 2>"/tmp/.SAMmenu" 
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	elif [[ "${menuresponse,,}" == "arcadehoriz" ]]; then
+		sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "arcadevert" ]]; then
+		sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Vertical"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "arcadedisable" ]]; then
+		sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
+	fi
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ Settings ]" \
+	--msgbox "Changes saved!" 0 0
+	sam_settings
 }
 
 function sam_tty() {
@@ -2656,7 +2685,7 @@ function sam_misc() {
 			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
 			--msgbox "Alternative Core Mode will prefer cores with larger libraries so you don't have many game repeats.\n\nPlay current game means the game SAM is showing can be played by pushing any button.\n\nPlease set up controller in main menu instead of using Play Current Game if possible." 0 0
 	fi
-	dialog --clear --ascii-lines --no-tags \
+	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
 		--backtitle "Super Attract Mode" --title "[ MISCELLANEOUS OPTIONS ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		enablemenuonly "Start SAM only in MiSTer Menu" \
@@ -2667,10 +2696,6 @@ function sam_misc() {
 		----- "-----------------------------" \
 		enableplaycurrent "Enable play current game" \
 		disableplaycurrent "Disable play current game" \
-		----- "-----------------------------" \
-		arcadehoriz "Only show Horizontal Arcade Games" \
-		arcadevert "Only show Vertical Arcade Games" \
-		arcadedisable "Show all Arcade Games" \
 		----- "-----------------------------" \
 		enablelistenjoy "Enable Joystick detection" \
 		disablelistenjoy "Disable Joystick detection" \
@@ -2704,12 +2729,6 @@ function sam_misc() {
 		sed -i '/playcurrentgame=/c\playcurrentgame="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
 		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "arcadehoriz" ]]; then
-		sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "arcadevert" ]]; then
-		sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Vertical"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "arcadedisable" ]]; then
-		sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "enablelistenjoy" ]]; then
 		sed -i '/listenjoy=/c\listenjoy="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disablelistenjoy" ]]; then
@@ -2880,7 +2899,7 @@ function sam_corelist() {
 	clear
 	
 	if [ "$opt" != "0" ]; then
-		sam_settings
+		sam_menu
 	else 
 		declare -a corelistnew=()
 		for choice in ${menuresponse}; do
@@ -2904,12 +2923,13 @@ function sam_corelist_preset() {
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
 		--menu "Select an option" 0 0 0 \
-		1 "Only Arcade and NeoGeo games" \
 		2 "Only Arcade & Console Cores" \
+		1 "Only Arcade and NeoGeo games" \
+		6 "Only Arcade and NeoGeo games from the 1990s" \
 		3 "Only Handheld Cores" \
 		4 "Only Computer Cores" \
-		5 "Only Cores from 1990s onwards (no handheld)" \
-		6 "mrchrisster's Selection of favorite cores" 2>"/tmp/.SAMmenu"	
+		5 "Only Cores from the 1990s (no handheld)" \
+		7 "mrchrisster's Selection of favorite cores" 2>"/tmp/.SAMmenu"	
 	
 		opt=$?
 		menuresponse=$(<"/tmp/.SAMmenu")
@@ -2927,7 +2947,7 @@ function sam_corelist_preset() {
 		elif [ "${menuresponse}" -eq "5" ]; then
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
-			--yesno "Set Arcade Path Filter to 1990's?\nYou can remove the filter later by clicking No here." 0 0
+			--yesno "This will set Arcade Path Filter to 1990's?\nYou can remove the filter later by clicking No here." 0 0
 			response=$?
 			case $response in
 			   0) sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_The 1990s"'"' /media/fat/Scripts/MiSTer_SAM.ini
@@ -2937,13 +2957,26 @@ function sam_corelist_preset() {
 			   255) exit;;
 			esac
 			sed -i '/corelist=/c\corelist="'"arcade,genesis,megacd,neogeo,s32x,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
-		elif [[ "${menuresponse}" == "6" ]]; then
+		elif [ "${menuresponse}" -eq "6" ]; then
+			dialog --clear --ascii-lines --no-cancel \
+			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
+			--yesno "This will set Arcade Path Filter to 1990's?\nYou can remove the filter later by clicking No here." 0 0
+			response=$?
+			case $response in
+			   0) sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_The 1990s"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				;;
+			   1) sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
+				;;
+			   255) exit;;
+			esac
+			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		elif [[ "${menuresponse}" == "7" ]]; then
 			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		fi
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
 		--msgbox "Changes saved!" 0 0
-		sam_settings
+		sam_menu
 }
 
 
