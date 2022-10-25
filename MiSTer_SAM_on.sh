@@ -1033,9 +1033,9 @@ function loop_core() { # loop_core (core)
 function next_core() { # next_core (core)
 	
 	if [[ ! ${corelist[@]} ]]; then
-		echo " ERROR: FATAL - List of cores is empty."
+		echo "ERROR: FATAL - List of cores is empty."
 		echo "Using default corelist"
-		declare -g corelist="${corelistall[@]}"
+		declare -g corelist=("${corelistall[@]}")
 		samdebug "corelist is now ${corelist[@]}"
 	fi
 
