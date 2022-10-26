@@ -31,7 +31,6 @@
 # ======== INI VARIABLES ========
 # Change these in the INI file
 function init_vars() {
-	# ======== GLOBAL VARIABLES =========
 	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 	declare -g misterpath="/media/fat"
 	declare -g mrsamtmp="/tmp/.SAM_tmp"
@@ -39,16 +38,10 @@ function init_vars() {
 	declare -g sampid="${$}"
 	declare -g samprocess
 	samprocess="$(basename -- "${0}")"
+	declare -g menuonly="Yes"
 	declare -gi inmenu=0
 	declare -gi shown=0
 	declare -gi first_run_arcade=0
-	
-	# ======== DEBUG VARIABLES ========
-	declare -gl samquiet="Yes"
-	declare -gl samdebug="No"
-	#declare -gl samtrace="No"
-
-	# ======== LOCAL VARIABLES ========
 	declare -gi coreretries=3
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
@@ -87,14 +80,17 @@ function init_vars() {
 	declare -gl checkzipsondisk="Yes"
 	declare -gi bootsleep="60"
 	declare -gi countdown="nocountdown"	
-	declare -gi totalgamecount							
+	declare -gi totalgamecount		
+	# ======== DEBUG VARIABLES ========
+	declare -gl samquiet="Yes"
+	declare -gl samdebug="No"
+	#declare -gl samtrace="No"						
 	# ======== BGM =======
 	declare -gl bgm="No"
 	declare -gl bgmplay="Yes"
 	declare -gl bgmstop="Yes"
 	
 	# ======== TTY2OLED =======
-
 	declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
 	declare -gl ttyenable="No"
 	declare -gi ttyupdate_pause=10
@@ -752,19 +748,17 @@ function init_data() {
 function read_samini() {
 	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 		source "${misterpath}/Scripts/MiSTer_SAM.ini"
+		
 		# Remove trailing slash from paths
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"="); do
-			declare -g "${var}"="${!var%/}"
-		done
-		for var in $(grep "^[^#;]" "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathrbf=" | cut -f1 -d"="); do
+		grep "^[^#;]" < "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
 			declare -g "${var}"="${!var%/}"
 		done
 	fi
 
 	
 	#corelist=("$(echo "${corelist[@]}" | tr ',' ' ' | tr -s ' ')")
-	IFS=',' read -a corelist <<< "${corelist}"
-	IFS=',' read -a corelistall <<< "${corelistall}"
+	IFS=',' read -ra corelist <<< "${corelist}"
+	IFS=',' read -ra corelistall <<< "${corelistall}"
 
 
 }
@@ -992,7 +986,7 @@ function loop_core() { # loop_core (core)
 					play_or_exit
 				else
 					echo " Mouse activity ignored!"
-					echo "" |>/tmp/.SAM_Mouse_Activity
+					truncate -s 0 /tmp/.SAM_Mouse_Activity
 				fi
 			fi
 
@@ -1003,7 +997,7 @@ function loop_core() { # loop_core (core)
 
 				else
 					echo " Keyboard activity ignored!"
-					echo "" |>/tmp/.SAM_Keyboard_Activity
+					truncate -s 0 /tmp/.SAM_Keyboard_Activity
 				fi
 			fi
 
@@ -1013,7 +1007,7 @@ function loop_core() { # loop_core (core)
 					play_or_exit
 				elif [ "${listenmouse}" == "no" ]; then		
 					echo " Controller activity ignored!"
-					echo "" |>/tmp/.SAM_Joy_Activity
+					truncate -s 0 /tmp/.SAM_Joy_Activity
 				else
 					sam_exit 3
 				fi
@@ -1032,11 +1026,11 @@ function loop_core() { # loop_core (core)
 # Pick a random core 
 function next_core() { # next_core (core)
 	
-	if [[ ! ${corelist[@]} ]]; then
+	if [[ ! ${corelist[*]} ]]; then
 		echo "ERROR: FATAL - List of cores is empty."
 		echo "Using default corelist"
 		declare -g corelist=("${corelistall[@]}")
-		samdebug "corelist is now ${corelist[@]}"
+		samdebug "corelist is now ${corelist[*]}"
 	fi
 
 	# No corename was supplied with MiSTer_SAM_on.sh
@@ -1102,7 +1096,7 @@ function next_core() { # next_core (core)
 	
 		#Pick core
 		if [[ ! "${corelisttmp[*]}" ]]; then
-			corelisttmp="${corelist[@]}"
+			corelisttmp=("${corelist[@]}")
 		fi
 		
 		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf | head -1)
@@ -1112,8 +1106,8 @@ function next_core() { # next_core (core)
 			nextcore=arcade
 		fi
 				
-		samdebug "$(echo "corelist: ${corelist[@]}")"
-		samdebug "$(echo "corelisttmp: ${corelisttmp[@]}")"
+		samdebug "corelist: ${corelist[*]}"
+		samdebug "corelisttmp: ${corelisttmp[*]}"
 		
 		# Pick a core weighted by how many games a core's library has
 		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
@@ -1226,9 +1220,9 @@ function next_core() { # next_core (core)
 
 	# Sanity check that we have a valid rom in var
 	extension="${rompath##*.}"
-	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
+	extlist="${CORE_EXT[${nextcore}]//,/ }" 
 				
-	if [[ ! "$(echo "${extlist}" | grep -i "${extension}")" ]]; then
+	if [[ "$extlist" != *"$extension"* ]]; then
 		samquiet " Wrong extension found: \e[1m${extension^^}\e[0m"
 		samquiet " Picking new rom.."
 
@@ -1267,7 +1261,7 @@ function next_core() { # next_core (core)
 function create_romlist() { # args ${nextcore} 
 
 	samquiet "Creating gamelist for ${1}"
-	if [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
+	if ! ps -ef | grep -qi '[s]amindex'; then
 		${mrsampath}/samindex -s "${1}" -o "${gamelistpath}" 
 		if [ $? -gt 1 ]; then
 			delete_from_corelist "${1}"
@@ -1383,7 +1377,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	if [ "${4}" == "countdown" ]; then
 		for i in {5..1}; do
-			echo -ne " Loading game in ${i}...\033[0K\r"
+			printf '%s\r' "Loading game in ${i}..." 
 			sleep 1
 		done
 	fi
@@ -1488,7 +1482,8 @@ function load_core_arcade() {
 	done
 	
 	
-	mraname=$(echo $(basename "${mra}") | sed -e 's/\.[^.]*$//')	
+	#mraname="$(basename "${mra}" | sed -e 's/\.[^.]*$//')"	
+	mraname="$(basename "${mra//.mra/}")"
 	mrasetname=$(grep "<setname>" "${mra}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	tty_corename="${mrasetname}"
 
@@ -1529,7 +1524,7 @@ function load_core_arcade() {
 
 	if [ "${1}" == "countdown" ]; then
 		for i in {5..1}; do
-			echo "Loading game in ${i}...\033[0K\r"
+			printf '%s\r' "Loading game in ${i}..." 
 			sleep 1
 		done
 	fi
@@ -1554,7 +1549,7 @@ function create_amigalist () {
 		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
 		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
 		
-		total_games=$(echo "$(cat "${gamelistpath}/amiga_gamelist.txt" | sed '/^\s*$/d' | wc -l)")
+		total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
 		samquiet "${total_games} Games and Demos found."
 	else
 		touch "${gamelistpath}/amiga_gamelist.txt"
@@ -1577,7 +1572,7 @@ function load_core_amiga() {
 
 		if [ "${nextcore}" == "countdown" ]; then
 			for i in {5..1}; do
-				echo "Loading game in ${i}...\033[0K\r"
+				printf '%s\r' "Loading game in ${i}..." 
 				sleep 1
 			done
 		fi
@@ -1597,7 +1592,7 @@ function load_core_amiga() {
 			cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		fi
 
-		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
+		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
 		agpretty="$(echo "${rompath}" | tr '_' ' ')"
 		
 		# Special case for demo
@@ -1656,7 +1651,7 @@ function sam_start() {
 	bgm_start
 	tty_start
 	echo "Starting SAM in the background."
-	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real ${nextcore}
+	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real "${nextcore}"
 }
 
 
@@ -1670,11 +1665,11 @@ function there_can_be_only_one() { # there_can_be_only_one
 	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}')
 	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart_real' | awk '{print $1}' | head -1)
 
-	[[ -n ${kill_1} ]] && kill -9 ${kill_1} >/dev/null
+	[[ -n ${kill_1} ]] && kill -9 "${kill_1}" >/dev/null
 	for kill in ${kill_2}; do
-		[[ -n ${kill_2} ]] && kill -9 ${kill} >/dev/null
+		[[ -n ${kill_2} ]] && kill -9 "${kill}" >/dev/null
 	done
-	[[ -n ${kill_3} ]] && kill -9 ${kill_3} >/dev/null
+	[[ -n ${kill_3} ]] && kill -9 "${kill_3}" >/dev/null
 
 	sleep 1
 
@@ -1690,17 +1685,17 @@ function kill_all_sams() {
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
 	sam_cleanup
 	
-	if [ ${1} -eq 0 ]; then # just exit
+	if [ "${1}" -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
 		echo "Thanks for playing!"
-	elif [ ${1} -eq 1 ]; then # Error
+	elif [ "${1}" -eq 1 ]; then # Error
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
 		echo " There was an error ${2}" # Pass error messages in ${2}
-	elif [ ${1} -eq 2 ]; then        # Play Current Game
+	elif [ "${1}" -eq 2 ]; then        # Play Current Game
 		sleep 1
-	elif [ ${1} -eq 3 ]; then # Play Current Game, relaunch because of mute
+	elif [ "${1}" -eq 3 ]; then # Play Current Game, relaunch because of mute
 		sleep 1
 		if [ "${nextcore}" == "arcade" ]; then
 			echo "load_core ${mra}" >/dev/MiSTer_cmd
@@ -1717,7 +1712,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 }
 
 function play_or_exit() {
-	if [ "${playcurrentgame}" == "yes" ] && ([ ${mute} == "yes" ] || [ ${mute} == "global" ] || [ ${mute} == "core" ]); then
+	if [ "${playcurrentgame}" == "yes" ] && { [ ${mute} == "yes" ] || [ ${mute} == "global" ] || [ ${mute} == "core" ]; }; then
 		sam_exit 3
 	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
 		sam_exit 2
@@ -1738,13 +1733,12 @@ function mcp_start() {
 
 function update_tasks() {
 	[ -s "${mralist_old}" ] && { mv "${mralist_old}" "${mralist}"; }
-	[ -s "${mralist_tmp_old}" ] && { mv "${mralist_tmp_old}" "${mralist_tmp}"; }
 }	
 
 function activity_reset() {
-		echo "" |>/tmp/.SAM_Joy_Activity
-		echo "" |>/tmp/.SAM_Mouse_Activity
-		echo "" |>/tmp/.SAM_Keyboard_Activity
+		truncate -s 0 /tmp/.SAM_Joy_Activity
+		truncate -s 0 /tmp/.SAM_Mouse_Activity
+		truncate -s 0 /tmp/.SAM_Keyboard_Activity
 }								 
 
 function init_paths() {
@@ -1770,19 +1764,19 @@ function sam_prep() {
 	[[ ! -d "${mrsamtmp}" ]] && mkdir -p "${mrsamtmp}"
 	mkdir -p /media/fat/Games/SAM &>/dev/null
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
-	[ -d "${amigapath}/shared" ] && cp -r --force ${amigapath}/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
-	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic ${amigapath}/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+	[ -d "${amigapath}/shared" ] && cp -r --force "${amigapath}"/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
+	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic "${amigapath}"/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
 }
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	[ -f "/media/fat/config/Volume.dat" ] && [ ${mute} == "global" ] && rm "/media/fat/config/Volume.dat"
-	[ "$(mount | grep -ic ${amigapath}/shared)" == "1" ] && umount "${amigapath}/shared"
+	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< $(mount | grep -i _volume.cfg | awk '{print $3}') && umount "${volmount[@]}" >/dev/null
+	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
 	samquiet "Cleanup done."
 }
 
@@ -1817,7 +1811,7 @@ function sam_enable() { # Enable autoplay
 			echo "Building ${userstartup}"
 		fi
 	fi
-	if [ $(grep -ic "mister_sam" ${userstartup}) = "0" ]; then
+	if [ "$(grep -ic "mister_sam" ${userstartup})" = "0" ]; then
 		echo -e "Adding SAM to ${userstartup}\n"
 		echo -e "\n# Startup MiSTer_SAM - Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1 &" >>"${userstartup}"
@@ -1825,7 +1819,7 @@ function sam_enable() { # Enable autoplay
 	echo " SAM install complete."
 	echo -e "\n\n\n"
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
-	boot_samtimeout=$((${samtimeout} + ${bootsleep}))
+	boot_samtimeout=$((samtimeout + bootsleep))
 	echo -ne "\e[1m" SAM will start ${boot_samtimeout} sec. after boot"\e[0m"
 	if [ "${menuonly,,}" == "yes" ]; then
 		echo -ne "\e[1m" in the main menu"\e[0m"
@@ -2000,16 +1994,16 @@ function mglfavorite() {
 }
 
 function delete_from_corelist() { # delete_from_corelist core tmp
-	if [ -z $2 ]; then
+	if [ -z "$2" ]; then
 		for i in "${!corelist[@]}"; do
-			if [[ ${corelist[i]} = $1 ]]; then
+			if [[ ${corelist[i]} = "$1" ]]; then
 				unset 'corelist[i]'
 			fi
 		done
-		printf "%s\n" ${corelist[@]} > ${corelistfile}
+		printf "%s\n" "${corelist[@]}" > "${corelistfile}"
 	else
 		for i in "${!corelisttmp[@]}"; do
-			if [[ ${corelisttmp[i]} = $1 ]]; then
+			if [[ ${corelisttmp[i]} = "$1" ]]; then
 				unset 'corelisttmp[i]'
 			fi
 		done
@@ -2035,7 +2029,7 @@ function core_error() { # core_error core /path/to/ROM
 		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
 		echo " ERROR: Core ${1} is blacklisted!"
 		delete_from_corelist "${1}"
-		echo " List of cores is now: ${corelist[@]}"
+		echo " List of cores is now: ${corelist[*]}"
 		declare -g romloadfails=0
 		# Load a different core
 		next_core
@@ -2069,7 +2063,7 @@ function mute() {
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
 		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
 		echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
-		if [ "$(mount | grep -ic ${1}_volume.cfg)" == "0" ]; then
+		if [ "$(mount | grep -ic "${1}"_volume.cfg)" == "0" ]; then
 			n=0
 			until [ "$n" -ge 5 ]
 			do
@@ -2111,19 +2105,19 @@ function check_zips() { # check_zips core
 	samquiet -n "Checking zips on disk..."
 	if [ "${checkzipsondisk}" == "yes" ]; then 
 		# Check for new zips
-		corepath="$("${mrsampath}"/samindex -q -s ${1} -d |awk -F':' '{print $2}')"
-		readarray -t files <<< $(find "${corepath}" -maxdepth 2 -type f -name "*.zip")
+		corepath="$("${mrsampath}"/samindex -q -s "${1}" -d |awk -F':' '{print $2}')"
+		readarray -t files <<< "$(find "${corepath}" -maxdepth 2 -type f -name "*.zip")"
 		extgrep=$(echo ".${CORE_EXT[${1}]}" | sed -e "s/,/\\\|/g"| sed 's/,/,./g')
 		# Check which files have valid roms
-		readarray -t newfiles <<< $(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )
-		if [[ "${newfiles[@]}" ]]; then
+		readarray -t newfiles <<< "$(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )"
+		if [[ "${newfiles[*]}" ]]; then
 			for f in "${newfiles[@]}"; do
-				if [ "$("${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -m 1 "${extgrep}")" ]; then
+				if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}"; then
 					zipsondisk+=( "${f}" )
 				fi
 			done
 		fi
-		if [[ "${zipsondisk[@]}" ]]; then
+		if [[ "${zipsondisk[*]}" ]]; then
 			result="$(printf '%s\n' "${zipsondisk[@]}")"
 			if [[ "${result}" ]]; then
 				echo "Found new zip files: ${result##*/}"
@@ -2139,39 +2133,39 @@ function check_zips() { # check_zips core
 function check_gamelists() {
 
 	unset glcreate
-	readarray -t glexistcl <<< $(printf '%s\n'  "${corelist[@]}" "${glondisk[@]}"  | sort | uniq -iu )
+	readarray -t glexistcl <<< "$(printf '%s\n'  "${corelist[@]}" "${glondisk[@]}"  | sort | uniq -iu )"
 
 	for g in "${glexistcl[@]}"; do 
 		for c in "${corelist[@]}"; do 
 			if [[ "$c" == "$g" ]]; then 
-				glcreate+=($c)
+				glcreate+=("$c")
 			fi
 		done 
 	done
 	
-	if [[ "${glcreate[@]}" == *"amiga"* ]]; then
+	if [[ "${glcreate[*]}" == *"amiga"* ]]; then
 		create_amigalist &
 		glcreate=( "${glcreate[@]/amiga}" )
 	fi
 
-	if [[ "${glcreate[@]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
+	if [[ "${glcreate[*]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
 		unset nogames
 		for c in "${glcreate[@]}"; do
-			"${mrsampath}"/samindex -q -s $c -o "${gamelistpath}"
+			"${mrsampath}"/samindex -q -s "$c" -o "${gamelistpath}"
 			if [ $? -gt 1 ]; then
-				nogames+=($c)
+				nogames+=("$c")
 			fi
 		done
 		
-		if [[ "${nogames[@]}" ]]; then
+		if [[ "${nogames[*]}" ]]; then
 			for f in "${nogames[@],,}"; do
-				delete_from_corelist ${f}
-				delete_from_corelist ${f} tmp 
+				delete_from_corelist "${f}"
+				delete_from_corelist "${f}" tmp 
 				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
 			done
-			[ -s "${corelistfile}" ] && corelistupdate="$(echo "corelist="'"'$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')'"'"")"
-			sed -i '/corelist=/c\'"$corelistupdate"'' /media/fat/Scripts/MiSTer_SAM.ini	
-			echo "SAM now has the following cores disabled in MiSTer_SAM.ini: $( echo ${nogames[@]}| tr ' ' ',') "
+			[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
+			sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			echo "SAM now has the following cores disabled in MiSTer_SAM.ini: $( echo "${nogames[@]}"| tr ' ' ',') "
 			echo "No games were found for these cores."
 		fi 
 		
@@ -2188,7 +2182,7 @@ function romfilter() { # romfilter core
 	fi
 	
 	#Check ini exclusion
-	if [[ "${exclude[@]}" ]]; then 
+	if [[ "${exclude[*]}" ]]; then 
 		for e in "${exclude[@]}"; do
 			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		done
@@ -2200,7 +2194,7 @@ function romfilter() { # romfilter core
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
 		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		samquiet "$(cat "${gamelistpathtmp}/${1}_gamelist.txt" | wc -l) Games after removing blacklisted. (Active on next run of $1)"
+		samquiet "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games after removing blacklisted. (Active on next run of $1)"
 	fi
 
 }
@@ -2208,11 +2202,7 @@ function romfilter() { # romfilter core
 
 function samdebug() {
 	if [ "${samdebug}" == "yes" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[31m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[31m${1-}\e[0m"
-		fi
+			echo -e "\e[1m\e[31m${*-}\e[0m"
 	fi
 }
 
@@ -2414,7 +2404,7 @@ function sam_update() { # sam_update (next command)
 	mkdir --parents "${mrsampath}" &>/dev/null
 	mkdir --parents "${gamelistpath}" &>/dev/null
 
-	if [ ! "$(dirname -- ${0})" == "/tmp" ]; then
+	if [ ! "$(dirname -- "${0}")" == "/tmp" ]; then
 		# Warn if using non-default branch for updates
 		if [ ! "${branch}" == "main" ]; then
 			echo ""
@@ -2427,9 +2417,9 @@ function sam_update() { # sam_update (next command)
 		# Download the newest MiSTer_SAM_on.sh to /tmp
 		get_samstuff MiSTer_SAM_on.sh /tmp
 		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
-			if [ ${1} ]; then
+			if [ "${1}" ]; then
 				echo " Continuing setup with latest MiSTer_SAM_on.sh..."
-				/tmp/MiSTer_SAM_on.sh ${1}
+				/tmp/MiSTer_SAM_on.sh "${1}"
 				exit 0
 			else
 				echo " Launching latest"
@@ -2496,7 +2486,7 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ $(grep -ic "mister_sam" "${userstartup}") != "0" ]; then
+	if [ "$(grep -ic "mister_sam" "${userstartup}")" != "0" ]; then
 		echo " -SAM autoplay ENABLED"
 	else
 		echo " -SAM autoplay DISABLED"
@@ -2544,7 +2534,7 @@ function sam_menu() {
 		----- "-----------------------------" \
 		sam_corelist "Select Core List" \
 		sam_corelist_preset "Select Core List Presets" \
-		Single "Single core selection" \
+		Single "Single Core selection" \
 		Include "Single category selection" \
 		Gamemode "Game roulette" \
 		Favorite "Copy current game to _Favorites folder" \
@@ -2565,7 +2555,7 @@ function sam_menu() {
 	elif [[ "${menuresponse,,}" == "sam_corelist_preset" ]]; then
 		sam_corelist_preset
 	else 
-		parse_cmd ${menuresponse}
+		parse_cmd "${menuresponse}"
 	fi
 
 }
@@ -2605,7 +2595,7 @@ function sam_settings() {
 	elif [[ "${menuresponse,,}" == "arcade_orient" ]]; then
 		arcade_orient
 	else 
-		parse_cmd ${menuresponse}
+		parse_cmd "${menuresponse}"
 	fi
 
 }
@@ -2784,8 +2774,8 @@ function sam_controller() {
 		name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
 		
 		startbutton="$($pyfile /dev/input/js0 start)"
-		echo start button: $startbutton
-		echo controller id: $id
+		echo start button: "$startbutton"
+		echo controller id: "$id"
 
 		if [[ "$startbutton" == *"not exist"* ]]; then
 			dialog --clear --no-cancel --ascii-lines \
@@ -2793,7 +2783,7 @@ function sam_controller() {
 			--msgbox "No joysticks connected. " 0 0
 			sam_menu
 		else
-			if [ "$(grep -c $id $pyfile)" == "0" ]; then 
+			if [ "$(grep -c "$id" $pyfile)" == "0" ]; then 
 				sed -i '16 a\    \"'"$id"'": { \
 					"name": "'"$name"'", \
 					"button": { \
@@ -2862,10 +2852,10 @@ function sam_timer() {
 
 function sam_corelist() {
 	declare -a corelistmenu=()
-	for core in ${corelistall[@]}; do
+	for core in "${corelistall[@]}"; do
 		corelistmenu+=("${core}")
 		corelistmenu+=("Show ${CORE_PRETTY[${core}]} Games")
-		if [[ "${corelist[@]}" == *"$core"* ]]; then
+		if [[ "${corelist[*]}" == *"$core"* ]]; then
 			corelistmenu+=("ON")
 		else
 			corelistmenu+=("OFF")
@@ -2885,19 +2875,19 @@ function sam_corelist() {
 		declare -a corelistnew=()
 		for choice in ${menuresponse}; do
 			case $choice in
-				$choice)
-					corelistnew+=($choice)
+				"$choice")
+					corelistnew+=("$choice")
 					;;															
 			esac
 		done
 	fi
 	if [[ "${corelistnew[*]}" ]]; then
 		unset corelist
-		corelist="$(echo "${corelistnew[@]}" | tr ' ' ',' | tr -s ' ')"
-		sed -i '/corelist=/c\corelist="'"$corelist"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		corelistmod="$(echo "${corelistnew[@]}" | tr ' ' ',' | tr -s ' ')"
+		sed -i '/corelist=/c\corelist="'"$corelistmod"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ Settings ]" \
-		--msgbox "Changes saved. Core list is now: $corelist" 0 0
+		--msgbox "Changes saved. Core list is now: $corelistmod" 0 0
 	fi
 	sam_menu
 }
@@ -2965,7 +2955,7 @@ function sam_corelist_preset() {
 
 function sam_singlemenu() {
 	declare -a menulist=()
-	for core in ${corelistall[@]}; do
+	for core in "${corelistall[@]}"; do
 		menulist+=("${core^^}")
 		menulist+=("${CORE_PRETTY[${core}]} games only")
 	done
@@ -2981,7 +2971,7 @@ function sam_singlemenu() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	else 
-		parse_cmd ${menuresponse}
+		parse_cmd "${menuresponse}"
 	fi
 
 }
@@ -2998,7 +2988,7 @@ function sam_resetmenu() {
 	clear
 
 	samquiet "menuresponse: ${menuresponse}"
-	parse_cmd ${menuresponse}
+	parse_cmd "${menuresponse}"
 }
 
 function sam_gamelistmenu() {
@@ -3016,7 +3006,7 @@ function sam_gamelistmenu() {
 	clear
 
 	samquiet  "menuresponse: ${menuresponse}"
-	parse_cmd ${menuresponse}
+	parse_cmd "${menuresponse}"
 }
 
 function sam_autoplaymenu() {
@@ -3030,7 +3020,7 @@ function sam_autoplaymenu() {
 
 	clear
 	samquiet  "menuresponse: ${menuresponse}"
-	parse_cmd ${menuresponse}
+	parse_cmd "${menuresponse}"
 }
 
 function sam_configmenu() {
@@ -3093,7 +3083,7 @@ function sam_gamemodemenu() {
 			checkgl
 			mute=no
 			listenmouse="No"
-			listenkeyboard="No"${ttydevice}
+			listenkeyboard="No"
 			listenjoy="No"
 			loop_core
 		fi
@@ -3138,19 +3128,19 @@ function samedit_include() {
 		if compgen -G "${gamelistpathtmp}/*_gamelist.txt" >/dev/null; then
 			rm ${gamelistpathtmp}/*_gamelist.txt
 		fi
-		gamelists=($(find "${gamelistpath}" -name "*_gamelist.txt"))
+		readarray -t gamelists <<< "$(find "${gamelistpath}" -name "*_gamelist.txt")"
 
 		# echo ${gamelists[@]}
-		for list in ${gamelists[@]}; do
-			listfile=$(basename ${list})
+		for list in "${gamelists[@]}"; do
+			listfile=$(basename "${list}")
 			# awk -v category="$categ" 'tolower($0) ~ category' "${list}" > "${gamelistpathtmp}/${listfile}"
 			grep -i "${categ}" "${list}" >"${tmpfile}"
 			awk -F'/' '!seen[$NF]++' "${tmpfile}" >"${gamelistpathtmp}/${listfile}"
 			[[ -s "${gamelistpathtmp}/${listfile}" ]] || rm "${gamelistpathtmp}/${listfile}"
 		done
 
-		corelist=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
-
+		#corelist=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
+		readarray -t corelist <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)"
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
@@ -3167,9 +3157,9 @@ function samedit_excltags() {
 	excludetags="${gamelistpath}/.excludetags"
 	
 	function process_tag() {
-		for core in ${corelist}; do
+		for core in "${corelist[@]}"; do
 			[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${core}_gamelist.txt"
-			if [ "${gamelistpath}/${core}_gamelist.txt" ]; then
+			if [[ -e "${gamelistpath}/${core}_gamelist.txt" ]]; then
 				grep -i "$categ" "${gamelistpath}/${core}_gamelist.txt" >>"${gamelistpath}/${core}_gamelist_exclude.txt"
 			else
 				grep -i "$categ" "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpath}/${core}_gamelist_exclude.txt"
@@ -3210,13 +3200,13 @@ function samedit_excltags() {
 		sam_menu
 	else
 		echo " Please wait... creating exclusion lists."
-		if [ -n ${categ} ]; then
+		if [ -n "${categ}" ]; then
 			if [ ! -s "${excludetags}" ]; then
 				echo "${categ} " > "${excludetags}"
 				process_tag
 			else
 				# Check if tag is already excluded
-				if [ "$(grep -i "${categ}" "${excludetags}")" ]; then
+				if grep -qi "${categ}" "${excludetags}"; then
 					dialog --clear --no-cancel --ascii-lines \
 					--backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORY SELECTION ]" \
 					--msgbox "${categ} has already been excluded. \n\n" 0 0
@@ -3227,7 +3217,7 @@ function samedit_excltags() {
 				fi
 			fi
 		else
-			for core in ${corelist}; do
+			for core in "${corelist[@]}"; do
 				rm "${gamelistpath}/${core}_gamelist_exclude.txt" 2>/dev/null
 				rm "${excludetags}" 2>/dev/null
 			done
@@ -3271,16 +3261,16 @@ function samedit_excltags_old() {
 		sam_menu
 	else
 		echo " Please wait... creating exclusion lists."
-		categ="$(echo ${menuresponse} | tr ' ' '|')"
-		if [ -n ${categ} ]; then
+		categ="$(echo "${menuresponse}" | tr ' ' '|')"
+		if [ -n "${categ}" ]; then
 			# TO DO: What if we don't have gamelists
-			for core in ${corelist}; do
+			for core in "${corelist[@]}"; do
 				[[ -f "${gamelistpathtmp}/${core}_gamelist.txt" ]] && rm "${gamelistpathtmp}/${core}_gamelist.txt"
 				# Find out how to do this with grep, might be faster
 				awk -v category="$categ" 'BEGIN {IGNORECASE = 1}  $0 ~ category' "${gamelistpath}/${core}_gamelist.txt" >"${gamelistpath}/${core}_gamelist_exclude.txt"
 			done
 		else
-			for core in ${corelist}; do
+			for core in "${corelist[@]}"; do
 				rm "${gamelistpath}/${core}_gamelist_exclude.txt"
 			done
 		fi
@@ -3369,5 +3359,5 @@ init_paths
 init_data
 
 if [ "${1,,}" != "--source-only" ]; then
-	parse_cmd ${@} # Parse command line parameters for input
+	parse_cmd "${@}" # Parse command line parameters for input
 fi
