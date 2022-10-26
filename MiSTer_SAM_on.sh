@@ -2064,12 +2064,8 @@ function mute() {
 		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
 		echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
 		if [ "$(mount | grep -ic "${1}"_volume.cfg)" == "0" ]; then
-			while ! mountpoint -q /media/fat/config/"${1}_volume.cfg"; do
-  				mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg" || sleep 1
-  				if [ $? -gt 1 ]; then
-  					samdebug "${1}_volume.cfg not mounted"	
-				fi
-			done
+  			mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg"
+  			sync
 		fi
 		# Only keep one volume.cfg file mounted
 		if [ -n "${prevcore}" ] && [ "${prevcore}" != "${1}" ]; then
