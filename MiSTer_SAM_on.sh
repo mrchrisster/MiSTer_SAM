@@ -1293,7 +1293,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	
 		#Check path filter
 		if [ -n "${PATHFILTER[${1}]}"  ]; then 
-			echo "Found path filter for ${1} core. Setting path to ${PATHFILTER[${1}]}."
+			echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
 			fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		fi
 	
@@ -1450,7 +1450,7 @@ function load_core_arcade() {
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 		#Check path filter
 		if [ -n "${arcadepathfilter}" ]; then
-			samquiet "Found path filter for Arcade core. Stripping out unwanted games now."
+			echo "Found path filter for Arcade core: ${arcadepathfilter}"
 			fgrep "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
 			if [ -n "${arcadeorient}" ]; then
 				fgrep -i "${arcadeorient}" "${mralist}" | awk -F"/" '{print $NF}' > $tmpfile	
