@@ -1452,11 +1452,11 @@ function load_core_arcade() {
 		if [ -n "${arcadepathfilter}" ]; then
 			echo "Found path filter for Arcade core: ${arcadepathfilter}"
 			fgrep "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
-			if [ -n "${arcadeorient}" ]; then
-				fgrep -i "${arcadeorient}" "${mralist}" | awk -F"/" '{print $NF}' > $tmpfile	
-				fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
-				#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
-			fi
+		fi
+		if [ -n "${arcadeorient}" ]; then
+			fgrep -i "${arcadeorient}" "${mralist}" | awk -F"/" '{print $NF}' > $tmpfile	
+			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
+			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
 	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
@@ -2064,14 +2064,12 @@ function mute() {
 		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
 		echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
 		if [ "$(mount | grep -ic "${1}"_volume.cfg)" == "0" ]; then
-			n=0
-			until [ "$n" -ge 5 ]
-			do
-			   mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg" && break
-			   n=$((n+1)) 
-			   sleep 1
+			while ! mountpoint -q /media/fat/config/"${1}_volume.cfg"; do
+  				mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg" || sleep 1
+  				if [ $? -gt 1 ]; then
+  					samdebug "${1}_volume.cfg not mounted"	
+				fi
 			done
-			sync
 		fi
 		# Only keep one volume.cfg file mounted
 		if [ -n "${prevcore}" ] && [ "${prevcore}" != "${1}" ]; then
