@@ -2526,8 +2526,8 @@ function sam_menu() {
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		Start "Start SAM now" \
-		Startmonitor "Start SAM now and monitor (ssh)" \
-		Skip "Skip game" \
+		Startmonitor "Start SAM now And Monitor (SSH)" \
+		Skip "Skip Game" \
 		Stop "Stop SAM" \
 		Update "Update SAM to latest" \
 		Settings "Settings" \
@@ -2535,8 +2535,8 @@ function sam_menu() {
 		sam_corelist "Select Core List" \
 		sam_corelist_preset "Select Core List Presets" \
 		Single "Single Core Selection" \
-		Include "Single category selection" \
-		Gamemode "Game roulette" \
+		Include "Single Category Selection" \
+		Gamemode "Game Roulette" \
 		Favorite "Copy current game to _Favorites folder" \
 		Gamelists "Game Lists - Create or Delete" \
 		Reset "Reset or uninstall SAM" \
