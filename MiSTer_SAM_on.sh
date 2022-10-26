@@ -2534,7 +2534,7 @@ function sam_menu() {
 		----- "-----------------------------" \
 		sam_corelist "Select Core List" \
 		sam_corelist_preset "Select Core List Presets" \
-		Single "Single Core selection" \
+		Single "Single Core Selection" \
 		Include "Single category selection" \
 		Gamemode "Game roulette" \
 		Favorite "Copy current game to _Favorites folder" \
