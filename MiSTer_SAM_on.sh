@@ -1310,7 +1310,6 @@ function check_list_and_pick_rom() { # args ${nextcore}
 			fi
 			FIRSTRUN[${1}]=1
 		fi
-		sed -i '/^$/d' "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 		
 	if [ -s ${gamelistpathtmp}/"${1}"_gamelist.txt ]; then
@@ -2190,6 +2189,7 @@ function romfilter() { # romfilter core
 		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		samquiet "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games after removing blacklisted. (Active on next run of $1)"
 	fi
+	#sed -i '/^$/d' "${gamelistpathtmp}/${1}_gamelist.txt"
 
 }
 
