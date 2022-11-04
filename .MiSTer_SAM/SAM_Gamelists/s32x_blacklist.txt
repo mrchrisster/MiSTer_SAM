@@ -22,8 +22,7 @@ Doom 32X - 24 Levels expansion + Addendum (Europe) (Hack) v1.1 Saxman & Nuxius
 Doom 64 32X (Hack) MarphitimusBlackimus
 Ecco the Dolphin (USA) (Demo) 
 Fuboy - Gameboy Emulator by mic (v2009-01-31) (PD) 
-Golf Magazine Presents - 36 Great Holes Starring Fred Couples (Japan, USA) (En) 
-Golf Magazine Presents - 36 Great Holes Starring Fred Couples (Japan, USA) (En)
+Golf Magazine Presents - 36 Great Holes Starring Fred Couples
 Green Rotating No Stretching XOR Palette Demo by DevSter (PD) (32X)
 Green Rotating XOR Palette Demo by DevSter (PD) (32X)
 Hot Chick in High Quality 15BPP by DevSter (PD) (32X)
