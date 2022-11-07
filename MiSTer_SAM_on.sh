@@ -2358,6 +2358,7 @@ function get_mbc() {
 
 function get_inputmap() {
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
+	[[ -d /media/fat/Config/inputs ]] || mkdir -p /media/fat/Config/inputs
 	get_samstuff .MiSTer_SAM/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
@@ -2479,8 +2480,12 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ "$(grep -ic "mister_sam" "${userstartup}")" != "0" ]; then
-		echo " -SAM autoplay ENABLED"
+	if [ -e "${userstartup}" ]; then
+		if [ "$(grep -ic "mister_sam" "${userstartup}")" != "0" ]; then
+			echo " -SAM autoplay ENABLED"
+		else
+			echo " -SAM autoplay DISABLED"
+		fi
 	else
 		echo " -SAM autoplay DISABLED"
 	fi
