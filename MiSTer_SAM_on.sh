@@ -493,7 +493,6 @@ function init_data() {
 		["cyberlip"]="Cyber-Lip"
 		["diggerma"]="Digger Man"
 		["doubledr"]="Double Dragon"
-		["dragonsh"]="Dragon's Heaven (development board)"
 		["eightman"]="Eight Man"
 		["fatfursp"]="Fatal Fury Special"
 		["fatfurspa"]="Fatal Fury Special (NGM-058 ~ NGH-058, set 2)"
@@ -642,7 +641,6 @@ function init_data() {
 		["quizdai2"]="Quiz Meitantei Neo & Geo: Quiz Daisousa Sen part 2"
 		["quizdais"]="Quiz Daisousa Sen: The Last Count Down"
 		["quizdask"]="Quiz Salibtamjeong: The Last Count Down (Korean localized Quiz Daisousa Sen)"
-		["quizdaisk"]="Quiz Salibtamjeong: The Last Count Down (Korean localized Quiz Daisousa Sen)"
 		["quizkof"]="Quiz King of Fighters"
 		["quizkofk"]="Quiz King of Fighters (Korean release)"
 		["ragnagrd"]="Ragnagard"
@@ -726,7 +724,6 @@ function init_data() {
 		["tws96"]="Tecmo World Soccer '96"
 		["twsoc96"]="Tecmo World Soccer '96"
 		["viewpoin"]="Viewpoint"
-		["vliner"]="V-Liner"
 		["wakuwak7"]="Waku Waku 7"
 		["wh1"]="World Heroes"
 		["wh1h"]="World Heroes (ALH-005)"
@@ -1397,11 +1394,11 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		)
 	
 		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-		write_to_TTY_cmd_pipe "display_info" &		
+		ttylogoshow &	
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		SECONDS=${elapsed}
 	fi
-
+	
 
 	# Create mgl file and launch game
 	if [ -s /tmp/SAM_game.mgl ]; then
@@ -1508,7 +1505,7 @@ function load_core_arcade() {
 			[update_pause]=${ttyupdate_pause}
 		)
 		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-		write_to_TTY_cmd_pipe "display_info" &
+		ttylogoshow &
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		SECONDS=${elapsed}
 	fi
@@ -1623,7 +1620,7 @@ function load_core_amiga() {
 				[update_pause]=${ttyupdate_pause}
 			)
 			declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-			write_to_TTY_cmd_pipe "display_info" &
+			ttylogoshow &
 			local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 			SECONDS=${elapsed}
 		fi
@@ -2289,6 +2286,16 @@ function tty_exit() {
 	fi
 }
 
+function ttylogoshow() {
+	[[ -z "${ttycoreshow}" ]] && ttycoreshow=$(("${gametimer}" / 3))
+	for i in $( eval echo {0..$ttydisplayswitch} ); do
+		write_to_TTY_cmd_pipe "display_info" &
+		samdebug "TTY Core logo switch sleeping for $ttycoreshow seconds"
+		samdebug "Showing Core logo $ttydisplayswitch times"
+		sleep "${ttycoreshow}"
+	done
+}
+
 function write_to_TTY_cmd_pipe() {
 	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
 }
@@ -2361,7 +2368,6 @@ function get_mbc() {
 
 function get_inputmap() {
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
-	[[ -d /media/fat/Config/inputs ]] || mkdir -p /media/fat/Config/inputs
 	get_samstuff .MiSTer_SAM/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
@@ -2483,12 +2489,8 @@ function sam_premenu() {
 	echo "| MiSTer Super Attract Mode |"
 	echo "+---------------------------+"
 	echo " SAM Configuration:"
-	if [ -e "${userstartup}" ]; then
-		if [ "$(grep -ic "mister_sam" "${userstartup}")" != "0" ]; then
-			echo " -SAM autoplay ENABLED"
-		else
-			echo " -SAM autoplay DISABLED"
-		fi
+	if [ "$(grep -ic "mister_sam" "${userstartup}")" != "0" ]; then
+		echo " -SAM autoplay ENABLED"
 	else
 		echo " -SAM autoplay DISABLED"
 	fi
