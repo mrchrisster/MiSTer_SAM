@@ -101,6 +101,7 @@ function set_scroll_speed() {
 	ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
 }
 
+# Update Top and Middle Row
 function update_name_scroll() {
 	if [ ${ttyscroll_speed} -gt 0 ]; then
 		if [ ${#tty_currentinfo[name]} -gt 21 ]; then
@@ -122,15 +123,17 @@ function update_name_scroll() {
 					fi
 				fi
 				tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
-				[[ -c ${ttydevice} ]] && echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
-				[[ -c ${ttydevice} ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+				[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
+				[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+				[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,0,0,0,30,${prev_name_scroll}" >${ttydevice}
+				[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,15,0,0,30,${tty_currentinfo[name_scroll]}" >${ttydevice}
 				prev_name_scroll="${tty_currentinfo[name_scroll]}"
 			fi
 		fi
 	fi
 }
 
-
+# Update bottom row - Display Next game in XXX
 function update_counter() {
 	if [ ${tty_currentinfo[update_pause]} -gt 0 ]; then
 		((tty_currentinfo[update_pause]--))
@@ -174,15 +177,15 @@ function tty_display() { # tty_update core game
 		samdebug " tty_update got Corename: ${tty_currentinfo[core]} "
 		samdebug "-------------------------------------------"
 		samdebug " tty_update counter: ${tty_currentinfo[counter]} "
-		# Show Core-Logo for 5 Secs
-		sleep 5
+		sleep "${ttycoresleep}"
 		# Clear Display	with Random effect
 		echo "CMDCLST,-1,0" >"${ttydevice}"
 		tty_waitfor
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		tty_currentinfo[counter]=$((gametimer - elapsed))
-		[[ -c ${ttydevice} ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-		[[ -c ${ttydevice} ]] && echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,15,0,0,30,${tty_currentinfo[name_scroll]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,102,5,0,0,40,${tty_currentinfo[core_pretty]}" >${ttydevice}
 		[[ -c ${ttydevice} ]] && echo "CMDTXT,102,15,0,0,60,Next game in ${tty_currentinfo[counter]}" >${ttydevice}
 		prev_name_scroll="${tty_currentinfo[name_scroll]}"
 		prev_counter="${tty_currentinfo[counter]}"
@@ -226,8 +229,6 @@ function tty_senddata() {
 	fi                                                 # End if Picture check
 }
 
-# ======== FUNCTIONS ========
-
 function samquiet() {
 	if [ "${samquiet}" == "no" ]; then
 		if [ "${1}" == "-n" ]; then
@@ -248,25 +249,6 @@ function samdebug() {
 	fi
 }
 
-function tty_cleanup() {
-	samquiet " TTY Cleaned up!"
-	[ -p ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-	[ -e ${TTY_cmd_pipe} ] && rm -f ${TTY_cmd_pipe}
-}
-
-function tty_exit() {
-	# Clear Display	with Random effect
-	[[ -c ${ttydevice} ]] && echo "CMDCLST,-1,0" >${ttydevice}
-	tty_waitfor
-	#[[ -c ${ttydevice} ]] && echo "CMDBYE" >${ttydevice}
-	
-	sleep 5
-	#echo "CMDAPD,MENU" >${ttydevice}
-	#tail -n +4 "/media/fat/tty2oled/pics/GSC/$(cat /tmp/CORENAME).gsc" | xxd -r -p >${ttydevice}
-	#echo "CMDSPIC,-1" >${ttydevice}
-	tty_senddata $(cat /tmp/CORENAME)
-	tty_cleanup
-}
 
 function write_to_TTY_cmd_pipe() {
 	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
