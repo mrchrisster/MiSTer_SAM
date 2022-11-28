@@ -837,7 +837,7 @@ function init_data() {
 		["c64"]="C64"
 		["fds"]="FDS"
 		["gameboy"]="GB"
-		["gbc"]="GBC"
+		["gbc"]="GAMEBOY"	//need GBC pics added to the repo
 		["gba"]="GBA"
 		["genesis"]="Genesis"
 		["gamegear"]="GameGear"
