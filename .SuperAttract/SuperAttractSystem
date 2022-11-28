@@ -91,7 +91,7 @@ function startup_tasks() {
 
 	# ======== LOCAL VARIABLES ========
 	if [ "${samprocess}" == "SuperAttract_init" ]; then
-		declare -gl corelistall="amiga arcade atari2600 atari5200 atari7800 atarilynx c64 fds gb gbc gba genesis gg megacd neogeo nes s32x sms snes tgfx16 tgfx16cd psx"
+		declare -gl corelistall="amiga arcade atari2600 atari5200 atari7800 atarilynx c64 fds gameboy gbc gba genesis gamegear megacd neogeo nes s32x sms snes tgfx16 tgfx16cd psx"
 		# From ini
 		declare -gl usedefaultpaths=${ini_settings[usedefaultpaths]:="yes"}
 		createfolders
@@ -118,7 +118,7 @@ function startup_tasks() {
 		declare -g ttyuserini=${ini_settings[ttyuserini]:="/media/fat/tty2oled/tty2oled-user.ini"}
 		init_tty2oled_vars
 	elif [ "${samprocess}" == "Super_Attract_Mode.sh" ]; then
-		declare -gl corelistall="amiga arcade atari2600 atari5200 atari7800 atarilynx c64 fds gb gbc gba genesis gg megacd neogeo nes s32x sms snes tgfx16 tgfx16cd psx"
+		declare -gl corelistall="amiga arcade atari2600 atari5200 atari7800 atarilynx c64 fds gameboy gbc gba genesis gamegear megacd neogeo nes s32x sms snes tgfx16 tgfx16cd psx"
 		declare -gi speedtest=0
 		declare -gi inmenu=0
 		declare -gi coreretries=3
@@ -168,17 +168,17 @@ function init_game_path_vars() {
 	# ======== CORE PATHS ========
 	declare -g amigapath=${ini_settings[amigapath]:="${misterpath}/Games/Amiga"}
 	declare -g arcadepath=${ini_settings[arcadepath]:="${misterpath}/_Arcade"}
-	declare -g atari2600path=${ini_settings[atari2600path]:="${misterpath}/Games/Atari7800"}
+	declare -g atari2600path=${ini_settings[atari2600path]:="${misterpath}/Games/Atari2600"}
 	declare -g atari5200path=${ini_settings[atari5200path]:="${misterpath}/Games/Atari5200"}
 	declare -g atari7800path=${ini_settings[atari7800path]:="${misterpath}/Games/Atari7800"}
 	declare -g atarilynxpath=${ini_settings[atarilynxpath]:="${misterpath}/Games/AtariLynx"}
 	declare -g c64path=${ini_settings[c64path]:="${misterpath}/Games/C64"}
 	declare -g fdspath=${ini_settings[fdspath]:="${misterpath}/Games/NES"}
-	declare -g gbpath=${ini_settings[gbpath]:="${misterpath}/Games/Gameboy"}
-	declare -g gbcpath=${ini_settings[gbcpath]:="${misterpath}/Games/Gameboy"}
+	declare -g gameboypath=${ini_settings[gameboypath]:="${misterpath}/Games/Gameboy"}
+	declare -g gbcpath=${ini_settings[gbcpath]:="${misterpath}/Games/GBC"}
 	declare -g gbapath=${ini_settings[gbapath]:="${misterpath}/Games/GBA"}
 	declare -g genesispath=${ini_settings[genesispath]:="${misterpath}/Games/Genesis"}
-	declare -g ggpath=${ini_settings[ggpath]:="${misterpath}/Games/SMS"}
+	declare -g gamegearpath=${ini_settings[gamegearpath]:="${misterpath}/Games/GameGear"}
 	declare -g megacdpath=${ini_settings[megacdpath]:="${misterpath}/Games/MegaCD"}
 	declare -g neogeopath=${ini_settings[neogeopath]:="${misterpath}/Games/NeoGeo"}
 	declare -g nespath=${ini_settings[nespath]:="${misterpath}/Games/NES"}
@@ -199,11 +199,11 @@ function init_game_path_vars() {
 		declare -g atarilynxpathextra=${ini_settings[atarilynxpathextra]:=}
 		declare -g c64pathextra=${ini_settings[c64pathextra]:=}
 		declare -g fdspathextra=${ini_settings[fdspathextra]:=}
-		declare -g gbpathextra=${ini_settings[gbpathextra]:=}
+		declare -g gameboypathextra=${ini_settings[gameboypathextra]:=}
 		declare -g gbcpathextra=${ini_settings[gbcpathextra]:=}
 		declare -g gbapathextra=${ini_settings[gbapathextra]:=}
 		declare -g genesispathextra=${ini_settings[genesispathextra]:=}
-		declare -g ggpathextra=${ini_settings[ggpathextra]:=}
+		declare -g gamegearpathextra=${ini_settings[gamegearpathextra]:=}
 		declare -g megacdpathextra=${ini_settings[megacdpathextra]:=}
 		declare -g neogeopathextra=${ini_settings[neogeopathextra]:=}
 		declare -g nespathextra=${ini_settings[nespathextra]:=}
@@ -226,11 +226,11 @@ function kill_game_path_vars() {
 	unset atarilynxpath
 	unset c64path
 	unset fdspath
-	unset gbpath
+	unset gameboypath
 	unset gbcpath
 	unset gbapath
 	unset genesispath
-	unset ggpath
+	unset gamegearpath
 	unset megacdpath
 	unset neogeopath
 	unset nespath
@@ -250,11 +250,11 @@ function kill_game_path_vars() {
 	unset atarilynxpathextra
 	unset c64pathextra
 	unset fdspathextra
-	unset gbpathextra
+	unset gameboypathextra
 	unset gbcpathextra
 	unset gbapathextra
 	unset genesispathextra
-	unset ggpathextra
+	unset gamegearpathextra
 	unset megacdpathextra
 	unset neogeopathextra
 	unset nespathextra
@@ -278,11 +278,11 @@ function init_final_paths() {
 			["atarilynx"]="${atarilynxpath}${atarilynxpathextra}"
 			["c64"]="${c64path}${c64pathextra}"
 			["fds"]="${fdspath}${fdspathextra}"
-			["gb"]="${gbpath}${gbpathextra}"
+			["gameboy"]="${gameboypath}${gameboypathextra}"
 			["gbc"]="${gbcpath}${gbcpathextra}"
 			["gba"]="${gbapath}${gbapathextra}"
 			["genesis"]="${genesispath}${genesispathextra}"
-			["gg"]="${ggpath}${ggpathextra}"
+			["gamegear"]="${gamegearpath}${gamegearpathextra}"
 			["megacd"]="${megacdpath}${megacdpathextra}"
 			["neogeo"]="${neogeopath}${neogeopathextra}"
 			["nes"]="${nespath}${nespathextra}"
@@ -303,11 +303,11 @@ function init_final_paths() {
 			["atarilynx"]="${atarilynxpath}"
 			["c64"]="${c64path}"
 			["fds"]="${fdspath}"
-			["gb"]="${gbpath}"
+			["gameboy"]="${gameboypath}"
 			["gbc"]="${gbcpath}"
 			["gba"]="${gbapath}"
 			["genesis"]="${genesispath}"
-			["gg"]="${ggpath}"
+			["gamegear"]="${gamegearpath}"
 			["megacd"]="${megacdpath}"
 			["neogeo"]="${neogeopath}"
 			["nes"]="${nespath}"
@@ -385,20 +385,8 @@ function defaultpath() {
 	if [ ${SYSTEM} == "arcade" ]; then
 		SYSTEM="_arcade"
 	fi
-	if [ ${SYSTEM} == "atari2600" ]; then
-		SYSTEM="atari7800"
-	fi
 	if [ ${SYSTEM} == "fds" ]; then
 		SYSTEM="nes"
-	fi
-	if [ ${SYSTEM} == "gb" ]; then
-		SYSTEM="gameboy"
-	fi
-	if [ ${SYSTEM} == "gbc" ]; then
-		SYSTEM="gameboy"
-	fi
-	if [ ${SYSTEM} == "gg" ]; then
-		SYSTEM="sms"
 	fi
 	if [ ${SYSTEM} == "tgfx16cd" ]; then
 		SYSTEM="tgfx16-cd"
@@ -622,11 +610,11 @@ function init_data() {
 		["atarilynx"]=${ini_settings[atarilynxpathrbf]:="_Console"}
 		["c64"]=${ini_settings[c64pathrbf]:="_Computer"}
 		["fds"]=${ini_settings[fdspathrbf]:="_Console"}
-		["gb"]=${ini_settings[gbpathrbf]:="_Console"}
+		["gameboy"]=${ini_settings[gameboypathrbf]:="_Console"}
 		["gbc"]=${ini_settings[gbcpathrbf]:="_Console"}
 		["gba"]=${ini_settings[gbapathrbf]:="_Console"}
 		["genesis"]=${ini_settings[genesispathrbf]:="_Console"}
-		["gg"]=${ini_settings[ggpathrbf]:="_Console"}
+		["gamegear"]=${ini_settings[gamegearpathrbf]:="_Console"}
 		["megacd"]=${ini_settings[megacdpathrbf]:="_Console"}
 		["neogeo"]=${ini_settings[neogeopathrbf]:="_Console"}
 		["nes"]=${ini_settings[nespathrbf]:="_Console"}
@@ -648,11 +636,11 @@ function init_data() {
 		["atarilynx"]="Atari Lynx"
 		["c64"]="Commodore 64"
 		["fds"]="Nintendo Disk System"
-		["gb"]="Nintendo Game Boy"
+		["gameboy"]="Nintendo Game Boy"
 		["gbc"]="Nintendo Game Boy Color"
 		["gba"]="Nintendo Game Boy Advance"
 		["genesis"]="Sega Genesis / Megadrive"
-		["gg"]="Sega Game Gear"
+		["gamegear"]="Sega Game Gear"
 		["megacd"]="Sega CD / Mega CD"
 		["neogeo"]="SNK NeoGeo"
 		["nes"]="Nintendo Entertainment System"
@@ -674,11 +662,11 @@ function init_data() {
 		["atarilynx"]="lnx"
 		["c64"]="crt,prg" # need to be tested "reu,tap,flt,rom,c1581"
 		["fds"]="fds"
-		["gb"]="gb"   # Should we include? "bin"
+		["gameboy"]="gb"   # Should we include? "bin"
 		["gbc"]="gbc" # Should we include? "bin"
 		["gba"]="gba"
 		["genesis"]="md,gen" # Should we include? "bin"
-		["gg"]="gg"
+		["gamegear"]="gg"
 		["megacd"]="chd,cue"
 		["neogeo"]="neo"
 		["nes"]="nes"
@@ -700,11 +688,11 @@ function init_data() {
 		["atarilynx"]="Yes"
 		["c64"]="Yes"
 		["fds"]="Yes"
-		["gb"]="Yes"
+		["gameboy"]="Yes"
 		["gbc"]="Yes"
 		["gba"]="Yes"
 		["genesis"]="Yes"
-		["gg"]="Yes"
+		["gamegear"]="Yes"
 		["megacd"]="No"
 		["neogeo"]="Yes"
 		["nes"]="Yes"
@@ -726,11 +714,11 @@ function init_data() {
 		["atarilynx"]="No"
 		["c64"]="No"
 		["fds"]="Yes"
-		["gb"]="No"
+		["gameboy"]="No"
 		["gbc"]="No"
 		["gba"]="No"
 		["genesis"]="No"
-		["gg"]="No"
+		["gamegear"]="No"
 		["megacd"]="Yes"
 		["neogeo"]="No"
 		["nes"]="No"
@@ -816,17 +804,17 @@ function init_data() {
 	declare -gA CORE_LAUNCH=(
 		["amiga"]="Minimig"
 		["arcade"]="Arcade"
-		["atari2600"]="ATARI7800"
+		["atari2600"]="ATARI2600"
 		["atari5200"]="ATARI5200"
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
 		["fds"]="NES"
-		["gb"]="GAMEBOY"
-		["gbc"]="GAMEBOY"
+		["gameboy"]="GAMEBOY"
+		["gbc"]="GBC"
 		["gba"]="GBA"
 		["genesis"]="Genesis"
-		["gg"]="SMS"
+		["gamegear"]="GameGear"
 		["megacd"]="MegaCD"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
@@ -848,11 +836,11 @@ function init_data() {
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
 		["fds"]="FDS"
-		["gb"]="GB"
-		["gbc"]="GAMEBOY"
+		["gameboy"]="GB"
+		["gbc"]="GBC"
 		["gba"]="GBA"
 		["genesis"]="Genesis"
-		["gg"]="gamegear"
+		["gamegear"]="GameGear"
 		["megacd"]="MegaCD"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
@@ -868,17 +856,17 @@ function init_data() {
 	declare -gA MGL_CORE=(
 		["amiga"]="Minimig"
 		["arcade"]="Arcade"
-		["atari2600"]="ATARI7800"
+		["atari2600"]="ATARI2600"
 		["atari5200"]="ATARI5200"
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
 		["fds"]="NES"
-		["gb"]="GAMEBOY"
-		["gbc"]="GAMEBOY"
+		["gameboy"]="GAMEBOY"
+		["gbc"]="GBC"
 		["gba"]="GBA"
 		["genesis"]="Genesis"
-		["gg"]="SMS"
+		["gamegear"]="GameGear"
 		["megacd"]="MegaCD"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
@@ -900,11 +888,11 @@ function init_data() {
 		["atarilynx"]="1"
 		["c64"]="1"
 		["fds"]="2"
-		["gb"]="2"
+		["gameboy"]="2"
 		["gbc"]="2"
 		["gba"]="2"
 		["genesis"]="1"
-		["gg"]="1"
+		["gamegear"]="1"
 		["megacd"]="1"
 		["neogeo"]="1"
 		["nes"]="2"
@@ -926,11 +914,11 @@ function init_data() {
 		["atarilynx"]="1"
 		["c64"]="1"
 		["fds"]="0"
-		["gb"]="0"
+		["gameboy"]="0"
 		["gbc"]="0"
 		["gba"]="0"
 		["genesis"]="0"
-		["gg"]="2"
+		["gamegear"]="2"
 		["megacd"]="0"
 		["neogeo"]="1"
 		["nes"]="0"
@@ -952,11 +940,11 @@ function init_data() {
 		["atarilynx"]="f"
 		["c64"]="f"
 		["fds"]="f"
-		["gb"]="f"
+		["gameboy"]="f"
 		["gbc"]="f"
 		["gba"]="f"
 		["genesis"]="f"
-		["gg"]="f"
+		["gamegear"]="f"
 		["megacd"]="s"
 		["neogeo"]="f"
 		["nes"]="f"

@@ -1829,7 +1829,7 @@ function main() {
 			fi
 
 			case "${1,,}" in
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gameboy | gbc | gba | genesis | gamegear | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				# If we're given a core name then we need to set it first
 				if [ ! -z "${2}" ] && [ "${2,,}" == "start_real" ]; then
 					declare -gl corelist_allow=${1}
