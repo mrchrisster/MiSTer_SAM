@@ -130,7 +130,11 @@ function init_vars() {
 	declare -g tgfx16pathrbf="_Console"
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
-
+	
+	if [[ "${corelist[@]}" == *"amiga"* ]]; then
+		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
+		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+	fi
 
 }
 
@@ -289,6 +293,32 @@ function init_data() {
 		["snes"]="No"
 		["tgfx16"]="No"
 		["tgfx16cd"]="Yes"
+		["psx"]="No"
+	)
+	
+	# Can this core use ZIPped ROMs
+	declare -glA CORE_ZIPPED=(
+		["amiga"]="No"
+		["arcade"]="No"
+		["atari2600"]="Yes"
+		["atari5200"]="Yes"
+		["atari7800"]="Yes"
+		["atarilynx"]="Yes"
+		["c64"]="Yes"
+		["fds"]="Yes"
+		["gameboy"]="Yes"
+		["gbc"]="Yes"
+		["gba"]="Yes"
+		["genesis"]="Yes"
+		["gamegear"]="Yes"
+		["megacd"]="No"
+		["neogeo"]="Yes"
+		["nes"]="Yes"
+		["s32x"]="Yes"
+		["sms"]="Yes"
+		["snes"]="Yes"
+		["tgfx16"]="Yes"
+		["tgfx16cd"]="No"
 		["psx"]="No"
 	)
 
@@ -1195,12 +1225,6 @@ function next_core() { # next_core (core)
 		return
 	fi
 	if [ "${nextcore}" == "amiga" ]; then
-		# If this is Amiga core we go to special code	
-		if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
-			amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
-			amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
-			FIRSTRUN[${nextcore}]=1
-		fi
 		
 		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
 			load_core_amiga
@@ -1280,38 +1304,36 @@ function check_list_and_pick_rom() { # args ${nextcore}
 		return
 	fi
 	
-	# Takes too long, better to just check current zip
-	#if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-	#	check_zips ${1}
-	#fi
 
+	if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
+		check_zips ${1} &
+	fi
+	
 	
 	# Copy gamelist to tmp
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
+
 		
-		# For next runthrough, we need to reset FIRSTRUN
-		FIRSTRUN[${1}]=0
-		
-		#Check path filter
+		# Check path filter
 		if [ -n "${PATHFILTER[${1}]}"  ]; then 
 			echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
 			fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		fi
 	
-		if [ "${FIRSTRUN[${1}]}" == "0" ] ; then
-			# Exclusion and blacklist filter		
-			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
-			samquiet "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
-	
-			# Filter roms in bg
-			if [[ "$coreweight" == "no" ]]; then
-				romfilter "${1}" &
-			else
-				romfilter "${1}"
-			fi
-			FIRSTRUN[${1}]=1
+
+		# Exclusion and blacklist filter			
+		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		samquiet "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
+
+		# Filter roms in bg
+		if [[ "$coreweight" == "no" ]]; then
+			sleep 1
+			romfilter "${1}" &
+		else
+			romfilter "${1}"
 		fi
+		FIRSTRUN[${nextcore}]="1"	
 	fi
 		
 	if [ -s ${gamelistpathtmp}/"${1}"_gamelist.txt ]; then
@@ -1333,7 +1355,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	else
 		zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
 		if [ ! -f "${zipfile}" ]; then
-			echo "${zipfile} Zipfile not found."
+			echo "${zipfile} zip file not found."
 			echo "Creating new game list now..."
 			create_romlist "${1}"
 		fi
@@ -1442,7 +1464,7 @@ function load_core_arcade() {
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s "${mralist}" ]; then
-		samquiet "Rebuilding mra list. No file found."
+		samquiet "Rebuilding mra list."
 		build_mralist 
 		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
@@ -1562,20 +1584,12 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
-	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
-		create_amigalist	
-		
-		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
-			cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		fi
-		
-		romfilter "${1}"
-		FIRSTRUN[${nextcore}]=1
-	fi
-	
-	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+		create_amigalist
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		FIRSTRUN[${nextcore}]=0
+		echo "Copied gamelist"
+		romfilter "${nextcore}"
+		FIRSTRUN[${nextcore}]=1
 	fi
 		
 	mute Minimig
@@ -2090,48 +2104,50 @@ function mute() {
 
 function check_zips() { # check_zips core
 	# Check if zip still exists
-	samquiet -n "Checking zips in file..."
+	#samquiet "Checking zips in file..."
 	unset zipsondisk
 	unset zipsinfile
 	unset files
 	unset newfiles
 	mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
-	for zips in "${zipsinfile[@]}"; do
-		if [ ! -f "${zips}" ]; then
-			echo "Creating new game list because zip file[s] seems to have changed."
-			create_romlist "${1}"
-			unset zipsinfile
-			mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
-			break
-			return
-		fi
-	done
-	samquiet "Done."
-	samquiet -n "Checking zips on disk..."
-	if [ "${checkzipsondisk}" == "yes" ]; then 
-		# Check for new zips
-		corepath="$("${mrsampath}"/samindex -q -s "${1}" -d |awk -F':' '{print $2}')"
-		readarray -t files <<< "$(find "${corepath}" -maxdepth 2 -type f -name "*.zip")"
-		extgrep=$(echo ".${CORE_EXT[${1}]}" | sed -e "s/,/\\\|/g"| sed 's/,/,./g')
-		# Check which files have valid roms
-		readarray -t newfiles <<< "$(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )"
-		if [[ "${newfiles[*]}" ]]; then
-			for f in "${newfiles[@]}"; do
-				if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}"; then
-					zipsondisk+=( "${f}" )
-				fi
-			done
-		fi
-		if [[ "${zipsondisk[*]}" ]]; then
-			result="$(printf '%s\n' "${zipsondisk[@]}")"
-			if [[ "${result}" ]]; then
-				echo "Found new zip files: ${result##*/}"
+	if [ ${#zipsinfile[@]} -gt 0 ]; then
+		for zips in "${zipsinfile[@]}"; do
+			if [ ! -f "${zips}" ]; then
+				samquiet "Creating new game list because zip file[s] seems to have changed."
 				create_romlist "${1}"
+				unset zipsinfile
+				mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
+				break
 				return
+			fi
+		done
+		#samquiet "Done."
+		#samquiet -n "Checking zips on disk..."
+		if [ "${checkzipsondisk}" == "yes" ]; then 
+			# Check for new zips
+			corepath="$("${mrsampath}"/samindex -q -s "${1}" -d |awk -F':' '{print $2}')"
+			readarray -t files <<< "$(find "${corepath}" -maxdepth 2 -type f -name "*.zip")"
+			extgrep=$(echo ".${CORE_EXT[${1}]}" | sed -e "s/,/\\\|/g"| sed 's/,/,./g')
+			# Check which files have valid roms
+			readarray -t newfiles <<< "$(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )"
+			if [[ "${newfiles[*]}" ]]; then
+				for f in "${newfiles[@]}"; do
+					if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}"; then
+						zipsondisk+=( "${f}" )
+					fi
+				done
+			fi
+			if [[ "${zipsondisk[*]}" ]]; then
+				result="$(printf '%s\n' "${zipsondisk[@]}")"
+				if [[ "${result}" ]]; then
+					samquiet "Found new zip file[s]: ${result##*/}"
+					create_romlist "${1}"
+					return
+				fi
 			fi
 		fi
 	fi
-	samquiet "Done."
+	#samquiet "Done."
 }
 	
 	
