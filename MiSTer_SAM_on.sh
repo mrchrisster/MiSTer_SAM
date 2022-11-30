@@ -493,7 +493,6 @@ function init_data() {
 		["cyberlip"]="Cyber-Lip"
 		["diggerma"]="Digger Man"
 		["doubledr"]="Double Dragon"
-		["dragonsh"]="Dragon's Heaven (development board)"
 		["eightman"]="Eight Man"
 		["fatfursp"]="Fatal Fury Special"
 		["fatfurspa"]="Fatal Fury Special (NGM-058 ~ NGH-058, set 2)"
@@ -642,7 +641,6 @@ function init_data() {
 		["quizdai2"]="Quiz Meitantei Neo & Geo: Quiz Daisousa Sen part 2"
 		["quizdais"]="Quiz Daisousa Sen: The Last Count Down"
 		["quizdask"]="Quiz Salibtamjeong: The Last Count Down (Korean localized Quiz Daisousa Sen)"
-		["quizdaisk"]="Quiz Salibtamjeong: The Last Count Down (Korean localized Quiz Daisousa Sen)"
 		["quizkof"]="Quiz King of Fighters"
 		["quizkofk"]="Quiz King of Fighters (Korean release)"
 		["ragnagrd"]="Ragnagard"
@@ -726,7 +724,6 @@ function init_data() {
 		["tws96"]="Tecmo World Soccer '96"
 		["twsoc96"]="Tecmo World Soccer '96"
 		["viewpoin"]="Viewpoint"
-		["vliner"]="V-Liner"
 		["wakuwak7"]="Waku Waku 7"
 		["wh1"]="World Heroes"
 		["wh1h"]="World Heroes (ALH-005)"
@@ -1198,10 +1195,14 @@ function next_core() { # next_core (core)
 		return
 	fi
 	if [ "${nextcore}" == "amiga" ]; then
-		# If this is Amiga core we go to special code
-		
+		# If this is Amiga core we go to special code	
 		if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 			amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
+			create_amigalist				
+			if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+				cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+			fi
+			romfilter "${1}"
 			FIRSTRUN[${nextcore}]=1
 		fi
 		
@@ -1397,11 +1398,12 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 		)
 	
 		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-		ttylogoshow &	
+		tty_displayswitch=$(($gametimer / $ttycoresleep - 1))
+		write_to_TTY_cmd_pipe "display_info" &		
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		SECONDS=${elapsed}
 	fi
-	
+
 
 	# Create mgl file and launch game
 	if [ -s /tmp/SAM_game.mgl ]; then
@@ -1508,7 +1510,7 @@ function load_core_arcade() {
 			[update_pause]=${ttyupdate_pause}
 		)
 		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-		ttylogoshow &
+		write_to_TTY_cmd_pipe "display_info" &
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		SECONDS=${elapsed}
 	fi
@@ -1562,6 +1564,10 @@ function create_amigalist () {
 function load_core_amiga() {
 
 	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+	
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+	fi
 		
 	mute Minimig
 
@@ -1587,11 +1593,6 @@ function load_core_amiga() {
 		activity_reset
 	else
 		# This is for MegaAGS version July 2022 or newer
-		[ ! -s "${gamelistpath}/${nextcore}_gamelist.txt" ] && create_amigalist
-		
-		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
-			cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		fi
 
 		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
 		agpretty="$(echo "${rompath}" | tr '_' ' ')"
@@ -1623,7 +1624,7 @@ function load_core_amiga() {
 				[update_pause]=${ttyupdate_pause}
 			)
 			declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-			ttylogoshow &
+			write_to_TTY_cmd_pipe "display_info" &
 			local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 			SECONDS=${elapsed}
 		fi
@@ -2287,16 +2288,6 @@ function tty_exit() {
 
 		echo "Done."
 	fi
-}
-
-function ttylogoshow() {
-	[[ -z "${ttycoreshow}" ]] && ttycoreshow=$(("${gametimer}" / 3))
-	for i in $( eval echo {0..$ttydisplayswitch} ); do
-		write_to_TTY_cmd_pipe "display_info" &
-		samdebug "TTY Core logo switch sleeping for $ttycoreshow seconds"
-		samdebug "Showing Core logo $ttydisplayswitch times"
-		sleep "${ttycoreshow}"
-	done
 }
 
 function write_to_TTY_cmd_pipe() {
