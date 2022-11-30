@@ -1198,11 +1198,7 @@ function next_core() { # next_core (core)
 		# If this is Amiga core we go to special code	
 		if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 			amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
-			create_amigalist				
-			if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
-				cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-			fi
-			romfilter "${1}"
+			amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 			FIRSTRUN[${nextcore}]=1
 		fi
 		
@@ -1293,7 +1289,10 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	# Copy gamelist to tmp
 	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
-	
+		
+		# For next runthrough, we need to reset FIRSTRUN
+		FIRSTRUN[${1}]=0
+		
 		#Check path filter
 		if [ -n "${PATHFILTER[${1}]}"  ]; then 
 			echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
@@ -1563,10 +1562,20 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
-	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+	if [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+		create_amigalist	
+		
+		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+			cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+		fi
+		
+		romfilter "${1}"
+		FIRSTRUN[${nextcore}]=1
+	fi
 	
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+		FIRSTRUN[${nextcore}]=0
 	fi
 		
 	mute Minimig
