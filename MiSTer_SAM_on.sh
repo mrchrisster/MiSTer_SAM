@@ -1587,7 +1587,6 @@ function load_core_amiga() {
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
 		create_amigalist
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		echo "Copied gamelist"
 		romfilter "${nextcore}"
 		FIRSTRUN[${nextcore}]=1
 	fi
