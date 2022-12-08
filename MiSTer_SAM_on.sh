@@ -1328,7 +1328,6 @@ function check_list_and_pick_rom() { # args ${nextcore}
 
 		# Filter roms in bg
 		if [[ "$coreweight" == "no" ]]; then
-			sleep 1
 			romfilter "${1}" &
 		else
 			romfilter "${1}"
@@ -2193,6 +2192,8 @@ function check_gamelists() {
 }
 
 function romfilter() { # romfilter core
+
+	sleep 2 # Sometimes romfilter fails if launched in the bg, so we delay it.
 	
 	#Check exclusion
 	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
