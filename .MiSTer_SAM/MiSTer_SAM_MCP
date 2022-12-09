@@ -32,14 +32,6 @@ if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 fi
 
-if [ "${1,,}" == "tty2oled" ]; then
-	/media/fat/tty2oled/S60tty2oled start
-	break
-fi
-
-
-
-
 
 #======== FUNCTIONS ========
 function sam_jschange() {
@@ -67,7 +59,7 @@ function input_clear() {
 function sam_trigger() {
 	if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then				
 	input_clear	
-		if [ "$(ps aux | grep -ice "[M]iSTer_SAM_on")" == "0" ] && [ "$(ps aux | grep -ice "[u]pdate_all.sh")" == "0" ]; then
+		if [ "$(ps aux | grep -ice "[M]iSTer_SAM_on")" == "0" ] && [ "$(ps aux | grep -ice [u]pdate)" == "0" ]; then
 			echo " No activity detected for ${samtimeout} minutes. SAM starting..."
 			/media/fat/Scripts/MiSTer_SAM_on.sh start
 			echo " Returned from SAM."
