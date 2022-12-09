@@ -131,7 +131,7 @@ function init_vars() {
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
 	
-	if [[ "${corelist[@]}" == *"amiga"* ]]; then
+	if [[ "${corelist[@]}" == *"amiga"* ]] && [ -f "${mrsampath}"/samindex ]; then
 		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
 		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 	fi
@@ -2557,11 +2557,11 @@ function sam_menu() {
 		sam_corelist_preset "Select Core List Presets" \
 		Single "Single Core Selection" \
 		Include "Single Category Selection" \
+		sam_bgm "Add-on: Background Music Player" \
+		sam_tty "Add-on: TTY2OLED Display" \
 		Gamemode "Game Roulette" \
 		Favorite "Copy current game to _Favorites folder" \
-		Gamelists "Game Lists - Create or Delete" \
-		Reset "Reset or uninstall SAM" \
-		Autoplay "Autoplay Configuration" 2>"/tmp/.SAMmenu"
+		Reset "Reset or uninstall SAM" 2>"/tmp/.SAMmenu"
 	
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -2590,8 +2590,7 @@ function sam_settings() {
 		exclude "Exclude categories" \
 		sam_controller "Setup Controller" \
 		sam_mute "Mute Cores while SAM is on" \
-		sam_tty "TTY2OLED Hardware Add-On" \
-		sam_bgm "Background Music Player" \
+		autoplay "Autoplay Configuration" \
 		sam_misc "Miscallanous Options" \
 		config "Manual Settings Editor (MiSTer_SAM.ini)" 2>"/tmp/.SAMmenu"
 	
@@ -3003,6 +3002,7 @@ function sam_resetmenu() {
 		--backtitle "Super Attract Mode" --title "[ Reset ]" \
 		--menu "Select an option" 0 0 0 \
 		Deleteall "Reset/Delete all files" \
+		Gamelists "Create/Delete only Game Lists" \
 		Default "Reinstall SAM and enable Autostart" \
 		Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
