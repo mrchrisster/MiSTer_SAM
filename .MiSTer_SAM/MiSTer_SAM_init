@@ -1,18 +1,39 @@
 #!/bin/bash
-trap "" HUP
-trap "" TERM
+#trap "" HUP
+#trap "" TERM
 
 #======== INI VARIABLES ========
 # Change these in the INI file
-
+#set -x
 #======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
+declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
+declare -g gamelistpathtmp="/tmp/.SAM_List"
+declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
+declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
+declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
+declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
 
-#======== LOCAL VARIABLES ========
+# Kill running process
+pids=$(pidof -o $$ $(basename -- ${0}))
+if [ ! -z "pids" ]; then
+	echo -n " Removing other instances of $(basename -- ${0})..."
+	kill -9 ${pids} &>/dev/null
+	wait ${pids} &>/dev/null
+	echo " Done!"
+fi
+
+# Kill old activity processes
+echo -n " Stopping activity monitoring..."
+killall -q -9 MiSTer_SAM_joy.py 2>/dev/null
+killall -q -9 MiSTer_SAM_mouse.py 2>/dev/null
+killall -q -9 MiSTer_SAM_keyboard.py 2>/dev/null
+kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; }) 2>/dev/null
+echo " Done!"
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
@@ -28,7 +49,11 @@ done
 
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+	IFS=',' read -ra corelist <<< "${corelist}"
+	IFS=',' read -ra corelistall <<< "${corelistall}"
 fi
+
+mkdir -p "${gamelistpathtmp}"
 
 
 
@@ -57,23 +82,100 @@ function stop() {
 	echo " Done!"
 }
 
-# Kill running process
-pids=$(pidof -o $$ $(basename -- ${0}))
-if [ ! -z "pids" ]; then
-	echo -n " Removing other instances of $(basename -- ${0})..."
-	kill -9 ${pids} &>/dev/null
-	wait ${pids} &>/dev/null
-	echo " Done!"
-fi
 
-# Kill old activity processes
-echo -n " Stopping activity monitoring..."
-killall -q -9 MiSTer_SAM_joy.py 2>/dev/null
-killall -q -9 MiSTer_SAM_mouse.sh 2>/dev/null
-killall -q -9 MiSTer_SAM_keyboard.sh 2>/dev/null
-killall -q -9 hexdump 2>/dev/null
-kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; }) 2>/dev/null
-echo " Done!"
+function check_list() { # args ${nextcore} 	
+	
+	# Copy gamelist to tmp
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
+
+		
+		# Check path filter
+		if [ -n "${PATHFILTER[${1}]}"  ]; then 
+			echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
+			fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		fi
+
+		# Exclusion and blacklist filter			
+		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+
+		#Check exclusion
+		if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
+			echo "Found excludelist for core ${1}. Stripping out unwanted games now."
+			fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		fi
+		
+		#Check ini exclusion
+		if [[ "${exclude[*]}" ]]; then 
+			for e in "${exclude[@]}"; do
+				fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+			done
+
+		fi
+
+		#Check blacklist	
+		if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
+			# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
+			fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && cp "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		fi
+
+	fi
+}
+
+function check_list_arcade() {
+	
+	#Check blacklist and copy gamelist to tmp
+	if [ ! -s "${mralist_tmp}" ]; then
+		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
+		#Check path filter
+		if [ -n "${arcadepathfilter}" ]; then
+			echo "Found path filter for Arcade core: ${arcadepathfilter}"
+			fgrep "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
+		fi
+		if [ -n "${arcadeorient}" ]; then
+			fgrep -i "${arcadeorient}" "${mralist}" | awk -F"/" '{print $NF}' > $tmpfile	
+			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
+			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
+		fi
+	
+		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
+			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" | awk 'NF > 0' > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
+		fi
+		
+	fi
+}
+
+function gl_filter() {
+	# Create temp gamelists on startup
+	readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+
+	if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
+		"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
+	fi
+
+	if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" == "0" ]; then
+		echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
+		sleep 15
+		exit
+	fi
+	# Read all gamelists again in case arcade was missing
+	if [[ ! "${glondisk[*]}" ]]; then
+		unset glondisk
+		readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+	fi
+
+	for g in "${glondisk[@]}"; do 
+		if [ "${g}" == "arcade" ]; then
+			check_list_arcade &
+		fi
+		if [ "${g}" == "amiga" ]; then
+			echo "Amiga will be processed in main script"
+		fi
+		check_list "${g}"
+	done
+}
+
+
 
 
 #======== DEBUG OUTPUT =========
@@ -87,6 +189,9 @@ if [ "${samquiet,,}" == "no" ]; then
 	echo " menuonly: ${menuonly}"
 	echo "********************************************************************************"
 fi
+
+# Start Gamelist filter
+gl_filter &
 
 # Parse command line
 case "${1,,}" in
@@ -104,7 +209,7 @@ case "${1,,}" in
         start
         ;;
     *)
-        echo " Usage: /etc/init.d/S93mistersam {start|stop|restart}"
+        echo " Usage: /media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_init {start|stop|restart}"
         exit 1
         ;;
 esac
