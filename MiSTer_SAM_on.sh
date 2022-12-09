@@ -1311,7 +1311,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	
 	
 	# Copy gamelist to tmp
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 
 		
@@ -1469,7 +1469,7 @@ function load_core_arcade() {
 	fi
 	
 	#Check blacklist and copy gamelist to tmp
-	if [ ! -s "${mralist_tmp}" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+	if [ ! -s "${mralist_tmp}" ]; then
 		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 		#Check path filter
 		if [ -n "${arcadepathfilter}" ]; then
@@ -1583,7 +1583,7 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
-	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ] || [ "${FIRSTRUN[${nextcore}]}" == "0" ]; then
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		create_amigalist
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		romfilter "${nextcore}"
