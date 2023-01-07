@@ -2101,7 +2101,6 @@ function mute() {
 
 function check_zips() { # check_zips core
 	# Check if zip still exists
-	#samquiet "Checking zips in file..."
 	unset zipsondisk
 	unset zipsinfile
 	unset files
@@ -2129,9 +2128,9 @@ function check_zips() { # check_zips core
 			readarray -t newfiles <<< "$(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )"
 			if [[ "${newfiles[*]}" ]]; then
 				for f in "${newfiles[@]}"; do
-					if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}"; then
+					if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}" 2>/dev/null; then
 						zipsondisk+=( "${f}" )
-					fi
+					fi 
 				done
 			fi
 			if [[ "${zipsondisk[*]}" ]]; then
