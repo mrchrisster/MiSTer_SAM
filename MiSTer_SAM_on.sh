@@ -3295,7 +3295,7 @@ function sam_bgmmenu() {
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER & TTY2OLED]" \
 		--menu "Select from the following options?" 0 0 0 \
 		enablebgm "Enable BGM for SAM" \
-		disableplay "Disable Play (in case songs play twice)" \
+		disableplay "Disable BGM Play (in case songs play twice)" \
 		disablebgm "Disable BGM for SAM" \
 		enabletty "Enable TTY2OLED support for SAM" \
 		disabletty "Disable TTY2OLED support for SAM" 2>"/tmp/.SAMmenu" 
@@ -3355,7 +3355,7 @@ function sam_bgmmenu() {
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
 		--msgbox "Changes saved!" 0 0
-		sam_settings
+		sam_menu
 	fi
 }
 
