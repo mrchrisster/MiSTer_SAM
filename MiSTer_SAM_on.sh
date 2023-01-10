@@ -2563,8 +2563,8 @@ function sam_menu() {
 		----- "-----------------------------" \
 		sam_corelist "Select Core List" \
 		sam_corelist_preset "Presets for Core List" \
-		Single "Single Core Selection" \
-		Include "Single Category/Genre Selection" \
+		Single "Select Single Core" \
+		Include "Select Single Category/Genre" \
 		exclude "Exclude Categories/Genres" \
 		sam_bgm "Add-ons: Background Music Player, TTY2OLED" \
 		Gamemode "Game Roulette" \
