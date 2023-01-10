@@ -2591,6 +2591,12 @@ function sam_menu() {
 
 }
 
+function changes_saved () {
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ Settings ]" \
+	--msgbox "Changes saved!" 0 0
+}
+
 function sam_settings() {
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
 		--backtitle "Super Attract Mode" --title "[ Settings ]" \
@@ -2600,7 +2606,9 @@ function sam_settings() {
 		sam_controller "Setup Controller" \
 		sam_mute "Mute Cores while SAM is on" \
 		autoplay "Autoplay Configuration" \
-		sam_misc "SAM exit config, Input detection, Debug, etc" \
+		enableplaycurrent "Enable play current game" \
+		disableplaycurrent "Disable play current game" \
+		sam_misc "Advanced Settings" \
 		config "Manual Settings Editor (MiSTer_SAM.ini)" 2>"/tmp/.SAMmenu"
 	
 	opt=$?
@@ -2619,6 +2627,14 @@ function sam_settings() {
 		sam_misc	
 	elif [[ "${menuresponse,,}" == "arcade_orient" ]]; then
 		arcade_orient
+	elif [[ "${menuresponse,,}" == "enableplaycurrent" ]]; then
+		sed -i '/playcurrentgame=/c\playcurrentgame="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		changes_saved
+		sam_settings
+	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
+		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		changes_saved
+		sam_settings
 	else 
 		parse_cmd "${menuresponse}"
 	fi
@@ -2646,9 +2662,7 @@ function arcade_orient() {
 	elif [[ "${menuresponse,,}" == "arcadedisable" ]]; then
 		sed -i '/arcadeorient=/c\arcadeorient="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
 	fi
-	dialog --clear --ascii-lines --no-cancel \
-	--backtitle "Super Attract Mode" --title "[ Settings ]" \
-	--msgbox "Changes saved!" 0 0
+	changes_saved
 	sam_settings
 }
 
@@ -2657,7 +2671,7 @@ function sam_misc() {
 	if [[ "$shown" == "0" ]]; then
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-			--msgbox "Alternative Core Mode will prefer cores with larger libraries so you don't have many game repeats.\n\nPlay current game means the game SAM is showing can be played by pushing any button.\n\nPlease set up controller in main menu instead of using Play Current Game if possible." 0 0
+			--msgbox "Alternative Core Mode will prefer cores with larger libraries so you don't have many game repeats.\n\nPlease set up controller in main menu instead of using Play Current Game if possible." 0 0
 	fi
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
 		--backtitle "Super Attract Mode" --title "[ MISCELLANEOUS OPTIONS ]" \
@@ -2667,9 +2681,6 @@ function sam_misc() {
 		----- "-----------------------------" \
 		enablealtcore "Enable Alternative Core Selection Mode" \
 		disablealtcore "Disable Alternative Core Selection Mode" \
-		----- "-----------------------------" \
-		enableplaycurrent "Enable play current game" \
-		disableplaycurrent "Disable play current game" \
 		----- "-----------------------------" \
 		enablelistenjoy "Enable Joystick detection" \
 		disablelistenjoy "Disable Joystick detection" \
@@ -2699,10 +2710,6 @@ function sam_misc() {
 		sed -i '/coreweight=/c\coreweight="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disablealtcore" ]]; then
 		sed -i '/coreweight=/c\coreweight="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "enableplaycurrent" ]]; then
-		sed -i '/playcurrentgame=/c\playcurrentgame="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
-		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "enablelistenjoy" ]]; then
 		sed -i '/listenjoy=/c\listenjoy="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disablelistenjoy" ]]; then
