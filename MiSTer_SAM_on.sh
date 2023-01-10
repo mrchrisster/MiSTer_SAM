@@ -1085,12 +1085,18 @@ function next_core() { # next_core (core)
 			if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
 				"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
 			fi
-			
-			if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" == "0" ]; then
-				echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
-				sleep 15
-				exit
-			fi
+			for i in {1..2}; do
+				if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" == "0" ]; then
+					"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
+					if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" != "0" ]; then
+						break
+					else
+						echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
+						sleep 5
+						exit
+					fi
+				fi
+			done
 			# Read all gamelists again in case arcade was missing
 			if [[ ! "${glondisk[*]}" ]]; then
 				unset glondisk
@@ -1451,10 +1457,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 function build_mralist() {
 
 	${mrsampath}/samindex -s arcade -o "${gamelistpath}" 
-
-	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
-	fi
+	cp "${mralist}" "${mralist_tmp}" 2>/dev/null
 
 }
 
@@ -1465,7 +1468,6 @@ function load_core_arcade() {
 	if [ ! -s "${mralist}" ]; then
 		samquiet "Rebuilding mra list."
 		build_mralist 
-		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
 	fi
 	
 	#Check blacklist and copy gamelist to tmp
@@ -1477,7 +1479,7 @@ function load_core_arcade() {
 			fgrep "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
 		fi
 		if [ -n "${arcadeorient}" ]; then
-			fgrep -i "${arcadeorient}" "${mralist}" | awk -F"/" '{print $NF}' > $tmpfile	
+			fgrep -i "${arcadeorient}" "${mralist}" | fgrep -i rotation | awk -F"/" '{print $NF}' > $tmpfile	
 			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
 			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
@@ -1495,14 +1497,11 @@ function load_core_arcade() {
 	# Get a random game from the list
 	mra="$(shuf --head-count=1 ${mralist_tmp})"
 	
-
-	# If the mra variable is valid this is skipped, but if not we try 5 times
-	# Partially protects against typos from manual editing and strange character parsing problems
-	for i in {1..5}; do
-		if [ ! -f "${mra}" ]; then
-			mra=$(shuf --head-count=1 ${mralist_tmp})
-		fi
-	done
+	# Check if Game exists
+	if [ ! -f "${mra}" ]; then
+		build_mralist 
+		mra=$(shuf --head-count=1 ${mralist_tmp})
+	fi
 	
 	
 	#mraname="$(basename "${mra}" | sed -e 's/\.[^.]*$//')"	
@@ -1913,7 +1912,12 @@ function deleteall() {
 		echo "Deleting Gamelist folder"
 		rm -rf "/media/fat/Scripts/SAM_Gamelists"
 	fi
-
+	
+	if [ -d "/tmp/.SAM_List" ]; then
+		echo "Deleting temporary files"
+		rm -rf "/tmp/.SAM_List"
+	fi
+	
 	if ls /media/fat/Config/inputs/*_input_1234_5678_v3.map 1>/dev/null 2>&1; then
 		echo "Deleting Keyboard mapping files"
 		rm /media/fat/Config/inputs/*_input_1234_5678_v3.map
@@ -2101,6 +2105,7 @@ function mute() {
 
 function check_zips() { # check_zips core
 	# Check if zip still exists
+	#samquiet "Checking zips in file..."
 	unset zipsondisk
 	unset zipsinfile
 	unset files
@@ -2128,9 +2133,13 @@ function check_zips() { # check_zips core
 			readarray -t newfiles <<< "$(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )"
 			if [[ "${newfiles[*]}" ]]; then
 				for f in "${newfiles[@]}"; do
-					if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}" 2>/dev/null; then
-						zipsondisk+=( "${f}" )
-					fi 
+					if [ -f "${f}" ]; then
+						if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}"; then
+							zipsondisk+=( "${f}" )
+						fi
+					else
+						samdebug "Zip file ${f} not found"
+					fi
 				done
 			fi
 			if [[ "${zipsondisk[*]}" ]]; then
@@ -2553,14 +2562,14 @@ function sam_menu() {
 		Settings "Settings" \
 		----- "-----------------------------" \
 		sam_corelist "Select Core List" \
-		sam_corelist_preset "Select Core List Presets" \
+		sam_corelist_preset "Presets for Core List" \
 		Single "Single Core Selection" \
-		Include "Single Category Selection" \
+		Include "Single Category/Genre Selection" \
+		exclude "Exclude Categories/Genres" \
+		sam_bgm "Add-ons: Background Music Player, TTY2OLED" \
 		Gamemode "Game Roulette" \
 		Favorite "Copy current game to _Favorites folder" \
-		Gamelists "Game Lists - Create or Delete" \
-		Reset "Reset or uninstall SAM" \
-		Autoplay "Autoplay Configuration" 2>"/tmp/.SAMmenu"
+		Reset "Reset or uninstall SAM" 2>"/tmp/.SAMmenu"
 	
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -2574,6 +2583,8 @@ function sam_menu() {
 		sam_menu
 	elif [[ "${menuresponse,,}" == "sam_corelist_preset" ]]; then
 		sam_corelist_preset
+	elif [[ "${menuresponse,,}" == "sam_bgm" ]]; then
+		sam_bgmmenu	
 	else 
 		parse_cmd "${menuresponse}"
 	fi
@@ -2584,14 +2595,12 @@ function sam_settings() {
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
 		--backtitle "Super Attract Mode" --title "[ Settings ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
-		sam_timer "Select Timers" \
+		sam_timer "Select Timers - When SAM should start" \
 		arcade_orient "Orientation for Arcade Games" \
-		exclude "Exclude categories" \
 		sam_controller "Setup Controller" \
 		sam_mute "Mute Cores while SAM is on" \
-		sam_tty "TTY2OLED Hardware Add-On" \
-		sam_bgm "Background Music Player" \
-		sam_misc "Miscallanous Options" \
+		autoplay "Autoplay Configuration" \
+		sam_misc "SAM exit config, Input detection, Debug, etc" \
 		config "Manual Settings Editor (MiSTer_SAM.ini)" 2>"/tmp/.SAMmenu"
 	
 	opt=$?
@@ -2604,12 +2613,8 @@ function sam_settings() {
 		sam_timer
 	elif [[ "${menuresponse,,}" == "sam_controller" ]]; then
 		sam_controller
-	elif [[ "${menuresponse,,}" == "sam_tty" ]]; then
-		sam_tty
 	elif [[ "${menuresponse,,}" == "sam_mute" ]]; then
 		sam_mute
-	elif [[ "${menuresponse,,}" == "sam_bgm" ]]; then
-		sam_bgmmenu	
 	elif [[ "${menuresponse,,}" == "sam_misc" ]]; then
 		sam_misc	
 	elif [[ "${menuresponse,,}" == "arcade_orient" ]]; then
@@ -2647,28 +2652,6 @@ function arcade_orient() {
 	sam_settings
 }
 
-function sam_tty() {
-	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ MISCELLANEOUS OPTIONS ]" \
-		--menu "Select from the following options?" 0 0 0 \
-		enabletty "Enable TTY2OLED support for SAM" \
-		disabletty "Disable TTY2OLED support for SAM" 2>"/tmp/.SAMmenu" 
-
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
-	
-	if [ "$opt" != "0" ]; then
-		sam_menu
-	elif [[ "${menuresponse,,}" == "enabletty" ]]; then
-		sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "disabletty" ]]; then
-		sed -i '/ttyenablee=/c\ttyenable="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	fi
-	dialog --clear --ascii-lines --no-cancel \
-	--backtitle "Super Attract Mode" --title "[ Settings ]" \
-	--msgbox "Changes saved!" 0 0
-	sam_settings
-}
 
 function sam_misc() {
 	if [[ "$shown" == "0" ]]; then
@@ -2871,6 +2854,9 @@ function sam_timer() {
 }
 
 function sam_corelist() {
+	dialog --clear --no-cancel --ascii-lines \
+	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER & TTY2OLED]" \
+	--msgbox "Joystick is currently not supported to select cores. You need a keyboard and can enable/disable cores with space key.\n\nPlease exit this menu if you are using a joystick." 0 0
 	declare -a corelistmenu=()
 	for core in "${corelistall[@]}"; do
 		corelistmenu+=("${core}")
@@ -3002,6 +2988,7 @@ function sam_resetmenu() {
 		--backtitle "Super Attract Mode" --title "[ Reset ]" \
 		--menu "Select an option" 0 0 0 \
 		Deleteall "Reset/Delete all files" \
+		Gamelists "Create/Delete only Game Lists" \
 		Default "Reinstall SAM and enable Autostart" \
 		Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -3302,14 +3289,16 @@ function samedit_excltags_old() {
 
 function sam_bgmmenu() {
 	dialog --clear --no-cancel --ascii-lines \
-	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
-	--msgbox "While SAM is shuffling games, play some music.\n\nThis installs wizzomafizzo's BGM script to play Background music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder." 0 0
+	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER & TTY2OLED]" \
+	--msgbox "BGM\n----------------\nWhile SAM is shuffling games, play some music.\nThis installs wizzomafizzo's BGM script to play music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder.\n\n\nTTY2OLED\n----------------\nTTY2OLED is a hardware display for the MiSTer. ONLY ENABLE THIS IF YOU HAVE A TTY2OLED DISPLAY, or else SAM might not work correctly." 0 0
 	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
+		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER & TTY2OLED]" \
 		--menu "Select from the following options?" 0 0 0 \
 		enablebgm "Enable BGM for SAM" \
 		disableplay "Disable Play (in case songs play twice)" \
-		disablebgm "Disable BGM for SAM" 2>"/tmp/.SAMmenu" 
+		disablebgm "Disable BGM for SAM" \
+		enabletty "Enable TTY2OLED support for SAM" \
+		disabletty "Disable TTY2OLED support for SAM" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -3358,6 +3347,10 @@ function sam_bgmmenu() {
 			sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			#echo " Done."
+		elif [[ "${menuresponse,,}" == "enabletty" ]]; then
+			sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		elif [[ "${menuresponse,,}" == "disabletty" ]]; then
+			sed -i '/ttyenablee=/c\ttyenable="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		fi
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
