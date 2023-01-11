@@ -81,8 +81,7 @@ function init_vars() {
 	declare -gi countdown="nocountdown"	
 	declare -gi totalgamecount		
 	# ======== DEBUG VARIABLES ========
-	declare -gl samquiet="Yes"
-	declare -gl samdebug="No"
+	declare -gl samdebug="Yes"
 	#declare -gl samtrace="No"						
 	# ======== BGM =======
 	declare -gl bgm="No"
@@ -1059,7 +1058,7 @@ function next_core() { # next_core (core)
 		echo "ERROR: FATAL - List of cores is empty."
 		echo "Using default corelist"
 		declare -g corelist=("${corelistall[@]}")
-		samdebug "corelist is now ${corelist[*]}"
+		samdebug "Corelist is now ${corelist[*]}"
 	fi
 
 	# No corename was supplied with MiSTer_SAM_on.sh
@@ -1071,13 +1070,10 @@ function next_core() { # next_core (core)
 			mapfile -t corelist <${corelistfile}
 		fi
 		
-		#echo "corelist: ${corelist[@]}"
-		#echo "corelisttmp: ${corelisttmp[@]}"
 
 		# Create all gamelists in the background
 		# Run this until corelist and gamelists for these cores match
 		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
-			samquiet "Gamelist check"
 			
 			# Read all gamelists present
 			readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
@@ -1137,12 +1133,12 @@ function next_core() { # next_core (core)
 		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf | head -1)
 		
 		if [[ ! "${nextcore}" ]]; then
-			samquiet "nextcore empty. Using arcade core for now"
+			samdebug "nextcore empty. Using arcade core for now"
 			nextcore=arcade
 		fi
 				
-		samdebug "corelist: ${corelist[*]}"
-		samdebug "corelisttmp: ${corelisttmp[*]}"
+		#samdebug "corelist: ${corelist[*]}"
+		#samdebug "corelisttmp: ${corelisttmp[*]}"
 		
 		# Pick a core weighted by how many games a core's library has
 		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
@@ -1195,7 +1191,7 @@ function next_core() { # next_core (core)
 				done <<< "$(for k in "${!corewc[@]}"; do echo "$k"'='"${corewc["$k"]}";done | sort -k2 -t'=' -nr )"
 
 				totalpcount=$(printf "%s\n" "${corep[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')
-				samquiet "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)"
+				samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)"
 				disablecoredel=1
 
 			elif [[ "$coreweight" == "yes" ]]; then
@@ -1220,10 +1216,10 @@ function next_core() { # next_core (core)
 		nextcore="${2}"
 	elif [ "${2,,}" == "countdown" ]; then
 		nextcore="${1}"
-		countdown="countdown"	
+		countdown="countdown"
 	fi
 		
-	samquiet "Selected core: \e[1m${nextcore^^}\e[0m"
+	samdebug "Selected core: ${nextcore^^}"
 
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
@@ -1252,8 +1248,8 @@ function next_core() { # next_core (core)
 	extlist="${CORE_EXT[${nextcore}]//,/ }" 
 				
 	if [[ "$extlist" != *"$extension"* ]]; then
-		samquiet " Wrong extension found: \e[1m${extension^^}\e[0m"
-		samquiet " Picking new rom.."
+		samdebug " Wrong extension found: \e[1m${extension^^}\e[0m"
+		samdebug " Picking new rom.."
 
 		create_romlist "${nextcore}" &
 		next_core "${nextcore}"
@@ -1289,7 +1285,7 @@ function next_core() { # next_core (core)
 # Romfinder
 function create_romlist() { # args ${nextcore} 
 
-	samquiet "Creating gamelist for ${1}"
+	samdebug "Creating gamelist for ${1}"
 	if ! ps -ef | grep -qi '[s]amindex'; then
 		${mrsampath}/samindex -s "${1}" -o "${gamelistpath}" 
 		if [ $? -gt 1 ]; then
@@ -1330,7 +1326,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 
 		# Exclusion and blacklist filter			
 		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		samquiet "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
+		samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
 
 		# Filter roms in bg
 		if [[ "$coreweight" == "no" ]]; then
@@ -1367,7 +1363,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	fi
 
 	# Delete played game from list
-	samquiet "Selected file: ${rompath}"
+	samdebug "Selected file: ${rompath}"
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
@@ -1466,7 +1462,7 @@ function load_core_arcade() {
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
 	if [ ! -s "${mralist}" ]; then
-		samquiet "Rebuilding mra list."
+		samdebug "Rebuilding mra list."
 		build_mralist 
 	fi
 	
@@ -1509,7 +1505,7 @@ function load_core_arcade() {
 	mrasetname=$(grep "<setname>" "${mra}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
 	tty_corename="${mrasetname}"
 
-	samquiet "Selected file: ${mra}"
+	samdebug "Selected file: ${mra}"
 
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
@@ -1572,7 +1568,7 @@ function create_amigalist () {
 		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
 		
 		total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
-		samquiet "${total_games} Games and Demos found."
+		samdebug "${total_games} Games and Demos found."
 	else
 		touch "${gamelistpath}/amiga_gamelist.txt"
 	fi
@@ -1623,7 +1619,7 @@ function load_core_amiga() {
 		fi
 
 		# Delete played game from list
-		samquiet "Selected file: ${rompath}"
+		samdebug "Selected file: ${rompath}"
 		if [ "${norepeat}" == "yes" ]; then
 			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
@@ -1799,7 +1795,7 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
 	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
-	samquiet "Cleanup done."
+	samdebug "Cleanup done."
 }
 
 function sam_monitor() {
@@ -2006,6 +2002,7 @@ function creategl() {
 function skipmessage() {
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
 		sleep 10
+		samdebug "Button push sent to skip BIOS"
 		"${mrsampath}/mbc" raw_seq :31
 	fi
 }
@@ -2105,7 +2102,7 @@ function mute() {
 
 function check_zips() { # check_zips core
 	# Check if zip still exists
-	#samquiet "Checking zips in file..."
+	#samdebug "Checking zips in file..."
 	unset zipsondisk
 	unset zipsinfile
 	unset files
@@ -2114,7 +2111,7 @@ function check_zips() { # check_zips core
 	if [ ${#zipsinfile[@]} -gt 0 ]; then
 		for zips in "${zipsinfile[@]}"; do
 			if [ ! -f "${zips}" ]; then
-				samquiet "Creating new game list because zip file[s] seems to have changed."
+				samdebug "Creating new game list because zip file[s] seems to have changed."
 				create_romlist "${1}"
 				unset zipsinfile
 				mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
@@ -2122,8 +2119,8 @@ function check_zips() { # check_zips core
 				return
 			fi
 		done
-		#samquiet "Done."
-		#samquiet -n "Checking zips on disk..."
+		#samdebug "Done."
+		#samdebug -n "Checking zips on disk..."
 		if [ "${checkzipsondisk}" == "yes" ]; then 
 			# Check for new zips
 			corepath="$("${mrsampath}"/samindex -q -s "${1}" -d |awk -F':' '{print $2}')"
@@ -2145,14 +2142,14 @@ function check_zips() { # check_zips core
 			if [[ "${zipsondisk[*]}" ]]; then
 				result="$(printf '%s\n' "${zipsondisk[@]}")"
 				if [[ "${result}" ]]; then
-					samquiet "Found new zip file[s]: ${result##*/}"
+					samdebug "Found new zip file[s]: ${result##*/}"
 					create_romlist "${1}"
 					return
 				fi
 			fi
 		fi
 	fi
-	#samquiet "Done."
+	#samdebug "Done."
 }
 	
 	
@@ -2165,6 +2162,7 @@ function check_gamelists() {
 		for c in "${corelist[@]}"; do 
 			if [[ "$c" == "$g" ]]; then 
 				glcreate+=("$c")
+				samdebug "Creating "$c" in background"
 			fi
 		done 
 	done
@@ -2216,13 +2214,13 @@ function romfilter() { # romfilter core
 		done
 
 	fi
-	#if [ "${samquiet}" == "no" ]; then echo "Excluded from list: ${exclude[@]}"; fi
+	#if [ "${samdebug}" == "no" ]; then echo "Excluded from list: ${exclude[@]}"; fi
 
 	#Check blacklist	
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
 		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && cp "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		samquiet "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games after removing blacklisted. (Active on next run of $1)"
+		samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games after removing blacklisted. (Active on next run of $1)"
 	fi
 	#sed -i '/^$/d' "${gamelistpathtmp}/${1}_gamelist.txt"
 
@@ -2235,15 +2233,6 @@ function samdebug() {
 	fi
 }
 
-function samquiet() {
-	if [ "${samquiet}" == "no" ]; then
-		if [ "${1}" == "-n" ]; then
-			echo -en "\e[1m\e[32m${2-}\e[0m"
-		else
-			echo -e "\e[1m\e[32m${1-}\e[0m"
-		fi
-	fi
-}
 
 function sam_help() { # sam_help
 	echo " start - start immediately"
@@ -2689,8 +2678,6 @@ function sam_misc() {
 		enablelistenmouse "Enable Mouse detection" \
 		disablelistenmouse "Disable Mouse detection" \
 		----- "-----------------------------" \
-		enablequiet "Enable More Output in SSH (samquiet)" \
-		disablequiet "Disable More Output in SSH (samquiet)" \
 		enabledebug "Enable Debug" \
 		disabledebug  "Disable Debug" 2>"/tmp/.SAMmenu" 
 
@@ -2722,10 +2709,6 @@ function sam_misc() {
 		sed -i '/listenmouse=/c\listenmouse="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disablelistenmouse" ]]; then
 		sed -i '/listenmouse=/c\listenmouse="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "enablequiet" ]]; then
-		sed -i '/samquiet=/c\samquiet="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "disablequiet" ]]; then
-		sed -i '/samquiet=/c\samquiet="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "enabledebug" ]]; then
 		sed -i '/samdebug=/c\samdebug="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disabledebug" ]]; then
@@ -3001,7 +2984,7 @@ function sam_resetmenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
-	samquiet "menuresponse: ${menuresponse}"
+	samdebug "menuresponse: ${menuresponse}"
 	parse_cmd "${menuresponse}"
 }
 
@@ -3019,7 +3002,7 @@ function sam_gamelistmenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 
-	samquiet  "menuresponse: ${menuresponse}"
+	samdebug  "menuresponse: ${menuresponse}"
 	parse_cmd "${menuresponse}"
 }
 
@@ -3033,7 +3016,7 @@ function sam_autoplaymenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 
 	clear
-	samquiet  "menuresponse: ${menuresponse}"
+	samdebug  "menuresponse: ${menuresponse}"
 	parse_cmd "${menuresponse}"
 }
 
