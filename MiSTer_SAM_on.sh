@@ -1674,25 +1674,14 @@ function sam_start() {
 }
 
 function boot_sleep() { #Wait for rtc sync
-#	unset end
-#	end=$((SECONDS+60))
-#	while [ $SECONDS -lt $end ]; do
-#		if ! ping -4 -q -w1 -c1 ${ntpserver} >/dev/null
-#		then
-#			echo "No Internet connection"
-#			sleep 1
-#		else
-#			echo "Connection established"
-#			sleep 5
-#			break
-#		fi
-#	done
 	unset end
 	end=$((SECONDS+60))
 	while [ $SECONDS -lt $end ]; do
 		if [ $(date +%Y) -eq 1970 ]; then 
-			echo "Date not set"
+			echo "$(date) - Date not set." >> /tmp/SAM_bootsleep
+			sleep 1
 		else
+			echo "$(date) - Date set. Starting SAM" >> /tmp/SAM_bootsleep
 			break
 		fi 
 	done
