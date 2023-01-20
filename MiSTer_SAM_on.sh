@@ -56,7 +56,6 @@ function init_vars() {
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
 	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
-	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl norepeat="Yes"
@@ -78,6 +77,8 @@ function init_vars() {
 	declare -gl arcadeorient
 	declare -gl checkzipsondisk="Yes"
 	declare -gi bootsleep="60"
+	declare -g ntpserver="0.pool.ntp.org"
+
 	declare -gi countdown="nocountdown"	
 	declare -gi totalgamecount		
 	# ======== DEBUG VARIABLES ========
@@ -847,7 +848,7 @@ function parse_cmd() {
 				# Sleep before startup so clock of Mister can synchronize if connected to the internet.
 				# We assume most people don't have RTC add-on so sleep is default.
 				# Only start MCP on boot
-				sleep ${bootsleep}
+				boot_sleep
 				mcp_start
 				break
 				;;
@@ -1672,7 +1673,30 @@ function sam_start() {
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real "${nextcore}"
 }
 
-
+function boot_sleep() { #Wait for rtc sync
+#	unset end
+#	end=$((SECONDS+60))
+#	while [ $SECONDS -lt $end ]; do
+#		if ! ping -4 -q -w1 -c1 ${ntpserver} >/dev/null
+#		then
+#			echo "No Internet connection"
+#			sleep 1
+#		else
+#			echo "Connection established"
+#			sleep 5
+#			break
+#		fi
+#	done
+	unset end
+	end=$((SECONDS+60))
+	while [ $SECONDS -lt $end ]; do
+		if [ $(date +%Y) -eq 1970 ]; then 
+			echo "Date not set"
+		else
+			break
+		fi 
+	done
+}
 
 function there_can_be_only_one() { # there_can_be_only_one
 	# If another attract process is running kill it
@@ -1837,8 +1861,7 @@ function sam_enable() { # Enable autoplay
 	echo " SAM install complete."
 	echo -e "\n\n\n"
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
-	boot_samtimeout=$((samtimeout + bootsleep))
-	echo -ne "\e[1m" SAM will start ${boot_samtimeout} sec. after boot"\e[0m"
+	echo -ne "\e[1m" SAM will start ${samtimeout} sec. after boot"\e[0m"
 	if [ "${menuonly,,}" == "yes" ]; then
 		echo -ne "\e[1m" in the main menu"\e[0m"
 	else
