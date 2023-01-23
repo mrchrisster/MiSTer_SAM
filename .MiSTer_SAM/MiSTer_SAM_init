@@ -133,8 +133,8 @@ function check_list_arcade() {
 			fgrep "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
 		fi
 		if [ -n "${arcadeorient}" ]; then
-			fgrep -i "${arcadeorient}" "${mralist}" | awk -F"/" '{print $NF}' > $tmpfile	
-			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
+			fgrep -i "${arcadeorient}" "${mralist}" | fgrep -i rotation | awk -F"/" '{print $NF}' > $tmpfile	
+			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile && mv $tmpfile "${mralist_tmp}"			
 			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
 	
