@@ -14,6 +14,7 @@ declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
 declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
 declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
 declare -g tmpfile="/tmp/.SAM_List/tmpfile"
+declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -130,12 +131,11 @@ function check_list_arcade() {
 		#Check path filter
 		if [ -n "${arcadepathfilter}" ]; then
 			echo "Found path filter for Arcade core: ${arcadepathfilter}"
-			fgrep "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
+			fgrep -i "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
 		fi
 		if [ -n "${arcadeorient}" ]; then
 			fgrep -i "${arcadeorient}" "${mralist}" | fgrep -i rotation | awk -F"/" '{print $NF}' > $tmpfile	
-			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile && mv $tmpfile "${mralist_tmp}"			
-			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
+			fgrep -f $tmpfile "${mralist_tmp}" > $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
 		fi
 	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
