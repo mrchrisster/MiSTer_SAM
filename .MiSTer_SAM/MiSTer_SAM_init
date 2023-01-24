@@ -127,15 +127,16 @@ function check_list_arcade() {
 	
 	#Check blacklist and copy gamelist to tmp
 	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
+		cp "${mralist}" "${mralist_tmp}"
 		#Check path filter
 		if [ -n "${arcadepathfilter}" ]; then
 			echo "Found path filter for Arcade core: ${arcadepathfilter}"
 			fgrep -i "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
 		fi
 		if [ -n "${arcadeorient}" ]; then
-			fgrep -i "${arcadeorient}" "${mralist}" | fgrep -i rotation | awk -F"/" '{print $NF}' > $tmpfile	
-			fgrep -f $tmpfile "${mralist_tmp}" > $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
+			fgrep -i "${arcadeorient}" "${mralist}" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
+			fgrep -f $tmpfile2 "${mralist_tmp}" | awk 'NF > 0' > /tmp/sam_orient
+			cp /tmp/sam_orient "${mralist_tmp}"			
 		fi
 	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
