@@ -1677,12 +1677,10 @@ function boot_sleep() { #Wait for rtc sync
 	unset end
 	end=$((SECONDS+60))
 	while [ $SECONDS -lt $end ]; do
-		if [ $(date +%Y) -eq 1970 ]; then 
-			echo "$(date) - Date not set." >> /tmp/SAM_bootsleep
-			sleep 1
-		else
-			echo "$(date) - Date set. Starting SAM" >> /tmp/SAM_bootsleep
+		if [[ "$(date +%Y)" -gt "2020" ]]; then 
 			break
+		else
+			sleep 1
 		fi 
 	done
 }
