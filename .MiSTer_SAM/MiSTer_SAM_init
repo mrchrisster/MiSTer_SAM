@@ -135,8 +135,8 @@ function check_list_arcade() {
 		fi
 		if [ -n "${arcadeorient}" ]; then
 			fgrep -i "${arcadeorient}" "${mralist}" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
-			fgrep -f $tmpfile2 "${mralist_tmp}" | awk 'NF > 0' > $tmpfile
-			cp $tmpfile "${mralist_tmp}"			
+			fgrep -f $tmpfile2 "${mralist_tmp}" | awk 'NF > 0' > /tmp/.SAM_List/sam_orient
+			cp /tmp/.SAM_List/sam_orient "${mralist_tmp}"			
 		fi
 	
 		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
