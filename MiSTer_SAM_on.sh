@@ -55,7 +55,7 @@ function init_vars() {
 	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl norepeat="Yes"
@@ -110,6 +110,7 @@ function init_vars() {
 	# ======== CORE PATHS RBF ========
 	declare -g amigapathrbf="_Computer"
 	declare -g arcadepathrbf="_Arcade"
+	declare -g ao486pathrbf="_Computer"
 	declare -g atari2600pathrbf="_Console"
 	declare -g atari5200pathrbf="_Console"
 	declare -g atari7800pathrbf="_Console"
@@ -134,6 +135,7 @@ function init_vars() {
 	if [[ "${corelist[@]}" == *"amiga"* ]] && [ -f "${mrsampath}"/samindex ]; then
 		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
 		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+		declare -g ao486path="/media/fat/Games/ao486/screensaver"
 	fi
 
 }
@@ -144,6 +146,7 @@ function init_data() {
 	declare -gA CORE_PRETTY=(
 		["amiga"]="Commodore Amiga"
 		["arcade"]="MiSTer Arcade"
+		["ao486"]="PC i486DX-33"
 		["atari2600"]="Atari 2600"
 		["atari5200"]="Atari 5200"
 		["atari7800"]="Atari 7800"
@@ -168,7 +171,8 @@ function init_data() {
 
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
-		["amiga"]="hdf" 		#This is just a placeholder
+		["amiga"]="hdf" 			#This is just a placeholder
+		["ao486"]="vhd"		#This is just a placeholder
 		["arcade"]="mra"
 		["atari2600"]="a26"     
 		["atari5200"]="a52,car" 
@@ -195,6 +199,7 @@ function init_data() {
 	# Core to path mappings
 	declare -gA PATHFILTER=(
 		["amiga"]="${amigapathfilter}"
+		["ao486"]="${ao486pathfilter}"
 		["arcade"]="${arcadepathfilter}"
 		["atari2600"]="${atari2600pathfilter}"
 		["atari5200"]="${atari5200pathfilter}"
@@ -220,6 +225,7 @@ function init_data() {
 	
 	declare -glA FIRSTRUN=(
 		["amiga"]="0"	
+		["ao486"]="0"
 		["arcade"]="0"
 		["atari2600"]="0"
 		["atari5200"]="0"
@@ -247,6 +253,7 @@ function init_data() {
 	# Core to path mappings for rbf files
 	declare -gA CORE_PATH_RBF=(
 		["amiga"]="${amigapathrbf}"
+		["ao486"]="${ao486pathrbf}"
 		["arcade"]="${arcadepathrbf}"
 		["atari2600"]="${atari2600pathrbf}"
 		["atari5200"]="${atari5200pathrbf}"
@@ -273,6 +280,7 @@ function init_data() {
 	# Can this core skip Bios/Safety warning messages
 	declare -glA CORE_SKIP=(
 		["amiga"]="No"
+		["ao486"]="No"
 		["arcade"]="No"
 		["atari2600"]="No"
 		["atari5200"]="No"
@@ -299,6 +307,7 @@ function init_data() {
 	# Can this core use ZIPped ROMs
 	declare -glA CORE_ZIPPED=(
 		["amiga"]="No"
+		["ao486"]="No"
 		["arcade"]="No"
 		["atari2600"]="Yes"
 		["atari5200"]="Yes"
@@ -325,6 +334,7 @@ function init_data() {
 	# Core to input maps mapping
 	declare -gA CORE_LAUNCH=(
 		["amiga"]="Minimig"
+		["ao486"]="ao486"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
 		["atari5200"]="ATARI5200"
@@ -351,6 +361,7 @@ function init_data() {
 	# TTY2OLED Core Pic mappings
 	declare -gA TTY2OLED_PIC_NAME=(
 		["amiga"]="Minimig"
+		["ao486"]="ao486"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI2600"
 		["atari5200"]="ATARI5200"
@@ -377,6 +388,7 @@ function init_data() {
 	# MGL core name settings
 	declare -gA MGL_CORE=(
 		["amiga"]="Minimig"
+		["ao486"]="ao486"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
 		["atari5200"]="ATARI5200"
@@ -403,6 +415,7 @@ function init_data() {
 	# MGL delay settings
 	declare -giA MGL_DELAY=(
 		["amiga"]="1"
+		["ao486"]="0"
 		["arcade"]="2"
 		["atari2600"]="1"
 		["atari5200"]="1"
@@ -429,6 +442,7 @@ function init_data() {
 	# MGL index settings
 	declare -giA MGL_INDEX=(
 		["amiga"]="0"
+		["ao486"]="2"
 		["arcade"]="0"
 		["atari2600"]="0"
 		["atari5200"]="1"
@@ -455,6 +469,7 @@ function init_data() {
 	# MGL type settings
 	declare -glA MGL_TYPE=(
 		["amiga"]="f"
+		["ao486"]="s"
 		["arcade"]="f"
 		["atari2600"]="f"
 		["atari5200"]="f"
@@ -809,7 +824,7 @@ function parse_cmd() {
 		# If we're given a core name, we need to set it first
 		for arg in "${@,,}"; do
 			case ${arg} in
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo "${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				disablecoredel=1
@@ -898,7 +913,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -1235,6 +1250,16 @@ function next_core() { # next_core (core)
 			echo "ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
 			delete_from_corelist amiga
 			next_core
+		fi
+		return
+	fi
+	if [ "${nextcore}" == "ao486" ]; then
+		if [ "$(find "${ao486path}" -name "*.vhd" | wc -l )" == "0" ]; then
+			echo "ERROR - No ao486 screensavers found..."
+			delete_from_corelist ao486
+			next_core
+		else
+			load_core_ao486
 		fi
 		return
 	fi
@@ -1656,6 +1681,100 @@ function load_core_amiga() {
 		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 		activity_reset
 	fi
+}
+
+function create_ao486list () {
+
+	find "${ao486path}" -name "*.vhd" > "${gamelistpath}/${nextcore}_gamelist.txt"
+
+}
+
+function load_core_ao486() {
+
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+		create_ao486list
+		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+		romfilter "${nextcore}"
+		FIRSTRUN[${nextcore}]=1
+	fi
+		
+	mute ao486
+	rompath="$(shuf --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
+	romname=$(basename "${rompath}")
+	aopretty="$(echo "${romname%.*}" | tr '_' ' ')"
+	
+
+		
+
+	# Delete played game from list
+	samdebug "Selected file: ${rompath}"
+	if [ "${norepeat}" == "yes" ]; then
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+	fi
+
+	tty_corename="ao486"
+	
+	if [ "${ttyenable}" == "yes" ]; then
+		tty_currentinfo=(
+			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[name]="${aopretty}"
+			[core]=${tty_corename}
+			[date]=$EPOCHSECONDS
+			[counter]=${gametimer}
+			[name_scroll]="${aopretty:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+		)
+		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+		write_to_TTY_cmd_pipe "display_info" &
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		SECONDS=${elapsed}
+	fi
+	
+
+
+	echo -n "Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+	echo -e "\e[1m${aopretty}\e[0m"
+	echo "$(date +%H:%M:%S) - ${nextcore} - ${romname}" >>/tmp/SAM_Games.log
+	echo "${romname} (${nextcore})" >/tmp/SAM_Game.txt
+	
+	
+	if [ "$(find "${ao486path}" -maxdepth 1 -iname "${romname%.*}.cue" | wc -l )" != "0" ]; then
+		{
+		echo "<mistergamedescription>" 
+		echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
+		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
+		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"4\" path=\"../../../../..${rompath%.*}.cue\"/>"
+		echo 
+		echo "<reset delay=0/>"
+		} >/tmp/SAM_game.mgl
+		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+	elif [ "$(find "${ao486path}" -maxdepth 1 -iname "${romname%.*}.iso" | wc -l )" != "0" ]; then
+		{
+		echo "<mistergamedescription>" 
+		echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
+		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
+		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"4\" path=\"../../../../..${rompath%.*}.iso\"/>"
+		echo 
+		echo "<reset delay=0/>"
+		} >/tmp/SAM_game.mgl
+		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+	else
+		{
+		echo "<mistergamedescription>" 
+		echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
+		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
+		echo "<reset delay=0/>"
+		} >/tmp/SAM_game.mgl
+		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+	fi
+
+	sleep 1
+	activity_reset
+
+
 }
 
 # ========= SAM START AND STOP =========
