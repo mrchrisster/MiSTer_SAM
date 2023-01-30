@@ -10,8 +10,6 @@ declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
 declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 declare -g gamelistpathtmp="/tmp/.SAM_List"
-declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
-declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
 declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
 declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
@@ -92,13 +90,19 @@ function check_list() { # args ${nextcore}
 
 		
 		# Check path filter
-		if [ -n "${PATHFILTER[${1}]}"  ]; then 
+		if [ -n "${PATHFILTER[${1}]}" ]; then 
 			echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
 			fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		fi
+		
+		if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
+			fgrep -i "${arcadeorient}" "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
+			fgrep -f $tmpfile2 "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > /tmp/.SAM_List/sam_orient
+			cp /tmp/.SAM_List/sam_orient "${gamelistpathtmp}/${1}_gamelist.txt"			
+		fi
 
 		# Exclusion and blacklist filter			
-		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 
 		#Check exclusion
 		if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
@@ -123,28 +127,6 @@ function check_list() { # args ${nextcore}
 	fi
 }
 
-function check_list_arcade() {
-	
-	#Check blacklist and copy gamelist to tmp
-	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}"
-		#Check path filter
-		if [ -n "${arcadepathfilter}" ]; then
-			echo "Found path filter for Arcade core: ${arcadepathfilter}"
-			fgrep -i "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
-		fi
-		if [ -n "${arcadeorient}" ]; then
-			fgrep -i "${arcadeorient}" "${mralist}" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
-			fgrep -f $tmpfile2 "${mralist_tmp}" | awk 'NF > 0' > /tmp/.SAM_List/sam_orient
-			cp /tmp/.SAM_List/sam_orient "${mralist_tmp}"			
-		fi
-	
-		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" | awk 'NF > 0' > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
-		fi
-		
-	fi
-}
 
 function gl_filter() {
 	# Create temp gamelists on startup
@@ -166,9 +148,6 @@ function gl_filter() {
 	fi
 
 	for g in "${glondisk[@]}"; do 
-		if [ "${g}" == "arcade" ]; then
-			check_list_arcade &
-		fi
 		if [ "${g}" == "amiga" ]; then
 			echo "Amiga will be processed in main script"
 		fi
