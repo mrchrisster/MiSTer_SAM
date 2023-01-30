@@ -146,7 +146,7 @@ function init_data() {
 	declare -gA CORE_PRETTY=(
 		["amiga"]="Commodore Amiga"
 		["arcade"]="MiSTer Arcade"
-		["ao486"]="PC i486DX-33"
+		["ao486"]="PC 486 DX-33"
 		["atari2600"]="Atari 2600"
 		["atari5200"]="Atari 5200"
 		["atari7800"]="Atari 7800"
@@ -880,6 +880,10 @@ function parse_cmd() {
 				tmux send-keys -t SAM C-c ENTER
 				# break
 				;;
+			ignore) # Exclude current game
+				ignoregame
+				break
+				;;
 			stop) # Stop SAM immediately		
 				kill_all_sams
 				sam_exit 0
@@ -1505,10 +1509,8 @@ function load_core_arcade() {
 			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
 			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
-	
-		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			stdbuf -o0 fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
-		fi
+		
+		romfilter arcade
 		
 		FIRSTRUN[${nextcore}]=1	
 	fi
@@ -2146,6 +2148,22 @@ function mglfavorite() {
 
 }
 
+function ignoregame() {
+	declare -l currentrbf="$(cat /tmp/SAM_Games.log | tail -n1 | awk -F- '{print $2}')"
+	currentgame="$(cat /tmp/SAM_Games.log | tail -n1 | awk 'BEGIN{FS=OFS="\-"; }{for(i=3;i<NF;i++) printf "%s", $i OFS; print $NF }')"
+	cr=`echo $currentrbf`
+	cg=`echo $currentgame`
+	if [ ! -f "${gamelistpath}/${cr}_excludelist.txt" ]; then
+		touch "${gamelistpath}/${cr}_excludelist.txt"
+	fi	
+	echo ${cg} >> "${gamelistpath}/${cr}_excludelist.txt"
+	echo "${currentgame:1} added to ${cr}_excludelist.txt"
+	echo ""
+	echo "Tip: If you want to add the game again, go to ${gamelistpath}/${cr}_excludelist.txt"
+	echo ""
+}
+	
+
 function delete_from_corelist() { # delete_from_corelist core tmp
 	if [ -z "$2" ]; then
 		for i in "${!corelist[@]}"; do
@@ -2675,6 +2693,7 @@ function sam_menu() {
 		Start "Start SAM now" \
 		Startmonitor "Start SAM now And Monitor (SSH)" \
 		Skip "Skip Game" \
+		Ignore "Ignore current game and exclude from SAM" \
 		Stop "Stop SAM" \
 		Update "Update SAM to latest" \
 		Settings "Settings" \
