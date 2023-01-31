@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # https://github.com/mrchrisster/MiSTer_SAM/
-# Copyright (c) 2021 by mrchrisster and Mellified
+# Copyright (c) 2023 by mrchrisster and Mellified
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
