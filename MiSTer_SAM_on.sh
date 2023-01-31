@@ -132,7 +132,7 @@ function init_vars() {
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
 	
-	if [[ "${corelist[@]}" == *"amiga"* ]] && [ -f "${mrsampath}"/samindex ]; then
+	if [[ "${corelist[@]}" == *"amiga"* ]] || [[ "${corelist[@]}" == *"ao486"* ]] && [ -f "${mrsampath}"/samindex ]; then
 		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
 		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 		declare -g ao486path="$("${mrsampath}"/samindex -q -s ao486 -d |awk -F':' '{print $2}')/screensaver"
