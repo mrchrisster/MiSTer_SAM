@@ -74,6 +74,7 @@ The script is highly customizable through the included ini file `MiSTer_SAM.ini`
 ## Supported Systems
 Currently supported MiSTer cores:
 * Amiga (MegaAGS.hdf)
+* AO486 (Drop screensaver vhd's in /media/fat/games/AO486/screensaver - created by flynnsbit)
 * Arcade (all .MRA files)
 * Atari2600/5200/7800 (.a26 .a52 .car .a78)
 * Atari Lynx (.lnx)
