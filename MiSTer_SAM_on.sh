@@ -135,7 +135,7 @@ function init_vars() {
 	if [[ "${corelist[@]}" == *"amiga"* ]] && [ -f "${mrsampath}"/samindex ]; then
 		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
 		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
-		declare -g ao486path="/media/fat/Games/ao486/screensaver"
+		declare -g ao486path="$("${mrsampath}"/samindex -q -s ao486 -d |awk -F':' '{print $2}')/screensaver"
 	fi
 
 }
@@ -2135,6 +2135,9 @@ function skipmessage() {
 		sleep 10
 		samdebug "Button push sent to skip BIOS"
 		"${mrsampath}/mbc" raw_seq :31
+		sleep 1
+		"${mrsampath}/mbc" raw_seq :31
+		
 	fi
 }
 
