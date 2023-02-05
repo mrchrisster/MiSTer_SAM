@@ -2567,7 +2567,7 @@ function get_blacklist() {
 
 function get_ratedlist() {
 	if [ "${kids_safe}" == "yes" ]; then 
-		echo -n " Downloading blacklist files - SAM can auto-detect games with static screens and filter them out..."
+		echo -n " Downloading lists with kids friendly games..."
 		get_samstuff .MiSTer_SAM/SAM_Rated/arcade_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
 		get_samstuff .MiSTer_SAM/SAM_Rated/amiga_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
 		get_samstuff .MiSTer_SAM/SAM_Rated/ao486_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
@@ -2600,6 +2600,7 @@ function sam_update() { # sam_update (next command)
 	
 	# Ensure the MiSTer SAM data directory exists
 	mkdir --parents "${mrsampath}" &>/dev/null
+	mkdir --parents "${mrsampath}/SAM_Rated" &>/dev/null
 	mkdir --parents "${gamelistpath}" &>/dev/null
 
 	if [ ! "$(dirname -- "${0}")" == "/tmp" ]; then
