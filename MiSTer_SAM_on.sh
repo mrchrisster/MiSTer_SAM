@@ -1157,8 +1157,8 @@ function next_core() { # next_core (core)
 			nextcore=arcade
 		fi
 				
-		#samdebug "corelist: ${corelist[*]}"
-		#samdebug "corelisttmp: ${corelisttmp[*]}"
+		samdebug "corelist: ${corelist[*]}"
+		samdebug "corelisttmp: ${corelisttmp[*]}"
 		
 		# Pick a core weighted by how many games a core's library has
 		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
@@ -1195,9 +1195,11 @@ function next_core() { # next_core (core)
 				done					 
 				
 				totalgamecount="$(printf "%s\n" "${corewc[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')"
-				samdebug "\n\n$(for k in "${!corewc[@]}"; do   echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
-
+				echo -e "\n"
+				echo "$(for k in "${!corewc[@]}"; do   echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
+				echo -e "\n"
 				echo "Total game count: $totalgamecount"
+				echo -e "Cores at the top will play proportionally more often.\n"
 				
 				i=5
 				# Sorting cores by games
@@ -1278,14 +1280,27 @@ function next_core() { # next_core (core)
 	extlist="${CORE_EXT[${nextcore}]//,/ }" 
 				
 	if [[ "$extlist" != *"$extension"* ]]; then
-		samdebug " Wrong extension found: \e[1m${extension^^}\e[0m"
-		samdebug " Picking new rom.."
+		if [ ${romloadfails} -gt ${coreretries} ]; then
+			declare -g romloadfails=$((romloadfails + 1))
+			samdebug " Wrong extension found: \e[1m${extension^^}\e[0m for core: ${nextcore} rom: ${rompath}"
+			samdebug " Picking new rom.."
+			next_core "${nextcore}"
+		else
+			echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+			echo " ERROR: Core ${nextcore} is blacklisted!"
+			delete_from_corelist "${nextcore}"
+			echo " List of cores is now: ${corelist[*]}"
+			declare -g romloadfails=0
+			# Load a different core
+			next_core
+		fi
 
-		create_romlist "${nextcore}" &
-		next_core "${nextcore}"
+		#create_romlist "${nextcore}" &
+		#next_core "${nextcore}"
 		#next_core
 		return
 	fi
+
 
 	# This is obsolete because of gamelist excludes. It can still be used as an alternative.
 	declare -n excludelist="${nextcore}exclude"
@@ -2376,7 +2391,7 @@ function check_list() { # args ${nextcore}
 	awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
 
-	#Check exclusion
+	#Check exclusion or kids safe white lists
 	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
 		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
 		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
@@ -2385,13 +2400,17 @@ function check_list() { # args ${nextcore}
 		if [ -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
 			if [ ${1} == amiga ]; then
 				fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
+			elif [ ! -f "${mrsampath}/SAM_Rated/${1}_rated.txt" ]; then
+				echo "${1} core has no kid safe filter and will be disabled. List of cores is now: ${corelist[*]}"
+				delete_from_corelist "${1}"
+				#next_core
 			else
 				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
 			fi
 			if [ -s "${tmpfilefilter}" ]; then 
 				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 			else
-				samdebug "Kids Safe filter failed" 
+				echo "Kids Safe filter produced no results. Continuing without..." 
 			fi
 		else	
 			echo "No kids safe rating lists found. Please download" 
