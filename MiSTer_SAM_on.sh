@@ -1336,7 +1336,6 @@ function check_list_and_pick_rom() { # args ${nextcore}
 		return
 	fi
 	
-
 	if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
 		check_zips ${1} &
 	fi
@@ -1760,6 +1759,30 @@ function load_core_ao486() {
 		} >/tmp/SAM_game.mgl
 		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 	fi
+
+	find "$ao486path" -maxdepth 1 -iname "${romname%.*}.cue" | wc -l | grep -q "0"
+	if [ $? -ne 0 ]; then
+		path_suffix=".cue"
+	else
+		find "$ao486path" -maxdepth 1 -iname "${romname%.*}.iso" | wc -l | grep -q "0"
+		if [ $? -ne 0 ]; then
+			path_suffix=".iso"
+		else
+			path_suffix=""
+		fi
+	fi
+
+	{
+	echo "<mistergamedescription>" 
+	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
+	echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
+	if [ -n "$path_suffix" ]; then
+		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"4\" path=\"../../../../..${rompath%.*}$path_suffix\"/>"
+	fi
+	echo 
+	echo "<reset delay=0/>"
+	} >/tmp/SAM_game.mgl
+	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 
 	sleep 1
 	activity_reset
@@ -2349,7 +2372,7 @@ function check_list() { # args ${nextcore}
 		cp /tmp/.SAM_List/sam_orient "${gamelistpathtmp}/${1}_gamelist.txt"			
 	fi
 
-	# Exclusion and blacklist filter			
+	# Strip dupes			
 	awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
 
@@ -2360,8 +2383,17 @@ function check_list() { # args ${nextcore}
 	elif [ "${kids_safe}" == "yes" ]; then
 		samdebug "Kids Safe Mode - Filtering Roms..."
 		if [ -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
-			fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F'/' '!seen[$NF]++' > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		else
+			if [ ${1} == amiga ]; then
+				fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
+			else
+				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
+			fi
+			if [ -s "${tmpfilefilter}" ]; then 
+				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+			else
+				samdebug "Kids Safe filter failed" 
+			fi
+		else	
 			echo "No kids safe rating lists found. Please download" 
 		fi
 	fi
@@ -2377,7 +2409,12 @@ function check_list() { # args ${nextcore}
 	#Check blacklist	
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
-		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && cp "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}"
+		if [ -s "${tmpfilefilter}" ]; then 
+			cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		else
+			samdebug "Blacklist filter failed" 
+		fi
 	fi
 
 }
