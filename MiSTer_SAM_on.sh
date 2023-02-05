@@ -1498,7 +1498,7 @@ function load_core_arcade() {
 			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
 		
-		romfilter arcade
+		check_list arcade
 		
 		FIRSTRUN[${nextcore}]=1	
 	fi
@@ -1597,7 +1597,7 @@ function load_core_amiga() {
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		create_amigalist
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		romfilter "${nextcore}"
+		check_list amiga
 		FIRSTRUN[${nextcore}]=1
 	fi
 		
@@ -1684,7 +1684,7 @@ function load_core_ao486() {
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		create_ao486list
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		romfilter "${nextcore}"
+		check_list ao486
 		FIRSTRUN[${nextcore}]=1
 	fi
 		
@@ -2335,35 +2335,6 @@ function check_gamelists() {
 
 }
 
-function romfilter() { # romfilter core
-
-	sleep 2 # Sometimes romfilter fails if launched in the bg, so we delay it.
-	
-	#Check exclusion
-	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
-		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
-		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-	fi
-	
-	#Check ini exclusion
-	if [[ "${exclude[*]}" ]]; then 
-		for e in "${exclude[@]}"; do
-			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		done
-
-	fi
-	#if [ "${samdebug}" == "no" ]; then echo "Excluded from list: ${exclude[@]}"; fi
-
-	#Check blacklist	
-	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
-		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
-		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && cp "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games after removing blacklisted. (Active on next run of $1)"
-	fi
-	#sed -i '/^$/d' "${gamelistpathtmp}/${1}_gamelist.txt"
-
-}
-
 function check_list() { # args ${nextcore} 	
 		
 	# Check path filter
@@ -2577,6 +2548,7 @@ function get_inputmap() {
 
 function get_blacklist() {
 	echo -n " Downloading blacklist files - SAM can auto-detect games with static screens and filter them out..."
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/amiga_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/gba_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
@@ -2591,6 +2563,29 @@ function get_blacklist() {
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16cd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	echo " Done."
+}
+
+function get_ratedlist() {
+	if [ "${kids_safe}" == "yes" ]; then 
+		echo -n " Downloading blacklist files - SAM can auto-detect games with static screens and filter them out..."
+		get_samstuff .MiSTer_SAM/SAM_Rated/arcade_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/amiga_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/ao486_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/fds_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/gb_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/gbc_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/gba_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/gg_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/genesis_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/megacd_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/nes_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/neogeo_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/psx_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/sms_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/snes_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		echo " Done."
+	fi
 }
 
 function sam_update() { # sam_update (next command)
@@ -2650,6 +2645,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
 		get_inputmap
 		get_blacklist
+		get_ratedlist
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
