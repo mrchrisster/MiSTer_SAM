@@ -108,6 +108,12 @@ function check_list() { # args ${nextcore}
 		if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
 			echo "Found excludelist for core ${1}. Stripping out unwanted games now."
 			fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		elif [ "${kids_safe}" == "yes" ]; then
+			if [ -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
+				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F'/' '!seen[$NF]++' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+			else
+				echo "No kids safe rating lists found. Please download" 
+			fi
 		fi
 		
 		#Check ini exclusion
