@@ -1280,11 +1280,13 @@ function next_core() { # next_core (core)
 	extlist="${CORE_EXT[${nextcore}]//,/ }" 
 				
 	if [[ "$extlist" != *"$extension"* ]]; then
-		if [ ${romloadfails} -gt ${coreretries} ]; then
+		create_romlist "${nextcore}" &
+		if [ ${romloadfails} -lt ${coreretries} ]; then
 			declare -g romloadfails=$((romloadfails + 1))
 			samdebug " Wrong extension found: \e[1m${extension^^}\e[0m for core: ${nextcore} rom: ${rompath}"
 			samdebug " Picking new rom.."
 			next_core "${nextcore}"
+			return
 		else
 			echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
 			echo " ERROR: Core ${nextcore} is blacklisted!"
@@ -1293,9 +1295,9 @@ function next_core() { # next_core (core)
 			declare -g romloadfails=0
 			# Load a different core
 			next_core
+			return
 		fi
 
-		#create_romlist "${nextcore}" &
 		#next_core "${nextcore}"
 		#next_core
 		return
@@ -1336,8 +1338,8 @@ function create_romlist() { # args ${nextcore}
 		if [ $? -gt 1 ]; then
 			delete_from_corelist "${1}"
 			echo "Can't find games for ${CORE_PRETTY[${1}]}" 
-		fi
-
+		fi	
+		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 	fi
 
 }
@@ -2401,9 +2403,11 @@ function check_list() { # args ${nextcore}
 			if [ ${1} == amiga ]; then
 				fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
 			elif [ ! -f "${mrsampath}/SAM_Rated/${1}_rated.txt" ]; then
-				echo "${1} core has no kid safe filter and will be disabled. List of cores is now: ${corelist[*]}"
 				delete_from_corelist "${1}"
-				#next_core
+				echo "${1} core has no kid safe filter and will be disabled."
+				echo "List of cores is now: ${corelist[*]}"
+				next_core
+				return
 			else
 				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
 			fi
@@ -2413,7 +2417,7 @@ function check_list() { # args ${nextcore}
 				echo "Kids Safe filter produced no results. Continuing without..." 
 			fi
 		else	
-			echo "No kids safe rating lists found. Please download" 
+			echo "No kids safe rating lists found. Please make sure you update SAM." 
 		fi
 	fi
 	
