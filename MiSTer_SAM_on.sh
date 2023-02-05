@@ -1286,7 +1286,7 @@ function next_core() { # next_core (core)
 			samdebug " Wrong extension found: \e[1m${extension^^}\e[0m for core: ${nextcore} rom: ${rompath}"
 			samdebug " Picking new rom.."
 			next_core "${nextcore}"
-			return
+			return 1
 		else
 			echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
 			echo " ERROR: Core ${nextcore} is blacklisted!"
@@ -1295,7 +1295,7 @@ function next_core() { # next_core (core)
 			declare -g romloadfails=0
 			# Load a different core
 			next_core
-			return
+			return 1	
 		fi
 
 		#next_core "${nextcore}"
@@ -1370,7 +1370,8 @@ function check_list_and_pick_rom() { # args ${nextcore}
 		fi
 		FIRSTRUN[${nextcore}]="1"	
 	fi
-		
+	
+	
 	if [ -s ${gamelistpathtmp}/"${1}"_gamelist.txt ]; then
 		rompath="$(cat ${gamelistpathtmp}/"${1}"_gamelist.txt | shuf --head-count=1)"
 	else
@@ -1401,6 +1402,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
+
 }
 
 # Load selected core and rom
@@ -2402,19 +2404,19 @@ function check_list() { # args ${nextcore}
 		if [ -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
 			if [ ${1} == amiga ]; then
 				fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
-			elif [ ! -f "${mrsampath}/SAM_Rated/${1}_rated.txt" ]; then
-				delete_from_corelist "${1}"
-				echo "${1} core has no kid safe filter and will be disabled."
-				echo "List of cores is now: ${corelist[*]}"
-				next_core
-				return
 			else
 				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
 			fi
 			if [ -s "${tmpfilefilter}" ]; then 
 				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 			else
-				echo "Kids Safe filter produced no results. Continuing without..." 
+				delete_from_corelist "${1}"
+				echo "${1} core has no kid safe filter and will be disabled."
+				echo "List of cores is now: ${corelist[*]}"
+				unset ${nextcore}
+				unset ${rompath}
+				next_core
+				return 1
 			fi
 		else	
 			echo "No kids safe rating lists found. Please make sure you update SAM." 
