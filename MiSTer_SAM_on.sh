@@ -1293,7 +1293,7 @@ function next_core() { # next_core (core)
 		for excluded in "${excludelist[@]}"; do
 			if [ "${romname}" == "${excluded}" ]; then
 				echo "${romname} is excluded - SKIPPED"
-				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
+				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
 				next_core
 				return
 			fi
@@ -1346,23 +1346,11 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 
-		
-		# Check path filter
-		if [ -n "${PATHFILTER[${1}]}"  ]; then 
-			echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
-			fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		fi
-	
-
-		# Exclusion and blacklist filter			
-		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
-
 		# Filter roms in bg
 		if [[ "$coreweight" == "no" ]]; then
-			romfilter "${1}" &
+			check_list "${1}" &
 		else
-			romfilter "${1}"
+			check_list "${1}"
 		fi
 		FIRSTRUN[${nextcore}]="1"	
 	fi
@@ -1395,7 +1383,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	# Delete played game from list
 	samdebug "Selected file: ${rompath}"
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 }
 
@@ -1506,7 +1494,7 @@ function load_core_arcade() {
 		fi
 		if [ -n "${arcadeorient}" ]; then
 			fgrep -i "${arcadeorient}" "${mralist}" | fgrep -i rotation | awk -F"/" '{print $NF}' > $tmpfile	
-			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
+			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && cp -f $tmpfile2 "${mralist_tmp}"			
 			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
 		
@@ -1537,7 +1525,7 @@ function load_core_arcade() {
 
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}" >${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
+		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}" >${tmpfile} && cp -f ${tmpfile} "${mralist_tmp}"
 
 	fi
 		if [ "${ttyenable}" == "yes" ]; then
@@ -1649,7 +1637,7 @@ function load_core_amiga() {
 		# Delete played game from list
 		samdebug "Selected file: ${rompath}"
 		if [ "${norepeat}" == "yes" ]; then
-			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 		fi
 
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
@@ -1711,7 +1699,7 @@ function load_core_ao486() {
 	# Delete played game from list
 	samdebug "Selected file: ${rompath}"
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 	fi
 
 	tty_corename="ao486"
@@ -2354,13 +2342,13 @@ function romfilter() { # romfilter core
 	#Check exclusion
 	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
 		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
-		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 	
 	#Check ini exclusion
 	if [[ "${exclude[*]}" ]]; then 
 		for e in "${exclude[@]}"; do
-			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		done
 
 	fi
@@ -2373,6 +2361,53 @@ function romfilter() { # romfilter core
 		samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games after removing blacklisted. (Active on next run of $1)"
 	fi
 	#sed -i '/^$/d' "${gamelistpathtmp}/${1}_gamelist.txt"
+
+}
+
+function check_list() { # args ${nextcore} 	
+		
+	# Check path filter
+	if [ -n "${PATHFILTER[${1}]}" ]; then 
+		echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
+		fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
+	
+	if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
+		fgrep -i "${arcadeorient}" "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
+		fgrep -f $tmpfile2 "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > /tmp/.SAM_List/sam_orient
+		cp /tmp/.SAM_List/sam_orient "${gamelistpathtmp}/${1}_gamelist.txt"			
+	fi
+
+	# Exclusion and blacklist filter			
+	awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
+
+	#Check exclusion
+	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
+		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
+		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	elif [ "${kids_safe}" == "yes" ]; then
+		samdebug "Kids Safe Mode - Filtering Roms..."
+		if [ -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
+			fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F'/' '!seen[$NF]++' > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		else
+			echo "No kids safe rating lists found. Please download" 
+		fi
+	fi
+	
+	#Check ini exclusion
+	if [[ "${exclude[*]}" ]]; then 
+		for e in "${exclude[@]}"; do
+			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		done
+
+	fi
+
+	#Check blacklist	
+	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
+		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
+		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && cp "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
 
 }
 
@@ -2626,7 +2661,7 @@ function sam_update() { # sam_update (next command)
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 			sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
 			sed -i 's/-=/--/g' /media/fat/Scripts/MiSTer_SAM.ini
-			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/MiSTer_SAM.ini /tmp/MiSTer_SAM.ini >/tmp/MiSTer_SAM.tmp && mv --force /tmp/MiSTer_SAM.tmp /media/fat/Scripts/MiSTer_SAM.ini
+			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/MiSTer_SAM.ini /tmp/MiSTer_SAM.ini >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp /media/fat/Scripts/MiSTer_SAM.ini
 			echo "Done."
 
 		else
