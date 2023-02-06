@@ -1,334 +1,125 @@
-2020 Super Baseball (Japan)
-2020 Super Baseball (USA)
-3 Ninjas Kick Back (USA)
-7th Saga, The (USA)
-7th Saga, The (USA) [Hack by James Skarzinskas v1.0] (Elnard's Balance Restauration)
-7th Saga, The (USA) [Hack by Nati v1.0] (~7th Saga Redux)
-Addams Family Values (Europe) (En,Fr,De)
-Addams Family Values (USA) (En,Fr,De)
-Aero Fighters (USA)
-Aero the Acro-Bat (Europe)
-Aero the Acro-Bat (USA)
-Aerobiz (USA)
-Aerobiz Supersonic (USA)
-Aladdin (Europe)
-Aladdin (France)
-Aladdin (Germany)
-Aladdin (Japan)
-Aladdin (Spain)
-Aladdin (USA)
-Aladdin (USA) (Beta)
-Alice no Paint Adventure (Japan)
-Bill Laimbeer's Combat Basketball (USA)
-Boogerman - A Pick and Flick Adventure (Europe)
-Boogerman - A Pick and Flick Adventure (USA)
-Breath of Fire (USA)
-Breath of Fire - Ryuu no Senshi (Japan)
-Breath of Fire II (Europe)
-Breath of Fire II (USA)
-Breath of Fire II (USA) (Beta)
-Breath of Fire II (USA) [En+Hack by d4s+Watercrown v1.2b]
-Breath of Fire II (USA) [En+Hack by d4s+Watercrown v1.2b] (Original Title Screen Music)
-Breath of Fire II (USA) [Text Hack by Beaux v0.66] (Translation Fix)
-Breath of Fire II - Shimei no Ko (Japan)
-Breath of Fire II - Shimei no Ko (Japan) (Rev A) (NP)
-Bust-A-Move (USA)
-Bust-A-Move (USA) [Hack by Dragon Eye Studios v0.50] (~Bust-M-Up)
-Capcom's MVP Football (USA)
-Chrono Trigger (Japan)
-Chrono Trigger (Japan) (Sample)
-Chrono Trigger (USA)
-Chrono Trigger (USA) [En by Chrono Compendium v1.01]
-Chrono Trigger (USA) [En by Doctor L v1.01]
-Chrono Trigger (USA) [Hack by Kajar Laboratories Demo 2] (~Chrono Trigger - Crimson Echos)
-Chrono Trigger (USA) [Hack by Kajar Laboratories v1.0] (~Chrono Trigger - Prophet's Guile)
-Chrono Trigger (USA) [Hack by Kajar Laboratories v2.1] (~Chrono Trigger Coliseum)
-Columns (Japan) (NP)
-Cosmo Gang - The Puzzle (Japan)
-Desert Strike - Return to the Gulf (Europe)
-Desert Strike - Return to the Gulf (USA)
-Dragon Quest I & II (Japan)
-Dragon Quest I & II (Japan) [En by RPGOne v2.0] (Dragon Quest Version)
-Dragon Quest I & II (Japan) [En by RPGOne v2.0] (Dragon Warrior Version)
-Dragon Quest V - Tenkuu no Hanayome (Japan)
-Dragon Quest V - Tenkuu no Hanayome (Japan) [En by Byuu+spSpiff v0.91] (~Dragon Quest V - Bride of Heaven)
-Dragon Quest V - Tenkuu no Hanayome (Japan) [En by DeJap+Partial v2.01Final] (~Dragon Quest V - Bride of Heaven)
-Dragon Quest VI - Maboroshi no Daichi (Japan)
-Dragon Quest VI - Maboroshi no Daichi (Japan) [En by NoPrgress v0.90Beta2] (~Dragon Quest VI - Land of Illusion)
-Dragon Slayer - Eiyuu Densetsu (Japan)
-Dragon Slayer - Eiyuu Densetsu (Japan) (Rev A) (NP)
-Dragon's Lair (Europe) (Beta)
-Dragon's Lair (Europe) (En,Fr,De,Es,It,Nl,Sv)
-Dragon's Lair (USA)
-Earthworm Jim (Europe)
-Earthworm Jim (Japan)
-Earthworm Jim (USA)
-Earthworm Jim (USA) (GamesMaster Special Edition)
-Elnard (Japan)
-Famicom Bunko - Hajimari no Mori (Japan) (NP)
-Famicom Tantei Club Part II - Ushiro ni Tatsu Shoujo (Japan) (NP)
-Famicom Tantei Club Part II - Ushiro ni Tatsu Shoujo (Japan) (NP) [En by Demiforce+Tomato v1.0] (~Famicom Detective Club Part II)
-Famicom Tantei Club Part II - Ushiro ni Tatsu Shoujo (Japan) (Rev A) (NP)
-Final Fantasy II (USA)
-Final Fantasy II (USA) (Rev 1) [Bug Fix by Deathlike2 v1.0a] (Yang's HP Fix)
-Final Fantasy II (USA) (Rev 1) [Hack by Dragonsbrethren v1.0] (~Final Fantasy II is Easy Type)
-Final Fantasy II (USA) (Rev 1) [Hack by JCE3000GT v1.2] (Hard Type)
-Final Fantasy II (USA) (Rev A)
-Final Fantasy II (USA) [Bug Fix by Deathlike2 v1.0a] (Yang's HP Fix)
-Final Fantasy II (USA) [Hack by JCE3000GT v1.2] (Hard Type)
-Final Fantasy III (USA)
-Final Fantasy III (USA) (Rev 1) [Hack by JCE3000GT v1.2] (Hard Type)
-Final Fantasy III (USA) (Rev 1) [Hack by SageAcrin v1.06] (Evil Type)
-Final Fantasy III (USA) (Rev 1) [Hack by Zeemis v1.0] (~Final Fantasy - Revelations)
-Final Fantasy III (USA) (Rev A)
-Final Fantasy III (USA) [Hack by JCE3000GT v1.2] (Hard Type)
-Final Fantasy III (USA) [Hack by MakouEyes v9.08] (~Final Fantasy VI - The Eternal Crystals)
-Final Fantasy III (USA) [Hack by SageAcrin v1.06] (Evil Type)
-Final Fantasy III (USA) [Hack by Tzepish v1.2] (~Final Fantasy IV - Enhanced Editon)
-Final Fantasy III (USA) [Hack by Zeemis v1.0] (~Final Fantasy - Revelations)
-Final Fantasy IV (Japan)
-Final Fantasy IV (Japan) (Rev 1) [En by J2e v3.21]
-Final Fantasy IV (Japan) (Rev 1) [En by J2e v3.21] [Bug Fix by Deathlike2 v1.0a] (Yang's HP Fix)
-Final Fantasy IV (Japan) (Rev A)
-Final Fantasy V (Japan)
-Final Fantasy V (Japan) [En by RPGe v1.1]
-Final Fantasy V (Japan) [En by RPGe v1.1] [Hack by JCE3000GT v0.947] (Expert Mode)
-Final Fantasy V (Japan) [En by RPGe v1.1] [Hack by JCE3000GT v1.0] (Easy Type)
-Final Fantasy V (Japan) [En by RPGe v1.1] [Hack by Jorgur v0.50] (~Final Fantasy V Plus)
-Final Fantasy V (Japan) [En by RPGe v1.1] [Text Hack by Tzepish v1.01] (~Final Fantasy V Spoof)
-Final Fantasy VI (Japan)
-Final Fantasy VI (Japan) [En by RPGOne v1.2b]
-Final Fantasy VI (Japan) [En by RPGOne v1.2b] [All Bug Fixes]
-Final Fight (Europe)
-Final Fight (Japan)
-Final Fight (USA)
-Final Fight Guy (Japan)
-Final Fight Guy (USA)
-Fire Fighting (Japan)
-Frogger (USA)
-Gradius III (Japan)
-Gradius III (USA)
-Harvest Moon (Europe)
-Harvest Moon (Germany)
-Harvest Moon (USA)
-Ignition Factor, The (USA)
-Incredible Hulk, The (Europe)
-Incredible Hulk, The (USA)
-International Superstar Soccer (Europe)
-International Superstar Soccer (USA)
-International Superstar Soccer Deluxe (Europe)
-International Superstar Soccer Deluxe (USA)
-Jurassic Park (Europe)
-Jurassic Park (Europe) (Beta)
-Jurassic Park (France)
-Jurassic Park (Germany)
-Jurassic Park (Italy)
-Jurassic Park (Japan)
-Jurassic Park (Spain)
-Jurassic Park (USA)
-Jurassic Park (USA) (Rev A)
-Kid Klown in Crazy Chase (Europe)
-Kid Klown in Crazy Chase (USA)
-King of the Monsters (Europe)
-King of the Monsters (Japan)
-King of the Monsters (USA)
-Langrisser, Der (Japan)
-Langrisser, Der (Japan) (Rev 1) [En by Byuu+D v1.02]
-Langrisser, Der (Japan) (Rev A)
-Legend of the Mystical Ninja, The (Europe)
-Legend of the Mystical Ninja, The (Germany)
-Legend of the Mystical Ninja, The (USA)
-Magical Quest Starring Mickey Mouse, The (Europe)
-Magical Quest Starring Mickey Mouse, The (Europe) (Rev A)
-Magical Quest Starring Mickey Mouse, The (Germany)
-Magical Quest Starring Mickey Mouse, The (Germany) (Rev A)
-Magical Quest Starring Mickey Mouse, The (Italy)
-Magical Quest Starring Mickey Mouse, The (USA)
-Magical Quest Starring Mickey Mouse, The (USA) (Beta)
-Metal Marines (Europe)
-Metal Marines (USA)
-Monopoly (Japan)
-Monopoly (USA)
-Monopoly (USA) (Rev A)
-Mr Nutz (Europe) (En,Fr)
-Mr Nutz (Japan)
-Mr Nutz (USA) (En,Fr)
-Mr Nutz (USA) (En,Fr) (Beta)
-Ms. Pac-Man (Europe)
-Ms. Pac-Man (USA)
-Nobunaga's Ambition (USA)
-Nosferatu (Japan)
-Nosferatu (USA)
-Olympic Summer Games (Europe)
-Olympic Summer Games (USA)
-Out of This World (USA)
-Out of This World (USA) (Beta)
-Outer World (Japan)
-Pac-Attack (Europe)
-Pac-Attack (USA)
-Pagemaster, The (Europe)
-Pagemaster, The (USA)
-Pagemaster, The (USA) (Beta)
-Pilotwings (Europe)
-Pilotwings (Japan)
-Pilotwings (USA)
-Pinball Dreams (Europe)
-Pinball Dreams (Europe) (Beta)
-Pinball Dreams (USA)
-Pinball Fantasies (Europe)
-Pinball Fantasies (USA)
-Pinball Pinball (Japan)
-Prehistorik Man (Europe) (En,Fr,De)
-Prehistorik Man (USA)
-Prince of Persia (Europe)
-Prince of Persia (Japan)
-Prince of Persia (USA)
-Prince of Persia 2 - The Shadow & The Flame (Europe)
-Prince of Persia 2 - The Shadow & The Flame (USA)
-R-Type III - The Third Lightning (Europe)
-R-Type III - The Third Lightning (Europe) (Beta)
-R-Type III - The Third Lightning (Japan)
-R-Type III - The Third Lightning (USA)
-Rockman & Forte (Japan)
-Rockman & Forte (Japan) [En by Aeon Genesis v1.0]
-Rockman & Forte (Japan) [En by Aeon Genesis v1.0] (~Mega Man & Bass)
-Rockman X2 (Japan)
-Rockman X3 (Japan)
-Rocky Rodent (Europe)
-Rocky Rodent (USA)
-Romance of the Three Kingdoms IV - Wall of Fire (USA)
-Romancing SaGa (Japan) [En by Trans Dimension v0.40] (Incomplete)
-Secret of Evermore (Europe)
-Secret of Evermore (France)
-Secret of Evermore (Germany)
-Secret of Evermore (Spain)
-Secret of Evermore (USA)
-Secret of Evermore (USA) [Hack by FuSoYa v1.02] (2 Player Edition)
-Secret of Evermore (USA) [Hack by FuSoYa v1.02] [Hack by Ninakoru v1.0] (Balance Enhancement - 2 Player Edition)
-Secret of Evermore (USA) [Hack by Ninakoru v1.0] (Balance Enhancement)
-Secret of Mana (Europe)
-Secret of Mana (Europe) (Rev 1) [Hack by Masterflow v1.02] (Hard Mode)
-Secret of Mana (Europe) (Rev A)
-Secret of Mana (Europe) [Hack by Masterflow v1.02] (Hard Mode)
-Secret of Mana (France)
-Secret of Mana (France) (Rev A)
-Secret of Mana (Germany)
-Secret of Mana (USA)
-Secret of Mana (USA) [En by FuSoYa v1.0] (Variable Width Font Edition)
-Secret of Mana (USA) [En by FuSoYa v1.0] [Hack by Masterflow v1.02] (Hard Mode)
-Secret of Mana (USA) [Hack by Masterflow v1.02] (Hard Mode)
-Seiken Densetsu 2 (Japan)
-Shadow, The (USA) (Proto) [50A3]
-Shadow, The (USA) (Proto) [97E7]
-Shanghai II - Dragon's Eye (Europe)
-Shanghai II - Dragon's Eye (USA)
-Shin Megami Tensei (Japan)
-Shin Megami Tensei (Japan) (Rev A)
-Shin Megami Tensei (Japan) [En by Aeon Genesis v1.0]
-Shin Megami Tensei II (Japan)
-Shin Megami Tensei II (Japan) [En by Aeon Genesis v1.0]
-Side Pocket (Europe)
-Side Pocket (Japan)
-Side Pocket (USA)
-SimAnt (Japan)
-SimAnt (USA)
-SimAnt (USA) (Beta)
-SimCity (Europe)
-SimCity (France)
-SimCity (Germany)
-SimCity (Japan)
-SimCity (USA)
-SimCity 2000 (Europe)
-SimCity 2000 (Japan)
-SimCity 2000 (USA)
-SimEarth - The Living Planet (Japan) (Rev 0A)
-SimEarth - The Living Planet (USA)
-Space Ace (Europe)
-Space Ace (Japan)
-Space Ace (USA)
-Space Ace (USA) (Beta)
-Star Ocean (Japan)
-Star Ocean (Japan) [En by DeJap v1.0]
-Stargate (Europe) (En,Fr,De)
-Stargate (Japan)
-Stargate (USA)
-Stargate (USA) (Beta)
-Street Fighter II - The World Warrior (Europe)
-Street Fighter II - The World Warrior (Japan)
-Street Fighter II - The World Warrior (USA)
-Strike Gunner S.T.G (Japan)
-Strike Gunner S.T.G (USA)
-Super Adventure Island (Europe)
-Super Adventure Island (USA)
-Super B.C. Kid (Europe)
-Super Bomberman - Panic Bomber W (Japan)
-Super Bomberman 2 (Europe)
-Super Bomberman 2 (Japan)
-Super Bomberman 2 (USA)
-Super Bonk (USA)
-Super Castlevania IV (Europe)
-Super Castlevania IV (USA)
-Super Genjin (Japan)
-Super Play Action Football (USA)
-Super Punch-Out!! (Europe)
-Super Punch-Out!! (Japan) (NP)
-Super Punch-Out!! (USA)
-Super Solitaire (Europe) (En,Fr,De,Es,It)
-Super Solitaire (USA) (En,Fr,De,Es,It)
-Super Star Wars (Europe)
-Super Star Wars (Europe) (Rev A)
-Super Star Wars (Japan)
-Super Star Wars (USA)
-Super Star Wars (USA) (Beta)
-Super Star Wars (USA) (Rev A)
-Super Star Wars - Return of the Jedi (Europe)
-Super Star Wars - Return of the Jedi (Europe) (Rev A)
-Super Star Wars - Return of the Jedi (USA)
-Super Star Wars - Return of the Jedi (USA) (Rev A)
-Super Turrican 2 (Europe)
-Super Turrican 2 (USA)
-Super Turrican 2 (USA) (Beta1)
-Super Turrican 2 (USA) (Beta2)
-Sutte Hakkun (Japan)
-Tales of Phantasia (Japan)
-Tales of Phantasia (Japan) [En by DeJap v1.2] (Lower Case Font)
-Tales of Phantasia (Japan) [En by DeJap v1.2] (Upper Case Font)
-Tenchi Souzou (Japan)
-Terranigma (Europe)
-Terranigma (France)
-Terranigma (Germany)
-Terranigma (Germany) (Rev A)
-Terranigma (Spain)
-Tetris 2 (Europe)
-Tetris 2 (USA)
-Tetris 2 (USA) (Rev A)
-Theme Park (Europe) (En,Fr,De)
-Theme Park (Japan)
-Time Trax (Europe)
-Time Trax (USA)
-Time Trax (USA) (Beta)
-Tintin in Tibet (Europe) (En,Fr,De,Nl)
-Top Gear 3000 (Europe)
-Top Gear 3000 (USA)
-Uncharted Waters - New Horizons (USA)
-Vegas Stakes (Europe)
-Vegas Stakes (USA)
-Virtual Bart (Europe)
-Virtual Bart (Japan)
-Virtual Bart (USA)
-Virtual Bart (USA) (Beta)
-Warlock (Europe)
-Warlock (Japan)
-Warlock (USA)
-Warlock (USA) (Beta) [0556]
-Warlock (USA) (Beta) [9FB9]
-Williams Arcade's Greatest Hits (Europe)
-Williams Arcade's Greatest Hits (USA)
-Wizardry V - Heart of the Maelstrom (USA)
-X (Japan) (Proto)
-Yoshi's Cookie (Europe)
-Yoshi's Cookie (USA)
-Zombies (Europe)
-Zombies (Europe) (Beta)
-Zombies Ate My Neighbors (USA)
-Zombies Ate My Neighbors (USA) [Hack by Frank Maggiore v1.0] (~Ultimate Zombies Ate My Neighbors)
+2020 Super Baseball 
+3 Ninjas Kick Back 
+7th Saga, The 
+Addams Family Values 
+Aero Fighters 
+Aero the Acro-Bat 
+Aerobiz 
+Aerobiz Supersonic 
+Aladdin 
+Alice no Paint Adventure 
+Bill Laimbeer's Combat Basketball 
+Boogerman - A Pick and Flick Adventure 
+Breath of Fire 
+Breath of Fire - Ryuu no Senshi 
+Breath of Fire II 
+Breath of Fire II - Shimei no Ko 
+Bust-A-Move 
+Capcom's MVP Football 
+Chrono Trigger 
+Columns 
+Cosmo Gang - The Puzzle 
+Desert Strike - Return to the Gulf 
+Dragon Quest I & II 
+Dragon Quest V - Tenkuu no Hanayome 
+Dragon Quest VI - Maboroshi no Daichi 
+Dragon Slayer - Eiyuu Densetsu 
+Dragon's Lair 
+Earthworm Jim 
+Elnard 
+Famicom Bunko - Hajimari no Mori 
+Famicom Tantei Club Part II - Ushiro ni Tatsu Shoujo 
+Final Fantasy II 
+Final Fantasy III 
+Final Fantasy IV 
+Final Fantasy V 
+Final Fantasy VI 
+Final Fight 
+Final Fight Guy 
+Fire Fighting 
+Frogger 
+Gradius III 
+Harvest Moon 
+Ignition Factor, The 
+Incredible Hulk, The 
+International Superstar Soccer 
+International Superstar Soccer Deluxe 
+Jurassic Park 
+Kid Klown in Crazy Chase 
+King of the Monsters 
+Langrisser, Der 
+Legend of the Mystical Ninja, The 
+Magical Quest Starring Mickey Mouse, The 
+Metal Marines 
+Monopoly 
+Mr Nutz 
+Ms. Pac-Man 
+Nobunaga's Ambition 
+Nosferatu 
+Olympic Summer Games 
+Out of This World 
+Outer World 
+Pac-Attack 
+Pagemaster, The 
+Pilotwings 
+Pinball Dreams 
+Pinball Fantasies 
+Pinball Pinball 
+Prehistorik Man 
+Prince of Persia 
+Prince of Persia 2 - The Shadow & The Flame 
+R-Type III - The Third Lightning 
+Rockman & Forte 
+Rockman X2 
+Rockman X3 
+Rocky Rodent 
+Romance of the Three Kingdoms IV - Wall of Fire 
+Romancing SaGa 
+Secret of Evermore 
+Secret of Mana 
+Seiken Densetsu 2 
+Shadow, The 
+Shanghai II - Dragon's Eye 
+Shin Megami Tensei 
+Shin Megami Tensei II 
+Side Pocket 
+SimAnt 
+SimCity 
+SimCity 2000 
+SimEarth - The Living Planet 
+Space Ace 
+Star Ocean 
+Stargate 
+Street Fighter II - The World Warrior 
+Strike Gunner S.T.G 
+Super Adventure Island 
+Super B.C. Kid 
+Super Bomberman - Panic Bomber W 
+Super Bomberman 2 
+Super Bonk 
+Super Castlevania IV 
+Super Genjin 
+Super Play Action Football 
+Super Punch-Out!! 
+Super Solitaire 
+Super Star Wars 
+Super Star Wars - Return of the Jedi 
+Super Turrican 2 
+Sutte Hakkun 
+Tales of Phantasia 
+Tenchi Souzou 
+Terranigma 
+Tetris 2 
+Theme Park 
+Time Trax 
+Tintin in Tibet 
+Top Gear 3000 
+Uncharted Waters - New Horizons 
+Vegas Stakes 
+Virtual Bart 
+Warlock 
+Williams Arcade's Greatest Hits 
+Wizardry V - Heart of the Maelstrom 
+Yoshi's Cookie 
+Zombies 
+Zombies Ate My Neighbors 
