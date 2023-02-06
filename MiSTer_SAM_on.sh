@@ -2646,6 +2646,7 @@ function get_ratedlist() {
 		get_samstuff .MiSTer_SAM/SAM_Rated/sms_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
 		get_samstuff .MiSTer_SAM/SAM_Rated/snes_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
 		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16cd_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
 		echo " Done."
 	fi
 }
