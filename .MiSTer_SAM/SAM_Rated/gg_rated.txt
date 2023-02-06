@@ -1,50 +1,39 @@
-Aladdin (Japan)
-Aladdin (USA, Europe)
-Bubble Bobble (USA, Europe)
-Bust-A-Move (USA, Europe)
-Columns (Japan)
-Columns (USA, Europe)
-Crystal Warriors (USA, Europe)
-Desert Strike - Return to the Gulf (USA, Europe)
-Double Dragon (USA, Europe)
-Double Dragon (USA, Europe) (Beta)
-Dynamite Headdy (Japan)
-Dynamite Headdy (USA, Europe)
-Earthworm Jim (USA, Europe)
-Ecco the Dolphin (Japan)
-Ecco the Dolphin (USA)
-FIFA Soccer 96 (USA, Europe) (En,Fr,De,Es)
-Gunstar Heroes (Japan)
-Incredible Hulk, The (USA, Europe)
-Jurassic Park (Europe)
-Jurassic Park (Japan)
-Klax (USA, Europe)
-Mappy (Japan)
-Ms. Pac-Man (USA, Europe)
-NHL Hockey (USA, Europe)
-Pac-Attack (USA, Europe)
-Pac-Man (USA, Europe)
-Paperboy (USA, Europe)
-Pinball Dreams (USA)
-Prince of Persia (USA, Europe)
-Prince of Persia (USA, Europe) (Beta)
-Puyo Puyo 2 (Japan)
-Road Rash (USA, Europe)
-Side Pocket (USA)
-Sonic & Tails 2 (Japan)
-Sonic Labyrinth (USA, Europe)
-Sonic Spinball (USA, Europe)
-Sonic The Hedgehog (Japan)
-Sonic The Hedgehog (World) (Proto)
-Sonic The Hedgehog (World) (v1.1)
-Sonic The Hedgehog - Triple Trouble (USA, Europe)
-Sonic The Hedgehog 2 (World)
-Stargate (USA, Europe)
-Streets of Rage (World)
-Super Columns (Japan)
-Super Columns (USA)
-Super Return of the Jedi (USA, Europe)
-Tintin in Tibet (Europe) (En,Fr,De,Es,Nl,Sv)
-WWF Wrestlemania Steel Cage Challenge (Europe)
-Wonder Boy (Europe)
-Wonder Boy (Japan)
+Aladdin 
+Bubble Bobble 
+Bust-A-Move 
+Columns 
+Crystal Warriors 
+Desert Strike - Return to the Gulf 
+Double Dragon 
+Dynamite Headdy 
+Earthworm Jim 
+Ecco the Dolphin 
+FIFA Soccer 96 
+Gunstar Heroes 
+Incredible Hulk, The 
+Jurassic Park 
+Klax 
+Mappy 
+Ms. Pac-Man 
+NHL Hockey 
+Pac-Attack 
+Pac-Man 
+Paperboy 
+Pinball Dreams 
+Prince of Persia 
+Puyo Puyo 2 
+Road Rash 
+Side Pocket 
+Sonic & Tails 2 
+Sonic Labyrinth 
+Sonic Spinball 
+Sonic The Hedgehog 
+Sonic The Hedgehog - Triple Trouble 
+Sonic The Hedgehog 2 
+Stargate 
+Streets of Rage 
+Super Columns 
+Super Return of the Jedi 
+Tintin in Tibet 
+WWF Wrestlemania Steel Cage Challenge 
+Wonder Boy 
