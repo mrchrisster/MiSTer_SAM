@@ -1,335 +1,140 @@
-1942 (Japan, USA)
-720 (USA)
-Adventures of Gilligan's Island, The (USA)
-Adventures of Lolo 2 (Europe)
-Adventures of Lolo 2 (Japan)
-Adventures of Lolo 2 (USA)
-Adventures of Lolo 2 (USA) [Hack by Sivak Drac v1.0] (~Challenging Lolo 2)
-Aladdin (Europe)
-Athena (Japan)
-Athena (USA)
-Balloon Fight (Europe)
-Balloon Fight (Japan)
-Balloon Fight (USA)
-Barbie (Europe)
-Barbie (USA)
-Barbie (USA) (Rev A)
-Baseball (Japan)
-Baseball (USA, Europe)
-Battleship (Europe) (En,Fr,De,Es)
-Battleship (USA)
-Bible Adventures (USA) (Unl)
-Bible Adventures (USA) (Unl) (v1.1)
-Bible Adventures (USA) (Unl) (v1.2)
-Bible Adventures (USA) (Unl) (v1.3)
-Bible Adventures (USA) (Unl) (v1.4)
-Bio Miracle Bokutte Upa (Japan)
-Bio Miracle Bokutte Upa (Japan) [En by Vice v1.0] (~Bio Miracle Baby Upa!!)
-Blaster Master (Europe)
-Blaster Master (USA)
-Blaster Master (USA) (Beta)
-Blaster Master (USA) [Hack by Jigglysaint v1.1] (~Blaster Master - Pimp Your Ride)
-Bomberman (Japan)
-Bomberman (USA)
-Bonk's Adventure (USA)
-Boulder Dash (Europe)
-Boulder Dash (Japan)
-Boulder Dash (USA)
-Boulder Dash (USA) [Hack by Dragon Eye Studios v0.80] (~Boulder Dash Greed)
-Bubble Bobble (Europe)
-Bubble Bobble (USA)
-Bubble Bobble (USA) [Hack by Dragon Eye Studios v1.0] (~Bubble Bobble Madness)
-Burai Fighter (Europe)
-Burai Fighter (Japan)
-Burai Fighter (USA)
-Burger Time (Japan)
-Burger Time (USA)
-California Games (Europe)
-California Games (USA)
-Castlevania (Europe)
-Castlevania (USA)
-Castlevania (USA) (Rev A)
-Castlevania (USA) (Rev A) [Hack by Dragonsbrethren v2.0] (~Castlevania Retold)
-Castlevania (USA) (Rev A) [Hack by Redrum v1.0] (~Castlevania - Blood Moon)
-Castlevania II - Simon's Quest (Europe)
-Castlevania II - Simon's Quest (USA)
-Castlevania III - Dracula's Curse (Europe)
-Castlevania III - Dracula's Curse (USA)
-Castlevania III - Dracula's Curse (USA) [Graphic Hack by Dragonsbrethren v1.0] (Uncensored Edition)
-Castlevania III - Dracula's Curse (USA) [Hack by Dragonsbrethren v1.0] (All Bug Fixes)
-Chubby Cherub (USA)
-City Connection (Europe)
-City Connection (Japan)
-City Connection (USA)
-Contra (USA)
-Crystalis (USA)
-Crystalis (USA) (Beta)
-Defender of the Crown (Europe)
-Defender of the Crown (France)
-Defender of the Crown (USA)
-Dig Dug (Japan)
-Dig Dug II (Japan)
-Dig Dug II - Trouble in Paradise (USA)
-Double Dragon (Europe)
-Double Dragon (Japan)
-Double Dragon (Japan) (Beta)
-Double Dragon (USA)
-Double Dragon (USA) [Hack by Hiro1112 v1.1] (Arcade Mix)
-Double Dribble (Europe)
-Double Dribble (USA)
-Double Dribble (USA) (Rev A)
-Dragon Quest (Japan)
-Dragon Quest IV - Michibikareshi Monotachi (Japan) (Rev A)
-Dragon Warrior (USA)
-Dragon Warrior (USA) (Rev A)
-Dragon Warrior (USA) (Rev A) [Graphic Hack by Interordi v0.33] (~Dragon Warrior Plus)
-Dragon Warrior (USA) (Rev A) [Hack by Sliver X v1.0Final] (~Dragoon X)
-Dragon Warrior (USA) [Graphic Hack by Interordi v0.33] (~Dragon Warrior Plus)
-Dragon Warrior (USA) [Hack by Sliver X v1.0Final] (~Dragoon X)
-Dragon Warrior (USA) [Hack by Sliver X v2.0f] (~Dragoon X Omega)
-Dragon Warrior IV (USA)
-Dragon's Lair (Europe)
-Dragon's Lair (Japan)
-Dragon's Lair (USA)
-Elevator Action (Japan)
-Elevator Action (USA)
-Excitebike (Europe)
-Excitebike (Japan, USA)
-Family Feud (USA)
-Fantasy Zone (Japan)
-Fantasy Zone (USA) (Unl)
-Final Fantasy (Japan) (Rev 0A)
-Final Fantasy (Japan) (Rev B)
-Final Fantasy (USA)
-Final Fantasy (USA) [Bug Fix by Karatorian v0.80] (Black Belt-Master Level Up Fix)
-Final Fantasy (USA) [Hack by Goongyae v1.3] (Final Facelift)
-Final Fantasy (USA) [Hack by Grond v1.1] (Balance+Bug Fixes)
-Final Fantasy (USA) [Hack by Grond v1.2] (~Final Fantasy Plus Plus - World of Chaos)
-Final Fantasy (USA) [Hack by Grond v1.5] (~Final Fantasy Plus Plus)
-Final Fantasy (USA) [Hack by Kabucho v1.0] (~Quadruple Dragons)
-Final Fantasy (USA) [Hack by Sliver X+Thaddeus v2.0Final] (~Dragoon X Omega II)
-Final Fantasy I & II (Japan)
-Final Fantasy I & II (Japan) [En by Demiforce v1.0]
-Final Fantasy I & II (Japan) [En by Demiforce v1.0] [Hack by Grond v1.0] (Unofficial Update)
-Final Fantasy II (Japan)
-Final Fantasy II (Japan) [En by Demiforce v1.03] [Bug+Title Fixes by Parasyte v1.0] (Weapon-Magic Exploit Fix)
-Final Fantasy II (Japan) [En by Demiforce v1.03] [Hack by Lenophis+King Lettuce v1.0] [Title Fix by Parasyte v1.0] (Demonic Pandemonium)
-Final Fantasy II (Japan) [En by Demiforce v1.03] [Title Fix by Parasyte v1.0]
-Final Fantasy II (USA) (Proto)
-Final Fantasy II (USA) (Proto) [Bug Fix by Parasyte v1.0] (Weapon-Magic Exploit Fix)
-Final Fantasy III (Japan)
-Final Fantasy III (Japan) [En by A.W.Jackson+Neill Corlett+SoM2Freak v1.1]
-Formula 1 Sensation (Europe)
-Galaga (Europe)
-Galaga (Japan)
-Gauntlet (USA)
-Gauntlet (USA) (Unl)
-God Slayer - Haruka Tenkuu no Sonata (Japan)
-Golf (Europe)
-Golf (Japan)
-Golf (USA)
-Gradius (ArchiMENdes Hen) (Japan)
-Gradius (Europe)
-Gradius (Japan)
-Gradius (USA)
-Gryzor (Japan)
-Gryzor (Japan) [En by MadHacker v1.0] [Fix by g8z et al] (Contra Version)
-Gryzor (Japan) [En by MadHacker v1.0] [Fix by g8z et al] (Gryzor Version)
-Gyruss (USA)
-Hello Kitty World (Japan)
-Hello Kitty World (Japan) [En by Flake v1.0]
-Hello Kitty World (Japan) [En by HK Kicks Ass v1.0]
-Hogan's Alley (World)
-Hyper Olympic (Genteiban!) (Japan)
-Hyper Olympic (Japan)
-Ice Climber (Japan)
-Ice Climber (USA, Europe)
-Ice Hockey (Europe)
-Ice Hockey (USA)
-Jeopardy! (USA)
-Jeopardy! (USA) (Rev A)
-Joust (Japan)
-Joust (USA)
-Jurassic Park (Europe)
-Jurassic Park (USA)
-Kage (Japan)
-King's Quest V (USA)
-Kinnikuman - Muscle Tag Match (Japan)
-Kinnikuman - Muscle Tag Match (Japan) (Rev 1)
-Kinnikuman - Muscle Tag Match (Japan) [En by Stardust Crusaders v1.0]
-Klax (Japan)
-Klax (USA) (Unl)
-Legend of Kage, The (USA)
-Life Force (USA)
-Lode Runner (Japan)
-Lode Runner (USA)
-Mach Rider (Europe)
-Mach Rider (Japan, USA)
-Mach Rider (Japan, USA) (Rev A)
-Mappy (Japan)
-Mega Man (Europe)
-Mega Man (USA)
-Mega Man (USA) [Graphic Hack by Dragonsbrethren v3.0] (~Protoman - The Red Bomber)
-Mega Man (USA) [Hack by Dragon Eye Studios v1.0] (~Megaman Showdown I) (Boss Mode)
-Mega Man (USA) [Hack by Duelists v1.0] (~Bass)
-Mega Man 2 (Europe)
-Mega Man 2 (USA)
-Mega Man 2 (USA) [Hack by Blast Hornet v1.0] (~Rockman Exile) (Ja)
-Mega Man 2 (USA) [Hack by Infidelity v1.0] (~Mega Man Ultra)
-Mega Man 2 (USA) [Hack by Sivak Drac v1.0] (~Adventures of Bass II, The)
-Mega Man 2 (USA) [Hack by Tokkan Kouzi Kanrinin v1.0] (~Mega Man Neo)
-Mega Man 3 (Europe)
-Mega Man 3 (Europe) (Rev A)
-Mega Man 3 (USA)
-Mega Man 3 (USA) (Beta)
-Mega Man 4 (Europe)
-Mega Man 4 (USA)
-Mega Man 4 (USA) (Rev A)
-Mega Man 4 (USA) (Rev A) [Hack by Insectduel v1.0] (~Megaman Showdown IV - Hard) (Boss Mode)
-Mega Man 4 (USA) (Rev A) [Hack by Insectduel v1.0] (~Megaman Showdown IV EX - Hard) (Boss Mode)
-Mega Man 4 (USA) (Rev A) [Hack by Insectduel v1.0] (~Megaman Showdown IV EX) (Boss Mode)
-Mega Man 4 (USA) (Rev A) [Hack by Insectduel v1.0] (~Megaman Showdown IV) (Boss Mode)
-Mega Man 4 (USA) (Rev A) [Hack by Mickevincent v1.0] (~Mega Man - Maverick Revenge)
-Mega Man 4 (USA) [Hack by Insectduel v1.0] (~Megaman Showdown IV - Hard) (Boss Mode)
-Mega Man 4 (USA) [Hack by Insectduel v1.0] (~Megaman Showdown IV EX - Hard) (Boss Mode)
-Mega Man 4 (USA) [Hack by Insectduel v1.0] (~Megaman Showdown IV EX) (Boss Mode)
-Mega Man 4 (USA) [Hack by Insectduel v1.0] (~Megaman Showdown IV) (Boss Mode)
-Mega Man 4 (USA) [Hack by Mickevincent v1.0] (~Mega Man - Maverick Revenge)
-Mega Man 5 (Europe)
-Mega Man 5 (USA)
-Mega Man 6 (USA)
-Mega Man 6 (USA) [Hack by Dragon Eye Studios v1.0] (~Megaman Showdown VI) (Boss Mode)
-Metal Max (Japan)
-Mighty Bomb Jack (Europe)
-Mighty Bomb Jack (Japan)
-Mighty Bomb Jack (USA)
-Milon's Secret Castle (USA)
-Monopoly (France)
-Monopoly (Germany)
-Monopoly (Japan)
-Monopoly (USA)
-Ms. Pac-Man (USA)
-Ms. Pac-Man (USA) (Unl)
-Ms. Pac-Man (USA) [Hack by Dave Augusta+Googie v1.0] (~Mr. Pac-Man)
-Muppet Adventure - Chaos at the Carnival (USA)
-NES Open Tournament Golf (Europe)
-NES Open Tournament Golf (USA)
-NES Play Action Football (USA)
-Ninja Jajamaru Kun (Japan)
-Nobunaga's Ambition (USA)
-Pac-Man (Europe)
-Pac-Man (Japan)
-Pac-Man (Japan) (Rev A)
-Pac-Man (USA) (Namco)
-Pac-Man (USA) (Tengen)
-Pac-Man (USA) (Tengen) (Unl)
-Paperboy (Europe)
-Paperboy (Japan)
-Paperboy (USA)
-Pinball (Europe) (Rev 0A)
-Pinball (Japan, USA)
-Prince of Persia (Europe)
-Prince of Persia (France)
-Prince of Persia (Germany)
-Prince of Persia (Spain)
-Prince of Persia (USA)
-Princess Tomato in Salad Kingdom (USA)
-Princess Tomato in Salad Kingdom (USA) (Beta)
-Probotector II - Return of the Evil Forces (Europe)
-Puzznic (Europe)
-Puzznic (Japan)
-Puzznic (USA)
-Q-bert (USA)
-Qix (USA)
-Quarth (Japan)
-Renegade (USA)
-Rockman (Japan)
-Rockman (Japan) [Hack by Enk+Small Apple v1.0Beta] (~Rockman Kent)
-Rockman (Japan) [Hack by Kuwata v1.0] (~Rockman 2000)
-Rockman (Japan) [Hack by Small Apple v1.0] (~Rockman Kai)
-Rockman (Japan) [Hack by Tokkan Kouzi Kanrinin v1.0] (~Rockman Neo)
-Rockman 2 - Dr. Wily no Nazo (Japan)
-Rockman 2 - Dr. Wily no Nazo (Japan) [En by Aeon Genesis v1.0] (~Rockman 2 - Dr. Wily's Riddle)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by DHI v1.0] (~Rockman Exhaust)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by IKA v1.0] (~Rockman No Constancy - Hard)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by IKA v1.0] (~Rockman No Constancy)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by IKA+Misty v1.0] (~Rockman 2 - Deus Ex Machina - Easy)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by IKA+Misty v1.0] (~Rockman 2 - Deus Ex Machina - Hard)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by IKA+Misty v1.0] (~Rockman 2 - Deus Ex Machina)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by Small Apple v1.0] (~Rockman 2 Dash Plus)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by Small Apple v1.0] (~Rockman 2 Dash)
-Rockman 2 - Dr. Wily no Nazo (Japan) [Hack by Tar v1.0] (~Rockman 2 MIN)
-S.C.A.T. - Special Cybernetic Attack Team (USA)
-Saiyuuki World (Japan)
-Salamander (Japan)
-Shanghai (Japan)
-Shanghai (Japan) (Sample)
-Side Pocket (Europe)
-Side Pocket (Japan)
-Side Pocket (USA)
-Sky Kid (Japan)
-Sky Kid (USA)
-Soccer (Europe) (Rev 0A)
-Soccer (Japan, USA)
-Solomon no Kagi (Japan)
-Solomon's Key (Europe)
-Solomon's Key (USA)
-Son Son (Japan)
-Space Invaders (Japan)
-Spelunker (Japan)
-Spelunker (USA)
-Stack-Up (World)
-Star Wars - The Empire Strikes Back (Europe)
-Star Wars - The Empire Strikes Back (Japan)
-Star Wars - The Empire Strikes Back (USA)
-Startropics (Europe)
-Startropics (USA)
-Summer Carnival '92 - Recca (Japan)
-Summer Carnival '92 - Recca (Japan) [En by Aeon Genesis v1.0] (~Raging Fire - Recca)
-Summer Carnival '92 - Recca (Japan) [Hack by Sliver X v1.0] (~Recca - Pure)
-Super C (USA)
-Super Contra (Japan)
-Super Dodge Ball (USA)
-Super Dodge Ball (USA) [Hack by Aka v1.0] (4 Player Edition)
-Tecmo Bowl (Japan)
-Tecmo Bowl (USA)
-Tecmo Bowl (USA) (Beta)
-Tecmo Bowl (USA) (Rev A)
-Teenage Mutant Ninja Turtles (Italy)
-Teenage Mutant Ninja Turtles (Japan)
-Teenage Mutant Ninja Turtles (USA)
-Teenage Mutant Ninja Turtles (USA) [Hack by Frank Maggiore v0.50] (~Ultimate Teenage Mutant Ninja Turtles)
-Teenage Mutant Ninja Turtles II - The Arcade Game (USA)
-Tennis (Europe)
-Tennis (Japan, USA)
-Tetris (Europe)
-Tetris (Japan)
-Tetris (Japan) (Rev A)
-Tetris (Japan) (Rev B)
-Tetris (USA)
-Tetris (USA) (Unl)
-Tetris 2 (Europe)
-Tetris 2 (USA)
-Three Stooges, The (USA)
-Three Stooges, The (USA) (Beta)
-Track & Field (USA)
-Ufouria - The Saga (Europe)
-Ufouria - The Saga (Europe) (Beta)
-Urban Champion (World)
-Volleyball (USA, Europe)
-WWF Wrestlemania Challenge (Europe)
-WWF Wrestlemania Challenge (Japan)
-WWF Wrestlemania Challenge (USA)
-WWF Wrestlemania Steel Cage Challenge (Europe)
-WWF Wrestlemania Steel Cage Challenge (USA)
-Where's Waldo (USA)
-Wizardry - Proving Grounds of the Mad Overlord (Japan)
-Wizardry - Proving Grounds of the Mad Overlord (USA)
-Wizardry - The Knight of Diamonds (USA)
-Xevious (Europe)
-Xevious (Japan)
+1942 
+720 
+Adventures of Gilligan's Island, The 
+Adventures of Lolo 2 
+Aladdin 
+Athena 
+Balloon Fight 
+Barbie 
+Baseball 
+Battleship 
+Bible Adventures 
+Bio Miracle Bokutte Upa 
+Blaster Master 
+Bomberman 
+Bonk's Adventure 
+Boulder Dash 
+Bubble Bobble 
+Burai Fighter 
+Burger Time 
+California Games 
+Castlevania 
+Castlevania II - Simon's Quest 
+Castlevania III - Dracula's Curse 
+Chubby Cherub 
+City Connection 
+Contra 
+Crystalis 
+Defender of the Crown 
+Dig Dug 
+Dig Dug II 
+Dig Dug II - Trouble in Paradise 
+Double Dragon 
+Double Dribble 
+Dragon Quest 
+Dragon Quest IV - Michibikareshi Monotachi 
+Dragon Warrior 
+Dragon Warrior IV 
+Dragon's Lair 
+Elevator Action 
+Excitebike 
+Family Feud 
+Fantasy Zone 
+Final Fantasy 
+Final Fantasy I & II 
+Final Fantasy II 
+Final Fantasy III 
+Formula 1 Sensation 
+Galaga 
+Gauntlet 
+God Slayer - Haruka Tenkuu no Sonata 
+Golf 
+Gradius 
+Gryzor 
+Gyruss 
+Hello Kitty World 
+Hogan's Alley 
+Hyper Olympic 
+Ice Climber 
+Ice Hockey 
+Jeopardy! 
+Joust 
+Jurassic Park 
+Kage 
+King's Quest V 
+Kinnikuman - Muscle Tag Match 
+Klax 
+Legend of Kage, The 
+Life Force 
+Lode Runner 
+Mach Rider 
+Mappy 
+Mega Man 
+Mega Man 2 
+Mega Man 3 
+Mega Man 4 
+Mega Man 5 
+Mega Man 6 
+Metal Max 
+Mighty Bomb Jack 
+Milon's Secret Castle 
+Monopoly 
+Ms. Pac-Man 
+Muppet Adventure - Chaos at the Carnival 
+NES Open Tournament Golf 
+NES Play Action Football 
+Ninja Jajamaru Kun 
+Nobunaga's Ambition 
+Pac-Man 
+Paperboy 
+Pinball 
+Prince of Persia 
+Princess Tomato in Salad Kingdom 
+Probotector II - Return of the Evil Forces 
+Puzznic 
+Q-bert 
+Qix 
+Quarth 
+Renegade 
+Rockman 
+Rockman 2 - Dr. Wily no Nazo 
+S.C.A.T. - Special Cybernetic Attack Team 
+Saiyuuki World 
+Salamander 
+Shanghai 
+Side Pocket 
+Sky Kid 
+Soccer 
+Solomon no Kagi 
+Solomon's Key 
+Son Son 
+Space Invaders 
+Spelunker 
+Stack-Up 
+Star Wars - The Empire Strikes Back 
+Startropics 
+Summer Carnival '92 - Recca 
+Super C 
+Super Contra 
+Super Dodge Ball 
+Tecmo Bowl 
+Teenage Mutant Ninja Turtles 
+Teenage Mutant Ninja Turtles II - The Arcade Game 
+Tennis 
+Tetris 
+Tetris 2 
+Three Stooges, The 
+Track & Field 
+Ufouria - The Saga 
+Urban Champion 
+Volleyball 
+WWF Wrestlemania Challenge 
+WWF Wrestlemania Steel Cage Challenge 
+Where's Waldo 
+Wizardry - Proving Grounds of the Mad Overlord 
+Wizardry - The Knight of Diamonds 
+Xevious 
 Xevious Alternate
-Yoshi (USA)
-Yoshi no Tamago (Japan)
-Yoshi's Cookie (Europe)
-Yoshi's Cookie (USA)
+Yoshi 
+Yoshi no Tamago 
+Yoshi's Cookie 
