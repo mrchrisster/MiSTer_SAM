@@ -5,8 +5,7 @@ Bubba_'n'_Stix
 Bubble_Bobble
 Castlevania
 Colonization
-Colonization
-Colony,_The
+Colony
 Crystal_Quest
 Defender
 Defender_of_the_Crown
