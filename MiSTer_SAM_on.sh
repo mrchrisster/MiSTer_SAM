@@ -1085,7 +1085,8 @@ function next_core() { # next_core (core)
 	# Pick a core if no corename was supplied as argument, eg "MiSTer_SAM_on.sh psx"
 	if [ -z "${1}" ]; then
 		
-		corelist_update		
+		corelist_update	
+		create_gamelists	
 		pick_core
 
 	fi
@@ -1772,7 +1773,6 @@ function sam_start() {
 	sam_check
 	mcp_start
 	sam_prep
-	create_gamelists
 	disable_bootrom # Disable Bootrom until Reboot
 	bgm_start
 	tty_start
