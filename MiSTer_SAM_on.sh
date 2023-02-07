@@ -1273,59 +1273,56 @@ function next_core() { # next_core (core)
 	
 	check_list_and_pick_rom "${nextcore}"
 
-	romname=$(basename "${rompath}")
+	if [ $? -eq 0 ]; then
+		romname=$(basename "${rompath}")
 
-	# Sanity check that we have a valid rom in var
-	extension="${rompath##*.}"
-	extlist="${CORE_EXT[${nextcore}]//,/ }" 
-				
-	if [[ "$extlist" != *"$extension"* ]]; then
-		create_romlist "${nextcore}" &
-		if [ ${romloadfails} -lt ${coreretries} ]; then
-			declare -g romloadfails=$((romloadfails + 1))
-			samdebug " Wrong extension found: \e[1m${extension^^}\e[0m for core: ${nextcore} rom: ${rompath}"
-			samdebug " Picking new rom.."
-			next_core "${nextcore}"
-			return 1
-		else
-			echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-			echo " ERROR: Core ${nextcore} is blacklisted!"
-			delete_from_corelist "${nextcore}"
-			echo " List of cores is now: ${corelist[*]}"
-			declare -g romloadfails=0
-			# Load a different core
-			next_core
-			return 1	
+		# Sanity check that we have a valid rom in var
+		extension="${rompath##*.}"
+		extlist="${CORE_EXT[${nextcore}]//,/ }" 
+					
+		if [[ "$extlist" != *"$extension"* ]]; then
+			create_romlist "${nextcore}" &
+			if [ ${romloadfails} -lt ${coreretries} ]; then
+				declare -g romloadfails=$((romloadfails + 1))
+				samdebug " Wrong extension found: \e[1m${extension^^}\e[0m for core: ${nextcore} rom: ${rompath}"
+				samdebug " Picking new rom.."
+				next_core "${nextcore}"
+			else
+				echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+				echo " ERROR: Core ${nextcore} is blacklisted!"
+				delete_from_corelist "${nextcore}"
+				echo " List of cores is now: ${corelist[*]}"
+				declare -g romloadfails=0
+				# Load a different core
+				next_core	
+			fi
 		fi
 
-		#next_core "${nextcore}"
-		#next_core
-		return
-	fi
 
+		# This is obsolete because of gamelist excludes. It can still be used as an alternative.
+		declare -n excludelist="${nextcore}exclude"
+		if [ ${#excludelist[@]} -gt 1 ]; then
+			for excluded in "${excludelist[@]}"; do
+				if [ "${romname}" == "${excluded}" ]; then
+					echo "${romname} is excluded - SKIPPED"
+					awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
+					return 1
+				fi
+			done
+		fi
 
-	# This is obsolete because of gamelist excludes. It can still be used as an alternative.
-	declare -n excludelist="${nextcore}exclude"
-	if [ ${#excludelist[@]} -gt 1 ]; then
-		for excluded in "${excludelist[@]}"; do
-			if [ "${romname}" == "${excluded}" ]; then
-				echo "${romname} is excluded - SKIPPED"
-				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
-				next_core
-				return
-			fi
-		done
-	fi
+		if [ -z "${rompath}" ]; then
+			core_error_rom "${nextcore}" "${rompath}"
+		else
+			#if [ -f "${rompath}.sam" ]; then
+			#	source "${rompath}.sam"
+			#fi
 
-	if [ -z "${rompath}" ]; then
-		core_error "${nextcore}" "${rompath}"
+			declare -g romloadfails=0
+			load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
+		fi
 	else
-		#if [ -f "${rompath}.sam" ]; then
-		#	source "${rompath}.sam"
-		#fi
-
-		declare -g romloadfails=0
-		load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
+		next_core
 	fi
 }
 
@@ -1360,47 +1357,46 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	
 	# Copy gamelist to tmp
 	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
-
-		# Filter roms in bg
-		if [[ "$coreweight" == "no" ]]; then
-			check_list "${1}" &
-		else
-			check_list "${1}"
-		fi
 		FIRSTRUN[${nextcore}]="1"	
+		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
+		
+		check_list "${1}"
 	fi
 	
+	if [ $? -eq 0 ]; then
 	
-	if [ -s ${gamelistpathtmp}/"${1}"_gamelist.txt ]; then
-		rompath="$(cat ${gamelistpathtmp}/"${1}"_gamelist.txt | shuf --head-count=1)"
-	else
-		echo "Gamelist creation failed. Will try again on next core launch. Trying another rom..."	
-		rompath="$(cat ${gamelistpath}/"${1}"_gamelist.txt | shuf --head-count=1)"
-	fi
-
-	# Make sure file exists since we're reading from a static list
-	if [[ ! "${rompath,,}" == *.zip* ]]; then
-		if [ ! -f "${rompath}" ]; then
-			echo "${rompath} File not found."
-			echo "Creating new game list now..."
-			create_romlist "${1}"
+		if [ -s ${gamelistpathtmp}/"${1}"_gamelist.txt ]; then
 			rompath="$(cat ${gamelistpathtmp}/"${1}"_gamelist.txt | shuf --head-count=1)"
-			return
+		else
+			echo "Gamelist creation failed. Will try again on next core launch. Trying another rom..."	
+			rompath="$(cat ${gamelistpath}/"${1}"_gamelist.txt | shuf --head-count=1)"
+		fi
+
+		# Make sure file exists since we're reading from a static list
+		if [[ ! "${rompath,,}" == *.zip* ]]; then
+			if [ ! -f "${rompath}" ]; then
+				echo "${rompath} File not found."
+				echo "Creating new game list now..."
+				create_romlist "${1}"
+				rompath="$(cat ${gamelistpathtmp}/"${1}"_gamelist.txt | shuf --head-count=1)"
+				return
+			fi
+		else
+			zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
+			if [ ! -f "${zipfile}" ]; then
+				echo "${zipfile} zip file not found."
+				echo "Creating new game list now..."
+				create_romlist "${1}"
+			fi
+		fi
+
+		# Delete played game from list
+		samdebug "Selected file: ${rompath}"
+		if [ "${norepeat}" == "yes" ]; then
+			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
 		fi
 	else
-		zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
-		if [ ! -f "${zipfile}" ]; then
-			echo "${zipfile} zip file not found."
-			echo "Creating new game list now..."
-			create_romlist "${1}"
-		fi
-	fi
-
-	# Delete played game from list
-	samdebug "Selected file: ${rompath}"
-	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
+		return 1
 	fi
 
 }
@@ -1839,6 +1835,8 @@ function boot_sleep() { #Wait for rtc sync
 function there_can_be_only_one() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
+	[[ -d /tmp/.SAM_List ]] && rm /tmp/.SAM_List/*
+	
 	echo -n "Stopping other running instances of ${samprocess}..."
 
 	kill_1=$(ps -o pid,args | grep '[M]iSTer_SAM_init start' | awk '{print $1}' | head -1)
@@ -2051,6 +2049,11 @@ function deleteall() {
 	# In case of issues, reset SAM
 
 	there_can_be_only_one
+	
+	mkdir -p /media/fat/Scripts/.SAM_Backup
+	find "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists" -name "*_excludelist.txt" -exec cp '{}' "/media/fat/Scripts/.SAM_Backup" \;
+	cp /media/fat/Scripts/MiSTer_SAM.ini "/media/fat/Scripts/.SAM_Backup" 2>/dev/null
+	
 	if [ -d "${mrsampath}" ]; then
 		echo "Deleting MiSTer_SAM folder"
 		rm -rf "${mrsampath}"
@@ -2063,11 +2066,6 @@ function deleteall() {
 	if [ -f "/media/fat/Scripts/MiSTer_SAM_off.sh" ]; then
 		echo "Deleting MiSTer_SAM_off.sh"
 		rm /media/fat/Scripts/MiSTer_SAM_off.sh
-	fi
-
-	if [ -d "/media/fat/Scripts/SAM_Gamelists" ]; then
-		echo "Deleting Gamelist folder"
-		rm -rf "/media/fat/Scripts/SAM_Gamelists"
 	fi
 	
 	if [ -d "/tmp/.SAM_List" ]; then
@@ -2223,7 +2221,7 @@ function reset_core_gl() { # args ${nextcore}
 }
 
 
-function core_error() { # core_error core /path/to/ROM
+function core_error_rom() { # core_error core /path/to/ROM
 	if [ ${romloadfails} -lt ${coreretries} ]; then
 		declare -g romloadfails=$((romloadfails + 1))
 		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
@@ -2238,6 +2236,15 @@ function core_error() { # core_error core /path/to/ROM
 		# Load a different core
 		next_core
 	fi
+}
+
+function core_error_checklist() { # core_error core /path/to/ROM
+		delete_from_corelist "${1}"
+		echo " List of cores is now: ${corelist[*]}"
+		declare -g romloadfails=0
+		# Load a different core
+		next_core
+
 }
 
 
@@ -2413,9 +2420,6 @@ function check_list() { # args ${nextcore}
 				delete_from_corelist "${1}"
 				echo "${1} core has no kid safe filter and will be disabled."
 				echo "List of cores is now: ${corelist[*]}"
-				unset ${nextcore}
-				unset ${rompath}
-				next_core
 				return 1
 			fi
 		else	
