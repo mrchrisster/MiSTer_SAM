@@ -1079,10 +1079,8 @@ function next_core() { # next_core (core)
 		declare -g corelist=("${corelistall[@]}")
 		samdebug "Corelist is now ${corelist[*]}"
 	fi
-	
-	create_gamelists
 
-	# No corename was supplied with MiSTer_SAM_on.sh
+	# Pick a core if no corename was supplied as argument, eg "MiSTer_SAM_on.sh psx"
 	if [ -z "${1}" ]; then
 		
 		corelist_update		
@@ -1097,7 +1095,7 @@ function next_core() { # next_core (core)
 	# If $nextcore is ao486, amiga or arcade 
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
-		load_core_arcade "$@"
+		load_core_arcade
 		return
 	fi
 	if [ "${nextcore}" == "amiga" ]; then
@@ -2370,6 +2368,7 @@ function check_list() { # args ${nextcore}
 				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
 			fi
 			if [ -s "${tmpfilefilter}" ]; then 
+				samdebug "$(wc -l <"${tmpfilefilter}") games after kids safe filter applied."
 				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 			else
 				delete_from_corelist "${1}"
@@ -3580,6 +3579,8 @@ read_samini
 init_paths
 
 init_data
+
+create_gamelists
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd "${@}" # Parse command line parameters for input
