@@ -883,7 +883,8 @@ function parse_cmd() {
 				ignoregame
 				break
 				;;
-			stop) # Stop SAM immediately		
+			stop) # Stop SAM immediately	
+				[[ -d /tmp/.SAM_List ]] && rm /tmp/.SAM_List/*	
 				kill_all_sams
 				sam_exit 0
 				break
@@ -1070,7 +1071,8 @@ function loop_core() { # loop_core (core)
 	sleep 1
 }
 
-# Pick a random core 
+##### Pick a random core #####
+
 function next_core() { # next_core (core)
 	
 	if [[ ! ${corelist[*]} ]]; then
@@ -1151,7 +1153,7 @@ function corelist_update() {
 	fi
 	
 	if [ ${#corelisttmp[@]} -eq 0 ]; then 
-		declare -ga corelisttmp=("${glclondisk[@]}") 
+		declare -ga corelisttmp=("${corelist[@]}") 
 	fi
 
 	if [[ ! "${corelisttmp[*]}" ]]; then
@@ -1222,7 +1224,6 @@ function pick_core(){
 	# Pick a core weighted by how many games a core's library has
 	if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
 		if [[ ! "${corewc[*]}" ]] && [[ "$coreweight" == "yes" ]]; then
-			echo "Starting weighted core mode"
 			readarray -t gltmpondisk <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
 			unset gltmpclondisk
 			for g in "${gltmpondisk[@]}"; do 
@@ -1258,7 +1259,7 @@ function pick_core(){
 			echo "$(for k in "${!corewc[@]}"; do   echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
 			echo -e "\n"
 			echo "Total game count: $totalgamecount"
-			echo -e "Cores at the top will play proportionally more often.\n"
+			echo -e "Cores at the top will play more often.\n"
 			
 			i=5
 			# Sorting cores by games
@@ -1272,7 +1273,7 @@ function pick_core(){
 			done <<< "$(for k in "${!corewc[@]}"; do echo "$k"'='"${corewc["$k"]}";done | sort -k2 -t'=' -nr )"
 
 			totalpcount=$(printf "%s\n" "${corep[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')
-			samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)"
+			samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)\n"
 			disablecoredel=1
 
 		elif [[ "$coreweight" == "yes" ]]; then
@@ -1327,7 +1328,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 		FIRSTRUN[${nextcore}]="1"	
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 		
-		check_list "${1}"
+		filter_list "${1}"
 	fi
 	
 	if [ $? -eq 0 ]; then
@@ -1512,7 +1513,7 @@ function load_core_arcade() {
 			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
 		fi
 		
-		check_list arcade
+		filter_list arcade
 		
 		FIRSTRUN[${nextcore}]=1	
 	fi
@@ -1604,7 +1605,7 @@ function load_core_amiga() {
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		create_amigalist
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		check_list amiga
+		filter_list amiga
 		FIRSTRUN[${nextcore}]=1
 	fi
 		
@@ -1684,7 +1685,7 @@ function load_core_ao486() {
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		create_ao486list
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		check_list ao486
+		filter_list ao486
 		if [ $? -eq 1 ]; then
 			next_core
 			return
@@ -1764,6 +1765,7 @@ function sam_start() {
 	env_check
 	# Terminate any other running SAM processes
 	there_can_be_only_one
+	sam_check
 	mcp_start
 	sam_prep
 	disable_bootrom # Disable Bootrom until Reboot
@@ -1788,9 +1790,8 @@ function boot_sleep() { #Wait for rtc sync
 function there_can_be_only_one() { # there_can_be_only_one
 	# If another attract process is running kill it
 	# This can happen if the script is started multiple times
-	[[ -d /tmp/.SAM_List ]] && rm /tmp/.SAM_List/*
 	
-	echo -n "Stopping other running instances of ${samprocess}..."
+	echo "Stopping other running instances of ${samprocess}..."
 
 	kill_1=$(ps -o pid,args | grep '[M]iSTer_SAM_init start' | awk '{print $1}' | head -1)
 	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh start_real' | awk '{print $1}')
@@ -1804,7 +1805,11 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 	sleep 1
 
-	echo " Done."
+}
+
+function sam_check() {
+	[ "${kids_safe}" == "yes" ] && echo "Kids Safe Mode active."
+	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 }
 
 function kill_all_sams() {
@@ -2302,7 +2307,7 @@ function check_gamelists() {
 		for c in "${corelist[@]}"; do 
 			if [[ "$c" == "$g" ]]; then 
 				glcreate+=("$c")
-				samdebug "Creating "$c" in background"
+				samdebug "Creating "$c" gamelist"
 			fi
 		done 
 	done
@@ -2337,7 +2342,7 @@ function check_gamelists() {
 
 }
 
-function check_list() { # args ${nextcore} 	
+function filter_list() { # args ${nextcore} 	
 		
 	# Check path filter
 	if [ -n "${PATHFILTER[${1}]}" ]; then 
@@ -2392,6 +2397,7 @@ function check_list() { # args ${nextcore}
 	#Check blacklist	
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
+		echo "Disabling static screen games for ${1} core. This can take a moment..."
 		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}"
 		if [ -s "${tmpfilefilter}" ]; then 
 			cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
