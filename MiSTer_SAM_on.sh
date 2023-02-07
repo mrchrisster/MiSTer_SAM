@@ -1772,6 +1772,7 @@ function sam_start() {
 	sam_check
 	mcp_start
 	sam_prep
+	create_gamelists
 	disable_bootrom # Disable Bootrom until Reboot
 	bgm_start
 	tty_start
@@ -3589,8 +3590,6 @@ read_samini
 init_paths
 
 init_data
-
-create_gamelists
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd "${@}" # Parse command line parameters for input
