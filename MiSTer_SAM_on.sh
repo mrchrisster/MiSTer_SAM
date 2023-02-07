@@ -1017,6 +1017,7 @@ function parse_cmd() {
 
 function loop_core() { # loop_core (core)
 	echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
+	echo -e "Games from the following cores will be played: \n${corelist[*]}\n"
 	# Reset game log for this session
 	echo "" >/tmp/SAM_Games.log
 
@@ -1071,7 +1072,7 @@ function loop_core() { # loop_core (core)
 	sleep 1
 }
 
-##### Pick a random core #####
+# Pick a random core
 
 function next_core() { # next_core (core)
 	
@@ -1082,11 +1083,11 @@ function next_core() { # next_core (core)
 		samdebug "Corelist is now ${corelist[*]}"
 	fi
 
-	# Pick a core if no corename was supplied as argument, eg "MiSTer_SAM_on.sh psx"
+	# Pick a core if no corename was supplied as argument (eg "MiSTer_SAM_on.sh psx")
 	if [ -z "${1}" ]; then
 		
 		corelist_update	
-		create_gamelists	
+		create_all_gamelists	
 		pick_core
 
 	fi
@@ -1099,14 +1100,17 @@ function next_core() { # next_core (core)
 	load_special_core
 	if [ $? -ne 0 ]; then return; fi
 		
-	check_list_and_pick_rom "${nextcore}"
+	check_list "${nextcore}"
 	if [ $? -ne 0 ]; then next_core; fi
+	
+	pick_rom
 	
 	check_rom
 	if [ $? -ne 0 ]; then return; fi
 	
+	delete_played_game
+	
 	#Load the actual rom
-	declare -g romloadfails=0
 	load_core "${nextcore}" "${rompath}" "${romname%.*}"
 }
 
@@ -1135,8 +1139,8 @@ function corelist_update() {
 }
 
 # Create all gamelists in the background
-# Run this until corelist and gamelists for these cores match
-function create_gamelists() {
+# Run this until corelist matches exisitng gamelists
+function create_all_gamelists() {
 
 	if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
 		
@@ -1175,7 +1179,7 @@ function create_gamelists() {
 			done 
 		done
 				
-		# Create gamelists in background
+		# Remove cores with no games in bg
 		check_gamelists &
 		
 		corelisttmp=("${glclondisk[@]}")
@@ -1222,7 +1226,7 @@ function pick_core(){
 			echo -n "Please wait while creating gamelists..."
 			#samdebug "gltmpcreate is "${gltmpcreatel[@]}""
 			for g in "${gltmpcreate[@]}"; do
-				check_list_and_pick_rom "${g}" > /dev/null
+				check_list "${g}" > /dev/null
 			done
 			echo "Done."
 			
@@ -1301,7 +1305,7 @@ function load_special_core() {
 
 
 # Romfinder
-function create_romlist() { # args ${nextcore} 
+function create_gamelist() { # args ${nextcore} 
 
 	samdebug "Creating gamelist for ${1}"
 	if ! ps -ef | grep -qi '[s]amindex'; then
@@ -1309,19 +1313,25 @@ function create_romlist() { # args ${nextcore}
 		if [ $? -gt 1 ]; then
 			delete_from_corelist "${1}"
 			echo "Can't find games for ${CORE_PRETTY[${1}]}" 
-		fi	
-		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
+			return 1
+		else	
+			cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
+		fi
 	fi
 
 }
 
 # Pick Rom
-function check_list_and_pick_rom() { # args ${nextcore} 
+function check_list() { # args ${nextcore} 
 	
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		echo "Creating game list at ${gamelistpath}/${1}_gamelist.txt"
-		create_romlist "${1}"
-		return
+		create_gamelist "${1}"
+		if [ $? -ne 0 ]; then 
+			return 1
+		else
+			return
+		fi
 	fi
 	
 	if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
@@ -1335,42 +1345,17 @@ function check_list_and_pick_rom() { # args ${nextcore}
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 		
 		filter_list "${1}"
+		if [ $? -ne 0 ]; then return 1; fi
 	fi
 	
-	if [ $? -eq 0 ]; then
-	
-		if [ -s ${gamelistpathtmp}/"${1}"_gamelist.txt ]; then
-			rompath="$(cat ${gamelistpathtmp}/"${1}"_gamelist.txt | shuf --head-count=1)"
-		else
-			echo "Gamelist creation failed. Will try again on next core launch. Trying another rom..."	
-			rompath="$(cat ${gamelistpath}/"${1}"_gamelist.txt | shuf --head-count=1)"
-		fi
+}
 
-		# Make sure file exists since we're reading from a static list
-		if [[ ! "${rompath,,}" == *.zip* ]]; then
-			if [ ! -f "${rompath}" ]; then
-				echo "${rompath} File not found."
-				echo "Creating new game list now..."
-				create_romlist "${1}"
-				rompath="$(cat ${gamelistpathtmp}/"${1}"_gamelist.txt | shuf --head-count=1)"
-				return
-			fi
-		else
-			zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
-			if [ ! -f "${zipfile}" ]; then
-				echo "${zipfile} zip file not found."
-				echo "Creating new game list now..."
-				create_romlist "${1}"
-			fi
-		fi
-
-		# Delete played game from list
-		samdebug "Selected file: ${rompath}"
-		if [ "${norepeat}" == "yes" ]; then
-			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${1}_gamelist.txt"
-		fi
+function pick_rom() {	
+	if [ -s ${gamelistpathtmp}/"${nextcore}"_gamelist.txt ]; then
+		rompath="$(cat ${gamelistpathtmp}/"${nextcore}"_gamelist.txt | shuf --head-count=1)"
 	else
-		return 1
+		echo "Gamelist creation failed. Will try again on next core launch. Trying another rom..."	
+		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --head-count=1)"
 	fi
 
 }
@@ -1380,14 +1365,33 @@ function check_rom(){
 		core_error_rom "${nextcore}" "${rompath}"
 		return 1
 	fi
+	
+	# Make sure file exists since we're reading from a static list
+	if [[ "${rompath,,}" != *.zip* ]]; then
+		if [ ! -f "${rompath}" ]; then
+			echo "${rompath} File not found."
+			echo "Creating new game list now..."
+			create_gamelist "${1}"
+			return 1
+		fi
+	else
+		zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
+		if [ ! -f "${zipfile}" ]; then
+			echo "${zipfile} zip file not found."
+			echo "Creating new game list now..."
+			create_gamelist "${1}"
+			return 1
+		fi
+	fi
+	
 	romname=$(basename "${rompath}")
 
-	# Sanity check that we have a valid rom in var
+	# Make sure we have a valid extension as well
 	extension="${rompath##*.}"
 	extlist="${CORE_EXT[${nextcore}]//,/ }" 
 				
 	if [[ "$extlist" != *"$extension"* ]]; then
-		create_romlist "${nextcore}" &
+		create_gamelist "${nextcore}" &
 		if [ ${romloadfails} -lt ${coreretries} ]; then
 			declare -g romloadfails=$((romloadfails + 1))
 			samdebug "Wrong extension found: '${extension^^}' for core: ${nextcore} rom: ${rompath}"
@@ -1405,19 +1409,14 @@ function check_rom(){
 		return 1
 	fi
 
+}
 
-	# This is obsolete because of gamelist excludes. It can still be used as an alternative.
-	declare -n excludelist="${nextcore}exclude"
-	if [ ${#excludelist[@]} -gt 1 ]; then
-		for excluded in "${excludelist[@]}"; do
-			if [ "${romname}" == "${excluded}" ]; then
-				echo "${romname} is excluded - SKIPPED"
-				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
-				return 1
-			fi
-		done
+function delete_played_game() {
+	# Delete played game from list
+	samdebug "Selected file: ${rompath}"
+	if [ "${norepeat}" == "yes" ]; then
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 	fi
-
 }
 
 # Load selected core and rom
@@ -1779,7 +1778,6 @@ function sam_start() {
 	mcp_start
 	sam_prep
 	disable_bootrom # Disable Bootrom until Reboot
-	#create_gamelists
 	bgm_start
 	tty_start
 	echo "Starting SAM in the background."
@@ -2268,7 +2266,7 @@ function check_zips() { # check_zips core
 		for zips in "${zipsinfile[@]}"; do
 			if [ ! -f "${zips}" ]; then
 				samdebug "Creating new game list because zip file[s] seems to have changed."
-				create_romlist "${1}"
+				create_gamelist "${1}"
 				unset zipsinfile
 				mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 				break
@@ -2299,7 +2297,7 @@ function check_zips() { # check_zips core
 				result="$(printf '%s\n' "${zipsondisk[@]}")"
 				if [[ "${result}" ]]; then
 					samdebug "Found new zip file[s]: ${result##*/}"
-					create_romlist "${1}"
+					create_gamelist "${1}"
 					return
 				fi
 			fi
