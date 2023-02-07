@@ -1124,6 +1124,7 @@ function corelist_update() {
 		delete_from_corelist "$nextcore" tmp
 	fi
 	
+	
 	if [ ${#corelisttmp[@]} -eq 0 ]; then 
 		declare -ga corelisttmp=("${corelist[@]}") 
 	fi
@@ -1157,12 +1158,13 @@ function create_gamelists() {
 				fi
 			fi
 		done
+		
 		# Read all gamelists again in case arcade was missing
 		if [[ ! "${glondisk[*]}" ]]; then
 			unset glondisk
 			readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
 		fi
-		
+				
 		# Check if more gamelists have been created
 		unset glclondisk
 		for g in "${glondisk[@]}"; do 
@@ -1172,11 +1174,13 @@ function create_gamelists() {
 				fi
 			done 
 		done
-		
+				
 		# Create gamelists in background
 		check_gamelists &
 		
+		corelisttmp=("${glclondisk[@]}")
 		if [[ "${glclondisk[*]}" ]]; then
+			samdebug "Setting corelisttmp to '${glclondisk[*]}'"
 			corelisttmp=("${glclondisk[@]}")
 		fi
 	fi
@@ -1317,6 +1321,7 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		echo "Creating game list at ${gamelistpath}/${1}_gamelist.txt"
 		create_romlist "${1}"
+		return
 	fi
 	
 	if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
@@ -1774,6 +1779,7 @@ function sam_start() {
 	mcp_start
 	sam_prep
 	disable_bootrom # Disable Bootrom until Reboot
+	#create_gamelists
 	bgm_start
 	tty_start
 	echo "Starting SAM in the background."
