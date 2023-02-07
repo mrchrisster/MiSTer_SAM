@@ -63,6 +63,7 @@ function init_vars() {
 	declare -gl mute="No"
 	declare -gl coreweight="No"
 	declare -gl playcurrentgame="No"
+	declare -gl kids_safe="No"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
 	declare -gl listenjoy="Yes"
@@ -2847,6 +2848,8 @@ function sam_settings() {
 		autoplay "Autoplay Configuration" \
 		enableplaycurrent "Enable play current game" \
 		disableplaycurrent "Disable play current game" \
+		enablekidssafe "Enable Kids Safe Filter" \
+		disablekidssafe "Disable Kids Safe Filter" \
 		sam_misc "Advanced Settings" \
 		config "Manual Settings Editor (MiSTer_SAM.ini)" 2>"/tmp/.SAMmenu"
 	
@@ -2872,6 +2875,19 @@ function sam_settings() {
 		sam_settings
 	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
 		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		changes_saved
+		sam_settings
+	elif [[ "${menuresponse,,}" == "enablekidssafe" ]]; then
+		if [[ "$shown" == "0" ]]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ KIDS SAFE Filter ]" \
+			--msgbox "Good to use if you have young children. Limits rom selection to ESRB rated games with the 'All Ages' label\n\nPlease update SAM after enabling this to download the ESRB game whitelists. \n\nAlso 'Enable Alternative Core Selection Mode' under Settings > Advanced should be enabled. " 0 0
+		fi
+		sed -i '/kids_safe=/c\kids_safe="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		changes_saved
+		sam_settings
+	elif [[ "${menuresponse,,}" == "disablekidssafe" ]]; then
+		sed -i '/kids_safe=/c\kids_safe="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		changes_saved
 		sam_settings
 	else 
