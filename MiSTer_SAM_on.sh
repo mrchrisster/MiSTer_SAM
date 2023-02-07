@@ -1094,50 +1094,21 @@ function next_core() { # next_core (core)
 	samdebug "corelisttmp: ${corelisttmp[*]}"
 	samdebug "Selected core: ${nextcore}"
 
-	# If $nextcore is ao486, amiga or arcade 
-	if [ "${nextcore}" == "arcade" ]; then
-		# If this is an arcade core we go to special code
-		load_core_arcade
-		return
-	fi
-	if [ "${nextcore}" == "amiga" ]; then
-		
-		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
-			load_core_amiga
-		else
-			echo "ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
-			delete_from_corelist amiga
-			next_core
-		fi
-		return
-	fi
-	if [ "${nextcore}" == "ao486" ]; then
-		if [ "$(find "${ao486path}" -name "*.vhd" | wc -l )" == "0" ]; then
-			echo "ERROR - No ao486 screensavers found..."
-			delete_from_corelist ao486
-			next_core
-		else
-			load_core_ao486
-		fi
-		return
-	fi
+	# Load arcade, ao486 or amiga cores
+	load_special_core
+	if [ $? -ne 0 ]; then return; fi
 		
 	check_list_and_pick_rom "${nextcore}"
-
-	if [ $? -eq 0 ]; then
-		check_rom
-	else
-		next_core
-	fi
+	if [ $? -ne 0 ]; then next_core; fi
+	
+	check_rom
+	if [ $? -ne 0 ]; then return; fi
 	
 	#Load the actual rom
-	if [ -z "${rompath}" ]; then
-		core_error_rom "${nextcore}" "${rompath}"
-	else
-		declare -g romloadfails=0
-		load_core "${nextcore}" "${rompath}" "${romname%.*}"
-	fi
+	declare -g romloadfails=0
+	load_core "${nextcore}" "${rompath}" "${romname%.*}"
 }
+
 
 # Don't repeat same core twice
 function corelist_update() {
@@ -1278,7 +1249,7 @@ function pick_core(){
 
 		elif [[ "$coreweight" == "yes" ]]; then
 			game=0
-			#echo "totalpcount: $totalpcount"
+			samdebug "totalpcount: $totalpcount"
 			pickgame=$(shuf -i 1-"$totalpcount" -n 1)
 			for c in "${!corep[@]}"; do 
 				let game+=${corep["$c"]}
@@ -1290,6 +1261,36 @@ function pick_core(){
 			done
 		fi
 		
+	fi
+}
+
+function load_special_core() {
+	# If $nextcore is ao486, amiga or arcade 
+	if [ "${nextcore}" == "arcade" ]; then
+		# If this is an arcade core we go to special code
+		load_core_arcade
+		return 2
+	fi
+	if [ "${nextcore}" == "amiga" ]; then
+		
+		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
+			load_core_amiga
+		else
+			echo "ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
+			delete_from_corelist amiga
+			next_core
+		fi
+		return 2
+	fi
+	if [ "${nextcore}" == "ao486" ]; then
+		if [ "$(find "${ao486path}" -name "*.vhd" | wc -l )" == "0" ]; then
+			echo "ERROR - No ao486 screensavers found..."
+			delete_from_corelist ao486
+			next_core
+		else
+			load_core_ao486
+		fi
+		return 2
 	fi
 }
 
@@ -1315,7 +1316,6 @@ function check_list_and_pick_rom() { # args ${nextcore}
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
 		echo "Creating game list at ${gamelistpath}/${1}_gamelist.txt"
 		create_romlist "${1}"
-		return
 	fi
 	
 	if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
@@ -1370,6 +1370,10 @@ function check_list_and_pick_rom() { # args ${nextcore}
 }
 
 function check_rom(){
+	if [ -z "${rompath}" ]; then
+		core_error_rom "${nextcore}" "${rompath}"
+		return 1
+	fi
 	romname=$(basename "${rompath}")
 
 	# Sanity check that we have a valid rom in var
@@ -1380,19 +1384,19 @@ function check_rom(){
 		create_romlist "${nextcore}" &
 		if [ ${romloadfails} -lt ${coreretries} ]; then
 			declare -g romloadfails=$((romloadfails + 1))
-			samdebug " Wrong extension found: \e[1m${extension^^}\e[0m for core: ${nextcore} rom: ${rompath}"
-			samdebug " Picking new rom.."
+			samdebug "Wrong extension found: '${extension^^}' for core: ${nextcore} rom: ${rompath}"
+			samdebug "Picking new rom.."
 			next_core "${nextcore}"
 		else
-			echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-			echo " ERROR: Core ${nextcore} is blacklisted!"
+			echo "ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+			echo "ERROR: Core ${nextcore} is blacklisted!"
 			delete_from_corelist "${nextcore}"
-			echo " List of cores is now: ${corelist[*]}"
+			echo "List of cores is now: ${corelist[*]}"
 			declare -g romloadfails=0
 			# Load a different core
 			next_core	
 		fi
-		return
+		return 1
 	fi
 
 
@@ -1828,7 +1832,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	elif [ "${1}" -eq 1 ]; then # Error
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
-		echo " There was an error ${2}" # Pass error messages in ${2}
+		echo "There was an error ${2}" # Pass error messages in ${2}
 	elif [ "${1}" -eq 2 ]; then        # Play Current Game
 		sleep 1
 	elif [ "${1}" -eq 3 ]; then # Play Current Game, relaunch because of mute
@@ -1952,7 +1956,7 @@ function sam_enable() { # Enable autoplay
 		echo -e "\n# Startup MiSTer_SAM - Super Attract Mode" >>${userstartup}
 		echo -e "[[ -e ${mrsampath}/MiSTer_SAM_init ]] && ${mrsampath}/MiSTer_SAM_init \$1 &" >>"${userstartup}"
 	fi
-	echo " SAM install complete."
+	echo "SAM install complete."
 	echo -e "\n\n\n"
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 	echo -ne "\e[1m" SAM will start ${samtimeout} sec. after boot"\e[0m"
@@ -2093,7 +2097,7 @@ function deletegl() {
 # Check if gamelists exist
 function checkgl() {
 	if ! compgen -G "${gamelistpath}/*_gamelist.txt" >/dev/null; then
-		echo " Creating Game Lists"
+		echo "Creating Game Lists"
 		read_samini
 		creategl
 	fi
