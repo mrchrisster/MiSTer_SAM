@@ -79,8 +79,6 @@ function init_vars() {
 	declare -gl checkzipsondisk="Yes"
 	declare -gi bootsleep="60"
 	declare -g ntpserver="0.pool.ntp.org"
-
-	declare -gi countdown="nocountdown"	
 	declare -gi totalgamecount		
 	# ======== DEBUG VARIABLES ========
 	declare -gl samdebug="Yes"
@@ -1081,169 +1079,22 @@ function next_core() { # next_core (core)
 		declare -g corelist=("${corelistall[@]}")
 		samdebug "Corelist is now ${corelist[*]}"
 	fi
+	
+	create_gamelists
 
 	# No corename was supplied with MiSTer_SAM_on.sh
 	if [ -z "${1}" ]; then
-	
-		# // TODO avoid tmp file here
-		if [ -s "${corelistfile}" ]; then
-			unset corelist 
-			mapfile -t corelist <${corelistfile}
-		fi
 		
+		corelist_update		
+		pick_core
 
-		# Create all gamelists in the background
-		# Run this until corelist and gamelists for these cores match
-		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
-			
-			# Read all gamelists present
-			readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-			
-			if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
-				"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
-			fi
-			for i in {1..2}; do
-				if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" == "0" ]; then
-					"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
-					if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" != "0" ]; then
-						break
-					else
-						echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
-						sleep 5
-						exit
-					fi
-				fi
-			done
-			# Read all gamelists again in case arcade was missing
-			if [[ ! "${glondisk[*]}" ]]; then
-				unset glondisk
-				readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-			fi
-			
-			# Check if more gamelists have been created
-			unset glclondisk
-			for g in "${glondisk[@]}"; do 
-				for c in "${corelist[@]}"; do 
-					if [[ "$c" == "$g" ]]; then 
-						glclondisk+=("$c")
-					fi
-				done 
-			done
-			
-			# Create gamelists in background
-			check_gamelists &
-			
-			if [[ "${glclondisk[*]}" ]]; then
-				corelisttmp=("${glclondisk[@]}")
-			fi
-		fi
-		
-		
-		# Don't repeat same core twice
-		if [[ "${disablecoredel}" == "0" ]]; then
-			delete_from_corelist "$nextcore" tmp
-		fi
-		
-		if [ ${#corelisttmp[@]} -eq 0 ]; then declare -ga corelisttmp=("${glclondisk[@]}"); fi
-	
-		#Pick core
-		if [[ ! "${corelisttmp[*]}" ]]; then
-			corelisttmp=("${corelist[@]}")
-		fi
-		
-		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf | head -1)
-		
-		if [[ ! "${nextcore}" ]]; then
-			samdebug "nextcore empty. Using arcade core for now"
-			nextcore=arcade
-		fi
-				
-		samdebug "corelist: ${corelist[*]}"
-		samdebug "corelisttmp: ${corelisttmp[*]}"
-		
-		# Pick a core weighted by how many games a core's library has
-		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
-			if [[ ! "${corewc[*]}" ]] && [[ "$coreweight" == "yes" ]]; then
-				echo "Starting weighted core mode"
-				readarray -t gltmpondisk <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-				unset gltmpclondisk
-				for g in "${gltmpondisk[@]}"; do 
-					for c in "${corelist[@]}"; do 
-						if [[ "$c" == "$g" ]]; then 
-							gltmpclondisk+=("$c")
-						fi
-					done 
-				done
-				readarray -t gltmpexistcl <<< "$(printf '%s\n'  "${corelist[@]}" "${gltmpondisk[@]}"  | sort | uniq -iu )"
-				unset gltmpcreate
-				#samdebug "gltmpexistcl is "${gltmpexistcl[@]}""
-				for g in "${gltmpexistcl[@]}"; do 
-					for c in "${corelist[@]}"; do 
-						if [[ "$c" == "$g" ]]; then 
-							gltmpcreate+=("$c")
-						fi
-					done 
-				done
-				echo -n "Please wait while creating gamelists..."
-				#samdebug "gltmpcreate is "${gltmpcreatel[@]}""
-				for g in "${gltmpcreate[@]}"; do
-					check_list_and_pick_rom "${g}" > /dev/null
-				done
-				echo "Done."
-				
-				for c in "${corelist[@]}"; do 
-					corewc[$c]="$(wc -l < "${gamelistpathtmp}/${c}_gamelist.txt")"
-				done					 
-				
-				totalgamecount="$(printf "%s\n" "${corewc[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')"
-				echo -e "\n"
-				echo "$(for k in "${!corewc[@]}"; do   echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
-				echo -e "\n"
-				echo "Total game count: $totalgamecount"
-				echo -e "Cores at the top will play proportionally more often.\n"
-				
-				i=5
-				# Sorting cores by games
-				while IFS= read -r line; do 
-					played_perc=$((${line#*=}*100/totalgamecount))
-					if [ "$played_perc" -lt "5" ]; then 
-						played_perc=$i
-						if [ $i -gt 2 ]; then ((i--)); fi #minimum core display is 2% of the time
-					fi
-					corep[${line%%=*}]="$played_perc"
-				done <<< "$(for k in "${!corewc[@]}"; do echo "$k"'='"${corewc["$k"]}";done | sort -k2 -t'=' -nr )"
-
-				totalpcount=$(printf "%s\n" "${corep[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')
-				samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)"
-				disablecoredel=1
-
-			elif [[ "$coreweight" == "yes" ]]; then
-				game=0
-				#echo "totalpcount: $totalpcount"
-				pickgame=$(shuf -i 1-"$totalpcount" -n 1)
-				for c in "${!corep[@]}"; do 
-					let game+=${corep["$c"]}
-					if [[ "$game" -gt "$pickgame" ]]; 
-						then nextcore=$c
-						samdebug "Selected game number: $pickgame / $c"
-						break 
-					fi
-				done
-			fi
-			
-		fi
-
-
-	elif [ "${1,,}" == "countdown" ] && [ "$2" ]; then
-		countdown="countdown"
-		nextcore="${2}"
-	elif [ "${2,,}" == "countdown" ]; then
-		nextcore="${1}"
-		countdown="countdown"
 	fi
-		
-	samdebug "Selected core: ${nextcore^^}"
 
+	#samdebug "corelist: ${corelist[*]}"
+	samdebug "corelisttmp: ${corelisttmp[*]}"
+	samdebug "Selected core: ${nextcore}"
+
+	# If $nextcore is ao486, amiga or arcade 
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
 		load_core_arcade "$@"
@@ -1270,62 +1121,179 @@ function next_core() { # next_core (core)
 		fi
 		return
 	fi
-	
-	
+		
 	check_list_and_pick_rom "${nextcore}"
 
 	if [ $? -eq 0 ]; then
-		romname=$(basename "${rompath}")
-
-		# Sanity check that we have a valid rom in var
-		extension="${rompath##*.}"
-		extlist="${CORE_EXT[${nextcore}]//,/ }" 
-					
-		if [[ "$extlist" != *"$extension"* ]]; then
-			create_romlist "${nextcore}" &
-			if [ ${romloadfails} -lt ${coreretries} ]; then
-				declare -g romloadfails=$((romloadfails + 1))
-				samdebug " Wrong extension found: \e[1m${extension^^}\e[0m for core: ${nextcore} rom: ${rompath}"
-				samdebug " Picking new rom.."
-				next_core "${nextcore}"
-			else
-				echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-				echo " ERROR: Core ${nextcore} is blacklisted!"
-				delete_from_corelist "${nextcore}"
-				echo " List of cores is now: ${corelist[*]}"
-				declare -g romloadfails=0
-				# Load a different core
-				next_core	
-			fi
-		fi
-
-
-		# This is obsolete because of gamelist excludes. It can still be used as an alternative.
-		declare -n excludelist="${nextcore}exclude"
-		if [ ${#excludelist[@]} -gt 1 ]; then
-			for excluded in "${excludelist[@]}"; do
-				if [ "${romname}" == "${excluded}" ]; then
-					echo "${romname} is excluded - SKIPPED"
-					awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
-					return 1
-				fi
-			done
-		fi
-
-		if [ -z "${rompath}" ]; then
-			core_error_rom "${nextcore}" "${rompath}"
-		else
-			#if [ -f "${rompath}.sam" ]; then
-			#	source "${rompath}.sam"
-			#fi
-
-			declare -g romloadfails=0
-			load_core "${nextcore}" "${rompath}" "${romname%.*}" "${countdown}"
-		fi
+		check_rom
 	else
 		next_core
 	fi
+	
+	#Load the actual rom
+	if [ -z "${rompath}" ]; then
+		core_error_rom "${nextcore}" "${rompath}"
+	else
+		declare -g romloadfails=0
+		load_core "${nextcore}" "${rompath}" "${romname%.*}"
+	fi
 }
+
+# Don't repeat same core twice
+function corelist_update() {
+	
+	# TODO avoid tmp file here
+	if [ -s "${corelistfile}" ]; then
+		unset corelist 
+		mapfile -t corelist <${corelistfile}
+	fi
+	
+	if [[ "${disablecoredel}" == "0" ]]; then
+		delete_from_corelist "$nextcore" tmp
+	fi
+	
+	if [ ${#corelisttmp[@]} -eq 0 ]; then 
+		declare -ga corelisttmp=("${glclondisk[@]}") 
+	fi
+
+	if [[ ! "${corelisttmp[*]}" ]]; then
+		corelisttmp=("${corelist[@]}")
+	fi
+}
+
+# Create all gamelists in the background
+# Run this until corelist and gamelists for these cores match
+function create_gamelists() {
+
+	if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
+		
+		# Read all gamelists present
+		readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+		
+		if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
+			"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
+		fi
+		for i in {1..2}; do
+			if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" == "0" ]; then
+				"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
+				if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" != "0" ]; then
+					break
+				else
+					echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
+					sleep 5
+					exit
+				fi
+			fi
+		done
+		# Read all gamelists again in case arcade was missing
+		if [[ ! "${glondisk[*]}" ]]; then
+			unset glondisk
+			readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+		fi
+		
+		# Check if more gamelists have been created
+		unset glclondisk
+		for g in "${glondisk[@]}"; do 
+			for c in "${corelist[@]}"; do 
+				if [[ "$c" == "$g" ]]; then 
+					glclondisk+=("$c")
+				fi
+			done 
+		done
+		
+		# Create gamelists in background
+		check_gamelists &
+		
+		if [[ "${glclondisk[*]}" ]]; then
+			corelisttmp=("${glclondisk[@]}")
+		fi
+	fi
+}
+
+#Pick next core
+function pick_core(){
+
+	nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf | head -1)
+	
+	if [[ ! "${nextcore}" ]]; then
+		samdebug "nextcore empty. Using arcade core for now"
+		nextcore=arcade
+	fi
+			
+	
+	# Pick a core weighted by how many games a core's library has
+	if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
+		if [[ ! "${corewc[*]}" ]] && [[ "$coreweight" == "yes" ]]; then
+			echo "Starting weighted core mode"
+			readarray -t gltmpondisk <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+			unset gltmpclondisk
+			for g in "${gltmpondisk[@]}"; do 
+				for c in "${corelist[@]}"; do 
+					if [[ "$c" == "$g" ]]; then 
+						gltmpclondisk+=("$c")
+					fi
+				done 
+			done
+			readarray -t gltmpexistcl <<< "$(printf '%s\n'  "${corelist[@]}" "${gltmpondisk[@]}"  | sort | uniq -iu )"
+			unset gltmpcreate
+			#samdebug "gltmpexistcl is "${gltmpexistcl[@]}""
+			for g in "${gltmpexistcl[@]}"; do 
+				for c in "${corelist[@]}"; do 
+					if [[ "$c" == "$g" ]]; then 
+						gltmpcreate+=("$c")
+					fi
+				done 
+			done
+			echo -n "Please wait while creating gamelists..."
+			#samdebug "gltmpcreate is "${gltmpcreatel[@]}""
+			for g in "${gltmpcreate[@]}"; do
+				check_list_and_pick_rom "${g}" > /dev/null
+			done
+			echo "Done."
+			
+			for c in "${corelist[@]}"; do 
+				corewc[$c]="$(wc -l < "${gamelistpathtmp}/${c}_gamelist.txt")"
+			done					 
+			
+			totalgamecount="$(printf "%s\n" "${corewc[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')"
+			echo -e "\n"
+			echo "$(for k in "${!corewc[@]}"; do   echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
+			echo -e "\n"
+			echo "Total game count: $totalgamecount"
+			echo -e "Cores at the top will play proportionally more often.\n"
+			
+			i=5
+			# Sorting cores by games
+			while IFS= read -r line; do 
+				played_perc=$((${line#*=}*100/totalgamecount))
+				if [ "$played_perc" -lt "5" ]; then 
+					played_perc=$i
+					if [ $i -gt 2 ]; then ((i--)); fi #minimum core display is 2% of the time
+				fi
+				corep[${line%%=*}]="$played_perc"
+			done <<< "$(for k in "${!corewc[@]}"; do echo "$k"'='"${corewc["$k"]}";done | sort -k2 -t'=' -nr )"
+
+			totalpcount=$(printf "%s\n" "${corep[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')
+			samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)"
+			disablecoredel=1
+
+		elif [[ "$coreweight" == "yes" ]]; then
+			game=0
+			#echo "totalpcount: $totalpcount"
+			pickgame=$(shuf -i 1-"$totalpcount" -n 1)
+			for c in "${!corep[@]}"; do 
+				let game+=${corep["$c"]}
+				if [[ "$game" -gt "$pickgame" ]]; 
+					then nextcore=$c
+					samdebug "Selected game number: $pickgame / $c"
+					break 
+				fi
+			done
+		fi
+		
+	fi
+}
+
 
 # Romfinder
 function create_romlist() { # args ${nextcore} 
@@ -1402,12 +1370,52 @@ function check_list_and_pick_rom() { # args ${nextcore}
 
 }
 
+function check_rom(){
+	romname=$(basename "${rompath}")
+
+	# Sanity check that we have a valid rom in var
+	extension="${rompath##*.}"
+	extlist="${CORE_EXT[${nextcore}]//,/ }" 
+				
+	if [[ "$extlist" != *"$extension"* ]]; then
+		create_romlist "${nextcore}" &
+		if [ ${romloadfails} -lt ${coreretries} ]; then
+			declare -g romloadfails=$((romloadfails + 1))
+			samdebug " Wrong extension found: \e[1m${extension^^}\e[0m for core: ${nextcore} rom: ${rompath}"
+			samdebug " Picking new rom.."
+			next_core "${nextcore}"
+		else
+			echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
+			echo " ERROR: Core ${nextcore} is blacklisted!"
+			delete_from_corelist "${nextcore}"
+			echo " List of cores is now: ${corelist[*]}"
+			declare -g romloadfails=0
+			# Load a different core
+			next_core	
+		fi
+		return
+	fi
+
+
+	# This is obsolete because of gamelist excludes. It can still be used as an alternative.
+	declare -n excludelist="${nextcore}exclude"
+	if [ ${#excludelist[@]} -gt 1 ]; then
+		for excluded in "${excludelist[@]}"; do
+			if [ "${romname}" == "${excluded}" ]; then
+				echo "${romname} is excluded - SKIPPED"
+				awk -vLine="${romname}" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
+				return 1
+			fi
+		done
+	fi
+
+}
+
 # Load selected core and rom
-function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
+function load_core() { # load_core core /path/to/rom name_of_rom 
 	local core=${1}
 	local rompath=${2}
 	local romname=${3}
-	local countdown=${4}
 	local gamename
 	local tty_corename
 	if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then
@@ -1431,13 +1439,6 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	echo "$(date +%H:%M:%S) - ${1} - ${3}" "$(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >>/tmp/SAM_Games.log
 	echo "${3} (${1}) $(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >/tmp/SAM_Game.txt
 	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"
-
-	if [ "${4}" == "countdown" ]; then
-		for i in {5..1}; do
-			printf '%s\r' "Loading game in ${i}..." 
-			sleep 1
-		done
-	fi
 
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
@@ -1570,13 +1571,6 @@ function load_core_arcade() {
 	echo "${mraname} (${nextcore})" >/tmp/SAM_Game.txt
 	
 	mute "${mrasetname}"
-
-	if [ "${1}" == "countdown" ]; then
-		for i in {5..1}; do
-			printf '%s\r' "Loading game in ${i}..." 
-			sleep 1
-		done
-	fi
 	
 	# Tell MiSTer to load the next MRA
 	echo "load_core ${mra}" >/dev/MiSTer_cmd
@@ -1623,13 +1617,6 @@ function load_core_amiga() {
 		echo -n "Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
-
-		if [ "${nextcore}" == "countdown" ]; then
-			for i in {5..1}; do
-				printf '%s\r' "Loading game in ${i}..." 
-				sleep 1
-			done
-		fi
 
 		# Tell MiSTer to load the next MRA
 
@@ -1700,16 +1687,17 @@ function load_core_ao486() {
 		create_ao486list
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		check_list ao486
+		if [ $? -eq 1 ]; then
+			next_core
+			return
+		fi
 		FIRSTRUN[${nextcore}]=1
 	fi
 		
 	mute ao486
 	rompath="$(shuf --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
 	romname=$(basename "${rompath}")
-	aopretty="$(echo "${romname%.*}" | tr '_' ' ')"
-	
-
-		
+	aopretty="$(echo "${romname%.*}" | tr '_' ' ')"		
 
 	# Delete played game from list
 	samdebug "Selected file: ${rompath}"
@@ -1744,60 +1732,26 @@ function load_core_ao486() {
 	echo -e "\e[1m${aopretty}\e[0m"
 	echo "$(date +%H:%M:%S) - ${nextcore} - ${romname}" >>/tmp/SAM_Games.log
 	echo "${romname} (${nextcore})" >/tmp/SAM_Game.txt
-	
-	
-	if [ "$(find "${ao486path}" -maxdepth 1 -iname "${romname%.*}.cue" | wc -l )" != "0" ]; then
-		{
-		echo "<mistergamedescription>" 
-		echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
-		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
-		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"4\" path=\"../../../../..${rompath%.*}.cue\"/>"
-		echo 
-		echo "<reset delay=0/>"
-		} >/tmp/SAM_game.mgl
-		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-	elif [ "$(find "${ao486path}" -maxdepth 1 -iname "${romname%.*}.iso" | wc -l )" != "0" ]; then
-		{
-		echo "<mistergamedescription>" 
-		echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
-		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
-		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"4\" path=\"../../../../..${rompath%.*}.iso\"/>"
-		echo 
-		echo "<reset delay=0/>"
-		} >/tmp/SAM_game.mgl
-		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-	else
-		{
-		echo "<mistergamedescription>" 
-		echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
-		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
-		echo "<reset delay=0/>"
-		} >/tmp/SAM_game.mgl
-		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
-	fi
 
-	find "$ao486path" -maxdepth 1 -iname "${romname%.*}.cue" | wc -l | grep -q "0"
-	if [ $? -ne 0 ]; then
-		path_suffix=".cue"
+	if [ "$(find "${ao486path}" -maxdepth 1 -iname "${romname%.*}.cue" | wc -l )" != "0" ]; then
+	  extension=".cue"
+	elif [ "$(find "${ao486path}" -maxdepth 1 -iname "${romname%.*}.iso" | wc -l )" != "0" ]; then
+	  extension=".iso"
 	else
-		find "$ao486path" -maxdepth 1 -iname "${romname%.*}.iso" | wc -l | grep -q "0"
-		if [ $? -ne 0 ]; then
-			path_suffix=".iso"
-		else
-			path_suffix=""
-		fi
+	  extension=""
 	fi
 
 	{
-	echo "<mistergamedescription>" 
-	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
-	echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
-	if [ -n "$path_suffix" ]; then
-		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"4\" path=\"../../../../..${rompath%.*}$path_suffix\"/>"
-	fi
-	echo 
-	echo "<reset delay=0/>"
+	  echo "<mistergamedescription>" 
+	  echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
+	  echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
+	  if [ -n "$extension" ]; then
+		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"4\" path=\"../../../../..${rompath%.*}$extension\"/>"
+	  fi
+	  echo 
+	  echo "<reset delay=0/>"
 	} >/tmp/SAM_game.mgl
+	
 	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
 
 	sleep 1
@@ -2419,7 +2373,7 @@ function check_list() { # args ${nextcore}
 				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 			else
 				delete_from_corelist "${1}"
-				echo "${1} core has no kid safe filter and will be disabled."
+				echo "${1} kids safe filter produced no results and will be disabled."
 				echo "List of cores is now: ${corelist[*]}"
 				return 1
 			fi
