@@ -1017,7 +1017,6 @@ function parse_cmd() {
 
 function loop_core() { # loop_core (core)
 	echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
-	echo -e "Games from the following cores will be played: \n${corelist[*]}\n"
 	# Reset game log for this session
 	echo "" >/tmp/SAM_Games.log
 
@@ -1079,7 +1078,7 @@ function next_core() { # next_core (core)
 	if [[ ! ${corelist[*]} ]]; then
 		echo "ERROR: FATAL - List of cores is empty."
 		echo "Using default corelist"
-		declare -g corelist=("${corelistall[@]}")
+		declare -ga corelist=("${corelistall[@]}")
 		samdebug "Corelist is now ${corelist[*]}"
 	fi
 
@@ -1224,9 +1223,9 @@ function pick_core(){
 				done 
 			done
 			echo -n "Please wait while creating gamelists..."
-			#samdebug "gltmpcreate is "${gltmpcreatel[@]}""
+			samdebug "gltmpcreate is "${gltmpcreatel[@]}""
 			for g in "${gltmpcreate[@]}"; do
-				check_list "${g}" > /dev/null
+				check_list "${g}" >/dev/null
 			done
 			echo "Done."
 			
@@ -1321,7 +1320,6 @@ function create_gamelist() { # args ${nextcore}
 
 }
 
-# Pick Rom
 function check_list() { # args ${nextcore} 
 	
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
@@ -1774,7 +1772,6 @@ function sam_start() {
 	env_check
 	# Terminate any other running SAM processes
 	there_can_be_only_one
-	sam_check
 	mcp_start
 	sam_prep
 	disable_bootrom # Disable Bootrom until Reboot
@@ -1814,11 +1811,6 @@ function there_can_be_only_one() { # there_can_be_only_one
 
 	sleep 1
 
-}
-
-function sam_check() {
-	[ "${kids_safe}" == "yes" ] && echo "Kids Safe Mode active."
-	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 }
 
 function kill_all_sams() {
@@ -1893,12 +1885,10 @@ function init_paths() {
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
-	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
-	[ -e "${corelistfile}" ] && { rm "${corelistfile}"; }
+	#[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
+	#[ -e "${corelistfile}" ] && { rm "${corelistfile}"; }
 	touch "${tmpfile}"
 	touch "${tmpfile2}"
-	touch "${corelistfile}"
-	touch "${corelisttmpfile}"
 
 }
 
@@ -1911,6 +1901,27 @@ function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force "${amigapath}"/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic "${amigapath}"/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+	if [ "${kids_safe}" == "yes" ]; then
+		echo "Kids Safe Mode active."
+		if [ ! -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
+			echo "No kids safe rating lists found. Attempting to update SAM..." 
+			get_ratedlist
+		fi
+		#Set corelist to only include cores with rated lists
+		readarray -t glr <<< "$(find "${mrsampath}/SAM_Rated" -name "*_rated.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+		declare -ga clr
+		unset clr
+		for g in "${glr[@]}"; do 
+			for c in "${corelist[@]}"; do 
+				if [[ "$c" == "$g" ]]; then 
+					clr+=("$c")
+				fi
+			done 
+		done
+		unset corelist
+		printf "%s\n" "${clr[@]}" > "${corelistfile}"
+	fi
+	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 }
 
 function sam_cleanup() {
@@ -2342,8 +2353,8 @@ function check_gamelists() {
 				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
 			done
 			[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
-			sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			echo "SAM now has the following cores disabled in MiSTer_SAM.ini: $( echo "${nogames[@]}"| tr ' ' ',') "
+			#sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}"| tr ' ' ',') "
 			echo "No games were found for these cores."
 		fi 
 		
@@ -2373,9 +2384,10 @@ function filter_list() { # args ${nextcore}
 	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
 		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
 		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-	elif [ "${kids_safe}" == "yes" ]; then
+	fi
+	
+	if [ "${kids_safe}" == "yes" ]; then
 		samdebug "Kids Safe Mode - Filtering Roms..."
-		if [ -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
 			if [ ${1} == amiga ]; then
 				fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
 			else
@@ -2386,13 +2398,11 @@ function filter_list() { # args ${nextcore}
 				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 			else
 				delete_from_corelist "${1}"
+				delete_from_corelist "${1}" tmp
 				echo "${1} kids safe filter produced no results and will be disabled."
 				echo "List of cores is now: ${corelist[*]}"
 				return 1
 			fi
-		else	
-			echo "No kids safe rating lists found. Please make sure you update SAM." 
-		fi
 	fi
 	
 	#Check ini exclusion
@@ -2402,7 +2412,7 @@ function filter_list() { # args ${nextcore}
 		done
 
 	fi
-
+ 
 	#Check blacklist	
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
