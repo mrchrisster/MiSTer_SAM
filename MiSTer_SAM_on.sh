@@ -1919,8 +1919,8 @@ function sam_prep() {
 		readarray -t nclr <<< "$(printf '%s\n'  "${clr[@]}" "${corelist[@]}"  | sort | uniq -iu )"		
 		echo "Kids Safe lists missing for cores: ${nclr[@]}"
 		printf "%s\n" "${clr[@]}" > "${corelistfile}"
-		[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	fi
+	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 }
 
 function sam_cleanup() {
@@ -2824,8 +2824,8 @@ function sam_settings() {
 		sam_controller "Setup Controller" \
 		sam_mute "Mute Cores while SAM is on" \
 		autoplay "Autoplay Configuration" \
-		enableplaycurrent "Enable play current game" \
-		disableplaycurrent "Disable play current game" \
+		enableplaycurrent "Enable Play current Game on Button Push" \
+		disableplaycurrent "Disable Play current Game (Return to Menu)" \
 		enablekidssafe "Enable Kids Safe Filter" \
 		disablekidssafe "Disable Kids Safe Filter" \
 		sam_misc "Advanced Settings" \
@@ -2858,14 +2858,16 @@ function sam_settings() {
 	elif [[ "${menuresponse,,}" == "enablekidssafe" ]]; then
 		if [[ "$shown" == "0" ]]; then
 		dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ KIDS SAFE Filter ]" \
-			--msgbox "Good to use if you have young children. Limits rom selection to ESRB rated games with the 'All Ages' label\n\nPlease update SAM after enabling this to download the ESRB game whitelists. \n\nAlso 'Enable Alternative Core Selection Mode' under Settings > Advanced should be enabled. " 0 0
+			--backtitle "Super Attract Mode" --title "[ KIDS SAFE FILTER ]" \
+			--msgbox "Good to use if you have young children. Limits rom selection to ESRB rated games with the 'All Ages' label\n\nOn first boot, SAM will download the ESRB game whitelists. \n\nAlso 'Alternative Core Selection Mode' will be enabled. " 0 0
 		fi
 		sed -i '/kids_safe=/c\kids_safe="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i '/coreweight=/c\coreweight="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		changes_saved
 		sam_settings
 	elif [[ "${menuresponse,,}" == "disablekidssafe" ]]; then
 		sed -i '/kids_safe=/c\kids_safe="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i '/coreweight=/c\coreweight="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		changes_saved
 		sam_settings
 	else 
