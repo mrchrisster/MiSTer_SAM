@@ -25,7 +25,7 @@
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond
 # tty2oled improvements by venice
 
-# TODO implement playcurrentgame for amiga
+# TODO implement playcurrentgame for amiga core
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
