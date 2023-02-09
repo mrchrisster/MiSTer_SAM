@@ -87,6 +87,7 @@ function init_vars() {
 	declare -gl bgm="No"
 	declare -gl bgmplay="Yes"
 	declare -gl bgmstop="Yes"
+	declare -gi gvoladjust
 	
 	# ======== TTY2OLED =======
 	declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
@@ -2241,10 +2242,11 @@ function mute() {
 		if [ -f "/media/fat/config/Volume.dat" ]; then
 	 		if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 				# Mute Global Volume
-				echo -e "\0020\c" >/media/fat/config/Volume.dat
+				echo "volume mute" > /dev/MiSTer_cmd
 			fi
 		else
-			echo -e "\0020\c" >/media/fat/config/Volume.dat
+			#echo -e "\0020\c" >/media/fat/config/Volume.dat
+			echo "volume mute" > /dev/MiSTer_cmd
 		fi
 			
 	elif [ "${mute}" == "core" ] || [ "${mute}" == "yes" ]; then
@@ -2465,6 +2467,18 @@ function bgm_start() {
 		fi
 		sleep 2
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		#BGM playback tends to be louder than most cores. Let's adjust global volume down..
+		if [ -n "${gvoladjust}" ] &&  [ "${bgmstop}" == "yes" ]; then
+			if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+				declare -g currentvol=$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')
+				unset newvol
+				local newvol=$((7 - $currentvol - $gvoladjust))
+				samdebug "Changing global volume to $newvol"
+				if [ $newvol -ge 0 ]; then 
+					echo "volume ${newvol}" > /dev/MiSTer_cmd &
+				fi
+			fi
+		fi
 		if [ "${bgmplay}" == "yes" ]; then
 			echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		fi
@@ -2481,6 +2495,12 @@ function bgm_stop() {
 			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 			kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
 			rm /tmp/bgm.sock 2>/dev/null
+			if [ -n "${gvoladjust}" ]; then
+				local oldvol=$((7 - $currentvol + $gvoladjust))
+				samdebug "Changing global volume back to $oldvol"
+				#echo "volume ${oldvol}" > /dev/MiSTer_cmd &
+				echo -e "\00$currentvol\c" >/media/fat/config/Volume.dat
+			fi
 		fi
 		echo "Done."
 	fi
