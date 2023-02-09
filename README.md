@@ -187,6 +187,7 @@ Some commands to control SAM from the command line
    
    
 ## Release History
+- 02 Feb 2023 - ao486 integration, Kids Safe Mode, Dynamically finding new roms, Adjust global volume for BGM
 - 10 Aug 2022 - tty2oled and gamelist updates. Default blacklists now filter out bring attract screens
 - 24 Jun 2022 - Added category exclusion mode, atari core support and BGM support
 - 25 Apr 2022 - Added gb,gbc,gg and s32x support. SAM now uses game lists for faster load times and better exclusion options.
