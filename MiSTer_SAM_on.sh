@@ -87,7 +87,7 @@ function init_vars() {
 	declare -gl bgm="No"
 	declare -gl bgmplay="Yes"
 	declare -gl bgmstop="Yes"
-	declare -gi gvoladjust
+	declare -gi gvoladjust="0"
 	
 	# ======== TTY2OLED =======
 	declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
@@ -1103,6 +1103,9 @@ function next_core() { # next_core (core)
 	check_list "${nextcore}"
 	if [ $? -ne 0 ]; then next_core; fi
 	
+	# Check if new roms got added
+	check_gamelistupdate ${nextcore} &
+	
 	pick_rom
 	
 	check_rom
@@ -1181,6 +1184,17 @@ function create_all_gamelists() {
 			corelisttmp=("${glclondisk[@]}")
 		fi
 	fi
+}
+
+function check_gamelistupdate() {
+	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]]; then
+		create_gamelist ${1} comp
+		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt")" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt")" ]]; then
+			echo "New games found. Updating gamelist now"
+			create_gamelist ${1}
+		fi
+	fi
+	
 }
 
 #Pick next core
@@ -1303,7 +1317,7 @@ function load_special_core() {
 function create_gamelist() { # args ${nextcore} 
 
 	samdebug "Creating gamelist for ${1}"
-	if ! ps -ef | grep -qi '[s]amindex'; then
+	if [ ! $(ps -ef | grep -qi '[s]amindex') ] && [ -z "${2}" ]; then
 		${mrsampath}/samindex -s "${1}" -o "${gamelistpath}" 
 		if [ $? -gt 1 ]; then
 			delete_from_corelist "${1}"
@@ -1312,6 +1326,9 @@ function create_gamelist() { # args ${nextcore}
 		else	
 			cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 		fi
+	elif [ -n "${2}" ]; then
+		mkdir -p "${gamelistpathtmp}/comp"
+		${mrsampath}/samindex -s "${1}" -o "${gamelistpathtmp}/comp"
 	fi
 
 }
@@ -1328,14 +1345,13 @@ function check_list() { # args ${nextcore}
 		fi
 	fi
 	
-	if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-		check_zips ${1} &
-	fi
+	#if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
+	#	check_zips ${1} &
+	#fi
 	
 	
 	# Copy gamelist to tmp
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-		FIRSTRUN[${nextcore}]="1"	
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then	
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 		
 		filter_list "${1}"
@@ -1518,7 +1534,6 @@ function load_core_arcade() {
 		
 		filter_list arcade
 		
-		FIRSTRUN[${nextcore}]=1	
 	fi
 	
 	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
@@ -1609,7 +1624,6 @@ function load_core_amiga() {
 		create_amigalist
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		filter_list amiga
-		FIRSTRUN[${nextcore}]=1
 	fi
 		
 	mute Minimig
@@ -1693,7 +1707,6 @@ function load_core_ao486() {
 			next_core
 			return
 		fi
-		FIRSTRUN[${nextcore}]=1
 	fi
 		
 	mute ao486
@@ -2468,14 +2481,15 @@ function bgm_start() {
 		sleep 2
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		#BGM playback tends to be louder than most cores. Let's adjust global volume down..
-		if [ -n "${gvoladjust}" ] &&  [ "${bgmstop}" == "yes" ]; then
+		if [ "${gvoladjust}" -ne 0 ] &&  [ "${bgmstop}" == "yes" ]; then
 			if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 				declare -g currentvol=$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')
 				unset newvol
-				local newvol=$((7 - $currentvol - $gvoladjust))
+				local newvol=$(($currentvol + $gvoladjust))
 				samdebug "Changing global volume to $newvol"
-				if [ $newvol -ge 0 ]; then 
-					echo "volume ${newvol}" > /dev/MiSTer_cmd &
+				if [ $newvol -le 7 ]; then 
+					#echo "volume ${newvol}" > /dev/MiSTer_cmd &
+					echo -e "\00$newvol\c" >/media/fat/config/Volume.dat
 				fi
 			fi
 		fi
@@ -2495,9 +2509,9 @@ function bgm_stop() {
 			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 			kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
 			rm /tmp/bgm.sock 2>/dev/null
-			if [ -n "${gvoladjust}" ]; then
-				local oldvol=$((7 - $currentvol + $gvoladjust))
-				samdebug "Changing global volume back to $oldvol"
+			if [ "${gvoladjust}" -ne 0 ]; then
+				#local oldvol=$((7 - $currentvol + $gvoladjust))
+				#samdebug "Changing global volume back to $oldvol"
 				#echo "volume ${oldvol}" > /dev/MiSTer_cmd &
 				echo -e "\00$currentvol\c" >/media/fat/config/Volume.dat
 			fi
