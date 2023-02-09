@@ -13,6 +13,8 @@ declare -g gamelistpathtmp="/tmp/.SAM_List"
 declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
 declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
+declare -g saminit_log="/tmp/saminit.log"
+declare -gl kids_safe
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -52,6 +54,8 @@ if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	IFS=',' read -ra corelistall <<< "${corelistall}"
 fi
 
+
+#========= PREP =========
 mkdir -p "${gamelistpathtmp}"
 
 
@@ -136,17 +140,36 @@ function check_list() { # args ${nextcore}
 
 function gl_filter() {
 	# Create temp gamelists on startup
-	readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+	if [ "${kids_safe}" == "yes" ]; then
+		echo "Kids Safe Mode active."
+		if [ ! -f "${mrsampath}"/SAM_Rated/amiga_rated.txt ]; then
+			echo "No kids safe rating lists found."
+			return 1
+		fi
+		#Set corelist to only include cores with rated lists
+		readarray -t glr <<< "$(find "${mrsampath}/SAM_Rated" -name "*_rated.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+		unset glondisk
+		for g in "${glr[@]}"; do 
+			for c in "${corelist[@]}"; do 
+				if [[ "$c" == "$g" ]]; then 
+					glondisk+=("$c")
+				fi
+			done 
+		done
+	else
+		readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+	fi
 
 	if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
 		"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
 	fi
 
-	if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" == "0" ]; then
+	if [ $? -gt 1 ]; then
 		echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
-		sleep 15
+		sleep 5
 		exit
 	fi
+	
 	# Read all gamelists again in case arcade was missing
 	if [[ ! "${glondisk[*]}" ]]; then
 		unset glondisk
