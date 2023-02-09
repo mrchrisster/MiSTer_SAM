@@ -1017,6 +1017,7 @@ function parse_cmd() {
 
 function loop_core() { # loop_core (core)
 	echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
+	echo -e "Games from the following cores will be played: \n${corelist[*]}\n"
 	# Reset game log for this session
 	echo "" >/tmp/SAM_Games.log
 
@@ -1123,6 +1124,26 @@ function corelist_update() {
 		mapfile -t corelist <${corelistfile}
 	fi
 	
+	if [ "${kids_safe}" == "yes" ]; then
+		echo "Kids Safe Mode active."
+		if [ ! -f "${mrsampath}"/SAM_Rated/amiga_rated.txt ]; then
+			echo "No kids safe rating lists found."
+			return 1
+		fi
+		#Set corelist to only include cores with rated lists
+		readarray -t glr <<< "$(find "${mrsampath}/SAM_Rated" -name "*_rated.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+		unset clr
+		for g in "${glr[@]}"; do 
+			for c in "${corelist[@]}"; do 
+				if [[ "$c" == "$g" ]]; then 
+					clr+=("$c")
+				fi
+			done 
+		done
+		unset corelist
+		corelist=("${clr[@]}")
+	fi
+	
 	if [[ "${disablecoredel}" == "0" ]]; then
 		delete_from_corelist "$nextcore" tmp
 	fi
@@ -1138,9 +1159,9 @@ function corelist_update() {
 }
 
 # Create all gamelists in the background
-# Run this until corelist matches exisitng gamelists
-function create_all_gamelists() {
 
+function create_all_gamelists() {
+	# Run this until corelist matches exisitng gamelists
 	if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
 		
 		# Read all gamelists present
@@ -1149,18 +1170,11 @@ function create_all_gamelists() {
 		if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
 			"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
 		fi
-		for i in {1..2}; do
-			if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" == "0" ]; then
-				"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
-				if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" != "0" ]; then
-					break
-				else
-					echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
-					sleep 5
-					exit
-				fi
-			fi
-		done
+		if [ $? -gt 1 ]; then
+			echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
+			sleep 5
+			exit
+		fi
 		
 		# Read all gamelists again in case arcade was missing
 		if [[ ! "${glondisk[*]}" ]]; then
@@ -1772,6 +1786,7 @@ function sam_start() {
 	env_check
 	# Terminate any other running SAM processes
 	there_can_be_only_one
+	sam_check
 	mcp_start
 	sam_prep
 	disable_bootrom # Disable Bootrom until Reboot
@@ -1885,10 +1900,12 @@ function init_paths() {
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
-	#[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
-	#[ -e "${corelistfile}" ] && { rm "${corelistfile}"; }
+	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
+	[ -e "${corelistfile}" ] && { rm "${corelistfile}"; }
 	touch "${tmpfile}"
 	touch "${tmpfile2}"
+	touch "${corelistfile}"
+	touch "${corelisttmpfile}"
 
 }
 
@@ -1901,26 +1918,7 @@ function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force "${amigapath}"/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic "${amigapath}"/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
-	if [ "${kids_safe}" == "yes" ]; then
-		echo "Kids Safe Mode active."
-		if [ ! -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
-			echo "No kids safe rating lists found. Attempting to update SAM..." 
-			get_ratedlist
-		fi
-		#Set corelist to only include cores with rated lists
-		readarray -t glr <<< "$(find "${mrsampath}/SAM_Rated" -name "*_rated.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-		declare -ga clr
-		unset clr
-		for g in "${glr[@]}"; do 
-			for c in "${corelist[@]}"; do 
-				if [[ "$c" == "$g" ]]; then 
-					clr+=("$c")
-				fi
-			done 
-		done
-		unset corelist
-		printf "%s\n" "${clr[@]}" > "${corelistfile}"
-	fi
+	[ "${kids_safe}" == "yes" ] && echo "Kids Safe Filter active."
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 }
 
@@ -2336,6 +2334,7 @@ function check_gamelists() {
 		create_amigalist &
 		glcreate=( "${glcreate[@]/amiga}" )
 	fi
+
 
 	if [[ "${glcreate[*]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
 		unset nogames
