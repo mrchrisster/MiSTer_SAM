@@ -1017,7 +1017,6 @@ function parse_cmd() {
 
 function loop_core() { # loop_core (core)
 	echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
-	echo -e "Games from the following cores will be played: \n${corelist[*]}\n"
 	# Reset game log for this session
 	echo "" >/tmp/SAM_Games.log
 
@@ -1124,26 +1123,6 @@ function corelist_update() {
 		mapfile -t corelist <${corelistfile}
 	fi
 	
-	if [ "${kids_safe}" == "yes" ]; then
-		echo "Kids Safe Mode active."
-		if [ ! -f "${mrsampath}"/SAM_Rated/amiga_rated.txt ]; then
-			echo "No kids safe rating lists found."
-			return 1
-		fi
-		#Set corelist to only include cores with rated lists
-		readarray -t glr <<< "$(find "${mrsampath}/SAM_Rated" -name "*_rated.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-		unset clr
-		for g in "${glr[@]}"; do 
-			for c in "${corelist[@]}"; do 
-				if [[ "$c" == "$g" ]]; then 
-					clr+=("$c")
-				fi
-			done 
-		done
-		unset corelist
-		corelist=("${clr[@]}")
-	fi
-	
 	if [[ "${disablecoredel}" == "0" ]]; then
 		delete_from_corelist "$nextcore" tmp
 	fi
@@ -1213,63 +1192,65 @@ function pick_core(){
 		nextcore=arcade
 	fi
 			
-	
-	# Pick a core weighted by how many games a core's library has
-	if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
-		if [[ ! "${corewc[*]}" ]] && [[ "$coreweight" == "yes" ]]; then
-			readarray -t gltmpondisk <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-			unset gltmpclondisk
-			for g in "${gltmpondisk[@]}"; do 
+	#Core Weight mode
+	if [ "$coreweight" == "yes" ]; then
+		#Check if all gamelists have been created
+		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
+			#Check if every core's game library has been counted
+			if [[ ! "${corewc[*]}" ]]; then
+				readarray -t gltmpondisk <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+				unset gltmpclondisk
+				for g in "${gltmpondisk[@]}"; do 
+					for c in "${corelist[@]}"; do 
+						if [[ "$c" == "$g" ]]; then 
+							gltmpclondisk+=("$c")
+						fi
+					done 
+				done
+				readarray -t gltmpexistcl <<< "$(printf '%s\n'  "${corelist[@]}" "${gltmpondisk[@]}"  | sort | uniq -iu )"
+				unset gltmpcreate
+				#samdebug "gltmpexistcl is "${gltmpexistcl[@]}""
+				for g in "${gltmpexistcl[@]}"; do 
+					for c in "${corelist[@]}"; do 
+						if [[ "$c" == "$g" ]]; then 
+							gltmpcreate+=("$c")
+						fi
+					done 
+				done
+				echo -n "Please wait while creating gamelists..."
+				#samdebug "gltmpcreate is "${gltmpcreatel[@]}""
+				for g in "${gltmpcreate[@]}"; do
+					check_list "${g}" >/dev/null
+				done
+				echo "Done."
+				
 				for c in "${corelist[@]}"; do 
-					if [[ "$c" == "$g" ]]; then 
-						gltmpclondisk+=("$c")
+					corewc[$c]="$(wc -l < "${gamelistpathtmp}/${c}_gamelist.txt")"
+				done					 
+				
+				totalgamecount="$(printf "%s\n" "${corewc[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')"
+				echo -e "\n"
+				echo "$(for k in "${!corewc[@]}"; do   echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
+				echo -e "\n"
+				echo "Total game count: $totalgamecount"
+				echo -e "Cores at the top will play more often.\n"
+				
+				i=5
+				# Sorting cores by games
+				while IFS= read -r line; do 
+					played_perc=$((${line#*=}*100/totalgamecount))
+					if [ "$played_perc" -lt "5" ]; then 
+						played_perc=$i
+						if [ $i -gt 2 ]; then ((i--)); fi #minimum core display is 2% of the time
 					fi
-				done 
-			done
-			readarray -t gltmpexistcl <<< "$(printf '%s\n'  "${corelist[@]}" "${gltmpondisk[@]}"  | sort | uniq -iu )"
-			unset gltmpcreate
-			#samdebug "gltmpexistcl is "${gltmpexistcl[@]}""
-			for g in "${gltmpexistcl[@]}"; do 
-				for c in "${corelist[@]}"; do 
-					if [[ "$c" == "$g" ]]; then 
-						gltmpcreate+=("$c")
-					fi
-				done 
-			done
-			echo -n "Please wait while creating gamelists..."
-			samdebug "gltmpcreate is "${gltmpcreatel[@]}""
-			for g in "${gltmpcreate[@]}"; do
-				check_list "${g}" >/dev/null
-			done
-			echo "Done."
-			
-			for c in "${corelist[@]}"; do 
-				corewc[$c]="$(wc -l < "${gamelistpathtmp}/${c}_gamelist.txt")"
-			done					 
-			
-			totalgamecount="$(printf "%s\n" "${corewc[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')"
-			echo -e "\n"
-			echo "$(for k in "${!corewc[@]}"; do   echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
-			echo -e "\n"
-			echo "Total game count: $totalgamecount"
-			echo -e "Cores at the top will play more often.\n"
-			
-			i=5
-			# Sorting cores by games
-			while IFS= read -r line; do 
-				played_perc=$((${line#*=}*100/totalgamecount))
-				if [ "$played_perc" -lt "5" ]; then 
-					played_perc=$i
-					if [ $i -gt 2 ]; then ((i--)); fi #minimum core display is 2% of the time
-				fi
-				corep[${line%%=*}]="$played_perc"
-			done <<< "$(for k in "${!corewc[@]}"; do echo "$k"'='"${corewc["$k"]}";done | sort -k2 -t'=' -nr )"
+					corep[${line%%=*}]="$played_perc"
+				done <<< "$(for k in "${!corewc[@]}"; do echo "$k"'='"${corewc["$k"]}";done | sort -k2 -t'=' -nr )"
 
-			totalpcount=$(printf "%s\n" "${corep[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')
-			samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)\n"
-			disablecoredel=1
-
-		elif [[ "$coreweight" == "yes" ]]; then
+				totalpcount=$(printf "%s\n" "${corep[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')
+				samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)\n"
+				disablecoredel=1
+			fi
+			#Pick a random core based on how many games a library has
 			game=0
 			samdebug "totalpcount: $totalpcount"
 			pickgame=$(shuf -i 1-"$totalpcount" -n 1)
@@ -1282,8 +1263,8 @@ function pick_core(){
 				fi
 			done
 		fi
-		
 	fi
+			
 }
 
 function load_special_core() {
@@ -1786,7 +1767,6 @@ function sam_start() {
 	env_check
 	# Terminate any other running SAM processes
 	there_can_be_only_one
-	sam_check
 	mcp_start
 	sam_prep
 	disable_bootrom # Disable Bootrom until Reboot
@@ -1900,13 +1880,8 @@ function init_paths() {
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
-	[ -e "${corelisttmpfile}" ] && { rm "${corelisttmpfile}"; }
-	[ -e "${corelistfile}" ] && { rm "${corelistfile}"; }
 	touch "${tmpfile}"
 	touch "${tmpfile2}"
-	touch "${corelistfile}"
-	touch "${corelisttmpfile}"
-
 }
 
 function sam_prep() {
@@ -1918,8 +1893,34 @@ function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
 	[ -d "${amigapath}/shared" ] && cp -r --force "${amigapath}"/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
 	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic "${amigapath}"/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
-	[ "${kids_safe}" == "yes" ] && echo "Kids Safe Filter active."
-	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
+	if [ "${kids_safe}" == "yes" ]; then
+		if [ ! -f "${mrsampath}"/SAM_Rated/amiga_rated.txt ]; then
+			echo "No kids safe rating lists found."
+			get_ratedlist
+			if [ $? -ne 0 ]; then 
+				echo "Kids Safe Filter failed downloading."
+				return 1
+			else
+				echo "Kids Safe Filter active."
+			fi
+		else
+			echo "Kids Safe Filter active."
+		fi
+		#Set corelist to only include cores with rated lists
+		readarray -t glr <<< "$(find "${mrsampath}/SAM_Rated" -name "*_rated.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+		unset clr
+		for g in "${glr[@]}"; do 
+			for c in "${corelist[@]}"; do 
+				if [[ "$c" == "$g" ]]; then 
+					clr+=("$c")
+				fi
+			done 
+		done
+		readarray -t nclr <<< "$(printf '%s\n'  "${clr[@]}" "${corelist[@]}"  | sort | uniq -iu )"		
+		echo "Kids Safe lists missing for cores: ${nclr[@]}"
+		printf "%s\n" "${clr[@]}" > "${corelistfile}"
+		[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
+	fi
 }
 
 function sam_cleanup() {
