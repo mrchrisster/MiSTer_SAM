@@ -1,0 +1,505 @@
+002 - Phantasy Star (USA, Europe) (Rev 1)
+007 James Bond (Japan) (Alt 1) 
+007 James Bond (Japan) (Othello Multivision)
+007 James Bond (Taiwan) (Othello Multivision)
+01 Phantasy Star (USA, Europe) (Rev 1)
+031 - Ys (Japan)
+033 - Rainbow Islands (Europe)
+036 - James Pond 2 - Codename RoboCod (Europe, Brazil)
+038 - Krusty's Fun House (Europe, Brazil)
+089 - Terminator, The (Europe)
+09 Ys - The Vanished Omens ~ Y's (USA, Europe, Brazil)
+099 - Hang-On & Safari Hunt (USA)
+10 Yard Fight MSX2SMS Hack
+1969 (PD) v0.9k Retica
+2048 v1.02
+3 in 1 - The Best Game Collection (A) (Korea) 
+3 in 1 - The Best Game Collection (B) (Korea) 
+3 in 1 - The Best Game Collection (C) (Korea) 
+3 in 1 - The Best Game Collection (D) (Korea) 
+3 in 1 - The Best Game Collection (E) (Korea) 
+3 in 1 - The Best Game Collection (F) (Korea) 
+3D Gunner (USA) (Demo)
+4 PAK All Action (Australia) (Unl)
+64 Color Palette Test (PD)
+8 in 1 - The Best Game Collection (A) (Korea) 
+8 in 1 - The Best Game Collection (B) (Korea) 
+8 in 1 - The Best Game Collection (C) (Korea) 
+A.E. MSX2SMS Hack
+Alex Kidd in Miracle World 2 (Hack) v2 ian
+Alex Kidd in Radaxian Rumble (UE) Alianger v1.03d
+Anguna - the Prison Dungeon v0.07a
+AntiISDA Warrior (PD) v1.02 Ventzislav Tzvetkov
+Arcade Smash Hits (Europe)
+Arena - Maze of Death 0.31 BcnAbel76
+Arno Dash (PD) v1.00 under4mhz 2020-07-23
+Artillery Master 8k (PD) v0.9 Haroldo O. Pinheiro
+Astro Warrior & Pit Pot (Europe)
+Astroswab (PD) v1 hang-on 2018-03-27
+BRMSX
+BRSMS
+Bacachase (PD) 201610252045 nitrofurano
+Bacachase (PD) nitrofurano 2016-10-25 2045
+Back to the Future Part III (Europe)
+Bad Apple Demo 3D Full Length (PD) v7 gligli
+Bad Apple SMS (PD) v1 psidum, calindro, RushJet1, Sim1
+Baluba Balok (PD) 20170129 eruiz00
+Bank Panic (Europe, Brazil)
+Bank Panic [T-Spa1.0v_Wave]
+Batter Up v0.1 Revo
+Battleship v1 Revo
+Battleships v1.10
+Battletoads b1 nextvolume
+Be No Sqr Demo (PD) v1.01 psidum
+Berenstain Bears' Camping Adventure, The v0.1 Revo
+Berlin no Kabe v1.2 ccovell
+Black Onyx, The (J) T+En v1.0 [Enhanced Version] Bruce Tomlin+S.Seehorn
+Black Onyx, The (J) T+En v1.0 [Standard Version] Bruce Tomlin+S.Seehorn
+Black Onyx, The (Japan) Eng Palette Hack bsittler
+Black Onyx, The (Japan) Enhanced Eng Palette Hack bsittler
+Black Onyx, The (Japan) Enhanced Palette Hack bsittler
+Blade Eagle (World) (Beta)
+Block Quest (Knights of the Round clone) v0.25
+Blockhead v1.01
+Bloki v1.03 Tetris Clone
+Bomberman Boom v1.1
+Bomberman Special (Taiwan) (Chinese Logo) 
+Bomberman Special (Taiwan) (English Logo) 
+Borderline (Japan, Europe, Australia, New Zealand)
+Bosconian MSX2SMS Hack
+Bread and Butter World v1.0
+Bread and Butter v1.032
+Bubbo World 2
+Burgers of Hanoi v1.0
+CMJN (PD) nitrofurano 2014-06-22
+C_So! (Korea) (Unl)
+Candy Kid (PD) SteveProXNA 3-27-2017
+Captain America and the Avengers v0.3 Revo
+Casevac (PD) v1 STIR FC
+Castle, The (Japan) Palette Hack bsittler
+Castle, The (Japan)
+Cave Wanderer v1.0
+Chakan v0.85 BcnAbel76
+Champion Baseball (Japan)
+Champion Baseball (Japan, Australia, New Zealand)
+Champion Baseball (Taiwan)
+Champion Golf (Japan) (MyCard) Palette Hack bsittler
+Champion Golf (Japan) Palette Hack bsittler
+Championship Hockey (Europe)
+Championship Lode Runner (Japan) Palette Hack bsittler
+Championship Lode Runner (Japan, Australia)
+Championship Lode Runner (Taiwan)
+Christmas Tale v1.0
+Chuck Rock (EB) [T-Spa1.0v_Wave]
+Chuck Rock (Europe, Brazil)
+Color & Switch Test (Japan) (En) 
+Controllers Test - SMS & Genesis (PD) v1 sverx 2018-01-30
+Cory Arcangel's Super Mario Clouds 2014-8-6
+Cow Abductors
+D-Day MSX2SMS Hack
+DARC v1.0
+DataStorm v0.02
+Dating Sim (PD) v0.02 haroldoop
+Desert Strike (Europe) (En,Fr,De,Es)
+Dig Dug MSX2SMS Hack
+Digger Ball v1.0 No Explosions
+Digger Ball v1.0
+Digger Chan (PD) Aypok
+Donald No Magical World v1 BcnAbel76 Revo
+Dr. Franken v1 Revo
+Draw Poker (PD) v1 Mike Beaver
+Driar (V0.05) by fx and ejdolf (PD)
+Driar 0.05
+Duckslayer Adventures (PD) v0.6.0 haroldoop
+Duke Nukem (PD) v0.4 Revo
+Dunk Kid's WIP v0.2 Revo
+EXPOSALT
+Eagles 5 (Korea) (Unl)
+Elite Gaiden 0.1.28
+Empty Slot to test SMS BIOS splash screen (PD)
+Excellent Dizzy Collection, The (Europe) (En,Fr,De,Es,It) 
+Exerion (Japan, Europe, Australia, New Zealand)
+Exerion (Korea) (Unl)
+Exerion (Taiwan)
+F-1 Spirit - The Way to Formula-1 (Korea) (Unl)
+F-16 Fighting Falcon (USA)
+FA Tetris (Korea) (Unl)
+Fairy Forest (PD) v1.02 STIR_FC
+FinalJustice MSX2SMS Hack
+Fire Rescue MSX2SMS Hack
+Flashpoint (Korea) (Unl)
+Flintstones, The (Europe, Brazil)
+Flip Flap v2.10
+Fri For Fransk! V1.02 by Marc Klemp (PD)
+FudeBrowser - Winnie Cooper (SG-1000) (PD)
+GG Shinobi - MD Joypad Fix v1 Vingazole 2014-11-14
+Galactic Revenge (PD) v3 eruiz00
+Galaga '91 (J) v1 Vingazole
+Galaga 2 (E)
+Galaga MSX2SMS Hack
+Galaxian (KR) Palette Hack bsittler
+Galaxian (Korea) (Unl)
+Galaxian MSX2SMS Hack
+Game de Check! Koutsuu Anzen (Japan) (Proto)
+Gaudream v0.04
+Gekioko PunPun Maru (PD) Future Driver 2013-12-15
+Gemitas (PD) Cyttorak 2018-03-27
+Ghostbusters (UEK) [T-Spa1.0v_Wave]
+Ghostbusters (USA, Europe, Brazil)
+Golvellius - Valley of Doom (UE) [T+Ger1.00_Star-trans]
+Golvellius PTBR+Save+Bugfixes (Hack) T+Bra, SRAM ichigobankai 2017818
+Greendog v1.1 BcnAbel76 Revo
+Griel's Quest for the Sangraal EX
+Guzzler (Japan) (Othello Multivision) Palette Hack bsittler
+Guzzler (Japan) (Othello Multivision)
+Guzzler (Taiwan) (Othello Multivision)
+H7N9 (PD) nitrofurano 2016-10-24
+Hang On MSX2SMS Hack
+Hang-On & Astro Warrior (USA)
+Hang-On & Safari Hunt (USA) (Beta)
+Hang-On & Safari Hunt (USA)
+Happy Looser by Zoop (PD)
+High Fidelity Audio - Knight Rider Theme (PD) Maxim 6-2018
+Hitsuji Yai - Preety Sheep MSX2SMS Hack
+Home Basic (Japan) (SC-3000) Palette Hack bsittler
+Hong Kil Dong (Korea) (Unl)
+Hong Kil Dong (Korea) Palette Hack bsittler
+Hook (Europe) (Proto)
+Hook (Prototype) [T+Bra_ALVS]
+Hook (Prototype) [T-Spa1.0v_Wave]
+Hustle Chumy (Japan) Palette Hack bsittler
+Hustle Chumy (Japan)
+Hustle Chumy (Taiwan)
+Interrupt Test (PD)
+Itchy & Scratchy Game v0.99 Revo
+JIRAIYA
+James Pond 2 - Codename RoboCod (Europe, Brazil)
+Janggun-ui Adeul (Korea) (Unl)
+Jet Paco & Jet Puri NTSC (PD) v1.00 Mojon Twins 2019-01-08
+Jet Paco & Jet Puri PAL (PD) v1.00 Mojon Twins 2019-01-08
+Jetpac v0.3
+Joe Montana Football (USA, Europe, Brazil)
+Jornada do Mymo II (Psycho Fox Hack)
+Junction (USA) v1.1 Revo
+Jungle Book, The (EB) [T-Spa1.0v_Wave]
+Jungle Book, The (Europe, Brazil)
+Jungle Book, The (UE) [T+Bra][p1][!]
+Jungle Book, The (UE) [T+Bra_Emubrazil]
+Junior Senior Move Your Feet FMV (PD)
+Jyankyo MSX2SMS Hack
+KATE Mod Demo (PD) v0.18e RETICA studio
+King Kong v1.0 Donkey Kong Clone
+King's Quest - Quest for the Crown (USA) (Beta)
+King's Quest - Quest for the Crown (USA)
+Knightmare II - The Maze of Galious (Korea) (Unl)
+Knights and Demons v1.0
+Krusty's Fun House (EB) [T-Spa1.0v_Wave]
+Krusty's Fun House (Europe, Brazil)
+KunKun & KokoKun 1 (PD) v1.0 Bock
+KunKun & KokoKun 2 - Return of the Kun v0.99
+Kuni Chan no Game Tengoku v1 Revo
+Lander 1 v1.4
+Lawnmower (PD) nitrofurano 2020-09-23
+Legend of Kage, The (Taiwan)
+Libreway (PD) nitrofurano 2014-06-22
+Line Interrupt Test #1 (PD) Charles MacDonald
+LinkWord (Japan) (Proto) 
+Lode Runner 1 MSX2SMS Hack
+Lost Raider v1.01
+Lunar v1.1 BcnAbel76 Revo
+Madden NFL '96 v0.1 Revo
+Mahjong (Japan) (Rev 1)
+Mahjong (Japan)
+Mahjong (Taiwan) (Rev 1)
+Mahjong Solitaire (PD) v1.02 under4mhz 2020-09-11
+Mappy MSX2SMS Hack
+Marko's Magic Football WIP v0.1 Revo
+Marksman Shooting & Trap Shooting & Safari Hunt (Europe)
+Marksman Shooting & Trap Shooting (USA, Brazil)
+Marksman Shooting (Light Gun Port 2 Patched) Calindro
+Marksman, Trap Shooting, Safari Hunt (Light Gun Port 2 Patched) Calindro
+Megaro Polis SOS MSX2SMS Hack
+Micro Machines 2 - Turbo Tournament v0.1 Revo
+Minesweeper v1.10
+Mini Golf MSX2SMS Hack
+Moai no Hibou MSX2SMS Hack
+Moggy Master (PD) Mojon Twins 2015
+Monaco GP (Japan) (Rev 1) Palette Hack bsittler
+Monaco GP (Japan) (Rev 1)
+Monaco GP (Japan, Europe) (Rev 2)
+Monaco GP (Japan, Europe, Australia, New Zealand)
+Monaco GP (Taiwan) (Rev 1)
+Montezuma's Revenge (Genesis Controller)
+Montezuma's Revenge featuring Panama Joe (USA)
+Mortal Kombat 3 (B) [T-Spa1.0v_Wave]
+Mortal Kombat 3 (Brazil)
+Mr. Do V.s Unicorns MSX2SMS Hack
+N-Sub (Japan) (40kB) Palette Hack bsittler
+N-Sub (Japan) (Alt 1)
+N-Sub (Japan, Europe, Australia, New Zealand, Taiwan)
+N-Sub (Taiwan)
+NEVER
+NFL 95 v0.1 Revo
+NHL Hockey v0.1 Revo
+NanoWars 8k (PD) v0.7 Haroldo O. Pinheiro
+Nazo Puyo 2 v0.9 Revo
+Nazo Puyo v1 Revo
+Nemesis (Korea) (Unl)
+Nemesis 2 (Korea) (Unl)
+Neo Pong 512 (hardware ok, no sound)
+Neo Pong 512
+New Boggle Boggle 2 (KR) Palette Hack bsittler
+New Boggle Boggle 2 (Korea) (Unl)
+New Duel WIP2
+Nyan Cat Demo (PD) v0.01 nitrofurano
+NyanCat 0.1 Palette Hack bsittler
+Okamoto Ayako no Match Play Golf (Japan) (Othello Multivision)
+Okamoto Ayako no Match Play Golf (Japan) (Rev 1) 
+Okamoto Ayako no Match Play Golf (Taiwan) (Rev 1) 
+Omikuji (PD) v1 Maechio
+Othello (Japan) Palette Hack bsittler
+Othello (Japan)
+Othello (Taiwan)
+Pac-In-Time V1.01 BcnAbel76
+Pac-Man (Japan) Chris Covell v0.91
+Pac-Man (USA) Chris Covell v0.91
+Pac-Man MSX2SMS Hack
+Pacar (Japan) (40kB) Palette Hack bsittler
+Pacar (Japan) (Alt 1)
+Pacar (Japan, Europe, Australia, New Zealand)
+Pacar (Taiwan)
+Pachinko (Japan)
+Panther MSX2SMS Hack
+Pat Riley Basketball (USA) (Proto)
+Peek-A-Boo
+Penguin Adventure (Korea) (Unl)
+Pete Sampras Tennis v0.1 Revo
+Phantasy Star (Brazil)
+Phantasy Star (J) T+Eng v2.00 SMS Power!
+Phantasy Star (Japan) (Virtual Console)
+Phantasy Star (Japan)
+Phantasy Star (Korea) (Unl)
+Phantasy Star (UE) (V1.3) [T+Fre_floflo]
+Phantasy Star (USA, Europe) (Rev 1)
+Phantasy Star (USA, Europe)
+Phantasy Star - Hordes of Nei (Hack) v1.44 Lutz
+Phantasy Star - Lutz Hack (Hack) Lutz
+Phantasy Star Adventure English v1.1 Revo
+Phantom2040 v1 BcnAbel76
+Pico 8 Demo (PD) v0.02e RETRICA studio
+Picross v1.01
+Pocket Jansou v1 Revo
+Pointless Platform
+Pointless Shooting
+Pole Position Remake (PD) nitrofurano 2016-04-10 1925
+Pole Position SG-1000 (PD) v18b nitrofurano
+Pong Master (PD) v1 Haroldo O. Pinheiro
+Pong Master 4k (PD) Haroldo O. Pinheiro
+Pong v0.4
+Pooyan (Korea) (Unl)
+Pop Flamer (Japan, Europe) Palette Hack bsittler
+Pop Flamer (Japan, Europe, Australia, New Zealand)
+Pop Flamer (Taiwan)
+Porkpolis v1.0
+Positorb (PD) OrangeRevolt
+Power Boggle Boggle (KR) Palette Hack bsittler
+Power Boggle Boggle (Korea) (Unl)
+Power Drive v1 Revo
+Prisonnier II (PD) Offgame
+Psychic World (E) [T+Fre]
+Psychic World (E) [T+Ger1.00_Star-trans]
+Psychic World (E) [T+Ita1.00_darq]
+Psychic World (EB) [T-Spa1.0v_Wave]
+Psychic World (Europe, Brazil)
+Q-bert (Japan) (Othello Multivision) Palette Hack bsittler
+Q-bert (Japan) (Othello Multivision)
+R.C. Grand Prix (UE) [T+Bra_TMT]
+R.C. Grand Prix (UEB) [T-Spa1.0v_Wave]
+R.C. Grand Prix (USA)
+R.C. Grand Prix (USA, Europe, Brazil) (Beta)
+R.C. Grand Prix (USA, Europe, Brazil)
+Racer (Easter) (PD) Chris Read
+Racer 2.0 (Rebooted) (PD) Chris Read
+Racer v1.12 Easter Edition
+Racer v1.12
+Rainbow Islands (Brazil)
+Rainbow Islands (E) [T-Spa1.0v_Wave]
+Rainbow Islands (Europe)
+Rainbow Islands - Story of the Bubble Bobble 2 - Bugfix (E) Fix v1 arsenal_51
+Rainbow Islands - Story of the Bubble Bobble 2 - Good Ending Bug Fix (Hack) v1 arsenal_51
+Rally-X (Taiwan) (English Logo)
+Rally-X MSX2SMS Hack
+RehaShMS NTSC v6 DEMO
+Rental Car v0.06
+RetroCopy Music Test v1.0
+Road Blaster FMV (PD) v0.01
+Road Fighter (Taiwan) (English Logo)
+Robbyie v0.99
+Robbyie v0.999 (PD)
+Royal Stone English Developer V1.1 BcnAbel76
+Royal Stone English V1.1 BcnAbel76
+Ryuukyuu v1
+S.S. Lucifer - Man Overboard v0.9 BcnAbel76
+SALY V1.00 by Marc Klemp (PD)
+SG-1000 M2 Test Cartridge (Japan)
+SHURATO
+SMS Boot Loader 0.9 (PD)
+SMS Cast - A Tribute To Loose Logic (PD)
+SMS Chip-8 (PD) v1.11 Maxim
+SMS FM Tool - YM2413 (PD) v1 Chris Covell
+SMS Genesis 6 Button Controller Test by Charles MacDonald (PD)
+SMS Paging PFR Detect (PD) v2 Eric R. Quinn
+SMS Palette Tool v1.0
+SMS Power Demo Build 31 by Zoop (PD)
+SMS Sound Test (PD) v1.1 Nicolas Warren
+SMS Sprite Test (PD)
+SMS Test Suite (PD) v0.32 sverx
+SMS V Counter Test Program (PD) Charles MacDonald
+SMS VGM Player (PD) v0.45 Maxim
+SPECIAL
+S_Sniper (PD) v1 Maechiko
+Safari Hunting (Japan, Europe, Australia, New Zealand)
+Safari Hunting (Taiwan)
+Sagak-ui Bimil (Korea) (Unl)
+San-nin Mahjong (Japan) (Alt 1) 
+San-nin Mahjong (Japan) (Othello Multivision)
+San-nin Mahjong (Taiwan) (Othello Multivision)
+Schtroumpfs Autour du Monde, Les (Europe) (En,Fr,De,Es) 
+Schtroumpfs Autour du Monde, Les (Europe) (En,Fr,De,Es)
+Sega BASIC Level 2 (SC-3000) export header checksum removed Palette Hack bsittler
+Sega BASIC Level 3 V1 (SC-3000) Palette Hack bsittler
+Sega BASIC Level 3 V1 (SC-3000) export header checksum removed 24K Palette Hack bsittler
+Sega BASIC Level 3 V1 (SC-3000) export header checksum removed Palette Hack bsittler
+Sega Mark III BG Test v0.01 (PD)
+Sega Mark III Port Test v0.1 (PD)
+Sega-Galaga (Japan) (40kB) Palette Hack bsittler
+Sega-Galaga (Japan)
+Sega-Galaga (Japan, Australia)
+Sega-Galaga (Taiwan)
+SegaSlide by FluBBa (PD)
+Sensible Soccer (E) [T-Spa1.0v_Wave]
+Sensible Soccer (Europe)
+Serizawa Hachidan no Tsumeshougi (Japan)
+Shadow Dancer - The Secret of Shinobi ~ Shadow Dancer (Europe, Brazil)
+Shanghai (UE) [T-Spa1.0v_Wave]
+Shanghai (USA, Europe) (Beta)
+Shining Force II - The Sword of Hajya English v1
+Shinobi SE Demo (PD) maxxfarras 2008-10
+Shoganai
+Shooting Gallery (Light Gun Port 2 Patched) Calindro
+Shooting Gallery ~ Shooting G. (USA, Europe, Brazil)
+Shooting Stars Light Gun (PD) v1.01
+Simpsons Trivia (PD) v1.02 SteveProXNA
+Simpsons, The - Bart vs. the Space Mutants (EB) [T-Spa1.0v_Wave]
+Simpsons, The - Bart vs. the Space Mutants (Europe, Brazil)
+Simpsons, The - Bart vs. the World (EB) [T-Spa1.0v_Wave]
+Simpsons, The - Bart vs. the World (Europe, Brazil)
+Sindbad Mystery (Japan, Europe) Palette Hack bsittler
+Sindbad Mystery (Japan, Europe, Australia, New Zealand)
+Sindbad Mystery (Taiwan)
+Ski Master v1.0.1
+Skweek - Slider v1.2 Revo
+Sky Fighter (KR) Palette Hack bsittler
+Sky Fighter (Korea) (Unl)
+Slime Center OK
+Slime Center
+Smurfs, The (Europe, Brazil) (En,Fr,De,Es)
+Snail2 NTSC v1.02
+Snake (PD) v1 Wickeycolumbus
+Soduko v0.2
+Soko Master v1.0
+Solitaire Poker v1 Revo
+Sonic's Edusoft (Unknown) (Proto)
+Soukoban v1 Revo
+Space Mountain (Japan) (Othello Multivision) Palette Hack bsittler
+Space Mountain (Japan) (Othello Multivision)
+Space Oddity Demo by Tetsujin (PD)
+Space Oddity V.23 by Proppy & Tet (PD)
+Space Slalom (Japan)
+Spider-Man and the X-Men in Arcade's Revenge v1 BcnAbel76
+Spirou v1 BcnAbel76
+Sprite Multiplex Demo (03012005) by Charles MacDonald (PD)
+Star Blazer MSX2SMS Hack
+Star Force MSX2SMS Hack (Bad Direction)
+Star Jacker (Japan)
+Star Jacker (Japan, Europe) (Rev 1) Palette Hack bsittler
+Star Jacker (Japan, Europe) (Rev 2)
+Star Jacker (Japan, Europe, Australia, New Zealand) (Rev 1)
+Star Jacker (Taiwan) (Rev 1)
+Star Soldier (Taiwan)
+Star Soldier MSX2SMS Hack
+Street Master (Korea) (Unl)
+Suepr UWOL (PD) Mojon Twins 2016-11-19 1411
+Super Bubble Bobble (KR) Palette Hack bsittler
+Super Bubble Bobble (Korea) (Unl)
+Super Penguin MSX2SMS Hack
+Super Return of the Jedi v0.3 Revo
+Super Soccer MSX2SMS Hack
+Super Wonder Boy - Monster World (Japan)
+Surf Ninjas v1 BcnAbel76
+Swing MSX2SMS Hack
+Sword Strike (PD) v001 dragonfeet
+Tale Spin v1.1 BncAbel76 Revo
+Tales of Popolon
+Tarzan - Lord of the Jungle WIP v0.1 Revo
+Tecmo World Cup '92 (Europe) (Beta)
+Terebi Oekaki (Japan) Palette Hack bsittler
+Terebi Oekaki (Japan, Taiwan) (Program)
+Terminator, The (Brazil) (Rev 1)
+Terminator, The (E) [T-Spa1.0v_Wave]
+Terminator, The (Europe)
+Tesserae v1 Revo
+Tetris Tetracycline (PD) v4 Nicolas Warren
+The Banketh (PD) Alpha 0.05 Diskover
+Tintin Au Tibet v1 BcnAbel76
+Tototek Menu Boot - SG-1000 Mode by Chris Covell (PD)
+Tototek Menu Boot - SMS Mode by Chris Covell (PD)
+Track & Field 2 MSX2SMS Hack
+Treinamento Do Mymo (B)
+True Lies V0.8 BcnAbel76
+Twin Maze (PD) v0.01 haroldoop
+Ultima III V2006-05-13prealpha (PD)
+Unite Centrale de Huit Bits by Comic Bakery (PD)
+VG-Fighter v1.0
+Versus Pong (PD) v1.02
+WWF Raw v0.1 Revo
+Wah Munchers (PD) R2 JoppyFur
+Waimanu Scary Monsters Saga (PD)
+Wanted (Light Gun Port 2 Patched) Calindro
+Wanted (USA, Europe, Brazil)
+Warp Warp MSX2SMS Hack
+Where in the World is Carmen Sandiego (Brazil) Controller Patched
+Where in the World is Carmen Sandiego (Brazil) Genesis Controller Patched
+Where in the World is Carmen Sandiego (Brazil)
+Where in the World is Carmen Sandiego (USA) (Genesis Controller)
+Where in the World is Carmen Sandiego (USA)
+Wing Warriors (PD) Kitmaker, Fran Matsuaka
+Wonder Boy III Save+US FM+SMS-MD Controller Detect (Hack) SRAM v1.2 ichigobankai, v1 FM ApolloBoy
+X-Men v0.8 Revo
+XBill (PD) nitrofurano 2018-06-02
+XBill (PD) nitrofurano 201806021536
+Xenon 2 - Megablast (Europe) (Rev 1)
+Xyzolog (Korea) (Unl)
+YM2413 FM Tool (PD) v1 Chris Covell
+YM2612 Live Player (PD) 12-2016 K-Storm
+Yamato (Japan) (Alt 1)
+Yamato (Japan, Europe, Australia, New Zealand)
+Yamato (Taiwan)
+Ys (Japan)
+Ys - The Vanished Omens (UE) [T+Fre_Crispysix]
+Ys - The Vanished Omens - FM Enabled (UE) (Hack) fatnick 2018-01-23
+Ys - The Vanished Omens - FM Sound Restoration (USA, Europe) v1.2 Hungdongs
+Ys - The Vanished Omens - FM Sound Restoration (USA, Europe) v1.2
+Ys - The Vanished Omens ~ Y's (USA, Europe, Brazil)
+Yum! (PD) Chris Read
+Yuu Yuu Hakusho v1 Revo
+ZEXALL Z-80 Instruction Excerciser (PD) v0.12SDSC Maxim, Eric Quinn
+Zanac MSX2SMS Hack
+Zippy Race (Japan) Palette Hack bsittler
+Zippy Race (Japan, Australia)
+Zippy Race (Taiwan)
+Zombi Terror v1.01
+Zoom 909 (Taiwan)
+h7n9 (PD) 201610241935 nitrofurano
+mojon-twins--super-uwol Palette Hack bsittler
+xbill Palette Hack bsittler
