@@ -16,6 +16,11 @@ jobs:
         ref: updateall
         checkout: true
 
+    - name: Fetch and merge remote changes
+      run: |
+        git fetch origin updateall
+        git merge origin/updateall
+
     - name: Delete all files in Scripts folder
       run: |
         rm -rf updateall/Scripts
