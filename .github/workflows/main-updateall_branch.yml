@@ -1,31 +1,43 @@
-name: Copy files to branch
+name: Copy Files from main to updateall
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-
-permissions: write-all
 
 jobs:
-  copy_files:
-    runs-on: ubuntu-22.04
+  copy-files:
+    runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout main branch
+      uses: actions/checkout@v2
+      with:
+        ref: main
 
-    - uses: actions/checkout@v2
-
-    - name: Commit files
+    - name: Copy Files to Scripts subfolder
       run: |
-        git config --local user.name "mrchrisster"
-        mkdir Scripts
-        rsync -av . Scripts --exclude Scripts --exclude .git --exclude .github --remove-source-files
-        git checkout -b updateall
-        git push -u origin updateall 
-        git commit -m "Updating files for update all" --allow-unrelated-histories
-    - name: Push changes # push the output folder to your repo
-      uses: ad-m/github-push-action@master
+        mkdir -p updateall/Scripts
+        cp -r * updateall/Scripts/
+
+    - name: Checkout updateall branch
+      uses: actions/checkout@v2
+      with:
+        ref: updateall
+        checkout: true
+
+    - name: Commit changes
+      run: |
+        git add -A
+        git config --local user.email "github-actions@github.com"
+        git config --local user.name "Github Actions"
+        git commit -m "Copy Files from main"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@main
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        force: true
+
+
+
+
