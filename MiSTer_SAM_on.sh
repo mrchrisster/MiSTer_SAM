@@ -87,7 +87,7 @@ function init_vars() {
 	declare -gl bgm="No"
 	declare -gl bgmplay="Yes"
 	declare -gl bgmstop="Yes"
-	declare -gi gvoladjust="0"
+	declare -gi gvoladjust
 	
 	# ======== TTY2OLED =======
 	declare -g TTY_cmd_pipe="${mrsamtmp}/TTY_cmd_pipe"
@@ -1103,9 +1103,6 @@ function next_core() { # next_core (core)
 	check_list "${nextcore}"
 	if [ $? -ne 0 ]; then next_core; fi
 	
-	# Check if new roms got added
-	check_gamelistupdate ${nextcore} &
-	
 	pick_rom
 	
 	check_rom
@@ -1186,17 +1183,6 @@ function create_all_gamelists() {
 	fi
 }
 
-function check_gamelistupdate() {
-	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]]; then
-		create_gamelist ${1} comp
-		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
-			echo "New games found. Updating gamelist now"
-			create_gamelist ${1}
-		fi
-	fi
-	
-}
-
 #Pick next core
 function pick_core(){
 
@@ -1243,13 +1229,8 @@ function pick_core(){
 					corewc[$c]="$(wc -l < "${gamelistpathtmp}/${c}_gamelist.txt")"
 				done					 
 				
-				totalgamecount="$(printf "%s\n" "${corewc[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')"
-				echo -e "\n"
-				echo "$(for k in "${!corewc[@]}"; do   echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
-				echo -e "\n"
-				echo "Total game count: $totalgamecount"
-				echo -e "Cores at the top will play more often.\n"
 				
+				totalgamecount="$(printf "%s\n" "${corewc[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')"
 				i=5
 				# Sorting cores by games
 				while IFS= read -r line; do 
@@ -1262,8 +1243,20 @@ function pick_core(){
 				done <<< "$(for k in "${!corewc[@]}"; do echo "$k"'='"${corewc["$k"]}";done | sort -k2 -t'=' -nr )"
 
 				totalpcount=$(printf "%s\n" "${corep[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')
-				samdebug "\nCore selection by app. percentage: \n\n$(for k in "${!corep[@]}"; do   echo ["$k"] '=' "${corep["$k"]}"; done | sort -rn -k3)\n"
 				disablecoredel=1
+				{
+				echo -e "\n\nGames per core:\n"
+				echo "$(for k in "${!corewc[@]}"; do echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
+				echo -e "\nTotal game count: $totalgamecount\n"
+				} > /tmp/.SAM_tmp/totalgcount
+				{
+				echo -e "\n\nCore selection by app. percentage:\n"
+				echo "$(for k in "${!corep[@]}"; do echo ["$k"] '=' "${corep["$k"]}""%"; done | sort -rn -k3)"
+				} > /tmp/.SAM_tmp/totalpcount
+				pr -Tm /tmp/.SAM_tmp/totalgcount /tmp/.SAM_tmp/totalpcount
+
+				
+				
 			fi
 			#Pick a random core based on how many games a library has
 			game=0
@@ -1317,8 +1310,8 @@ function load_special_core() {
 function create_gamelist() { # args ${nextcore} 
 
 	samdebug "Creating gamelist for ${1}"
-	if [ ! $(ps -ef | grep -qi '[s]amindex') ] && [ -z "${2}" ]; then
-		${mrsampath}/samindex -q -s "${1}" -o "${gamelistpath}" 
+	if ! ps -ef | grep -qi '[s]amindex'; then
+		${mrsampath}/samindex -s "${1}" -o "${gamelistpath}" 
 		if [ $? -gt 1 ]; then
 			delete_from_corelist "${1}"
 			echo "Can't find games for ${CORE_PRETTY[${1}]}" 
@@ -1326,9 +1319,6 @@ function create_gamelist() { # args ${nextcore}
 		else	
 			cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 		fi
-	elif [ -n "${2}" ]; then
-		mkdir -p "${gamelistpathtmp}/comp"
-		${mrsampath}/samindex -q -s "${1}" -o "${gamelistpathtmp}/comp"
 	fi
 
 }
@@ -1345,13 +1335,14 @@ function check_list() { # args ${nextcore}
 		fi
 	fi
 	
-	#if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-	#	check_zips ${1} &
-	#fi
+	if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
+		check_zips ${1} &
+	fi
 	
 	
 	# Copy gamelist to tmp
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then	
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+		FIRSTRUN[${nextcore}]="1"	
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 		
 		filter_list "${1}"
@@ -1534,6 +1525,7 @@ function load_core_arcade() {
 		
 		filter_list arcade
 		
+		FIRSTRUN[${nextcore}]=1	
 	fi
 	
 	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
@@ -1624,6 +1616,7 @@ function load_core_amiga() {
 		create_amigalist
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		filter_list amiga
+		FIRSTRUN[${nextcore}]=1
 	fi
 		
 	mute Minimig
@@ -1707,6 +1700,7 @@ function load_core_ao486() {
 			next_core
 			return
 		fi
+		FIRSTRUN[${nextcore}]=1
 	fi
 		
 	mute ao486
@@ -2368,9 +2362,9 @@ function check_gamelists() {
 				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
 			done
 			[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
-			sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			#sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}"| tr ' ' ',') "
-			echo "No games were found for these cores. Please re-enable the core once you have roms installed."
+			echo "No games were found for these cores."
 		fi 
 		
 	fi
@@ -2481,15 +2475,14 @@ function bgm_start() {
 		sleep 2
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		#BGM playback tends to be louder than most cores. Let's adjust global volume down..
-		if [ "${gvoladjust}" -ne 0 ] &&  [ "${bgmstop}" == "yes" ]; then
+		if [ -n "${gvoladjust}" ] &&  [ "${bgmstop}" == "yes" ]; then
 			if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 				declare -g currentvol=$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')
 				unset newvol
-				local newvol=$(($currentvol + $gvoladjust))
+				local newvol=$((7 - $currentvol - $gvoladjust))
 				samdebug "Changing global volume to $newvol"
-				if [ $newvol -le 7 ]; then 
-					#echo "volume ${newvol}" > /dev/MiSTer_cmd &
-					echo -e "\00$newvol\c" >/media/fat/config/Volume.dat
+				if [ $newvol -ge 0 ]; then 
+					echo "volume ${newvol}" > /dev/MiSTer_cmd &
 				fi
 			fi
 		fi
@@ -2509,9 +2502,9 @@ function bgm_stop() {
 			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 			kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
 			rm /tmp/bgm.sock 2>/dev/null
-			if [ "${gvoladjust}" -ne 0 ]; then
-				#local oldvol=$((7 - $currentvol + $gvoladjust))
-				#samdebug "Changing global volume back to $oldvol"
+			if [ -n "${gvoladjust}" ]; then
+				local oldvol=$((7 - $currentvol + $gvoladjust))
+				samdebug "Changing global volume back to $oldvol"
 				#echo "volume ${oldvol}" > /dev/MiSTer_cmd &
 				echo -e "\00$currentvol\c" >/media/fat/config/Volume.dat
 			fi
