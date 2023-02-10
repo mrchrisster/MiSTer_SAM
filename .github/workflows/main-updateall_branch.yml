@@ -42,7 +42,10 @@ jobs:
         git config --local user.name "Github Actions"
         git commit -m "Copy Files from main"
 
-    - name: Push changes
-      uses: ad-m/github-push-action@main
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+- name: Push changes
+  uses: actions/git-client@v2
+  with:
+    args: push origin updateall
+    ref: updateall
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
