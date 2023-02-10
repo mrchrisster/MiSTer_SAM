@@ -15,6 +15,10 @@ jobs:
       with:
         ref: main
 
+    - name: Create temporary branch
+      run: |
+        git checkout -b temp
+
     - name: Copy Files to Scripts subfolder
       run: |
         mkdir -p updateall/Scripts
@@ -37,7 +41,3 @@ jobs:
       uses: ad-m/github-push-action@main
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-
-
-
-
