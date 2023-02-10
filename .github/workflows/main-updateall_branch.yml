@@ -10,6 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout updateall branch
+      uses: actions/checkout@v2
+      with:
+        ref: updateall
+        checkout: true
+
+    - name: Delete all files in Scripts folder
+      run: |
+        rm -rf updateall/Scripts
+
     - name: Checkout main branch
       uses: actions/checkout@v2
       with:
@@ -17,15 +27,8 @@ jobs:
 
     - name: Copy Files to Scripts subfolder
       run: |
-        rm -rf updateall/Scripts
         mkdir -p updateall/Scripts
         cp -r * updateall/Scripts/
-
-    - name: Checkout updateall branch
-      uses: actions/checkout@v2
-      with:
-        ref: updateall
-        checkout: true
 
     - name: Commit changes
       run: |
@@ -37,5 +40,4 @@ jobs:
     - name: Push changes
       uses: ad-m/github-push-action@main
       with:
-        force: true
         github_token: ${{ secrets.GITHUB_TOKEN }}
