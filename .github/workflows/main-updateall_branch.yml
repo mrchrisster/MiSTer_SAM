@@ -19,6 +19,7 @@ jobs:
     - name: Commit files
       run: |
         git config --local user.name "mrchrisster"
+        git checkout -b updateall
         git push -u origin updateall
         git commit -m "Updating files for update all"
     - name: Push changes # push the output folder to your repo
