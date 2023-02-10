@@ -22,8 +22,8 @@ jobs:
         mkdir Scripts
         rsync -av . Scripts --exclude Scripts --exclude .git --exclude .github --remove-source-files
         git checkout -b updateall
-        git push -u origin updateall --allow-unrelated-histories
-        git commit -m "Updating files for update all"
+        git push -u origin updateall 
+        git commit -m "Updating files for update all" --allow-unrelated-histories
     - name: Push changes # push the output folder to your repo
       uses: ad-m/github-push-action@master
       with:
