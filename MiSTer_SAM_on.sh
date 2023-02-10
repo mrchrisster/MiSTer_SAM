@@ -25,7 +25,7 @@
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond
 # tty2oled improvements by venice
 
-# TODO implement playcurrentgame for amiga core
+# TODO implement playcurrentgame for amiga
 
 # ======== INI VARIABLES ========
 # Change these in the INI file
@@ -1189,7 +1189,7 @@ function create_all_gamelists() {
 function check_gamelistupdate() {
 	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]]; then
 		create_gamelist ${1} comp
-		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt")" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt")" ]]; then
+		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
 			echo "New games found. Updating gamelist now"
 			create_gamelist ${1}
 		fi
@@ -1318,7 +1318,7 @@ function create_gamelist() { # args ${nextcore}
 
 	samdebug "Creating gamelist for ${1}"
 	if [ ! $(ps -ef | grep -qi '[s]amindex') ] && [ -z "${2}" ]; then
-		${mrsampath}/samindex -s "${1}" -o "${gamelistpath}" 
+		${mrsampath}/samindex -q -s "${1}" -o "${gamelistpath}" 
 		if [ $? -gt 1 ]; then
 			delete_from_corelist "${1}"
 			echo "Can't find games for ${CORE_PRETTY[${1}]}" 
@@ -1328,7 +1328,7 @@ function create_gamelist() { # args ${nextcore}
 		fi
 	elif [ -n "${2}" ]; then
 		mkdir -p "${gamelistpathtmp}/comp"
-		${mrsampath}/samindex -s "${1}" -o "${gamelistpathtmp}/comp"
+		${mrsampath}/samindex -q -s "${1}" -o "${gamelistpathtmp}/comp"
 	fi
 
 }
@@ -2368,9 +2368,9 @@ function check_gamelists() {
 				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
 			done
 			[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
-			#sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}"| tr ' ' ',') "
-			echo "No games were found for these cores."
+			echo "No games were found for these cores. Please re-enable the core once you have roms installed."
 		fi 
 		
 	fi
