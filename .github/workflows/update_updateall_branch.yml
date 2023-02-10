@@ -1,0 +1,28 @@
+name: Copy files to branch
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  copy_files:
+    runs-on: ubuntu-22.04
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Commit files
+      run: |
+        git config --local user.name "mrchrisster"
+        git push -u origin updateall
+        git commit -m "Updating files for update all"
+    - name: Push changes # push the output folder to your repo
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        force: true
