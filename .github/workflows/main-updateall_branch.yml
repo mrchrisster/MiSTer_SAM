@@ -19,6 +19,8 @@ jobs:
     - name: Commit files
       run: |
         git config --local user.name "mrchrisster"
+        mkdir Scripts
+        rsync -av . Scripts --exclude Scripts --exclude .git --exclude .github --remove-source-files
         git checkout -b updateall
         git push -u origin updateall
         git commit -m "Updating files for update all"
