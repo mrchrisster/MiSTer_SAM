@@ -43,7 +43,7 @@ jobs:
         git commit -m "Copy Files from main"
 
     - name: Push changes
-      uses: actions/git-client@v2
+      uses: ad-m/github-push-action@master
       with:
         args: push origin updateall
         ref: updateall
