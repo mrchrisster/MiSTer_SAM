@@ -23,7 +23,7 @@ jobs:
 
     - name: Delete all files in Scripts folder
       run: |
-        rm -rf updateall/Scripts
+        rm -rf Scripts
 
     - name: Checkout main branch
       uses: actions/checkout@v2
@@ -34,7 +34,7 @@ jobs:
     - name: Copy Files to Scripts subfolder
       run: |
         mkdir -p updateall/Scripts
-        cp -r main/* updateall/Scripts/
+        cp -r main/* Scripts/
 
     - name: Commit changes
       run: |
