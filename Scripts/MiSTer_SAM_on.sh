@@ -1190,7 +1190,7 @@ function check_gamelistupdate() {
 	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]]; then
 		create_gamelist ${1} comp
 		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
-			echo "Changes detected in ${1} folder. Updating gamelist now"
+			samdebug "Changes detected in ${1} folder. Updating gamelist now."
 			cp "${gamelistpathtmp}/comp/${1}_gamelist.txt" "${gamelistpath}/${1}_gamelist.txt" 
 		fi
 	fi
