@@ -33,7 +33,7 @@ jobs:
 
     - name: Copy Files to Scripts subfolder
       run: |
-        mkdir -p updateall/Scripts
+        mkdir -p Scripts
         cp -r main/* Scripts/
 
     - name: Commit changes
