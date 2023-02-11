@@ -44,9 +44,9 @@ jobs:
         git commit -m "Copy Files from main"
 
     - name: Push changes
-      uses: actions/git-client@v2
-      with:
-        args: push origin updateall
+       uses: ad-m/github-push-action@master
+       with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         ref: updateall
-      env:
+       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
