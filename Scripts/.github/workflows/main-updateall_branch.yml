@@ -1,0 +1,50 @@
+name: Copy Files from main to updateall
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  copy-files:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout updateall branch
+      uses: actions/checkout@v2
+      with:
+        ref: updateall
+        checkout: true
+
+    - name: Fetch and merge remote changes
+      run: |
+        git fetch origin updateall
+        git merge origin/updateall
+
+    - name: Delete all files in Scripts folder
+      run: |
+        rm -rf Scripts
+
+    - name: Checkout main branch
+      uses: actions/checkout@v2
+      with:
+        ref: main
+        path: main
+
+    - name: Copy Files to Scripts subfolder
+      run: |
+        mkdir -p Scripts
+        cp -r main/. Scripts
+
+    - name: Commit changes
+      run: |
+        git add -A
+        git config --local user.email "github-actions@github.com"
+        git config --local user.name "Github Actions"
+        git commit -m "Copy Files from main"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: updateall
