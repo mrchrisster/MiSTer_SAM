@@ -34,7 +34,8 @@ jobs:
     - name: Copy Files to Scripts subfolder
       run: |
         mkdir -p Scripts
-        cp -r main/. Scripts
+        #cp -r main/. Scripts
+        rsync -av --exclude ".git" --exclude ".github" --exclude "tools-extras" main/ Scripts/
 
     - name: Commit changes
       run: |
