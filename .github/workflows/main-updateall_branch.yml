@@ -49,3 +49,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: updateall
 
+    - name: Invoke db build
+      uses: benc-uk/workflow-dispatch@v1
+      with:
+        workflow: build_db.yml
