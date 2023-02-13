@@ -53,5 +53,5 @@ jobs:
     - name: Invoke db build
       uses: benc-uk/workflow-dispatch@v1
       with:
-        workflow: Build Custom Database   
         branch: updateall
+        workflow: Build Custom Database
