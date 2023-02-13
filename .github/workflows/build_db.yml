@@ -3,7 +3,7 @@ name: Build Custom Database
 on:
   push:
     branches:
-      - main
+      - updateall
   workflow_dispatch:
 
 permissions: write-all
