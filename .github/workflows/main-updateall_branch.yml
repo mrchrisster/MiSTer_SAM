@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_db:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Install apt-get utilities
