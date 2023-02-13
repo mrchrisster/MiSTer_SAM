@@ -1,3 +1,3 @@
 #!/bin/bash
-# Directly start SAM
+# Directly start Supe Attract Mode
 /media/fat/Scripts/MiSTer_SAM_on.sh start
