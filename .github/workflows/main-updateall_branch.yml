@@ -1,4 +1,4 @@
-name: Copy Files from main to updateall
+name: Build update-all db
 
 on:
   push:
@@ -6,49 +6,6 @@ on:
       - main
 
 jobs:
-  copy-files:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout updateall branch
-      uses: actions/checkout@v2
-      with:
-        ref: updateall
-        checkout: true
-
-    - name: Fetch and merge remote changes
-      run: |
-        git fetch origin updateall
-        git merge origin/updateall
-
-    - name: Delete all files in Scripts folder
-      run: |
-        rm -rf Scripts
-
-    - name: Checkout main branch
-      uses: actions/checkout@v2
-      with:
-        ref: main
-        path: main
-
-    - name: Copy Files to Scripts subfolder
-      run: |
-        mkdir -p Scripts
-        rsync -av --exclude ".git" --exclude ".github" --exclude "tools-extras" main/ Scripts/
-
-    - name: Commit changes
-      run: |
-        git add -A
-        git config --local user.email "github-actions@github.com"
-        git config --local user.name "Github Actions"
-        git commit -m "Copy Files from main"
-
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: updateall
-
   build_db:
     needs: copy-files
     runs-on: ubuntu-22.04
@@ -59,8 +16,15 @@ jobs:
 
     - uses: actions/checkout@v2
       with:
-        ref: updateall
-        checkout: true
+        ref: main
+        path: main
+        
+    - name: Copy Files to Scripts subfolder
+      run: |
+        mkdir -p Scripts
+        rsync -av --exclude ".git" --exclude ".github" --exclude "readme.md" --exclude "tools-extras" main/ Scripts/
+        rm -rf main
+  
 
     - name: Build Custom Database for MiSTer Downloader
       run: set -o pipefail && curl --fail --location https://raw.githubusercontent.com/theypsilon/Downloader_DB-Template_MiSTer/main/.github/build_db.py | python3 -
