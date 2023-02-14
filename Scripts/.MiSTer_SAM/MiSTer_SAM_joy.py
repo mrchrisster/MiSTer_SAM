@@ -11,10 +11,13 @@ ACTIVITY_FILE = "/tmp/.SAM_Joy_Activity"
 POLL_RATE = 0.2
 AXIS_DEADZONE = 2000
 
+script_path = os.path.abspath(__file__)
+json_file_path = os.path.join(os.path.dirname(script_path), "sam_controllers.json")
+
 # these values will be written to the activity file
 ACTIVITIES = {"start": "Start", "default": "Button pushed"}
 # each key in the button/axis sections should match back to an activity key
-with open("controllers.json", "r") as f:
+with open(json_file_path, "r") as f:
     CONTROLLERS = json.load(f)
 
 BUTTON = 0x01
