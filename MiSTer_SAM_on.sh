@@ -2729,6 +2729,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
+		get_samstuff .MiSTer_SAM/sam_controllers.json
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
 		get_inputmap
