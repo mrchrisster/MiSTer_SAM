@@ -42,10 +42,8 @@ Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` 
 **NOTE** The menu does not work out of the box on CRT's . Please try adding the following settings to your `/media/fat/MiSTer.ini` and see if it will make the menu work for your CRT setup:  
 ```
 [Menu]
-vga_scaler=0
-fb_terminal=0
-vsync_adjust=1
-video_mode=512,38,66,64,224,12,20,6,10689
+video_mode=640,16,64,80,240,1,3,14,12380
+vga_scaler=1
 ```
   
 - **Exclusion Lists** - You can exclude any amount of games that you don't want to have displayed by adding a file called for example `snes_exclude.txt` in /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists folder. One line per game, can be full file path or just the game name.
