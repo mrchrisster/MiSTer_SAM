@@ -4,6 +4,7 @@ import struct
 import time
 import sys
 import os
+import json
 
 
 ACTIVITY_FILE = "/tmp/.SAM_Joy_Activity"
@@ -13,37 +14,8 @@ AXIS_DEADZONE = 2000
 # these values will be written to the activity file
 ACTIVITIES = {"start": "Start", "default": "Button pushed"}
 # each key in the button/axis sections should match back to an activity key
-CONTROLLERS = {
-    "054c_0ce6": { 
-		"name": "Wireless Controller", 
-		"button": { 
-			"start": 10, 
-		}, 
-		"axis": {}, 
-	},
-    "054c_0268": { 
-		"name": "PLAYSTATION(R)3 Controller", 
-		"button": { 
-			"start": 9, 
-		}, 
-		"axis": {}, 
-	},
-    "054c_05c4": {
-        "name": "Sony DualShock 4",
-        "button": {
-            "start": 9,
-        },
-        "axis": {},
-    },
-    # TODO: not currently used
-    "default": {
-        "name": "Generic Controller",
-        "button": {
-        	"start": 9, 
-        },
-        "axis": {},
-    },
-}
+with open("controllers.json", "r") as f:
+    CONTROLLERS = json.load(f)
 
 BUTTON = 0x01
 AXIS = 0x02
