@@ -50,6 +50,10 @@ trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM INT
 
 # ======== Source ini files ========
 source "${misterpath}/Scripts/MiSTer_SAM.ini"
+#Roulette Mode
+if [ -f /tmp/.SAM_tmp/gameroulette.ini ]; then
+	source /tmp/.SAM_tmp/gameroulette.ini
+fi
 source ${ttysystemini}
 source ${ttyuserini}
 ttydevice=${TTYDEV}
