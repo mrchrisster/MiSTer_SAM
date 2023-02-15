@@ -803,8 +803,12 @@ function read_samini() {
 	#corelist=("$(echo "${corelist[@]}" | tr ',' ' ' | tr -s ' ')")
 	IFS=',' read -ra corelist <<< "${corelist}"
 	IFS=',' read -ra corelistall <<< "${corelistall}"
-
-
+	
+	#Roulette Mode
+	if [ -f /tmp/.SAM_tmp/gameroulette.ini ]; then
+		source /tmp/.SAM_tmp/gameroulette.ini
+	fi
+	
 }
 
 
@@ -1039,7 +1043,7 @@ function loop_core() { # loop_core (core)
 					echo " Mouse activity detected!"
 					play_or_exit
 				else
-					echo " Mouse activity ignored!"
+					#echo " Mouse activity ignored!"
 					truncate -s 0 /tmp/.SAM_Mouse_Activity
 				fi
 			fi
@@ -1060,7 +1064,7 @@ function loop_core() { # loop_core (core)
 					echo " Controller activity detected!"
 					play_or_exit
 				elif [ "${listenmouse}" == "no" ]; then		
-					echo " Controller activity ignored!"
+					#echo " Controller activity ignored!"
 					truncate -s 0 /tmp/.SAM_Joy_Activity
 				else
 					sam_exit 3
@@ -1328,8 +1332,8 @@ function load_special_core() {
 # Romfinder
 function create_gamelist() { # args ${nextcore} 
 
-	samdebug "Creating gamelist for ${1}"
 	if [ ! $(ps -ef | grep -qi '[s]amindex') ] && [ -z "${2}" ]; then
+		samdebug "Creating gamelist for ${1}"
 		${mrsampath}/samindex -q -s "${1}" -o "${gamelistpath}" 
 		if [ $? -gt 1 ]; then
 			delete_from_corelist "${1}"
@@ -3399,29 +3403,24 @@ function sam_gamemodemenu() {
 		if [ "$opt" != "0" ]; then
 			sam_menu
 		elif [ "${menuresponse}" == "Roulettetimer" ]; then
-			gametimer=${roulettetimer}
-			kill_all_sams
-			sam_cleanup
-			#tty_init
-			checkgl
-			mute=no
-			listenmouse="No"
-			listenkeyboard="No"
-			listenjoy="No"
-			loop_core	
+			{
+			echo "gametimer=${roulettetimer}"
+			echo "mute=no"
+			echo "listenmouse=No"
+			echo "listenkeyboard=No"
+			echo "listenjoy=No"
+			} >/tmp/.SAM_tmp/gameroulette.ini
 		else
 			timemin=${menuresponse//Roulette/}
-			gametimer=$((timemin*60))
-			kill_all_sams
-			sam_cleanup
-			#tty_init
-			checkgl
-			mute=no
-			listenmouse="No"
-			listenkeyboard="No"
-			listenjoy="No"
-			loop_core
+			{		
+			echo "gametimer=$((timemin*60))"
+			echo "mute=no"
+			echo "listenmouse=No"
+			echo "listenkeyboard=No"
+			echo "listenjoy=No"
+			} >/tmp/.SAM_tmp/gameroulette.ini
 		fi
+		sam_start
 }
 
 function samedit_include() {
@@ -3478,11 +3477,9 @@ function samedit_include() {
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
 			--msgbox "SAM will start now and only play games from the '${categ^^}' category.\n\nOn cold reboot, SAM will get reset automatically to play all games again. " 0 0
-		kill_all_sams
-		sam_prep
-		#tty_init
-		checkgl
-		loop_core
+		printf "%s\n" "${corelist[@]}" > "${corelistfile}"
+		sam_start
+
 	fi
 
 }
