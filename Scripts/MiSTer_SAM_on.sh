@@ -2821,9 +2821,8 @@ function sam_menu() {
 		Update "Update SAM to latest" \
 		Settings "Settings" \
 		----- "-----------------------------" \
-		sam_corelist "Select Core List" \
-		sam_corelist_preset "Presets for Core List" \
-		Single "Select Single Core" \
+		sam_coreconfig "Configure Core List" \
+		sam_exittask "Exit Behavior" \
 		Include "Select Single Category/Genre" \
 		exclude "Exclude Categories/Genres" \
 		sam_bgm "Add-ons: Background Music Player, TTY2OLED" \
@@ -2837,12 +2836,12 @@ function sam_menu() {
 	
 	if [ "$opt" != "0" ]; then
 		exit
-	elif [[ "${menuresponse,,}" == "sam_corelist" ]]; then
-		sam_corelist
+	elif [[ "${menuresponse,,}" == "sam_coreconfig" ]]; then
+		sam_coreconfig
 	elif [[ "${menuresponse,,}" == "-----" ]]; then
 		sam_menu
-	elif [[ "${menuresponse,,}" == "sam_corelist_preset" ]]; then
-		sam_corelist_preset
+	elif [[ "${menuresponse,,}" == "sam_exittask" ]]; then
+		sam_exittask
 	elif [[ "${menuresponse,,}" == "sam_bgm" ]]; then
 		sam_bgmmenu	
 	else 
@@ -2863,11 +2862,8 @@ function sam_settings() {
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		sam_timer "Select Timers - When SAM should start" \
 		arcade_orient "Orientation for Arcade Games" \
-		sam_controller "Setup Controller" \
 		sam_mute "Mute Cores while SAM is on" \
 		autoplay "Autoplay Configuration" \
-		enableplaycurrent "Enable Play current Game on Button Push" \
-		disableplaycurrent "Disable Play current Game (Return to Menu)" \
 		enablekidssafe "Enable Kids Safe Filter" \
 		disablekidssafe "Disable Kids Safe Filter" \
 		sam_misc "Advanced Settings" \
@@ -2881,22 +2877,12 @@ function sam_settings() {
 		sam_menu
 	elif [[ "${menuresponse,,}" == "sam_timer" ]]; then
 		sam_timer
-	elif [[ "${menuresponse,,}" == "sam_controller" ]]; then
-		sam_controller
 	elif [[ "${menuresponse,,}" == "sam_mute" ]]; then
 		sam_mute
 	elif [[ "${menuresponse,,}" == "sam_misc" ]]; then
 		sam_misc	
 	elif [[ "${menuresponse,,}" == "arcade_orient" ]]; then
 		arcade_orient
-	elif [[ "${menuresponse,,}" == "enableplaycurrent" ]]; then
-		sed -i '/playcurrentgame=/c\playcurrentgame="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-		changes_saved
-		sam_settings
-	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
-		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-		changes_saved
-		sam_settings
 	elif [[ "${menuresponse,,}" == "enablekidssafe" ]]; then
 		if [[ "$shown" == "0" ]]; then
 		dialog --clear --no-cancel --ascii-lines \
@@ -3042,6 +3028,48 @@ function sam_mute() {
 			
 }
 
+function sam_exittask() {
+	if [[ "$shown" == "0" ]]; then
+		if [[ "${playcurrentgame}" == "yes" ]]; then
+			dialog --clear --no-cancel --ascii-lines \
+				--backtitle "Super Attract Mode" --title "[ SAM EXIT ]" \
+				--msgbox "Currently, SAM will play the current game when you push a button." 0 0
+		else
+			dialog --clear --no-cancel --ascii-lines \
+				--backtitle "Super Attract Mode" --title "[ SAM EXIT ]" \
+				--msgbox "Currently, SAM will exit back to the MiSTer menu when you push a button.\n\nIf you configured your controller, SAM will still play the current game if you push the Start button." 0 0
+		fi
+	shown=1
+	fi
+	dialog --clear --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ SAM EXIT ]" \
+		--menu "Select from the following options?" 0 0 0 \
+		enableplaycurrent "On Exit, Play current Game" \
+		disableplaycurrent "On Exit, Return to Menu (Except Start Button)" \
+		sam_controller "Setup Controller - Configure Start button" 2>"/tmp/.SAMmenu" 
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	elif [[ "${menuresponse,,}" == "enableplaycurrent" ]]; then
+		sed -i '/playcurrentgame=/c\playcurrentgame="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		changes_saved
+	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
+		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		changes_saved
+	elif [[ "${menuresponse,,}" == "sam_controller" ]]; then
+		sam_controller
+	elif [[ "${menuresponse,,}" == "globalmute" ]]; then
+		sed -i '/mute=/c\mute="'"Global"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	fi
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ Settings ]" \
+	--msgbox "Changes saved!" 0 0
+	sam_settings
+			
+}
 
 function sam_controller() {
 	dialog --clear --no-cancel --ascii-lines \
@@ -3049,12 +3077,11 @@ function sam_controller() {
 		--msgbox "Configure your controller so that pushing the start button will play the current game.\nAny other button will exit SAM. " 0 0
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-		--msgbox "Connect one controller at a time.\nPush start button when ready! " 0 0
-		pyfile="/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py"
-		id="$($pyfile /dev/input/js0 id)"
-		name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
-		
-		startbutton="$($pyfile /dev/input/js0 start)"
+		--msgbox "Connect one controller at a time.\nPush start button when ready! (twice) " 0 0
+		c_json="/media/fat/Scripts/.MiSTer_SAM/sam_controllers.json"
+		id="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 id)"
+		name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"	
+		startbutton="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 start)"
 		echo start button: "$startbutton"
 		echo controller id: "$id"
 
@@ -3062,26 +3089,10 @@ function sam_controller() {
 			dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
 			--msgbox "No joysticks connected. " 0 0
-			sam_menu
+			sam_exittask
 		else
-			if [ "$(grep -c "$id" $pyfile)" == "0" ]; then 
-				sed -i '16 a\    \"'"$id"'": { \
-					"name": "'"$name"'", \
-					"button": { \
-						"start": '"$startbutton"', \
-					}, \
-					"axis": {}, \
-				},' $pyfile
-				dialog --clear --no-cancel --ascii-lines \
-				--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-				--msgbox "$name added successfully. " 0 0
-				sam_menu
-			else
-				dialog --clear --no-cancel --ascii-lines \
-				--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-				--msgbox "$name was already added. " 0 0
-				sam_menu
-			fi
+			jq --arg name "$name" --arg id "$id" --arg start "$startbutton" '. + {($id): {"name": $name, "button": {"start": $start}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json ${c_json}
+			sam_exittask
 		fi
 }
 
@@ -3131,9 +3142,34 @@ function sam_timer() {
 		fi
 }
 
+
+function sam_coreconfig() {
+	dialog --clear --ascii-lines --no-tags \
+		--backtitle "Super Attract Mode" --title "[ CORE CONFIG ]" \
+		--menu "Select from the following options?" 0 0 0 \
+		sam_corelist_preset "Presets for Core List" \
+		sam_corelist "Enable/Disable cores (Keyboard support only)" \
+		single "Only play Games from one Core" 2>"/tmp/.SAMmenu" 
+
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	elif [[ "${menuresponse,,}" == "sam_corelist_preset" ]]; then
+		sam_corelist_preset
+	elif [[ "${menuresponse,,}" == "sam_corelist" ]]; then
+		sam_corelist
+	else 
+		parse_cmd "${menuresponse}"
+	fi
+	sam_menu
+			
+}
+
 function sam_corelist() {
 	dialog --clear --no-cancel --ascii-lines \
-	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER & TTY2OLED]" \
+	--backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION]" \
 	--msgbox "Joystick is currently not supported to select cores. You need a keyboard and can enable/disable cores with space key.\n\nPlease exit this menu if you are using a joystick." 0 0
 	declare -a corelistmenu=()
 	for core in "${corelistall[@]}"; do
