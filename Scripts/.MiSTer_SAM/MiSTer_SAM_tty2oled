@@ -102,6 +102,31 @@ function set_scroll_speed() {
 }
 
 # Update Top and Middle Row
+# function update_name_scroll() {
+# 	if [ ${ttyscroll_speed} -gt 0 ]; then
+# 		if [ ${#tty_currentinfo[name]} -gt 21 ]; then
+# 			if [ ${ttyscroll_speed_int} -gt 0 ]; then
+# 				((ttyscroll_speed_int--))
+# 			else
+# 				set_scroll_speed
+# 				if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
+# 					if [ ${tty_currentinfo[name_scroll_position]} -lt $((${#tty_currentinfo[name]} - 21)) ]; then
+# 						((tty_currentinfo[name_scroll_position]++))
+# 					else
+# 						tty_currentinfo[name_scroll_position]=0
+# 					fi
+# 				fi
+# 				tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
+# 				[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
+# 				[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+# 				[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,0,0,0,30,${prev_name_scroll}" >${ttydevice}
+# 				[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,15,0,0,30,${tty_currentinfo[name_scroll]}" >${ttydevice}
+# 				prev_name_scroll="${tty_currentinfo[name_scroll]}"
+# 			fi
+# 		fi
+# 	fi
+# }
+
 function update_name_scroll() {
 	if [ ${ttyscroll_speed} -gt 0 ]; then
 		if [ ${#tty_currentinfo[name]} -gt 21 ]; then
@@ -109,17 +134,15 @@ function update_name_scroll() {
 				((ttyscroll_speed_int--))
 			else
 				set_scroll_speed
+				if [[ ${tty_currentinfo[name_scroll_direction]} -eq 1 && ${tty_currentinfo[name_scroll_position]} -eq 0 ]]; then
+					sleep 2
+				fi
 				if [ ${tty_currentinfo[name_scroll_direction]} -eq 1 ]; then
 					if [ ${tty_currentinfo[name_scroll_position]} -lt $((${#tty_currentinfo[name]} - 21)) ]; then
 						((tty_currentinfo[name_scroll_position]++))
 					else
-						tty_currentinfo[name_scroll_direction]=0
-					fi
-				elif [ ${tty_currentinfo[name_scroll_direction]} -eq 0 ]; then
-					if [ ${tty_currentinfo[name_scroll_position]} -gt 0 ]; then
-						((tty_currentinfo[name_scroll_position]--))
-					else
-						tty_currentinfo[name_scroll_direction]=1
+						sleep 1
+						tty_currentinfo[name_scroll_position]=0
 					fi
 				fi
 				tty_currentinfo[name_scroll]="${tty_currentinfo[name]:${tty_currentinfo[name_scroll_position]}:21}"
@@ -132,6 +155,11 @@ function update_name_scroll() {
 		fi
 	fi
 }
+
+
+
+
+
 
 # Update bottom row - Display Next game in XXX
 function update_counter() {
