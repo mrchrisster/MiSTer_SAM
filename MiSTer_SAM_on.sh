@@ -2729,7 +2729,9 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
-		get_samstuff .MiSTer_SAM/sam_controllers.json
+		if [ ! -f "/media/fat/Scripts/.MiSTer_SAM/sam_controllers.json" ]; then
+			get_samstuff .MiSTer_SAM/sam_controllers.json
+		fi
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
 		get_inputmap
@@ -3077,7 +3079,7 @@ function sam_controller() {
 		--msgbox "Configure your controller so that pushing the start button will play the current game.\nAny other button will exit SAM. " 0 0
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-		--msgbox "Connect one controller at a time.\nPush start button when ready! (twice) " 0 0
+		--msgbox "Connect one controller at a time.\n\nPush start button when ready!" 0 0
 		c_json="/media/fat/Scripts/.MiSTer_SAM/sam_controllers.json"
 		id="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 id)"
 		name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"	
@@ -3091,7 +3093,10 @@ function sam_controller() {
 			--msgbox "No joysticks connected. " 0 0
 			sam_exittask
 		else
-			jq --arg name "$name" --arg id "$id" --arg start "$startbutton" '. + {($id): {"name": $name, "button": {"start": $start}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json ${c_json}
+			jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" '. + {($id): {"name": $name, "button": {"start": $start}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json ${c_json}
+			dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+			--msgbox "Added $name. \n\nPlease reboot MiSTer or reconnect controller for changes to take effect. " 0 0		
 			sam_exittask
 		fi
 }
