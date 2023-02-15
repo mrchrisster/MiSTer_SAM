@@ -885,7 +885,12 @@ function parse_cmd() {
 				break
 				;;
 			stop) # Stop SAM immediately	
-				[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List/	
+				kill_all_sams
+				sam_exit 0
+				break
+				;;
+			stopd) # Stop and reset SAM
+				[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List/
 				kill_all_sams
 				sam_exit 0
 				break
@@ -3067,10 +3072,9 @@ function sam_exittask() {
 		sed -i '/mute=/c\mute="'"Global"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	fi
 	dialog --clear --ascii-lines --no-cancel \
-	--backtitle "Super Attract Mode" --title "[ Settings ]" \
+	--backtitle "Super Attract Mode" --title "[ SAM EXIT ]" \
 	--msgbox "Changes saved!" 0 0
-	sam_settings
-			
+	sam_exittask		
 }
 
 function sam_controller() {
