@@ -2829,9 +2829,8 @@ function sam_menu() {
 		Settings "Settings" \
 		----- "-----------------------------" \
 		sam_coreconfig "Configure Core List" \
-		sam_exittask "Exit Behavior" \
-		Include "Select Single Category/Genre" \
-		exclude "Exclude Categories/Genres" \
+		sam_exittask "Configure Exit Behavior" \
+		sam_filters "Filters (by Orientation or Category)" \
 		sam_bgm "Add-ons: Background Music Player, TTY2OLED" \
 		Gamemode "Game Roulette" \
 		Favorite "Copy current game to _Favorites folder" \
@@ -2851,11 +2850,14 @@ function sam_menu() {
 		sam_exittask
 	elif [[ "${menuresponse,,}" == "sam_bgm" ]]; then
 		sam_bgmmenu	
+	elif [[ "${menuresponse,,}" == "sam_filters" ]]; then
+		sam_filters
 	else 
 		parse_cmd "${menuresponse}"
 	fi
 
 }
+
 
 function changes_saved () {
 	dialog --clear --ascii-lines --no-cancel \
@@ -2868,7 +2870,6 @@ function sam_settings() {
 		--backtitle "Super Attract Mode" --title "[ Settings ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		sam_timer "Select Timers - When SAM should start" \
-		arcade_orient "Orientation for Arcade Games" \
 		sam_mute "Mute Cores while SAM is on" \
 		autoplay "Autoplay Configuration" \
 		enablekidssafe "Enable Kids Safe Filter" \
@@ -2911,10 +2912,12 @@ function sam_settings() {
 
 }
 
-function arcade_orient() {
+function sam_filters() {
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ MISCELLANEOUS OPTIONS ]" \
 		--menu "Select from the following options?" 0 0 0 \
+		Include "Select Single Category/Genre" \
+		exclude "Exclude Categories/Genres" \
 		arcadehoriz "Only show Horizontal Arcade Games" \
 		arcadevert "Only show Vertical Arcade Games" \
 		arcadedisable "Show all Arcade Games" 2>"/tmp/.SAMmenu" 
@@ -2931,9 +2934,11 @@ function arcade_orient() {
 		sed -i '/arcadeorient=/c\arcadeorient="'"vertical"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "arcadedisable" ]]; then
 		sed -i '/arcadeorient=/c\arcadeorient="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
+	else 
+		parse_cmd "${menuresponse}"
 	fi
 	changes_saved
-	sam_settings
+	sam_filters
 }
 
 
@@ -3455,18 +3460,17 @@ function samedit_include() {
 		categ="${menuresponse}"
 		# echo "${menuresponse}"
 		# Delete all temporary Game lists
-		if compgen -G "${gamelistpathtmp}/*_gamelist.txt" >/dev/null; then
-			rm ${gamelistpathtmp}/*_gamelist.txt
-		fi
+		find ${gamelistpathtmp} -type f -name "*_gamelist.txt" -exec rm {} \;
 		readarray -t gamelists <<< "$(find "${gamelistpath}" -name "*_gamelist.txt")"
 
 		# echo ${gamelists[@]}
 		for list in "${gamelists[@]}"; do
 			listfile=$(basename "${list}")
 			# awk -v category="$categ" 'tolower($0) ~ category' "${list}" > "${gamelistpathtmp}/${listfile}"
-			grep -i "${categ}" "${list}" >"${tmpfile}"
-			awk -F'/' '!seen[$NF]++' "${tmpfile}" >"${gamelistpathtmp}/${listfile}"
-			[[ -s "${gamelistpathtmp}/${listfile}" ]] || rm "${gamelistpathtmp}/${listfile}"
+			fgrep -i "${categ}" "${list}" >"${tmpfile}"
+			if [ $? -eq 0 ]; then
+				awk -F'/' '!seen[$NF]++' "${tmpfile}" >"${gamelistpathtmp}/${listfile}"
+			fi
 		done
 
 		#corelist=$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)
