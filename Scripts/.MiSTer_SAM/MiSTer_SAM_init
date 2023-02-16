@@ -50,7 +50,6 @@ done
 
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
-	source "${misterpath}/Scripts/MiSTer_SAM_on.sh --source-only"
 	IFS=',' read -ra corelist <<< "${corelist}"
 	IFS=',' read -ra corelistall <<< "${corelistall}"
 fi
@@ -81,6 +80,78 @@ function stop() {
 		wait ${pids} &>/dev/null
 	fi
 	echo " Done!"
+}
+
+# Same function as in MiSTer_SAM_on.sh
+function filter_list() { # args ${nextcore} 	
+		
+	# Check path filter
+	if [ -n "${PATHFILTER[${1}]}" ]; then 
+		echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
+		fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
+	
+	if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
+		fgrep -i "${arcadeorient}" "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
+		fgrep -f $tmpfile2 "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > /tmp/.SAM_List/sam_orient
+		cp /tmp/.SAM_List/sam_orient "${gamelistpathtmp}/${1}_gamelist.txt"			
+	fi
+
+	# Strip dupes			
+	awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
+
+	#Check exclusion or kids safe white lists
+	#First check for category exclusion
+	if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
+		echo "Found category excludelist for core ${1}. Stripping out unwanted games now."
+		fgrep -vf "${gamelistpath}/${1}_gamelist_exclude.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
+	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
+		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
+		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
+
+	
+	if [ "${kids_safe}" == "yes" ]; then
+		samdebug "Kids Safe Mode - Filtering Roms..."
+			if [ ${1} == amiga ]; then
+				fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
+			else
+				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
+			fi
+			if [ -s "${tmpfilefilter}" ]; then 
+				samdebug "$(wc -l <"${tmpfilefilter}") games after kids safe filter applied."
+				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+			else
+				delete_from_corelist "${1}"
+				delete_from_corelist "${1}" tmp
+				echo "${1} kids safe filter produced no results and will be disabled."
+				echo "List of cores is now: ${corelist[*]}"
+				return 1
+			fi
+	fi
+	
+	#Check ini exclusion
+	if [[ "${exclude[*]}" ]]; then 
+		for e in "${exclude[@]}"; do
+			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		done
+
+	fi
+ 
+	#Check blacklist	
+	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
+		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
+		echo "Disabling static screen games for ${1} core. This can take a moment..."
+		fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}"
+		if [ -s "${tmpfilefilter}" ]; then 
+			cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		else
+			samdebug "Blacklist filter failed" 
+		fi
+	fi
+
 }
 
 function gl_filter() {
@@ -128,7 +199,6 @@ function gl_filter() {
 		if [ ! -s "${gamelistpathtmp}/${g}_gamelist.txt" ]; then	
 			cp "${gamelistpath}/${g}_gamelist.txt" "${gamelistpathtmp}/${g}_gamelist.txt" 
 		fi
-		#function sourced from MiSTer_SAM_on.sh
 		filter_list "${g}"
 	done
 }
