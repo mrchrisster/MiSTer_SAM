@@ -50,15 +50,13 @@ done
 
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+	source "${misterpath}/Scripts/MiSTer_SAM_on.sh --source-only"
 	IFS=',' read -ra corelist <<< "${corelist}"
 	IFS=',' read -ra corelistall <<< "${corelistall}"
 fi
 
-
 #========= PREP =========
 mkdir -p "${gamelistpathtmp}"
-
-
 
 #======== Functions ========
 function start() {
@@ -84,59 +82,6 @@ function stop() {
 	fi
 	echo " Done!"
 }
-
-
-function check_list() { # args ${nextcore} 	
-	
-	# Copy gamelist to tmp
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
-
-		
-		# Check path filter
-		if [ -n "${PATHFILTER[${1}]}" ]; then 
-			echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
-			fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		fi
-		
-		if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
-			fgrep -i "${arcadeorient}" "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
-			fgrep -f $tmpfile2 "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > /tmp/.SAM_List/sam_orient
-			cp /tmp/.SAM_List/sam_orient "${gamelistpathtmp}/${1}_gamelist.txt"			
-		fi
-
-		# Exclusion and blacklist filter			
-		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
-
-		#Check exclusion
-		if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
-			echo "Found excludelist for core ${1}. Stripping out unwanted games now."
-			fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		elif [ "${kids_safe}" == "yes" ]; then
-			if [ -f ${mrsampath}/SAM_Rated/amiga_rated.txt ]; then
-				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F'/' '!seen[$NF]++' > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-			else
-				echo "No kids safe rating lists found. Please download" 
-			fi
-		fi
-		
-		#Check ini exclusion
-		if [[ "${exclude[*]}" ]]; then 
-			for e in "${exclude[@]}"; do
-				fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-			done
-
-		fi
-
-		#Check blacklist	
-		if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
-			# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
-			fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && cp "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		fi
-
-	fi
-}
-
 
 function gl_filter() {
 	# Create temp gamelists on startup
@@ -180,7 +125,11 @@ function gl_filter() {
 		if [ "${g}" == "amiga" ]; then
 			echo "Amiga will be processed in main script"
 		fi
-		check_list "${g}"
+		if [ ! -s "${gamelistpathtmp}/${g}_gamelist.txt" ]; then	
+			cp "${gamelistpath}/${g}_gamelist.txt" "${gamelistpathtmp}/${g}_gamelist.txt" 
+		fi
+		#function sourced from MiSTer_SAM_on.sh
+		filter_list "${g}"
 	done
 }
 
