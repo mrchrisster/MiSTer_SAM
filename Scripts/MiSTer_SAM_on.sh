@@ -1209,7 +1209,7 @@ function check_gamelistupdate() {
 #Pick next core
 function pick_core(){
 
-	nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf | head -1)
+	nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
 	
 	if [[ ! "${nextcore}" ]]; then
 		samdebug "nextcore empty. Using arcade core for now"
@@ -1284,7 +1284,7 @@ function pick_core(){
 			#Pick a random core based on how many games a library has
 			game=0
 			samdebug "totalpcount: $totalpcount"
-			pickgame=$(shuf -i 1-"$totalpcount" -n 1)
+			pickgame=$(shuf --random-source=/dev/urandom -i 1-"$totalpcount" -n 1)
 			for c in "${!corep[@]}"; do 
 				let game+=${corep["$c"]}
 				if [[ "$game" -gt "$pickgame" ]]; 
@@ -1378,10 +1378,10 @@ function check_list() { # args ${nextcore}
 
 function pick_rom() {	
 	if [ -s ${gamelistpathtmp}/"${nextcore}"_gamelist.txt ]; then
-		rompath="$(cat ${gamelistpathtmp}/"${nextcore}"_gamelist.txt | shuf --head-count=1)"
+		rompath="$(cat ${gamelistpathtmp}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 	else
 		echo "Gamelist creation failed. Will try again on next core launch. Trying another rom..."	
-		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --head-count=1)"
+		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 	fi
 
 }
@@ -1556,12 +1556,12 @@ function load_core_arcade() {
 	
 	
 	# Get a random game from the list
-	mra="$(shuf --head-count=1 ${mralist_tmp})"
+	mra="$(shuf --random-source=/dev/urandom --head-count=1 ${mralist_tmp})"
 	
 	# Check if Game exists
 	if [ ! -f "${mra}" ]; then
 		build_mralist 
-		mra=$(shuf --head-count=1 ${mralist_tmp})
+		mra=$(shuf --random-source=/dev/urandom --head-count=1 ${mralist_tmp})
 	fi
 	
 	
@@ -1660,7 +1660,7 @@ function load_core_amiga() {
 	else
 		# This is for MegaAGS version July 2022 or newer
 
-		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
+		rompath="$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
 		agpretty="$(echo "${rompath}" | tr '_' ' ')"
 		
 		# Special case for demo
@@ -1726,7 +1726,7 @@ function load_core_ao486() {
 	fi
 		
 	mute ao486
-	rompath="$(shuf --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
+	rompath="$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
 	romname=$(basename "${rompath}")
 	aopretty="$(echo "${romname%.*}" | tr '_' ' ')"		
 
@@ -2412,10 +2412,16 @@ function filter_list() { # args ${nextcore}
 	samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
 
 	#Check exclusion or kids safe white lists
+	#First check for category exclusion
+	if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
+		echo "Found category excludelist for core ${1}. Stripping out unwanted games now."
+		fgrep -vf "${gamelistpath}/${1}_gamelist_exclude.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
 	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
 		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
 		fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
+
 	
 	if [ "${kids_safe}" == "yes" ]; then
 		samdebug "Kids Safe Mode - Filtering Roms..."
@@ -3605,7 +3611,7 @@ function samedit_excltags_old() {
 				rm "${gamelistpath}/${core}_gamelist_exclude.txt"
 			done
 		fi
-		find "${gamelistpath}" -name "*_gamelist_exclude.txt" -size 0 -print0 | xargs -0 rm
+		find "${gamelistpath}" -name "*_excludelist.txt" -size 0 -exec rm '{}' \;
 		samedit_taginfo
 	fi
 
