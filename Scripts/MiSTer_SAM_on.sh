@@ -3178,8 +3178,8 @@ function sam_timer() {
 function sam_coreconfig() {
 	if [[ "$shown" == "0" ]]; then
 		dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
-			--msgbox "Current corelist: ${corelist[*]}" 0 0
+			--backtitle "Super Attract Mode" --title "[ CORE CONFIG ]" \
+			--msgbox "Current corelist:\n\n${corelist[*]}" 0 0
 	fi
 	shown=1
 	dialog --clear --ascii-lines --no-tags \
