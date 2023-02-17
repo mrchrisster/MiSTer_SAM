@@ -2415,14 +2415,17 @@ function filter_list() { # args ${nextcore}
 	#First check for category exclusion
 	if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
 		echo "Found category excludelist for core ${1}. Stripping out unwanted games now."
-		#fgrep -vf "${gamelistpath}/${1}_gamelist_exclude.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		awk 'FNR==NR{a[$0];next} !($0 in a)' "${gamelistpath}/${1}_gamelist_exclude.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		# Process full file paths from gamelist_exclude
+		awk 'FNR==NR{a[$0];next} !($0 in a)' "${gamelistpath}/${1}_gamelist_exclude.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" 
+		mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
 		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
-		#fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		#awk 'FNR==NR{a[$0];next} !($0 in a)' "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_excludelist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_excludelist.txt\"); } { gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		# Process file names without extensions from excludelist
+		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_excludelist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_excludelist.txt\"); } \
+		{ gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" \
+		"${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
+		mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 
 	
@@ -2457,16 +2460,16 @@ function filter_list() { # args ${nextcore}
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
 		echo "Disabling static screen games for ${1} core. This can take a moment..."
-		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_blacklist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_blacklist.txt\"); } { gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
-
-		#fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}"
+		# Process file names without extensions from blacklist
+		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_blacklist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_blacklist.txt\"); } \
+		{ gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" \
+		"${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
 		if [ -s "${tmpfilefilter}" ]; then 
 			cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 		else
 			samdebug "Blacklist filter failed" 
 		fi
 	fi
-
 }
 
 
@@ -3173,6 +3176,12 @@ function sam_timer() {
 
 
 function sam_coreconfig() {
+	if [[ "$shown" == "0" ]]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
+			--msgbox "Current corelist: ${corelist[*]}" 0 0
+	fi
+	shown=1
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ CORE CONFIG ]" \
 		--menu "Select from the following options?" 0 0 0 \
