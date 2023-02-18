@@ -92,9 +92,12 @@ function filter_list() { # args ${nextcore}
 	fi
 	
 	if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
-		fgrep -i "${arcadeorient}" "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
-		fgrep -f $tmpfile2 "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > /tmp/.SAM_List/sam_orient
-		cp /tmp/.SAM_List/sam_orient "${gamelistpathtmp}/${1}_gamelist.txt"			
+		cat "${gamelistpath}/${1}_gamelist.txt" | fgrep "Rotation/" | fgrep -i "${arcadeorient}" > $tmpfile
+		if [ -s ${tmpfile} ]; then
+			mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"	
+		else
+			echo "Arcade Orientation Filter Error."
+		fi
 	fi
 
 	# Strip dupes			
@@ -161,6 +164,7 @@ function filter_list() { # args ${nextcore}
 		fi
 	fi
 }
+
 
 function samdebug() {
 	echo -e "\e[1m\e[31m${*-}\e[0m"
