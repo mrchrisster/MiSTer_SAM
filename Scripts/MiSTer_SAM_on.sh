@@ -40,14 +40,11 @@ function init_vars() {
 	declare -g menuonly="Yes"
 	declare -gi inmenu=0
 	declare -gi shown=0
-	declare -gi first_run_arcade=0
 	declare -gi coreretries=3
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 	declare -g gamelistpathtmp="/tmp/.SAM_List"
-	declare -g mralist_old="${mrsampath}/SAM_Gamelists/arcade_romlist"
-	declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
-	declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
+	declare -g gamelistpathtmp="/tmp/.SAM_List"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
@@ -1521,7 +1518,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 function build_mralist() {
 
 	${mrsampath}/samindex -s arcade -o "${gamelistpath}" 
-	cp "${mralist}" "${mralist_tmp}" 2>/dev/null
+	cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 
 }
 
@@ -1529,24 +1526,14 @@ function load_core_arcade() {
 
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
-	if [ ! -s "${mralist}" ]; then
+	if [ ! -s "${gamelistpath}/${nextcore}_gamelist.txt" ]; then
 		samdebug "Rebuilding mra list."
 		build_mralist 
 	fi
 	
 	#Check blacklist and copy gamelist to tmp
-	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
-		#Check path filter
-		if [ -n "${arcadepathfilter}" ]; then
-			echo "Found path filter for Arcade core: ${arcadepathfilter}"
-			fgrep "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
-		fi
-		if [ -n "${arcadeorient}" ]; then
-			fgrep -i "${arcadeorient}" "${mralist}" | fgrep -i rotation | awk -F"/" '{print $NF}' > $tmpfile	
-			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && cp -f $tmpfile2 "${mralist_tmp}"			
-			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
-		fi
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" 2>/dev/null
 		
 		filter_list arcade
 		
@@ -1556,12 +1543,12 @@ function load_core_arcade() {
 	
 	
 	# Get a random game from the list
-	mra="$(shuf --random-source=/dev/urandom --head-count=1 ${mralist_tmp})"
+	mra="$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
 	
 	# Check if Game exists
 	if [ ! -f "${mra}" ]; then
 		build_mralist 
-		mra=$(shuf --random-source=/dev/urandom --head-count=1 ${mralist_tmp})
+		mra=$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)
 	fi
 	
 	
@@ -1574,7 +1561,7 @@ function load_core_arcade() {
 
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}" >${tmpfile} && cp -f ${tmpfile} "${mralist_tmp}"
+		awk -vLine="$mra" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 
 	fi
 		if [ "${ttyenable}" == "yes" ]; then
@@ -1611,10 +1598,6 @@ function load_core_arcade() {
 	sleep 1
 	activity_reset
 	
-	
-	if [ "${first_run_arcade}" == "1" ]; then
-	 	nextcore=""
-	fi
 
 }
 
@@ -1892,10 +1875,6 @@ function mcp_start() {
 		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP"
 	fi
 }
-
-function update_tasks() {
-	[ -s "${mralist_old}" ] && { mv "${mralist_old}" "${mralist}"; }
-}	
 
 function activity_reset() {
 		truncate -s 0 /tmp/.SAM_Joy_Activity
@@ -2402,9 +2381,12 @@ function filter_list() { # args ${nextcore}
 	fi
 	
 	if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
-		fgrep -i "${arcadeorient}" "${gamelistpathtmp}/${1}_gamelist.txt" | fgrep "Rotation/" | awk -F"/" '{print $NF}' > $tmpfile2
-		fgrep -f $tmpfile2 "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > /tmp/.SAM_List/sam_orient
-		cp /tmp/.SAM_List/sam_orient "${gamelistpathtmp}/${1}_gamelist.txt"			
+		cat "${gamelistpath}/${1}_gamelist.txt" | fgrep "Rotation/" | fgrep -i "${arcadeorient}" > $tmpfile
+		if [ -s ${tmpfile} ]; then
+			mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"	
+		else
+			echo "Arcade Orientation Filter Error."
+		fi
 	fi
 
 	# Strip dupes			
@@ -2459,7 +2441,7 @@ function filter_list() { # args ${nextcore}
 	#Check blacklist	
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
-		echo "Disabling static screen games for ${1} core. This can take a moment..."
+		echo "Disabling static screen games for ${1} core..."
 		# Process file names without extensions from blacklist
 		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_blacklist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_blacklist.txt\"); } \
 		{ gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" \
