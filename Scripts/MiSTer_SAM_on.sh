@@ -895,8 +895,8 @@ function parse_cmd() {
 				sam_exit 0
 				break
 				;;
-			stopd) # Stop and reset SAM
-				[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List/
+			kill) # Stop and reset SAM completely
+				[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
 				kill_all_sams
 				sam_exit 0
 				break
