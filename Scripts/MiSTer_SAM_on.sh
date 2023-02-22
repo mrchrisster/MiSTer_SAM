@@ -794,6 +794,13 @@ function read_samini() {
 		grep "^[^#;]" < "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
 			declare -g "${var}"="${!var%/}"
 		done
+	else
+		echo "Error: MiSTer_SAM.ini not found. Attempting to update now..."
+		get_samstuff MiSTer_SAM.ini /media/fat/Scripts
+		if [ $? -ne 0 ]; then 
+			echo "Error: Please try again or update MiSTer_SAM.ini manually."
+			exit 1
+		fi
 	fi
 
 	
@@ -3632,56 +3639,60 @@ function sam_bgmmenu() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	else
-		if [[ "${menuresponse,,}" == "enablebgm" ]]; then
-			if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
-				echo " Installing BGM to Scripts folder"
-				repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-				get_samstuff bgm.sh /tmp
-				mv --force /tmp/bgm.sh /media/fat/Scripts/
-			else
-				echo " BGM script is installed already. Updating just in case..."
-				echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-				kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
-				rm /tmp/bgm.sock 2>/dev/null
-				repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-				get_samstuff bgm.sh /tmp
-				mv --force /tmp/bgm.sh /media/fat/Scripts/
-				echo " Resetting BGM now."
-			fi
-			echo " Updating MiSTer_SAM.ini to use Mute=Core"
-			sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			/media/fat/Scripts/bgm.sh
-			sync
-			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-			get_samstuff Media/80s.pls /media/fat/music
-			[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
-			sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			#echo " All Done. Starting SAM now."
-			#/media/fat/Scripts/MiSTer_SAM_on.sh start
-		elif [[ "${menuresponse,,}" == "disableplay" ]]; then
-			sed -i '/bgmplay=/c\bgmplay="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+			if [[ "${menuresponse,,}" == "enablebgm" ]]; then
+				if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
+					echo " Installing BGM to Scripts folder"
+					repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+					get_samstuff bgm.sh /tmp
+					mv --force /tmp/bgm.sh /media/fat/Scripts/
+				else
+					echo " BGM script is installed already. Updating just in case..."
+					echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+					kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
+					rm /tmp/bgm.sock 2>/dev/null
+					repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+					get_samstuff bgm.sh /tmp
+					mv --force /tmp/bgm.sh /media/fat/Scripts/
+					echo " Resetting BGM now."
+				fi
+				echo " Updating MiSTer_SAM.ini to use Mute=Core"
+				sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				/media/fat/Scripts/bgm.sh
+				sync
+				repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+				get_samstuff Media/80s.pls /media/fat/music
+				[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
+				sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				#echo " All Done. Starting SAM now."
+				#/media/fat/Scripts/MiSTer_SAM_on.sh start
+			elif [[ "${menuresponse,,}" == "disableplay" ]]; then
+				sed -i '/bgmplay=/c\bgmplay="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 
-		elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
-			echo " Uninstalling BGM, please wait..."
-			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-			[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
-			[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
-			[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
-			rm /tmp/bgm.sock 2>/dev/null
-			sed -i '/bgm.sh/d' ${userstartup}
-			sed -i '/Startup BGM/d' ${userstartup}
-			sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			#echo " Done."
-		elif [[ "${menuresponse,,}" == "enabletty" ]]; then
-			sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-		elif [[ "${menuresponse,,}" == "disabletty" ]]; then
-			sed -i '/ttyenablee=/c\ttyenable="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
+				echo " Uninstalling BGM, please wait..."
+				echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+				[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
+				[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
+				[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
+				rm /tmp/bgm.sock 2>/dev/null
+				sed -i '/bgm.sh/d' ${userstartup}
+				sed -i '/Startup BGM/d' ${userstartup}
+				sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				#echo " Done."
+			elif [[ "${menuresponse,,}" == "enabletty" ]]; then
+				sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			elif [[ "${menuresponse,,}" == "disabletty" ]]; then
+				sed -i '/ttyenablee=/c\ttyenable="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			fi
+			dialog --clear --ascii-lines --no-cancel \
+			--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
+			--msgbox "Changes saved!" 0 0
+			sam_menu
+		else
+			echo "Error: MiSTer_SAM.ini not found. Please update SAM first"
 		fi
-		dialog --clear --ascii-lines --no-cancel \
-		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
-		--msgbox "Changes saved!" 0 0
-		sam_menu
 	fi
 }
 
