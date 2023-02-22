@@ -787,14 +787,7 @@ function init_data() {
 
 # Read INI
 function read_samini() {
-	if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-		source "${misterpath}/Scripts/MiSTer_SAM.ini"
-		
-		# Remove trailing slash from paths
-		grep "^[^#;]" < "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
-			declare -g "${var}"="${!var%/}"
-		done
-	else
+	if [ ! -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 		echo "Error: MiSTer_SAM.ini not found. Attempting to update now..."
 		get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		if [ $? -ne 0 ]; then 
@@ -802,7 +795,12 @@ function read_samini() {
 			exit 1
 		fi
 	fi
-
+	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+	
+	# Remove trailing slash from paths
+	grep "^[^#;]" < "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
+		declare -g "${var}"="${!var%/}"
+	done
 	
 	#corelist=("$(echo "${corelist[@]}" | tr ',' ' ' | tr -s ' ')")
 	IFS=',' read -ra corelist <<< "${corelist}"
