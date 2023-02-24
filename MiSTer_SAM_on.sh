@@ -27,6 +27,7 @@
 
 # TODO implement playcurrentgame for amiga
 
+
 # ======== INI VARIABLES ========
 # Change these in the INI file
 function init_vars() {
