@@ -2447,7 +2447,8 @@ function filter_list() { # args ${nextcore}
 	#Check blacklist	
 	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
-		echo "Disabling static screen games for ${1} core..."
+		echo -n "Disabling static screen games for ${1} core..."
+		
 		# Process file names without extensions from blacklist
 		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_blacklist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_blacklist.txt\"); } \
 		{ gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" \
@@ -2457,6 +2458,7 @@ function filter_list() { # args ${nextcore}
 		else
 			samdebug "Blacklist filter failed" 
 		fi
+		echo " $(wc -l <"${gamelistpathtmp}/${1}_gamelist.txt") games will be shuffled."
 	fi
 }
 
