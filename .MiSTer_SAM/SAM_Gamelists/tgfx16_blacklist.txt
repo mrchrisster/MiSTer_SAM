@@ -48,10 +48,10 @@ Batman Mix (PD) Hunter NSF v3 mic, SmokeMonster
 Battle Ace (Japan)
 Battle Ace Cheat Menu - Select+Run at Title (Hack) v1 Chris Covell
 Battle Lode Runner (PD) HES-V3 Chris Covell
-Benkei Gaiden (Japan) (Alt 1)
 Benkei Gaiden (Japan)
-Bikkuriman World (Japan) (Alt 1)
+Benkei Gaiden (Japan) (Alt 1)
 Bikkuriman World (Japan)
+Bikkuriman World (Japan) (Alt 1)
 Binary Star SCC Music ROM (PD) v1 Chris Covell
 Blaster Master (PD) Hunter NSF v3 mic, SmokeMonster
 Blockos (PD) Mooz
@@ -89,16 +89,16 @@ Don Doko Don! (Japan)
 Donkey Kong Mix (PD) Hunter NSF v3 mic, SmokeMonster
 Doraemon Meikyuu (PD) HES-V3 Chris Covell
 Double Dragon (PD) Hunter NSF v3 mic, SmokeMonster
-Download (Japan) (Alt 1)
 Download (Japan)
+Download (Japan) (Alt 1)
 Dragon 2 Win (PD) Prototype Zeograd
 Dragon 2 Win with Perso (PD) Prototype Zeograd
 Dragon Egg! (J) T+Eng v1.0 cabbage
 Dragon Egg! (Japan)
 Dragon Spirit (PD) Hunter NSF v3 mic, SmokeMonster
 Drop Off (USA)
-Drop Rock Hora Hora (Japan) (Alt 1)
 Drop Rock Hora Hora (Japan)
+Drop Rock Hora Hora (Japan) (Alt 1)
 Drop.Off (USA)
 Ducktales & Disney Mix (PD) Hunter NSF v3 mic, SmokeMonster
 Dungeon Explorer (Japan)
@@ -153,8 +153,8 @@ It's-a-me, Mario! Speech Demo (PD) spr299
 Jamanoid V.xx (PD)
 Jaseiken Necromancer (Japan)
 Jigoku Meguri (Japan)
-Jinmu Denshou (Japan) (Alt 1)
 Jinmu Denshou (Japan)
+Jinmu Denshou (Japan) (Alt 1)
 Joypad-Mouse Demo (PD) David Shadoff
 Kaizou Choujin Shubibinman 2 - Aratanaru Teki (Japan)
 Kattobi! Takuhai-kun (Japan)
@@ -185,12 +185,12 @@ Madou King Granzort (Japan)
 Magic Team Demo 1 (PD) Magic Team
 Magical Chase (PD) HES-V3 Chris Covell
 Mahjong Gakuen - Touma Soushirou Toujou (Japan)
-Mahjong Gakuen Mild - Touma Soushirou Toujou (Japan) (Alt 1)
 Mahjong Gakuen Mild - Touma Soushirou Toujou (Japan)
+Mahjong Gakuen Mild - Touma Soushirou Toujou (Japan) (Alt 1)
 Mahjong Gokuu Special (Japan)
 Mahjong Haouden - Kaiser's Quest (Japan)
-Maison Ikkoku (Japan) T+Eng v1.01 Dave Shadoff+Filler
 Maison Ikkoku (Japan)
+Maison Ikkoku (Japan) T+Eng v1.01 Dave Shadoff+Filler
 Makai Hakkenden - Shada (J) T+Eng v1 cabbage, Shubibiman
 Makai Hakkenden Shada (Japan)
 Maniac Pro Wres (PD) HES-V3 Chris Covell
@@ -206,8 +206,8 @@ Mega Man 1 (PD) v1.01 Headerless pcedev.wordpress.com
 Mega Man Mix (PD) Hunter NSF v3 mic, SmokeMonster
 Meteor Blaster (PD) Mindrec
 Morita Shougi PC (Japan)
-Moto Roader II (Japan) (Alt 1)
 Moto Roader II (Japan)
+Moto Roader II (Japan) (Alt 1)
 Muchie (PD)
 NHK Taiga Drama - Taiheiki (Japan)
 Nantettatte Engine (PD) v2 Aetherbyte
@@ -224,8 +224,8 @@ Operation Wolf (Japan)
 Orbit (PD) Mindrec
 Orbit Demo (PD) v2 Mindrec
 Order of the Griffon (USA)
-Out Live (J) T+Eng v1.0 Nebulous 
 Out Live (J) T+Eng v1.0 Nebulous
+Out Live (J) T+Eng v1.0 Nebulous 
 Out Live (Japan)
 Out Live (PD) HES-V3 Chris Covell
 P-47 - The Freedom Fighter (Japan)
@@ -236,8 +236,8 @@ Phantasy Star TG Demo (PD) DamageX
 Pong Demo With Fractal (PD)
 Pong! The Hu-Go! Game (MML Hack) Zeograd 10-30-2000
 Pong! The Hu-Go! Game (PD) MML Zeograd
-Populous (Japan) (Alt 1)
 Populous (Japan)
+Populous (Japan) (Alt 1)
 Punch-Out! (PD) Hunter NSF v3 mic, SmokeMonster
 Puzzle Boy (J) T+Eng v1 KingMike
 Puzzle Boy (Japan)
@@ -278,8 +278,8 @@ TMNT (PD) Hunter NSF v3 mic, SmokeMonster
 TV Sports Baseball (USA) (Proto)
 TV Sports Basketball (Japan)
 TV Sports Basketball (USA)
-Takeda Shingen (Japan) (Alt 1)
 Takeda Shingen (Japan)
+Takeda Shingen (Japan) (Alt 1)
 TaleSpin (USA)
 Ten no Koe Bank (Japan)
 Tenseiryuu - Saint Dragon (Japan)
