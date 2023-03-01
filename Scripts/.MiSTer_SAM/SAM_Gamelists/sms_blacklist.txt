@@ -1,5 +1,6 @@
 002 - Phantasy Star (USA, Europe) (Rev 1)
 007 James Bond (Japan) (Alt 1) 
+007 James Bond (Japan) (Alt 1) (Othello Multivision)
 007 James Bond (Japan) (Othello Multivision)
 007 James Bond (Taiwan) (Othello Multivision)
 01 Phantasy Star (USA, Europe) (Rev 1)
@@ -14,17 +15,36 @@
 1969 (PD) v0.9k Retica
 2048 v1.02
 3 in 1 - The Best Game Collection (A) (Korea) 
+3 in 1 - The Best Game Collection (A) (Korea) (En) (Unl)
+3 in 1 - The Best Game Collection (A) (Korea) (Unl)
 3 in 1 - The Best Game Collection (B) (Korea) 
+3 in 1 - The Best Game Collection (B) (Korea) (En) (Unl)
+3 in 1 - The Best Game Collection (B) (Korea) (Unl)
 3 in 1 - The Best Game Collection (C) (Korea) 
+3 in 1 - The Best Game Collection (C) (Korea) (En) (Unl)
+3 in 1 - The Best Game Collection (C) (Korea) (Unl)
 3 in 1 - The Best Game Collection (D) (Korea) 
+3 in 1 - The Best Game Collection (D) (Korea) (En) (Unl)
+3 in 1 - The Best Game Collection (D) (Korea) (Unl)
 3 in 1 - The Best Game Collection (E) (Korea) 
+3 in 1 - The Best Game Collection (E) (Korea) (En) (Unl)
+3 in 1 - The Best Game Collection (E) (Korea) (Unl)
 3 in 1 - The Best Game Collection (F) (Korea) 
+3 in 1 - The Best Game Collection (F) (Korea) (En) (Unl)
+3 in 1 - The Best Game Collection (F) (Korea) (Unl)
+3D Gunner (USA) (Beta)
 3D Gunner (USA) (Demo)
 4 PAK All Action (Australia) (Unl)
 64 Color Palette Test (PD)
 8 in 1 - The Best Game Collection (A) (Korea) 
+8 in 1 - The Best Game Collection (A) (Korea) (En) (Unl)
+8 in 1 - The Best Game Collection (A) (Korea) (Unl)
 8 in 1 - The Best Game Collection (B) (Korea) 
+8 in 1 - The Best Game Collection (B) (Korea) (En) (Unl)
+8 in 1 - The Best Game Collection (B) (Korea) (Unl)
 8 in 1 - The Best Game Collection (C) (Korea) 
+8 in 1 - The Best Game Collection (C) (Korea) (En) (Unl)
+8 in 1 - The Best Game Collection (C) (Korea) (Unl)
 A.E. MSX2SMS Hack
 Alex Kidd in Miracle World 2 (Hack) v2 ian
 Alex Kidd in Radaxian Rumble (UE) Alianger v1.03d
@@ -64,7 +84,9 @@ Blockhead v1.01
 Bloki v1.03 Tetris Clone
 Bomberman Boom v1.1
 Bomberman Special (Taiwan) (Chinese Logo) 
+Bomberman Special (Taiwan) (Chinese Logo) (Unl)
 Bomberman Special (Taiwan) (English Logo) 
+Bomberman Special (Taiwan) (English Logo) (Unl)
 Borderline (Japan, Europe, Australia, New Zealand)
 Bosconian MSX2SMS Hack
 Bread and Butter World v1.0
@@ -76,8 +98,8 @@ C_So! (Korea) (Unl)
 Candy Kid (PD) SteveProXNA 3-27-2017
 Captain America and the Avengers v0.3 Revo
 Casevac (PD) v1 STIR FC
-Castle, The (Japan) Palette Hack bsittler
 Castle, The (Japan)
+Castle, The (Japan) Palette Hack bsittler
 Cave Wanderer v1.0
 Chakan v0.85 BcnAbel76
 Champion Baseball (Japan)
@@ -93,6 +115,7 @@ Christmas Tale v1.0
 Chuck Rock (EB) [T-Spa1.0v_Wave]
 Chuck Rock (Europe, Brazil)
 Color & Switch Test (Japan) (En) 
+Color & Switch Test (Japan) (En) (Proto)
 Controllers Test - SMS & Genesis (PD) v1 sverx 2018-01-30
 Cory Arcangel's Super Mario Clouds 2014-8-6
 Cow Abductors
@@ -102,8 +125,8 @@ DataStorm v0.02
 Dating Sim (PD) v0.02 haroldoop
 Desert Strike (Europe) (En,Fr,De,Es)
 Dig Dug MSX2SMS Hack
-Digger Ball v1.0 No Explosions
 Digger Ball v1.0
+Digger Ball v1.0 No Explosions
 Digger Chan (PD) Aypok
 Donald No Magical World v1 BcnAbel76 Revo
 Dr. Franken v1 Revo
@@ -118,10 +141,13 @@ Eagles 5 (Korea) (Unl)
 Elite Gaiden 0.1.28
 Empty Slot to test SMS BIOS splash screen (PD)
 Excellent Dizzy Collection, The (Europe) (En,Fr,De,Es,It) 
+Excellent Dizzy Collection, The (Europe) (En,Fr,De,Es,It) (Proto)
 Exerion (Japan, Europe, Australia, New Zealand)
 Exerion (Korea) (Unl)
 Exerion (Taiwan)
+F-1 Spirit - The Way to Formula-1 (Korea) (En) (Unl)
 F-1 Spirit - The Way to Formula-1 (Korea) (Unl)
+F-16 Fighter (USA, Europe, Brazil) (En)
 F-16 Fighting Falcon (USA)
 FA Tetris (Korea) (Unl)
 Fairy Forest (PD) v1.02 STIR_FC
@@ -150,14 +176,16 @@ Golvellius - Valley of Doom (UE) [T+Ger1.00_Star-trans]
 Golvellius PTBR+Save+Bugfixes (Hack) T+Bra, SRAM ichigobankai 2017818
 Greendog v1.1 BcnAbel76 Revo
 Griel's Quest for the Sangraal EX
-Guzzler (Japan) (Othello Multivision) Palette Hack bsittler
 Guzzler (Japan) (Othello Multivision)
+Guzzler (Japan) (Othello Multivision) Palette Hack bsittler
 Guzzler (Taiwan) (Othello Multivision)
 H7N9 (PD) nitrofurano 2016-10-24
+Hang On & Astro Warrior (USA)
+Hang On & Safari Hunt (USA)
 Hang On MSX2SMS Hack
 Hang-On & Astro Warrior (USA)
-Hang-On & Safari Hunt (USA) (Beta)
 Hang-On & Safari Hunt (USA)
+Hang-On & Safari Hunt (USA) (Beta)
 Happy Looser by Zoop (PD)
 High Fidelity Audio - Knight Rider Theme (PD) Maxim 6-2018
 Hitsuji Yai - Preety Sheep MSX2SMS Hack
@@ -167,8 +195,8 @@ Hong Kil Dong (Korea) Palette Hack bsittler
 Hook (Europe) (Proto)
 Hook (Prototype) [T+Bra_ALVS]
 Hook (Prototype) [T-Spa1.0v_Wave]
-Hustle Chumy (Japan) Palette Hack bsittler
 Hustle Chumy (Japan)
+Hustle Chumy (Japan) Palette Hack bsittler
 Hustle Chumy (Taiwan)
 Interrupt Test (PD)
 Itchy & Scratchy Game v0.99 Revo
@@ -189,8 +217,8 @@ Junior Senior Move Your Feet FMV (PD)
 Jyankyo MSX2SMS Hack
 KATE Mod Demo (PD) v0.18e RETICA studio
 King Kong v1.0 Donkey Kong Clone
-King's Quest - Quest for the Crown (USA) (Beta)
 King's Quest - Quest for the Crown (USA)
+King's Quest - Quest for the Crown (USA) (Beta)
 Knightmare II - The Maze of Galious (Korea) (Unl)
 Knights and Demons v1.0
 Krusty's Fun House (EB) [T-Spa1.0v_Wave]
@@ -204,12 +232,13 @@ Legend of Kage, The (Taiwan)
 Libreway (PD) nitrofurano 2014-06-22
 Line Interrupt Test #1 (PD) Charles MacDonald
 LinkWord (Japan) (Proto) 
+LinkWord (Japan) (Proto) (SC3000) (Program)
 Lode Runner 1 MSX2SMS Hack
 Lost Raider v1.01
 Lunar v1.1 BcnAbel76 Revo
 Madden NFL '96 v0.1 Revo
-Mahjong (Japan) (Rev 1)
 Mahjong (Japan)
+Mahjong (Japan) (Rev 1)
 Mahjong (Taiwan) (Rev 1)
 Mahjong Solitaire (PD) v1.02 under4mhz 2020-09-11
 Mappy MSX2SMS Hack
@@ -224,8 +253,8 @@ Minesweeper v1.10
 Mini Golf MSX2SMS Hack
 Moai no Hibou MSX2SMS Hack
 Moggy Master (PD) Mojon Twins 2015
-Monaco GP (Japan) (Rev 1) Palette Hack bsittler
 Monaco GP (Japan) (Rev 1)
+Monaco GP (Japan) (Rev 1) Palette Hack bsittler
 Monaco GP (Japan, Europe) (Rev 2)
 Monaco GP (Japan, Europe, Australia, New Zealand)
 Monaco GP (Taiwan) (Rev 1)
@@ -245,20 +274,24 @@ NanoWars 8k (PD) v0.7 Haroldo O. Pinheiro
 Nazo Puyo 2 v0.9 Revo
 Nazo Puyo v1 Revo
 Nemesis (Korea) (Unl)
+Nemesis 2 (Korea) (En) (Unl)
 Nemesis 2 (Korea) (Unl)
-Neo Pong 512 (hardware ok, no sound)
 Neo Pong 512
+Neo Pong 512 (hardware ok, no sound)
 New Boggle Boggle 2 (KR) Palette Hack bsittler
+New Boggle Boggle 2 (Korea) (En) (Unl)
 New Boggle Boggle 2 (Korea) (Unl)
 New Duel WIP2
 Nyan Cat Demo (PD) v0.01 nitrofurano
 NyanCat 0.1 Palette Hack bsittler
 Okamoto Ayako no Match Play Golf (Japan) (Othello Multivision)
 Okamoto Ayako no Match Play Golf (Japan) (Rev 1) 
+Okamoto Ayako no Match Play Golf (Japan) (Rev 1) (Othello Multivision)
 Okamoto Ayako no Match Play Golf (Taiwan) (Rev 1) 
+Okamoto Ayako no Match Play Golf (Taiwan) (Rev 1) (Othello Multivision)
 Omikuji (PD) v1 Maechio
-Othello (Japan) Palette Hack bsittler
 Othello (Japan)
+Othello (Japan) Palette Hack bsittler
 Othello (Taiwan)
 Pac-In-Time V1.01 BcnAbel76
 Pac-Man (Japan) Chris Covell v0.91
@@ -272,19 +305,30 @@ Pachinko (Japan)
 Panther MSX2SMS Hack
 Pat Riley Basketball (USA) (Proto)
 Peek-A-Boo
+Penguin Adventure (Korea) (En) (Unl)
 Penguin Adventure (Korea) (Unl)
 Pete Sampras Tennis v0.1 Revo
 Phantasy Star (Brazil)
 Phantasy Star (J) T+Eng v2.00 SMS Power!
-Phantasy Star (Japan) (Virtual Console)
+Phantasy Star (J) T+Eng v2.2 SMS Power!
+Phantasy Star (J) T+Eng v2.2-CN vivify93
 Phantasy Star (Japan)
+Phantasy Star (Japan) (Virtual Console)
 Phantasy Star (Korea) (Unl)
 Phantasy Star (UE) (V1.3) [T+Fre_floflo]
-Phantasy Star (USA, Europe) (Rev 1)
 Phantasy Star (USA, Europe)
+Phantasy Star (USA, Europe) (Rev 1)
+Phantasy Star (World) (Ja) (Sega Ages)
+Phantasy Star (World) (Sega Ages)
 Phantasy Star - Hordes of Nei (Hack) v1.44 Lutz
 Phantasy Star - Lutz Hack (Hack) Lutz
 Phantasy Star Adventure English v1.1 Revo
+Phantasy Star CSI (J) v1.2 Vikfield
+Phantasy Star CSI (J) v1.2 Vikfield + T+Eng v2.2 SMS Power!
+Phantasy Star CSI (J) v1.2 Vikfield + T+Eng v2.2-CN vivify93
+Phantasy Star CSI (UE) v1.2 Vikfield
+Phantasy Star Makeover (J) (Hack) v1 Vikfield
+Phantasy Star Makeover (UE) (Hack) v1 Vikfield
 Phantom2040 v1 BcnAbel76
 Pico 8 Demo (PD) v0.02e RETRICA studio
 Picross v1.01
@@ -296,6 +340,7 @@ Pole Position SG-1000 (PD) v18b nitrofurano
 Pong Master (PD) v1 Haroldo O. Pinheiro
 Pong Master 4k (PD) Haroldo O. Pinheiro
 Pong v0.4
+Pooyan (Korea) (En) (Unl)
 Pooyan (Korea) (Unl)
 Pop Flamer (Japan, Europe) Palette Hack bsittler
 Pop Flamer (Japan, Europe, Australia, New Zealand)
@@ -303,6 +348,7 @@ Pop Flamer (Taiwan)
 Porkpolis v1.0
 Positorb (PD) OrangeRevolt
 Power Boggle Boggle (KR) Palette Hack bsittler
+Power Boggle Boggle (Korea) (En) (Unl)
 Power Boggle Boggle (Korea) (Unl)
 Power Drive v1 Revo
 Prisonnier II (PD) Offgame
@@ -311,18 +357,19 @@ Psychic World (E) [T+Ger1.00_Star-trans]
 Psychic World (E) [T+Ita1.00_darq]
 Psychic World (EB) [T-Spa1.0v_Wave]
 Psychic World (Europe, Brazil)
-Q-bert (Japan) (Othello Multivision) Palette Hack bsittler
 Q-bert (Japan) (Othello Multivision)
+Q-bert (Japan) (Othello Multivision) Palette Hack bsittler
 R.C. Grand Prix (UE) [T+Bra_TMT]
 R.C. Grand Prix (UEB) [T-Spa1.0v_Wave]
 R.C. Grand Prix (USA)
-R.C. Grand Prix (USA, Europe, Brazil) (Beta)
 R.C. Grand Prix (USA, Europe, Brazil)
+R.C. Grand Prix (USA, Europe, Brazil) (Beta)
 Racer (Easter) (PD) Chris Read
 Racer 2.0 (Rebooted) (PD) Chris Read
-Racer v1.12 Easter Edition
 Racer v1.12
+Racer v1.12 Easter Edition
 Rainbow Islands (Brazil)
+Rainbow Islands (E) Good Ending Bugfix (Hack) v1 arsenal_51
 Rainbow Islands (E) [T-Spa1.0v_Wave]
 Rainbow Islands (Europe)
 Rainbow Islands - Story of the Bubble Bobble 2 - Bugfix (E) Fix v1 arsenal_51
@@ -360,26 +407,31 @@ SPECIAL
 S_Sniper (PD) v1 Maechiko
 Safari Hunting (Japan, Europe, Australia, New Zealand)
 Safari Hunting (Taiwan)
+Sagak-ui Bimil (Korea) (En) (Unl)
 Sagak-ui Bimil (Korea) (Unl)
 San-nin Mahjong (Japan) (Alt 1) 
+San-nin Mahjong (Japan) (Alt 1) (Othello Multivision)
 San-nin Mahjong (Japan) (Othello Multivision)
 San-nin Mahjong (Taiwan) (Othello Multivision)
-Schtroumpfs Autour du Monde, Les (Europe) (En,Fr,De,Es) 
 Schtroumpfs Autour du Monde, Les (Europe) (En,Fr,De,Es)
+Schtroumpfs Autour du Monde, Les (Europe) (En,Fr,De,Es) 
+Schtroumpfs Autour du Monde, Les (Europe) (En,Fr,De,Es) (Beta) (1996-08-12)
 Sega BASIC Level 2 (SC-3000) export header checksum removed Palette Hack bsittler
 Sega BASIC Level 3 V1 (SC-3000) Palette Hack bsittler
 Sega BASIC Level 3 V1 (SC-3000) export header checksum removed 24K Palette Hack bsittler
 Sega BASIC Level 3 V1 (SC-3000) export header checksum removed Palette Hack bsittler
 Sega Mark III BG Test v0.01 (PD)
 Sega Mark III Port Test v0.1 (PD)
-Sega-Galaga (Japan) (40kB) Palette Hack bsittler
 Sega-Galaga (Japan)
+Sega-Galaga (Japan) (40kB) Palette Hack bsittler
 Sega-Galaga (Japan, Australia)
 Sega-Galaga (Taiwan)
 SegaSlide by FluBBa (PD)
 Sensible Soccer (E) [T-Spa1.0v_Wave]
 Sensible Soccer (Europe)
 Serizawa Hachidan no Tsumeshougi (Japan)
+Shadow Dancer (Taiwan) (En) (Unl)
+Shadow Dancer - The Secret of Shinobi (Europe, Brazil) (En)
 Shadow Dancer - The Secret of Shinobi ~ Shadow Dancer (Europe, Brazil)
 Shanghai (UE) [T-Spa1.0v_Wave]
 Shanghai (USA, Europe) (Beta)
@@ -387,9 +439,12 @@ Shining Force II - The Sword of Hajya English v1
 Shinobi SE Demo (PD) maxxfarras 2008-10
 Shoganai
 Shooting Gallery (Light Gun Port 2 Patched) Calindro
+Shooting Gallery (USA, Europe, Brazil) (En)
 Shooting Gallery ~ Shooting G. (USA, Europe, Brazil)
 Shooting Stars Light Gun (PD) v1.01
 Simpsons Trivia (PD) v1.02 SteveProXNA
+Simpsons, The - Bart vs. The Space Mutants (Europe, Brazil) (En)
+Simpsons, The - Bart vs. The World (Europe, Brazil) (En)
 Simpsons, The - Bart vs. the Space Mutants (EB) [T-Spa1.0v_Wave]
 Simpsons, The - Bart vs. the Space Mutants (Europe, Brazil)
 Simpsons, The - Bart vs. the World (EB) [T-Spa1.0v_Wave]
@@ -400,9 +455,10 @@ Sindbad Mystery (Taiwan)
 Ski Master v1.0.1
 Skweek - Slider v1.2 Revo
 Sky Fighter (KR) Palette Hack bsittler
+Sky Fighter (Korea) (En) (Unl)
 Sky Fighter (Korea) (Unl)
-Slime Center OK
 Slime Center
+Slime Center OK
 Smurfs, The (Europe, Brazil) (En,Fr,De,Es)
 Snail2 NTSC v1.02
 Snake (PD) v1 Wickeycolumbus
@@ -411,8 +467,8 @@ Soko Master v1.0
 Solitaire Poker v1 Revo
 Sonic's Edusoft (Unknown) (Proto)
 Soukoban v1 Revo
-Space Mountain (Japan) (Othello Multivision) Palette Hack bsittler
 Space Mountain (Japan) (Othello Multivision)
+Space Mountain (Japan) (Othello Multivision) Palette Hack bsittler
 Space Oddity Demo by Tetsujin (PD)
 Space Oddity V.23 by Proppy & Tet (PD)
 Space Slalom (Japan)
@@ -431,6 +487,7 @@ Star Soldier MSX2SMS Hack
 Street Master (Korea) (Unl)
 Suepr UWOL (PD) Mojon Twins 2016-11-19 1411
 Super Bubble Bobble (KR) Palette Hack bsittler
+Super Bubble Bobble (Korea) (En) (Unl)
 Super Bubble Bobble (Korea) (Unl)
 Super Penguin MSX2SMS Hack
 Super Return of the Jedi v0.3 Revo
@@ -445,6 +502,7 @@ Tarzan - Lord of the Jungle WIP v0.1 Revo
 Tecmo World Cup '92 (Europe) (Beta)
 Terebi Oekaki (Japan) Palette Hack bsittler
 Terebi Oekaki (Japan, Taiwan) (Program)
+Terminator, The (Brazil) (En)
 Terminator, The (Brazil) (Rev 1)
 Terminator, The (E) [T-Spa1.0v_Wave]
 Terminator, The (Europe)
@@ -468,17 +526,18 @@ Waimanu Scary Monsters Saga (PD)
 Wanted (Light Gun Port 2 Patched) Calindro
 Wanted (USA, Europe, Brazil)
 Warp Warp MSX2SMS Hack
+Where in the World is Carmen Sandiego (Brazil)
 Where in the World is Carmen Sandiego (Brazil) Controller Patched
 Where in the World is Carmen Sandiego (Brazil) Genesis Controller Patched
-Where in the World is Carmen Sandiego (Brazil)
-Where in the World is Carmen Sandiego (USA) (Genesis Controller)
 Where in the World is Carmen Sandiego (USA)
+Where in the World is Carmen Sandiego (USA) (Genesis Controller)
 Wing Warriors (PD) Kitmaker, Fran Matsuaka
 Wonder Boy III Save+US FM+SMS-MD Controller Detect (Hack) SRAM v1.2 ichigobankai, v1 FM ApolloBoy
 X-Men v0.8 Revo
 XBill (PD) nitrofurano 2018-06-02
 XBill (PD) nitrofurano 201806021536
 Xenon 2 - Megablast (Europe) (Rev 1)
+Xyzolog (Korea) (En) (Unl)
 Xyzolog (Korea) (Unl)
 YM2413 FM Tool (PD) v1 Chris Covell
 YM2612 Live Player (PD) 12-2016 K-Storm
@@ -487,9 +546,10 @@ Yamato (Japan, Europe, Australia, New Zealand)
 Yamato (Taiwan)
 Ys (Japan)
 Ys - The Vanished Omens (UE) [T+Fre_Crispysix]
+Ys - The Vanished Omens (USA, Europe, Brazil) (En)
 Ys - The Vanished Omens - FM Enabled (UE) (Hack) fatnick 2018-01-23
-Ys - The Vanished Omens - FM Sound Restoration (USA, Europe) v1.2 Hungdongs
 Ys - The Vanished Omens - FM Sound Restoration (USA, Europe) v1.2
+Ys - The Vanished Omens - FM Sound Restoration (USA, Europe) v1.2 Hungdongs
 Ys - The Vanished Omens ~ Y's (USA, Europe, Brazil)
 Yum! (PD) Chris Read
 Yuu Yuu Hakusho v1 Revo
