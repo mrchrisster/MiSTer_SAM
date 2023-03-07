@@ -148,7 +148,7 @@ Sometimes this happens (even on our test setups) and it could be for a variety o
 If you are still having trouble it could simply be that the rom failed to load, it seems to happen every now and then.  
   
 **- Turbografx16 CD and MegaCD just showing Run/Start button but not starting into the game**  
-Make sure you use a bios that auto launches the game.  
+If SAM's auto start feature fails for whatever reason, you can try and use a bios that auto launches the game.  
 
 **- Can I use a CIFS mount for my games?**  
 CIFS is supported.
@@ -165,7 +165,7 @@ BASE_PATH="/media/fat/Games"
 ## Advanced Usage
 For technical users here are a few handy tricks to observe and debug SAM.
 
-- To enable more console messages: `samquiet="No"`
+- To enable more console messages: `samdebug="Yes"`
 - Check the generated MGL file under `/tmp/SAM_game.mgl`. 
 
 ## SSH features  
