@@ -1,127 +1,186 @@
-AV Tanjou 
-Adventure Quiz 
-Akiyama Jin no Suugaku Mystery 
-Alnam no Kiba 
-Aoki Ookami to Shiroki Mejika 
-Beyond Shadowgate 
-Bikini Girls 
-Bishoujo Janshi Idol Pai 
-BuilderLand 
-CD Bishoujo Pachinko 
-CD Hanafuda 
-CD Mahjong 
-CD Pachi
-Cosmic Fantasy 
-Cosmic Fantasy 3 
-Crazy Hospital 
-Cyber City Oedo 808 
-Davis Cup Tennis
-Dead of the Brain 1&2 
-Death Bringer 
-Dennou Tenshi 
-Develo 
-Develo Magazine Vol. 1 
-Downtown Nekketsu Monogatari 
-Duo Comic - Bakuretsu Hunter
-Eikan wa Kimi ni 
-Eiyuu Sangokushi 
-F1 Team Simulation 
-Faerie Dust Story 
-Far East of Eden 
-Force Gear 
-Forgotten Worlds 
-Fushigi no Umi no Nadia 
-Garou Densetsu 2 
-Garou Densetsu Special 
-Gate of Thunder 
-Gensou Tairiku Auleria 
-Ginga Fukei Densetsu Sapphire 
-Ginga Fukei Densetsu Sapphire with Gate of Thunder OST 
-Ginga Fukei Densetsu Sapphire with Lords of Thunder OST 
-Gradius II - Gofer no Yabou
-Gulclight TDF 2 
-Hatsukoi Monogatari 
-Hawiian Island Girls 
-High Grenadier 
-Hi-Leg Fantasy
-Hu PGA Tour 
-Hyper Dyne 
-Implode 
-Jantei Monogatari 2 
-Jantei Monogatari 3 
-Kabuki Ittouryoudan 
-Kisou Louga II 
-Laser Soft Visual Collection Vol. 2 
-Legion 
-Local Girls of Hawaii
-Loom 
-Madou Monogatari I 
-Mateki Densetsu Astralius 
-Mega Man CD 
-Meteor Blaster DX 
-Mitsubachi Gakuen 
-Monster Maker 
-Motoroader MC 
-Mysterious Song 
-Motteke Tamago
-Nishimura Kyoutarou Mystery 
-Nobunaga no Yabou 
-PC Engine Fan 
-PC Engine Hyper Catalog CD
-Pachio
-Police Connection 
-Princess Maker 1 
-Princess Maker 2 
-Psychic Detective Series Vol. 3 
-Psychic Detective Series Vol. 4 
-Quest of Jongmaster 
-Quiz Avenue II 
-Quiz Avenue III 
-ROM ROM Stadium 
-ROM^2 Karaoke Vol. 1 
-ROM^2 Karaoke Vol. 2 
-ROM^2 Karaoke Vol. 3 
-ROM^2 Karaoke Vol. 4 
-ROM^2 Karaoke Vol. 5 
-ROM^2 Karaoke Volume 1 
-ROM^2 Karaoke Volume 2 
-ROM^2 Karaoke Volume 3 
-ROM^2 Karaoke Volume 4 
-ROM^2 Karaoke Volume 5 
-Rayxanber III 
-Revival Chase 
-Road Spirits 
-Ryuuko no Ken 
-Sangokushi 
-Sangokushi III 
-Sherlock Holmes 
-Shin Nihon Pro Wrestling 
-Shin Onryou Senki 
-Shinsetsu Shiawase Usagi 2 
-Shougi Database Kiyuu 
-Snatcher CD
-Sotsugyou 
-Sotsugyou Shashin 
-Space Adventure Cobra 
-Space Fantasy Zone 
-Startling Odyssey 
-Strider Hiryuu 
-Sugoroku
-Super Daisenryaku 
-Super Mahjong Taikai 
-Super Real Mahjong PII
-Super Real Mahjong Special 
-SydMead's TerraForming 
-Tanjou - Debut
-Tengai Makyou 
-Travellers! Densetsu o Buttobase 
-Ultimate Rally Club 
-Ultra Box 4
-Ultra Box 5
-Ultra Box 6
-Vasteel 
-Virgin Dream 
-Where in the World Is Carmen Sandiego 
-World Heroes 2 
-Wrestling Universe 
-Zan - Kagerou no Toki
+AV Tanjou (Japan) (Unl)
+Addams Family, The (USA)
+Advanced V.G. (Japan)
+Adventure Quiz - Capcom World + Hatena no Daibouken (Japan)
+Akiyama Jin no Suugaku Mystery - Hihou India no Honou wo Shishu Seyo (Japan)
+Alnam no Kiba - Juuzoku Juuni Shinto Densetsu (Japan) (FABT)
+Altered Beast - Juuouki - Boots on all System Cards (Japan)
+Aoki Ookami to Shiroki Mejika - Genchou Hishi (Japan)
+Babel (Japan)
+Beyond Shadowgate (USA)
+Bikini Girls (USA)
+Bishoujo Janshi Idol Pai (Japan) (Unl)
+Bishoujo Senshi Sailor Moon PCECD EN [v1.1-with-honorifics] SplitBin
+Black Hole Assault (Japan)
+Blood Gear (Japan)
+Bonanza Bros. (Japan)
+Brandish (Japan)
+Browning (Japan)
+BuilderLand - The Story of Melba (Japan)
+CD Bishoujo Pachinko - Kyuuma Yon Shimai (Japan) (Unl)
+CD Hanafuda - Bishoujo Fan Club (Japan) (Unl)
+CD Mahjong - Bishoujo Chuushinha (Japan) (Unl)
+CD Pachi-Slot - Bishoujo Gambler (Japan) (Unl)
+Camp California (USA)
+Cosmic Fantasy - Bouken Shounen Yuu (Japan)
+Cosmic Fantasy 3 - Bouken Shounen Rei (Japan)
+Crazy Hospital - Fushigi no Kuni no Tenshi (Japan) (1997)(Asia Soft Lab)
+Cyber City Oedo 808 - Kemono no Alignment (Japan)
+Davis Cup Tennis, The (Japan)
+Dead of the Brain 1&2 (Japan)
+Death Bringer - The Knight of Darkness (Japan)
+Dennou Tenshi - Digital Ange (Japan)
+Develo Magazine Vol. 1 (Japan)
+Downtown Nekketsu Monogatari (Japan)
+Dragon Knight & Graffiti (Japan)
+Dragon Knight III (Japan)
+Dungeon Explorer II (USA)
+Efera & Jiliora - The Emblem from Darkness (Japan)
+Exile (USA)
+Exile - Un-Worked Designs (Hack) v0 Supper 2017-01-28
+F1 Team Simulation - Project F (Japan)
+Faerie Dust Story - Meikyuu no Elfeene (Japan)
+Force Gear (from Tokimeki Memorial)
+Forgotten Worlds (USA) (En,Ja)
+Fushigi no Umi no Nadia - The Secret of Blue Water (Japan)
+Garou Densetsu 2 - Aratanaru Tatakai (Japan) (FABT, FAET, FAFT)
+Garou Densetsu Special (Japan) (FABT)
+Gate of Thunder + Bonk's Adventure + Bonk's Revenge (USA)
+Gensou Tairiku Auleria (Japan)
+Ginga Fukei Densetsu Sapphire (Japan) (Reprint)
+Ginga Fukei Densetsu Sapphire (Japan)
+Ginga Fukei Densetsu Sapphire with Gate of Thunder OST (Hack) v1 vacantplanets
+Ginga Fukei Densetsu Sapphire with Lords of Thunder OST (Hack) v1 vacantplanets
+Gulclight TDF 2 (Japan)
+Hatsukoi Monogatari (Japan) (Rev 2)
+Hawiian Island Girls (USA) (Unl)
+High Grenadier (Japan)
+Himitsu no Hanazono (Japan)
+Hu PGA Tour - PowerGolf 2 - Golfer (Japan)
+Hyper Dyne - SideArms Special (Japan)
+Hyper Wars (Japan) (SABS)
+Hypernova Blast (USA) (Unl)
+ImageFight II - Operation Deepstriker (Japan)
+Implode (USA) (Unl)
+J Thunder (Japan)
+Jantei Monogatari 2 - Uchuu Tantei Diban - Kanketsu-hen (Japan)
+Jantei Monogatari 2 - Uchuu Tantei Diban - Shutsudou-hen (Japan)
+Jantei Monogatari 3 - Saver Angels (Japan)
+Kabuki Ittouryoudan (Japan)
+Kawa no Nushitsuri - Shizen-ha (Japan)
+Kisou Louga II - The Ends of Shangrila (Japan)
+Laplace no Ma (Japan)
+Laser Soft Visual Collection Vol. 1 - Cosmic Fantasy Visual-shuu (Japan)
+Laser Soft Visual Collection Vol. 2 - Valis Visual-shuu (Japan)
+Legend of Xanadu - Kaze no Densetsu Xanadu (Japan)
+Legend of Xanadu - Kaze no Densetsu Xanadu II (Japan)
+Legion (Japan)
+Local Girls of Hawaii, The (USA) (Unl)
+Loom (USA)
+Lords of Thunder (U)
+Mad Stalker - Full Metal Force (Japan)
+Madou Monogatari I - Honoo no Sotsuenji (J) T+Eng v1.0 LIPEMCO
+Madou Monogatari I - Honoo no Sotsuenji (Japan)
+Mamono Hunter Youko - Makai kara no Tenkousei (Japan)
+Mamono Hunter Youko - Tooki Yobigoe (Japan)
+Mateki Densetsu Astralius (Japan)
+Mega Man CD - Rock Version (Hack)
+Metal Angel 2 (Japan)
+Metamor Jupiter (Japan)
+Meteor Blaster DX (USA) (Unl) (Rerelease)
+Might and Magic III - Isles of Terra (USA)
+Mitsubachi Gakuen (Japan)
+Monster Lair (USA)
+Monster Maker - Yami no Ryuukishi (Japan)
+Motoroader MC (Japan)
+Mysterious Song (USA) (En,Fr,Es) (Unl) (Rerelease)
+Mysterious Song (USA) (En,Fr,Es) (Unl)
+Nishimura Kyoutarou Mystery - Hokutosei no Onna (Japan)
+No-Ri-Ko (Japan)
+Nobunaga no Yabou - Bushou Fuuunroku (Japan)
+Nobunaga no Yabou - Zenkokuban (Japan)
+PC Engine Fan - Special CD-ROM^2 Vol. 1 (Japan)
+PC Engine Hyper Catalog CD-ROM - 1994 Summer (Japan) (Disc A)
+PC Engine Hyper Catalog CD-ROM - 1994 Summer (Japan) (Disc B)
+PC Engine Hyper Catalog CD-ROM 5 - 1994 Spring (Japan)
+PC Engine Hyper Catalog CD-ROM 6 - 1994 Summer (Japan) (Disc A)
+PC Engine Hyper Catalog CD-ROM 6 - 1994 Summer (Japan) (Disc B)
+Pachio-kun - Maboroshi no Densetsu (Japan) (Rev 7)
+Pachio-kun - Maboroshi no Densetsu (Japan) (Rev 8)
+Police Connection (Japan)
+Prince of Persia (USA)
+Princess Maker 1 (Japan)
+Princess Maker 2 (Japan)
+Psychic Detective Series Vol. 3 - Aya (Japan)
+Psychic Detective Series Vol. 4 - Orgel (Japan)
+Quest of Jongmaster - Janshin Densetsu (Japan)
+Quiz Avenue (Japan)
+Quiz Avenue II (Japan)
+Quiz Avenue III (Japan)
+Quiz Marugoto the World 2 - Time Machine ni Onegai! (Japan)
+Quiz de Gakuensai (Japan)
+ROM ROM Stadium (Japan)
+ROM^2 Karaoke Vol. 1 - Suteki ni Standard (Japan)
+ROM^2 Karaoke Vol. 2 - Nattoku Idol (Japan)
+ROM^2 Karaoke Vol. 3 - Yappashi Band (Japan)
+ROM^2 Karaoke Vol. 4 - Choito Otona! (Japan)
+ROM^2 Karaoke Vol. 5 - Karaoke Maku no Uchi (Japan)
+ROM^2 Karaoke Volume 1 (Japan)
+ROM^2 Karaoke Volume 2 (Japan)
+ROM^2 Karaoke Volume 3 (Japan)
+ROM^2 Karaoke Volume 4 (Japan)
+ROM^2 Karaoke Volume 5 (Japan)
+Rally Championship (Japan) (FABT)
+Rayxanber II (Japan)
+Rayxanber III (Japan)
+Revival Chase (USA) (En,Fr) (Unl)
+Road Spirits (Japan)
+Ryuuko no Ken (Japan) (En,Ja,Es) (FACT)
+Sangokushi - Eiketsu Tenka ni Nozomu (Japan)
+Sangokushi III (Japan)
+Seiryuu Densetsu - Monbit (Japan) (Rev 4)
+Shape Shifter (USA)
+Sherlock Holmes - Consulting Detective (USA)
+Shin Nihon Pro Wrestling - '94 Battlefield in Tokyo Dome (Japan)
+Shin Onryou Senki (Japan)
+Shinsetsu Shiawase Usagi 2 - Kairaku e no Invitation (Japan) (Unl)
+Shougi Database Kiyuu (Japan)
+Snatcher CD-ROMantic (Japan)
+Snatcher CD-ROMantic - Pilot Disk (Japan)
+Sol Bianca (Japan)
+Sotsugyou - Graduation (Japan) (Rev 1)
+Sotsugyou - Graduation (Japan)
+Sotsugyou Shashin - Miki (Japan)
+Space Fantasy Zone (Japan) (Unreleased)
+Startling Odyssey (Japan)
+Strider Hiryuu (Japan)
+Sugoroku, The '92 - Nari Tore - Nariagari Trendy (Japan)
+Summer Carnival '93 - NEXZR Special (Japan)
+Super Air Zonk - Rockabilly-Paradise (USA)
+Super Albatross (Japan)
+Super Daisenryaku (Japan)
+Super Daisenryaku - English (Japan) T-En v0.99 Gaijin Productions
+Super Mahjong Taikai (Japan)
+Super Raiden (Japan)
+Super Real Mahjong PII-III Custom (Japan)
+Super Real Mahjong Special - Miki Kasumi Shouko no Omoide yori (Japan)
+SydMead's TerraForming (USA)
+TV Show, The (Japan)
+Tanjou - Debut (Japan)
+Tenchi o Kurau (Japan)
+Tengai Makyou - Deden no Kabuki-den (Japan)
+Tenshi no Uta (Japan)
+Top o Nerae! GunBuster Vol. 1 (Japan)
+Travellers! Densetsu o Buttobase (Japan)
+Twinbee Returns (from Tokimeki Memorial)
+Ultra Box 4-gou (Japan)
+Ultra Box 5-gou (Japan)
+Ultra Box 6-gou (Japan)
+Ultra Box Soukan-gou (Japan)
+Vasteel (Japan)
+Virgin Dream (Japan)
+Where in the World Is Carmen Sandiego (Japan) (En,Ja)
+World Heroes 2 (Japan)
+Wrestling Universe - Fire Pro Joshi - Dome Choujo Taisen - Zenjo vs. JWP (Japan)
+Ys IV - The Dawn of Ys (Japan) (Rev 4)
+Zan - Kagerou no Toki (Japan)
