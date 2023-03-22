@@ -227,8 +227,8 @@ function gl_filter() {
 	fi
 
 	for g in "${glondisk[@]}"; do 
-		if [ "${g}" == "amiga" ]; then
-			echo "Amiga will be processed in main script"
+		if [ "${g}" == "amiga" ] || [ "${g}" == "ao486" ]; then
+			echo "Amiga and AO486 will be processed in main script"
 		fi
 		if [ ! -s "${gamelistpathtmp}/${g}_gamelist.txt" ]; then	
 			cp "${gamelistpath}/${g}_gamelist.txt" "${gamelistpathtmp}/${g}_gamelist.txt" 
@@ -236,8 +236,6 @@ function gl_filter() {
 		filter_list "${g}"
 	done
 }
-
-
 
 
 #======== DEBUG OUTPUT =========
