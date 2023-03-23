@@ -803,7 +803,7 @@ function read_samini() {
 		declare -g "${var}"="${!var%/}"
 	done
 	
-	corelist=("$(echo "${corelist[@]}" | tr ',' ' ' | tr -s ' ')")
+	#corelist=("$(echo "${corelist[@]}" | tr ',' ' ' | tr -s ' ')")
 	IFS=',' read -ra corelist <<< "${corelist}"
 	IFS=',' read -ra corelistall <<< "${corelistall}"
 	
