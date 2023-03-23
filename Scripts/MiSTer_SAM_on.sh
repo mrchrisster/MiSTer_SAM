@@ -803,7 +803,7 @@ function read_samini() {
 		declare -g "${var}"="${!var%/}"
 	done
 	
-	#corelist=("$(echo "${corelist[@]}" | tr ',' ' ' | tr -s ' ')")
+	corelist=("$(echo "${corelist[@]}" | tr ',' ' ' | tr -s ' ')")
 	IFS=',' read -ra corelist <<< "${corelist}"
 	IFS=',' read -ra corelistall <<< "${corelistall}"
 	
@@ -813,7 +813,6 @@ function read_samini() {
 	fi
 	
 }
-
 
 
 # ============== PARSE COMMANDS ===============
@@ -1097,14 +1096,13 @@ function next_core() { # next_core (core)
 
 	# Pick a core if no corename was supplied as argument (eg "MiSTer_SAM_on.sh psx")
 	if [ -z "${1}" ]; then
-		
 		corelist_update	
 		create_all_gamelists	
 		pick_core
 
 	fi
 
-	#samdebug "corelist: ${corelist[*]}"
+	samdebug "corelist: ${corelist[*]}"
 	samdebug "corelisttmp: ${corelisttmp[*]}"
 	samdebug "Selected core: ${nextcore}"
 
@@ -1159,8 +1157,11 @@ function create_all_gamelists() {
 	# Run this until corelist matches exisitng gamelists
 	if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
 		
+		samdebug "Checking all game lists now."
+		
 		# Read all gamelists present
 		readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+		samdebug "Game lists stored on SD: ${glondisk[*]}"
 		
 		if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
 			"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
@@ -1186,6 +1187,8 @@ function create_all_gamelists() {
 				fi
 			done 
 		done
+		
+		samdebug "Game lists that match corelist in ini: ${glclondisk[*]}"
 				
 		# Remove cores with no games in bg
 		check_gamelists &
@@ -1222,7 +1225,7 @@ function pick_core(){
 	#Core Weight mode
 	if [ "$coreweight" == "yes" ]; then
 		#Check if all gamelists have been created
-		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort)" ]]; then
+		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort -u)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort -u)" ]]; then
 			#Check if every core's game library has been counted
 			if [[ ! "${corewc[*]}" ]]; then
 				readarray -t gltmpondisk <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
@@ -2192,8 +2195,10 @@ function delete_from_corelist() { # delete_from_corelist core tmp
 		for i in "${!corelist[@]}"; do
 			if [[ ${corelist[i]} = "$1" ]]; then
 				unset 'corelist[i]'
+				samdebug "Deleted $1 from corelist"
 			fi
 		done
+		samdebug "Corelist now ${corelist[@]}"
 		printf "%s\n" "${corelist[@]}" > "${corelistfile}"
 	else
 		for i in "${!corelisttmp[@]}"; do
@@ -2342,7 +2347,6 @@ function check_gamelists() {
 		for c in "${corelist[@]}"; do 
 			if [[ "$c" == "$g" ]]; then 
 				glcreate+=("$c")
-				samdebug "Creating "$c" gamelist"
 			fi
 		done 
 	done
@@ -2356,6 +2360,7 @@ function check_gamelists() {
 	if [[ "${glcreate[*]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
 		unset nogames
 		for c in "${glcreate[@]}"; do
+			samdebug "Creating "$c" gamelist"
 			"${mrsampath}"/samindex -q -s "$c" -o "${gamelistpath}"
 			if [ $? -gt 1 ]; then
 				nogames+=("$c")
@@ -2364,14 +2369,15 @@ function check_gamelists() {
 		
 		if [[ "${nogames[*]}" ]]; then
 			for f in "${nogames[@],,}"; do
+				samdebug "Deleting ${f}"
 				delete_from_corelist "${f}"
 				delete_from_corelist "${f}" tmp 
 				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
 			done
 			[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
-			sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			[ -n ${corelistfile} ] && sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}"| tr ' ' ',') "
-			echo "No games were found for these cores. Please re-enable the core once you have roms installed."
+			echo "No games were found for these cores."
 		fi 
 		
 	fi
@@ -2638,6 +2644,7 @@ function get_mbc() {
 
 function get_inputmap() {
 	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
+	[ ! -d "/media/fat/Config/inputs" ] && mkdir -p "/media/fat/Config/inputs"
 	get_samstuff .MiSTer_SAM/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
