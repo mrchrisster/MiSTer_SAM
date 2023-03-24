@@ -2374,8 +2374,8 @@ function check_gamelists() {
 				delete_from_corelist "${f}" tmp 
 				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
 			done
-			[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
-			[ -n ${corelistupdate} ] && sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			#[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
+			#[ -n ${corelistupdate} ] && sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}"| tr ' ' ',') "
 			echo "No games were found for these cores."
 		fi 
