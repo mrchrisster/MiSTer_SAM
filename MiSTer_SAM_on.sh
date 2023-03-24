@@ -1135,6 +1135,7 @@ function corelist_update() {
 	if [ -s "${corelistfile}" ]; then
 		unset corelist 
 		mapfile -t corelist <${corelistfile}
+		rm ${corelistfile}
 	fi
 	
 	if [[ "${disablecoredel}" == "0" ]]; then
