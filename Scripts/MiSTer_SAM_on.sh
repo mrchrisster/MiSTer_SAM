@@ -2199,7 +2199,7 @@ function delete_from_corelist() { # delete_from_corelist core tmp
 			fi
 		done
 		samdebug "Corelist now ${corelist[@]}"
-		#printf "%s\n" "${corelist[@]}" > "${corelistfile}"
+		printf "%s\n" "${corelist[@]}" > "${corelistfile}"
 	else
 		for i in "${!corelisttmp[@]}"; do
 			if [[ ${corelisttmp[i]} = "$1" ]]; then
@@ -2375,7 +2375,7 @@ function check_gamelists() {
 				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
 			done
 			[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
-			#[ -n ${corelistupdate} ] && sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			[ -n ${corelistupdate} ] && sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}"| tr ' ' ',') "
 			echo "No games were found for these cores."
 		fi 
