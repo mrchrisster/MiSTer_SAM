@@ -1910,8 +1910,15 @@ function sam_prep() {
 	[[ ! -d "${mrsamtmp}" ]] && mkdir -p "${mrsamtmp}"
 	mkdir -p /media/fat/Games/SAM &>/dev/null
 	[ ! -d "/tmp/.SAM_tmp/Amiga_shared" ] && mkdir -p "/tmp/.SAM_tmp/Amiga_shared"
-	[ -d "${amigapath}/shared" ] && cp -r --force "${amigapath}"/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
-	[ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic "${amigapath}"/shared)" == "0" ] && mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+	if [ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic "${amigapath}"/shared)" == "0" ]; then
+		if [ "$(du -m "${amigapath}/shared" | cut -f1)" -lt 30 ]; then
+			cp -r --force "${amigapath}"/shared/* /tmp/.SAM_tmp/Amiga_shared &>/dev/null
+			mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+		else
+			echo "WARNING: ${amigapath}/shared folder is bigger than 30 MB. Items in shared folder won't be accessible while SAM is running."
+			mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
+		fi
+	fi
 	if [ "${kids_safe}" == "yes" ]; then
 		if [ ! -f "${mrsampath}"/SAM_Rated/amiga_rated.txt ]; then
 			echo "No kids safe rating lists found."
