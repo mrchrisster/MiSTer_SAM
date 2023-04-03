@@ -33,3 +33,474 @@ Super Puzzle Fighter II X (Japan 960531) [Decrypted]
 Tetris (Japan, System E)
 Tough Turf 
 Transformer
+280Z-ZZAP
+280Z-ZZAP (US)
+Aerolitos (ES)
+Air Duel (W, M72 hardware)
+Air Duel (World, M72 hardware)
+Alien Arena
+Alien Arena (Stargate upgrade)
+Amazing Maze
+Amidar
+Amidar (Scramble)
+Andromeda [hb]
+Asterock (Sidam) [bl]
+Asterock (Videotron) [bl]
+Asteroids
+Asteroids Deluxe
+Astrians (Swarm) [bl]
+Astro Flash (Japan)
+Astropede II [hb]
+Astropede [hb]
+Attack Force
+Azurian Attack
+Balloon Bomber
+Battle Garegga (AT- HK)
+Battle Garegga (Austria - Hong Kong) (Sat Feb 3 1996)
+Battle Garegga (TW- DE)
+Battle Garegga (Taiwan - Germany) (Thu Feb 1 1996)
+Battle Garegga - New Version (AT- HK)
+Battle Garegga - New Version (Austria - Hong Kong) (Sat Mar 2 1996)
+Battle Garegga - Type 2 (DK- CN)
+Battle Garegga - Type 2 (Denmark - China) (Tue Apr 2 1996)
+Battle Road
+Berzerk
+Birdiy
+Black Hole
+Black Widow
+Blasto
+Blockade
+Blue Shark
+Body Slam (W, 317-0015)
+Body Slam (World, S16) [8751 317-0015]
+Boot Hill
+Bosconian - Star Destroyer (Midway, new version)
+Brakman - HBMame
+Brakman [hb]
+Breakout
+Breakout (TTL)
+Burger Time
+Canyon Bomber
+Cemescary [hb]
+Centipede
+Centipede (Rev 3)
+Centipede (Rev 4)
+Centipede (revision 4)
+Clean Sweep
+Clean Sweep (TTL)
+Clowns
+CoMotion
+Colony 7
+Colony 7 (Set 1)
+Computer Space
+Cosmic Alien
+Cosmic Avenger
+Cosmo
+Crater Raider
+Crazy Pac - HBMame
+Crazy Pac [hb]
+Dark Planet
+Dark Planet (no bkg)
+Defender
+Devil Fish
+Devil Fish (Galaxian Hardware)
+Devil Zone
+Discs of Tron
+Dizzy Ghost - A Reversal of Roles - HBMame
+Dizzy Ghost- A Reversal of Roles [hb]
+DoDonPachi (no warn)
+DoDonPachi Trainer (Japan)
+Dominos
+Dottori-Kun (new)
+Dottori-Kun (old)
+Dottori-Man Jr
+Double Dragon
+Druaga
+Dump Matsumoto (JP, 317-0011a)
+Dump Matsumoto (Japan, S16A) [8751 317-0011a]
+Elton Pac - HBMame
+Elton Pac [hb]
+Euro Pac - HBMame
+Euro Pac [hb]
+Eyes (US, Set 1)
+Falcon (8085A CPU) [bl]
+Fantasy Zone II - The Tears of Opa-Opa
+Fenix (Niemer) [bl]
+Final Fight 30th Anniversary Edition (World, hack)
+Finalizer - Super Transformation (Set 1)
+Finalizer - Super Transformation (Set 2) [bl]
+Finalizer- Super Transformation (Set 1)
+Flash Point (JP, Set 1)
+Flash Point (JP, Set 2)
+Flash Point (set 1, Japan) (FD1094 317-0127A)
+Frenzy
+Frenzy (Rev RA1)
+Galaga
+Galaga (Midway, Set 1)
+Galaga 3 (GP3 Rev D)
+Galaga 3 (GP3 rev. D)
+Galapede (Fast Shoot) [hb]
+Galaxian
+Galaxian (Namco, Set 1)
+Galaxy Empire (bootleg)
+Galaxy Empire [bl]
+Galaxy Wars
+Galaxy Wars (Universal, Set 1)
+Ganbare! Marine Kun (JP, 2K0411)
+Ganbare! Marine Kun -Japan 2K0411-
+Gaous [hb]
+Gaplus (GP2 Rev B)
+Gaplus (GP2 rev. B)
+Gaplus (Tecfri PCB)
+Gaylaxian [hb]
+Gingateikoku no Gyakushu
+Gingateikoku no Gyakushu (bootleg set 1)
+Gingateikoku no Gyakushu (bootleg set 2)
+Gingateikoku no Gyakushu (bootleg set 3)
+Golden Axe (US, Set 6)
+Golden Axe (set 2, US) (8751 317-0112)
+Gorodki
+Gravitar
+Gravitar (Ver 3)
+Gun Fight
+Handi-Man in Cyberworld [hb]
+Hang On Jr
+Hangly Man (Fast) [hb]
+Hangly Man 1000 - HBMame
+Hangly Man 1000 [hb]
+Hangly Man 2000 - HBMame
+Hangly Man 2000 [hb]
+Hangly Man Babies 5000 - HBMame
+Hangly Man Babies 5000 [hb]
+Hangly Man Babies 7000 - HBMame
+Hangly Man Babies 7000 [hb]
+Hangly Man BabiesMaze - HBMame
+Hangly Man BabiesMaze [hb]
+Hangly Man Blue Plus - HBMame
+Hangly Man Blue Plus [hb]
+Hangly Man Green Plus - HBMame
+Hangly Man Green Plus [hb]
+Hangly Man Plus - HBMame
+Hangly Man Plus [hb]
+Hangly Man [f] - HBMame
+Hangly-Man (Set 1) [hb]
+Hangly-Man (set 1)
+Hangly-Man (set 1) After Dark - HBMame
+Hangly-Man After Dark (Set 1) [hb]
+Heavy Barrel (US)
+Heavy Barrel (W)
+Heavy Barrel (World)
+Hellfire (2P set)
+Hellfire (2P set, older)
+Hustle
+Jacman - HBMame
+Jacman [hb]
+Jin
+Kamakazi III (Superg) [hb]
+Karate Champ (Tecfri bootleg)
+Karate Champ (US VS version, set 1)
+Karate Champ (US VS version, set 2)
+Karate Champ (US VS version, set 3)
+Karate Champ (US VS version, set 4)
+Karate Champ (US, VS Ver, Set 1)
+Karate Champ (US, VS Ver, Set 3)
+Karate Champ (US, VS Ver, Set 4)
+Karate Dou (JP)
+Karate Dou (Japan)
+Killipede [hb]
+King And Balloon
+King And Balloon (Japan)
+King and Balloon (US)
+Konek Gorbunok
+Kozmik Krooz'r
+Kozmik Kroozr
+Lode Runner
+Lode Runner (Set 1)
+Lucky Today
+Lunar Battle
+Lunar Battle (Prototype)
+Lunar Lander
+Lunar Rescue
+Lupin III
+Lupin III (Set 2)
+Magical Spot
+Mario Pac-Man [hb]
+Mario Pacman - HBMame
+Mars
+Marvel Vs. Capcom Clash of Super Heroes (Japan 980123) (Single PCB)
+Marvel Vs. Capcom- Clash of Super Heroes (JP, 980123, Single PCB)
+Mayday
+Mayday (Set 1)
+Maze Man - HBMame
+Maze Man [hb]
+Megumi Rescue (Japan)
+Mini Pac-Man 2 [hb]
+Mini Pac-Man [hb]
+Mini Pacman - HBMame
+Mini Pacman 2 - HBMame
+Moon Cresta
+Moon Cresta (Galaxian Hardware) [bl]
+MotoTour - Zippy Race (Tecfri license)
+Mr. Do Nightmare
+Nekketsu Kouha Kunio-kun (Japan bootleg)
+New Puc2 (Set 2) - HBMame
+New Puck 2 (Cheat) [hb]
+New Puck 2 (Fast) [hb]
+New Puck 2 (Set 2) [hb]
+New Puck 2 [hb]
+New Puck 3 [hb]
+New Puck X (Cheat) [hb]
+New Puck X (Fast) [hb]
+New Puck-2 - HBMame
+New Puck-3 - HBMame
+New Puck-X
+New Puck-X [c] - HBMame
+New Puck-X [f] - HBMame
+New Puck2 [c] - HBMame
+New Puck2 [f] - HBMame
+No Mans Land
+Nova 2001 (Hack)
+Number Crash
+Offender [hb]
+Opa Opa
+Opa Opa (Rev A, unprotected)
+Orbitron
+Out Zone
+Pac Man 1000 - HBMame
+Pac Man 2000 - HBMame
+Pac Man 3000 - HBMame
+Pac Man Babies 2000 - HBMame
+Pac Man Babies 3000 - HBMame
+Pac Man Babies 6000 - HBMame
+Pac Man Babies Maze - HBMame
+Pac Snoop (v1.3, Fast) [hb]
+Pac Snoop v1.3 [f] - HBMame
+Pac-Man & Chomp Chomp
+Pac-Man (255th Maze Fix) [hb]
+Pac-Man (Baby Maze 1) [hb]
+Pac-Man (Baby Maze 2) [hb]
+Pac-Man (Baby Maze 3) [hb]
+Pac-Man (Baby Maze 4) [hb]
+Pac-Man (Bell) [hb]
+Pac-Man (Cheat) [hb]
+Pac-Man (Crunchy) [hb]
+Pac-Man (Electric Cowboy) [hb]
+Pac-Man (Hearts) [hb]
+Pac-Man (Midway)
+Pac-Man (Midway, Harder) [hb]
+Pac-Man (Midway, Speedup) [hb]
+Pac-Man (Midway, harder)
+Pac-Man (Midway, speedup hack)
+Pac-Man (Original Inviso) [hb]
+Pac-Man (Pac-Man Font) [hb]
+Pac-Man (Patched) [hb]
+Pac-Man (Shuffle) [hb]
+Pac-Man (Sil Hack, Cheat) [hb]
+Pac-Man (Speedy) [hb]
+Pac-Man (Weird Fruit) [hb]
+Pac-Man 1000 [hb]
+Pac-Man 2000 [hb]
+Pac-Man 3000 [hb]
+Pac-Man 3D (Cheat) [hb]
+Pac-Man 4000 Plus [hb]
+Pac-Man 5000 Plus [hb]
+Pac-Man 6000 [hb]
+Pac-Man 7000 Plus [hb]
+Pac-Man 7000 [hb]
+Pac-Man After Dark (Alternate) [hb]
+Pac-Man After Dark 2000 [hb]
+Pac-Man After Dark [hb]
+Pac-Man Babies 2000 [hb]
+Pac-Man Babies 3000 [hb]
+Pac-Man Babies 4000 [hb]
+Pac-Man Babies 6000 [hb]
+Pac-Man Babies 8000 [hb]
+Pac-Man Babies Maze [hb]
+Pac-Man Babies Plus [hb]
+Pac-Man Blue Plus [hb]
+Pac-Man Deluxe [hb]
+Pac-Man Extra Plus [hb]
+Pac-Man Extra [hb]
+Pac-Man Fever [hb]
+Pac-Man Green Plus [hb]
+Pac-Man Jr. (Maze 1) [hb]
+Pac-Man Jr. (Maze 2) [hb]
+Pac-Man Jr. (Maze 3) [hb]
+Pac-Man Jr. (Maze 4) [hb]
+Pac-Man Plus
+Pac-Manic Miner
+Pacipede [hb]
+Packetman - HBMame
+Packetman [hb]
+Pacman (Baby Maze 1) - HBMame
+Pacman (Baby Maze 2) - HBMame
+Pacman (Baby Maze 3) - HBMame
+Pacman (Bell) - HBMame
+Pacman (Crunchy) - HBMame
+Pacman (Electric Cowboy) - HBMame
+Pacman (Fixes 255th Maze) - HBMame
+Pacman (Hearts) - HBMame
+Pacman (Jail) - HBMame
+Pacman (Namco) (Sil hack) [c] - HBMame
+Pacman (Original Inviso) - HBMame
+Pacman (Patched) - HBMame
+Pacman (Shuffle) - HBMame
+Pacman (Weird Fruit) - HBMame
+Pacman 3D [c] - HBMame
+Pacman After Dark (Alternate) - HBMame
+Pacman After Dark - HBMame
+Pacman After Dark 2000 - HBMame
+Pacman Jr. (Maze 1) - HBMame
+Pacman Jr. (Maze 2) - HBMame
+Pacman Jr. (Maze 3) - HBMame
+Pacman Jr. (Maze 4) - HBMame
+Pacman Plus
+Pacman [c] - HBMame
+Pacman with Pacman font - HBMame
+Pacmanic Miner
+Pang (World)
+Phoenix
+Phoenix (Amstar, Set 1)
+Pisces
+Playball
+Playball (Prototype)
+Pleiades (Set 1) [bl]
+Pleiades (Set 2) [bl]
+Pleiades (Spanish) [bl]
+Pleiades (Tehkan)
+Pleiads
+Pleiads (Centuri)
+Pleiads (Tehkan)
+Pnickies -Japan 940608-
+Poly Play
+Poly Play 2
+Poly Play 2c
+PolyPlay
+PolyPlay 2
+PolyPlay 2c
+Pong
+Pong (Rev E)
+Pootan [bl]
+Pooyan
+Popeye
+Puck Man (255 Maze Fix) [hb]
+Puck Man (JP, Set 1)
+Puck Man (JP, Set 2)
+Puck Man (Japan set 1)
+Puck Man (Japan set 2)
+Puck Man Opposite [hb]
+Puckman (Fixes 255th Maze) - HBMame
+Puckman Opposite - HBMame
+Puckmotik (Alt.) [hb]
+Puckmotik (alt) - HBMame
+Puckmotik - HBMame
+Puckmotik [hb]
+Q'bert Qubes
+QBert Qubes
+Radar Scope
+Radar Scope (rev. C)
+Radar Scope (rev. D)
+Riddle of Pythagoras (Japan)
+Road Fighter (set 3, unencrypted)
+Robo Man - HBMame
+Robo Man [hb]
+Robotron 2084
+Roc'n Rope
+S.O.S.
+SOS
+Sangokushi II (AS, 921005)
+Sangokushi II (Asia 921005)
+Sea Wolf
+Sea Wolf (Set 1)
+Sea Wolf II
+Seawolf II
+Shuffleboard
+Shuttle Invader
+Sky Raider (Uniwars bootleg)
+Slap Shooter
+Solar Fox
+Space Battle (Set 1) [bl]
+Space Battle (Set 2) [bl]
+Space Battle (bootleg set 1)
+Space Battle (bootleg set 2)
+Space Empire (bootleg)
+Space Empire [bl]
+Space Encounters
+Space Invaders
+Space Invaders (Samples)
+Space Invaders II (Midway, cocktail)
+Space Invaders Part II
+Space Invaders Part II (Taito, Bigger ROMs)
+Space Race
+Space Race [TTL]
+Sprint 1
+Sprint 2
+Spy Hunter
+Squash
+Starfighter II [hb]
+Street Fighter Zero 2 Alpha (Asia 960805)
+Summertime Elton (Old) [hb]
+Summertime Elton (old) - HBMame
+Summertime Elton - HBMame
+Summertime Elton [hb]
+Super Breakout
+Super Breakout (Rev 04)
+Super Pang (World 900914)
+Super Puzzle Fighter II Turbo (Hispanic 960531) [Decrypted]
+Super Puzzle Fighter II X (Japan 960531) [Decrypted]
+Swarm [bl]
+Taisen Karate Dou (JP, VS version)
+Taisen Karate Dou (Japan VS version)
+Tazz-Mania
+Tazz-Mania (Set 1)
+Tetris (Japan, System E)
+The Tower of Druaga
+Time Pilot
+Tough Turf (JP, Set 2)
+Tough Turf (set 2, Japan) (8751 317-0104)
+Transformer
+Traverse (US) [bl]
+Traverse USA (bootleg)
+Tron
+Turbo Tag
+Turbo Tag (Prototype)
+Turtles
+Ultra Pac-Man [hb]
+Ultra Pacman - HBMame
+Ultra Tank
+UniWar S
+Van-Van Car
+Vectipede [hb]
+Vector Hangly-Man (Vector) [hb]
+Vector Hangly-Man - HBMame
+Vector Pac-Man (Electric Cowboy) [hb]
+Vector Pac-Man (Jail) [hb]
+Vector Pac-Man (Shuffle) [hb]
+Vector Pac-Man (Speedy) [hb]
+Vector Pac-Man [hb]
+Vector Pacman (Baby Maze 1) - HBMame
+Vector Pacman (Baby Maze 2) - HBMame
+Vector Pacman (Baby Maze 3) - HBMame
+Vector Pacman (Bell) - HBMame
+Vector Pacman (Crunchy) - HBMame
+Vector Pacman (Electric Cowboy) - HBMame
+Vector Pacman (Jail) - HBMame
+Vector Pacman (Shuffle) - HBMame
+Vector Pacman (Speedy) - HBMame
+Vector Pacman - HBMame
+Vector Xens Revenge - HBMame
+Vector Xens Revenge [hb]
+Vectorpede [hb]
+Venus (bootleg of Gyruss)
+Vigilante (World, Rev E)
+Vortex
+War of the Bugs
+Warriors of Fate (World 921002)
+Wizard of Wor
+Wizard of Wor - Speech
+Woodpecker (Set 1)
+Xens Revenge - HBMame
+Xens Revenge After Dark - HBMame
+Xens Revenge After Dark [hb]
+Zero Wing (2P set)
+tmp.mra
