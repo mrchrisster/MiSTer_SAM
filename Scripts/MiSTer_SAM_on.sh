@@ -1477,7 +1477,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 	echo -n "Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1}]}\e[0m: "
 	echo -e "\e[1m${gamename}\e[0m"
-	echo "$(date +%H:%M:%S) - ${1} - ${3}" "$(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >>/tmp/SAM_Games.log
+	echo "$(date +%H:%M:%S) - ${1} - $([ "${samdebug}" == "yes" ] && echo ${rompath} || echo ${3})" "$(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >>/tmp/SAM_Games.log
+	echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >> /tmp/SAM_Games_paths.log
 	echo "${3} (${1}) $(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >/tmp/SAM_Game.txt
 	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"
 
