@@ -3468,6 +3468,7 @@ function samedit_include() {
 		sports "Only Sport Games" \
 		racing "Only Racing Games" \
 		hacks "Only Hacks" \
+		kiosk "Only Kiosk mode games" \
 		translations "Only Translated Games" \
 		homebrew "Only Homebrew" 2>"/tmp/.SAMmenu"
 
