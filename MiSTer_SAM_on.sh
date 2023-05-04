@@ -94,6 +94,7 @@ function init_vars() {
 	declare -gi ttyupdate_pause=10
 	declare -g tty_currentinfo_file=${mrsamtmp}/tty_currentinfo
 	declare -g tty_sleepfile="/tmp/tty2oled_sleep"
+	declare -gl ttyname_cleanup="no"
 	declare -gA tty_currentinfo=(
 		[core_pretty]=""
 		[name]=""
@@ -1485,6 +1486,10 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 	echo "$(date +%H:%M:%S) - ${1} - $([ "${samdebug}" == "yes" ] && echo ${rompath} || echo ${3})" "$(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >>/tmp/SAM_Games.log
 	echo "${3} (${1}) $(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >/tmp/SAM_Game.txt
 	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"
+	
+	if [[ "${ttyname_cleanup}" == "Yes" ]]; then
+		gamename="${gamename//\[*(\[)|\)*\]/}"
+	fi
 
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
@@ -1618,28 +1623,25 @@ function load_core_arcade() {
 
 function create_amigalist () {
 
-	if [ -f "${amigapath}/listings/games.txt" ] || [ -f "${amigapath}/listings/demos.txt" ]; then
+	if [ -f "${amigapath}/listings/games.txt" ]; then
 		if [[ "${amigaselect}" == "demos" ]]; then
-			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
-			sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
-			total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
+			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+			sed -i -e 's/^/Demo: /' ${gamelistpathtmp}/amiga_gamelist.txt
 			samdebug "${total_games} Demos found."
 		elif [[ "${amigaselect}" == "games" ]]; then
-			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" > ${gamelistpath}/amiga_gamelist.txt
-			sed -i -e 's/^/Game: /' ${gamelistpath}/amiga_gamelist.txt
-			total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
+			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
 			samdebug "${total_games} Games found."
 		elif [[ "${amigaselect}" == "all" ]]; then
-			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
-			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
-			sed -i -e 's/^/All: /' ${gamelistpath}/amiga_gamelist.txt
-			total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
+			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+			sed -i -e 's/^/Demo: /' ${gamelistpathtmp}/amiga_gamelist.txt
+			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpathtmp}/amiga_gamelist.txt			
 			samdebug "${total_games} Games and Demos found."
 		else
 			samdebug "Invalid option specified for amigaselect variable."
 		fi
+		total_games="$(wc -l < "${gamelistpathtmp}/amiga_gamelist.txt")"
 	else
-		touch "${gamelistpath}/amiga_gamelist.txt"
+		echo "ERROR: Can't find Amiga games.txt or demos.txt file"
 	fi
 
 }
@@ -1647,9 +1649,14 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
+	if [ ! -f "${gamelistpath}/${nextcore}_gamelist.txt" ]; then
+		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
+		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
+		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
+	fi
+
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		create_amigalist
-		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		filter_list amiga
 	fi
 		
