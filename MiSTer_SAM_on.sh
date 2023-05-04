@@ -1487,8 +1487,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 	echo "${3} (${1}) $(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >/tmp/SAM_Game.txt
 	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"
 	
-	if [[ "${ttyname_cleanup}" == "Yes" ]]; then
-		gamename="${gamename//\[*(\[)|\)*\]/}"
+	if [[ "${ttyname_cleanup}" == "yes" ]]; then
+		gamename="$(echo "${gamename}" | awk -F "(" '{print $1}')"
 	fi
 
 	if [ "${ttyenable}" == "yes" ]; then
@@ -1625,20 +1625,21 @@ function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
 		if [[ "${amigaselect}" == "demos" ]]; then
-			cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
 			sed -i -e 's/^/Demo: /' ${gamelistpathtmp}/amiga_gamelist.txt
+			samdebug "${total_games} Demos found."
 		elif [[ "${amigaselect}" == "games" ]]; then
-			cat "${amigapath}/listings/games.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+			samdebug "${total_games} Games found."
 		elif [[ "${amigaselect}" == "all" ]]; then
-			cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
 			sed -i -e 's/^/Demo: /' ${gamelistpathtmp}/amiga_gamelist.txt
-			cat "${amigapath}/listings/games.txt" >> ${gamelistpathtmp}/amiga_gamelist.txt			
-			
+			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpathtmp}/amiga_gamelist.txt			
+			samdebug "${total_games} Games and Demos found."
 		else
 			samdebug "Invalid option specified for amigaselect variable."
 		fi
 		total_games="$(wc -l < "${gamelistpathtmp}/amiga_gamelist.txt")"
-		samdebug "${total_games} Games and/or Demos found."
 	else
 		echo "ERROR: Can't find Amiga games.txt or demos.txt file"
 	fi
