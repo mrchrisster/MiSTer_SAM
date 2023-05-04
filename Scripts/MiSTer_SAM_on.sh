@@ -58,6 +58,7 @@ function init_vars() {
 	declare -gl skipmessage="Yes"
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
+	declare -gl amigaselect="All"
 	declare -gl mute="No"
 	declare -gl coreweight="No"
 	declare -gl playcurrentgame="No"
@@ -1111,14 +1112,14 @@ function next_core() { # next_core (core)
 	if [ $? -ne 0 ]; then return; fi
 		
 	check_list "${nextcore}"
-	if [ $? -ne 0 ]; then next_core; fi
+	if [ $? -ne 0 ]; then next_core; return; fi
 	
 	# Check if new roms got added
 	check_gamelistupdate ${nextcore} &
 	
 	pick_rom
 	
-	check_rom
+	check_rom "${nextcore}"
 	if [ $? -ne 0 ]; then return; fi
 	
 	delete_played_game
@@ -1345,6 +1346,7 @@ function create_gamelist() { # args ${nextcore}
 		if [ $? -gt 1 ]; then
 			delete_from_corelist "${1}"
 			echo "Can't find games for ${CORE_PRETTY[${1}]}" 
+			samdebug "create_gamelist function returned error code"
 			return 1
 		else	
 			cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
@@ -1362,6 +1364,7 @@ function check_list() { # args ${nextcore}
 		echo "Creating game list at ${gamelistpath}/${1}_gamelist.txt"
 		create_gamelist "${1}"
 		if [ $? -ne 0 ]; then 
+			samdebug "check_list function returned error code"
 			return 1
 		else
 			return
@@ -1402,16 +1405,18 @@ function check_rom(){
 	# Make sure file exists since we're reading from a static list
 	if [[ "${rompath,,}" != *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
-			echo "${rompath} File not found."
+			echo "ERROR: File not found - ${rompath}"
 			echo "Creating new game list now..."
+			rm "${gamelistpath}/${1}_gamelist.txt"
 			create_gamelist "${1}"
 			return 1
 		fi
 	else
 		zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
 		if [ ! -f "${zipfile}" ]; then
-			echo "${zipfile} zip file not found."
+			echo "ERROR: File not found - ${zipfile}"
 			echo "Creating new game list now..."
+			rm "${gamelistpath}/${1}_gamelist.txt"
 			create_gamelist "${1}"
 			return 1
 		fi
@@ -1613,13 +1618,26 @@ function load_core_arcade() {
 
 function create_amigalist () {
 
-	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
-		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
-		
-		total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
-		samdebug "${total_games} Games and Demos found."
+	if [ -f "${amigapath}/listings/games.txt" ] || [ -f "${amigapath}/listings/demos.txt" ]; then
+		if [[ "${amigaselect}" == "demos" ]]; then
+			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
+			sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
+			total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
+			samdebug "${total_games} Demos found."
+		elif [[ "${amigaselect}" == "games" ]]; then
+			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" > ${gamelistpath}/amiga_gamelist.txt
+			sed -i -e 's/^/Game: /' ${gamelistpath}/amiga_gamelist.txt
+			total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
+			samdebug "${total_games} Games found."
+		elif [[ "${amigaselect}" == "all" ]]; then
+			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
+			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
+			sed -i -e 's/^/All: /' ${gamelistpath}/amiga_gamelist.txt
+			total_games="$(wc -l < "${gamelistpath}/amiga_gamelist.txt")"
+			samdebug "${total_games} Games and Demos found."
+		else
+			samdebug "Invalid option specified for amigaselect variable."
+		fi
 	else
 		touch "${gamelistpath}/amiga_gamelist.txt"
 	fi
@@ -1988,6 +2006,7 @@ function sam_enable() { # Enable autoplay
 		if [ -e "${userstartuptpl}" ]; then
 			echo "Copying ${userstartuptpl} to ${userstartup}"
 			cp "${userstartuptpl}" "${userstartup}"
+			sleep 1
 		else
 			echo "Building ${userstartup}"
 		fi
