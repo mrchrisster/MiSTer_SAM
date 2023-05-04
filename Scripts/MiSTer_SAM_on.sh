@@ -1625,21 +1625,20 @@ function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
 		if [[ "${amigaselect}" == "demos" ]]; then
-			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+			cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
 			sed -i -e 's/^/Demo: /' ${gamelistpathtmp}/amiga_gamelist.txt
-			samdebug "${total_games} Demos found."
 		elif [[ "${amigaselect}" == "games" ]]; then
-			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
-			samdebug "${total_games} Games found."
+			cat "${amigapath}/listings/games.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
 		elif [[ "${amigaselect}" == "all" ]]; then
-			[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+			cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
 			sed -i -e 's/^/Demo: /' ${gamelistpathtmp}/amiga_gamelist.txt
-			[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpathtmp}/amiga_gamelist.txt			
-			samdebug "${total_games} Games and Demos found."
+			cat "${amigapath}/listings/games.txt" >> ${gamelistpathtmp}/amiga_gamelist.txt			
+			
 		else
 			samdebug "Invalid option specified for amigaselect variable."
 		fi
 		total_games="$(wc -l < "${gamelistpathtmp}/amiga_gamelist.txt")"
+		samdebug "${total_games} Games and/or Demos found."
 	else
 		echo "ERROR: Can't find Amiga games.txt or demos.txt file"
 	fi
