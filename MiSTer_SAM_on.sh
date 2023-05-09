@@ -2304,9 +2304,26 @@ function mute() {
 	elif [ "${mute}" == "core" ] || [ "${mute}" == "yes" ]; then
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
 		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
-		[ ! -f "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" ] && touch "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
-		[[ "$(mount | grep -ic "${1}"_volume.cfg)" == "0" ]] && mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" /media/fat/config/"${1}_volume.cfg"
-  		sync
+		[ ! -f "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" ] && touch "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"		
+		for i in {1..3}; do
+		  if mount | grep -iq "/media/fat/config/${1}_volume.cfg"; then
+			samdebug "${1}_volume.cfg already mounted"
+			break
+		  fi
+
+		  mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" "/media/fat/config/${1}_volume.cfg"
+		  
+		  if [ $? -eq 0 ]; then
+			samdebug "${1}_volume.cfg mounted successfully"
+			break
+		  else
+			echo "ERROR: Failed to mute ${1} (attempt ${i})"
+			if [ $i -eq 3 ]; then
+			  echo "ERROR: All attempts to mute ${1} failed... Continuing."
+			fi
+			sleep 2
+		  fi
+		done
 		[[ "$(mount | grep -ic "${1}"_volume.cfg)" != "0" ]] && echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
 		# Only keep one volume.cfg file mounted
 		if [ -n "${prevcore}" ] && [ "${prevcore}" != "${1}" ]; then
