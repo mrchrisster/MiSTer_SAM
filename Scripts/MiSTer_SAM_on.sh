@@ -3038,7 +3038,7 @@ function sam_misc() {
 		enabledebug "Enable Debug" \
 		disabledebug  "Disable Debug" \
 		enabledebuglog "Enable Debug Log File" \
-		disabledebug  "Disable Debug Log File" 2>"/tmp/.SAMmenu" 
+		disabledebuglog  "Disable Debug Log File" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -3070,10 +3070,12 @@ function sam_misc() {
 		sed -i '/listenmouse=/c\listenmouse="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "enabledebug" ]]; then
 		sed -i '/samdebug=/c\samdebug="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	elif [[ "${menuresponse,,}" == "enabledebuglog" ]]; then
-		sed -i '/samdebuglog=/c\samdebuglog="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disabledebug" ]]; then
 		sed -i '/samdebug=/c\samdebug="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
+	elif [[ "${menuresponse,,}" == "enabledebuglog" ]]; then
+		sed -i '/samdebuglog=/c\samdebuglog="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "disabledebuglog" ]]; then
+		sed -i '/samdebuglog=/c\samdebuglog="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	fi
 	dialog --clear --ascii-lines --no-cancel \
 	--backtitle "Super Attract Mode" --title "[ Settings ]" \
