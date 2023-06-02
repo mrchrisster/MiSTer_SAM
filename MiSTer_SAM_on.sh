@@ -80,8 +80,8 @@ function init_vars() {
 	declare -g ntpserver="0.pool.ntp.org"
 	declare -gi totalgamecount		
 	# ======== DEBUG VARIABLES ========
-	declare -gl samdebug="Yes"
-	#declare -gl samtrace="No"						
+	declare -gl samdebug="No"
+	declare -gl samdebuglog="No"						
 	# ======== BGM =======
 	declare -gl bgm="No"
 	declare -gl bgmplay="Yes"
@@ -1033,6 +1033,7 @@ function loop_core() { # loop_core (core)
 	echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
 	# Reset game log for this session
 	echo "" >/tmp/SAM_Games.log
+	samdebug "corelist: ${corelist[*]}"
 
 	while :; do
 
@@ -1104,8 +1105,8 @@ function next_core() { # next_core (core)
 
 	fi
 
-	samdebug "corelist: ${corelist[*]}"
-	samdebug "corelisttmp: ${corelisttmp[*]}"
+	#samdebug "corelist: ${corelist[*]}"
+	#samdebug "corelisttmp: ${corelisttmp[*]}"
 	samdebug "Selected core: ${nextcore}"
 
 	# Load arcade, ao486 or amiga cores
@@ -1971,6 +1972,7 @@ function sam_prep() {
 		printf "%s\n" "${clr[@]}" > "${corelistfile}"
 	fi
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
+	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 }
 
 function sam_cleanup() {
@@ -2520,9 +2522,13 @@ function filter_list() { # args ${nextcore}
 
 
 function samdebug() {
-	if [ "${samdebug}" == "yes" ]; then
-			echo -e "\e[1m\e[31m${*-}\e[0m"
-	fi
+    if [ "${samdebug}" == "yes" ]; then
+        echo -e "\e[1m\e[31m${*-}\e[0m"
+    fi
+
+    if [ "${samdebuglog}" == "yes" ]; then
+        echo -e "${*-}" >> /tmp/samdebug.log
+    fi
 }
 
 
@@ -3030,7 +3036,9 @@ function sam_misc() {
 		disablelistenmouse "Disable Mouse detection" \
 		----- "-----------------------------" \
 		enabledebug "Enable Debug" \
-		disabledebug  "Disable Debug" 2>"/tmp/.SAMmenu" 
+		disabledebug  "Disable Debug" \
+		enabledebuglog "Enable Debug Log File" \
+		disabledebug  "Disable Debug Log File" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -3062,6 +3070,8 @@ function sam_misc() {
 		sed -i '/listenmouse=/c\listenmouse="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "enabledebug" ]]; then
 		sed -i '/samdebug=/c\samdebug="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	elif [[ "${menuresponse,,}" == "enabledebuglog" ]]; then
+		sed -i '/samdebuglog=/c\samdebuglog="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disabledebug" ]]; then
 		sed -i '/samdebug=/c\samdebug="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
 	fi
