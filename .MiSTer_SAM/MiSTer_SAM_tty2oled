@@ -38,8 +38,6 @@ declare -g ttypicture="/media/fat/tty2oled/pics"
 declare -g ttypicture_pri="/media/fat/tty2oled/pics_pri"
 declare -g prev_name_scroll=""
 declare -g prev_counter=""
-declare -gi ttyscroll_speed=1
-declare -gi ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
 samquiet=no
 samdebug=yes
 samtrace=yes
@@ -59,6 +57,14 @@ source ${ttyuserini}
 ttydevice=${TTYDEV}
 
 gametimer=$((gametimer + 3))
+
+if [ "${ttyscroll_speed}" == "faster" ]; then
+	ttyscroll_speed_int=0.5
+elif [ "${ttyscroll_speed}" == "slower" ]; then
+	ttyscroll_speed_int=1.5
+else
+	ttyscroll_speed_int=1
+fi
 
 
 # ======== tty2oled FUNCTIONS ========
@@ -101,34 +107,23 @@ function tty_waitfor() {
 	ttyresponse=""
 }
 
-function set_scroll_speed() {
-	ttyscroll_speed_int=$((${ttyscroll_speed} - 1))
-}
-
 function update_name_scroll() {
-    if [ ${ttyscroll_speed} -gt 0 ]; then
-        if [ ${#tty_currentinfo[name]} -gt 21 ]; then
-            if [ ${ttyscroll_speed_int} -gt 0 ]; then
-                ((ttyscroll_speed_int--))
-            else
-                set_scroll_speed
-				length=$((${#tty_currentinfo[name]} + 5))
-                tty_currentinfo[name_scroll]="${tty_currentinfo[name]}      ${tty_currentinfo[name]}"
-				if [[ "${tty_currentinfo[name_scroll_position]}" -lt "$length" ]]; then
-					((tty_currentinfo[name_scroll_position]++))
-				else
-					tty_currentinfo[name_scroll_position]=0
-					
-				fi					
-                tty_currentinfo[name_scroll]="${tty_currentinfo[name_scroll]:${tty_currentinfo[name_scroll_position]}:25}"
-                [[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
-                [[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
-                [[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,0,0,0,30,${prev_name_scroll}" >${ttydevice}
-                [[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,15,0,0,30,${tty_currentinfo[name_scroll]}" >${ttydevice}
-                prev_name_scroll="${tty_currentinfo[name_scroll]}"
-            fi
-        fi
-    fi
+	if [ ${#tty_currentinfo[name]} -gt 21 ]; then
+		length=$((${#tty_currentinfo[name]} + 5))
+		tty_currentinfo[name_scroll]="${tty_currentinfo[name]}      ${tty_currentinfo[name]}"
+		if [[ "${tty_currentinfo[name_scroll_position]}" -lt "$length" ]]; then
+			((tty_currentinfo[name_scroll_position]++))
+		else
+			tty_currentinfo[name_scroll_position]=0
+			
+		fi					
+		tty_currentinfo[name_scroll]="${tty_currentinfo[name_scroll]:${tty_currentinfo[name_scroll_position]}:25}"
+		[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,0,0,0,20,${prev_name_scroll}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "no" ]] && echo "CMDTXT,103,15,0,0,20,${tty_currentinfo[name_scroll]}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,0,0,0,30,${prev_name_scroll}" >${ttydevice}
+		[[ -c ${ttydevice} ]] && [[ "${ttybig,,}" == "yes" ]] && echo "CMDTXT,105,15,0,0,30,${tty_currentinfo[name_scroll]}" >${ttydevice}
+		prev_name_scroll="${tty_currentinfo[name_scroll]}"
+	fi
 }
 
 
@@ -257,7 +252,8 @@ function write_to_TTY_cmd_pipe() {
 
 function update_loop() {
 	while [[ -p ${TTY_cmd_pipe} ]]; do
-		sleep 1
+		sleep ${ttyscroll_speed_int}
+		#sleep 0.5
 		write_to_TTY_cmd_pipe "update_counter" &
 	done
 }
