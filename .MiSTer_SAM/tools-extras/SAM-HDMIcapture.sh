@@ -7,6 +7,7 @@ function init_vars() {
 	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 	declare -g misterpath="/media/fat"
 	# Save our PID and process
+	declare -g  sshwinconnect="chelm@192.168.1.64"
 
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
@@ -177,6 +178,7 @@ function init_paths() {
 	declare -g GET_SYSTEM_FOLDER_RESULT=""
 	# Create folders if they don't exist
 	mkdir -p "${mrsampath}/SAM_Gamelists"
+	rm -rf /tmp/.SAM_List
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
@@ -836,90 +838,17 @@ function reset_core_gl() { # args ${nextcore}
 
 
 # ======== ROMFINDER ========
-function create_romlist() { # args ${nextcore} "${DIR}"
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo " Looking for games in  ${2}..."
-	else
-		echo -n " Looking for games in  ${2}..."
-	fi
-	# Find all files in core's folder with core's extension
-	extlist=$(echo ${CORE_EXT[${1}]} | sed -e "s/,/ -o -iname *.$f/g")
-	find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*."${extlist} -not -iname *BIOS* ${fileex} \) -fprint >(cat >>"${tmpfile}")
-	# Now find all zips in core's folder and process
-	if [ "${CORE_ZIPPED[${1}]}" == "yes" ]; then
-		find -L "${2}" \( -type l -o -type d \) \( -iname *BIOS* ${folderex} \) -prune -false -o -not -path '*/.*' -type f \( -iname "*.zip" -not -iname *BIOS* ${fileex} \) -fprint "${tmpfile2}"
-		if [ -s "${tmpfile2}" ]; then
-			cat "${tmpfile2}" | while read z; do
-				if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-					echo " Processing: ${z}"
-				fi
-				"${mrsampath}/partun" "${z}" -l -e ${zipex} --include-archive-name --ext "${CORE_EXT[${1}]}" >>"${tmpfile}"
-			done
-		fi
-	fi
 
-	cat "${tmpfile}" | sort >"${gamelistpath}/${1}_gamelist_hdmi.txt"
-
-	# Strip out all duplicate filenames with a fancy awk command
-	awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist_hdmi.txt" > $tmpfile && mv -f $tmpfile "${gamelistpath}/${1}_gamelist_hdmi.txt"
-	# cp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
-	rm ${tmpfile} &>/dev/null
-	rm ${tmpfile2} &>/dev/null
-
-	total_games=$(echo $(cat "${gamelistpath}/${1}_gamelist_hdmi.txt" | sed '/^\s*$/d' | wc -l))
-	if [ ${speedtest} -eq 1 ]; then
-		echo -n "${1}: ${total_games} Games found" >>"${gamelistpathtmp}/Durations.tmp"
-	fi
-	if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-		echo "${total_games} Games found."
-	else
-		echo " ${total_games} Games found."
-	fi
-}
-
-function check_list() { # args ${nextcore}  "${DIR}"
-	# If gamelist is not in /tmp dir, let's put it there
+function check_list() { # args ${nextcore}  
+	
 	if [ ! -f "${gamelistpath}/${1}_gamelist_hdmi.txt" ]; then
 		if [ "${samquiet}" == "no" ]; then echo " Creating game list at ${gamelistpath}/${1}_gamelist_hdmi.txt"; fi
-		create_romlist ${1} "${2}"
-	fi
-
-	# If folder changed, make new list
-	if [[ ! "$(cat ${gamelistpath}/${1}_gamelist_hdmi.txt | grep "${2}" | head -1)" ]]; then
-		if [ "${samquiet}" == "no" ]; then echo " Creating new game list because folder "${DIR}" changed in ini."; fi
-		create_romlist ${1} "${2}"
-	fi
-
-	# Check if zip still exists
-	if [ "$(grep -c ".zip" ${gamelistpath}/${1}_gamelist_hdmi.txt)" != "0" ]; then
-		mapfile -t zipsinfile < <(grep ".zip" "${gamelistpath}/${1}_gamelist_hdmi.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
-		for zips in "${zipsinfile[@]}"; do
-			if [ ! -f "${zips}" ]; then
-				if [ "${samquiet}" == "no" ]; then echo " Creating new game list because zip file[s] seems to have changed."; fi
-				create_romlist ${1} "${2}"
-			fi
-		done
+		"${mrsampath}"/samindex -s ${1} -o "${gamelistpath}/samcapture"
 	fi
 
 	# If gamelist is not in /tmp dir, let's put it there
-	if [ -f "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" ]; then
-
-		# Pick the actual game
-		rompath="$(cat ${gamelistpathtmp}/${1}_gamelist_hdmi.txt | head -n1)"
-	else
-
-		# Repopulate list
-		if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
-			if [ "${samquiet}" == "no" ]; then echo -n " Exclusion list found. Excluding games now..."; fi
-			comm -13 <(sort <"${gamelistpath}/${1}_gamelist_exclude.txt") <(sort <"${gamelistpath}/${1}_gamelist_hdmi.txt") >${tmpfile}
-			awk -F'/' '!seen[$NF]++' ${tmpfile} >"${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
-			if [ "${samquiet}" == "no" ]; then echo "Done."; fi
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist_hdmi.txt | shuf --head-count=1)"
-		else
-			awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist_hdmi.txt" >"${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
-			# cp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" &>/dev/null
-			rompath="$(cat ${gamelistpathtmp}/${1}_gamelist_hdmi.txt | shuf --head-count=1)"
-		fi
+	if [ ! -f "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" ]; then
+		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist_hdmi.txt" >"${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
 	fi
 	
 	if [ ! -s "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" ]; then
@@ -929,23 +858,38 @@ function check_list() { # args ${nextcore}  "${DIR}"
 	# Make sure file exists since we're reading from a static list
 	if [[ ! "${rompath,,}" == *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
-			if [ "${samquiet}" == "no" ]; then echo " Creating new game list because file not found."; fi
-			create_romlist ${1} "${2}"
+			kill -9 $sampid
 		fi
 	fi
+	
+	
 
 }
 
 function compare_mp4-gl() {
 	nextcore=${1}
-	ssh chelm@192.168.1.64 'dir /b "c:\SAM\'${nextcore}'\*.mp4"' /s | rev | cut -c6- | rev | awk -F'\\' '{print $NF}' |sort > "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt"
-	fgrep -vf "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt" "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" > "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt"
+	ssh "${sshwinconnect}" 'dir /b "c:\SAM\'${nextcore}'\*.mp4"' /s | awk -F'\\' '{print $NF}' | awk -F'.mp4' '{print $1}'| sort > "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt"
+	#cat "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" | awk -F/ '{print $NF}' | sort > "${gamelistpathtmp}/${nextcore}_gamelist_hdmi_stripped.txt"
+	echo -n "Comparing existing mp4's to gamelist..."
+	if [ "${nextcore}" == "amiga" ]; then
+		fgrep -wvf "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt" "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" > "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt"
+	else
+		fgrep -ivf "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt" "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" > "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt"
+	fi
+	echo "Done"
+	
+	awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" > $tmpfile && mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
+	rm ${tmpfile} &>/dev/null
+	rm ${tmpfile2} &>/dev/null
+	
+	
 	if [ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l)" == "0" ]; then
 		echo " No new games found"
 		exit
 	else
 		echo " $(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l) Games left to capture"
 	fi
+
 }
 	
 
@@ -1003,45 +947,27 @@ function next_core() { # next_core (core)
 		
 	rompath="$(cat ${gamelistpathtmp}/${1}_gamelist_hdmi.txt | head -n1)"
 	romname=$(basename "${rompath}")
+	
+	echo " Selected file: ${rompath}"
 
 	# Sanity check that we have a valid rom in var
 	extension="${rompath##*.}"
 	extlist=$(echo "${CORE_EXT[${nextcore}]}" | sed -e "s/,/ /g")
 				
-	if [[ ! "$(echo "${extlist}" | grep -i "${extension}")" ]]; then
-		if [ "${samquiet}" == "no" ]; then echo -e " Wrong extension found: \e[1m${extension^^}\e[0m"; fi
-		if [ "${samquiet}" == "no" ]; then echo -e " Regenerating Game List"; fi
+	# if [[ ! "$(echo "${extlist}" | grep -i "${extension}")" ]]; then
+		# if [ "${samquiet}" == "no" ]; then echo -e " Wrong extension found: \e[1m${extension^^}\e[0m"; fi
+		# if [ "${samquiet}" == "no" ]; then echo -e " Regenerating Game List"; fi
 
-		create_romlist ${nextcore} "${DIR}"
-		next_core ${nextcore}
-		return
-	fi
+		# "${mrsampath}"/samindex -s ${1} -o "${gamelistpath}/samcapture"
+		# next_core ${nextcore}
+		# return
+	# fi
 	
 	if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l)" == "0" ]]; then
-		if [[ "$yesno" == y ]]; then
-			ssh chelm@192.168.1.64 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
-		fi
+		ssh "${sshwinconnect}" 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
 		exit
 	fi
 	
-
-	# If there is an exclude list check it
-	declare -n excludelist="${nextcore}exclude"
-	if [ ${#excludelist[@]} -gt 0 ]; then
-		for excluded in "${excludelist[@]}"; do
-			if [ "${romname}" == "${excluded}" ]; then
-				echo " {romname} empty."
-				exit
-			fi
-		done
-	fi
-
-	if [ -f "${excludepath}/${nextcore}_excludelist.txt" ]; then
-		cat "${excludepath}/${nextcore}_excludelist.txt" | while IFS=$'\n' read line; do
-			echo " Found exclusion list for core $nextcore"
-			awk -vLine="$line" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		done
-	fi
 
 	if [ -z "${rompath}" ]; then
 		core_error "${nextcore}" "${rompath}"
@@ -1090,16 +1016,12 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 
 	#mute "${CORE_LAUNCH[${nextcore}]}"
 
-	echo "<mistergamedescription>" >/tmp/SAM_game.mgl
-	echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>" >>/tmp/SAM_game.mgl
+	{
+	  echo "<mistergamedescription>"
+	  echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
+	  echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
+	} >/tmp/SAM_game.mgl
 
-	if [ ${usedefaultpaths} == "yes" ]; then
-		corepath="${CORE_PATH[${nextcore}]}/"
-		rompath="${rompath#${corepath}}"
-		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"${rompath}\""/>" >>/tmp/SAM_game.mgl
-	else
-		echo "<file delay="${MGL_DELAY[${nextcore}]}" type="${MGL_TYPE[${nextcore}]}" index="${MGL_INDEX[${nextcore}]}" path="\"../../../..${rompath}\""/>" >>/tmp/SAM_game.mgl
-	fi
 
 	echo "</mistergamedescription>" >>/tmp/SAM_game.mgl
 
@@ -1110,15 +1032,14 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 	sleep 30
 	
-	ssh chelm@192.168.1.64 'mkdir "c:\SAM\'${nextcore}'"'
-	ssh chelm@192.168.1.64 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
+	ssh "${sshwinconnect}" 'mkdir "c:\SAM\'${nextcore}'"'
+	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
 
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
 	
 	# Delete played game from list
-	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${1}_gamelist_hdmi.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${1}_gamelist_hdmi.txt"
 	fi
@@ -1187,34 +1108,23 @@ function build_mralist() {
 
 function load_core_arcade() {
 
-	DIR=$(echo $(realpath -s --canonicalize-missing "${CORE_PATH[${nextcore}]}${CORE_PATH_EXTRA[${nextcore}]}"))
 	
 	# Check if the MRA list is empty or doesn't exist - if so, make a new list
 
-	if [ ! -s "${mralist}" ]; then
-		build_mralist "${arcadepath}"
-		[ -f "${mralist_tmp}" ] && rm "${mralist_tmp}"
-	fi
-
-	if [ ! -f "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" &>/dev/null
-	fi
-	
-	if [ ! -s "${mralist_tmp}" ]; then
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" ]; then
 		kill -9 $sampid
 	fi
 	
 
 	# Get a random game from the list
-	mra="$(head -n1 ${mralist_tmp})"
-	MRAPATH="$(echo $(realpath -s --canonicalize-missing "${DIR}/${mra}"))"
+	mra="$(head -n1 "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt")"
 	
 
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${MRAPATH}"; fi
 
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$mra" '!index($0,Line)' "${mralist_tmp}" >${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
+		awk -vLine="$mra" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt"
 
 	fi
 
@@ -1229,16 +1139,16 @@ function load_core_arcade() {
 			sleep 1
 		done
 	fi
-	if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" |wc -l)" == "0" ]]; then
+	if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l)" == "0" ]]; then
 			if [[ "$yesno" == y ]]; then
-				ssh chelm@192.168.1.64 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
+				ssh "${sshwinconnect}" 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
 			fi
 	fi
 
 	# Tell MiSTer to load the next MRA
-	echo "load_core ${MRAPATH}" >/dev/MiSTer_cmd
-	sleep 10
-	ssh chelm@192.168.1.64 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\arcade\'${mraname}'".mp4'
+	echo "load_core ${mra}" >/dev/MiSTer_cmd
+	sleep 30
+	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\arcade\'${mraname}'".mp4'
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
@@ -1247,17 +1157,10 @@ function load_core_arcade() {
 function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/${nextcore}_gamelist.txt
-		sed -i -e 's/^/Demo: /' ${gamelistpath}/${nextcore}_gamelist.txt
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/${nextcore}_gamelist.txt
-		
-		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist.txt" | sed '/^\s*$/d' | wc -l))
+		sort "${amigapath}"/listings/demos.txt "${amigapath}"/listings/games.txt > ${gamelistpath}/amiga_gamelist_hdmi.txt
+		cp --force ${gamelistpath}/${nextcore}_gamelist_hdmi.txt "${gamelistpathtmp}"/${nextcore}_gamelist_hdmi.txt
+		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" | sed '/^\s*$/d' | wc -l))
 
-		if [ ${speedtest} -eq 1 ] || [ "${samquiet}" == "no" ]; then
-			echo "${total_games} Games and Demos found."
-		else
-			echo " ${total_games} Games and Demos found."
-		fi
 	fi
 
 }
@@ -1267,74 +1170,52 @@ function load_core_amiga() {
 
 	amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 	
-	mute "${CORE_LAUNCH[${nextcore}]}"
-
-	if [ ! -f "${amigapath}/listings/games.txt" ]; then
-		# This is for MegaAGS version June 2022 or older
-		echo -n " Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
-		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
-
-
-		#tty_update "${CORE_PRETTY[${nextcore}]}" & # Non-Blocking
-
-		if [ "${nextcore}" == "countdown" ]; then
-			for i in {5..1}; do
-				echo " Loading game in ${i}...\033[0K\r"
-				sleep 1
-			done
-		fi
-
-		# Tell MiSTer to load the next MRA
-
-		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-		sleep 13
-		"${mrsampath}/mbc" raw_seq {6c
-		"${mrsampath}/mbc" raw_seq O
-		echo "" | >/tmp/.SAM_Joy_Activity
-		echo "" | >/tmp/.SAM_Mouse_Activity
-		echo "" | >/tmp/.SAM_Keyboard_Activity
-	else
-		# This is for MegaAGS version July 2022 or newer
-		[ ! -f ${gamelistpath}/${nextcore}_gamelist.txt ] && create_amigalist
-		
-		if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
-			cp ${gamelistpath}/${nextcore}_gamelist.txt "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		fi
-
-		rompath="$(shuf --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
-		agpretty="$(echo "${rompath}" | tr '_' ' ')"
-		
-		# Special case for demo
-		if [[ "${rompath}" == *"Demo:"* ]]; then
-			rompath=${rompath//Demo: /}
-		fi
-
-		# Delete played game from list
-		if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
-		if [ "${norepeat}" == "yes" ]; then
-			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		fi
-		
-		if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist.txt" |wc -l)" == "0" ]]; then
-			if [[ "$yesno" == y ]]; then
-				ssh chelm@192.168.1.64 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
-			fi
-		fi
-
-
-		echo "${rompath}" > "${amigapath}"/shared/ags_boot
-
-		echo -n " Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
-		echo -e "\e[1m${agpretty}\e[0m"
-		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
-		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
-		tty_update "${CORE_PRETTY[${nextcore}]}" "${agpretty}" "${CORE_LAUNCH[${nextcore}]}" & # Non blocking Version
-
-		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-
+	#mute "${CORE_LAUNCH[${nextcore}]}"
+	
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" ]; then
+		kill -9 $sampid
 	fi
+
+	rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt | head -n1)"
+	
+	while true; do
+	  if [ "$(echo "${rompath}" | tr -d '[[:print:]]')" != "" ] || [[ "${rompath}" == *"?"* ]] || [[ "${rompath}" == *":"* ]]; then
+		echo "ERROR: ${rompath} contains non-ASCII characters and will be ignored"
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt"
+		sleep 2
+		unset rompath
+		rompath="$(cat ${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt | head -n1)"
+	  else
+		echo "${rompath}" > "${amigapath}"/shared/ags_boot
+		break
+	  fi
+	done
+
+
+	agpretty="$(echo "${rompath}" | tr '_' ' ')"
+	GAMENAME="${rompath}"	
+
+	echo -n " Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+	echo -e "\e[1m${agpretty}\e[0m"
+	echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
+	echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
+	#tty_update "${CORE_PRETTY[${nextcore}]}" "${agpretty}" "${CORE_LAUNCH[${nextcore}]}" & # Non blocking Version
+
+	echo "load_core ${amigacore}" >/dev/MiSTer_cmd
+	sleep 30
+	
+	ssh "${sshwinconnect}" 'mkdir "c:\SAM\'${nextcore}'"'
+	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
+	
+	# Delete played game from list
+	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
+	if [ "${norepeat}" == "yes" ]; then
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" >${tmpfile} && mv ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt"
+	fi
+
+
+
 }
 
 
@@ -1351,26 +1232,27 @@ function main() {
 	init_data # Setup data arrays
 	
 	args="$(echo "$@")"
-	if [[ "${args}" != *"-y"* ]]; then
-		echo "Create new romlist? y/n"
-		read answer
-		echo "Update existing list? y/n"
-		read answer
-		echo "Create blacklist? y/n"
-		read yesno
+
+
+
+	if [[ "$1" == "amiga" ]]; then
+		create_amigalist
 	else
-		answer=y
-		yesno=y
+		if [ ! -d "${gamelistpath}/samcapture" ]; then
+			mkdir -p "${gamelistpath}/samcapture"
+		fi
+		"${mrsampath}"/samindex -s ${1} -o "${gamelistpath}/samcapture"
+		for file in "${gamelistpath}/samcapture"/*; do
+			filename=$(basename "$file")
+			cp "$file" "${gamelistpath}/${filename%.*}_hdmi.txt"
+		done
+		echo "Copying gamelist to ${sshwinconnect} machine"
+		scp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${sshwinconnect}:/SAM/${1}/${1}_gamelist_hdmi.txt"
 	fi
 
-	if [[ "$answer" == y ]]; then
-		create_romlist ${1} ${CORE_PATH[${1}]}
-	fi
-	
 
-	if [[ "$answer" == y ]]; then
-		compare_mp4-gl ${1}
-	fi
+	compare_mp4-gl ${1}
+
 	
 	parse_cmd ${1} # Parse command line parameters for input
 
