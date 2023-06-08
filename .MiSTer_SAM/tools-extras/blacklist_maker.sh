@@ -4,6 +4,9 @@
 
 args="$(echo "$@")"
 scene="1"
+if [[ "$1" == "arcade" ]]; then
+	scene="005"
+fi
 
 cd /mnt/c/SAM/${1}
 
@@ -33,6 +36,22 @@ if [[ "${args}" != *"nostamp"* ]]; then
 	echo "Done."
 fi
 
+if [ -f "${1}_gamelist_hdmi.txt" ]; then
+	echo -n "Creating fake .st${scene} files..."
+	ls *.mp4 | awk -F"/" '{print $(NF)}' | awk -F"." '{OFS=FS; NF=NF-1; print $0}' > "${1}_gamelist_mp4.txt"
+	#add a . for unique files
+	sed -i 's/$/./' "${1}_gamelist_mp4.txt"
+	#filter out all mp4s already created
+	fgrep -vf "${1}_gamelist_mp4.txt" "${1}_gamelist_hdmi.txt" > "${1}_gamelist_missingmp4.txt"
+	# prepare for filtering out other roms with longer names
+	sed -i 's/.$//' "${1}_gamelist_mp4.txt"
+	fgrep -f "${1}_gamelist_mp4.txt" "${1}_gamelist_missingmp4.txt" | awk -F"/" '{print $(NF)}' | awk -F"." '{OFS=FS; NF=NF-1; print $0}' | sort -u > "${1}_gamelist_fakemp4.txt"
+	while IFS= read -r line; do
+		#touch "$line.st1"
+		touch "$line.st${scene}"
+	done < "${1}_gamelist_fakemp4.txt"
+	echo "Created $(wc -l <"${1}_gamelist_fakemp4.txt") fake .st1 files."
+fi
 
 if [[ "${args}" == *"filter"* ]]; then
 	echo -n "Filtering consecutive frames out..."
@@ -76,10 +95,9 @@ done
 
 
 if [[ "${args}" != *"brackets"* ]]; then
-	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.st"${scene}" '{print $1}'| awk '!seen[$0]++' > ${1}_bl.txt
+	cat ${1}_bl.tmp | awk -F.st"${scene}" '{print $1}'| awk '!seen[$0]++' > ${1}_bl.txt
 else
 	cat ${1}_bl.tmp | cut -d "(" -f1-3 | awk -F.st"${scene}" '{print $1}' | cut -d "[" -f1 | awk '!seen[$0]++' > ${1}_bl.txt
-
 fi
 
 if [[ "${args}" == *"nobrackets"* ]]; then
@@ -87,10 +105,10 @@ if [[ "${args}" == *"nobrackets"* ]]; then
 fi
 echo "Done."
 
-
-echo "${1}_bl.txt was created"
-
-if [[ -e /mnt/c/SAM/${1}_blacklist.txt ]]; then
+if [ -e /mnt/c/SAM/${1}_blacklist.txt ]; then
 	sort /mnt/c/SAM/${1}/${1}_bl.txt /mnt/c/SAM/${1}_blacklist.txt | awk '!seen[$0]++' > /mnt/c/SAM/tmp && cp --force /mnt/c/SAM/tmp /mnt/c/SAM/${1}_blacklist.txt
 	echo "${1}_blacklist.txt merge successful"
+else
+	cp /mnt/c/SAM/${1}/${1}_bl.txt /mnt/c/SAM/${1}_blacklist.txt
+	echo "${1}_blacklist.txt was created."
 fi
