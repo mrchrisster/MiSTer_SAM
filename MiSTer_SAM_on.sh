@@ -22,7 +22,7 @@
 # Additional development and script layout: Mellified and Paradox
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, theypsilon
 # tty2oled improvements by venice
 
 # TODO implement playcurrentgame for amiga
