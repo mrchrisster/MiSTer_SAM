@@ -30,15 +30,17 @@ res_space=$(echo "$res" | tr 'x' ' ')
 
 
 function change_menures() {
-# Check if the [menu] entry exists
-if [[ $ini_contents =~ \[menu\] ]]; then
-    echo "[menu] entry already exists."
+# Backup mister.ini
+if [ -f "$ini_file" ]; then
+	cp "$ini_file" "${ini_file}".vpl
 else
-    # Append [menu] entry if it doesn't exist
-    echo -e "\n[menu]" >> "$ini_file"
-    echo -e "video_mode=640,480,60" >> "$ini_file"
-    echo "[menu] entry created."
+	touch "$ini_file"
 fi
+#append menu info
+echo -e "\n[menu]" >> "$ini_file"
+echo -e "video_mode=640,480,60" >> "$ini_file"
+echo "[menu] entry created."
+
 
 # Replace video_mode if it exists within [menu] entry
 if [[ $ini_contents =~ \[menu\].*video_mode=([^,[:space:]]+) ]]; then
@@ -69,4 +71,5 @@ chvt 2
 vmode -r ${res_space} rgb32
 #vmode -r 640 480 rgb32
 mplayer -cache 8192 "$url"
+cp "$ini_file.vpl" "$ini_file"
 echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
