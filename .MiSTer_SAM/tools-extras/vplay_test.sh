@@ -1,5 +1,5 @@
 #!/bin/bash
-trap 'break' SIGINT
+# trap 'break' SIGINT
 # Good video footage: 
 # https://archive.org/download/videogamecommmercials1993
 #
