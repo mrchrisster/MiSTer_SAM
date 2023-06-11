@@ -10,10 +10,61 @@ declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
 declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 declare -g gamelistpathtmp="/tmp/.SAM_List"
-declare -g mralist="${mrsampath}/SAM_Gamelists/arcade_gamelist.txt"
-declare -g mralist_tmp="/tmp/.SAM_List/arcade_gamelist.txt"
 declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
 declare -g tmpfile="/tmp/.SAM_List/tmpfile"
+declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
+declare -g saminit_log="/tmp/saminit.log"
+declare -gl kids_safe
+
+#========= PARSE INI =========
+# Read INI, Check for mount point presence
+while ! test -d /media/fat/
+do
+	sleep 1
+	count=`expr $count + 1`
+	if test $count -eq 30; then
+		echo " Mount timed out!"
+      		exit 1
+ 		fi
+done
+
+if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+	IFS=',' read -ra corelist <<< "${corelist}"
+	IFS=',' read -ra corelistall <<< "${corelistall}"
+	grep "^[^#;]" < "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
+		declare -g "${var}"="${!var%/}"
+	done
+fi
+
+#========= VARS CHANGED BY INI =========
+# Core to path mappings
+declare -gA PATHFILTER=(
+["amiga"]="${amigapathfilter}"
+["ao486"]="${ao486pathfilter}"
+["arcade"]="${arcadepathfilter}"
+["atari2600"]="${atari2600pathfilter}"
+["atari5200"]="${atari5200pathfilter}"
+["atari7800"]="${atari7800pathfilter}"
+["atarilynx"]="${atarilynxpathfilter}"				  
+["c64"]="${c64pathfilter}"
+["fds"]="${fdspathfilter}"
+["gb"]="${gbpathfilter}"
+["gbc"]="${gbcpathfilter}"
+["gba"]="${gbapathfilter}"
+["genesis"]="${genesispathfilter}"
+["gg"]="${ggpathfilter}"
+["megacd"]="${megacdpathfilter}"
+["neogeo"]="${neogeopathfilter}"
+["nes"]="${nespathfilter}"
+["s32x"]="${s32xpathfilter}"
+["sms"]="${smspathfilter}"
+["snes"]="${snespathfilter}"
+["tgfx16"]="${tgfx16pathfilter}"
+["tgfx16cd"]="${tgfx16cdpathfilter}"
+["psx"]="${psxpathfilter}"
+)
+
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -35,27 +86,9 @@ killall -q -9 MiSTer_SAM_keyboard.py 2>/dev/null
 kill -9 $(ps -o pid,args | grep "inotifywait" | grep "SAM_Joy_Change" | { read -r PID COMMAND; echo $PID; }) 2>/dev/null
 echo " Done!"
 
-#========= PARSE INI =========
-# Read INI, Check for mount point presence
-while ! test -d /media/fat/
-do
-	sleep 1
-	count=`expr $count + 1`
-	if test $count -eq 30; then
-		echo " Mount timed out!"
-      		exit 1
- 		fi
-done
 
-if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
-	source "${misterpath}/Scripts/MiSTer_SAM.ini"
-	IFS=',' read -ra corelist <<< "${corelist}"
-	IFS=',' read -ra corelistall <<< "${corelistall}"
-fi
-
+#========= PREP =========
 mkdir -p "${gamelistpathtmp}"
-
-
 
 #======== Functions ========
 function start() {
@@ -82,82 +115,146 @@ function stop() {
 	echo " Done!"
 }
 
-
-function check_list() { # args ${nextcore} 	
+# Same function as in MiSTer_SAM_on.sh
+function filter_list() { # args ${nextcore} 	
+		
+	# Check path filter
+	if [ -n "${PATHFILTER[${1}]}" ]; then 
+		echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}." >> ${saminit_log}
+		fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	else
+		echo "No path filter found for ${1} - ${PATHFILTER[${1}]}" >> ${saminit_log}
+	fi
 	
-	# Copy gamelist to tmp
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
-
-		
-		# Check path filter
-		if [ -n "${PATHFILTER[${1}]}"  ]; then 
-			echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
-			fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
+		cat "${gamelistpath}/${1}_gamelist.txt" | fgrep "Rotation/" | fgrep -i "${arcadeorient}" > $tmpfile
+		if [ -s ${tmpfile} ]; then
+			mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"	
+		else
+			echo "Arcade Orientation Filter Error."
 		fi
+	fi
 
-		# Exclusion and blacklist filter			
-		awk -F'/' '!seen[$NF]++' "${gamelistpath}/${1}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	# Strip dupes			
+	awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
 
-		#Check exclusion
-		if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
-			echo "Found excludelist for core ${1}. Stripping out unwanted games now."
-			fgrep -vf "${gamelistpath}/${1}_excludelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	#Check exclusion or kids safe white lists
+	#First check for category exclusion
+	if [ -f "${gamelistpath}/${1}_gamelist_exclude.txt" ]; then
+		echo "Found category excludelist for core ${1}. Stripping out unwanted games now." >> ${saminit_log}
+		# Process full file paths from gamelist_exclude
+		awk 'FNR==NR{a[$0];next} !($0 in a)' "${gamelistpath}/${1}_gamelist_exclude.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" 
+		mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
+	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
+		echo "Found excludelist for core ${1}. Stripping out unwanted games now." >> ${saminit_log}
+		# Process file names without extensions from excludelist
+		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_excludelist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_excludelist.txt\"); } \
+		{ gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" \
+		"${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
+		mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	fi
+
+	
+	if [ "${kids_safe}" == "yes" ]; then
+		samdebug "Kids Safe Mode - Filtering Roms..."
+			if [ ${1} == amiga ]; then
+				fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
+			else
+				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
+			fi
+			if [ -s "${tmpfilefilter}" ]; then 
+				samdebug "$(wc -l <"${tmpfilefilter}") games after kids safe filter applied." >> ${saminit_log}
+				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+			else
+				delete_from_corelist "${1}"
+				delete_from_corelist "${1}" tmp
+				echo "${1} kids safe filter produced no results and will be disabled." >> ${saminit_log}
+				echo "List of cores is now: ${corelist[*]}" >> ${saminit_log}
+				return 1
+			fi
+	fi
+	
+	#Check ini exclusion
+	if [[ "${exclude[*]}" ]]; then 
+		for e in "${exclude[@]}"; do
+			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		done
+
+	fi
+ 
+	#Check blacklist	
+	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
+		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
+		echo "Disabling static screen games for ${1} core. This can take a moment..."
+		# Process file names without extensions from blacklist
+		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_blacklist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_blacklist.txt\"); } \
+		{ gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" \
+		"${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
+		if [ -s "${tmpfilefilter}" ]; then 
+			cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		else
+			samdebug "Blacklist filter failed" >> ${saminit_log}
 		fi
-		
-		#Check ini exclusion
-		if [[ "${exclude[*]}" ]]; then 
-			for e in "${exclude[@]}"; do
-				fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-			done
-
-		fi
-
-		#Check blacklist	
-		if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
-			# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
-			fgrep -vf "${gamelistpath}/${1}_blacklist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk 'NF > 0' > "${tmpfilefilter}" && cp "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-		fi
-
 	fi
 }
 
-function check_list_arcade() {
-	
-	#Check blacklist and copy gamelist to tmp
-	if [ ! -s "${mralist_tmp}" ]; then
-		cp "${mralist}" "${mralist_tmp}" 2>/dev/null
-		#Check path filter
-		if [ -n "${arcadepathfilter}" ]; then
-			echo "Found path filter for Arcade core: ${arcadepathfilter}"
-			fgrep "${arcadepathfilter}" "${mralist}" > "${mralist_tmp}"
-		fi
-		if [ -n "${arcadeorient}" ]; then
-			fgrep -i "${arcadeorient}" "${mralist}" | awk -F"/" '{print $NF}' > $tmpfile	
-			fgrep -f $tmpfile "${mralist_tmp}"	> $tmpfile2 && mv $tmpfile2 "${mralist_tmp}"			
-			#cat "${mralist_tmp}" | grep "${arcadepathfilter}" > "${mralist_tmp}"
-		fi
-	
-		if [ -f "${gamelistpath}/${nextcore}_blacklist.txt" ]; then
-			fgrep -vf "${gamelistpath}/${nextcore}_blacklist.txt" "${mralist_tmp}" | awk 'NF > 0' > ${tmpfile} && mv ${tmpfile} "${mralist_tmp}"
-		fi
-		
+
+function samdebug() {
+	echo -e "\e[1m\e[31m${*-}\e[0m"
+}
+
+function delete_from_corelist() { # delete_from_corelist core tmp
+	if [ -z "$2" ]; then
+		for i in "${!corelist[@]}"; do
+			if [[ ${corelist[i]} = "$1" ]]; then
+				unset 'corelist[i]'
+			fi
+		done
+		printf "%s\n" "${corelist[@]}" > "${corelistfile}"
+	else
+		for i in "${!corelisttmp[@]}"; do
+			if [[ ${corelisttmp[i]} = "$1" ]]; then
+				unset 'corelisttmp[i]'
+			fi
+		done
+		#printf "%s\n" ${corelisttmp[@]} > ${corelisttmpfile}
 	fi
 }
 
 function gl_filter() {
 	# Create temp gamelists on startup
-	readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+	if [ "${kids_safe}" == "yes" ]; then
+		echo "Kids Safe Mode active."
+		if [ ! -f "${mrsampath}"/SAM_Rated/amiga_rated.txt ]; then
+			echo "No kids safe rating lists found." >> ${saminit_log}
+			return 1
+		fi
+		#Set corelist to only include cores with rated lists
+		readarray -t glr <<< "$(find "${mrsampath}/SAM_Rated" -name "*_rated.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+		unset glondisk
+		for g in "${glr[@]}"; do 
+			for c in "${corelist[@]}"; do 
+				if [[ "$c" == "$g" ]]; then 
+					glondisk+=("$c")
+				fi
+			done 
+		done
+	else
+		readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
+	fi
 
 	if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
 		"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
 	fi
 
-	if [ "$(wc -l < "${gamelistpath}/arcade_gamelist.txt" )" == "0" ]; then
-		echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
-		sleep 15
+	if [ $? -gt 1 ]; then
+		echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually." >> ${saminit_log}
+		sleep 5
 		exit
 	fi
+	
 	# Read all gamelists again in case arcade was missing
 	if [[ ! "${glondisk[*]}" ]]; then
 		unset glondisk
@@ -165,17 +262,16 @@ function gl_filter() {
 	fi
 
 	for g in "${glondisk[@]}"; do 
-		if [ "${g}" == "arcade" ]; then
-			check_list_arcade &
+		if [ "${g}" == "amiga" ] || [ "${g}" == "ao486" ]; then
+			echo "Amiga and AO486 will be processed in main script" 
+			continue
 		fi
-		if [ "${g}" == "amiga" ]; then
-			echo "Amiga will be processed in main script"
+		if [ ! -s "${gamelistpathtmp}/${g}_gamelist.txt" ]; then	
+			cp "${gamelistpath}/${g}_gamelist.txt" "${gamelistpathtmp}/${g}_gamelist.txt" 
 		fi
-		check_list "${g}"
+		filter_list "${g}"
 	done
 }
-
-
 
 
 #======== DEBUG OUTPUT =========
