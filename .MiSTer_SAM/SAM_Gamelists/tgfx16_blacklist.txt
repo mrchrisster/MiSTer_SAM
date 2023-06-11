@@ -1,4 +1,3 @@
-Hunter NSF
 013 Populous (Japan)
 019 Moto Roader II (Japan)
 023 Dungeon Explorer (USA)
@@ -22,7 +21,7 @@ Hunter NSF
 15-in-1 Mega Collection - Backtracking Ten Years (J)
 1941 - Counter Attack (J) (SGX) [a1]
 1941 - Counter Attack (J) (SGX) [a2]
-1941 - Counter Attack (J) (SGX) [h1] 
+1941 - Counter Attack (J) (SGX) [h1] (no SGX)
 1941 - Counter Attack (Japan)
 1941 - Counter Attack no SGX (Hack) [h1]
 1941 - Counter Attack no SGX (Hack)[a1][h1]
@@ -140,7 +139,6 @@ GoldMage (PD) Build 01.07.31a Trilinear
 Gunboat (USA)
 Gunhed - Hudson Gunhed Taikai (Japan)
 Gunhed - Special Version (Japan)
-HES-V3
 HUC Scrolling Demo (PD)
 Hanii on the Road (Japan)
 Hatris (Japan)

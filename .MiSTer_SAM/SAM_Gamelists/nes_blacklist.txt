@@ -1,53 +1,325 @@
-.nsf
-NSF-to-NES
 !Clik! (PD)
-'89 Dennou Kyuusei Uranai
+'89 Dennou Kyuusei Uranai (Japan)
+(GameStar) 168-in-1
+(GameStar) 9999999-in-1
+0-to-X (USA) (Numbered Edition) (Aftermarket) (Unl)
+0-to-X (World) (Demo) (Aftermarket) (Unl)
+009 Super Mario Bros. 2 (USA)
+01 Gyromite (World)
+01 Mike Tyson's Punch-Out!! (Japan, USA) (Rev A)
+01. Sweet Home (J) [T+Eng1.00_Gaijin+Suicidal]
+018 Final Fantasy III (J) [T+Eng Jackson-Corlett-SoM2Freak v1.1]
+02 Double Dragon II - The Revenge (USA) (Rev A)
+02 Dragon Warrior (USA) (Rev A)
+02 Mike Tyson's Punch-Out!! (Japan, USA) (Rev A)
+02. Castlevania (USA) (Rev A)
+022 Dragon Warrior (USA)
+023 Earth Bound (USA) (Proto)
+029 Micro Machines (USA) (Unl)
+03 Legend of Zelda, The (USA)
+03. Crisis Force [T+Eng_S.Crusaders]
+032 Micro Machines (USA) (Unl)
+038 Sweet Home (J) [T+Eng1.00_Gaijin+Suicidal]
+039 Dr. Mario (Japan, USA)
+04 Ninja Gaiden (U) Save-Patched v1 Lomax
+04. Over Horizon (Japan)
+04. Splatter House - Wanpaku Graffiti (J) [T+Eng2.0_Spinner8]
+040 Elite (NTSC Hack)
+042 Double Dragon II - The Revenge (USA)
+045 Faxanadu (USA)
+046 Faxanadu (USA)
+047 Super Mario Bros. 2 (USA)
+05 Life Force (USA)
+05 Super Mario Bros. 2 (J) (FDS Conversion)
+05 Tecmo NBA Basketball (USA) (Rev A)
+05. Life Force (USA)
+052 Rygar (USA)
+053 Battle Kid - Fortress of Peril (PD)
+055 Takahashi Meijin no Bouken Jima IV (J) [T+Eng1.0_Demiforce]
+057 Super Mario Bros. 2 (J) (FDS Conversion)
+059 Ganbare Goemon 2 [T+Eng_S.Crusaders]
+06 Kirby's Adventure (USA) (Rev A)
+066 Holy Diver [T+Eng_Monaco]
+066 Micro Machines (USA) (Unl)
+068 Hi no Tori - Houou Hen - Gaou no Bouken [T+Eng_S.Crusaders]
+07 Faxanadu (USA) (Rev A)
+07 Tecmo Bowl (USA) (Rev A)
+07. Maniac Mansion (U) (Prototype) [!]
+074 Dig Dug (Japan)
+08 Bases Loaded (USA)
+08 Castlevania (USA) (Rev A)
+08 Life Force (USA)
+08. Monster Party (Proto) T+Eng v1 Stardust Crusaders
+084 Ms. Pac-Man (USA)
+085 Rygar (USA)
+09 Battletoads (U) Bugfix v1.0 Ti
+09 Double Dragon II - The Revenge (USA) (Rev A)
+09 Ms. Pac-Man (USA)
+09. Karnov (U) [!]
+092 Double Dragon II - The Revenge (USA)
+092 Dr. Mario (Japan, USA)
+094 Klax (USA) (Unl)
+097 Popeye (World) (Rev A)
+099 Battle City (Japan)
+10 Battletoads (U) Bugfix v1.0 Ti
+10 Ice Climber (USA, Europe)
+10 Life Force (USA)
+10 Top Gun (USA) (Rev A)
+10-Yard Fight (U) [!]
+10. Hokuto no Ken [T+Eng_S.Crusaders]
+1007 Bolts (World) (Aftermarket) (Homebrew)
 100m Hurdles (Unl)
-11-in-1 Ball Games 
+11-in-1 Ball Games (JY-010)
+11-in-1 Ball Games [p1][!]
+11-in-1 Ball Games [p1][o1]
 11-in-1 Version 2 (Unl)
 11-in-1 With Guns (Unl)
-110 in 1 (Asia) (En) 
+11. Wrath of the Black Manta (USA) (Rev A)
+110 in 1 (Asia) (En) (Pirate)
+110 in 1 (Asia) (En) (Unl) (Pirate)
 15 (NTSC) (PD)
 15-in-1 (Kaiser - KS-122) (Unl)
+168-in-1 [p1][!]
 1919 - Hard version (1942 Hack)
 1919 - Normal version (1942 Hack)
-1942
+1942 (JU) [T+Spa98%_Emu4ever]
+1942 (JU) [T-Spa1.0v_Wave]
+1942 (Japan, USA)
+1942 (PC10)
 1942 Cold Winter (1942 Hack)
+1983-07-15 Donkey Kong (U) (PRG1) [!]
+1983-07-15 Donkey Kong Jr. (JU) (PRG1) [!]
+1983-07-15 Popeye (World)
+1983-08-27 Mahjong (Japan) 
+1983-11-22 Popeye's English Game (J) [T+Eng1.0_KingMike]
+1983-12-07 Baseball (Japan)
+1983-12-12 Donkey Kong Jr. Math (U) [!]
+1984-02-02 Pinball (World)
+1984-02-18 Wild Gunman (Japan, USA)
+1984-05-01 Golf (Japan)
+1984-07-31 Lode Runner (Japan)
+1984-09-07 Galaxian (J) (REVA) [o1]
+1984-10-05 Devil World (Japan)
+1984-11-02 4 Nin Uchi Mahjong (Japan)
+1984-11-02 F-1 Race (Japan)
+1984-11-02 Pac-Man (Japan)
+1984-11-08 Xevious (Japan)
+1984-11-30 Excitebike (JU) Savepatch v1.0b Johansson
+1985-01-22 Balloon Fight (Japan)
+1985-01-30 Ice Climber (Japan)
+1985-01-30 Ice Climber (U) Save Patch v1.0
+1985-02-11 Exerion (Japan)
+1985-02-15 Galaga (Japan)
+1985-02-22 Raid on Bungeling Bay (Japan)
+1985-04-04 Formation Z (Japan)
+1985-04-09 Soccer (World)
+1985-04-22 Antarctic Adventure (Japan)
+1985-04-22 Yie Ar Kung-Fu (Japan)
+1985-05-10 Ninja-kun - Adventure of Devil Castle (Japan)
+1985-06-04 Dig Dug (Japan)
+1985-06-21 Hyper Olympic (Japan)
+1985-06-21 Kung Fu (Spartan X) (Japan, USA)
+1985-06-25 Star Force (Japan)
+1985-06-28 Elevator Action (Japan)
+1985-07-09 Field Combat (J)
+1985-07-11 Road Fighter (Japan)
+1985-07-26 Stack-Up (Robot Block) (World)
+1985-08-06 Tower of Druaga (Japan)
+1985-08-13 Gyromite (Robot Gyro) (World)
+1985-08-30 10-Yard Fight (Japan)
+1985-08-30 10-Yard Fight (U) [!]
+1985-09-09 Battle City (Japan)
+1985-09-27 City Connection (Japan)
+1985-09-27 Hyper Sports (Japan)
+1985-10-18 10-Yard Fight (U) [!]
+1985-10-18 Excitebike (JU) Savepatch v1.0b Johansson
+1985-10-18 Gyromite (Robot Gyro) (World)
+1985-10-18 Ice Climber (U) Save Patch v1.0
+1985-10-18 Kung Fu (Spartan X) (Japan, USA)
+1985-10-18 Pinball (World)
+1985-10-18 Soccer (World)
+1985-10-18 Stack-Up (Robot Block) (World)
+1985-10-18 Wild Gunman (Japan, USA)
+1985-11-08 Kinnikuman - Muscle Tag Match (Japan)
+1985-11-21 Mach Rider (Japan, USA)
+1985-11-27 BurgerTime (Japan)
+1985-11-29 The Portopia Serial Murder Incident (J) [T+Eng_DvD]
+1985-12-07 Spelunker (Japan)
+1985-12-10 Super Dimension Fortress Macross (Japan)
+1985-12-14 Zunou Senkan Galg (Japan)
+1986-02-21 Goonies (Japan)
+1986-03-05 Ninja Hattori-kun - Ninja wa Syugyou de Gozaru (Japan)
+1986-03-19 Magmax (Japan)
+1986-04-18 Dig Dug (Japan)
+1986-04-24 Mighty Bomb Jack (Japan)
+1986-04-25 Gradius (Japan)
+1986-04-26 Spy vs Spy (Japan)
+1986-05-15 Seicross (Japan)
+1986-06 Donkey Kong (U) (PRG1) [!]
+1986-06 Donkey Kong Jr. (JU) (PRG1) [!]
+1986-06 Donkey Kong Jr. Math (U) [!]
+1986-06 Popeye (World)
+1986-06-13 Star Soldier (Japan)
+1986-06-20 Super Chinese (J) [!]
+1986-06-26 Choplifter (Japan)
+1986-06-26 Sqoon (Japan)
+1986-07-18 Babel no Tou (J) [!]
+1986-08 Gumshoe (U) [!]
+1986-08 Mach Rider (Japan, USA)
+1986-08-01 Valkyrie no Bouken - Toki no Kagi Densetsu (J) [!]
+1986-08-22 Sky Kid (Japan)
+1986-08-28 Kidou Senshi Z Gundam - Hot Scramble (Japan)
+1986-09-03 ASO - Armored Scrum Object (Japan)
+1986-09-05 Super Pitfall (Japan)
+1986-09-18 King's Knight (Japan)
+1986-09-19 Super Xevious - Gump no Nazo (J) [!]
+1986-09-22 Ghostbusters (Japan)
+1986-09-27 Terra Cresta (Japan)
+1986-10-31 Mississippi Satsujin Jiken (Japan)
+1986-11 Karate Champ (USA)
+1986-11-12 Family Trainer 1 - Athletic World (Japan)
+1986-11-12 Othello (Japan)
+1986-11-26 Ikari (Japan)
+1986-11-26 Mappy-Land (Japan)
+1986-12-05 Tiger-Heli (Japan)
+1986-12-10 Pro Yakyuu - Family Stadium (Japan)
+1986-12-18 Wing of Madoola, The (Japan) (Sample)
+1986-12-24 Tatakai no Banka (Japan)
+1986-12-26 Arkanoid (Japan)
+1986-12-26 Toki no Tabibito (Japan)
+1987-03 Pro Wrestling (USA)
+1987-05 Castlevania (USA)
+1987-05 Ikari Warriors (USA)
+1987-07 Kid Icarus (USA, Europe)
+1987-07 Rygar (USA)
+1987-08 Legend of Zelda, The (USA)
+1987-09 Double Dribble (USA)
+1987-09 Winter Games (USA)
+1987-10 Mike Tyson's Punch-Out!! (Japan, USA)
+1987-11 Kid Niki - Radical Ninja (USA)
+1987-11 Top Gun (USA)
+1987-12 Wizards & Warriors (USA)
+1988-01 Karnov (U) [!]
+1988-02 R.C. Pro-Am (USA)
+1988-04 Major League Baseball (USA)
+1988-05 Rambo (USA)
+1988-07 Bases Loaded (U) (PRG2) [!]
+1988-08 Life Force (USA)
+1988-08 World Class Track Meet (USA)
+1988-09 Jeopardy! (USA)
+1988-09 Wheel of Fortune (USA)
+1988-10 Super Mario Bros. 2 (USA)
+1988-12 Bump'n'Jump (USA)
+1988-12 Indiana Jones and the Temple of Doom (USA)
+1988-12 Platoon (USA)
+1988-12 Superman (USA)
+1989-02 Tecmo Bowl (USA)
+1989-04 Adventures of Lolo (U) [!]
+1989-04 Taboo - The Sixth Sense (USA)
+1989-05 Operation Wolf (U) [!]
+1989-06 Airwolf (USA)
+1989-06 Track & Field II (USA)
+1989-08 Dragon Warrior (USA)
+1989-08 Faxanadu (USA)
+1989-09 Sky Shark (U) [!]
+1989-12 Silent Service (USA)
 1996 Power Rangers HiK 4-in-1 (JY-066) (Unl)
 1996 Soccer 7-in-1 (JY-014B, rev0) (Unl)
+1996 Soccer 7-in-1 (JY-014B, rev1) (Unl)
 1996 Super HiK 3-in-1 (JY-068) (Unl)
+1996 Super HiK 3-in-1 (JY-071) (Unl)
+1996 Super HiK 3-in-1 (JY-079) (Unl)
+1996 Super HiK 4-in-1 (JY-052) (Unl)
+1996 Super HiK 4-in-1 (JY-053) (Unl)
 1996 Super HiK 4-in-1 (JY-054) (Unl)
+1996 Super HiK 4-in-1 (JY-055) (Unl)
+1996 Super HiK 4-in-1 (JY-069) (Unl)
 1997 Super 9-in-1 (JY-109) (Unl)
 1997 Super Game 7-in-1 (JY-016) (Unl)
 1997 Super HIK 18-in-1 (JY-101) (Unl)
 1997 Super HIK 4-in-1 (JY-095) (Unl)
+1997 Super HIK 4-in-1 (JY-099) (Unl)
 1997 Super HIK 7-in-1 (JY-096) (Unl)
-1999 - Hore, Mitakotoka! Seikimatsu
-2-in-1 (Super 300-in-1) (Pocket Monster) 
-2-in-1 - Aladdin + Lion King, The (Unl) 
-2-in-1 - Boogerman + Flintstones, The (Unl) 
+1999 - Hore, Mitakotoka! Seikimatsu (Japan)
+2 in 1 Geminim-Siamond (World) (Aftermarket) (Unl)
+2-in-1 (Super 300-in-1) (Pocket Monster) [p1]
+2-in-1 - Aladdin + Lion King, The (Unl) [p1][!]
+2-in-1 - Boogerman + Flintstones, The (Unl) [p1][!]
 2-in-1 - Donkey Kong Country + Jungle Book (Unl)
-2-in-1 - Donkey Kong Country 4 + Jungle Book 2 (Unl) 
-2-in-1 - Mortal Kombat + Super Aladdin 
-2-in-1 - Mortal Kombat V Turbo 30 + Super Aladdin (Unl) 
-2-in-1 - Street Dance + Hit Mouse (Unl) 
-2-in-1 J-M2 (Unl) 
-2-in-1 Super 808 (Unl) 
+2-in-1 - Donkey Kong Country 4 + Jungle Book 2 (Unl) [!]
+2-in-1 - Mortal Kombat + Super Aladdin [p1][U][!] (Unl)
+2-in-1 - Mortal Kombat V Turbo 30 + Super Aladdin (Unl) [p1][!]
+2-in-1 - Street Dance + Hit Mouse (Unl) [!]
+2-in-1 J-M2 (Unl) [!]
+2-in-1 Super 808 (Unl) [p1][!]
 2-in-1 Uzi Lightgun (Unl)
 2002 World Cup PK (Unl)
 2048 (U) r5
+2048 (World) (Rev 5) (Aftermarket) (Homebrew)
 23 Plus 222-in-1 (Menu) (Unl)
 240p Test Suite (PD) v0.21 pinobatch
+240p Test Suite (World) (v0.01) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.02) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.03) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.04) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.05) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.06) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.07) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.08) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.08) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.09) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.09) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.10) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.10) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.11) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.11) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.12) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.12) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.13) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.13) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.14) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.14) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.15) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.15) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.16) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.16) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.17) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.17) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.18) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.18) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.19) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.19) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.20) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.20) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.21) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.21) (Aftermarket) (Homebrew) (Alt)
+240p Test Suite (World) (v0.22) (Aftermarket) (Homebrew)
+240p Test Suite (World) (v0.22) (Aftermarket) (Homebrew) (Alt)
+2A03 Puritans (World) (Aftermarket) (Unl)
 3 in 1 Playpower (PD)
-3 in 1 Supergun (Asia) (Ja) 
+3 in 1 Supergun (Asia) (En) (Unl)
+3 in 1 Supergun (Asia) (Ja) (Unl)
+3 in 1 Supergun (Asia) (Unl)
 3-in-1 (Playpower.org) (Unl)
 3-in-1 2p Pak (Early Build) (PD) Sly Dog Studios
-3-in-1 Street Blaster II Pro (Unl) 
+3-in-1 2p Pak (World) (2012-03-17) (Beta) (Aftermarket) (Homebrew)
+3-in-1 2p Pak (World) (Rob Bryant's) (Aftermarket) (Homebrew)
+3-in-1 2p Pak (World) (Sly Dog Studios) (Aftermarket) (Homebrew)
+3-in-1 Street Blaster II Pro (Unl) [p1]
+31-in-1 (Asia) (En) (Pirate)
+31-in-1 [p1]
+320-in-1 [p1][!]
 33 Songs Dance and Karaoke (C) (Unl)
-4-in-1 (Mapper 60) 
+3D Block (Asia) (En) (Hwang Shinwei) (Unl)
+3D Block (Asia) (Ja) (Hwang Shinwei) (Unl)
+4-in-1 (Mapper 60) [p1]
+4-in-1 (SO1)[p1][!] (Unl)
+4-in-1 (Team Site) (Unl) [p1]
 4-in-1 Harry Potter (English Title) (Unl)
-5000000-in-1 (JPx72) 
-6-in-1 - Spider Man 2 (FK23C board)
+400-in-1 [p1][!]
+5000000-in-1 (JPx72) [p1][!]
+6-in-1 - Spider Man 2 (FK23C board)[p4][!] (Unl)
+64-in-1 (Asia) (En) (Pirate)
 7 Grand Dad (Asia) (Unl)
 8 BIT XMAS 2009 - Snowball Fight (4player) (RetroUSB)
 8 BIT XMAS 2010 - Jolly Joyriding (4player) (RetroUSB)
@@ -58,181 +330,372 @@ NSF-to-NES
 8 BIT XMAS 2015 - Twelve Seconds 'Til Xmas (1player) (RetroUSB)
 8-BIT ADV STEINS;GATE (USA) (Nintendo Switch)
 8-bit Smash Bros (Little Magic Hack)
-8-in-1 Little Mermaid, The (Unl) 
-800-in-1 (Unl) 
+8-in-1 Little Mermaid, The (Unl) [p1][!]
+800-in-1 (Unl) [p1]
 81ex (PD)
-8BIT Rhythm Land (World) (Aftermarket) 
+8BIT Rhythm Land (World) (Aftermarket) (Unl)
 8BIT XMAS 2008 - Christmas Songs (RetroUSB))
 8BIT XMAS 2009 (PD)
 8BIT XMAS 2010 (PD)
-9-in-1 - Pokemon Yellow (FK23C board)
-A Ressha de Ikou
+9-in-1 - Pokemon Yellow (FK23C board)[p4][!] (Unl)
+9-in-1 Kyatto Ninja Teyandee [p1]
+9999999-in-1 [p2]
+A Ressha de Ikou (Japan)
 AES_Atlas (0_00w)
 AEW Wrestling (Pro Wrestling Hack) v1.0
 AIR MV (PD)
 ALF Escapes! (Hack) pacnsacdave
 ALPS Skiing (Rad Racer Hack)
-AO (World) (Aftermarket) 
-AV Hanafuda Club
-AV Kyuukyoku Mahjong 2 (Asia) (Ja) 
-AV Mahjong Club (Asia) (Ja) 
+ANNA (World) (Demo 1) (Aftermarket) (Homebrew)
+ANNA (World) (Demo 2) (Aftermarket) (Homebrew)
+ANTR - Another NES Tetris Remake (World) (Aftermarket) (Homebrew)
+AO (World) (Aftermarket) (Unl)
+AV Hanafuda Club (Japan) (Unl)
+AV Kyuukyoku Mahjong 2 (Asia) (Ja) (Ge De) (Unl)
+AV Kyuukyoku Mahjong 2 (Asia) (Ja) (Ka Sheng) (Unl)
+AV Mahjong Club (Asia) (Ja) (Unl)
+AV Mahjong Club (Japan) (Unl)
+AV Mahjong Club (Japan) (Unl) (Alt)
 AV Mei Shao Nv Zhan Shi (Asia) (Unl)
-AV Poker
-AV Super Real Pachinko
-Action 52 - 23 Bubble Gum Rossie (Unl) (Hack) 
-Action 52 - 40 Billy Bob Extra Levels Set 2 (Unl) (Hack) 
-Action 52 - 40 Billy Bob Extra Levels Set 3 (Unl) (Hack) 
-Action 52 - 40 Billy Bob Extra Levels Set 4 (Unl) (Hack) 
-Action 52 - 40 Billy Bob Level 1 & 2 (Unl) (Hack) 
-Action 52 - 40 Billy Bob Level 4 & 5 (Unl) (Hack) 
-Action 52 - 50 Ninja Assault (Unl) (Hack) 
-Action 52 - Complete Menu (Unl) (Hack) 
-Action 52 Menu Games Selection Part 1 (Unl) (Hack) 
-Action 52 Menu Games Selection Part 2 (Unl) (Hack) 
-Action 53 Function 16 Volume One (World) (Aftermarket) 
+AV Poker (Asia) (En) (Unl)
+AV Poker (Japan) (En) (Rev 1) (Unl)
+AV Poker (Japan) (En) (Unl)
+AV Poker (Japan) (Unl)
+AV Super Real Pachinko (Japan) (Unl)
+Action 52 (Active Enterprises) (REVA) [T-Spa1.0v_Wave]
+Action 52 (USA) (Rev A) (Unl)
+Action 52 (USA) (Unl)
+Action 52 - 23 Bubble Gum Rossie (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 - 40 Billy Bob Extra Levels Set 2 (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 - 40 Billy Bob Extra Levels Set 3 (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 - 40 Billy Bob Extra Levels Set 4 (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 - 40 Billy Bob Level 1 & 2 (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 - 40 Billy Bob Level 4 & 5 (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 - 50 Ninja Assault (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 - Complete Menu (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 Menu Games Selection Part 1 (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 52 Menu Games Selection Part 2 (Unl) (Hack) [f] v1 The Great Hierophant 9-2018
+Action 53 Function 16 Volume One (World) (Aftermarket) (Homebrew)
+Action 53 Function 16 Volume One (World) (Aftermarket) (Unl)
 Action 53 Vol 1 - Function 16 (PD) RC2 tepples
 Action 53 Vol 2 - Double Action (PD) RC2 tepples
+Action 53 Vol. 3 - Revenge of the Twins (World) (2018-03-06) (Aftermarket) (Homebrew)
+Action 53 Vol. 3 - Revenge of the Twins (World) (Aftermarket) (Homebrew)
+Action 53 Vol. 3 - Revenge of the Twins (World) (Disk 1) (Aftermarket) (Homebrew)
+Action 53 Vol. 3 - Revenge of the Twins (World) (Disk 2) (Aftermarket) (Homebrew)
+Action 53 Vol. 4 - Actually 54 (World) (Aftermarket) (Homebrew)
+Action 53 Vol. 4 - Actually 54 (World) (Disk 1) (Aftermarket) (Homebrew)
+Action 53 Vol. 4 - Actually 54 (World) (Disk 2) (Aftermarket) (Homebrew)
+Action 53 Vol. 4 - Actually 54 (World) (Disk 3) (Aftermarket) (Homebrew)
+Action 53 Vol. 4 - Actually 54 (World) (Disk 4) (Aftermarket) (Homebrew)
 Add & Sub (Unl)
-Addams Family, The
-Addams Family, The - Pugsley's Scavenger Hunt
-Advanced Dungeons & Dragons - Hillsfar
-Advanced Dungeons & Dragons - Pool of Radiance
+Addams Family, The (Europe) (En,Fr,De)
+Addams Family, The (U) [T-Spa0.5_Heros]
+Addams Family, The (U) [T-Spa0.9v_Wave]
+Addams Family, The (USA)
+Addams Family, The - Pugsley's Scavenger Hunt (Europe)
+Addams Family, The - Pugsley's Scavenger Hunt (USA)
+Advanced Dungeons & Dragons - Hillsfar (Japan)
+Advanced Dungeons & Dragons - Hillsfar (USA)
+Advanced Dungeons & Dragons - Pool of Radiance (Japan)
+Advanced Dungeons & Dragons - Pool of Radiance (USA)
 Adventure - NES Graphics (Hack) v1.0
 Adventure Island Speedrun (Hack) v1.2 Nesrocks 
 Adventures in Vancouver, BC by RyanVG (Renegade Hack)
-Adventures in the Magic Kingdom
-Adventures of Captain Comic, The (Color Dreams) 
+Adventures in the Magic Kingdom (Europe)
+Adventures in the Magic Kingdom (USA)
+Adventures in the Magic Kingdom - Sora Edition v1.0 pacnsacdave
+Adventures of Captain Comic, The (Color Dreams) [T-Spa1.0v_Wave]
+Adventures of Lex and Grim, The (World) (Aftermarket) (Homebrew)
+Adventures of Lolo 2 (Japan)
 Adventures of Musashi (J) pacnsacdave
-Adventures of Panzer, The (World) (Aftermarket) 
-Adventures of Rad Gravity, The
-Adventures of Tom Sawyer
+Adventures of Panzer 2, The (World) (v0.06) (Demo) (Aftermarket) (Homebrew)
+Adventures of Panzer 2, The (World) (v1.1) (Aftermarket) (Homebrew)
+Adventures of Panzer, The (World) (Aftermarket) (Unl)
+Adventures of Panzer, The (World) (v1.2) (Demo) (Aftermarket) (Homebrew)
+Adventures of Panzer, The (World) (v1.3) (Aftermarket) (Homebrew)
+Adventures of Panzer, The (World) (v1.4) (Aftermarket) (Homebrew)
+Adventures of Panzer, The (World) (v1.5) (Aftermarket) (Homebrew)
+Adventures of Panzer, The - DMuscles (World) (v1.3) (Beta) (Aftermarket) (Homebrew)
+Adventures of Panzer, The - DMuscles (World) (v1.4) (Beta) (Aftermarket) (Homebrew)
+Adventures of Rad Gravity, The (Europe)
+Adventures of Rad Gravity, The (USA)
+Adventures of Tom Sawyer (U) [T-Spa1.1v_Wave]
+Adventures of Tom Sawyer (USA)
 Aether Copter (Unl)
 Afroman (Megaman III Hack)
+After Dark by 8bitpeoples
+AfterWorld DELUXE (World) (Aftermarket) (Homebrew)
 Aim Cruise (Unl)
 Airial Hero (Unl)
-Akagawa Jirou no Yuurei Ressha
-Akuma no Shoutaijou
-Akumajou Densetsu
+Airwolf (J) [T+Eng1.0_Vice]
+Airwolf (Japan) (Kyugo)
+Airwolf (USA)
+Akagawa Jirou no Yuurei Ressha (Japan)
+Akira (J) [a1][T+Eng_Chocoman]
+Akuma no Shoutaijou (Japan)
+Akumajou Densetsu (Castlevania III - Draculas Curse) (J) [T-Spa1.1v_Wave]
+Akumajou Densetsu (J) [T+Eng1.0_Vice]
+Akumajou Densetsu (J) [T-Eng]
+Akumajou Densetsu (Japan)
+Akumajou Densetsu (World) (Ja) (Castlevania Anniversary Collection)
 Akumajou Densetsu Improved Controls (Hack) v1.4 NaOH
-Al Unser Jr. Turbo Racing
+Akumajou Special - Boku Dracula-kun (J) T+En Vice v1.04
+Al Unser Jr. Turbo Racing (USA)
+Aladdin (E) [T-Spa1.0v_Wave]
 Aladdin (Europe)
+Aladdin (Super Game) (Unl)
+Aladdin (SuperGame) (Mapper 4) [!]
 Aladdin 3 (Unl)
 Aladdin Hummer Team Deluxe (Hack) v1.0
-Alfombra Magica, La (Spain) (Rev 1) 
+Alex Islands (World) (Aftermarket) (Homebrew)
+Alex adventure
+Alfombra Magica, La (S) (Gluk Video) (Unl) [T-Spa1.0v_Wave]
+Alfombra Magica, La (Spain) (En) (Gluk Video) (Unl)
+Alfombra Magica, La (Spain) (En) (Rev 1) (Gluk Video) (Unl)
+Alfombra Magica, La (Spain) (Gluk Video) (Unl)
+Alfombra Magica, La (Spain) (Rev 1) (Gluk Video) (Unl)
 Alfonzo Game - Demo (PD) v1 Spoony Bard 2017NESDEV
+Alfonzo Game, The (World) (Aftermarket) (Homebrew)
 Alfonzo Melee (PD) v1 Spoony Bard 2017NESDEV
-Alfred Chicken
+Alfonzo Melee! (World) (Demo) (Aftermarket) (Homebrew)
+Alfred Chicken (Europe)
+Alfred Chicken (U) [T+Spa1.0_Wave]
+Alfred Chicken (USA)
+Allison Of Astra - Allison Doesn't Go Hawaiian (World) (Aftermarket) (Homebrew)
+Allison Of Astra - Allison's Booty Quest (World) (Aftermarket) (Homebrew)
+Allison Of Astra - Allison's Scribble Quest (World) (Aftermarket) (Homebrew)
+Allison Of Astra - Finity Train (World) (Aftermarket) (Homebrew)
+Allison Of Astra - Margarita (World) (Aftermarket) (Homebrew)
+Allison Of Astra - Margarita Mix (World) (Aftermarket) (Homebrew)
+Allison of Astra Starring in PRGE the Game (World) (Demo) (Aftermarket) (Homebrew)
+Allison of Astra in - Timeless and Spaceless (World) (Demo) (Byte-Off 2020) (Aftermarket) (Homebrew)
 Allpads Controller Test (PD) v9 Tepples
+Almika The Star Rider Densetsu Gaiden (World) (Aftermarket) (Homebrew)
 Alter Ego (PD) v1.0
-Alwa's Awakening (World) (Proto) 
+Alter Ego (World) (2011-12-16) (Aftermarket) (Homebrew)
+Alter Ego (World) (Aftermarket) (Homebrew)
+Alter Ego (World) (Aftermarket) (Homebrew) (Alt)
+Alwa's Awakening (World) (Proto) (Aftermarket) (Unl)
 Ambushed (PD) Sly Dog Studios
+America Oudan Ultra Quiz - Shijou Saidai no Tatakai (Japan)
 America Oudan Ultra Quiz - Shijou Saidai no Tatakai (Japan) (Rev 1)
+Angry Birds
+Angry Birds (Europe, Asia) (En) (Aftermarket) (Pirate)
 Angry Birds (Unl)
+Anguna - Scourge of the Goblin King (USA) (Beta) (Aftermarket) (Homebrew)
+Anguna - Scourge of the Goblin King (USA) (Patreon Demo 0320) (Aftermarket) (Homebrew)
+Anguna - Scourge of the Goblin King (USA, Europe) (Aftermarket) (Homebrew)
+Anguna - Scourge of the Goblin King (USA, Europe) (Limited Edition) (Aftermarket) (Homebrew)
+Anguna - Scourge of the Goblin King (USA, Europe) (Rev A) (Aftermarket) (Homebrew)
+Animal Clipper (World) (Aftermarket) (Homebrew)
+Animalia Dreamland (World) (Aftermarket) (Homebrew)
+Ankoro Mochi Manufacturing Factory (World) (Ja) (Aftermarket) (Homebrew)
 Anon Gunman (Unl)
+Anon Gunman (Wild Gunman Hack)
+Another World (USA) (Aftermarket) (Homebrew)
 Anti-Hippie Dr. Mario (Dr. Mario Hack)
 Anti-Terror Action (Duck Hunt Hack)
 Aoki Densetsu Shoot (Tecmo World Cup Soccer Hack)
-Aoki Ookami to Shiroki Mejika - Genghis Khan
+Aoki Ookami to Shiroki Mejika - Genghis Khan (Japan)
+Apuntalo, Cheril! (World) (Es) (Aftermarket) (Homebrew)
 Arabic Study Cartridge (32-in-1) (Unl)
 Arcadia VI (USA) (Proto)
-Arctic
-Argos no Senshi - Hachamecha Daishingeki
+Arctic (Japan)
+Argos no Senshi (J) [T+Eng.9_Toma][o1]
+Argos no Senshi (J) [T+Spa1.0_PaladinKnights]
+Argos no Senshi (J) [T-Spa1.0v_Wave]
+Argos no Senshi (Japan) (FamicomBox)
+Argos no Senshi - Hachamecha Daishingeki (Japan)
+Arkade Rush (World) (2021-03-10) (Aftermarket) (Homebrew)
+Arkade Rush (World) (Aftermarket) (Homebrew)
+Arkade Rush (World) (Aftermarket) (Homebrew) (Alt)
+Arkade Rush (World) (NESDev 2020) (Aftermarket) (Homebrew)
 Arkanoid 11 (Arkanoid Hack)
 Arkanoid II NES Vaus Fix (J) lidnariq 12-23-2016
-Arkista's Ring
-Armadillo
-Armed for Battle (World) (Demo) 
-Artelius
+Arkista's Ring (U) [T-Spa1.0v_Wave]
+Arkista's Ring (USA)
+Arm Wrestling Classic, The (World) (Aftermarket) (Homebrew)
+Armadillo (Japan)
+Armed for Battle (World) (Demo) (Aftermarket) (Unl)
+Artelius (J) [T+Eng0.25_MageCraft]
+Artelius (Japan)
 Asder - 20 in 1 (USA) (Unl)
+Ashen House (World) (v0.2) (Demo) (Aftermarket) (Homebrew)
 Asian Dr. Mario (Dr. Mario Hack)
-Asmik-kun Land
+Asmik-kun Land (J) [T+Eng0.25_Gil_Galad]
+Asmik-kun Land (Japan)
+Aspect Star 'N' (World) (Aftermarket) (Homebrew)
 Assimilate (PD) v1 Nessylum
+Assimilate (USA) (RetroUSB) (Aftermarket) (Homebrew)
+Assimilate (USA) (RetroUSB) (Aftermarket) (Homebrew) (Alt)
+Assimilate (World) (Nessylum Games) (Aftermarket) (Homebrew)
 Assimilate Full Version (PD)
 Asterix (Europe) (En,Fr,De,Es,It)
 Auge (PD) Krill 2014
 Auge Demo (PD) 2014NESDEV Krill
 Awful Rushing (AKA Moto Boat) (Unl)
 BSides (PD) 12-2016 HypnZA
+Babel Blox (World) (Demo) (Aftermarket) (Homebrew)
+Baby Boomer (Color Dreams) [T-Spa1.0v_Wave]
+Baby Boomer (Korea) (En) (Unl)
 Baby Boomer (Korea) (Unl)
-Back to the Future
+Baby Boomer (USA) (Unl)
+Back to the Future (USA)
 Back to the Future 4 by RyanVG (Back to the Future Hack)
 Back to the Future Enhanced (Hack) v1 pacnsacdave
-Back to the Future IV (Unl) 
-Bad Dudes
+Back to the Future IV (Blaster Master Hack)
+Back to the Future IV (Unl) [!]
+Bad Dudes (U) [T+Spa1.0_Wave]
+Bad Dudes (USA)
 Bad Dudes vs. Dragon Ninja (Europe)
-Bad Street Brawler
-Baken Hisshou Gaku - Gate In
-Bakushou!! Ai no Gekijou
+Bad Street Brawler (USA)
+Baken Hisshou Gaku - Gate In (Japan)
+Bakushou!! Ai no Gekijou (Japan)
 Balda (BBG) (Unl)
+Balda (Chudov) (Unl)
 BallBounce (PD)
 Banana Nana (PD) LD32 morphcat 2015
+Banana Prince (G) [T+Eng1.1a_KingMike]
 Banana Prince (Germany)
 Banana Prince 2 - Adventure of Banana Goat (Hack) v3 Danger X
-Bananan Ouji no Daibouken
-Bandai Golf - Challenge Pebble Beach
-Bandit Kings of Ancient China
+Banana Prince [T+Eng1.1a_KingMike]
+Bananan Ouji no Daibouken (Japan)
+Bandai Golf - Challenge Pebble Beach (USA)
+Bandit Kings of Ancient China (USA)
 Banketh, The (PD) Demo 2-2017 Diskover
 Bao Qing Tian (Ch)
 Bao Xiao San Guo (Asia) (Unl)
-Bard's Tale II, The - The Destiny Knight
-Bard's Tale, The
+Bard's Tale II, The - The Destiny Knight (Japan)
+Bard's Tale, The (USA)
 Bard's Tale, The - Tales of the Unknown (USA) (Beta 1)
-Baseball Fighter
+Bard's Tale, The - Tales of the Unknown (USA) (Beta 2)
+Bare Metal (World) (Aftermarket) (Homebrew)
+Bare Metal (World) (Pt-BR) (Aftermarket) (Homebrew)
+Baseball Fighter (Japan)
+Basic Championship Wrestling (World) (Aftermarket) (Homebrew)
+Basse Def Adventures (USA, Europe) (Fr) (Aftermarket) (Homebrew)
+Bat Lizard Bonanza (World) (Aftermarket) (Homebrew)
+Batman
+Batman (Japan)
+Batman (U) (Prototype) [T+Spa1.0_Wave]
+Batman (U) [T+Spa_Vice Translations]
 Batman - The Dark Knight (Hack) v1 Osman Color
-Batsu & Terry - Makyou no Tetsujin Race
+Batman Returns (Europe)
+Batman Returns (U) [T+Spa_Dark-N]
+Batsu & Terry - Makyou no Tetsujin Race (Japan)
+Battle City (Japan)
 Battle City 20 Maps (Hack)
 Battle City 8 Stages (Hack)
 Battle City Mario (Hack) v1.0
-Battle Fleet
-Battle Formula
+Battle Fleet (Japan)
+Battle Formula (Japan)
+Battle Formula (Super Spy Hunter) (J) [T-Spa1.0v_Wave]
+Battle Kid - Fortress of Peril (USA) (V1.100) (Aftermarket) (Unl)
 Battle Kid - Fortress of Peril Demo (PD) Sivak Games 2010
+Battle Kid 2 - Mountain of Torment (USA) (V1.000) (Aftermarket) (Unl)
 Battle Kid 2 - Mountain of Torment Demo (PD) Sivak Games 2012
 Battle Road (Battle City Hack)
 Battle of Olympus SRAM Saving Edition + Re-Balanced (Hack) v1 8-bit fan
 Battle of Olympus SRAM+Re-Balanced (Hack) v1 8-bit fan
-Battle of Olympus, The
+Battle of Olympus, The (E) [T-Spa1.1v_dmlan2000]
+Battle of Olympus, The (Europe)
+Battle of Olympus, The (U) [T-Spa0.99v_jackic]
+Battle of Olympus, The (USA)
 Battle ot The Bits Winter Chip V Promo ROM (PD)
 Battleball (PD)
 Battleball Udapong (PD)
-Battleship
+Battleship (Europe) (En,Fr,De,Es)
+Battleship (U) [T-Spa1.0v_Wave]
+Battleship (USA)
 Battletoads-Double Dragon 4 Players (Hack) v0.9 NakeuD2007
 Battletoads-Double Dragon On Ragnarok (Hack) v1.2 Corpse Grinder
-Be-Bop-Highschool - Koukousei Gokuraku Densetsu
+Be A Pirate (World) (Proto) (04-22-2022) (Aftermarket) (Homebrew)
+Be-Bop-Highschool - Koukousei Gokuraku Densetsu (Japan)
 Beat n Box (Unl)
 Beer-aga (Galaga Hack)
-Beerslinger (World) (Aftermarket) 
-Beetlejuice
-Best Play Pro Yakyuu II
+Beerslinger (World) (Aftermarket) (Unl)
+Beetlejuice (USA)
+Best Play Pro Yakyuu (Japan)
+Best Play Pro Yakyuu (Japan) (Rev 1)
+Best Play Pro Yakyuu II (Japan)
+Best Play Pro Yakyuu Special (Japan)
 Best Play Pro Yakyuu Special (Japan) (Rev 1)
-Best of the Best - Championship Karate
-Beta 1 Dr. Mario (USA) (Beta) 
+Best of the Best - Championship Karate (Europe)
+Best of the Best - Championship Karate (USA)
+Beta 1 Dr. Mario (USA) (Beta) (1990-04-27)
 Beta 2 Dr. Mario (USA) (Beta)
 Betelgeuse (PD) v0.1 RetroGameDev 2017
-Bible Adventures (USA) (v1.5) 
-Bible Buffet (USA) (v6.0) 
+Bible Adventures (Hack) v7 Immutable
+Bible Adventures (USA) (Unl)
+Bible Adventures (USA) (v1.1) (Unl)
+Bible Adventures (USA) (v1.2) (Unl)
+Bible Adventures (USA) (v1.3) (Unl)
+Bible Adventures (USA) (v1.4) (Unl)
+Bible Adventures (USA) (v1.5) (Unl)
+Bible Adventures (Wisdom Tree) (V1.4) [!]
+Bible Buffet (USA) (v6.0) (Unl)
+Big City Sliding Blaster (World) (2014-06-02) (Aftermarket) (Homebrew)
+Big City Sliding Blaster (World) (Aftermarket) (Homebrew)
 Big Strategy Pachinko 2 (J) T+Eng v0.90B MrRichard999
 Big Trouble in Little China (Dragon Ninja Hack) v1 pacnsacdave
 Big Trouble in Little China DX (Bad Dudes Hack) v1.0 Crying Onion
 Billiard 2008 (Lunar Pool Hack)
 Binary City (Battle City Hack)
 Bio Hazard (No-Bug) (Unl)
-Bio Senshi Dan - Increaser Tono Tatakai
+Bio Hazard (Unl) [!]
+Bio Miracle Bokutte Upa (J) [T+Eng1.00_Vice]
+Bio Senshi Dan (Bashi Bazook - Morphoid Masher) (J) [T-Spa1.2v_Wave]
+Bio Senshi Dan - Increaser Tono Tatakai (J) [T+Eng_Abstract_Crouton][o1]
+Bio Senshi Dan - Increaser Tono Tatakai (J) [hM66][T+Eng1.5_Abstract_Crouton_Productions]
+Bio Senshi Dan - Increaser Tono Tatakai (Japan)
+Bio Senshi Dan - Increaser Tono Tatakai [T+Eng_AbstractCrouton]
 BioForceApe (PD)
+Biocats (World) (v1.04) (Aftermarket) (Homebrew)
+Bionic Commando
 Birdman (Bomberman Collection Hack)
+Bitha (Pooyan Hack)
 Bitha (Unl)
-Black Bass II, The
-Black Bass, The
+Black Bass II, The (Japan)
+Black Bass, The (USA)
 Black Belt-Master Level Up Fix (FF1 Hack)
+Black Box Challenge (World) (2016-01-02) (Beta) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (2016-12-08) (Beta) (Jeffrey Wittenhagen's) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (2017-02-03) (Beta) (Jeffrey Wittenhagen's) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (2017-03-15) (Beta) (Jeffrey Wittenhagen's) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (2017-06-29) (Beta) (Jeffrey Wittenhagen's) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (2017-07-01) (Beta) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (2017-09-17) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (Jeffrey Wittenhagen's) (Aftermarket) (Homebrew)
+Black Box Challenge (World) (Jeffrey Wittenhagen's) (Aftermarket) (Homebrew) (Alt)
+Black Box Challenge (World) (Rob Bryant's) (Aftermarket) (Homebrew)
+Black Jewel Reborn (World) (v0.1) (Demo) (Aftermarket) (Homebrew)
+Black Jewel Reborn (World) (v0.14) (Demo) (Aftermarket) (Homebrew)
+Black Jewel Reborn (World) (v0.16) (Demo) (Aftermarket) (Homebrew)
+Black Jewel Reborn (World) (v0.161) (Demo) (Aftermarket) (Homebrew)
+Black Jewel Reborn (World) (v0.165) (Demo) (Aftermarket) (Homebrew)
 Blade Buster (PD) v20120301
+Blaster Master (Japan) (Virtual Console)
+Blazing Rangers (World) (Demo) (Aftermarket) (Homebrew)
+Blob Land (World) (Aftermarket) (Homebrew)
 Blob Man (Unl)
+Blobert (World) (Aftermarket) (Homebrew)
 Block Out (USA) (Proto)
 Bloody City (River City Ransom Hack)
-Blow'em Out (World) (Aftermarket) 
-Blues Brothers, The
+Blow'em Out (World) (Aftermarket) (Unl)
+Blues Brothers, The (Europe)
+Blues Brothers, The (U) [T-Spa1.0v_Wave]
+Blues Brothers, The (USA)
 Blurred Lines 2048 (PD) 4-2015 raydempsey
+Blurred Lines 2048 (World) (Aftermarket) (Homebrew)
 Boat Race (F-1 Race Hack)
+Bobl (World) (Aftermarket) (Homebrew)
+Bobl (World) (v1.1) (Aftermarket) (Homebrew)
+Bobl (World) (v1.2) (Aftermarket) (Homebrew)
 Bokosuka Quest III (Bokosuka Wars Hack)
-Bokosuka Wars
+Bokosuka Wars (Hack)
+Bokosuka Wars (Japan)
 Bokosuka Wars Sega by Rinkaku (Bokosuka Wars Hack)
 Bomb Array (PD) Sly Dog Studios
 BomberBoy (Unl) Mapper 4 Original v1 NewRisingSun
@@ -240,53 +703,89 @@ BomberBoy + Bugfixes (Unl) Mapper 4 Original v1 NewRisingSun
 BomberBoy - Mapper 215 Conversion (Unl) v1 NewRisingSun
 BomberBoy - Mapper 215+Bufixes (Unl) v1 NewRisingSun
 Bomberman 97 (Bomberman Collection Hack)
-Bonza (R) (REVB) 
-Boogerman (Sugar Softec) (Unl) 
+Bonza (R) (REVB) [!]
+Boogerman (Asia) (En) (Aftermarket) (Pirate)
+Boogerman (Sugar Softec) (Unl) [!]
 Boogerman II (Rex Soft) (Unl)
-Booky Man (Spain) (Gluk Video) 
+Booky Man (Brazil) (En) (CCE) (Unl)
+Booky Man (S) (Gluk Video) (Unl) [T-Spa1.0v_Wave]
+Booky Man (Spain) (En) (Gluk Video) (Unl)
+Booky Man (Spain) (Gluk Video) (Unl)
 Boom - Vaus Support (PD) Demo 1 3gengames, Tokumaru
 Bootee (PD) v1 Mojon Twins 05-2018
+Bootee (World) (Aftermarket) (Homebrew)
+Bovinium Quest - Batteries Not Included (USA) (Aftermarket) (Homebrew)
 Boxworld (Unl)
 Brilliant Com Cocoma Pack 1 (Korea) (Unl)
 Brilliant Com Cocoma Pack 2 (Korea) (Unl)
-Bruce & Leo (Tom & Jerry) (Unl) 
-Brush Roller (Asia) (Ja) 
+Brony Blaster (World) (Prototype) (Aftermarket) (Homebrew)
+Bruce & Leo (Tom & Jerry Hack)
+Bruce & Leo (Tom & Jerry) (Unl) [!]
+Brush Roller (Asia) (Ja) (Unl)
+Brush Roller (Unl)
 Bubble Bath Babes (USA) (Unl)
-Bubble Bobble
+Bubble Bobble (Europe)
+Bubble Bobble (Europe) (Virtual Console)
+Bubble Bobble (FDS Conversion) (Unl)
+Bubble Bobble (FDS Conversion, Kaiser Hacked) (Unl) [p1][!]
+Bubble Bobble (U) [T+Spa1.0_PaladinKnights]
+Bubble Bobble (U) [T+Spa1.0_Wave]
+Bubble Bobble (U) [T-Spa.99_PaladinKnights]
+Bubble Bobble (USA)
 Bubble Bobble - Bubble Bobble Deluxe (Hack) v1.0
 Bubble Bobble - New Levels (Hack)
 Bubble Bobble - New Quest (Hack)
 Bubble Bobble Arcade Edition (Hack)
 Bubble Bobble Madness (Hack)
+BugTris (Korea) (En) (Unl)
 BugTris (Korea) (Unl)
-Bugs Bunny Birthday Bash (USA) (Beta) 
-Bugs Bunny Birthday Blowout, The
+Bugs Bunny Birthday Bash (USA) (Beta)
+Bugs Bunny Birthday Bash (USA) (Beta) [b]
+Bugs Bunny Birthday Blowout, The (U) [T+Spa100%_spctrmxd]
+Bugs Bunny Birthday Blowout, The (U) [T-Spa1.0v_Wave]
+Bugs Bunny Birthday Blowout, The (USA)
 Bugs Bunny Blowout, The (Europe)
+Bump'n'Jump (USA)
 Burrow (Unl) (VT03)
-Business Wars
+Business Wars (Japan)
 Bust-A-Nut (PD)
+Bustina and the Search for Booty (World) (v0.2a) (Demo) (Aftermarket) (Homebrew)
 Button Logger tool, Musical Controller Toy, and Stuff (PD) 2016NESDEV JRoatch
-Buzz & Waldog (USA) (Proto) 
+Buzz & Waldog (USA) (Proto) (Unl)
+CHE-MAN (World) (Aftermarket) (Homebrew)
 CL1K (PD) Sly Dog Studios
-Cadillac
+CMC '80s by Chris Covell
+CORGS Simulator (World) (Aftermarket) (Homebrew)
+CORGS Simulator (World) (Aftermarket) (Homebrew) (Alt)
+CYO (World) (Aftermarket) (Homebrew)
+Cadillac (Japan)
+Cadillac [T+Eng_Gil Galad]
+Caesar Captain (James Bond Jr. Hack)
 Caesar Captain (Unl)
-Caesars Palace
+Caesars Palace (USA)
 Calculator (Unl)
 Caltron - 6 in 1 (USA) (Unl)
-Caltron - 9 in 1 (USA) (Proto) 
+Caltron - 9 in 1 (USA) (Proto) (Unl)
 Caltron - 9 in 1 MMC5 (Hack) NewRisingSun 2019-11-02
+Candelabra - Estoscerro (World) (Aftermarket) (Homebrew)
+Candelabra - Estoscerro (World) (Demo) (Aftermarket) (Homebrew)
 Candelabra - Estoscerro Demo 1 (PD) Sly Dog Studios
 Candy Shop (PD)
-Capcom Barcelona '92
-Capcom's Gold Medal Challenge '92
+Capcom Barcelona '92 (Japan)
+Capcom's Gold Medal Challenge '92 (Europe)
+Capcom's Gold Medal Challenge '92 (USA)
 Caper Alone (Unl)
 Captain America The Winter Soldier (Power Blade 2 Hack) v1.1 pacsacndave
 Captain Carlos Alfonzo (Captain Tsubasa 2 Hack)
 Captain Comic - The Adventure (USA) (Unl)
-Captain ED
+Captain ED (Japan)
 Captain Misugi - King Of The Football Kolay (Hack)
 Captain Misugi - King Of The Football Zor (Hack)
-Captain Silver
+Captain Silver (J) [T-Spa1.0_JonnyVilla2088]
+Captain Silver (Japan)
+Captain Silver Enhanced Version
+Captain Silver [T+Eng_S.Crusaders]
+Captain Skyhawk (USA) (Rev A)
 Captain Tsubasa Vol. II - Genius Dias By Hy1897 (Hack)
 Captain Tsubasa Vol. II - Hack By Kral 89 & Sisqo (090823) (Hack)
 Captain Tsubasa Vol. II - Legend Of Jinqiu (Hack)
@@ -294,17 +793,40 @@ Captain Tsubasa Vol. II - Liga Argentina Boca (Hack)
 Captain Tsubasa Vol. II - Omg By Heroy (Hack)
 Captain Tsubasa Vol. II - Sinhistoria (Hack)
 Captain Tsubasa Vol. II - Story Of Three Amusing People (Hack)
+Captain Tsubasa Vol. II - Super Striker (J) [T+Eng_hayabusa]
 CartCollector's Generic Text Scroller (PD)
 CartCollector's Generic Text Scroller Mod (PD)
-Casino Kid II
+Carver's Epic Quest!
+Casino Kid II (USA)
+Castle of Deceit (U) (Unl) [T+Spa1.0v_Wave]
 Castle of Deceit (USA) (Unl)
-Castle of Dragon
+Castle of Dragon (U) [T-Spa1.1v_Wave]
+Castle of Dragon (USA)
+Castlevania Fan Edition (Hack)
+Castlevania II
+Castlevania II (U) Save-Game Patch v2.2.2
+Castlevania II - Simon's Quest (World) (Konami Collector's Series)
 Castlevania II Improved Controls (Hack) v1.3 (Retranslation)
+Castlevania II Music
 Castlevania II Retranslation (Hack) v2.9.8.19
 Castlevania II Trevor's Quest (Hack)
 Castlevania II Vengence of Hell (Hack)
 Castlevania II Vengence on Hell (Hack) v1.0d
-Castlevania III - Dracula's Curse
+Castlevania III (Akumajou Densetsu) (J) [T-Spa1.1v_Blade133bo]
+Castlevania III - Dracula's Curse (E) [T+Spa080_Toruzz]
+Castlevania III - Dracula's Curse (E) [T-Spa]
+Castlevania III - Dracula's Curse (Europe)
+Castlevania III - Dracula's Curse (Europe) (Virtual Console)
+Castlevania III - Dracula's Curse (Europe) (Wii Virtual Console)
+Castlevania III - Dracula's Curse (U) [T+Spa1.0_Toruzz]
+Castlevania III - Dracula's Curse (U) [T+Spa1.0_eduardo_a2j]
+Castlevania III - Dracula's Curse (U) [T+Spa1.0_eduardo_a2j][o1]
+Castlevania III - Dracula's Curse (U) [T+Spa_PaladinKnights]
+Castlevania III - Dracula's Curse (U) [T-Spa0.82_Toruzz]
+Castlevania III - Dracula's Curse (USA)
+Castlevania III - Dracula's Curse (USA, Europe) (USA Wii Virtual Console, Wii U Virtual Console)
+Castlevania III - Dracula's Curse (World) (Castlevania Anniversary Collection)
+Castlevania III - Dracula's Curse (World) (Konami Collector's Series)
 Castlevania III - Dracula's Curse - All Bug Fixes (Hack)
 Castlevania III - Dracula's Curse - Uncensored Edition (Hack)
 Castlevania III All Bug Fixes (Hack)
@@ -315,67 +837,117 @@ Castlevania III Localization (Hack) T+Eng v7.1 ShadowOne333
 Castlevania III Localization+New Alucard Sprite (Hack) T+Eng v7.1 ShadowOne333
 Castlevania III Retranslation and Improved Controls (Hack) v7.1 & v1.4
 Castlevania III Uncensored Edition (Hack)
+Castlevania Remix (Hack)
 Castlevania Resurrection (Akumajou Densetsu Hack)
 Castlevania Retold V2.0 (Beta Cross Pickup) (CV PRG0 Hack)
 Castlevania Retold v2.0 (CV2 Simon Sprites) (CV PRG0 Hack)
+Castlevania The Holy Relics (Hack) v1.0 Optomon
 Castlevania The Holy Relics - Improved Controls (Hack) v1.0
+Cat (PD)
+Challenge of the Dragon (USA) (Unl)
 Challenging Lolo 2 (Lolo2 Hack)
-Championship Bowling
-Championship Pool
+Championship Bowling (Japan)
+Championship Bowling (USA)
+Championship Pool (USA)
 Championship Rally (Europe)
+Chaos World (J) [T+Eng.98f(B)_AGTP]
+Chaos World (J) [T-Eng.6a_AGTP]
+Chaos World (J) [T-Eng.98f(A)_AGTP]
 Chase (PD) Shiru 2012
+Chase (World) (Aftermarket) (Homebrew)
 Checkers (Unl)
 Chef Cookie in Gourmet World - Wanpaku Kokkun (Japan) T+Eng Stardust Crusaders v1
 Cheng Ji Si Han (ES-1110) (Ch)
+Cheril Perils Classic (World) (Aftermarket) (Homebrew)
+Cheril Perils Classic (World) (Beta) (Aftermarket) (Homebrew)
+Cheril in Cadaverion (World) (Aftermarket) (Homebrew)
+Cheril in the Cave (World) (Aftermarket) (Homebrew)
+Cheril in the Cave (World) (Es) (Aftermarket) (Homebrew)
 Cheril the Goddess (PD) 2016NESDEV mojon-twins
+Cheril the Goddess (World) (Aftermarket) (Homebrew)
 Cheril the Writer (PD) Mojon Twins 2018-07
+Cheril the Writer (World) (Aftermarket) (Homebrew)
 Cheril the Writer - Spanish Apuntalo Cheril (PD) Mojon Twins 2018-07
+Chess (Othello Hack)
+Chessmaster, The (Europe)
+Chessmaster, The (USA)
 Chessmaster, The (USA) (Rev 1)
-Chester Field - Ankoku Shin e no Chousen
-Chester Field - Ankoku Shin heno Chousen (J) 
-Chiisana Obake - Acchi Socchi Kocchi
-Chiki Chiki Machine Mou Race
-Chinese Checkers (Asia) (Ja) 
-Chip & Dale 3 (Heavy Barrel) (Unl) 
-Chip 'n Dale - Rescue Rangers 2
-Chip 'n Dale Rescue Rangers 2 (R) 
+Chessmaster, The (USA) (Rev A)
+Chester Field - Ankoku Shin e no Chousen (Japan)
+Chester Field - Ankoku Shin heno Chousen (J) [T+Eng1.00b_AGTP]
+Chiisana Obake - Acchi Socchi Kocchi (J) [T+Eng_KingMike]
+Chiisana Obake - Acchi Socchi Kocchi (Japan)
+Chiki Chiki Machine Mou Race (Japan)
+Chinese Checkers (Asia) (Ja) (NTSC) (Unl)
+Chinese Checkers (Asia) (Ja) (PAL) (Unl)
+Chinese Checkers (Asia) (NTSC) (Unl)
+Chip & Dale 3 (Heavy Barrel) (Unl) [p1][!]
+Chip & Dale 3 (Unl)
+Chip 'n Dale - Rescue Rangers 2 (Europe)
+Chip 'n Dale - Rescue Rangers 2 (USA)
+Chip 'n Dale - Rescue Rangers 2 (World) (The Disney Afternoon Collection) (Aftermarket)
+Chip 'n Dale Rescue Rangers (Hack)
+Chip 'n Dale Rescue Rangers 2 (R) [p] [!] Guyver
+Chip 'n Dale Rescue Rangers 2 (U) [T+Spa0.99_jackic]
 Chip 'n Dale Rescue Rangers 2 Four-player (Hack) v3.0 3stag NakeuD2007
+Chip 'n Dale Rescue Rangers 2 Softcore
+Chip 'n Dale Rescue Rangers 2 Winter Peril
 Chip Addict (PD) _mic
 Chip Addiction (PD)
-Chip to Dale no Daisakusen 2
-Chip's Challenge (USA) (v0.924B) 
-Chiyonofuji no Ooichou
+Chip to Dale no Daisakusen 2 (Japan)
+Chip's Challenge (USA) (v0.924B) (Proto)
+Chiu Keung Juen Sek Wong Gam Ka 4-in-1 [p1][!]
+Chiyonofuji no Ooichou (Japan)
 Chodius (Gradius Hack)
-Chou-Wakusei Senki - MetaFight
-Choujikuu Yousai - Macross
+Chou-Wakusei Senki - MetaFight (Japan)
+Choujikuu Yousai - Macross (J) [T-Spa1.0v_Max1323]
+Choujikuu Yousai - Macross (Japan)
+ChronoKnight (World) (Byte-Off 2020) (Aftermarket) (Homebrew)
 Chu Chu Rocket (PD) Beta 2
 Chuck Yeager's Fighter Combat (USA) (Proto)
-Chuugoku Janshi Story - Tonfuu
+Chuugoku Janshi Story - Tonfuu (Japan)
 Chuugoku Janshi Story - Tonpuu (Chinise Hack)
-Chuugoku Taitei (Asia) (Ja) 
+Chuugoku Taitei (Asia) (Ja) (Unl)
 City Trouble (Unl) Mega Cat Studios
 Clarine Test (PD)
-Classic Concentration
+Classic Concentration (USA)
+Closing In! Barney's Daring Escape (World) (Aftermarket) (Homebrew)
+Closing In! Barney's Daring Escape (World) (v1.1) (Aftermarket) (Homebrew)
+Closing In! Barney's Daring Escape (World) (v1.2) (Aftermarket) (Homebrew)
+Closing In! Barney's Daring Escape (World) (v1.3) (Aftermarket) (Homebrew)
 Clown's Mission (Unl)
 Clu Clu Land (World)
 Coast Speed (Unl)
 Cobra Kai (The Karate Kid Hack) v1.0
+Cocoron (J) [T+Eng1.0_Akujin]
+Codename Viper
 Coin Quest Starring Mario & Luigi (Super Uwol! Starring Uwol & Meemaid Hack) v1.0
+Coin World (World) (Aftermarket) (Homebrew)
 Color 64 (PD)
 Color Bars 2 - Palette Viewing (PD) v2 Quietus
 Color Dreams Color Test (PD)
 Color Test (PD)
 Color a Deer (PD) pubby 5-2017
-Color a Dinosaur
-Colorful Dragon (Asia) (Ja) 
+Color a Dinosaur (USA)
+Colorful (PD)
+Colorful Dragon (Asia) (Ja) (PAL) (Unl)
+Colorful Dragon (Asia) (Ja) (Unl)
+Colorful Dragon (Asia) (PAL) (Unl)
 Colorwin Window (NTSC) (PD)
-Columbus - Ougon no Yoake
+Columbus - Ougon no Yoake (Japan)
+Columbus - Ougon no Yoake [T+Eng_aishsha]
 Columns (PD)
-Conan
+Computers Are Easy, Love is Kind (World) (Aftermarket) (Homebrew)
+ConTroll (World) (Aftermarket) (Homebrew)
+Conan (USA)
+Concentration Room (PD)
 Concentration Room (PD) Damian Yerrick
-Conflict
+Concentration Room (World) (v0.02) (Aftermarket) (Homebrew)
+Conflict (Japan)
+Conflict (USA)
 Connect 4 (PD) infidelity alpha_5-4-17
 Contentious Lilinho 2 (Captain Tsubasa 2 Hack)
+Contra (With +4 Menu) (Unl)
 Contra - Attack of the Blue Falcon Normal (Hack) v2 DANGER X
 Contra - Simulation of the Blue Falcon Easy (Hack) v2 DANGER X
 Contra - Terror of the Blue Falcon Hard (Hack) v2 DANGER X
@@ -389,26 +961,61 @@ Contra Terror of the Blue Falcon Hard (Hack) v2 DANGER X
 Contra Zeng Ge (Hack)
 Controller Queue (PD)
 Controller Test (PD) 10-2016 JRoatch
+Controller Test Program (Japan) (En) (Test Program)
 Conway's Life Simulator 32x32 Grid (PD) v1 NovaSquirrel
 Conway's Life Simulator 64x32 Grid (PD) v2 NovaSquirrel
-Cool World
-Cosmo Genesis
-Cosmos Cop (Asia) (En) 
+Cookie Clicker (World) (Proto) (Aftermarket) (Homebrew)
+Cool World (U) [T+Spa1.0_Wave]
+Cool World (USA)
+Copper Jacket (World) (Demo 1) (Aftermarket) (Homebrew)
+Copper Jacket (World) (Demo 2) (Aftermarket) (Homebrew)
+Copter Bot
+Cosmic Wars (J) [T+Eng.993_TransBRC]
+Cosmo Genesis (J) [T+Eng1.1_AGTP]
+Cosmo Genesis (Japan)
+Cosmos Cop (Asia) (En) (Mega Soft) (Unl)
+Cosmos Cop (Asia) (Unl)
+Cosmos Cop (S) (Gluk Video) (Unl) [T-Spa1.0v_Wave]
+Cosmos Cop (Spain) (En) (Gluk Video) (Unl)
+Cosmos Cop (Spain) (Gluk Video) (Unl)
 Cow Boy (Unl)
-Cowboy Kid
+Cow Boy (Wild Gunman Hack)
+Cowboy Kid (U) [T+Spa1.0_Wave]
+Cowboy Kid (USA)
 Cowlitz Gamers 2nd Adventure Demo (PD) v1.1 Cowlitz Gamers 2017
+Cowlitz Gamers' 2nd Adventure, The (World) (Aftermarket) (Homebrew)
+Cowlitz Gamers' Lost Adventure, The (World) (Aftermarket) (Homebrew)
+Crap Job! (World) (Aftermarket) (Homebrew)
 Crash Bandicoot (Unl)
-Crayon Shin-Chan (Ch) 
+Crayon Shin-Chan (Ch) [!]
 Crazy Bus (PD) Vectrex2809 4-2016
-Creatom (Spain) (Gluk Video) 
+CrazyBus (World) (Aftermarket) (Homebrew)
+Creatom (S) (Gluk Video) (Unl) [T-Spa1.0v_Wave]
+Creatom (Spain) (En) (Gluk Video) (Unl)
+Creatom (Spain) (Gluk Video) (Unl)
+Creatom (Unknown) (Unl)
+Cross-Strait Independence (Taiwan) (En) (Aftermarket) (Homebrew)
+CrossPaint (World) (v0.45) (Demo) (Aftermarket) (Homebrew)
+CrossPaint (World) (v0.46) (Demo) (Aftermarket) (Homebrew)
+CrossPaint (World) (v0.47) (Demo) (Aftermarket) (Homebrew)
 Crow, The (Batman - The Video Game Hack) v1.0
-Cycle Race - Road Man
+Crypto (World) (Beta) (GGJ 2016) (Aftermarket) (Homebrew)
+Crypto (World) (v1.12) (Aftermarket) (Homebrew)
+Crypto-Fascist (World) (Aftermarket) (Homebrew)
+Crystalis
+Cycle Race - Road Man (Japan)
 D-Pad Hero (PD)
 D-Pad Hero 2 (PD)
-D.J. Boy (Unl) 
+D.J. Boy (Unl) [!]
 DABG Double Action Blaster Guys (PD) 2014NESDEV NovaSquirrel 2016-7-2
+DENDYcompoII (World) (NTSC) (Aftermarket) (Homebrew)
+DENDYcompoII (World) (PAL) (Aftermarket) (Homebrew)
+DVD Screensaver for NES (World) (Program) (Aftermarket) (Homebrew)
 Da Hang Hai VII (Unl)
 Dai-2-Ji - Super Robot Taisen (Cross Crush Edition) (Hack)
+Dai-2-Ji - Super Robot Taisen (Hang Out Edition) (Hack)
+Dai-2-Ji - Super Robot Taisen (J) [T+Eng.6a_AGTP]
+Dai-2-Ji - Super Robot Taisen (Paradise Edition) (Hack)
 Dai-2-Ji - Super Robot Taisen - Gruel (Hack)
 Dai-2-Ji - Super Robot Taisen - RHF2 (Hack)
 Dai-2-Ji - Super Robot Taisen - ZTOUYIA (Hack)
@@ -416,57 +1023,95 @@ Dai-2-Ji - Super Robot Taisen Lan's Edition I (Hack)
 Dai-2-Ji - Super Robot Taisen Lan's Edition II (Hack)
 Dai-2-Ji - Super Robot Taisen Lan's Edition III (Hack)
 Dai-2-Ji - Super Robot Taisen Nightmare Edition (Hack)
-Dai-2-ji Super Robot Taisen
-Daikaijuu Deburas
-Daikoukai Jidai
+Dai-2-ji Super Robot Taisen (Japan)
+Daikaijuu Deburas (J) [T+Eng0.30_manipulate]
+Daikaijuu Deburas (Japan)
+Daikoukai Jidai (Japan)
+Daisenryaku (J) [T+Eng1.0_AGTP]
+Damian Yerrick Covers Vol 1
 Dance Xtreme - Prima (Unl)
 Danmaku 100 Bullet Demo (PD) v1 pubby
+Dark (Japan) (En) (Family BASIC) (Homebrew)
 Darkseed (Unl)
 Dash Rascal (J) pacnsacdave
-Dash Yarou
+Dash Yarou (Japan)
 Dead Double Dragon Twins (DD2 Hack)
-Deadly Towers
+Deadline Console Invitro by 8bitpeoples
+Deadly Towers (USA)
 Death Marcher (River City Ransom Hack)
 Death Race (USA) (Unl)
-Decathlon (Asia) (Ja) 
+Decathlon (Asia) (Ja) (Unl)
+Deckard (World) (Aftermarket) (Homebrew)
 Decursus (PD)
-Deep Dungeon 4 - Kuro no Youjutsushi (J) 
-Deep Dungeon IV - Kuro no Youjutsushi
+Deep Dungeon 4 - Kuro no Youjutsushi (J) [T+Eng1.0_Dragoon-X]
+Deep Dungeon IV - Kuro no Youjutsushi (Japan)
+Defender of the Crown (Europe)
+Defender of the Crown (France)
 Deformable (Unl)
-Deja Vu
-Deja Vu - A Nightmare Comes True!!
+Deja Vu (Sweden)
+Deja Vu (USA)
+Deja Vu - A Nightmare Comes True!! (Japan)
 Demo Boy 2 (Unl)
-Destination Earthstar
-Devil Man
+Depths (World) (Ludum Dare 44 Version) (Aftermarket) (Homebrew)
+DesolateDesert_v04
+Destination Earthstar (U) [T-Spa1.0v_Wave]
+Destination Earthstar (USA)
+Deth Complex 2 (World) (Aftermarket) (Homebrew)
+Deth Complex! (World) (Aftermarket) (Homebrew)
+Devil Man (Japan)
+Devil Man [T+Eng_snark]
+Devil World (Japan) (Rev A)
 Dezaemon ENG + Save Patch (J) T+Eng v1.1 AGTP, SRAM v1 NES Artifacts
 Dezaemon SRAM Save Patched (Japan) v1 NES Artifacts
 Di Dao Zhan - Tunnel War (C) T+Eng v1 pacnsacdave
-Di Guo Feng Bao - Napoleon's War (Unl) 
+Di Guo Feng Bao - Napoleon's War (Unl) [f1]
 Diamond (Unl)
-Dick Tracy
+Dick Tracy (USA)
 Diffusion Chamber (PD)
 Dig Deeper Demo (PD) 2014NESDEV
+Digital Devil Story - Megami Tensei (J) [T-Spa0.99v_jackic]
+Digital Devil Story - Megami Tensei II (Japan)
+Dimension Shift (World) (Proto) (Aftermarket) (Homebrew)
 Dino Hockey (USA) (Proto 1)
 Dinosaur (Unl)
 Discus Put (Unl) (VT03)
 Displaywin (PD)
-Dive Man (Unl) 
+Dive Man (Unl) [!]
 Dizzy Melanchony Of Existance Chapter 0 (PD)
 Dizzy Sheep Disaster (PD) cppchriscpp 7-2017
+Dizzy Sheep Disaster (World) (Aftermarket) (Homebrew)
 Dma Delay (PD)
 Doki Doki Panic (FDS Conversion)
-Don Doko Don
-Don Doko Don 2
-Dong Dong Nao 1 (Asia) (Ja) 
-Dong Dong Nao II - Guo Zhong Ying Wen (Yi) (Asia) 
+Don Doko Don (Japan)
+Don Doko Don 2 (J) [T+Spa1.0_Wave]
+Don Doko Don 2 (Japan)
+Dong Dong Nao 1 (Asia) (Ja) (Unl)
+Dong Dong Nao II - Guo Zhong Ying Wen (Yi) (Asia) (Ja) (Unl)
 Dong Sheng English Sound-Word Blaster (Unl)
-Donkey Kong Country 4 (Unl) 
+Donkey Kong (U) (PRG1) [!]
+Donkey Kong 2010
+Donkey Kong Classics (U) [!]
+Donkey Kong Country 4 (Asia) (En) (Pirate)
+Donkey Kong Country 4 (Unl) [!]
+Donkey Kong Jr. (World) (Rev A)
+Donkey Kong Jr. Math (U) [!]
 Donner Party (Monster Party Hack)
+Donsol (World) (v15) (Aftermarket) (Homebrew)
+Doodle World (World) (Aftermarket) (Homebrew)
+Doodle World (World) (Demo) (Aftermarket) (Homebrew)
+Doodle World (World) (Rev 1) (Aftermarket) (Homebrew)
 Dooly Bravo Land (Korea) (Unl)
+Doraemon (J) (PRG0) [hM15][T+Eng1.1_Neokid]
+Doraemon - Giga Zombie no Gyakushuu (J) [T+Eng1.0_WakdHacks]
+Double Action 53 - Volume 2 (World) (Aftermarket) (Homebrew)
 Double Action Blaster Guys (PD) v1.0
 Double Crossing - Forbidden Four Multicart Demo (Menu) (Unl)
-Double Dare
-Double Dragon
+Double Dare (USA)
+Double Dragon (Europe)
+Double Dragon (Europe) (Virtual Console)
+Double Dragon (PC10)
+Double Dragon (U) [T+Spa1.0_Wave]
+Double Dragon (USA)
 Double Dragon - Arcade Fix by iamstillhiro1112 (Hack)
 Double Dragon - Chuck Norris Edition (DD Hack) v1.0 pacnsacdave
 Double Dragon - River City Ransom Edition (Hack) pacnsacdave
@@ -476,38 +1121,74 @@ Double Dragon Crazy Edition By Kamming (Hack)
 Double Dragon II - Air Ball Edition By Shinwa (Hack)
 Double Dragon II - Boss Edition by shinwa (Hack)
 Double Dragon II - Final Boss Edition By Shinwa (Hack)
+Double Dragon II - The Revenge (Europe)
+Double Dragon II - The Revenge (Hack)
+Double Dragon II - The Revenge (U) (PRG1) [T-Spa1.0v_Wave]
+Double Dragon II - The Revenge (USA)
 Double Dragon II - The Revenge (USA) (Rev 1)
+Double Dragon II - The Revenge (USA) (Rev A)
 Double Dragon II - The Revenge Classic Strengthened Edition (Hack)
 Double Dragon II - The Revenge Clone Of Bosses Edition (Hack)
 Double Dragon II - The Revenge Ultimate Strengthened Edition (Hack)
 Double Dragon II Control (Hack)
+Double Dragon III - The Rosetta Stone (J) T+Eng v1 pacnsacdave
+Double Dragon III - The Rosetta Stone (J) [T-Spa1.0v_Wave]
 Double Dragon III - The Rosetta Stone Super Skill Edition (Hack)
-Double Dragon III - The Sacred Stones
+Double Dragon III - The Sacred Stones (Europe)
+Double Dragon III - The Sacred Stones (J) [T+Spa1.0_Wave]
+Double Dragon III - The Sacred Stones (U) [T+Spa1.0_Chilensis]
+Double Dragon III - The Sacred Stones (USA)
 Double Dragon III - The Sacred Stones 256+S (Hack)
 Double Dragon III - The Sacred Stones Difficulty Fix (Hack)
 Double Dragon III Combined Skill & Enemies Changed Edition (Hack)
 Double Dragon III Combined Skill Edition (Hack)
 Double Dragon III With Additional Moves By Shinwa (Hack)
-Double Moon Densetsu
+Double Dragon [hM03]
+Double Moon Densetsu (J) [T+EngBeta4_Kiwibonga]
+Double Moon Densetsu (Japan)
+Downtown - Nekketsu Koushin Kyoku - Soreyuke Daiundoukai (J) [T+Eng.15_Disconnected]
 Downtown - Nekketsu Koushin Kyoku - Soreyuke Daiundoukai - Fighting Skill (Hack)
-Downtown - Nekketsu Koushinkyoku - Soreyuke Daiundoukai
-Downtown - Nekketsu Monogatari
+Downtown - Nekketsu Koushinkyoku - Soreyuke Daiundoukai (Japan)
+Downtown - Nekketsu Monogatari (Japan)
+Downtown - Nekketsu Monogatari (Skill Added Edition) (Hack)
+Downtown - Nekketsu Monogatari (Supernatural Capability Edition) (Hack)
 Downtown - Nekketsu Monogatari Action Hacked Edition (Hack)
 Downtown - Nekketsu Monogatari Enhanced Edition By Lym (Hack)
 Downtown - Nekketsu Monogatari Remote Control Edition (Hack)
-Downtown Special - Kunio-kun no Jidaigeki Da yo Zenin Shuugou!
-Downtown Special - Kunio-kun no Jidaigeki Dayo Zenin Shuugou! (J) 
+Downtown Special - Kunio-kun no Jidaigeki Da yo Zenin Shuugou! (Japan)
+Downtown Special - Kunio-kun no Jidaigeki Dayo Zenin Shuugou! (J) [T+Eng1.0_TechnosSamuraiTeam]
 Dr. Blario (Dr. Mario Hack)
 Dr. Dadio (Dr. Mario Hack)
 Dr. Fred (Dr. Mario Hack)
-Dr. Jekyll and Mr. Hyde
+Dr. Jekyll and Mr. Hyde (U) [T-Spa1.0v_Wave]
+Dr. Jekyll and Mr. Hyde (USA)
 Dr. Lip (Dr. Mario Hack) v1 Midna
 Dr. Luigi (Dr. Mario Hack) v1 Shugo
 Dr. Luigi Lite (Dr. Mario Hack) v1 Shugo
 Dr. Luigi YOLE (Dr. Mario Hack) v1 Shugo
 Dr. Manson (Dr. Mario Hack)
 Dr. Maria (Dr. Mario Hack)
+Dr. Mario (E) [T+Fre_Lyssal]
+Dr. Mario (Europe)
+Dr. Mario (JU) (PRG0) [T+Bra1.0_BRGames]
+Dr. Mario (JU) (PRG0) [T+Bra100%_Altieres]
+Dr. Mario (JU) (PRG0) [T+Chi2.0_Jiuban]
+Dr. Mario (JU) (PRG0) [T+Jap]
+Dr. Mario (JU) (PRG0) [T+Rus_Multisoft]
+Dr. Mario (JU) (PRG0) [T+Spa_PaladinKnights]
+Dr. Mario (JU) (PRG0) [o1][T+Spa_PaladinKnights]
+Dr. Mario (JU) [T+Spa1.0_Wave]
+Dr. Mario (Japan, USA)
+Dr. Mario (Japan, USA) (En)
+Dr. Mario (Japan, USA) (En) (Rev 1)
 Dr. Mario (Japan, USA) (Rev 1)
+Dr. Mario (Japan, USA) (Rev A)
+Dr. Mario (PC10)
+Dr. Mario (USA) (Beta 1) (1990-04-27)
+Dr. Mario (USA) (Beta 2)
+Dr. Mario (USA) (Beta 3)
+Dr. Mario (USA) (Beta) (1990-04-27)
+Dr. Mario (USA) (Beta) (After 1990-04-27)
 Dr. Mario Black and White TV (Hack) v1 mr-volk
 Dr. Mario Crystal Clear (Dr. Mario Hack)
 Dr. Mario by Rinkaku (Hack)
@@ -516,144 +1197,287 @@ Dr. Wario (Dr. Mario Hack) v1 DiamondPhoenix
 Drac's Night Out (USA) (Proto)
 Dragon Ball - Dragon Mystery (Hack)
 Dragon Ball - Dragon Tricks (Hack)
-Dragon Ball Z - Kyoushuu! Saiya Jin
+Dragon Ball - Shen Long no Nazo (J) [hM15] [T-Spa1.0v_Wave]
+Dragon Ball Z - Kyoushuu! Saiya Jin (J) [T+Eng1.1]
+Dragon Ball Z - Kyoushuu! Saiya Jin (J) [T+Spa_PaladinKnights]
+Dragon Ball Z - Kyoushuu! Saiya Jin (J) [T-Eng]
+Dragon Ball Z - Kyoushuu! Saiya Jin (J) [T-Spa]
+Dragon Ball Z - Kyoushuu! Saiya Jin (Japan)
+Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (J) [T+Eng0.05_Saiya]
+Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku [T+Eng_Twilight]
+Dragon Ball Z II - Gekishin Freeza!! [T+Eng_Saiya]
+Dragon Ball Z III - Ressen Jinzou Ningen (J) [T+Eng]
 Dragon Knife (Unl)
+Dragon Ninja (Japan)
 Dragon Ninja (Japan) (Rev A)
-Dragon Quest
+Dragon Ninja [T+Eng_S.Crusaders]
+Dragon Quest (Hack) v1.3c
+Dragon Quest (Japan)
 Dragon Quest 34 (DQ3 Hack)
-Dragon Quest II - Akuryou no Kamigami
+Dragon Quest II - Akuryou no Kamigami (Japan)
+Dragon Quest III - Soshite Densetsu e... (Japan)
 Dragon Quest III - Soshite Densetsu e... (Japan) (Rev 1)
+Dragon Quest IV (Hack)
+Dragon Quest IV (Unl)
+Dragon Quest IV - Michibikareshi Monotachi (Japan)
 Dragon Quest IV - Michibikareshi Monotachi (Japan) (Rev 1)
-Dragon Running (Unl) 
-Dragon Unit
+Dragon Running (Unl) [!]
+Dragon Spirit - The New Legend (U) [T-Spa1.0v_Wave]
+Dragon Unit (Japan)
+Dragon Warrior (U) [T+Spa1.0_Wave]
+Dragon Warrior (USA)
 Dragon Warrior (USA) (Rev 1)
+Dragon Warrior (USA) (Rev A)
 Dragon Warrior - Doubled EXP & Gold (Hack) v1 Psyklax
 Dragon Warrior 2 - Doubled EXP & Gold (Hack) v1 Psyklax
 Dragon Warrior 2 DX (Hack) v1 LastduaL
 Dragon Warrior DX (Hack) v1 LastduaL
-Dragon Warrior II
+Dragon Warrior II (USA)
 Dragon Warrior II General Improvement (Hack) v1 Fauntleroy
-Dragon Warrior IV
-Dragon Wars
+Dragon Warrior IV (USA)
+Dragon Wars (Japan)
 Dragoon X Omega - Gold Edition (Dragon Warrior Hack) v2.0f
 Dragoon X Omega II (Final Fantasy Hack) (Final 2)
 Drakaina (PD) v1 Pilo 
-Dream Master 
+Dream Dog Dilemma (World) (Aftermarket) (Homebrew)
+Dream Dog Dilemma (World) (v1.1) (Aftermarket) (Homebrew)
+Dream Master (J) T+Eng
+Dream Master (J) [T-Spa1.0v_Takkun57]
+Dream Master [T+Eng]
 Driar (PD) 2-2012 Adolfsson, Eriksson
+Driar (World) (Aftermarket) (Homebrew)
+Drift Trial (World) (v0.01) (Aftermarket) (Homebrew)
 Dringle (Unl)
+Dropzone (E) [T-Spa1.0v_Wave]
 Drum Edit (PD)
+Duck Hunt (PC10)
+Duck Hunt (W) [T+Spa1.0_Wave]
 Duck Hunt (World)
 Duck Hunt LCD Mod (Hack) Beta 5 neslcdmod.com
+Duck Tails (USA) (Aftermarket) (Homebrew)
+Duck Tales
 Duck Tales HARDCORE + Jump Fix (Hack) v2 lomax edition, jump v2 angrylion
 Duck Tales Jump Fix (Hack) v2 angrylion
-DuckTales
+DuckTales (Europe)
+DuckTales (U) [T-Spa1.1v_Darkchaosblast]
+DuckTales (USA)
+DuckTales (World) (The Disney Afternoon Collection) (Aftermarket)
 DuckTales - DuckTales Revision (Hack) v1.0
+Duckstroma (World) (v0.28) (Proto) (Byte-Off 2020) (Aftermarket) (Homebrew)
 Dune War (Unl) (VT03)
-Dungeon & Magic - Swords of Element
-Dungeon Kid
+Dungeon & Magic - Swords of Element (Japan)
+Dungeon Explorer (World) (Aftermarket) (Homebrew)
+Dungeon Kid (Japan)
 Duo Bao Xiao Ying Hao - Guang Ming yu An Hei Chuan Shuo (Ch)
-Dushlan (World) (Aftermarket) 
+Dushlan (World) (Aftermarket) (Unl)
+Dynamite Bowl (Japan)
 Dynamite Bowl (Japan) (Rev 1)
-Dynowarz - Destruction of Spondylus
-Dynowarz - The Destruction of Spondylus
+Dynowarz - Destruction of Spondylus (USA)
+Dynowarz - The Destruction of Spondylus (U) [T+Spa1.0_Wave]
+Dynowarz - The Destruction of Spondylus (USA)
+Earth Bound Zero (Mother) (U) (Prototype) [T-Spa2.2v_OAD]
 Earth Bound Zero Sprite Restore (Hack)
 Earth Worm Jim 2 (No Menu) (Unl)
+Earth Worm Jim 2 (Unl) (KaSing)
+Earth Worm Jim 2 (Unl) (SuperGame)
 EarthBound Beginnings (USA, Europe) (Virtual Console)
 EarthBound Beginnings Uncut - Easy (Hack) v2 Luffym17
 EarthBound Beginnings Uncut - Normal (Hack) v2 Luffym17
+Earthbound
+Earthbound - 25th Anniversary Edition
 Earthbound Alpha (Hack)
 Earthbound Easy (Hack)
 Earthbound Zero (Demiforce v1.01-2 Hack)
-Earthworm Jim 2 - Super Game (Unl) 
+Earthbound Zero (TEsp)
+Earthworm Jim 2 (Europe, Asia) (En) (Super Game) (Aftermarket) (Pirate)
+Earthworm Jim 2 - Super Game (Unl) [a1]
 Eatfish (PD)
-Egypt
+Eelectric (World) (Aftermarket) (Homebrew)
+Egypt (J) [T+Eng1.00_Dodgy]
+Egypt (Japan)
+Egypt [T+Eng_Dodgy]
 Eirin (Pooyan Hack) v1 DASTARD
 El Monstruo de Los Globos (Unl)
+Electronic Sweet-N-Fun Fortune Teller (World) (Aftermarket) (Homebrew)
 Elite (Europe) (En,Fr,De)
+Elite (USA) (Proto)
 Elite by Ian Bell & David Braben (NTSC Hack)
 Elusion of the Dead (Early Concept 1) (PD) Sly Dog Studios
-Elysion
+Elusion of the Dead (Early Concept 2) (PD) Sly Dog Studios
+Elysion (Japan)
+Elysion (SRAM Hack) [T+Eng_Tenshigami]
+Elysion [T+Eng_Tenshigami]
 Emily Hearts - Earthbound For Girls (Hack)
-Empereur, L'
+Empereur, L' (Japan)
+Empereur, L' (USA)
 Empire Invaders (Space Invaders Hack)
 Emunespl Famicon Intro (PD)
 Enchanter (Unl) (VT03)
-English Word Blaster V1.0 (Unl) 
-Enigmacore (USA) (Aftermarket) 
+English Word Blaster V1.0 (Unl) [!]
+Enigmacore (USA) (Aftermarket) (Unl)
+Enormous Adventures (World) (Aftermarket) (Homebrew)
+Enormous Adventures (World) (Demo) (Aftermarket) (Homebrew)
 Eric Cantona Football Challenge - Goal! 2 (Europe)
-Erika to Satoru no Yume Bouken
-Escape from Atlantis, The (USA) (Proto 2) 
+Erika and Satoru's Dream Adventure
+Erika to Satoru no Yume Bouken (Japan)
+Escape from Atlantis, The (USA) (Proto 1) (Unl)
+Escape from Atlantis, The (USA) (Proto 2) (Unl)
 Eskimo Bob Demo (PD) Spoony Bard 2017
-Eskimo Bob Starring Alfonzo - Deluxe Edition (World) (Aftermarket) 
-Esper Bouken Tai
+Eskimo Bob Starring Alfonzo (World) (Demo) (Aftermarket) (Homebrew)
+Eskimo Bob Starring Alfonzo - Deluxe Edition (World) (2019-11-01) (Aftermarket) (Homebrew)
+Eskimo Bob Starring Alfonzo - Deluxe Edition (World) (Aftermarket) (Homebrew)
+Eskimo Bob Starring Alfonzo - Deluxe Edition (World) (Aftermarket) (Unl)
+Eskimo Bob Starring Alfonzo - Deluxe Edition (World) (Rev 1) (Aftermarket) (Homebrew)
+Esper Bouken Tai (Japan)
+Esper Bouken Tai [T+Eng_aishsha]
+Espitenen und Herr Pimponen (World) (Aftermarket) (Homebrew)
+Espitenen und Herr Pimponen (World) (Es) (Aftermarket) (Homebrew)
 Eternal GladNES (PD) 2011 Psych Software
+Eternal GladNES (World) (Aftermarket) (Homebrew)
+Euchre (World) (Aftermarket) (Homebrew)
 Evil Dead (Zelda 2 Hack)
-Exciting Rally - World Rally Championship
-Eyra - The Crow Maiden (World) (Demo) 
+Excitebike (VS)_lomax
+Exciting Rally - World Rally Championship (J) [T+Eng1.00_Klepto_Software]
+Exciting Rally - World Rally Championship (Japan)
+Exit Loop (USA) (Aftermarket) (Homebrew)
+Eyra - The Crow Maiden (World) (Demo) (Aftermarket) (Unl)
+F-1 Race (Japan)
 F-16 Renegade - Quattro Arcade (USA) (Unl)
 F-FF (PD) v1 pubby 2017NESDEV
+F-FF (World) (Aftermarket) (Homebrew)
 FC BASIC (7-in-1) (Unl)
 FC-Subor V3.0 Music Demo (Unl)
 FHBG Samplemusic (PD)
-FIFA 97 International Soccer (Unl) 
-FIFA International 2' 96 (Unl) 
+FIFA 97 International Soccer (Unl) [!]
+FIFA International 2' 96 (Unl) [!]
 FP-BASIC (V3.3) (Unl)
-Falsion (FDS Conversion, Whirlwind Manu) (Unl) 
+Falling (World) (v1.0) (Aftermarket) (Homebrew)
+Falling (World) (v1.01) (Aftermarket) (Homebrew)
+Falling (World) (v1.1) (Aftermarket) (Homebrew)
+Falsion (FDS Conversion, Whirlwind Manu) (Unl) [!]
 FamiTone Audio Library (PD)
-Famicom Doubutsu Seitai Zukan! - Katte ni Shirokuma - Mori o Sukue no Maki!
-Famicom Jump II - Saikyou no 7 Nin
+Famicom Doubutsu Seitai Zukan! - Katte ni Shirokuma - Mori o Sukue no Maki! (Japan)
+Famicom Jump II - Saikyou no 7 Nin (Japan)
+Famicom Meijin Sen (Japan)
 Famicom Meijin Sen (Japan) (Rev 1)
-Famicom Top Management
-Famicom Yarou 54 (Unl) 
-Famicom Yarou Vol.1 7-in-1 (Unl) 
-Famicom Yarou Vol.5 7-in-1 (Unl) 
+Famicom Top Management (Japan)
+Famicom Wars (J) [T+Eng_Aka]
+Famicom Wars [T+Eng_Aka]
+Famicom Yarou 54 (Unl) [!]
+Famicom Yarou Vol.1 7-in-1 (Unl) [!]
+Famicom Yarou Vol.5 7-in-1 (Unl) [!]
+Famicom Yarou Vol.5 7-in-1 (Unl) [T+Rus_Cool-Spot]
+Famicom de Pon (World) (Aftermarket) (Homebrew)
 FamicomBox (Japan) (Menu Cart)
 FamicomStation (Japan) (Menu Cart)
 Famicon Fantasy (FF1 hack)
 Famikan (Unl)
+Family BASIC (Japan)
+Family BASIC (Japan) (Rev 1)
+Family BASIC (Japan) (Rev 2)
+Family BASIC (Japan) (v1.0)
+Family BASIC (Japan) (v2.0a)
+Family BASIC (Japan) (v2.1a)
 Family BASIC (Japan) (v3.0)
-Family BASIC V3
-Family Block
-Family Feud
+Family BASIC V3 (Japan)
+Family Block (Japan)
+Family Feud (USA)
+Family Jockey (J) [!]
 Family Noraebang (Korea) (Unl)
-Family School
-Family Trainer 10 - Rairai Kyonsees
-Family Trainer 4 - Jogging Race
-Family Trainer 6 - Manhattan Police
-Family Trainer 8 - Totsugeki! Fuuun Takeshi-jou
-Family Trainer 9 - Fuuun Takeshi-jou 2
+Family School (Japan)
+Family Trainer 10 - Rairai Kyonsees (Japan)
+Family Trainer 4 - Jogging Race (Japan)
+Family Trainer 6 - Manhattan Police (Japan)
+Family Trainer 8 - Totsugeki! Fuuun Takeshi-jou (Japan)
+Family Trainer 9 - Fuuun Takeshi-jou 2 (Japan)
 Fan Kong Jing Ying (Asia) (Unl)
 Fancy Bros (Unl)
-Fantastic Adventures of Dizzy, The (Europe) (En,Fr,De) 
-Faria - A World of Mystery & Danger!
-Faria - Fuuin no Tsurugi
+Fantastic Adventures of Dizzy, The (Europe) (En,Fr,De) (Unl)
+Fantasy Zone (Tengen) (U) [T+Spa1.0_Wave]
+Fantasy Zone (USA) (Tengen) (Unl)
+Fantasy Zone (USA) (Unl)
+Faria - A World of Mystery & Danger! (USA)
+Faria - Fuuin no Tsurugi (Japan)
+Farming Mushrooms in LOWAS (World) (Aftermarket) (Homebrew)
 Fast Gunman (Unl)
+Fast Gunman (Wild Gunman Hack)
+Faxanadu (Europe)
+Faxanadu (Japan)
+Faxanadu (USA)
 Faxanadu (USA) (Rev 1)
+Faxanadu (USA) (Rev A)
+Faxanadu (v1.1) (U) [T+Spa0.7_Dirak]
 Faxanadu Restoration (Hack) v1.01
 Faxanadu Uncensored (Hack) v1.0b Safaribans
 Faxanadu Uncensored and Color Edit (Hack)
-Felix vs Jerry (Unl) 
+Feline Flood Fiasco (World) (Aftermarket) (Homebrew)
+Felix vs Jerry (Unl) [!]
 Fengli Dance 12 in 1 & 24 in 1 (Unl)
 Fighter F8000 (PD) Kalle Suikola 2008
-Fighting Hero (Asia) (Ja) 
-Fighting Hero III (Asia) (Ja) 
-Fighting Road
+Fighting Hero (Asia) (Ja) (Unl)
+Fighting Hero (Unl)
+Fighting Hero III (Asia) (Ja) (Unl)
+Fighting Hero III (Asia) (Unl)
+Fighting Road (Japan)
+File Fixers (World) (Aftermarket) (Homebrew)
 Filthy Kitchen (PD) 2016NESDEV dustmop
-Final Fantasy
+Final Fantasy (Japan)
+Final Fantasy (Japan) (Rev 1)
+Final Fantasy (Japan) (Rev 1) (3DS Virtual Console)
+Final Fantasy (Japan) (Rev 1) (Wii and Wii U Virtual Console)
+Final Fantasy (U) [T+Spa100%_PaladinKnights]
+Final Fantasy (U) [T+Spa100%_PaladinKnights][b1]
+Final Fantasy (U) [T+Spa100_Chilensis]
+Final Fantasy (U) [T+Spa100_ereza]
+Final Fantasy (U) [T+Spa2.0]
+Final Fantasy (U) [T-Spa1.0v_Cuaaao]
+Final Fantasy (U) [T-Spa100%_Sayans Traductions]
+Final Fantasy (U) [T-Spa100%_Sayans Traductions][b1]
+Final Fantasy (USA)
 Final Fantasy ++ (Hack) v1.5
 Final Fantasy ++ World of Chaos (Hack) v1.2
 Final Fantasy - Doubled EXP & Gold (Hack) v1 Psyklax
 Final Fantasy - no menu music by Bregalad (FF1 Hack)
+Final Fantasy 2
 Final Fantasy 99 (DQ3 Hack)
 Final Fantasy Balance and Bug Fixes (Hack)
 Final Fantasy Decapitalization Font (Hack) v1.01 nibbles27
 Final Fantasy I & II (J) T+Eng v1.1 Demiforce, Grond
-Final Fantasy I, II
-Final Fantasy II
+Final Fantasy I & II (J) [T+Eng1.00_Demiforce]
+Final Fantasy I & II [T+Eng_Demiforce+Grond]
+Final Fantasy I (J) T+Eng v1.3 Chaos Rush
+Final Fantasy I, II (Japan)
+Final Fantasy II (J) T+Eng v1.6 Chaos Rush
+Final Fantasy II (J) T+Eng v2.2b Chaos Rush
+Final Fantasy II (J) [T+Eng1.03_Demiforce]
+Final Fantasy II (J) [T+Spa010_PaladinKnights][b1]
+Final Fantasy II (J) [T+Spa030_butz][b1]
+Final Fantasy II (J) [T-Spa1.0v_ButzKlauser]
+Final Fantasy II (J) [hM02][T+Eng_Toma&AlanMidas]
+Final Fantasy II (J) [hM02][T+Spa_Demiforce][a1]
+Final Fantasy II (Japan)
+Final Fantasy II (Original Title) [T+Eng_Demiforce]
+Final Fantasy II (USA) (Proto)
+Final Fantasy II (with Title Fix) [T+Eng_Demiforce]
 Final Fantasy II - Walk Through Walls (Hack)
-Final Fantasy II Demonic Pandemonium (Hack) 
+Final Fantasy II Demonic Pandemonium (Hack) [T+Eng_Demiforce]
 Final Fantasy II Special Edition v1.03 (Hack)
-Final Fantasy III
+Final Fantasy III (J) T+Eng v1.1 A.W.Jackson+Neill Corlett+SoM2Freak
+Final Fantasy III (J) T+Eng v1.3 Chaos Rush
+Final Fantasy III (J) [T+Eng3.1_AkIlLa]
+Final Fantasy III (J) [T+Spa070_butz]
+Final Fantasy III (J) [T+Spa100_DarkDevils]
+Final Fantasy III (J) [T+Spa100b_DarkDevils]
+Final Fantasy III (J) [T+SpaBeta1.4_DarkDevils]
+Final Fantasy III (J) [T+Spa]
+Final Fantasy III (J) [T-Eng][aa]
+Final Fantasy III (J) [T-Spa1.0v_Maeson]
+Final Fantasy III (J) [T-Spa]
+Final Fantasy III (J) [p1][T+Spa070_butz]
+Final Fantasy III (J) [p1][T+Spa100_DarkDevils]
+Final Fantasy III (J) [p1][T+Spa100b_DarkDevils]
+Final Fantasy III (J) [p1][T+Spa]
+Final Fantasy III (Japan)
 Final Fantasy III - Walk Through Walls (Hack)
 Final Fantasy III Redux (Hack) 1.3.0
 Final Fantasy Negative One (FF1 Hack) v2.0
@@ -664,322 +1488,622 @@ Final Fantasy Redux (Hack) v1.0.0
 Final Fantasy Restoration (Hack) v1.11
 Final Fantasy Ultra - Champion Edition (Hack) v1.1
 Final Fantasy V (Unl)
+Final Fantasy VII (C) T+Eng v0.97 Xaronyr EnCardier
+Final Fantasy VII (China) (Aftermarket) (Pirate)
 Final Fantasy VII English (Japan) T+Eng v1.1 Lugia
 Final Fantasy Valkyries of Light (Hack) v0.3 Taralyn Darkchylde
 Final Fantasy Zz Hard Type (Hack)
 Final Fight 3 Super 25-in-1 (SC-128) (Unl)
+Fire Emblem (J) T+Eng Quirino
+Fire Emblem (J) [T+Eng.10_Gaijin]
+Fire Emblem - Ankoku Ryuu to Hikari no Tsurugi (Ch)
 Fire Emblem - New Challenge (Hack)
-Fire Emblem Gaiden
+Fire Emblem Gaiden (Ch)
+Fire Emblem Gaiden (J) [T+Eng97b2-Repair110206_J2e+Starwolf]
+Fire Emblem Gaiden (Japan)
+Fire Emblem Gaiden [T+Eng_Artemis251]
 Fire Emblem Map and Enemy (Hack)
 Fire Emblem Two Dragon Edition (Hack)
+Fire Emblem [T+Eng_Quirino]
+Fire of Rebellion (World) (Pt-BR) (Aftermarket) (Homebrew)
 Firehawk (Europe) (Unl)
-Fisher-Price - Firehouse Rescue
-Fisher-Price - I Can Remember
-Fisher-Price - Perfect Fit
+Fisher-Price - Firehouse Rescue (USA)
+Fisher-Price - I Can Remember (USA)
+Fisher-Price - Perfect Fit (USA)
 Fishfall (PD)
 Fishing Maniac Sanpei - Blue Marlin - Tsurikichi Sanpei (J) T+Eng
+Fisraduth - Castle of Tyramis (Japan) (Easy Version) (Family BASIC) (Homebrew)
+Fisraduth - Castle of Tyramis (Japan) (Family BASIC) (Homebrew)
+Fisraduth - Castle of Tyramis (Japan) (Very Easy Version) (Family BASIC) (Homebrew)
+FistyNUranus
 Five Days (Unl)
+Flappy Bird (World) (Aftermarket) (Homebrew)
+Flappy Bird (World) (Easier) (Aftermarket) (Homebrew)
 Flappy Bird Easy (PD) Nioreh 2014-7
 Flappy Block (PD) Sly Dog Studios
 Flappy Jack (PD) 2016NESDEV Final 1-2017 dougeff
+Flappy Jack (PD) Final 1-2017 dougeff
+Flies (Japan) (En) (Family BASIC) (Homebrew)
 Flight Minigames - Flappy Block, Family Bird, Flappy (PD) 2014NESDEV v0.2 JRoatch
-Flintstones, The - The Rescue of Dino & Hoppy
+Flintstones, The - The Rescue of Dino & Hoppy (Europe)
+Flintstones, The - The Rescue of Dino & Hoppy (USA)
 Flintstones, The - The Surprise at Dinosaur Peak (Europe)
-Flintstones, The - The Surprise at Dinosaur Peak!
+Flintstones, The - The Surprise at Dinosaur Peak! (USA)
+Fluffy Space Escape (World) (Aftermarket) (Homebrew)
+Fly A Way (World) (Aftermarket) (Homebrew)
 For Points (PD) Sly Dog Studios
 Forehead Block Guy (PD) 2011NESDEV NovaYoshi
+Forehead Block Guy (World) (2011-05-26) (Aftermarket) (Homebrew)
 Frank Fnatnsy (FF1 Hack)
 Free Fall (USA) (Proto)
 Freefall (PD)
-Fudou Myouou Den
+Frog (World) (Aftermarket) (Homebrew)
+Fudou Myouou Den (Japan)
+Fudou Myouou Den [T+Eng_S.Crusaders]
 Full Palette (PD)
 Fullscreen Madness (PD)
 Funblaster Pak (Australia) (Unl)
 Function (PD) 2014NESDEV Denine
-Fushigi no Umi no Nadia
-Future Wars - Mirai Senshi Lios
-Fuzzical Fighter
+Function (PD) Denine
+Fushigi no Umi no Nadia (J) [T+Eng1.3_J2e]
+Fushigi no Umi no Nadia (J) [T-Eng_J2e]
+Fushigi no Umi no Nadia (Japan)
+Future Wars - Mirai Senshi Lios (Japan)
+Fuzzical Fighter (J) [T+Eng1.00b_WakdHacks]
+Fuzzical Fighter (Japan)
+G.I. Joe (U) [T+Spa_Chilensis][b1]
 GDC - Malaria (Playpower.org) (Unl)
-GLK Dance by FengLi (Unl) 
+GLK Dance by FengLi (PD) [!]
+GLK Dance by FengLi (Unl) [!]
+GRAVEYARD DUDE (World) (2022-06-06) (Demo) (Aftermarket) (Homebrew)
+GRAVEYARD DUDE (World) (2022-07-28) (Aftermarket) (Homebrew)
+GRAVEYARD DUDE (World) (Aftermarket) (Homebrew)
+GRAVEYARD DUDE (World) (Demo) (Aftermarket) (Homebrew)
 GSM (PD) Sly Dog Studios
-Galactic Crusader (Asia) (Ja) 
-Galaga - Demons of Death
+Gaiapolis (Asia) (Unl)
+Galactic Ascension (USA) (Aftermarket) (Homebrew)
+Galactic Crusader (Asia) (Ja) (Unl)
+Galactic Crusader (Bunch) [T-Spa1.0v_Wave]
+Galactic Crusader (USA) (Unl)
+Galaga (Europe)
+Galaga (Japan)
+Galaga (World) (Namcot Collection, Namco Museum Archives Vol 2)
+Galaga - Demons of Death (U) [T+Spa1.0_Wave]
+Galaga - Demons of Death (USA)
 Galaga Beer Wars (Galaga Hack)
 Galaga Plus (Galaga Hack)
 Galaga Trek (Galaga Hack)
 Galaga by zergkunio (Galaga Hack)
+Galaxian (J) (REVA) [o1]
+Galaxian (Japan)
 Galaxian (Japan) (Rev A)
+Galaxian (World) (Namcot Collection, Namco Museum Archives Vol 1)
+Galaxxon - The Third War (World) (Aftermarket) (Homebrew)
 Galaxxon, The Third War (PD) 2007 Psych Software 
-Galaxy 5000 - Racing in the 51st Century
+Galaxy 5000 (U) [T-Spa1.0v_Wave]
+Galaxy 5000 (USA)
+Galaxy 5000 (USA) (Beta)
+Galaxy 5000 - Racing in the 51st Century (Europe)
+Galaxy 5000 - Racing in the 51st Century (USA)
 Galaxy Nes 000 (PD)
-Galf (World) (Aftermarket) 
+Galf (World) (Aftermarket) (Unl)
 Gallerynes (PD)
-Game Designer Yousei Soft - Dezaemon
+Game Designer Yousei Soft - Dezaemon (Japan)
 Game Genie (USA) (Unl)
-Game Master Kid (Unknown) (Proto) 
-Game Party
+Game Gyaru EX (World) (Aftermarket) (Homebrew)
+Game Master Kid (Unknown) (Proto) (RAM) (Unl)
+Game Master Kid (Unknown) (Proto) (Unl)
+Game Party (J) T+Eng v1.0 Proveaux
+Game Party (J) [T-Spa1.1v_Proveaux])
+Game Party (Japan)
 Game of Life (PD) v1.0
 Game2008 (PD)
-Ganbare Goemon 2
+Ganbare Goemon 2 (J) [T+Spa0.99_jackic]
+Ganbare Goemon 2 (Japan)
+Ganbare Goemon 2 [T+Eng_S.Crusaders]
+Ganbare Goemon 2 [T+Eng_StardustCrusaders]
+Ganbare Goemon Gaiden - Kieta Ougon Kiseru (J) T+Eng v99c Adventurous
+Ganbare Goemon Gaiden - Kieta Ougon Kiseru (J) T+Eng99c Adventurous
+Ganbare Goemon Gaiden - Kieta Ougon Kiseru (J) [T-Spa1.0v_jackic]
+Ganbare Goemon Gaiden - Kieta Ougon Kiseru (Japan)
 Ganbare Goemon Gaiden - Kieta Ougon Kiseru (Japan) (Rev 1)
-Ganbare Goemon Gaiden 2 - Tenka no Zaihou
+Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) T+Eng v1 Adventurous
+Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [T-Spa0.98v_jackic]
+Ganbare Goemon Gaiden 2 - Tenka no Zaihou (Japan)
 Ganbare Goemon Gaiden Credits Fix (J) v0.1 rainponcho
-Ganso Saiyuuki - Super Monkey Daibouken
+Ganbare Goemon! - Karakuri Douchuu (J) [hFFE][T-Eng]
+Ganso Saiyuuki - Super Monkey Daibouken (Japan)
 Garden War (AKA Resistant) (Unl)
 Gardman (Asia) (Unl)
-Gargoyle's Quest II
-Gargoyle's Quest II - The Demon Darkness (U) 
+Gargoyle's Quest II (E) [T-Spa1.0v_Lukas]
+Gargoyle's Quest II (Europe)
+Gargoyle's Quest II (USA)
+Gargoyle's Quest II - The Demon Darkness (U) [T-Spa1.0v_jackic]
 Gargoyle's Quest II Demonic Restoration (Hack) v1.0 K.K. Drunkinski
 Garou Densetsu Special (Unl)
-Gauntlet II
-Gekitou Pro Wrestling!! - Toukon Densetsu
+Gauntlet II (Europe)
+Gauntlet II (USA)
+Gekitou Pro Wrestling!! - Toukon Densetsu (Japan)
+GemVenture (USA) (Aftermarket) (Homebrew)
+GemVenture (USA) (Beta) (Aftermarket) (Homebrew)
 Geminim (PD)
+Geminim (World) (Beta) (Aftermarket) (Homebrew)
+Geminim (World) (v0.990) (Aftermarket) (Homebrew)
 Gemventure Beta (PD)
 General's Son (K) T+Eng v1.0 pacnsacdave
-Genghis Khan
+Genghis Khan (USA)
 German City (River City Ransom Hack)
 Get It! (PD) Gravel Studios 2016
-Ghost Lion
+Get It! (World) (Aftermarket) (Homebrew)
+Getsufuu Maden (Japan)
+Ghost Lion (USA)
 Ghost Ninja (River City Ransom Hack)
 Ghost Palace (Unl) (VT03)
-Ginga Eiyuu Densetsu
-Ginga no Sannin
+Ghoul Grind - Night of the Necromancer (World) (2020-12-01) (Demo) (Aftermarket) (Homebrew)
+Ghoul Grind - Night of the Necromancer (World) (2021-10-28) (Demo) (Aftermarket) (Homebrew)
+Ghoul Grind - Night of the Necromancer (World) (Aftermarket) (Homebrew)
+Ghoul Grind - Night of the Necromancer (World) (Dreamcast Version) (Aftermarket) (Homebrew)
+Ghoul Grind - Night of the Necromancer (World) (Dreamcast Version) (Demo) (Aftermarket) (Homebrew)
+Gift (World) (Pt-BR) (Aftermarket) (Homebrew)
+Ginga Eiyuu Densetsu (Japan)
+Ginga no Sannin (Japan)
 Glitchnes (PD)
+Glory of Heracles - Labors of the Divine Hero
 Glory of Heracles - Labors of the Divine Hero (J) T+Eng
 Go (PD)
-Goal! Two
-Goal!!
+Goal! Two (USA)
+Goal!! (Japan)
 Goblet Tower (Unl)
 God of War (Rygar Hack) v1.2 pacnsacdave
 Godzilla Retranslation (J) T+Eng v1 Stardust Crusaders
+Gold Guardian Gun Girl (World) (Trial Version) (Aftermarket) (Homebrew)
+Golden Axe III
 Golden Axe III (Unl)
 Golden Bird (Unl)
-Golden Card 6-in-1 (Unl) 
-Golf Grand Slam
-Golgo 13 - Dainishou - Icarus no Nazo
-Gologo 13 - Mafat Conspiracy, The
-Gorilla Man, The
-Gotcha! - The Sport!
-Gozonji - Yaji Kita Chin Douchuu
+Golden Card 6-in-1 (Unl) [!]
+Golf Grand Slam (Japan)
+Golf Grand Slam (USA)
+Golgo 13 - Dainishou - Icarus no Nazo (Japan)
+Gologo 13 - Mafat Conspiracy, The (USA)
+Gorilla Man, The (Japan)
+Gotcha! - The Sport! (USA)
+Gozonji - Yaji Kita Chin Douchuu (Japan)
 Gradirs V.55 (Seicross Hack)
-Gradius
+Gradius (Europe)
+Gradius (Japan)
+Gradius (Japan) (ArchiMENdes Hen)
+Gradius (Japan) (FamicomBox)
+Gradius (PC10)
+Gradius (PC10) [a1]
+Gradius (U) [T+Spa1.0_Wave]
+Gradius (USA)
 Gradius AC 2000 (Hack) v1 Kasion
+Gradius II (J) [T+Spa1.0_Wave]
 Gradius MSX Conversion (Hack) v1 Messatu 2012-07-17
 Gradius Twinbee MSX (Hack) v1 Messatu 2012-07-17
 Graphics Editor for NES (PD) v0.05 Damian Yerrick 2012
 Graros (Seicross Hack)
 GraveDigger (PD) v1.0
 Graybox (PD)
-Great Battle Cyber
-Great Boxing - Rush Up
-Great Wall, The (Asia) (Ja) 
+Great Battle Cyber (Japan)
+Great Boxing - Rush Up (Japan)
+Great Wall, The (Asia) (Ja) (PAL) (Unl)
+Great Wall, The (Asia) (PAL) (Unl)
 Greedy Snake (PD)
-Greg Norman's Golf Power
-Gremlin 2 - Shinshu Tanjou
-Gremlins 2 - The New Batch
-Gremlins II - The New Batch (U) 
+Greg Norman's Golf Power (USA)
+Gremlin 2 - Shinshu Tanjou (Japan)
+Gremlins 2 - The New Batch (Europe)
+Gremlins 2 - The New Batch (Europe) (Beta)
+Gremlins 2 - The New Batch (USA)
+Gremlins II - The New Batch (U) [T+Spa1.0_Wave]
+Gruniozerca (World) (Pl) (Aftermarket) (Homebrew)
+Gruniozerca (World) (Pl) (Rev 1) (Aftermarket) (Homebrew)
 Gruniozerca 2 (PD) Rev1 M_Tee 2017NESDEV
+Gruniozerca 2 (World) (En,Pl) (NESDev 2017) (Aftermarket) (Homebrew)
+Gruniozerca 2 (World) (En,Pl) (Rev 1) (NESDev 2017) (Aftermarket) (Homebrew)
+Gruniozerca 2 - The Great Cavy Rescue! (World) (En,Pl) (Aftermarket) (Homebrew)
+Gruniozerca 3 - The Great Cavy Clean-Up! (World) (En,Pl) (Aftermarket) (Homebrew)
 Guardian 5 (PD) 2017
+Gumshoe (U) [!]
 Gunfignt (Unl)
+Gunfignt (Wild Gunman Hack)
+Gunsmoke
+Gyromite (W) [T-Spa1.0v_Wave]
+Gyromite (World)
+Gyromite - Special Edition
 Gyromite ~ Gyro (World)
+Gyruss (FDS Conversion,Kaiser) (Unl) [!]
 HES 6-Pak - Real Player's Pak (Australia) (Unl)
 HVC Kensa Cassette Controller Test (Japan) (Test Program)
-Haja no Fuuin
-Hana no Star Kaidou
+Hack-Match (USA, Europe) (NTSC) (Aftermarket) (Homebrew)
+Hack-Match (USA, Europe) (PAL) (Aftermarket) (Homebrew)
+Haja no Fuuin (Japan)
+Halloween 2015 NA Scare Cart (USA) (Aftermarket) (Homebrew)
+Halloween 2016 NA Scare Cart (USA) (Aftermarket) (Homebrew)
+Halloween 2017 NA Scare Cart (USA) (Aftermarket) (Homebrew)
+Hamburgers En Route to Switzerland (USA) (Aftermarket) (Homebrew)
+Hana no Star Kaidou (Japan)
 Hanafuda Yuukyou Den - Nagarebana Oryuu (Japan) (Unl)
 Handy (PD)
 Hangman (PD)
 Hanjuku Eiyuu by fenglianxilin (070808) (Hack)
-Hanjuku Hero
+Hanjuku Hero (Japan)
+Hano no Rangerman (World) (Ja) (Aftermarket) (Homebrew)
+Hano no Rangerman (World) (Ja) (Demo) (Aftermarket) (Homebrew)
+Happy Angel Legend (Tiny Toon Hack)
 Happy Angel Legend (Unl)
-Happy Birthday Bugs
+Happy Birthday Bugs (Japan)
 Happy Birthday Famicom - GreyBox (PD)
-Hard Drivin' (USA) (Proto) 
+Happy Hour (World) (Aftermarket) (Homebrew)
+HappyNESs (World) (Aftermarket) (Homebrew)
+Haradius Zero (Japan) (En) (Aftermarket) (Homebrew)
+Haradius Zero (USA) (Aftermarket) (Homebrew)
+Haratyler HG (Japan) (En) (Aftermarket) (Homebrew)
+Hard Drivin' (USA) (Proto) (Unl)
+Harlee, Barlee and Charlee in Whacky Water Wiles (World) (Aftermarket) (Homebrew)
+Harry Dwarf (World) (Aftermarket) (Homebrew)
+Harry Potter (Aladdin 3 Hack)
 Harry Potter (Panic Restaurant) (Unl)
-Harry Story - Harry Potter (Unl) 
+Harry Potter (Unl)
+Harry Story (Wacky Races Hack)
+Harry Story - Harry Potter (Unl) [!]
+Harry Tour (Aladdin 3 Hack)
 Harry Tour (Unl)
+Harry Wrestle (Panic Restaurant Hack)
 Harry Wrestle (Unl)
-Hatris
-Haunted - Halloween '85 (World) (Aftermarket) 
-Haunted - Halloween '86 (World) (Aftermarket) 
-Heavy Barrel
-Heavy Shreddin'
+Hatris (Japan)
+Hatris (USA)
+Haunted - Halloween '85 (World) (Aftermarket) (Unl)
+Haunted - Halloween '86 (World) (Aftermarket) (Unl)
+Heavy Barrel (Japan)
+Heavy Barrel (U) [T-Spa1.0_JonnyVilla2088]
+Heavy Barrel (USA)
+Heavy Shreddin' (USA)
+Hell (PD)
 Hell Crawlers (Ms. Pac-Man Hack) v1 Super Roboprotector
-Hello Kitty no Ohanabatake
+Hell Fire (Batman Hack)
+Hello Kitty no Ohanabatake (J) [T+Eng1.0_Suicidal]
+Hello Kitty no Ohanabatake (Japan)
 Heosphoros - Embered Recollections (PD)
-Heracles no Eikou - Toujin Makyou Den
-Heracles no Eikou II - Titan no Metsubou
-Herakles no Eikou 2 - Titan no Metsubou (J) 
+Heosphoros - Embered Recollections (World) (Aftermarket) (Homebrew)
+Heracles no Eikou - Toujin Makyou Den (Japan)
+Heracles no Eikou II - Titan no Metsubou (Japan)
+Herakles no Eikou 2 - Titan no Metsubou (J) [T+Eng1.31_Toma]
+Herakles no Eikou 2 - Titan no Metsubou (J) [T-Eng_SpoonyBard]
 Hero Trainer - Power Glove & Pad (PD) 4-2015 Psych Software
-HeroQuest (Europe) (Proto) 
+HeroQuest (Europe) (De) (Proto) (1991-12-19)
+HeroQuest (Europe) (Proto) (1992-08-21)
+HeroQuest (USA) (Proto)
 HexS (PD) 2004 Psych Software
+HexS (World) (Aftermarket) (Homebrew)
+Hey Reset (World) (Aftermarket) (Homebrew)
+Hey Reset (World) (Byte-Off 2019) (Aftermarket) (Homebrew)
+Hey Reset (World) (Proto) (Aftermarket) (Homebrew)
 High Hopes Demo (PD) aspekt 2007
-Hikari no Senshi Foton - The Ultimate Game on Planet Earth
-Hirake! Ponkikki
-Hiryuu no Ken II - Dragon no Tsubasa
-Hissatsu Doujou Yaburi
+High Speed (Europe)
+Hikari no Senshi Foton - The Ultimate Game on Planet Earth (Japan)
+Hirake! Ponkikki (J) [T+Eng1.01_Gil Galad]
+Hirake! Ponkikki (J) [T-Eng_Gil Galad]
+Hirake! Ponkikki (Japan)
+Hirake! Ponkikki [T+Eng_Unknown]
+Hiryuu no Ken II - Dragon no Tsubasa (Japan)
+Hiryuu no Ken III - 5 Nin no Ryuu Senshi (Japan)
+Hissatsu Doujou Yaburi (Japan)
 Hit Mouse (Unl)
 Hitler Kaput (Battle City Hack)
-Hokkaidou Rensa Satsujin - Okhotsk ni Kiyu
-Hokuto no Ken 3 - Shin Seiki Souzou Seiken Restuden (J) 
-Hokuto no Ken 3 - Shin Seiki Souzou Seiken Retsuden
-Hokuto no Ken 4 - Shichisei Haken Den - Hokuto Shinken no Kanata e
-Hook
-Hoshi o Miru Hito
+Hokkaidou Rensa Satsujin - Okhotsk ni Kiyu (Japan)
+Hokuto no Ken 3 - Shin Seiki Souzou Seiken Restuden (J) [T+Spa1.0_Wave]
+Hokuto no Ken 3 - Shin Seiki Souzou Seiken Restuden (J) [T-Spa0.9v_jackic]
+Hokuto no Ken 3 - Shin Seiki Souzou Seiken Retsuden (Japan)
+Hokuto no Ken 4 - Shichisei Haken Den - Hokuto Shinken no Kanata e (Japan)
+Holy Diver [T+Eng_Monaco]
+Home Alone (USA) (Rev A)
+Homebrew World Championships 2012 (USA) (Aftermarket) (Homebrew)
+Hook (Europe)
+Hook (Japan)
+Hook (U) [T-Spa1.0v_Wave]
+Hook (USA)
+Hoshi o Miru Hito (Japan)
 Hoshi o Miru Hito SRAM (Hack)
-Hoshi wo Miru Hito (SRAM Hack) 
+Hoshi wo Miru Hito (SRAM Hack) [T+Eng_KingMike]
+Hoshi wo Miru Hito [T+Eng_KingMike]
 Hot Dance 2000 (Unl)
+Hot Seat Harry (World) (Aftermarket) (Homebrew)
 Huabi (Painter) (PD)
 Hudson's Adventure Island II Debug by dragon2snow (Hack)
-Huge Insect (Asia) (Ja) 
+Huge Insect (Asia) (Ja) (Unl)
+Huge Insect (Asia) (Unl)
+Hunt (Duck Hunt Hack)
+Hunt (Unl)
+Hunt for Red October, The (USA) (Rev A)
 Hurry Burry (Unl)
-Hyakkiyagyou
+Hyakkiyagyou (Japan)
 Hydlide 3 - Visitor from the Dark (J) T+Eng v1 pacnsacdave
-Hydlide 3 - Yami kara no Houmonsha
-Hyokkori Hyoutan-jima - Nazo no Kaizokusen
+Hydlide 3 - Yami kara no Houmonsha (Japan)
+Hyokkori Hyoutan-jima - Nazo no Kaizokusen (Japan)
 Hyper Bobble (Bubble Bobble Hack)
 Hyper Rockman Jet Edition (Krion Conquest Hack) v1 LANCUSTER
+Hyperbeatz (World) (v1.2.1) (Aftermarket) (Homebrew)
+I Wanna Flip the Sky (World) (Aftermarket) (Homebrew)
+Ice Climber (J) (FDS Conversion)
+Ice Climber (Japan)
+Ice Climber (USA, Europe)
+Ide Yousuke Meijin no Jissen Mahjong (Japan)
 Ide Yousuke Meijin no Jissen Mahjong (Japan) (Rev 1)
-Ide Yousuke Meijin no Jissen Mahjong II
-Idemitsu - Space College - Kikenbutsu no Yasashii Butsuri to Kagaku
-Idol Hakkenden
-Igo Meikan
-Igo Shinan '91
-Igo Shinan '92
-Igo Shinan '93
-Igo Shinan '94
-Ikari Warriors II - Victory Road
+Ide Yousuke Meijin no Jissen Mahjong II (Japan)
+Idemitsu - Space College - Kikenbutsu no Yasashii Butsuri to Kagaku (Japan)
+Idol Hakkenden (Japan)
+Igo Meikan (Japan)
+Igo Shinan '91 (Japan)
+Igo Shinan '92 (Japan)
+Igo Shinan '93 (Japan)
+Igo Shinan '94 (Japan)
+Igo Shinan (Japan)
+Ikari Warriors (USA) (Rev A)
+Ikari Warriors II - Victory Road (USA)
+Image Fight (Japan)
 Impact Wrestling (Pro Wrestling Hack) v2.0 pacnsacdave
+Impossible Mission II (U) [T-Spa1.0v_Wave]
 Impossible Mission II (USA) (Unl)
+Improbability Fighter (World) (Aftermarket) (Homebrew)
+Improbability Fighter (World) (Rev 1) (Aftermarket) (Homebrew)
 Incident, The - Demo (PD) KHAN Games 2015
+Incident, The - Standalone Level Creator (USA) (Aftermarket) (Homebrew)
+Indiana Jones and the Last Crusade (Europe)
+Indiana Jones and the Last Crusade (U) (UBI Soft) [T-Spa1.0v_Wave]
+Indiana Jones and the Last Crusade (USA) (UBI Soft)
+Indiana Jones and the Temple of Doom (USA)
 Indiana Jones and the Temple of Doom (USA) (Rev 1)
+Indiana Jones and the Temple of Doom (USA) (Rev A)
+Indiana Jones and the Temple of Doom (USA) (Unl)
 Indivisible (Hack) v1 Kasumi
+Indivisible (World) (Aftermarket) (Homebrew)
 Indivisible Prototype (PD) Lab Zero Games 2017
-Indora no Hikari
+Indora no Hikari (Japan)
 Indora no Hikari - The Light of Indra (J) T+Eng v1.0Beta KingMike's Translations
-Infiltrator
+Infiltrator (USA)
 Inherent Smile (PD) v1.1 roce 2017NESDEV 2018-03-14
+Inherent Smile (World) (NESDev 2017) (Aftermarket) (Homebrew)
+International Cricket (Europe, Asia) (En) (Aftermarket) (Pirate)
+International Cricket (Europe, Asia) (En) (Aftermarket) (Pirate) (Alt)
+International Cricket (Unl)
 Invader (Unl)
 Invaders Must Die! (PD) Mihai 2012
 Inversion (PD) v1.4
-Isaki Shuugorou no Keiba Hisshou Gaku
+Isaki Shuugorou no Keiba Hisshou Gaku (Japan)
 Island (Unl)
+Isle Quest (World) (v0.1) (Alpha) (Aftermarket) (Homebrew)
+Isle Quest (World) (v0.1b) (Alpha) (Aftermarket) (Homebrew)
+Isle Quest (World) (v0.1c) (Alpha) (Aftermarket) (Homebrew)
+Isostasy (World) (Aftermarket) (Homebrew)
+Isostasy (World) (Demo) (Aftermarket) (Homebrew)
 Itscores (PD)
-J.League Fighting Soccer - The King of Ace Strikers
-JJ
+J.League Fighting Soccer - The King of Ace Strikers (Japan)
+JJ (Japan)
+JJ - Tobidase Daisakusen Part 2 (J) [a1][o1]
+JJ - Tobidase Daisakusen Part 2 [T+Eng_DvD]
+JTA Demo
 JY Ball Series 18-in-1 (JY-010) (Unl)
-Jajamaru Ninpou Chou
-James Bond Jr
+Jajamaru Ninpou Chou (J) T+Eng v1 aishsha, Stardust Crusaders
+Jajamaru Ninpou Chou (Japan)
+James Bond Jr (Europe)
+James Bond Jr (USA)
+Janggun-ui Adeul (Korea) (En) (Unl)
 Janggun-ui Adeul (Korea) (Unl)
-Jangou
-Jaws
-Jekyll Hakase no Houma ga Toki
+Jangou (Japan)
+Jaws (USA)
+Jaws [hM04]
+Jekyll Hakase no Houma ga Toki (Dr. Jekyll and Mr. Hyde) (J) [T-Spa1.0v_Wave]
+Jekyll Hakase no Houma ga Toki (Japan)
+Jeopardy! (USA)
 Jeopardy! (USA) (Rev 1)
-Jeopardy! 25th Anniversary Edition
+Jeopardy! (USA) (Rev A)
+Jeopardy! 25th Anniversary Edition (USA)
 Jeopardy! Battletoads Edition (Hack) v1.1 Murugo
-Jeopardy! Junior Edition
-Jesus - Kyoufu no Bio Monster
+Jeopardy! Junior Edition (USA)
+Jesus - Kyoufu no Bio Monster (J) [T+Eng_Niahak]
+Jesus - Kyoufu no Bio Monster (Japan)
 Jet Paco (PD) Mojon Twins
-Jimmy Connors Tennis
+Jet-Paco, Hyper Special Space Agent! (World) (Aftermarket) (Homebrew)
+Jigoku Gokuraku Maru [T+Eng]
+Jimmy (World) (Aftermarket) (Homebrew)
+Jimmy Connors Tennis (Europe)
+Jimmy Connors Tennis (USA)
 Jisuanqi (Calculator) (PD)
-John Smith - Special Agent (USA) (Beta) 
-Jordan vs Bird - One On One
-Jordan vs Bird - One on One
+John Smith - Special Agent (USA) (Beta) (1992-08-27)
+Jordan vs Bird - One On One (USA)
 Journey to Silius
+Journey to Silius (Europe)
+Journey to Silius (U) [T+Spa1.0]
+Journey to Silius (U) [T+Spa1.4_Sics]
+Journey to Silius (U) [T+Spa_SARG]
+Journey to Silius (U) [T-Spa1.0v_JonnyVilla2088]
+Journey to Silius (USA)
+Journey to the Centre of the Alien (World) (Aftermarket) (Homebrew)
+Journey to the Centre of the Alien (World) (Es) (Aftermarket) (Homebrew)
+Joy Mech Fight (J) [T+Eng100%_AlanMidas]
 Jue Dai Shuang Jiao (NJ060) (Unl)
+Juhannusolumppialaiset 2017 (World) (Fi) (Aftermarket) (Homebrew)
+Juhannussauna 2016 (World) (Fi) (Aftermarket) (Homebrew)
+Juhannussauna 2016 (World) (Fi) (Illegal Pirated Copy Version) (Aftermarket) (Homebrew)
 Jump-Jump (Unl)
 Jungle Adventure (Unl)
 Jupiter Scope 2 (PD) 2016NESDEV nin-kuuku
-Jurassic Boy (Asia) (Ja) 
+Jurassic Boy (Asia) (Ja) (Unl)
+Jurassic Park (Europe)
+Jurassic Park (Europe) (En,Fr,De,Es)
 Just Another Maze Game (PD) sdm 7-2017
-Just Breed
-Juvei Quest
+Just Breed (J) T+Eng v1 Stealth
+Just Breed (J) [T+Spa100_butz]
+Just Breed (J) [T-Spa2.0v_ButzKlauser]
+Just Breed (Japan)
+JustAGame
+Juuouki (J) [T+Eng1.00_akadewboy]
+Juvei Quest (Japan)
 K.Y.F.F. (PD) v1.0
-KHAN Games 4-in-1 Retro Gamepak (World) (Aftermarket) 
+KHAN Games 4-in-1 Retro Gamepak (World) (Aftermarket) (Unl)
+KIRU! (World) (Aftermarket) (Homebrew)
+KUBO (World) (Fr) (Demo) (Aftermarket) (Homebrew)
+KUBO 2 - L'Aventurier Courageux (World) (Fr) (Demo) (Aftermarket) (Homebrew)
+KUBO 3 (Japan) (En,Ja) (Rev E) (Aftermarket) (Homebrew)
+KUBO 3 (World) (En,Fr) (Aftermarket) (Homebrew)
+KUBO 3 (World) (En,Fr) (Rev B) (Aftermarket) (Homebrew)
+KUBO 3 (World) (En,Fr) (Rev C) (Aftermarket) (Homebrew)
+KUBO 3 (World) (En,Fr) (Rev F) (Aftermarket) (Homebrew)
+KUBO 3 (World) (En,Fr) (Rev H) (Aftermarket) (Homebrew)
+KUBO 3 (World) (Fr) (Rev A) (Aftermarket) (Homebrew)
 KZ Mario Gradius (Gradius Hack)
 Kaboom 3 (PD)
 Kaboom Controller Pad (PD)
-Kabuki - Quantum Fighter
-Kabuki - Quantum FighterButz (U) 
-Kabushiki Doujou
+Kabuki - Quantum Fighter (Europe)
+Kabuki - Quantum Fighter (USA)
+Kabuki - Quantum FighterButz (U) [T-Spa1.0v_Wave]
+Kabushiki Doujou (Japan)
 Kage Super Plus (Kage Hack)
-Kagerou Densetsu
-Kaijuu Monogatari
+Kagerou Densetsu (Japan)
+Kaijuu Monogatari (J) [T+Eng1.0b_KingMike]
+Kaijuu Monogatari (J) [T-Eng_KingMike]
+Kaijuu Monogatari (Japan)
+Kaijuu Monogatari [T+Eng_KingMike]
+Kaiketsu Yanchamaru 2 - Karakuri Land (J) [hFFE][T-Eng]
 Kaison Star Force (Hack)
-Kamen no Ninja - Akakage
+Kamen no Ninja - Akakage (Japan)
 Kang Ti Wu Wang (Unl)
-Karakuri Kengou Den Musashi Lord - Karakuribito Hashiru
-Karaoke Studio
-Karaoke Studio Senyou Cassette - Top Hit 20 Vol. 1
-Karaoke Studio Senyou Cassette - Top Hit 20 Vol. 2
-Karaoke Studio Senyou Cassette Vol. 1
-Karaoke Studio Senyou Cassette Vol. 2
+Karakuri Kengou Den Musashi Lord - Karakuribito Hashiru (Japan)
+Karaoke (Chinese) (Unl)
+Karaoke Studio (Japan)
+Karaoke Studio Senyou Cassette - Top Hit 20 Vol. 1 (Japan)
+Karaoke Studio Senyou Cassette - Top Hit 20 Vol. 2 (Japan)
+Karaoke Studio Senyou Cassette Vol. 1 (Japan)
+Karaoke Studio Senyou Cassette Vol. 2 (Japan)
+Karate Champ (U) (REVA) [T+Spa.99_PaladinKnights]
+Karate Champ (USA)
 Karate Champ (USA) (Rev 1)
+Karate Champ (USA) (Rev A)
 Karate Kick (PD) 2016NESDEV Michael Moffitt
-Karate Kid, The
-Karnov
+Karate Kid, The (USA)
+Karmic's Music Demo
+Karnov (U) [!]
+Karnov (USA)
+Kart Fighter (Asia) (En) (Pirate)
 Kart Fighter (SOMARI-W) (Unl)
 Kaslghnoon 1 (Captain Tsubasa 2 Hack)
 Kazama Jun to Asama Yuuko no AV Dragon Mahjong (Japan) (Unl)
 Kazion Gradius (Gradius Hack)
-Keiba Simulation - Honmei
-Kero Kero Keroppi no Daibouken
-Keroppi to Keroriinu no Splash Bomb!
+Keiba Simulation - Honmei (Japan)
+Kero Kero Keroppi no Daibouken (J) [T+Eng1.00_Gaijin]
+Kero Kero Keroppi no Daibouken (Japan)
+Keroppi to Keroriinu no Splash Bomb! (J) [T+Eng1.0_Suicidal]
+Keroppi to Keroriinu no Splash Bomb! (Japan)
+Kevin Power in Concert Carnage (USA) (Aftermarket) (Homebrew)
+Kick Master (USA)
 Kick Off (Europe)
+Kid Dracula (USA, Europe) (Castlevania Anniversary Collection)
+Kid Dracula (World) (Castlevania Anniversary Collection)
+Kid Funky (World) (v1.1) (Aftermarket) (Homebrew)
 Kid Icarus Remix V1.0 by Clomax Dominion (Hack)
+Kid Niki - Radical Ninja (USA) (Rev A)
+Kidou Senshi Z Gundam - Hot Scramble (J) [T-Spa1.2v_Max1323]
+Kidou Senshi Z Gundam - Hot Scramble (Japan)
+King Kong 2 - Ikari no Megaton Punch [T+Eng_DvD]
+King Neptune's Adventure (USA) (Beta) (Unl)
 King Neptune's Adventure (USA) (Unl)
 King of Fighters 96, The (Unl)
-King of Fighters 97, The (AKA Colour 2001 Streetfighter II) (Unl) 
+King of Fighters 97, The (AKA Colour 2001 Streetfighter II) (Unl) [!]
 King of Fighters 99, The (Unl)
-King of Kings, The - The Early Years (USA) (v5.0) 
-King's Quest V
-Kiteretsu Daihyakka
-Kitty's Catch (USA) (Proto) 
+King of Kings, The (USA) (v5.0) (Unl)
+King of Kings, The - The Early Years (USA) (v1.1) (Unl)
+King of Kings, The - The Early Years (USA) (v1.2) (Unl)
+King of Kings, The - The Early Years (USA) (v1.3) (Unl)
+King of Kings, The - The Early Years (USA) (v5.0) (Unl)
+King's Quest V (USA)
+Kingdom Crisis (World) (Proto) (Aftermarket) (Homebrew)
+Kirby's Dream Land
+Kiteretsu Daihyakka (Japan)
+Kitty's Catch (USA) (Proto) (Unl)
 Kkachi-wa Norae Chingu (Korea) (Unl)
-Klax
-Knight Rider
+Klax (Japan)
+Klax (USA) (Beta) (Unl)
+Klax (USA) (Unl)
+Knight Rider (Europe)
+Knight Rider (Japan)
+Knight Rider (Japan) (FamicomBox)
+Knight Rider (USA)
+Knurps Egg Rescue (World) (v1.01) (Aftermarket) (Homebrew)
+Koko Adventure (Korea) (En) (Unl)
 Koko Adventure (Korea) (Unl)
 KolaOK (PD)
-Konamic Sports in Seoul
+Konamic Sports in Seoul (Japan)
 Koopa Invaders (Space Invaders Hack)
 Korean Igo (Korea) (Unl)
-Kouryuu Densetsu Villgust Gaiden
-Krazy Kreatures (USA) (Rev A) 
-Krusty's Fun House
+Kouryuu Densetsu Villgust Gaiden (J) [T+Eng1.1_J2e]
+Kouryuu Densetsu Villgust Gaiden (J) [T+Spa100%_PaladinKnights]
+Kouryuu Densetsu Villgust Gaiden (Japan)
+Krazy Kreatures (USA) (Rev A) (Unl)
+Krazy Kreatures (USA) (Unl)
+Krusty's Fun House (Europe)
+Krusty's Fun House (USA)
+Krusty's Fun House [T-Spa1.0v_Wave]
 Kubo (E)
-Kujaku Ou
+Kujaku Ou (Japan)
+Kujaku Ou [T+Eng_snark]
+Kuku-Ruku (World) (Demo 1) (Aftermarket) (Homebrew)
+Kuku-Ruku (World) (Demo 2) (Aftermarket) (Homebrew)
 Kunio-Kun - Hot Blooded Tough Guy (J) T+Eng pacnsacdave
-Kyonshiizu 2
-Kyuukyoku Harikiri Koushien
-L'Abbaye des Morts (World) (En,Ja,Fr,Es,Pt) 
-LIKO Study Cartridge 3-in-1 (Unl) 
+Kyatto Ninden Teyandee (J) [T+Eng.10_Vertigo]
+Kyatto Ninden Teyandee (J) [T+Eng4.5_Shadow]
+Kyonshiizu 2 (Japan)
+Kyuukyoku Harikiri Koushien (Japan)
+L'Abbaye des Morts (World) (En,Ja,Fr,Es,Pt) (Aftermarket) (Unl)
+LAN Master (World) (Aftermarket) (Homebrew)
+LIKO Study Cartridge 3-in-1 (Unl) [!]
 LIZARD (PD) Demo 1 rainwarrior
-Lagrange Point
+Labyrinth (J) [T+Eng]
+Labyrinth (v2007SR01492) (Unl) (VT03)
+Labyrinth of Yggdrasil_111918
+Lagrange Point (J) T+Eng v1.01 Aeon Genesis
+Lagrange Point (Japan)
 Lagrange Point Title Screen Star Field (Hack) v1 TRIFORCE89
 Lair's Secret (Unl)
 Lake Fever (PD) 12-18-2015 sdm
+Lala The Magical (World) (Aftermarket) (Homebrew)
 Lala the Magical (PD) 2016NESDEV v1 Mojon Twins
+Lala the Magical (PD) v1 Mojon Twins
 Lan Master (PD) 2011NESDEV Shiru
-Lasa-r Ishii no Childs Quest
-Lasalle Ishii no Child's Quest
+Lasa-r Ishii no Childs Quest (Japan)
+Lasalle Ishii no Child's Quest (Japan)
 Laser Puzzle Game (PD) 4-2016 sav
 Lawn Mower (PD) 2011NESDEV Shiru
-Layla
+Lawn Mower (World) (Aftermarket) (Homebrew)
+Lawn Mower (World) (NESDev 2011) (Aftermarket) (Homebrew)
+Layla (J) [T-Spa1.1v_Wave]
+Layla (Japan)
 Layla - The Iris Missions (hack) v3 Supper
+Legend of Double Moon, The
+Legend of Weed N' Stiff, The (World) (Aftermarket) (Homebrew)
+Legend of Weed N' Stiff, The (World) (Super Deluxe Version) (Aftermarket) (Homebrew)
 Legend of Zelda - Journey of a Day Easy (Hack)
 Legend of Zelda - Journey of a Day Hard (Hack)
 Legend of Zelda - Leaf of Inertia easy (Zelda 2 Hack)
+Legend of Zelda - Leaf of Inertia easy (with jump) (Zelda 2 Hack)
 Legend of Zelda - Leaf of Inertia hard (Zelda 2 Hack)
 Legend of Zelda Winter Solstice (Zelda II Hack) v1.1
-Legend of the Ghost Lion
-Lei Dian II - Thunderbolt Fighting Plane (Asia) (En) 
-Lemmings
+Legend of Zelda, The - A Link to the Past (China) (Aftermarket) (Pirate)
+Legend of the Ghost Lion (USA)
+Leggite Luta Livre (World) (Aftermarket) (Homebrew)
+Leggite Luta Livre (World) (Remastered) (Aftermarket) (Homebrew)
+Lei Dian II - Thunderbolt Fighting Plane (Asia) (En) (Unl)
+Lemmings (Europe)
+Lemmings (USA)
 Libertango (PD)
 Lickshot! (PD)
 Lido (Clu Clu Land Hack)
+Light From Within (World) (v1.4) (Demo) (Aftermarket) (Homebrew)
+Light From Within (World) (v1.5) (Demo) (Aftermarket) (Homebrew)
 Light Shields (PD) v1 Zutano Games 2017NESDEV
-Lightgun Game 2 in 1 - Cosmocop + Cyber Monster (Asia) (Ja) 
-Lightgun Game 2 in 1 - Tough Cop + Super Tough Cop (Asia) (Ja) 
+Light Shields (World) (Aftermarket) (Homebrew)
+Lightgun Game 2 in 1 - Cosmocop + Cyber Monster (Asia) (Ja) (Unl)
+Lightgun Game 2 in 1 - Tough Cop + Super Tough Cop (Asia) (Ja) (Unl)
 Lightning (Unl)
 Lily Lily (Lot Lot Hack) v1.0 DASTARD
 Lin Ze Xu Jin Yan (Asia) (Unl)
@@ -987,94 +2111,165 @@ Lin Zexu No Smoking - Lin Ze Xu Jin Yan (C) T+Eng v1 pacnsacdave
 Link 1990 (Tank 1990 Hack)
 Link Man (Mega Man II Hack) v2 Megafield64
 Linus Music Demo (PD)
+Linus Space Head
 Lion King 5, The - Timon and Pumbaa (Unl) (Dragon)
-Lion King III, The - Simon and Pumba (Unl) 
+Lion King III - Timon & Pumbaa, The (Asia) (En) (Aftermarket) (Pirate)
+Lion King III, The - Simon and Pumba (Unl) [!]
+Lion King, The (Chiki-Chiki Dog) (Unl) [!]
+Lion King, The (E) [T-Spa1.0v_Wave]
 Lion King, The (Europe)
 Little Ghosts - There, Here, and Where (Hack) pacnsacdave
-Little Magic
+Little Ghosts - There, Here, and Where (J) pacnsacdave
+Little Magic (J) [T+Eng0.33Alpha_TransBRC]
+Little Magic (Japan)
 Little Medusa Demo (PD) v1 Megacat
-Little Mermaid - Ningyo Hime
-Little Mermaid, The
-Lizard (World) (Aftermarket) 
+Little Mermaid - Ningyo Hime (Japan)
+Little Mermaid, The (U) [T-Spa1.0v_Wave]
+Little Mermaid, The (USA)
+Little Nemo
+Lizard (World) (Aftermarket) (Homebrew)
+Lizard (World) (Aftermarket) (Unl)
+Lizard (World) (Demo) (Aftermarket) (Homebrew)
+Lizard (World) (Proto) (Aftermarket) (Homebrew)
 Loony Pool (Lunar Ball Hack)
-Lot Lot
+Lot Lot (Japan)
 Love Story (PD) 2014NESDEV Tom Livak
-Lucky Bingo 777 (Asia) (Ja) 
+Love Story (PD) Tom Livak
+Lucky Bingo 777 (Asia) (Ja) (PAL) (Unl)
+Lucky Bingo 777 (Asia) (PAL) (Unl)
 Lucky Time (Unl) (VT03)
+Luidius (Gradius Hack)
 Luidius (Gradius Hack) pacnsacdave
 Luigi Wars (Bokosuka WarsHack) v1 Tsurumidou
 Luigi's Coin Quest (incomplete) pacnsacdave
-Lunar Ball
+Lunar Ball (Japan)
 Lunar Limit (PD) Pubby 5-2017
-Lunar Pool
-M&M Heroes (Unl) 
-M.C. Kids
-M.U.L.E.
+Lunar Pool (Europe)
+Lunar Pool (U) [T+Spa1.0_Wave]
+Lunar Pool (USA)
+M&M Heroes (Unl) [f1]
+M.C. Kids (USA)
+M.U.L.E. (USA)
+MHO_HappyNESYear2019
+MOMOC (World) (v7619) (Demo) (Aftermarket) (Homebrew)
+MOON8 - Dark Side of the Moon (Pink Floyd) Brad Smith 7-2012
 MOON8 - Dark Side of the Moon - Pink Floyd (PD) Brad Smith 7-2012
 MW4 Test (PD)
-Mad Max
+Machine Cave (World) (v1.15) (Aftermarket) (Homebrew)
+Machine Cave (World) (v1.18b) (Aftermarket) (Homebrew)
+Machine Cave (World) (v1.19) (Aftermarket) (Homebrew)
+Mad Max (USA)
 Mad Wizard - A Candelabra Chronicle (PD) Sly Dog Studios
+Mad Wizard, The - A Candelabra Chronicle (World) (2014-11-25) (Aftermarket) (Homebrew)
+Mad Wizard, The - A Candelabra Chronicle (World) (2014-12-19) (Aftermarket) (Homebrew)
+Mad Wizard, The - A Candelabra Chronicle (World) (2015-01-07) (Aftermarket) (Homebrew)
+Mad Wizard, The - A Candelabra Chronicle (World) (Aftermarket) (Homebrew)
+Mad Wizard, The - A Candelabra Chronicle (World) (Demo) (Aftermarket) (Homebrew)
+Mad Wizard, The - A Candelabra Chronicle (World) (RetroUSB Cartridge) (Aftermarket) (Homebrew)
 Madd City War X (River City Ransom Hack)
-Madoola no Tsubasa
-Mafat Conspiracy, The
-Magic Bubble (Asia) (En) 
-Magic Candle, The
+Madoola no Tsubasa (J) T+Eng1.0 Psyklax
+Madoola no Tsubasa (Japan)
+Mafat Conspiracy, The (U) [T+Esp1.1_Wave]
+Mafat Conspiracy, The (USA)
+Magic Bubble (Asia) (En) (Unl)
+Magic Candle, The (J) T+Eng v1 aishsha, Stardust Crusaders
+Magic Candle, The (Japan)
 Magic Carpet 1001 (USA) (Unl)
-Magic Cube (Asia) (Ja) 
-Magic Darts
+Magic Carpet 1001 (Unl)
+Magic Cube (Asia) (Ja) (PAL) (Unl)
+Magic Cube (Asia) (PAL) (Unl)
+Magic Darts (Japan)
+Magic Darts (USA)
 Magic Egg (Unl)
 Magic Floor PC10 (PD) (PC10) v1 MAGICPCH nocash
 Magic Giral (Asia) (Unl)
-Magic Jewelry (Asia) (Ja) 
-Magic Jewelry 2 (Asia) (Ja) 
+Magic Jewelry (Asia) (Ja) (Unl)
+Magic Jewelry (Unl) [!]
+Magic Jewelry 2 (Asia) (Ja) (Unl)
+Magic Jewelry 2 (Unl) [!]
 Magic of Scheherazade - Randomized Mod (Hack) v1 CT187
-Magic of Scheherazade, The
+Magic of Scheherazade, The (U) [T-Spa0.99_jackic]
+Magic of Scheherazade, The (USA)
+Magical Mathematics (Asia) (Ja) (PAL) (Unl)
+Magical Mathematics (Asia) (NTSC) (Unl)
 Magical Rockman (Magical Doropie Hack) pacnsacdave
-Magical Taruruuto-kun - Fantastic World!!
-Magical Taruruuto-kun 2 - Mahou Daibouken
-Maharaja
-Mahjong Block (Asia) (Idea-Tek) 
-Mahjong Taikai
-Mahjong Taisen
-Majaventure - Mahjong Senki
+Magical Taruruuto-kun - Fantastic World!! (Japan)
+Magical Taruruuto-kun 2 - Mahou Daibouken (Japan)
+Magnilo Case, The (World) (Demo) (Byte-Off 2020) (Aftermarket) (Homebrew)
+Magnilo Case, The (World) (Digital Version) (Aftermarket) (Homebrew)
+Magnilo Case, The (World) (v1.1) (Digital Version) (Aftermarket) (Homebrew)
+Magnilo Case, The (World) (v2.0) (Demo) (Digital Version) (Aftermarket) (Homebrew)
+Magnilo Case, The (World) (v5.0) (Demo) (Aftermarket) (Homebrew)
+Maharaja (Japan)
+Mahjong (Japan) (Rev A)
+Mahjong Block (Asia) (Idea-Tek) (Unl)
+Mahjong Block (Asia) (TXC) (Unl)
+Mahjong Taikai (Japan)
+Mahjong Taisen (Japan)
+Majaventure - Mahjong Senki (Japan)
 Man In Red (Unl)
 Manhole (PD)
+Maniac Mansion (Japan)
 Marble City (Battle City Hack)
-Mario 7-in-1 
+Mario 7-in-1 [p1][b1]
+Mario Adventure Real Hardware
 Mario Bomb Jack (Mighty Bomb Jack Hack)
 Mario Cart prg=7d0000 chr=7e0000 (Unl)
 Mario Dragon (Double Dragon Hack) pacnsacdave
 Mario Fantasy Adventure (FF1 Hack)
 Mario Flicker - Color Demo (PD)
 Mario Maze (Bomberman Collection Hack)
+Mario Open Golf (Japan)
 Mario Open Golf (Japan) (Rev 1)
-Mario Party (Unl) 
+Mario Open Golf (PC10) [!]
+Mario Party (Unl) [p1]
 Mario RPG - SUBCON's Revenge (FF1 Hack)
-Mario Rider (Unl) 
+Mario Rider (Unl) [!]
 Mario Warrior (Dragon Warrior Hack)
 Mario in Space (Galaga Hack)
 MarioVania (CV3 Hack)
-Mashou
+Mark of the Beast (World) (Demo 2) (Aftermarket) (Homebrew)
+Mashou (Japan)
 MashyMashy (PD) v1 Mitch3a
 Master Shake Cowboy Killa by RAH (Cowboy Kid Hack)
 Master Shake Slak Hack (M.C. Kids Hack)
-Master Shooter (Asia) (Ja) 
-Masuzoe Youichi - Asa Made Famicom
-Matsumoto Tooru no Kabushiki Hisshou Gaku
-Matsumoto Tooru no Kabushiki Hisshou Gaku - Part II
+Master Shooter (Asia) (Ja) (Unl)
+Master Shooter (CN-26) (Unl) [!]
+Masuzoe Youichi - Asa Made Famicom (Japan)
+Matsumoto Tooru no Kabushiki Hisshou Gaku (Japan)
+Matsumoto Tooru no Kabushiki Hisshou Gaku - Part II (Japan)
 Max-300 (PD)
+Maze (PD)
 McDonaldland (Europe)
+McDonaldland (France)
 Meccano (Unl)
+Meet Me In The Parking Lot (World) (Aftermarket) (Homebrew)
 Mega Man
+Mega Man (Europe)
+Mega Man (U) [T+Spa1.0_Wave]
+Mega Man (USA)
+Mega Man (World) (Mega Man Legacy Collection)
 Mega Man - Hedgehog trap (Easy Mode) (Hack)
+Mega Man - Hedgehog trap (Extreme Mode) (Hack)
+Mega Man - Hedgehog trap (Normal Mode) (Hack)
 Mega Man - Maverick Revenge (Mega Man 4 Hack)
-Mega Man - Roll-chan (Hack) v2.2 
+Mega Man - Roll-chan (Hack) v2.2 [MM8 Style]
 Mega Man 1 Speed Patches (Hack) v1 StalkerMaestro
+Mega Man 2
 Mega Man 3
+Mega Man 3 (Europe)
+Mega Man 3 (Europe) (Rev 1)
+Mega Man 3 (Europe) (Rev 1) (Virtual Console)
+Mega Man 3 (USA)
+Mega Man 3 (World) (Mega Man Legacy Collection)
 Mega Man 3 - Easy Gammas Revenge (Hack) Hack 4 v1 Ridley X
 Mega Man 3 - Gammas Revenge (Hack) Hack 4 v1 Ridley X
 Mega Man 3 Justiley (Hack) v1 Jriva
 Mega Man 3 Speed patches (Hack) v1 StalkerMaestro
+Mega Man 4
+Mega Man 4 (Europe)
+Mega Man 5
+Mega Man 6
 Mega Man 9 Project (PD)
 Mega Man Link Man (MM3 Hack) v2 Megafield64
 Mega Man Origins (MM2 Hack) FINAL Rockman
@@ -1087,10 +2282,14 @@ Mega Man Ultimate + Save (MM Hack) Final RetroRain
 Mega Man Wily's Conquest 2 Hyper Edition Turbo! (Hack) v1.12 8-bit fan
 MegaMari (Rockman Hack)
 Megagirl V1.0 by Clomax Dominion (Megaman Hack)
+Megaman (U) [T+Spa100%_Tanero]
+Megaman (U) [T+Spa_PaladinKnights]
 Megaman - Return Of Wily (Megaman Hack)
 Megaman Alpha (Megaman Hack)
 Megaman Forever Unabridged Demo (Megaman 4 Hack)
-Megaman III (PC10) 
+Megaman III (PC10) [!]
+Megaman III (U) [T+Spa90%_PaladinKnights]
+Megaman III (U) [T-Spa1.0v_Wave]
 Megaman III - The Rise And Fall Of Dr. Wily (Hack)
 Megaman III Enhanced (Hack)
 Megaman III Remix v0.10 (Hack)
@@ -1104,25 +2303,33 @@ Megaman by Googie (Megaman Hack)
 Megaman in Icarus World (Megaman Hack)
 Megaman in the Mushroom Kingdom (Megaman Hack)
 Mei Guo Fu Hao - American Man (Asia) (Unl)
-Meiji Ishin
-Meikyuu Jiin Dababa (FDS Conversion) (Unl) 
-Meikyuu Kumikyoku - Milon no Daibouken
-Meikyuu no Tatsujin - Daimeiro
-Meimon! Daisan Yakyuubu
-Meimon! Takonishi Ouendan - Kouha 6 Nin Shuu
-Meitantei Holmes - Kiri no London Satsujin Jiken
+Meiji Ishin (Japan)
+Meikyuu Jiin Dababa (FDS Conversion) (Unl) [!]
+Meikyuu Kumikyoku - Milon no Daibouken (Japan)
+Meikyuu no Tatsujin - Daimeiro (Japan)
+Meimon! Daisan Yakyuubu (Japan)
+Meimon! Takonishi Ouendan - Kouha 6 Nin Shuu (Japan)
+Meitantei Holmes - Kiri no London Satsujin Jiken (Japan)
 Melanchony Of Existance Chapter 0 (PD) 2011NESDEV Denine
+Memory (PD) Sly Dog Studios
 Memory Test (Unl) (VT03)
 Meng Huan - Xiang Shuai Chuan Qi Zhi Xue Hai Piao Ling (Asia) (Unl)
+Meribo (World) (Aftermarket) (Homebrew)
 Mermaids of Atlantis - The Riddle of the Magic Bubble (USA) (Unl)
+Mermays_Den_010b_final
+Metal Arms (Japan) (En) (Family BASIC) (Homebrew)
+Metal Arms (Japan) (Family BASIC) (Ending Credits Program) (Homebrew)
+Metal Force (Korea) (En) (Unl)
 Metal Force (Korea) (Unl)
-Metal Max
+Metal Max (J) T+Eng v1.0 Supper
+Metal Max (Japan)
 Metal Max Jd Strengthened Edition (Hack)
 Metal Max Kalan Strengthened Edition (Hack)
 Metal Max Night Edition (Hack)
 Metal Max Shining Strengthened Edition (Hack)
 Metal Max ZTOUYIA (Hack)
 Metal Slug (Unl)
+Metal Slug Advance (Europe, Asia) (En) (Aftermarket) (Pirate)
 Meteor Guard (PD) Sly Dog Studios
 Meteor Guard 2 (PD) Sly Dog Studios
 Metro Mania (Unl)
@@ -1134,315 +2341,623 @@ Metroid Quest (Metroid hack) pacnsacdave
 Metroid Rogue Dawn (hack) v1.21 Grimlock, Optomon, snarfblam
 Metroid mOTHER (Hack) v1 dACE
 Metroid mOTHER+99 (Hack) v1 Psyklax
-Mezase! Top Pro - Green ni Kakeru Yume
+Mezase! Top Pro - Green ni Kakeru Yume (Japan)
 Mice Mission (Unl)
-Michael Andretti's World GP
-Mick & Mack as the Global Gladiators (USA) (Proto) 
+Michael Andretti's World GP (USA)
+Mick & Mack as the Global Gladiators (USA) (Proto) (1993-05-28)
+Mick & Mack as the Global Gladiators (USA) (Proto) (1993-05-28) (Alt)
+Mick & Mack as the Global Gladiators (USA) (Proto) (1993-06-16)
+Mick & Mack as the Global Gladiators (USA) (Proto) (1993-06-30)
+Mick & Mack as the Global Gladiators (USA) (Proto) (1993-07-09)
+Mickey Mouse 3 - Yume Fuusen [T+Eng_NikcDC]
 Mickey V1.2 by Macbee (Mickey Mouse Hack)
+Micro Knight (PD) sdm
 Micro Knight 2 (PD) sdm
 Micro Knight 3 Demo (PD) sdm
-Micro Mages (World) (Aftermarket) 
+Micro Machines
+Micro Machines (Europe) (Unl)
+Micro Machines (U) [T+Spa1.0_Wave]
+Micro Machines (USA) (Unl)
+Micro Mages
+Micro Mages (World) (Aftermarket) (Homebrew)
+Micro Mages (World) (Aftermarket) (Unl)
 Microsoft Windows 98 (Unl)
 Midnight Jogger (PD) Sly Dog Studios
+MiedoW (World) (Aftermarket) (Homebrew)
 MiedoW - Cheril's Nightmares (PD) v1 Mojon Twins 2017NESDEV
-Might & Magic - Secret of the Inner Sanctum
-Might and Magic - Book One - Secret of the Inner Sanctum
+Might & Magic - Secret of the Inner Sanctum (USA)
+Might and Magic - Book One - Secret of the Inner Sanctum (Japan)
+Mighty Bomb Jack (Japan)
+Mighty Bomb Jack (Japan) (Rev 1)
+Mighty Bomb Jack (Japan) (Rev 1) (Virtual Console)
+Mike Tyson's Intergalactic Power Punch (USA) (Beta)
 MilioNESy (PD) 2014NESDEV Denine
-Milon's Secret Castle
+MilioNESy (PD) Denine
+MilioNESy (World) (Aftermarket) (Homebrew)
+Millipede (Japan)
+Millipede (Japan) (En) (Proto)
+Milon's Secret Castle (USA)
 Mindblower Pak (Australia) (Unl)
-Mindseeker
+Mindseeker (Japan)
 Mine (Unl)
-Minelvaton Saga - Ragon no Fukkatsu
+Mine Shaft (World) (Aftermarket) (Homebrew)
+Minelvaton Saga - Ragon no Fukkatsu (Japan)
+Minelvaton Saga [T+Eng_aishsha]
 Mini Brix Battle (PD) 2016NESDEV Punch
-Mirai Senshi - Lios (J) 
-Mirai Shinwa Jarvas
+Minna no Taabou no Nakayoshi Daisakusen (J) [T+Eng1.01_Suicidal]
+Minna no Taabou no Nakayoshi Daisakusen (J) [o1][T-Eng.95_Suicidal]
+Minna no Taabou no Nakayoshi Daisakusen (Japan)
+Mirai Senshi - Lios (J) [T+Eng1.00_AGTP]
+Mirai Shinwa Jarvas (Japan)
+Mirai Shinwa Jarvas [T+Eng_StardustCrusaders]
 Missile Tank Spread Cannon Edition (Missile Tank Hack)
-Mito Koumon - Sekai Manyuu Ki
-Moero!! Juudou Warriors
+Missing Lands (World) (Aftermarket) (Homebrew)
+Missing Lands (World) (v2.0) (Aftermarket) (Homebrew)
+Mito Koumon - Sekai Manyuu Ki (Japan)
+Moero!! Juudou Warriors (Japan)
+Mojon Twins Gran Sabiduria - 31 in 1 REAL GAME! (World) (Aftermarket) (Homebrew)
+Mojon Twins Gran Sabiduria - 31 in 1 REAL GAME! (World) (v2.0) (Aftermarket) (Homebrew)
+Molex
 Mom, My Ears are Bleeding! (E)
-Momotarou Densetsu
-Money Game, The
-Monster Inc. (Unl) 
-Monster Party
+Momotarou Densetsu (Japan)
+Money Game, The (Japan)
+Monster Inc. (Unl) [h1] (Menu Removed)
+Monster Party (Proto) T+Eng v1 Stardust Crusaders
+Monster Party (U) [T+Spa1.0_SARG]
+Monster Party (U) [T-Spa1.1_JonnyVilla2088]
+Monster Party (USA)
 Monster Party Parody World Revisited (Hack) v1.1 HylianFox
-Monster Truck Rally
-Monstruo de los Globos, El (Spain) (Rev 1) 
+Monster Truck Rally (USA)
+Monstruo de los Globos, El (S) (v1.1) (Gluk Video) (Unl) [T-Spa1.0v_Wave]
+Monstruo de los Globos, El (Spain) (En) (Gluk Video) (Unl)
+Monstruo de los Globos, El (Spain) (En) (Rev 1) (Gluk Video) (Unl)
+Monstruo de los Globos, El (Spain) (Gluk Video) (Unl)
+Monstruo de los Globos, El (Spain) (Gluk Video) (Unl) [T-Spa1.0v_Wave]
+Monstruo de los Globos, El (Spain) (Rev 1) (Gluk Video) (Unl)
+Montezuma's Revenge (USA) (Aftermarket) (Homebrew)
+Moon Ranger (Bunch) [T-Spa1.0v_Wave]
 Moon Ranger (USA) (Unl)
+Moonfall - A Legend of Zelda Compilation (USA) (Aftermarket) (Homebrew)
 Moonmagic (PD)
-Morita Shougi
+More Glider (USA) (Aftermarket) (Homebrew)
+Morita Shougi (Japan)
 Mortal Kombat 3 (Unl) (SuperGame)
+Mortal Kombat 3 - Extra 60 (Taiwan) (En) (Aftermarket) (Pirate)
 Mortal Kombat 3 Extra 60 (Unl) (SuperGame)
-Mortal Kombat 4 (Unl) 
+Mortal Kombat 4 (Unl) [!]
 Mortal Kombat 7 (Unprotected) (Unl)
 Mosquito (Galaga Hack)
 Moster Inc (Wacky Races Hack)
-Moster Inc. (Unl) 
-Mother
+Moster Inc. (Unl) [h1] (Menu Removed)
+Mother (Earthbound Beginnings) (Easy Version) (J) (T-ESP)
+Mother (Japan)
 Mother 25th Anniversary Edition (EarthBound Proto Hack_DragonDePlatino) v1.11
 Moto Boat (Unl)
-Moulin Rouge Senki - Melville no Honoo
+Moulin Rouge Senki - Melville no Honoo (Japan)
 Mouse Snare (Unl)
 Mouser by Tony Young (Beta 1.0) (PD)
 Move 31 (PD)
+Mr Boot Demo 1.0
+Mr. Gimmick (E) [T-Spa1.0v_Wave]
+Mr. Gimmick (Scandinavia) (En)
+Mr. Maymunshine's Christmas Land (World) (Aftermarket) (Homebrew)
+Mr. Maymunshine's Christmas Land (World) (Aftermarket) (Homebrew) (Alt)
 Mr. Pac-Man (Ms. Pac-Man Hack)
+Mr. Splash (France) (Omake Books Version) (Aftermarket) (Homebrew)
+Mr. Splash (Japan) (En) (Columbia Version) (Aftermarket) (Homebrew)
+Mr. Splash (Japan) (En) (Mondo21 Version) (Aftermarket) (Homebrew)
 Mr. Splash Columbia Version (J)
 Mr. Splash Mondo21 Gg Version (PD)
 Mr. Splash Mondo21 Meteor Version (PD)
 Mr. Splash Mondo21 Version (PD)
+MrSpooksTallHouse
 Mrbrownstone (PD)
+Ms. Pac-Man (U) [T-Spa1.0v_Wave]
+Ms. Pac-Man (USA)
 Ms. Pac-Man (USA) (Namco)
 Ms. Pac-Man G (Hack)
 Ms. Pac-Man G2 By Googie (Hack)
 Ms. Pac-Man Plus (Hack)
 Ms. Pac-Man by Googie (Hack)
 Ms. Pac-Man's Lost Levels (Hack) v1 samus12345
-Mugen Senshi Valis
+Mugen Senshi Valis (Japan)
 Multi-Layered Scrolling Demo (PD)
 MultiCart 11-in-1 Loader (PD)
 MultiDude (PD) 2-2015 retrosouls
-Multidude (World) (Aftermarket) 
+Multidude (World) (Aftermarket) (Unl)
 Multiplication (Unl)
 Munchie Attack - Fast Food Clone (PD) v1.0
-Muppet Adventure - Chaos at the Carnival
-Musashi no Bouken
+Muppet Adventure - Chaos at the Carnival (USA)
+Musashi no Bouken (J) [T+Eng.98_MadHacker+Gaijin]
+Musashi no Bouken (J) [T+Eng_SPOOKY_KIDS_hack_posse]
+Musashi no Bouken (J) [o1][T+Eng.98_MadHacker+Gaijin]
+Musashi no Bouken (Japan)
 Music (PD)
 MusicBox (Unl)
+Musical Quest (World) (Beta) (NTSC) (Aftermarket) (Homebrew)
+Musical Quest (World) (Beta) (PAL) (Aftermarket) (Homebrew)
 My First Sample Test (PD)
-My Life My Love - Boku no Yume - Watashi no Negai
-Mystery Quest
-Mystery World Dizzy (Europe) (En,Pt,Pl) 
+My Life My Love - Boku no Yume - Watashi no Negai (Japan)
+My NESmaker Game
+Mystery Quest (USA)
+Mystery World Dizzy (Europe) (En,Pt,Pl) (Unl)
+Mystery World Dizzy (World) (En,Pt,Pl) (Aftermarket) (Homebrew)
 Myth Struggle (Ch)
-NARC
+NARC (USA)
+NES (PD)
 NES 071910-1 (PD)
 NES 07210-1 (PD)
+NES Calculator (World) (Program) (Aftermarket) (Homebrew)
 NES Jack O Lantern (PD) 10-2015 RG59
-NES Open Tournament Golf
+NES Open Tournament Golf (Europe)
+NES Open Tournament Golf (Europe) (Virtual Console)
+NES Open Tournament Golf (USA)
+NES Speech Synthesizer (PD) 1-2016 dougeff
 NES Speech Synthesizer (PD) 2011NESDEV 1-2016 dougeff
+NES Speech Synthesizer (World) (Program) (Aftermarket) (Homebrew)
+NES Virus Cleaner (World) (Aftermarket) (Unl)
+NES Virus Cleaner (World) (Airwalk Studios) (Aftermarket) (Homebrew)
+NES Virus Cleaner (World) (Non-Published Version) (Aftermarket) (Homebrew)
+NES Virus Cleaner (World) (Second Dimension) (Aftermarket) (Homebrew)
 NES Virus Cleaner - Non-Published (PD) Sly Dog Studios
 NES Virus Cleaner - Published Version (PD) Sly Dog Studios
+NESDev '19 Compo Cart (World) (Aftermarket) (Homebrew)
+NESZIP (World) (Example) (Program) (Aftermarket) (Homebrew)
 NESdev Project (PD)
 NESert Golfing (PD) Rainwarrior
-NFL
-NHK Gakuen - Space School - Sansu 5 Nen (Jou)
-NHK Gakuen - Space School - Sansu 6 Nen (Ge)
+NESert Golfing (World) (Aftermarket) (Homebrew)
+NESert Golfing (World) (Tournament Edition) (Aftermarket) (Homebrew)
+NESertBus (World) (Aftermarket) (Homebrew)
+NESnake 2 (World) (v1.2) (NTSC) (Aftermarket) (Homebrew)
+NESnake 2 (World) (v1.2) (PAL) (Aftermarket) (Homebrew)
+NESnake 2 (World) (v1.3) (Aftermarket) (Homebrew)
+NFL (USA)
+NHK Gakuen - Space School - Sansu 5 Nen (Jou) (Japan)
+NHK Gakuen - Space School - Sansu 6 Nen (Ge) (Japan)
+NHK Gakuen - Space School - Sansu 6 Nen (Jou) (Japan)
 NJ032 - The Hacker (C) T+Eng1.0 pacnsacdave
+NNNNNN (World) (Aftermarket) (Homebrew)
+NOFX Cover Cart Vol. 1 (World) (Aftermarket) (Homebrew)
 NSF PowerPak - PowerPak Only (PD)
+NTRQ (World) (v1.9) (NTSC) (Music Program) (Aftermarket) (Homebrew)
+NTRQ (World) (v1.9) (PAL) (Music Program) (Aftermarket) (Homebrew)
 NTRQ - NES Music Tracker (NTSC) (PD)
 Na Halloween (PD)
-Nakajima Satoru - F-1 Hero
-Nakajima Satoru Kanshuu - F-1 Hero 2
-Nakayoshi to Issho
+Nakajima Satoru - F-1 Hero (Japan)
+Nakajima Satoru Kanshuu - F-1 Hero 2 (Japan)
+Nakayoshi to Issho (Japan)
 Naked Double Dragon (hack) pacnsacdave
-Namco Prism Zone - Dream Master
+Nalleland (World) (v0.4.0) (Aftermarket) (Homebrew)
+Namco Prism Zone - Dream Master (Japan)
 Nanaca-Crash!! (PD)
 Nanakura (PD)
-Nantettatte!! Baseball
-Nantettatte!! Baseball + Nantettatte!! Baseball - Ko-Game Cassette - '91 Kaimaku Hen
-Nantettatte!! Baseball + Nantettatte!! Baseball - Ko-Game Cassette - OB All Star Hen
-Napoleon Senki
-Nekketsu Koukou Dodgeball-bu
-Nekketsu Koukou Dodgeball-bu - Soccer Hen
+Nantettatte!! Baseball (Japan)
+Nantettatte!! Baseball + Nantettatte!! Baseball - Ko-Game Cassette - '91 Kaimaku Hen (Japan)
+Nantettatte!! Baseball + Nantettatte!! Baseball - Ko-Game Cassette - OB All Star Hen (Japan)
+Napoleon Senki (Japan)
+Narman
+Nekketsu Koukou Dodgeball Bu [T+Eng_GenericaOnline]
+Nekketsu Koukou Dodgeball Bu [hM04]
+Nekketsu Koukou Dodgeball-bu (Japan)
+Nekketsu Koukou Dodgeball-bu - Soccer Hen (Japan)
+Neotoxin (World) (2004-02-15) (Beta) (Aftermarket) (Homebrew)
+Neotoxin (World) (2005-01-09) (Beta) (Aftermarket) (Homebrew)
+Neotoxin (World) (Demo) (Aftermarket) (Homebrew)
 Neotoxin Demo (PD) 2013 Snobro, EFX
 Nes Fireplace (PD) 12-2015 RG59
+Nesglovphone (World) (Music Program) (Aftermarket) (Homebrew)
 Nesglovphone - Power Glove (PD) 4-2013 Psych Software
 Nesnake 2 (PD) Matrixz
+Nessy the NES Robot (World) (v1.30) (Aftermarket) (Homebrew)
+Nessy the NES Robot (World) (v1.30) (Demo) (Aftermarket) (Homebrew)
 Nestronome (PD)
 New-River City Ransom (Hack)
-Nigel Mansell's World Championship Challenge
-Nigel Mansell's World Championship Racing
-Nightmare on Elm Street, A
-Nihonichi no Mei Kantoku
-Niji no Silk Road
+Nigel Mansell's World Championship (Europe) (En,Fr,De,Es,It)
+Nigel Mansell's World Championship Challenge (USA)
+Nigel Mansell's World Championship Racing (USA)
+Nightmare on Elm Street, A (U) [T+Spa1.00_ShinjiE]
+Nightmare on Elm Street, A (U) [T-Spa1.0_JonnyVilla2088]
+Nightmare on Elm Street, A (USA)
+Nihonichi no Mei Kantoku (Japan)
+Niji no Silk Road (J) [T+Eng1.01_Gaijin Productions]
+Niji no Silk Road (Japan)
+Nim & Nom (World) (Aftermarket) (Homebrew)
+Nim & Nom (World) (v1.1) (Aftermarket) (Homebrew)
+Nim & Nom (World) (v1.2) (Aftermarket) (Homebrew)
+Ninja (USA) (Aftermarket) (Homebrew)
+Ninja Gaiden
+Ninja Gaiden 2
+Ninja Gaiden 3
+Ninja I & II (World) (Aftermarket) (Homebrew)
+Ninja II (USA) (Aftermarket) (Homebrew)
 Ninja Muncher (PD) Sly Dog Studios
+Ninja Slapper (World) (Aftermarket) (Homebrew)
+Ninja of the 4 Seasons, The (World) (v1.1) (Aftermarket) (Homebrew)
 Nintencat - The Parody (PD)
-Nintendo - NTF2 System Cartridge
-Nintendo - NTF2 Test Cartridge (NES Test) (USA) 
-Nintendo Campus Challenge 1991 (USA) (Competition Cart) 
+Nintencat - The Parody (World) (Rob Bryant's) (Aftermarket) (Homebrew)
+Nintencat - The Parody (World) (Sly Dog Studios) (Aftermarket) (Homebrew)
+Nintendo - NTF2 System Cartridge (USA)
+Nintendo - NTF2 Test Cartridge (NES Test) (USA) (Rev 1) (Test Program)
+Nintendo - NTF2 Test Cartridge (USA) (Test Program)
+Nintendo Campus Challenge 1991 (USA) (Competition Cart) [b]
+Nintendo NTF2 System Cartridge (USA) (v1.1) (Test Program)
+Nintendo NTF2 Test Cartridge (USA) (Test Program)
+Nintendo NTF2 Test Cartridge (USA) (v1.1) (Test Program)
 Nintendo World Championships 1990 (USA) (Competition Cart)
 Nintendo World Championships 1990 - Start Hack (US)
 Nintendo World Class Service - Control Deck Test Cartridge (USA) (Test Program)
 Nintendo World Class Service - Joystick Test Cartridge (USA) (Test Program)
 Nintendo World Class Service - Port Test Cartridge (USA) (Test Program)
 Nintendo World Class Service - Power Pad Test Cartridge (USA) (Test Program)
-Nintendo World Cup
+Nintendo World Cup (Europe)
+Nintendo World Cup (Europe) (Rev 1)
+Nintendo World Cup (Europe) (Rev 2)
+Nintendo World Cup (PC10)
+Nintendo World Cup (U) [T+Spa1.0_Wave]
+Nintendo World Cup (USA)
 Nintendo World Cup - All-Team Versus Version (Hack)
+NintendoAge Halloween 2009 (USA) (Aftermarket) (Homebrew)
+Nix - The Paradox Relic (World) (v1.2) (Demo) (Aftermarket) (Homebrew)
+Nix - The Paradox Relic (World) (v1.9) (Aftermarket) (Homebrew)
+Nix - The Paradox Relic (World) (v1.91 NoFlash) (Aftermarket) (Homebrew)
+Nix_v0_2
 Nm Vs. Ji Demo (PD)
 Nmi Music Test (PD)
 Nmvsji Demo (PD)
 No Points (PD) Sly Dog Studios
+Nobunaga no Yabou - Sengoku Gunyuuden (Japan)
 Nobunaga no Yabou - Sengoku Gunyuuden (Japan) (Rev 1)
+Nobunaga no Yabou - Zenkoku Ban (Japan)
 Nobunaga no Yabou - Zenkoku Ban (Japan) (Rev 1)
-Nobunaga's Ambition
-Nobunaga's Ambition II
+Nobunaga's Ambition (USA)
+Nobunaga's Ambition II (USA)
 Nomolos - Storming the CATsle (PD) Gradual Games 2012
+Nomolos - Storming the CATsle (World) (Aftermarket) (Unl)
 North & South (Europe)
-North & South - Wakuwaku Nanboku Sensou
-North and South
+North & South - Wakuwaku Nanboku Sensou (Japan)
+North and South (U) [T-Spa2.0v_JulianL]
+North and South (USA)
 Nothing (PD)
 Nothing Good Can Come Of This (PD) v1 KHAN Games 2017NESDEV
+Nothing Good Can Come of This (World) (Aftermarket) (Homebrew)
 Nova the Squirrel (PD) v1 NovaSquirrel 5-2018
+Nova the Squirrel (World) (Alt) (Aftermarket) (Homebrew)
+Nova the Squirrel (World) (v1.00) (Aftermarket) (Homebrew)
+Nova the Squirrel (World) (v1.01) (Aftermarket) (Homebrew)
+Nova the Squirrel (World) (v1.02) (Aftermarket) (Homebrew)
+Nova the Squirrel (World) (v1.03) (Aftermarket) (Homebrew)
+Nova the Squirrel (World) (v1.04) (Aftermarket) (Homebrew)
+Nova the Squirrel (World) (v1.05) (Aftermarket) (Homebrew)
+Nova the Squirrel (World) (v1.06) (Aftermarket) (Homebrew)
+Noxious Liquid (World) (Proto) (Aftermarket) (Homebrew)
 Nrom-Template (PD)
 Nut Cracky (Unl)
-Obocchama-kun
+Obocchama-kun (Japan)
 Obstacle Trek (PD) Sly Dog Studios
 Oct Pulse (PD)
-Oeka Kids - Anpanman no Hiragana Daisuki
-Oeka Kids - Anpanman to Oekaki Shiyou!!
-Okkotoshi Puzzle - Tonjan!
-Olympus no Tatakai
-Orb-3D
-Orgada (TwinBee Hack) 
-Othello
+Oeka Kids - Anpanman no Hiragana Daisuki (Japan)
+Oeka Kids - Anpanman to Oekaki Shiyou!! (Japan)
+Okkotoshi Puzzle - Tonjan! (Japan)
+Olympus no Tatakai (Japan)
+OmegaDriver_v1.1
+Oof McBrewster's Haunted House Adventure (World) (Aftermarket) (Homebrew)
+Oopie's Quest (World) (Aftermarket) (Homebrew)
+Ooze Redux (World) (Aftermarket) (Homebrew)
+Operation Wolf (Europe)
+Operation Wolf (Japan)
+Operation Wolf (U) [!]
+Operation Wolf (U) [T-Spa1.0v_Wave]
+Oratorio (World) (Demo) (Aftermarket) (Homebrew)
+Orb 3D (USA)
+Orb-3D (USA)
+Orebody - Binder's Tale (World) (Aftermarket) (Homebrew)
+Orebody - Binder's Tale (World) (Demo 1) (Aftermarket) (Homebrew)
+Orebody - Binder's Tale (World) (Demo 2) (Aftermarket) (Homebrew)
+Orebody - Sand Ripples (World) (Aftermarket) (Homebrew)
+Orebody - Sand Ripples (World) (Rev 1) (Aftermarket) (Homebrew)
+Orgada (TwinBee Hack) [b1]
+Orphea (World) (v1.1) (Aftermarket) (Homebrew)
+Othello (Japan)
+Othello (Japan) (Rev 1)
+Othello (USA)
+Ouroboros (World) (Aftermarket) (Homebrew)
+Ouroboros (World) (Rev 1) (Aftermarket) (Homebrew)
 Overclock Test (PD) r1a tepples
 P'Radikus Conflict (USA) (Unl)
 PCB Artist (PD) 2014NESDEV InfiniteNESLives
+PCB Artist (PD) InfiniteNESLives
 PCM Demo Wgraphics (PD)
-PROTO DERE .NES (World) (Proto) 
+PERKELE - Suomi 100 Vuotta - 5th Anniversary Edition (World) (Fi) (Aftermarket) (Homebrew)
+PONG v1
+PR8 (World) (v1.01) (Music Program) (Aftermarket) (Homebrew)
+PROTO DERE .NES (World) (2019-01-28) (Aftermarket) (Homebrew)
+PROTO DERE .NES (World) (2022-03-06) (Aftermarket) (Homebrew)
+PROTO DERE .NES (World) (Proto) (Aftermarket) (Unl)
+PROTO DERE .NES (World) (v1.1) (Aftermarket) (Homebrew)
+PROTO DERE .NES (World) (v1.3) (Aftermarket) (Homebrew)
+Pac-Man (Japan)
+Pac-Man (Japan) (En)
+Pac-Man (Japan) (Rev A)
+Pac-Man (Namco) (U) [T-Spa1.0v_HerSaki]
+Pac-Man (USA) (Tengen)
+Pac-Man (USA) (Virtual Console)
 Pac-Man 3 by DahrkDaiz (Ms. Pac-Man Hack)
 Pac-Man 3D (Ms. Pac-Man Hack)
 Pac-Man Xtreme (Ms. Pac-Man Hack) v1.0
 Pac-man Saw (Battle City Hack)
-Pachi-Slot Adventure 2 - Sorotta-kun no Pachi-Slot Tanteidan
-Pachinko Daisakusen
-Pachinko Daisakusen 2
-Pachio-kun 4
-Pachio-kun 5
+Pachi-Slot Adventure 2 - Sorotta-kun no Pachi-Slot Tanteidan (Japan)
+Pachinko Daisakusen (Japan)
+Pachinko Daisakusen 2 (Japan)
+Pachio-kun 4 (Japan)
+Pachio-kun 5 (Japan)
 Paddleboth (PD)
 Paddleneat (PD)
 Paint or Draw (PD) v2 dougeff
+Palamedes [hM04]
+Palette-Generator
 Panda Prince, The Chinese Edition (Shin-Shin) (Unl)
 Panesian Power (PD) 2011NESDEV Bunnyboy
-Panic Restaurant
+Panesian Power (World) (Aftermarket) (Homebrew)
+Panic Restaurant (Europe)
+Panic Restaurant (U) [T+Spa1.0_Wave]
+Panic Restaurant (USA)
 Panic! Dizzy (Europe) (Proto)
+Panic! Dizzy (World) (Aftermarket) (Homebrew)
+Panic! Dizzy (World) (Aftermarket) (Unl)
+Papillon (Asia) (Unl)
 Papillon Gals (Japan) (Unl)
 Parasol Stars - Rainbow Islands II (Europe)
-Parasol Stars - The Story of Bubble Bobble 3 (E) 
+Parasol Stars - The Story of Bubble Bobble 3 (E) [T-Spa1.0v_Wave]
 Parasol Stars - The Story of Bubble Bobble III (Europe) (Beta)
-Paris-Dakar Rally Special
+Paris-Dakar Rally Special (Japan)
 Parody World - Monster Party (Japan) (Proto)
+Parody World - Monster Party (Proto) (J) [T-Spa1.1_JonnyVilla2088]
 Particle Src (PD)
 Password Save Demo - Generate (PD) Damian Yerrick
 Password Save Demo - Test (PD) Damian Yerrick
 Patche Combat! (Bokosuka Wars Hack) v1.0 DASTARD
 Pattern Table Pixel - Flickering Demo (PD)
+Peek-A-Boo Poker (Asia) (Unl)
 Peek-A-Boo Poker (USA) (Unl)
-Peepar Time
-Pegasus 4-in-1 (Unl) 
+Peepar Time (Japan)
+Pegasus 4-in-1 (Unl) [!]
 Pegasus 5-in-1 (Golden Five) (Unl)
 Pegs (PD)
+Pegs (World) (Aftermarket) (Homebrew)
+Pegs (World) (Aftermarket) (Homebrew) (Alt)
+Pen Pen (Japan) (En) (Family BASIC) (Homebrew)
 Penisian (Galaxian Hack)
-Pennant League!! - Home Run Nighter
+Pennant League!! - Home Run Nighter (Japan)
 PepsiMan by Mogemogesama (Metro-Cross Hack)
-Perfect Pair (World) (Aftermarket) 
+Perfect Pair (World) (Aftermarket) (Homebrew)
+Perfect Pair (World) (Aftermarket) (Unl)
 Pescatore (Japan) (Proto)
+Pesterminator (USA) (Unl)
 Pesterminator - The Western Exterminator (USA) (Unl)
 Pet 4-in-1 (Unl)
 Physics (PD)
+Pico Pico Grand Adventure (Japan) (Aftermarket) (Homebrew)
+Pictionary
 Pig River City Ransom (Hack)
 Pill Head (Dr. Mario Hack)
+Pin Bot (Europe)
+Pinball (World)
+Ping Pong (PD)
 Ping Pong (Unl)
-Pirates!
+Pinky (World) (Aftermarket) (Homebrew)
+Pinky (World) (Demo) (Aftermarket) (Homebrew)
+Pinky Xmas (World) (Aftermarket) (Homebrew)
+Pirates! (Europe)
+Pirates! (Germany)
+Pirates! (USA)
 Pitfall! (PD) v0.93.0 never-obsolete
+Pitfall! (PD) v2 never-obsolete
+Pixel Poops - Number Two (World) (Aftermarket) (Homebrew)
+Pixel Poops - Number Two (World) (Demo) (Aftermarket) (Homebrew)
+Pixel Poops - Number Two (World) (Rev B) (Aftermarket) (Homebrew)
+Pizza Party! (World) (Aftermarket) (Homebrew)
+Pizza Party! (World) (v1.1) (Aftermarket) (Homebrew)
 Pizza Time (BurgerTime Hack) v1.0 dougeff 2015
 Plants vs Zombies (Unl)
-Playbox BASIC (Japan) (v0.0) 
+Platoon (USA) (Rev A)
+Playbox BASIC (Japan)
+Playbox BASIC (Japan) (v0.0) (Beta)
+Plummet Challenge Game (World) (Aftermarket) (Homebrew)
 Plush Dog (Unl)
-Po Fu Chen Zhou (ES-1092) (Ch) 
+Po Fu Chen Zhou (ES-1092) (Ch) (Decrypted)
 Pocahontas 2 (Dev version) (Unl)
 Pocahontas Debug (Hack)
-Pocket Monster (Unl) 
+Pocket Monster (Unl) [!]
 Pogo Cats (PD) Battery v1.0
-Poke Block (Asia) (Ja) 
+Poke Block (Asia) (Ja) (Unl)
+Poke Block (Unl) (Prototype)
 Poke Tetris (Unl)
 Pokemon - Pichu no Bouken (Dragon Buster II Hack)
 Pokemon 4-in-1 (Unl)
-Pokemon Blue (Unl) 
-Pokemon Golden (Unl) 
-Poker (Unl) 
-Poker III (Asia) (Ja) 
-Poker Mahjong - Pu Ke Mao Que (Asia) (Ja) 
-Policeman (Spain) (Gluk Video) 
-Polygondwanaland - 2nd Edition (World) (Aftermarket) 
+Pokemon Blue (Unl) [!]
+Pokemon Golden (Unl) [!]
+Poker (Unl) [!p]
+Poker III (Asia) (Ja) (Alt 1) (Unl)
+Poker III (Asia) (Ja) (Alt 2) (Unl)
+Poker III (Asia) (Ja) (Unl)
+Poker Mahjong - Pu Ke Mao Que (Asia) (Ja) (Unl)
+Policeman (Spain) (En) (Gluk Video) (Unl)
+Policeman (Spain) (Gluk Video) (Unl)
+Polygondwanaland - 2nd Edition (World) (Aftermarket) (Unl)
 Polynes (PD)
 Pong & Head Bounce (PD) v1.0
+Pong (PD)
+Pong (PD) 12-2015 nicklausw
 Pong 198X (PD) 2014NESDEV Dr Dementia
+Pong 198X (PD) Dr Dementia
 Pong 1k2p (PD) Sly Dog Studios
 Pong Pong (Unl)
-Pooyan
+Pong and Head Bounce (World) (Aftermarket) (Homebrew)
+Pooyan (J) [T+Spa1.0_Wave]
+Pooyan (J)_lomax edition
+Pooyan (Japan)
 Pooyan Enhancement (Hack) v1.0
 Pop (Unl)
+Pop (Wild Gunman Hack)
 Pop Star Debut (Idol Hakkenden Translation) (1.0)
-Porter (Asia) (En) 
-Portopia Renzoku Satsujin Jiken
-Power Punch II
-PowerJoy 84-in-1 (PJ-008) (Unl) 
+Popeye (World)
+Popeye (World) (Rev A)
+Popeye no Eigo Asobi (J) [T+Eng1.0_KingMike]
+Porter (Asia) (En) (Unl)
+Porter (Unl)
+Portopia Renzoku Satsujin Jiken (J) [T+Eng_DvD]
+Portopia Renzoku Satsujin Jiken (J) [T-Spa1.0v_Lukas]
+Portopia Renzoku Satsujin Jiken (Japan)
+Power Coloring (USA) (Aftermarket) (Homebrew)
+Power Pad Test (World) (v0.1) (Beta) (Test Program) (Aftermarket) (Homebrew)
+Power Punch II (USA)
+PowerJoy 84-in-1 (PJ-008) (Unl) [!]
 Pr8 Nes Drum Synth (PD)
-Predator
+Predator (Australia)
+Predator (Japan)
+Predator (U) [T+Spa1.0_Wave]
+Predator (USA)
 Predator - Schwarzenegger - Soon the Hunt Will Begin (Hack)
+Press Start Again (World) (Proto) (Aftermarket) (Homebrew)
+Press Start Game (World) (Proto) (Aftermarket) (Homebrew)
+PressStartGame
 Pretty Young Thing) (PD)
 Prez (PD) v2 GaTechGrad
-Pro Action Replay (Europe) (v1.0) 
+Pro Action Replay (Europe) (v1.0) (Unl)
+Pro Action Replay (Europe) (v1.2) (Cart Present) (Unl)
+Pro Action Replay (Europe) (v1.2) (No Cart Present) (Unl)
 Pro Wres (Japan) (FamicomBox)
+Project Blue (USA) (Aftermarket) (Homebrew)
+Project Blue (World) (2017-12-03) (NESDev 2017) (Aftermarket) (Homebrew)
+Project Blue (World) (2018-05-01) (NESDev 2017) (Aftermarket) (Homebrew)
+Project Blue (World) (Aftermarket) (Homebrew)
+Project Blue (World) (Beta) (Aftermarket) (Homebrew)
+Project Blue (World) (Gender Swap Version) (Aftermarket) (Homebrew)
+Project Blue (World) (Ja) (Aftermarket) (Homebrew)
+Project Blue (World) (Ja) (Special Edition) (Aftermarket) (Homebrew)
+Project Blue (World) (Kickstarter Demo) (Aftermarket) (Homebrew)
 Project Blue - Demo (PD) v1 Toggle Switch & Frankengraphics 2017NESDEV
+Project DART (World) (Aftermarket) (Homebrew)
+Project PAL (World) (NTSC) (Aftermarket) (Homebrew)
+Project PAL (World) (PAL) (Aftermarket) (Homebrew)
 Proto 1 Virus (USA) (1989 Proto)
 Proto 2 Virus (USA) (2-2-90 Proto)
 Proto 3 Virus (USA) (PC10 Proto)
 Pulpers Bgscroll Test (PD)
 Pulsar (PD)
+Pulsar (World) (v1.04) (Music Program) (Aftermarket) (Homebrew)
 Pulsewave (PD)
+Pulsewave Invitation (World) (2007-11-03) (Aftermarket) (Homebrew)
 Pulsewave Invite (2009-04-xx) (PD)
 Pulveration (Unl)
+Punch Out
 Pung2 (PD)
 Punktendo Danzig (Mega Man Hack) v1 Punktendo
 Punktendo Duckless Hunt (Hack) v1 Punktendo
 Punktendo Super Chumped 2 Bros (SMB2 Hack) v1 Punktendo
 Punktendo TC Beach Slang (Hack) v1 Punktendo
-Puss 'n Boots - Pero's Great Adventure
-Puss n Boots - Pero's Great Adventure
+Purple Cape Man - Vigilante Ninja (World) (Aftermarket) (Homebrew)
+Puss 'n Boots - Pero's Great Adventure (USA)
+Puss n Boots - Pero's Great Adventure (USA)
 Pussy City Pimps (River City Ransom Hack)
 Putt Putt (PD) v1.0
-Puzznic
-Pyokotan no Daimeiro
+Puzznic (Europe)
+Puzznic (Japan)
+Puzznic (U) [T+Spa1.0_Wave]
+Puzznic (USA)
+Pyokotan no Daimeiro (Japan)
 Pyokotan's Big Maze (J) T+Eng v0.99 MrRichard999
-Pyramid (USA) (Rev 1) 
+Pyramid (AVE) (PRG1) [T-Spa1.0v_Wave]
+Pyramid (Sachen-Hacker) [T-Spa1.0v_Wave]
+Pyramid (USA) (Rev 1) (Unl)
+Pyramid (USA) (Unl)
 Pyramid - Cleopatra Kikiippatsu (Japan) (Unl)
-Pyramids of Ra (World) (Aftermarket) 
-Q Boy (Asia) (Ja) 
-QIX
+Pyramid II (Asia) (PAL) (Unl)
+Pyramids of Ra (World) (Aftermarket) (Unl)
+Q Boy (Asia) (Ja) (Unl)
+QIX (USA)
 Qi Long Zhu (C) (Unl)
+Quadralords (USA) (Aftermarket) (Homebrew)
 Quattro Adventure (USA) (Unl)
+Quattro Adventure (Unl) Title-Fix pacnsacdave
 Quattro Arcade (USA) (Unl)
+Quattro Arcade (Unl) Title-Fix pacnsacdave
 Quattro Sports (USA) (Unl)
-Queen Bee V (Unl) 
+Quattro Sports (Unl) Title-Fix pacnsacdave
+Queen Bee V (Unl) [!]
+Quest-IONS (World) (Aftermarket) (Homebrew)
+Quiet (USA) (Aftermarket) (Homebrew)
+RC2 Rally (World) (v1.00) (Aftermarket) (Homebrew)
+RC2 Rally (World) (v1.01) (Aftermarket) (Homebrew)
+RGB (World) (Aftermarket) (Homebrew)
 RHDE Furniture Fight (PD) 2014NESDEV v1 Yerrick
-RPG Jinsei Game
+RHDE Furniture Fight (PD) Yerrick v1.0
+ROB.N (World) (Fr) (Demo) (Aftermarket) (Homebrew)
+RPG Jinsei Game (Japan)
 Rabbit Village (Unl)
-Racermate Challenge II (USA) (v9.03.128) 
+Racermate Challenge II (USA) (v3.11.088) (Unl)
+Racermate Challenge II (USA) (v5.01.033) (Unl)
+Racermate Challenge II (USA) (v6.02.001) (Unl)
+Racermate Challenge II (USA) (v6.02.002) (Unl)
+Racermate Challenge II (USA) (v9.03.128) (Unl)
+Racermate Challenge II (USA, Australia) (v3.12.027) (Unl)
 Rackets & Rivals (Europe)
-Rad Racer 2 (PC10) 
-Rad Racer II
-Rad Racket - Deluxe Tennis II (Asia) (En) 
-Raf World
+Rad Racer 2 (PC10) [!]
+Rad Racer II (U) [T+Spa1.0_Wave]
+Rad Racer II (USA)
+Rad Racket - Deluxe Tennis II (Asia) (En) (Unl)
+Rad Racket - Deluxe Tennis II (USA) (Unl)
+Raddio (World) (Aftermarket) (Homebrew)
+Radia Senki - Reimei Hen (J) [T+Eng1.00_dreamless+Jair+cx]
+Raf World (J) [T+Spa_DJ Traducciones]
+Raf World (J) [T+Spa_SARG]
+Raf World (Japan)
 Raf World Enhanced Weapon Edition By Ivex (Hack)
+Raid 2020 (USA) (Beta) (1989-12-xx) (Unl)
 Raid 2020 (USA) (Unl)
 Rainbow Islands - Bubble Bobble 2 (Europe)
-Rainbow Islands - The Story of Bubble Bobble 2
-Rally Bike
+Rainbow Islands - The Story of Bubble Bobble 2 (E) [T+Spa1.0_Wave]
+Rainbow Islands - The Story of Bubble Bobble 2 (Japan)
+Rally Bike (USA)
 Ralph 4 (PD) v1 pubby, MovieMovies1
+Ralph 4 (World) (Aftermarket) (Homebrew)
+Ralph 4 (World) (Beta) (Aftermarket) (Homebrew)
+Rambo (Japan)
+Rambo (U) (PRG1) [T-Spa1.0v_Wave]
+Rambo (USA)
 Rambo (USA) (Rev 1)
+Rambo (USA) (Rev A)
 Rampart (USA) (Jaleco)
+Randy in Sokobanland (World) (Aftermarket) (Homebrew)
 Rapidemo (PD)
 Ray Casting Demo (PD) Celius 2014
 Real Ghostbusters Remastered, The (Ghostbusters Hack) v1.1
 Red Pig by Porco Rosso (TaleSpin Hack)
 Red Rocket (Earthbound Hack)
-Renegade
+Reknum - The Awakening (World) (Aftermarket) (Homebrew)
+Renegade (U) [T-Spa1.0_JonnyVilla2088]
+Renegade (USA)
+Rescue Time (World) (Demo) (Aftermarket) (Homebrew)
+Reset Based 4-in-1 [p1]
 Reset-based 4-in-1 (Chiu Keung Juen Sek Wong Gam Ka)
+Reset-based 4-in-1 H
+Reset-based 4-in-1 V
 Resistant (Unl)
+Retro Puzzle Maker (World) (v1.1) (Program) (Aftermarket) (Homebrew)
+Retrogathering 2010 (World) (Aftermarket) (Homebrew)
+Retropia (World) (Aftermarket) (Homebrew)
+Retropia (World) (Pt-BR) (Aftermarket) (Homebrew)
+Retroplayer.nl Championship 2015 (World) (Beta 1) (Aftermarket) (Homebrew)
+Retroplayer.nl Championship 2015 (World) (Beta 2) (Aftermarket) (Homebrew)
+Revolving Gems (World) (Ja) (Aftermarket) (Homebrew)
+Rick Rolled! (World) (Aftermarket) (Homebrew)
 Rise of Amondus (PD) Sly Dog Studios
+Rise of Amondus, The (World) (Aftermarket) (Homebrew)
+Rise of Amondus, The (World) (Aftermarket) (Homebrew) (Alt)
 River City Brawl (River City Ransom Hack)
 River City Nudist Colony (River City Ransom Hack)
-River City Ransom
+River City Ransom (U) [T+Spa_TransGen]
+River City Ransom (USA)
 River City Ransom Font Refresh (Hack) v1.1 LastduaL
 River City Ransom Fucked (Hack)
 River City Ransom Improvement (Hack) v2017.05.1 SpiderDave
@@ -1450,18 +2965,27 @@ River City Ransom Plus By Kamming (Hack)
 River City Ransom ZERO V1.01 by Vice (Nekketsu Kouha - Kunio-kun Hack)
 River City Ranzom (Hack)
 Rnes Demo (PD)
+RoboCop 2 (USA) (Rev A)
 RoboCop versus The Terminator (USA) (Proto)
 Robodemons (USA) (Unl)
 Rock Paper Scissors (PD) WryGames v1.0
+Rock Paper Scissors (World) (Aftermarket) (Homebrew)
 Rock Paper Scissors Lizard Sbock (PD) 2016NESDEV dougeff
+Rock Paper Scissors Lizard Sbock (World) (Build 9b) (Aftermarket) (Homebrew)
+Rock Paper Scissors Lizard Sbock (World) (NESDev 2016) (Aftermarket) (Homebrew)
 Rocketman (Unl)
+Rockman (J) [T+Spa010_Chilensis]
+Rockman (J) [T+Spa_Chinoman]
+Rockman (J) [T+Spa_PaladinKnights]
 Rockman (Japan) (En)
+Rockman (Japan) (Virtual Console)
+Rockman 2 - Rockman No Constancy (Hack)
 Rockman 2000 (Rockman Hack)
 Rockman 2015 New Year's (Hack) v1 Puresabe
 Rockman 2018 New Year's (Hack) v1 Puresabe
 Rockman 2019 New Year's (Hack) v1 Puresabe
 Rockman 3 - Dr Wily no Saigo! (Hack)
-Rockman 3 - Dr. Wily no Saigo!
+Rockman 3 - Dr. Wily no Saigo! (Japan)
 Rockman 3 - Return Of Wily (Rockman 3 Hack)
 Rockman 3 - Winternight Endless Version (Hack) v1 StalkerMaestro
 Rockman 3 Alpha (Hack)
@@ -1472,6 +2996,8 @@ Rockman 3 Zone of Eden (Hack) v1 SOPHIA
 Rockman 4 Endless (Rockman 4 Hack)
 Rockman 5 Double Jumper (Hack) v2.0 Rock5easily
 Rockman 5 Endless (Hack)
+Rockman 5 Endless (Laser Areas Omitted) (Hack)
+Rockman 5 Endless (Rockman 5 Hack)
 Rockman 9 (PD)
 Rockman Deft (Rockman 3 Hack)
 Rockman EX (Hack) v1 AYCNN
@@ -1480,35 +3006,53 @@ Rockman Kent (Rockman Hack)
 Rockman NEO (Rockman Hack)
 Rockman RX (Hack)
 Rockman Zero by MB Hacks (Megaman Hack)
-Rod Land (E) 
+Rod Land (E) [T+Spa1.0_Wave]
+Rod Land (Europe)
 Rodland (Europe)
+Rodland Featuring Rit and Tam (Europe) (Beta)
 Rodland featuring Rit and Tam (Europe) (Beta)
-Roger Clemens' MVP Baseball
+Roger Clemens' MVP Baseball (USA)
+Roguelore (World) (Pt-BR) (v1.1.0) (Aftermarket) (Homebrew)
 Roller Vs Stunticons (Spy Hunter Hack)
-Rollerblade Racer
-Rollergames
+Rollerblade Racer (USA)
+Rollergames (Europe)
+Rollergames (U) [T-Spa1.0v_Wave]
+Rollergames (USA)
+Rollie (World) (NTSC) (Aftermarket) (Homebrew)
+Rollie (World) (PAL) (Aftermarket) (Homebrew)
 Rom (PD)
 Romance of The Three Kingdoms - Domineer The World - Xiong Ba Tian Xia (Unl)
-Romance of the Three Kingdoms
-Roniu's Tale (World) (Demo) 
+Romance of the Three Kingdoms (USA)
+Roniu's Tale (World) (Demo) (Aftermarket) (Unl)
 Rotation (PD)
-Rough World
+Rough World (Japan)
 Roulette (PD)
 Rumble Station - 15 in 1 (USA) (Unl)
+Rumblefest '89 (World) (Aftermarket) (Homebrew)
 Rumia Ball (Lunar Pool Hack) v1 DASTARD
 Rush Hour (Unl)
 Russia (Unl)
+Rygar (E) [T+Spa099_spctrmxd]
+Rygar (Europe)
+Rygar (PC10)
+Rygar (U) (PRG0) [T+Spa99%_Kale1942]
+Rygar (U) (PRG0) [T+Spa_HTI]
+Rygar (USA)
 Rygar (USA) (Rev 1)
-SD Gundam - Gachapon Senshi 2 - Capsule Senki
+Rygar (USA) (Rev A)
+S.T.I.N.G. (World) (Aftermarket) (Homebrew)
+SD Gundam - Gachapon Senshi 2 - Capsule Senki (J) T+Eng v1 MrRichard999
+SD Gundam - Gachapon Senshi 2 - Capsule Senki (Japan)
 SD Gundam - Gachapon Senshi 2.1 pr3 (Hack)
-SD Gundam - Gachapon Senshi 3 - Eiyuu Senki
+SD Gundam - Gachapon Senshi 3 - Eiyuu Senki (Japan)
 SD Gundam - Gachapon Senshi 3 - Eiyuu Senki by fenglianxilin (070817) (Hack)
-SD Gundam - Gachapon Senshi 4 - NewType Story
+SD Gundam - Gachapon Senshi 4 - NewType Story (Japan)
 SD Gundam - Gachapon Senshi 4 V2.1 (Hack)
-SD Gundam - Gachapon Senshi 5 - Battle of Universal Century
-SD Gundam Gaiden - Knight Gundam Monogatari 2 - Hikari no Knight
-SD Keiji - Blader
+SD Gundam - Gachapon Senshi 5 - Battle of Universal Century (Japan)
+SD Gundam Gaiden - Knight Gundam Monogatari 2 - Hikari no Knight (Japan)
+SD Keiji - Blader (Japan)
 SFX Editor (PD) 2014NESDEV NovaSquirrel
+SFX Editor (PD) NovaSquirrel
 SMB & Sonic 2 (Chip and Dale 2 Hack)
 SMB Adventure (SMB1 Hack)
 SMB B Mario 12 (SMB Hack)
@@ -1556,273 +3100,479 @@ SMB2 Super Pokemon Brothers 2 (SMB2 Hack) pacnsacdave
 SMB2 Super Smashing Pumpkins Bros (SMB2 Hack) Macbee 2000
 SMB2 Tie Fighter 2 (SMB2 Hack)
 SMB3 Mario Adventure Real Hardware (SMB3 Hack)
+SMB3 SMB3MIX v2B sonicepoch
 SMB3 Super Mario All-Stars (Hack) v2-22-20
 SMB3MIX (SMB3 Hack) v2B sonicepoch
-SWAT - Special Weapons and Tactics
+SMMM (World) (v1.01) (Music Program) (Aftermarket) (Homebrew)
+SWAT - Special Weapons and Tactics (J) T+Eng v1 Psyklax
+SWAT - Special Weapons and Tactics (Japan)
 Sai Er Qi Xia Zhuan (Unl)
 Sai Ya Ren Mei Jue Ji Hua (Unl)
-Saiyuuki World
-Samsara Naga
+Saiyuuki World (J) [T+Spa1.0_Wave]
+Saiyuuki World (Japan)
+Samsara Naga (Japan)
 Samurai Spirits (Rex Soft) (Unl)
-San Guo Zhi 4 - Chi Bi Feng Yun (Ch) 
+San Guo Zhi 4 - Chi Bi Feng Yun (Ch) [!]
 San Guo Zhong Lie Zhuan (Asia) (Unl)
 San Mierde Homeroom Homicide (River City Ransom Hack)
 San Shi Liu Ji (Ch)
-Sanada Juu Yuushi
+Sanada Juu Yuushi (ES-1102) (Ch) [f1]
+Sanada Juu Yuushi (Japan)
 Sanae Invaders (Space Invaders Hack) v1 DASTARD
+Sangokushi (Japan)
 Sangokushi (Japan) (Rev 1)
-Sangokushi II - Haou no Tairiku
-Sansuu 4 Nen - Keisan Game
-Sansuu 5 & 6 Nen - Keisan Game
-Satomi Hakkenden
-Satsui no Kaisou - Power Soft Satsujin Jiken
-Satsui no Kaisou - Soft House Renzoku Satsujin Jiken
+Sangokushi II (Japan)
+Sangokushi II - Haou no Tairiku (Japan)
+Sanma no Mei Tantei (Japan)
+Sanrio Carnival 2 (J) [T+Eng1.0_Suicidal]
+Sansuu 4 Nen - Keisan Game (Japan)
+Sansuu 5 & 6 Nen - Keisan Game (Japan)
+Santa's Magical Christmas Sleigh (World) (Demo) (Aftermarket) (Homebrew)
+Satomi Hakkenden (Japan)
+Satsui no Kaisou - Power Soft Satsujin Jiken (Japan)
+Satsui no Kaisou - Soft House Renzoku Satsujin Jiken (Japan)
 Scrollnes (PD)
 Seawolf (Unl)
 Second World of Metroid (Metroid Hack)
 Secret Ties (USA) (Proto)
+Seicross (Japan) (Rev 1)
 Serial (PD)
 Serve (PD)
-Sesame Street - 123
-Sesame Street - Countdown
-Sesame Street 123
-Sesame Street Countdown
+Sesame Street - 123 (USA)
+Sesame Street - Countdown (USA)
+Sesame Street 123 (USA)
+Sesame Street Countdown (USA)
 Sgt. Helmet - Training Day (2013) The Mojon Twins v1.0
-Shadow Brain
-Shadowgate
-Shaffle Fight
+Sgt. Helmet Training Day (World) (Aftermarket) (Homebrew)
+Shadow An Adventure In Monochrome
+Shadow Animus (World) (Demo) (Aftermarket) (Homebrew)
+Shadow Brain (Japan)
+Shadow of the Ninja (USA, Europe) (Virtual Console)
+Shadowgate (Europe)
+Shadowgate (France)
+Shadowgate (Germany)
+Shadowgate (Japan)
+Shadowgate (Japan) (Beta) (1988-11)
+Shadowgate (Sweden)
+Shadowgate (USA)
+Shaffle Fight (Japan)
 Shang Gu Shen Jian (Asia) (Unl)
-Shanghai II
+Shanghai II (Japan)
 Sharp Shooter (Unl)
+Sharp Shooter (Wild Gunman Hack)
 Shen Tan Ke Nan (Asia) (Unl)
-Sheng Huo Lie Zhuan (Asia) (Ja) 
-Sherlock Holmes - Hakushaku Reijou Yuukai Jiken
+Sheng Huo Lie Zhuan (Asia) (Ja) (Unl)
+Sherlock Holmes - Hakushaku Reijou Yuukai Jiken (J) T+Eng v1 Psyklax
+Sherlock Holmes - Hakushaku Reijou Yuukai Jiken (Japan)
+Shi Kong Zhi Lun (China) (Aftermarket) (Pirate)
 Shift (Unl)
-Shikinjou
+Shikinjou (J) [T+Eng1.00_Suicidal Productions]
+Shikinjou (Japan)
 Shiko Game Syu (Unl)
-Shin Satomi Hakken-Den - Hikari to Yami no Tatakai
-Shingen the Ruler
+Shin Satomi Hakken-Den - Hikari to Yami no Tatakai (Japan)
+Shingen the Ruler (USA)
 Shinobi Arcade Easy (Hack) v1.1 the jabu
 Shinobi Arcade Easy+Grey Outfit (Hack) v1.1 the jabu
 Shinobi Arcade Hard (Hack) v1.1 the jabu
 Shinobi Arcade Hard+Grey Outfit (Hack) v1.1 the jabu
 Shinobi Arcade Normal (Hack) v1.1 the jabu
 Shinobi Arcade Normal+Grey Outfit (Hack) v1.1 the jabu
-Shinsenden
+Shinsenden (J) T+Eng v1.0 aishsha
+Shinsenden (Japan)
+Shinsenden [T+Eng_Aishsha+Ded302+Djinn]
 Shisen Mahjong 2 (Asia) (Unl)
-Shogun
+ShmupSpeed (World) (Program) (Aftermarket) (Homebrew)
+Shogun (Japan)
+Shoot Out (Duck Hunt Hack)
 Shoot Out (Unl)
+Shoot UFO (Duck Hunt Hack)
 Shoot UFO (Unl)
 ShootNES (PD)
-Shooting Range
-Short Order + Egg-Splode!
-Short Order + Eggsplode!
+Shooting Range (USA)
+Short Order + Egg-Splode! (USA)
+Short Order + Eggsplode! (USA)
 Shot Put (Unl) (VT03)
-Shounen Ashibe - Nepal Daibouken no Maki
+Shounen Ashibe - Nepal Daibouken no Maki (Japan)
 Shu Qi Yu - Shu Xue Xiao Zhuan Yuan (Ch) (Unl)
-Shuffle Fight
-Shui Guan Pipe (Unl) 
+Shuffle Fight (Japan)
+Shui Guan Pipe (Unl) [!]
 Shui Hu Zhuan (Ch)
 Shut Fly (PD)
 Shutshimi NES (PD) Alpha 1 Diskover
 Siamond (PD)
+Siamond (World) (Beta) (Aftermarket) (Homebrew)
+Siamond (World) (v0.950) (Aftermarket) (Homebrew)
+Siamond (World) (v0.980) (Aftermarket) (Homebrew)
 Silent Hunter (Unl) (VT03)
+Silent Service (Europe)
+Silent Service (USA)
 Silent Service (USA) (Rev 1)
-Silva Saga
+Silent Service (USA) (Rev A)
+Silva Saga (J) T+Eng v1.01 aishsha
+Silva Saga (J) [T+ChS]
+Silva Saga (Japan)
+Silver Eagle (Asia) (PAL) (Unl)
 SimCity (USA) (Proto)
 Simone Says (PD) Sly Dog Studios
-Simpsons, The - Bartman Meets Radioactive Man
+Simpsons, The - Bartman Meets Radioactive Man (Europe)
+Simpsons, The - Bartman Meets Radioactive Man (USA)
 Sinking Feeling (PD) 2016NESDEV calima
 Sir Ababol (PD) 2013 Mojon Twins
-Skate or Die
-Skate or Die 2 - The Search for Double Trouble
-Ski or Die
+Sir Ababol (World) (Aftermarket) (Homebrew)
+Sir Ababol (World) (Remastered) (Aftermarket) (Homebrew)
+Skate or Die (Europe)
+Skate or Die (USA)
+Skate or Die 2 - The Search for Double Trouble (USA)
+SkateCat (World) (Demo) (Aftermarket) (Homebrew)
+SkateCat (World) (Fr) (Demo) (Aftermarket) (Homebrew)
+Skatemasta Tcheco (World) (Demo) (Aftermarket) (Homebrew)
+Ski or Die (Europe)
+Ski or Die (USA)
 Skiing (Rad Racer Hack)
 Skinhead City Kancer by Pachuka (River City Ransom Hack)
-Sklad Nomer 18 (Unl) 
+Sklad Nomer 18 (Unl) [!]
+Slalom (Europe)
 Slappin' Bitches (PD) 2011NESDEV Final v1 Mario's Right Nut
 Slappinbitches (PD)
 Sliding Blaster (PD) 2014NESDEV NovaSquirrel
 Slot Machine (Unl)
-Smash T.V.
+Slow Mole (World) (v1.2b) (Aftermarket) (Homebrew)
+Smash T.V. (Europe)
+Smash T.V. (U) [T-Spa1.0v_Wave]
+Smash T.V. (USA)
 Smile Rage (Battle City Hack)
 Smooth Criminal (PD)
 Snail Maze (PD) Slydog Studios v1.0
+SnailNES (World) (Aftermarket) (Homebrew)
+Snake (PD)
+Snake's Revenge
 Sniper (Unl) (VT03)
 Snowboard Challenge (Europe)
+Snowfield Shoot (Duck Hunt Hack)
 Snowfield Shoot (Unl)
 Soap Panic (Japan) (Unl)
+Soccer (World)
+Soko Man (PD)
 Soko Man (Unl)
+Solar Wars (World) (Aftermarket) (Homebrew) (Alt)
+Solar Wars (World) (v1) (Aftermarket) (Homebrew)
+Solar Wars (World) (v1.5) (Aftermarket) (Homebrew)
+Solar Wars (World) (v2) (Aftermarket) (Homebrew)
 Solar Wars 2001 (PD) v1.5
+Solaris (USA) (Aftermarket) (Homebrew)
 Solitair (Unl)
 Solomon's Key - Unlocked (Hack) (1.0)
+Solstice
+Somari
+Somari (Asia) (En) (Aftermarket) (Pirate)
+Somari (Asia) (En) (Rev 1) (Aftermarket) (Pirate)
 Somari (Unl)
-Sonic 3D Blast 6 (Unl) 
+Sonic & Knuckles 5 (Asia) (En) (Aftermarket) (Pirate)
+Sonic 3D Blast 6 (Unl) [f1]
 Sorcerian (SMB Hack) T+Eng v1 pacnsacdave
-Sou Setsu Ryuu II - The Revenge
-Sou Setsu Ryuu III - The Rosetta Stone
+Sou Setsu Ryuu (Japan) (Beta)
+Sou Setsu Ryuu II - The Revenge (Japan)
+Sou Setsu Ryuu III - The Rosetta Stone (Japan)
 Sound (PD)
+SoundTest 2 (World) (Program) (Aftermarket) (Homebrew)
+Space 2050 (Duck Hunt Hack)
 Space 2050 (Unl)
+Space Blaze (World) (Aftermarket) (Homebrew)
 Space Boy (Unl)
 Space Fighter (PD)
-Space Hunter
-Space Invaders
-Space Shadow
+Space Gulls (World) (Aftermarket) (Homebrew)
+Space Gulls (World) (v1.1) (Aftermarket) (Homebrew)
+Space Hunter (J) T+Eng v1 Zatos Hacks
+Space Hunter (Japan)
+Space Invaders (J) [T-Spa1.0v_Wave]
+Space Invaders (Japan)
+Space Parody (World) (Aftermarket) (Homebrew)
+Space Raft (World) (Aftermarket) (Homebrew)
+Space Shadow (Japan)
 Space Shuttle Exploration (Unl)
+Space War (Gun Nac Hack)
 Spaceship Invasion by Seth (Zombie Nation Hack)
 Spacey McRacey (PD) 2016NESDEV gauauu
+Spacey McRacey (World) (Aftermarket) (Homebrew)
+Spacey McRacey (World) (NESDev 2016) (Aftermarket) (Homebrew)
 Spacy Shooty (PD) v4 dougeff
+Spartan X 2 (J) [T+Eng7Mar2003_Abstract Crouton Productions]
 Specus (PD)
 Speech (PD)
-Spirit Impel (World) (Aftermarket) 
-Spiritual Warfare (USA) (v6.0) 
+Spirit Impel (World) (Aftermarket) (Unl)
+Spirit of Satan, The (Japan) (En) (Family BASIC) (Homebrew)
+Spiritual Warfare (USA) (Beta) (Unl)
+Spiritual Warfare (USA) (v5.1) (Unl)
+Spiritual Warfare (USA) (v6.0) (Unl)
+Spiritual Warfare (USA) (v6.1) (Unl)
 Splashtest (PD)
+SplatooD (World) (v1.0.1) (Aftermarket) (Homebrew)
+SplatooD (World) (v1.0.2) (Aftermarket) (Homebrew)
+SplatooD (World) (v1.0.3) (Aftermarket) (Homebrew)
+SplatooD (World) (v1.0.4) (Aftermarket) (Homebrew)
+SplatooD (World) (v1.0.5) (Aftermarket) (Homebrew)
+SplatooD (World) (v1.0.6) (Aftermarket) (Homebrew)
+Splatter House - Wanpaku Graffiti (J) [T+Eng2.0_Spinner8]
+Splatter House - Wanpaku Graffiti (Japan)
+Split Second (World) (Aftermarket) (Homebrew)
+Split Second (World) (NESDev 2018) (Aftermarket) (Homebrew)
 Spook-o'-tron Demo (PD) v1.1 Sole Goose Productions
-Spot - The Video Game
-Square Force (Unl) 
-Square no Tom Sawyer
+Spot (Japan)
+Spot - The Video Game (USA)
+Spy vs Spy (Japan)
+Spy vs Spy 2 - The Island Caper
+Square Force (Unl) [!]
+Square no Tom Sawyer (J) [T+Eng0.07_Kikuyama]
+Square no Tom Sawyer (Japan)
+Squirell Chaser (World) (Aftermarket) (Homebrew)
+Stack-Up (World)
 Stack-Up ~ Block (World)
 Stage 7 - Modus Operandi (PD)
-Stanley - The Search for Dr. Livingston
+Stallar (World) (Aftermarket) (Homebrew)
+Stallar (World) (Rev 1) (Aftermarket) (Homebrew)
+Stanley - The Search for Dr. Livingston (U) [T-Spa1.01v_Wave]
+Stanley - The Search for Dr. Livingston (USA)
+Star (Unl) (VT03)
 Star Attack (Unl) (VT03)
 Star Evil (PD) v2 pubby 2017NESDEV
-Star Force
+Star Evil (World) (v1) (NESDev 2017) (Aftermarket) (Homebrew)
+Star Evil (World) (v2) (Aftermarket) (Homebrew)
+Star Force (Europe)
+Star Force (U) [T-Spa1.0v_Wave]
+Star Force (USA)
 Star Soldier - LifeSpace (Hack)
-Star Voyager
-Star Wars
+Star Trek - The Next Generation
+Star Voyager (USA)
+Star Wars (Battle City Hack)
+Star Wars (USA)
+StarTropics (Europe)
+StarTropics (Europe) (Virtual Console)
+StarTropics (U) [T-Spa0.99v_jackic]
 StarTropics Music Fix (Hack) v1 rainwarrior
 StarTropics Music Fix+No Delay (Hack) v1 rainwarrior, Trisma
 StarTropics Music Fix+No Delay+747 Continue (Hack) v1 rainwarrior, Trisma, Teabagme
 StarTropics No Movement Delay (Hack) v1 Trisma
 StarTropics Refined Mike Sprite (Hack) v1 TakuikaNinja
 Staraga (Galaga Hack)
-Sted - Iseki Wakusei no Yabou
+Stars by Chris Covell
+Sted - Iseki Wakusei no Yabou (J) [T+Eng1.0_J2E]
+Sted - Iseki Wakusei no Yabou (Japan)
+Sted - Iseki Wakusei no Yabou [T+Eng_J2e]
 Steins;Gate (USA) (Nintendo Switch)
+StellaratorDemoV21b
 Sting (PD)
-Strafe (AKA Bubble) (Unl) 
+Strafe (AKA Bubble) (Unl) [b1]
 Streemerz (PD) v0.2
-Street Cop
+Streemerz (World) (v02) (Aftermarket) (Unl)
+Street Cop (USA)
+Street Fighter 2010
+Street Fighter II - Nostalgic Edition (World) (Demo) (Aftermarket) (Homebrew)
 Street Fighter IV (Unl)
-Street Fighter Zero 2 '97 (Unl) 
+Street Fighter Zero 2 '97 (Unl) [!]
+Street Fighter Zero 2 (Unl)
 Street Gangs (Europe)
-Street Heroes (Asia) (Ja) 
-Strider
+Street Heroes (Asia) (Ja) (Unl)
+Strider (USA)
 Strip Aerobics (Power Pad Dance Aerobics Hack)
-Study Box
+Study Box (Japan)
 Submarine (Unl)
 Sudo King (Unl)
 Sudoku (PD) v1.0
-Sugoro Quest - Dice no Senshitachi
-Suikoden - Tenmei no Chikai
-Sukeban Deka III
+Sudoku (World) (NESWORLD Edition) (Aftermarket) (Homebrew)
+Sugoro Quest - Dice no Senshitachi (J) [T-Eng]
+Sugoro Quest - Dice no Senshitachi (Japan)
+Sugoro Quest - Dice no Senshitachi [T+Eng_AlanMidas]
+Suikoden - Tenmei no Chikai (Japan)
+Sukeban Deka III (Japan)
 Sunday Funday - The Ride (USA) (Unl)
+Sunman (E) (Prototype) [T-Spa1.0v_Wave]
 Sunman (Europe) (Proto)
-Super 190-in-1 (Asia) (En) 
-Super 2-in-1 (Soccer Game & Crazy Dance) (Unl) 
+Super 190-in-1 (Asia) (En) (Pirate)
+Super 190-in-1 (Asia) (En) (Unl) (Pirate)
+Super 2-in-1 (Soccer Game & Crazy Dance) (Unl) [f1]
+Super 2-in-1 Soccer Game+Crazy Dance [m241]
 Super 3-in-1 (NT-934) (Unl)
-Super 308 3-in-1 (Unl) 
+Super 308 3-in-1 (Unl) [!]
 Super 31 in 1 Real Game (PD) v1 Mojon Twins 2016
 Super 31 in 1 Real Game v2.0 (PD) v2 Mojon Twins 2017
 Super 4-in-1 Doki! Doki! Yuuenchi (Unl)
+Super 9999 in 1 (World) (Aftermarket) (Homebrew)
 Super Adventure Quests (Europe) (Unl)
+Super Bat Puncher (PD) Demo miau
+Super Bat Puncher (World) (Demo) (Aftermarket) (Unl)
 Super Bat Puncher Demo (PD) 2011NESDEV miau
+Super Beta Bros. 3
 Super Boy 6-in-1 (Unl)
 Super Boy Top 5-in-1 (Unl)
-Super Bros 8 (Unl) 
+Super Bros 8 (Unl)
+Super Bros 8 (Unl) [!]
 Super Bubble Bobble - New Adventures (Hack)
 Super C Hell (Hack)
-Super Cars
-Super Cartridge Ver 1 - 4 in 1 (Asia) (Ja) 
-Super Cartridge Ver 2 - 10 in 1 (Asia) (Ja) 
-Super Cartridge Ver 3 - 8 in 1 (Asia) (Ja) 
-Super Cartridge Ver 4 - 6 in 1 (Asia) (Ja) 
-Super Cartridge Ver 5 - 7 in 1 (Asia) (Ja) 
-Super Cartridge Ver 6 - 6 in 1 (Asia) (Ja) 
-Super Cartridge Ver 7 - 4 in 1 (Asia) (Ja) 
-Super Cartridge Ver 8 - 4 in 1 (Asia) (Ja) 
-Super Cartridge Ver 9 - 3 in 1 (Asia) (Ja) 
+Super Cars (USA)
+Super Cartridge Ver 1 - 4 in 1 (Asia) (Ja) (Unl)
+Super Cartridge Ver 2 - 10 in 1 (Asia) (Ja) (Unl)
+Super Cartridge Ver 3 - 8 in 1 (Asia) (Ja) (Unl)
+Super Cartridge Ver 4 - 6 in 1 (Asia) (Ja) (Unl)
+Super Cartridge Ver 5 - 7 in 1 (Asia) (Ja) (Unl)
+Super Cartridge Ver 6 - 6 in 1 (Asia) (Ja) (Unl)
+Super Cartridge Ver 7 - 4 in 1 (Asia) (Ja) (Unl)
+Super Cartridge Ver 8 - 4 in 1 (Asia) (Ja) (Unl)
+Super Cartridge Ver 9 - 3 in 1 (Asia) (Ja) (Unl)
+Super Child Bros. 3 (World) (Aftermarket) (Homebrew)
+Super City Mayor (World) (Aftermarket) (Homebrew)
+Super City Mayor (World) (Global Game Jam 2020) (Aftermarket) (Homebrew)
 Super City Tank (Unl)
+Super Contra (With Menu) [p1] [h1]
+Super Contra (With Weapon Select Menu) [p1] [h1]
 Super Contra 3 Game Select (Hack)
 Super Cool Boy 4-in-1 (CB-4034) (Unl)
-Super Dodge Ball
+Super Dodge Ball (USA)
 Super Dodge Ball V1.00 by akatranslations (4 Player Hack)
-Super Donkey Kong (Unl) 
-Super Donkey Kong 2 (Unl) 
+Super Donkey Kong (Unl)
+Super Donkey Kong (Unl) [!]
+Super Donkey Kong 2 (Unl) [!]
 Super ET (Space Invaders Hack)
+Super Fighter (Super Contra Hack)
 Super Fighter (Unl)
 Super Fighter Demo (PD)
-Super Fighter III (Unl) 
-Super Glove Ball
-Super HIK 8-in-1 King Fighter (Unl) 
+Super Fighter III (Unl) [!]
+Super Glove Ball (USA)
+Super Gun 20-in-1
+Super Gun 20-in-1 [p1][!]
+Super HIK 8-in-1 King Fighter (Unl) [b1]
+Super HIK 8-in-1 King Fighter (Unl) [b2]
 Super Hang-On (Unl)
 Super Hero (Unl)
+Super Homebrew War (World) (Aftermarket) (Homebrew)
+Super Homebrew War (World) (Alt) (Aftermarket) (Homebrew)
+Super Honza (World) (Aftermarket) (Homebrew)
 Super Lion King 2, The (Unl)
 Super Mario All-Stars NES (SMB3 Hack) crt_v10-15-17 infidelity
+Super Mario Bros 2
 Super Mario Bros 2 (Lost Levels) (Unl)
-Super Mario Bros IV (Unl) 
-Super Mario Bros. + Duck Hunt
+Super Mario Bros 2 (U) [T-Spa1.0v_Wave]
+Super Mario Bros 3
+Super Mario Bros IV (Unl) [!]
+Super Mario Bros. (E) [T-Spa1.1v_Firionel]
+Super Mario Bros. + Duck Hunt (Europe)
+Super Mario Bros. + Duck Hunt (USA)
+Super Mario Bros. + Duck Hunt + World Class Track Meet (USA)
 Super Mario Bros. + Duck Hunt + World Class Track Meet (USA) (Rev 1)
+Super Mario Bros. + Tetris + Nintendo World Cup (Europe)
 Super Mario Bros. + Tetris + Nintendo World Cup (Europe) (Rev 1)
+Super Mario Bros. 2 (Europe)
+Super Mario Bros. 2 (Europe) (Virtual Console)
+Super Mario Bros. 2 (J) (FDS Conversion)
+Super Mario Bros. 2 (PC10)
+Super Mario Bros. 2 (U) (PRG0) [T+Spa_PaladinKnights]
 Super Mario Bros. 2 (USA) (Rev 1)
-Super Mario Bros. 8 (Unl) 
+Super Mario Bros. 2 (USA) (Rev A)
+Super Mario Bros. 8 (Unl) [!]
 Super Mario Family (Unl)
 Super Mario Fantasy Adventure (Final Fantasy Hack) v1.2
-Super Mario Kart Rider (Unl) 
+Super Mario Kart Rider (Unl) [!]
 Super Maruo (Adult) EN
+Super Maruo (Unl)
 Super Marxsky Comrades (PD) v4 Light-Dark
-Super Mogura Tataki!! - Pokkun Mogurar
+Super Mogura Tataki!! - Pokkun Mogurar (Japan)
+Super NeSnake 2 (USA) (Aftermarket) (Homebrew)
+Super NeSnake 2 (World) (Demo) (Aftermarket) (Homebrew)
 Super Nesnake 2 Demo (PD)
-Super New Year Cart 15-in-1 (Hummer Team) (Unl) 
+Super New Year Cart 15-in-1 (Hummer Team) (Unl) [!]
 Super PAKPAK (PD) 2010 AOH Games
-Super Painter (World) (Aftermarket) 
-Super Pinball
+Super Painter (World) (Aftermarket) (Unl)
+Super Pinball (Japan)
 Super Pitfall 30th Anniversary Edition (Hack) Bit Ink Studios
 Super Planetary War Records - Metafight (J) pacnsacdave
 Super Pro Hockey (Unl)
-Super Rugby
+Super Rugby (Japan)
 Super Shinobi Music (PD)
-Super Shoot
+Super Shoot (Duck Hunt Hack)
+Super Shoot (Unl)
 Super Snake (PD)
-Super Sonic 5 (1997) (Unl) 
-Super Spike V'Ball + Nintendo World Cup
+Super Snake Off (World) (Aftermarket) (Homebrew)
+Super Sonic 5 (1997) (Unl) [!]
+Super Spike V'Ball + Nintendo World Cup (USA)
+Super Sports Challenge (Europe) (Plug-Thru Cart) (Unl)
 Super Sports Challenge (Europe) (Unl)
-Super Star Force
+Super Sports Challenge - Quattro Sports (Europe) (V2) (Unl)
+Super Sports Challenge - Quattro Sports (Europe) (V3) (Unl)
+Super Star Force (J) v1 GaFF
+Super Star Force (Japan)
 Super Star Wars (Argus Hack)
 Super Tetris II (Unl)
+Super Tilt Bro. (World) (v2.alpha-12) (Aftermarket) (Homebrew)
 Super Tilt Bro. PAL (PD) (E) 2016NESDEV Sylvian Gadrat
+Super Uwol (World) (Aftermarket) (Homebrew)
 Super X-Wing 97 (Argus Hack)
 SuperPainter (PD) v1 retrosouls
+Superman (Sunman Hack) v1 pacnsacdave
+Superman (USA)
+Superman (USA) (Proto) (Sunsoft)
 Superman 2 - General Zod Edition (Hack) v1 pacnsacdave
 Superman 2 - Lex Luthor Edition (Hack) v1 pacnsacdave
 Superman 2 - Specter Edition (Hack) v1 pacnsacdave
 Sur LC (Unl) (VT03)
+Surprise (Duck Hunt Hack)
 Surprise (Unl)
+Swamp Thing (Europe)
+Sweet Dreams Nonogram (World) (Aftermarket) (Homebrew)
 Sweet Home
+Sweet Home (J) [T+Eng1.00_Gaijin+Suicidal]
+Sweet Home (J) [T+Spa1.0v_Mingus]
+Sweet Home (J) [T-Spa1.0v_Wave]
+Sweet Home (J) [b1][T-Eng]
+Sweet Home (Japan)
 Sweetchildomine (PD)
 Sweetie and the Carnage (PD) 2016
+TANESPOT by Dreamhack
 TB5 (PD)
-TN 95-in-1 (6-in-1) 
+TBAS Interpreter V1 (World) (Program) (Aftermarket) (Homebrew)
+TN 95-in-1 (6-in-1) [p1]
+TRACK+FEEL II (World) (Aftermarket) (Homebrew)
+TYMKRS Rabbit Hole (World) (Aftermarket) (Homebrew)
+Taboo - The Sixth Sense (USA) (Rev A)
 Tagin' Dragon (USA) (Unl)
-Taiyou no Shinden
-Takeda Shingen
-Takeshi no Chousenjou
-Takeshi no Sengoku Fuuunji
+Tailgate Party (World) (Aftermarket) (Homebrew)
+Tailgate Party (World) (Aftermarket) (Homebrew) (Alt)
+Tailgate Party (World) (Demo) (Aftermarket) (Homebrew)
+Taiyou no Shinden (Japan)
+Takahashi Meijin no Bouken Shima IV (J) [T-Eng.99]
+Takeda Shingen (Japan)
+Takeshi no Chousenjou (Japan)
+Takeshi no Sengoku Fuuunji (Japan)
 Takeshi's Challenge (Japan) v1.0 KingMike
-TaleSpin
+TaleSpin (Europe)
+TaleSpin (U) [!]_lomax edition
+TaleSpin (U) [T-Spa0.90v_ebeto57]
+TaleSpin (USA)
+TaleSpin (World) (The Disney Afternoon Collection) (Aftermarket)
 Tank 1990 (Hack) v1 Yanshan Software
+Tank 1990 14-in-1 [p1]
 Tank Duel 2 (Battle City Hack)
 Tanks & Milk (Nuts & Milk Hack) (11 in 1)
-Tantei Jinguuji Saburou - Toki no Sugiyuku Mama ni
-Tao
+Tantei Jinguuji Saburou - Toki no Sugiyuku Mama ni (Japan)
+Tao (Japan)
+Tao [T+Eng_snark]
 Tao of 007 (PD) v1 Quietus
-Tapeworm - Disco Puzzle (World) (Aftermarket) 
+TapeDump (World) (NTSC) (Program) (Aftermarket) (Homebrew)
+TapeDump (World) (PAL) (Program) (Aftermarket) (Homebrew)
+Tapeworm - Disco Puzzle (World) (Aftermarket) (Unl)
 Taro's Quest (USA) (Proto)
 Tarot (PD)
-Tasac (Asia) (Ja) 
-Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei
+Tasac (Asia) (Ja) (Unl)
+Tasac (Asia) (Unl)
+Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei (Japan)
+Tecmo Bowl (World) (Rev 1) (Virtual Console, Switch Online)
+Tecmo NBA Basketball (USA) (Rev A)
 Tecmo World Cup Soccer (Europe)
-Tecmo World Wrestling
+Tecmo World Cup Soccer (Japan)
+Tecmo World Wrestling (Europe)
+Tecmo World Wrestling (USA)
+Teletime (World) (Aftermarket) (Homebrew)
 Teletime - Music Cart (PD) Joey Mariano, Don Miller
+Temple Dilemma (World) (v2.0) (Demo) (Aftermarket) (Homebrew)
+Temple Runner (World) (Aftermarket) (Homebrew)
 Tenchi Wo Kurau II (Hack)
 Tenchi Wo Kurau II - Sacrifice In Mount Taishan (Hack)
 Tenchi Wo Kurau II - Unscrupulous In Troubled Times (Hack)
@@ -1835,13 +3585,27 @@ Tenchi Wo Kurau II Roaring For A Long Time Edition (Hack)
 Tenchi Wo Kurau II Stupid Edition (Hack)
 Tenchi Wo Kurau II Valiant General Edition By Lmjny (Hack)
 Tenchi Wo Kurau II Woman Edition (Hack)
+Tenchi o Kurau (Japan)
+Tenchi o Kurau II - Shokatsu Koumei Den (J) [T+Eng_CTC v1.10]
+Terminator (Journey to Silius Hack) v3.0 pacnsacdave
+Tetrastar - The Fighter (J) [T+Eng1.00beta_Gaijin]
 Tetris
+Tetris (Bulletproof) (Japan)
+Tetris (Bulletproof) (Japan) (Rev 2)
+Tetris (PD)
+Tetris (Pyramid Game Card) (Unl) [!]
+Tetris (Tengen) Music Flow v1 Lipetsk
+Tetris (Tengen) [T+Spa_Chilensis]
+Tetris (Tengen) [T+Spa_HORUS]
+Tetris (USA)
 Tetris - SNES Gravity (Hack) v1 Josh Tolles
+Tetris - Tengen
+Tetris 2 + Bombliss (Japan)
 Tetris 2 + Bombliss (Japan) (Rev 1)
 Tetris Blast Edition By Shinwa (Hack)
 Tetris Bracket Blocks (Hack) 1.0 Andrew Rae
 Tetris DAS Trainer (Hack) v1.0 jazzthief81
-Tetris Family 9-in-1 (Hwang Shinwei) (Unl) 
+Tetris Family 9-in-1 (Hwang Shinwei) (Unl) [!]
 Tetris Remix (Hack)
 Tetris Super Alpha (PD)
 Tetris WTFTris (Hack) v1 Yoshimaster96
@@ -1852,213 +3616,413 @@ The Invasion (PD) Sly Dog Studios
 The Lunary Ear Mascots Of China (PD)
 The Mad Wizard (Demo) (PD) Sly Dog Studios
 The One with the Walls (PD) Sly Dog Studios
+The Paper Plane in Subsoil (World) (v1) (Aftermarket) (Homebrew)
+The Paper Plane in Subsoil (World) (v2) (Aftermarket) (Homebrew)
 The Paths of Bridewell (PD) 2016NESDEV zkip 2017-1-31
 The Recovery of Pinocchio (C) T+Eng v1.1 pacnsacdave
+The Void (World) (Aftermarket) (Homebrew)
 The Wit Demo (PD) Dustmop 
 The Wit.nes (PD) dustmop 6-2016
 The Wizard (PD) v1 Axi0maT
+The_Tower_Of_Turmoil_1.01
+Theremin (PD) 2014NESDEV Tom Livak
 Theremin (PD) Tom Livak
 Thes Wing Of Things (PD)
-Thunder & Lightning
-Thunderbolt 2 (Ch) 
+Thornby (USA) (Aftermarket) (Homebrew)
+Through Dimensions (World) (Aftermarket) (Homebrew)
+Through Dimensions (World) (v1.1) (Aftermarket) (Homebrew)
+Through Dimensions (World) (v1.2) (Aftermarket) (Homebrew)
+Thunder & Lightning (USA)
+Thunderbolt 2 (Ch) [!]
 Thundercade Two Control By One Edition (Hack)
 Thwaite (PD) Missile Command Clone v0.03 pineight
+Thwaite (World) (v0.01) (Aftermarket) (Homebrew)
+Thwaite (World) (v0.03) (Aftermarket) (Homebrew)
+Thwaite (World) (v0.04) (Aftermarket) (Homebrew)
 Thwaite - Missile Command Clone (PD) 2011NESDEV v0.03 pineight Tepples
 Tic-Tac XO (PD) Sly Dog Studios
 Tic-Tac-Two-P (PD) Sly Dog Studios
-Time Diver - Avenger (Asia) (En) 
-Time Lord
+Time Diver - Avenger (Asia) (En) (Unl)
+Time Lord (Europe)
+Time Lord (U) [T-Spa1.0v_Wave]
+Time Lord (USA)
 Timec (PD)
-Times of Lore
-Tiny Toon 4 (Unl) 
-Titanic 
+Times of Lore (Japan)
+Times of Lore (USA)
+Tiny Toon 4 (Unl) [!]
+Titanic (J) T+Eng pacnsacdave
 Titanic 1912 (Unl)
+Titanic [T+Eng_pacnsacdave]
 Tokumaru Raycaster (PD)
+Tola (World) (Aftermarket) (Homebrew)
 Tom & Jerry 3 (Unl)
-Tom Sawyer no Bouken
+Tom Sawyer no Bouken (Japan)
 Tom Servo (Megaman III Hack)
-Tommy T'S Sound Editor (USA) (Proto) 
+Tomb of Ice (World) (Aftermarket) (Homebrew)
+Tommy T'S Sound Editor (USA) (Proto) (Program)
 Tomsawee (PD)
+Top Gun (Europe)
+Top Gun (Japan)
+Top Gun (U) (PRG1) [T-Spa1.0v_Wave]
+Top Gun (USA)
 Top Gun (USA) (Rev 1)
-Top Rider
+Top Gun (USA) (Rev A)
+Top Rider (Japan)
 Total Funpak (Australia) (Unl)
-Total Recall
-Totally Rad
-Touhou Kenbun Roku
+Total Recall (Europe)
+Total Recall (U) [T-Spa1.0v_Wave]
+Total Recall (USA)
+Totally Rad (USA)
+Touhou Kenbun Roku (Japan)
+Touhou Rououmu (World) (Ja) (v0.43) (Aftermarket) (Homebrew)
+Touhou Rououmu (World) (Ja) (v0.61) (Aftermarket) (Homebrew)
+Touhou Rououmu (World) (Ja) (v0.68) (Aftermarket) (Homebrew)
+Touhou Rououmu (World) (Ja) (v0.70) (Aftermarket) (Homebrew)
+Touhou Rououmu (World) (Ja) (v0.71) (Aftermarket) (Homebrew)
+Toukyou Pachi-Slot Adventure (Japan)
 Toukyou Pachi-Slot Adventure (Japan) (Rev 1)
-Town & Country Surf Designs - Wood & Water Rage
+Tourtoise (World) (Aftermarket) (Homebrew)
+Tower of Turmoil, The (World) (v1.03) (Aftermarket) (Homebrew)
+Town & Country Surf Designs - Wood & Water Rage (USA)
 Toy Story (Unl)
-Track & Field 2 (U) 
+Track & Field 2 (U) [T-Spa1.0v_Crimental]
+Track & Field II (Europe)
+Track & Field II (USA)
 Track & Field II (USA) (Rev 1)
+Track & Field II (USA) (Rev A)
+Tracy's NEScapades (World) (Aftermarket) (Homebrew)
+Tragedy of Ryohyukan, The (Japan) (Family BASIC) (Homebrew)
 Transformers Headmasters (PD)
-Triathron, The
-Tsuppari Wars
-Tsuri Kichi Sanpei - Blue Marlin Hen
+Triathron, The (Japan)
+Trinca (World) (Aftermarket) (Homebrew)
+Troll Burner (World) (Demo) (Aftermarket) (Homebrew)
+Trouble at 2a03 (World) (Aftermarket) (Homebrew)
+Tsuppari Wars (Japan)
+Tsuri Kichi Sanpei - Blue Marlin Hen (Japan)
 Turbo Controller Checker (PD) v1 Quietust
 Turbo Racing (Europe)
+Turquoise Palace (PD)
+Turquoise Palace (World) (Aftermarket) (Homebrew)
 Turquoise Palace by MorphCat
+Turtle Rescue - Unwrapped Holiday Edition (World) (Aftermarket) (Homebrew)
+TurtleRescueDemo0827
+Twelve Seconds (USA) (Aftermarket) (Homebrew)
 Twin Cards (Unl)
 Twin Dragons (PD) 2016NESDEV v0.074 20170131 glutock
-Twin Eagle
-Twin Eagle - Revenge Joe's Brother (U) 
+Twin Dragons (World) (Aftermarket) (Unl)
+Twin Dragons (World) (Demo) (2017-01-31) (Unl)
+Twin Dragons (World) (Demo) (2017-02-17) (Unl)
+Twin Eagle (Japan)
+Twin Eagle (USA)
+Twin Eagle - Revenge Joe's Brother (U) [T-Spa1.0v_Wave]
 Twin Fish (Unl)
 Twinbee Yahho (PD)
 U-Force Power Games (USA) (Proto 1)
+U-Force Power Games (USA) (Proto 2) [b]
 U-Force Test (USA) (Test Program)
+UFO Sighted! (World) (v0.04) (Proto) (Aftermarket) (Homebrew)
 UTACO (PD) Final zlash
-Uchuusen - Cosmo Carrier (J) 
-Uchuusen Cosmo Carrier
+UTACO (World) (En,Ja,Es) (2013-03-13) (Aftermarket) (Homebrew)
+UTACO (World) (En,Ja,Es) (Aftermarket) (Homebrew)
+UXO - Unexploded Ordnance (USA) (Aftermarket) (Homebrew)
+UXO - Unexploded Ordnance (USA) (TMG Exclusive Edition) (Aftermarket) (Homebrew)
+Uchuusen - Cosmo Carrier (J) [hFFE][T+Eng0.25_Gil Galad]
+Uchuusen Cosmo Carrier (Japan)
+Ufouria - The Saga (USA) (Proto 1)
 Ugadayka (Unl)
 Ui Test (PD)
 Ultima - A New Exodus (Hack) (1.0)
-Ultima - Exodus
+Ultima - Exodus (USA)
 Ultima - Exodus - Graphics Improve V3 by Zero Soul (Hack)
-Ultima - Kyoufu no Exodus
-Ultima - Quest of the Avatar
-Ultima - Seija e no Michi
-Ultima - Warriors of Destiny
-Ultima III - Exodus Remastered (Hack) (1.07) 
+Ultima - Kyoufu no Exodus (Japan)
+Ultima - Quest of the Avatar (USA)
+Ultima - Seija e no Michi (Japan)
+Ultima - Warriors of Destiny (USA)
+Ultima III - Exodus Remastered (Hack) (1.07) (Adjusted font)
+Ultimate Air Combat (Europe) (En,Fr,De)
+Ultimate Air Combat (Europe) (En,Fr,De) (Beta)
+Ultimate Frogger Champion - Web Demo
+Ultimate League Soccer (USA) (Unl)
 Ultimate Mortal Kombat 3 (14 people) (Unl)
-Ultimate Mortal Kombat 4 (Unl) 
-Ultraman Club 2 - Kaettekita Ultraman Club
-Ultraman Club 3 - Matamata Shutsugeki!! Ultra Kyoudai
-Uncanny X-Men, The
-Uncharted Waters
+Ultimate Mortal Kombat 3 (Mortal Kombat 4 Hack) (14.69d) Vasil
+Ultimate Mortal Kombat 3 (Unl)
+Ultimate Mortal Kombat 3 (Unl) [hM04]
+Ultimate Mortal Kombat 4 (Unl) [!]
+Ultraman Club - Kaijuu Daikessen!! (J) T+Eng v1.0 cccmar, Eric Engel
+Ultraman Club 2 - Kaettekita Ultraman Club (Japan)
+Ultraman Club 3 - Matamata Shutsugeki!! Ultra Kyoudai (Japan)
+Uncanny X-Men, The (U) [T-Spa1.0v_Wave]
+Uncanny X-Men, The (USA)
+Uncharted Waters (USA)
 Underground Mission (Unl)
 UndergroundAdventure (E)
-Uninvited
+Uninvited (USA)
+Unknown Soldier (World) (Aftermarket) (Homebrew)
 Unlicense HVC Controller Test (PD)
-Unsupported or Glitches
+Untitled (Kidnapped By Aliens)
 Untitled Tetris Clone (Multicart Rip) (Unl)
+Untouchables, The (Japan)
+Untouchables, The (USA)
+Untouchables, The (USA) (Rev 1)
 Untouchables, The (USA) (Rev 2)
+Untouchables, The (USA) (Rev B)
 Utmost Warfare (Unl)
-Utsurun Desu - Kawauso Hawaii e Iku
+Utsurun Desu - Kawauso Hawaii e Iku (Japan)
 VGM player 2011 Mic (PD)
 VGM player 2011 Mic - 1 Ultra (PD)
 VGM player 2011 Mic - FF3 Battle (PD)
 VGM player 2011 Mic - Gunstar Heroes - 02 - Legend of the Gunstars (PD)
 VGM player 2011 Mic - Tintin (PD)
-VS. Duck Hunt (VS) NES Patched v2.1 
-VS. Excitebike + Save (VS) NES+SRAM Patched v1.2 
-VS. Goonies (VS) NES Patched v1.0 
-VS. Gradius (VS) NES Patched 
+VS. Duck Hunt (VS) NES Patched v2.1 [FIX] Morgan Johansson
+VS. Excitebike (VS) NES Patched v1.11 [FIX]
+VS. Excitebike + Save (VS) NES+SRAM Patched v1.2 [FIX] Morgan Johansson
+VS. Excitebike NES Patched v1.2 Morgan Johansson
+VS. Goonies (VS) NES Patched v1.0 [FIX] Morgan Johansson
+VS. Gradius (VS) NES Patched [FIX] Morgan Johansson
+VS. Gradius NES Patched 2015-03-23 Morgan Johansson
+VS. Super Mario Bros. (VS)
 VS. Super Mario Bros. Home Edition (Hack) v1.1 BMF54123
 VS. Tennis (VS) NES Patched v1.0 Morgan Johansson
+VS. Tennis NES Patched v1.0 Morgan Johansson
 VS. Wrecking Crew (VS) NES Patched v1.0 Morgan Johansson
-Valis - The Fantastic Soldier (J) 
+VS. Wrecking Crew NES Patched v1.0 Morgan Johansson
+Valis - The Fantastic Soldier (J) T+Eng satsu & Sliver X
+Valis - The Fantastic Soldier (J) [T+Eng_satsu+Sliver X]
+Valis - The Fantastic Soldier [T+Eng_Satsu+SliverX]
+Van-1 (Twin Bee Hack)
 Van-1 (Unl)
 Vaus Arkanoid Controller Test (PD) v0.02 tepples
-Vegas Connection - Casino kara Ai o Komete
+Vector Run
+Vector Run - A DJ LCM Game
+Vector Run - The Trilogy
+Vegas Connection - Casino kara Ai o Komete (Japan)
+Vegavox II (USA) (Aftermarket) (Homebrew)
 Vegavox II Music Disc (PD)
 Videopoker Bonza (Rev B) (Unl)
 Vigilant (Unl)
 Vigilante Ninja - Purple Cape Man (PD) v4 dougeff
+Vigilante Ninja II (World) (Aftermarket) (Homebrew)
 Vigilante SMS Port (PD) Alpha 1 Diskover
-Virus (USA) (Beta) 
-Volguard II
+Virus (USA) (Beta) (1989-xx-xx)
+Virus (USA) (Beta) (1990-02-02)
+Virus (USA) (Beta) (1990-03-xx)
+Volguard II (Japan)
+Vs. Atari R.B.I. Baseball (set 2)
+Vs. Battle City
+Vs. Clu Clu Land
+Vs. Dr. Mario
+Vs. Duck Hunt
 Vs. Excitebike (EB4-3 E)
+Vs. Excitebike (EB4-3 X)
+Vs. Excitebike (EB4-4 A)
+Vs. Gradius
+Vs. Gumshoe
+Vs. Hogan's Alley
 Vs. Ice Climber (IC4-4 B-1)
+Vs. Ice Climber (IC4-4 X)
 Vs. Mach Rider (Endurance Course)
+Vs. Mach Rider (MR4-1 A)
+Vs. Mighty Bomb Jack
+Vs. Mighty Bomb Jack 2C03 & Credit Hack - Power cycle to menu
+Vs. Ninja JaJaMaru-kun
 Vs. Pinball (PN3 B)
+Vs. Pinball (PN4 E-1)
+Vs. Platoon
+Vs. Slalom
 Vs. Soccer (SC4-2 A)
+Vs. Soccer (SC4-3 X)
+Vs. Star Luster
 Vs. Stroke & Match Golf (GF3 B)
+Vs. Stroke & Match Golf (GF4-2 F)
+Vs. Stroke & Match Golf (GF4-2 X)
 Vs. Stroke & Match Golf - Ladies (LG4 E)
+Vs. Stroke & Match Golf - Ladies (LG4 X)
 Vs. Super Mario Bros. (SM4-4 E)
+Vs. Super Mario Bros. (X)
+Vs. Super Xevious - GAMP no Nazo
+Vs. T.K.O. Boxing
+Vs. Tetris [NT Fixed]
+Vs. Top Gun
 WW3 Dodgeball (Super Dodge Ball Hack)
 WWE Women's Revolution (Pro Wrestling Hack) (1.0)
 WWE Wrestling (Pro Wrestling Hack) (2.0)
-Wacky Races
+WWE Wrestling (Pro Wrestling Hack) pacnsavdave
+WWF Wrestlemania (Europe)
+Wacky Races (U) [T-Spa1.1v_Wave]
+Wacky Races (USA)
 Waddles the Duck (PD) 2016NESDEV cppchriscpp
-Waddy Boy 
+Waddles the Duck (World) (Aftermarket) (Homebrew)
 Waddy Boy (Unl)
-Wagyan Land 2
+Waddy Boy [hM65] (Unl)
+Wagan Land 2 [T+Eng_Abstract Crouton]
+Wagyan Land (J) [T+Eng100%_AlanMidas]
+Wagyan Land 2 (J) [T+Eng99%_ACP]
+Wagyan Land 2 (J) [T-Spa1.0v_Max1323]
+Wagyan Land 2 (Japan)
+Wai Wai World (J) T+Eng v1 Dylan Robley
+Wai Wai World (J) [T+Eng3.0_Demiforce]
+Wai Wai World (J) [hFFE][T-Eng][b1]
+Wai Wai World 2 - SOS!! Paseri Jou (J) [T+Eng1.01_Vice]
 Wai Xing Zhan Shi (Asia) (Unl)
-Wait and See! (Asia) (En) 
-Wall Street Kid
+Wait and See! (Asia) (En) (Unl)
+Wall Street Kid (USA)
+Wampus DX (World) (2022-06-09) (Aftermarket) (Homebrew)
+Wampus DX (World) (Aftermarket) (Homebrew)
+Wampus DX (World) (Aftermarket) (Homebrew) (Alt)
 Wang Zi Fu Chou Ji (Asia) (Unl)
 Wanna to Bes Sartin' Something (PD)
-Wanpaku Duck Yume Bouken
-Wanpaku Kokkun no Gourmet World
+Wanpaku Duck Yume Bouken (Japan)
+Wanpaku Kokkun no Gourmet World (Japan)
+Wanpaku Kokkun no Gourmet World (Panic Restaurant) (J) [T-Spa1.0v_Wave]
 War Zone (Unl)
-War in the Gulf ~ Guerra del Golfo, La (Brazil, Spain) (CCE, Gluk Video) 
-War of Strike Mouse (Hot Dance 3-in-1 Disabled) (Unl) 
+War in the Gulf (Brazil) (Unl)
+War in the Gulf (Brazil, Spain) (En) (CCE, Gluk Video) (Unl)
+War in the Gulf ~ Guerra del Golfo, La (Brazil, Spain) (CCE, Gluk Video) (Unl)
+War of Strike Mouse (Hot Dance 3-in-1 Disabled) (Unl) [h1]
+War of Strike Mouse (Unl) [!]
 Warehouse No. 18 (Unl)
+Warehouse No. 18 [T+Eng_Gil Galad]
 Wario Bros (Don Doko Don Hack)
 Wario Bros 2 (Don Doko Don 2 Hack)
+Warioland II (J) T+ENG v1 pacnsacdave
 Warioland II (Unl)
 Warsaw City (Battle City Hack)
+Wart Worm Wingding! (World) (Aftermarket) (Homebrew)
 Wavetable (PD)
+Weed N'Stiff 2 - Bobson's Revenge (World) (Aftermarket) (Homebrew)
+Weed N'Stiff 2 - Bobson's Revenge (World) (v1F) (Aftermarket) (Homebrew)
+Welcome To Eville (USA) (Aftermarket) (Homebrew)
 Wendy 2 Lost Krion (Mega Man Hack) v1 Korxtendo
-Western Kids
+Western Kids (Japan)
 Whack-A-Mario (PD) Whoaman v1.0
+What Remains (World) (v1.01) (Aftermarket) (Homebrew)
+Wheel of Fortune (USA)
 Wheel of Fortune (USA) (Rev 1)
-Wheel of Fortune - Family Edition
-Wheel of Fortune - Junior Edition
-White Lion Densetsu - Pyramid no Kanata ni
+Wheel of Fortune (USA) (Rev A)
+Wheel of Fortune - Family Edition (USA)
+Wheel of Fortune - Junior Edition (USA)
+White Lion Densetsu - Pyramid no Kanata ni (Japan)
 White Ninja II (Karate Kid Hack) v1 TEPA6ANT
-WideBoy Rev B (iNES Version) (U) 
+WideBoy Rev B (iNES Version) (U) (Hack)
 Wideboy (PD)
-Widget
+Widget (U) [T-Spa1.0v_Wave]
+Widget (USA)
 Wild Ball (Asia) (Unl)
+Wild Gunman (Japan, USA)
+Wild Gunman (Japan, USA) (En)
+Wild Gunman (PC10)
+Wild Gunman (U) [T+Spa1.0_Wave]
 Wild Gunman (World) (Rev 1)
 Wild Gunman LCD Mod (Hack) Beta 5 neslcdmod.com
 Wilford Brimley Battle (River City Ransom Hack) Pope Hentai
+Willow
+Wily & Light no Rockboard (Rockman Version) T+Eng v1.1 Interordi
 Windows 2000 (Ch) (PAL)
 Wing of Madoola (J) T+Eng v1 Psyklax
+Winter Games (USA)
 Winter Games (USA) (Rev 1)
-Witch n' Wiz (World) (Aftermarket) 
+Winter Games (USA) (Rev A)
+Wit.nes, The (World) (Demo) (Aftermarket) (Homebrew)
+Witch n' Wiz (World) (Aftermarket) (Homebrew)
+Witch n' Wiz (World) (Aftermarket) (Unl)
+Witch n' Wiz (World) (Beta) (Aftermarket) (Homebrew)
+Witches Weed
+Witches Weed 3
+Wizards & Warriors (USA) (Rev A)
 Wo Xiang Niao Niao (PD) v1.3e Mojon Twins
 Wo Xiang Niao Niao 2016 NESDEV Compo Edition (PD) 2016NESDEV mojon-twins
+Wo xiang niao niao (World) (Aftermarket) (Homebrew)
+Wolf Spirit (World) (Demo) (Aftermarket) (Homebrew)
+Wolf Spirit (World) (v1.1) (Demo) (Aftermarket) (Homebrew)
 Wolfling (PD) v12 Lazycow 2017NESDEV
 Wonder Rabbit (Unl)
-Wonderland Dizzy (Europe) (En,Fr,Es,Nl,Pt,Pl) 
-Woody Poko
-World Champ
-World Champ - Super Boxing Great Fight
-World Games
-World Grand-Prix - Pole to Finish
+Wonderland Dizzy (Europe) (En,Fr,Es,Nl,Pt,Pl) (2015) (Aftermarket) (Unl)
+Wonderland Dizzy (Europe) (En,Fr,Es,Nl,Pt,Pl) (2015) (Unl)
+Wonderland Dizzy (Europe) (En,Fr,Es,Nl,Pt,Pl) (Proto) (1993-09-24) (Unl)
+Wonderland Dizzy (World) (En,Fr,Es,Nl,Pt,Pl) (Aftermarket) (Homebrew)
+Woody Poko (Japan)
+Woody Poko [T+Eng_sqpat]
+Wordle (World) (v1.02) (Aftermarket) (Homebrew)
+Wordle (World) (v1.1) (Aftermarket) (Homebrew)
+World Champ (Europe)
+World Champ (USA)
+World Champ - Super Boxing Great Fight (USA)
+World Games (USA)
+World Grand-Prix - Pole to Finish (Japan)
 Wraith (PD) v1 Tom Livak
 Wrecking Balls WIP (PD) 2016NESDEV Rahsennor
 WuLin WaiZhuan (Unl) (NanJing)
+X-Plan (Contra Force Hack)
 X-Plan (Unl)
 Xerxes - Arcadia VI (USA) (Proto)
+Xevious (Japan)
 Xing He Zhan Shi (Asia) (Unl)
 Xing Ji Zheng Ba (Asia) (Unl)
 Xing Zhan Qing Yuan (Asia) (Unl)
 Xiong Ba Tian Xia (Ch) (Wxn)
+Xmas 2001 by Chris Covell
+Xmas 2006 by Nerds 'R' Us
 Xun Qin Ji (NJ068) (Unl)
 Y's (J) pacnsacdave
-Yasuda Fire & Marine - Safety Rally
-Yeah Yeah Beebiss II (Unknown) (Aftermarket) 
+Yacht (World) (Aftermarket) (Homebrew)
+Yasuda Fire & Marine - Safety Rally (Japan)
+Yeah Yeah Beebiss II (Unknown) (Aftermarket) (Unl)
+Years behind by Retrocoders
 YiXing Zhi TaiKong TanXianZhe (Unl) (NanJing)
 Ying Lie Qun Xia Zhuan (Asia) (Unl)
+Ying Xiong Yuan Yi Jing Chuan Qi (Asia) (Pirate)
 Ying Xiong Yuan Yi Jing Chuan Qi (Asia) (Unl)
 You Ling Xing Dong (Asia) (Unl)
-Young Indiana Jones Chronicles, The
-Yousei Monogatari - Rod Land
-Ys
-Ys III - Wanderers From Ys (J) 
-Ys III - Wanderers from Ys
-Yuefei (Unl) 
+Youkai Kurabu [T+Eng_Stardust Crusaders]
+Young Indiana Jones Chronicles, The (USA)
+Yousei Monogatari - Rod Land (Japan)
+Ys (J) T+Eng R1 DMullen
+Ys (J) [T+EngR1_DMullen]
+Ys (J) [T-Spa1.1v_Takkun57]
+Ys (Japan)
+Ys III - Wanderers From Ys (J) [T+Eng.005_Vice]
+Ys III - Wanderers from Ys (Japan)
+Yuefei (Unl) [h1]
+Yume Penguin Monogatari (J) [T+Eng1.01_Vice]
+Yume Penguin Monogatari (J) [b1][T+Eng]
+Yume Penguin Monogatari [T+Eng_Vice]
 Yun (PD) Mojon Twins 2016
+Yun (World) (Aftermarket) (Homebrew)
+Yun (World) (v5) (Aftermarket) (Homebrew)
 Yuu Yuu Hakusho 97 V (Unl)
 Yuu Yuu Hakusho Final - Makai Saikyou Retsuden (English) (Unl)
 Zap Ruder - Zapper Test Program (PD) v0.03 Damian Yerrick 2012
+Zdey The Game (France) (En,Fr) (Aftermarket) (Homebrew)
+Zdey The Game (World) (2020-12-21) (Beta) (Aftermarket) (Homebrew)
+Zdey The Game (World) (En,Fr) (2021-08-21) (Beta) (Aftermarket) (Homebrew)
+Zelda 2
 Zelda 2 Restart from Palace at Game Over (Hack) v1 njosro
 Zelda 2.5 by Hax0r Kyo (Zelda 2 hack)
 Zelda II - 1999 (Hack)
 Zelda II - The Adventure of Error (Zelda 2 Hack)
-Zelda II - The Adventure of Link
+Zelda II - The Adventure of Link (Europe)
+Zelda II - The Adventure of Link (Europe) (Rev 1)
+Zelda II - The Adventure of Link (Europe) (Rev 2)
+Zelda II - The Adventure of Link (Europe) (Rev 2) (Virtual Console)
+Zelda II - The Adventure of Link (U) [T+Spa1.1.4_Hyrule Knight]
+Zelda II - The Adventure of Link (U) [T-Spa1.0v_Pikachumanson]
+Zelda II - The Adventure of Link (U) [T-Spa1.0v_jackic]
+Zelda II - The Adventure of Link (U) [T-Spa_Hyrule Knight]
+Zelda II - The Adventure of Link (USA)
+Zelda II - The Adventure of Link (v1.2) (E) [T-Spa1.0v_jackic]
 Zelda II - The Adventure of Link - Part 2 - Easy (Hack)
 Zelda II - The Adventure of Link - Part 2 - Hard (Hack)
 Zelda II - The Adventure of Link - Part 2 - Medium (Hack)
 Zelda II - The Adventure of Link Enhanced Editon (Hack)
 Zelda II - The Adventure of Link Part 3 (Easy) (Hack)
+Zelda II - The Adventure of Link Part 3 (Hard) (Hack)
 Zelda II Adventure of Lady Link (Hack) v1 ArchAngelleofJustice
 Zelda II Boss Endurance (Hack) v1 njosro
 Zelda II Easy Mode (Hack) (1.0)
 Zelda II Master Quest (Hack) (1.0)
 Zelda II New Adventure of Link (NOOB MODE) v4.2 HollowShadow
+Zelda II New Adventure of Link (ONE HIT DEATH) v4.2 HollowShadow
+Zelda II New Adventure of Link (RECOMMENDED MODE) v4.2 HollowShadow
 Zelda II New Link Sprites (Hack) v1.0 Falchion22
 Zelda II Refresh (Hack) v1 LastduaL
 Zelda II Rev Edition (Hack) v1.6 Revility
@@ -2066,10 +4030,40 @@ Zelda II The Nightmare of Ganon (Hack) v1.5 HollowShadow
 Zelda II The Triforce of Courage (Hack) v1.1 ultimaweapon
 Zhi Li Xiao Zhuang Yuan (Asia) (Unl)
 Zhongguo Daheng (Asia) (Unl)
-Zoda's Revenge - StarTropics II
-Zombie Hunter
-Zombie Nation
+Zoda's Revenge - StarTropics II (USA)
+Zombie Hunter (J) [T+Eng1.01_KingMike]
+Zombie Hunter (Japan)
+Zombie Nation (U) [T-Spa1.0_JonnyVilla2088]
+Zombie Nation (USA)
 Zombie Zap (PD)
 Zooming Secretary (PD) 2-2012 Shiru
+Zooming Secretary (PD) Shiru v1.02
+Zooming Secretary (World) (v1.02) (Aftermarket) (Homebrew)
 Zounds (PD)
 ZuiYouJi Zhi TangSanZang (Unl) (NanJing)
+[BIOS] Demo Vision (USA) (Rev 2) (Program)
+[BIOS] Wide Boy (World) (Rev 1)
+[BIOS] Wide Boy-3 (Unknown)
+cajoNES (World) (Music Program) (Aftermarket) (Homebrew)
+cajoNES DELUXE! (World) (Music Program) (Aftermarket) (Homebrew)
+dd_now_with_blobs
+deathanimations
+from_below_2020_09_16_v_1_0_0
+glitchNES (World) (v0.1) (Program) (Aftermarket) (Homebrew)
+glitchNES (World) (v0.15) (Program) (Aftermarket) (Homebrew)
+glitchNES (World) (v0.2) (Program) (Aftermarket) (Homebrew)
+glitchNES 2022 (USA) (Program) (Aftermarket) (Homebrew)
+mini GETCHi (World) (Ja) (Aftermarket) (Homebrew)
+neMULEsis (World) (2022-04-27) (Aftermarket) (Homebrew)
+neMULEsis (World) (2022-08-28) (Aftermarket) (Homebrew)
+neMULEsis (World) (Demo) (Aftermarket) (Homebrew)
+poNiES by Digital Sounds System
+robotfindskitten (World) (v0.5.095) (Damian Yerrick) (Aftermarket) (Homebrew)
+robotfindskitten (World) (v0.9.106) (Damian Yerrick) (Aftermarket) (Homebrew)
+robotfindskitten (World) (v1.1) (Scott Holder) (Aftermarket) (Homebrew)
+robotfindskitten (World) (v1.2) (Scott Holder) (Aftermarket) (Homebrew)
+scrollNES (World) (v0.1) (Program) (Aftermarket) (Homebrew)
+trollburner_demo
+wordle
+zJPN-Downtown - Nekketsu Koushin Kyoku - Soreyuke Daiundoukai (J) [T+Eng.15_Disconnected]
+zJPN-Nekketsu Koukou Dodgeball Bu [hM04]

@@ -1,4 +1,3 @@
-VGM
 005 Landstalker (USA)
 03 John Madden Football (USA, Europe)
 034 Alien Soldier (Japan)
@@ -28,17 +27,24 @@ VGM
 ALKO-RAVE Demo (PD) v0.0.0.0.0.0.0.1 alko
 ASCII War (PD) ComradeOj 06-15-2016
 ATP Tour (Europe)
+ATP Tour Championship Tennis (USA) (Beta) (1994-07-19)
+ATP Tour Championship Tennis (USA) (Beta) (1994-07-23)
+ATP Tour Championship Tennis (USA) (Beta) (1994-08-02)
+ATP Tour Championship Tennis (USA) (Beta) (1994-08-05)
+ATP Tour Championship Tennis (USA) (Beta) (1994-08-08)
+ATP Tour Championship Tennis (USA) (Beta) (1994-09-08)
 ATP Tour Championship Tennis (USA)
-ATP Tour Championship Tennis (USA) (Beta) 
-Action Replay (Europe) (Program) 
+Action Replay (Europe) (Program) (Unl)
 Advanced Daisenryaku - VGM Player v3.10
 Adventures of DMA David EP1 (PD) ComradeOj 2016
 Adventures of Mighty Max, The (Europe)
+Adventures of the Gummi Bears (Russia) (Unl)
 Adventures of the Gummi Bears (Unl)
 After Burner - VGM Player v3.10
 Air Diver - VGM Player v3.10
 Airstriker (PD) v150 Electrokinesis Studios
-Aladdin (USA) (Beta) 
+Aladdin (USA) (Beta) (1993-06-27)
+Aladdin (World) (Beta) (Disney Classic Games)
 Alex Kidd - BMX Trial - VGM Player v3.10
 Alex Kidd - The Lost Stars - VGM Player v3.10
 Alien Soldier (E) [T-Spa1.1v_Wave]
@@ -51,6 +57,7 @@ Alisia Dragoon (part 1) - VGM Player v3.30
 Alisia Dragoon (part 2) - VGM Player v3.30
 Altered Beast - VGM Player v3.10
 Altered Beast - VGM Player v3.30
+Angry Birds - Star Wars (Russia) (Unl)
 Angry Birds Demo (PD)
 Angry Birds Extra Levels (Unl) Angry Birds Demo Hack
 Aoki Ookami to Shiroki Mejika - Genchou Hishi (Japan)
@@ -62,13 +69,16 @@ Arcus Odyssey (part 2) - VGM Player v3.30
 Asterix and the Great Rescue (Europe) (En,Fr,De,Es,It)
 Asterix and the Power of The Gods NTSC Patched (Hack) (M4) [f1+2C]
 Asterix and the Power of the Gods (Europe) (En,Fr,De,Es)
-Asterix and the Power of the Gods (Europe) (En,Fr,De,Es,It) 
+Asterix and the Power of the Gods (Europe) (En,Fr,De,Es,It) (Beta) (February, 1994)
 Astro Warrior - VGM Player v3.10
 AstroDuel (PD)
 Astronauta Perdido - Lost Astronaut (PD) Nemezes
 Avatar (R) (Unl)
+Avatar (Russia) (Unl)
 B.O.B. (USA, Europe) (Beta)
-Baby Boom (USA) (Proto) 
+Baby Boom (USA) (Proto) (1994-06-03)
+Baby Boom (USA) (Proto) (1994-06-06)
+Baby Boom (USA) (Proto) (1994-08-11)
 Baby's Day Out (USA) (Proto 1)
 Back to the Future Part III (Europe)
 BadApple!! 4MB part 1 (PD) FLM
@@ -90,10 +100,21 @@ BattleCity Online (PD) v1 Krikzz
 Battletoads and Double Dragon Music Trax (PD)
 Beastball (Europe) (Proto)
 Beavis and Butt-Head (USA) (Beta)
-Berenstain Bears' Camping Adventure, The (USA) (Beta) 
-Beyond Zero Tolerance (USA) (Proto) 
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-03-23)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-04-28)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-04-29)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-05-06)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-05-11)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-05-17)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-05-19)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-05-23)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-05-26)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-05-30)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-06-02)
+Berenstain Bears' Camping Adventure, The (USA) (Beta) (1994-06-10)
+Beyond Zero Tolerance (USA) (Proto) (1995-06-23)
 Bible Adventures (USA) (Unl)
-Bio Evil (World) (Demo) 
+Bio Evil (World) (Demo) (Aftermarket) (Unl)
 Bio Hazard Battle Trainer (PD) Alpha Flight 1970
 Bio-Hazard Battle (Crying) - VGM Player v3.30
 Black Belt - VGM Player v3.10
@@ -102,24 +123,28 @@ Blockbuster World Video Game Championship II (U) [f2]
 Blockbuster World Video Game Championship II (USA)
 Blowfish Music Disc (PD) Planet Earth 2014 Datastorm
 BoTTleD - Tower Defense (PD) Cero
-Body Count (Brazil) (Beta) 
+Body Count (Brazil) (Beta) (1994-01-27)
 Bomb On Basic City (PD) Studio Vetea
+Bomber (Brazil) (En) (Unl)
 Bomber (Brazil) (Unl)
-Bonkers (USA, Europe) (Beta) 
+Bonkers (USA, Europe) (Beta) (1994-03-28)
+Bonkers (USA, Europe) (Beta) (1994-05-03)
+Bonkers (USA, Europe) (Beta) (1994-08-04)
 Brave Spacy Pixy (PD) v.final
 Breach (USA) (Proto)
 Break an Egg (PD) v1 Dr Ludos
 Brutal - Paws of Fury (Europe) (En,Fr,De)
 Brutal Paws of Fury PAL GFX Update (Hack)
 Budokan - The Martial Spirit (Europe)
-Budokan - The Martial Spirit (USA) (Rev 1) 
+Budokan - The Martial Spirit (USA) (Rev 1) (Beta) (1990-09-25)
 Budokan - The Martial Spirit (USA) (Unl)
 Bug Hunt MD (PD) v1 moon-watcher 4-2015
-Bug's Life, A (Taiwan) (En) 
+Bug's Life, A (Taiwan) (En) (Unl)
 CAL 50 - VGM Player v3.10
 CFL'95 V0.9 (John Madden Football 92 Hack)
 CHIP8 Emulator + Games (PD) v2 Mixail
-Call of Duty Ghosts (Russia) (Unl) 
+Call of Duty Ghosts (Russia) (Unl) (Time Trax Hack) T+Rus+Save, Pirates
+Call of Duty Ghosts (Russia) (Unl)
 Castle of Illusion - VGM Player v3.10
 Castle of Illusion Starring Mickey Mouse - VGM Player v3.30
 Castlevania - Bloodlines - VGM Player v3.30
@@ -127,15 +152,16 @@ Cat at Crossroad (PD) Ventzislav Tzvetkov
 Catgirl Pool Party Demo (PD) Hik 2017-1-9
 Catgirl Pool Party Demo (PD) v020 Hik
 Cave Story MD (PD) 0.5.2 andwn
-Centurion - Defender of Rome (USA, Europe)
 Centurion - Defender of Rome (USA, Europe) (Sega Channel)
+Centurion - Defender of Rome (USA, Europe)
+Chakan (USA, Europe) (1992-10-06) (Sega Channel)
 Chakan (USA, Europe)
-Chakan (USA, Europe) (1992-10-06) 
 Championship Bowling (USA)
 Chao Ji Mahjong Club (Taiwan) (Unl)
-Chao Ji Poker (Taiwan) (En) 
+Chao Ji Poker (Taiwan) (En) (Unl)
 Chaos Engine 2, The (Europe) (Proto)
 Chase (PD) v2 Jack Nolddor
+Chess (Russia) (En) (Unl)
 Chess (Russia) (Unl)
 Chi Chi's Pro Challenge Golf (USA)
 Chip And Dale Rescue Rangers (Russia) (Unl)
@@ -150,18 +176,17 @@ Circus-MD (PD) v2.5 Spaced
 Classic Collection (Europe)
 ClayFighter (Europe)
 ClayFighter (USA)
-Clue (USA)
 Coach K College Basketball (USA)
-Coffee Crisis (World) (Demo) 
-College Football USA 97 (USA)
+Coffee Crisis (World) (Demo) (Unl)
 Columns - VGM Player v3.30
 Columns III (USA)
 Columns III - Revenge of Columns - VGM Player v3.30
 Columns III - Taiketsu! Columns World (Japan, Korea)
-Combat Aces (USA) (Proto) 
+Combat Aces (USA) (Proto) (Unl)
 Comix Zone - VGM Player v3.30
 Comix Zone Music Trax (PD)
 Commandos (R) (Unl)
+Commandos (Russia) (Unl)
 Congo - The Game (USA) (Proto)
 Contra Hard Corps (part 1) - VGM Player v3.30
 Contra Hard Corps (part 2) - VGM Player v3.30
@@ -175,31 +200,35 @@ Crazy Cars Amstrad CPC (PD) FL 2013-8
 Crazy Driver (PD) v1.1 M-374 LX
 Crusader of Centy - Soleil (part 1) - VGM Player v3.30
 Crusader of Centy - Soleil (part 2) - VGM Player v3.30
-Cyborg Justice (USA, Europe)
 Dahna (Korea)
 Dahna - Megami Tanjou (Japan)
 Dangerous Seed - VGM Player v3.30
+Darkwing Duck (Russia) (Unl)
 Darkwing Duck (Unl)
-Davis Cup II (Europe) (Proto) 
-Davis Cup II (USA) (Proto) 
+Davis Cup II (Europe) (Proto) (1994-07-10)
+Davis Cup II (USA) (Proto) (1994-07-28)
 Davis Cup Tennis (Japan)
+Davis Cup Tennis ~ Davis Cup World Tour (USA, Europe) (Beta) (June, 1993)
 Davis Cup Tennis ~ Davis Cup World Tour (USA, Europe)
-Davis Cup Tennis ~ Davis Cup World Tour (USA, Europe) (Beta) 
 Daze Before Christmas (Australia)
 Death Duel (U) [T-Spa1.0v_Wave]
+Death Duel (USA) (Beta) (1992-05-06)
 Death Duel (USA)
-Death Duel (USA) (Beta) 
 Deathsword PC (PD) FL 2014-2
 Deboomer (PD) Kaneda
 Deboomer Dev Memorial 2005 (PD) Kaneda
 Deer Hunter (R) (Unl)
+Deer Hunter (Russia) (Unl)
 Demo (PD) Limp Ninja 2017-5
 Demolition Man (USA, Europe) (Beta)
-Desert Demolition (USA, Europe) (Beta) 
+Desert Demolition (USA, Europe) (Beta) (1994-12-06)
+Desert Demolition (USA, Europe) (Beta) (1994-12-12) (Alt 1)
 Despicable Me 2 (R) (Unl)
+Despicable Me 2 (Russia) (Unl)
 Devilish - The Next Possession (U) [T-Spa1.0v_Wave]
 Disney Collection, The - QuackShot Starring Donald Duck + Castle of Illusion Starring Mickey Mouse (Europe)
 Divine Sealing (Japan) (Unl)
+Domino (Russia) (Unl)
 Domino (Unl)
 Double Dragon - VGM Player v3.10
 Downforce (PD) v0.1.0 PixelArtM
@@ -213,8 +242,9 @@ Dune - VGM Player v3.30
 Dune Razor Missions Origins (Hack) R81 V17 Razor
 Dynamite Headdy (part 1) - VGM Player v3.30
 Dynamite Headdy (part 2) - VGM Player v3.30
-DynoBlaze (USA) (Proto) 
+DynoBlaze (USA) (Proto) (1994-05-24)
 EA Sports Double Header (Europe)
+Earth Defense ~ Earth Defend, The (USA, Taiwan) (En) (Unl)
 Earth Defense ~ Earth Defend, The (USA, Taiwan) (Unl)
 Earthworm Jim - VGM Player v3.10
 Ecco II The Tides of Time - VGM Player v3.30
@@ -230,35 +260,44 @@ Enduro Racer - VGM Player v3.10
 Episode from Catacomb (Beyond Zero Tolerance Hack)
 Error Rush (PD) v1.1 ComradeOj
 Escape 2042 Demo (PD) v1 Orion_
-Escape from Mars Starring Taz (USA) (Beta) 
+Escape from Mars Starring Taz (USA) (Beta) (1994-03-09)
+Escape from Mars Starring Taz (USA) (Beta) (1994-05-09)
+Escape from Mars Starring Taz (USA) (Beta) (1994-05-18)
+Escape from Mars Starring Taz (USA) (Beta) (1994-05-23)
+Escape from Mars Starring Taz (USA) (Beta) (1994-06-02)
+Escape from Mars Starring Taz (USA) (Beta) (1994-06-07)
+Escape from Mars Starring Taz (USA) (Beta) (1994-06-10)
+Escape from Mars Starring Taz (USA) (Beta) (1994-06-14)
 Eternal Champions - VGM Player v3.30
-Exile (USA)
 Exile (USA) (Sega Channel)
+Exile (USA)
 Exile - Toki no Hazama he (Japan)
-F-15 Strike Eagle II (USA) (Beta) 
+F-15 Strike Eagle II (USA) (Beta) (1992-07-13)
 F-15 Strike Eagle II - VGM Player v3.10
-F-22 Interceptor (USA) (1991-09-17) 
+F-22 Interceptor (USA) (1991-09-17) (Sega Channel)
 F-22 Interceptor (USA) (Beta)
 F-22 Interceptor - Advanced Tactical Fighter (Japan)
 F-22 Interceptor - Advanced Tactical Fighter (USA) (F-205)
 F-22 Interceptor - Advanced Tactical Fighter (USA, Europe) (F-202)
-FIFA 2004 (Russia) (Unl) 
+FIFA 2004 (Russia) (Unl) (FIFA Soccer 98 - Road to the World Cup Hack) Glorysun
 FIFA International Soccer (Japan) (En,Ja)
 FIFA International Soccer (USA, Europe) (En,Fr,De,Es)
 FIFA Soccer 96 (USA, Europe) (En,Fr,De,Es,It,Sv)
-FIFA Soccer 99 (Unknown) (Unl) 
+FIFA Soccer 99 (Unknown) (Pirate)
+FIFA Soccer 99 (Unknown) (Unl) (Pirate)
 FIFA World Cup Germany 2006 (Unl) (FIFA Internatinal Soccer Hack)
 Faery Tale Adventure, The (USA, Europe)
 Fantastic Dizzy (USA, Europe) (Beta)
 Fantasy Zone - VGM Player v3.10
 Fatal Smarties (PD) 2016
+Felix the Cat (Russia) (Unl)
 Felix the Cat (Unl)
 Felix the Cat - Blank Game Over Screen (Hack) v1 Big Hairy Marty
 Feng Kuang Tao Hua Yuan (Taiwan) (Unl)
 Fix it Felix Jr. (PD) AirwalkStudios
 Flappy Bird (PD) v1 Mixail
-Flintstones, The (USA) (Proto) 
-Flux (Europe) (Beta) 
+Flintstones, The (USA) (Proto) (Ocean)
+Flux (Europe) (Beta) (Program)
 Flux (Europe) (Program)
 Forgotten Worlds - VGM Player v3.30
 Fox (PD) v1 Matteus
@@ -268,15 +307,15 @@ Fun Car Rally (U) (Proto) [T-Spa1.0v_Wave]
 Fun Car Rally (USA) (Proto)
 Funny World & Balloon Boy (USA) (Unl)
 Funny World (Unl) [f1]
-Futbol Argentino 98 - Pasion de Multitudes (Argentina) (Unl) 
-GEMS (USA) (v2.8) 
+Futbol Argentino 98 - Pasion de Multitudes (Argentina) (Pirate)
+Futbol Argentino 98 - Pasion de Multitudes (Argentina) (Unl) (Pirate)
+GEMS (USA) (v2.8) (Beta) (1994-06-04) (Program)
 GINCS Graphical Interactive Novel Creation System (PD) v0.50 Haroldo
 GINCS Graphical Interactive Novel Creation System (PD) v0.52a TiberiyLTim
 Gaiares (JU) [T-Spa1.0v_Wave]
-Gaiares (Japan, USA)
 Game Genie (USA, Europe) (Program)
-Game Genie (USA, Europe) (Rev A) 
-Game Toshokan (Japan) (Rev A) 
+Game Genie (USA, Europe) (Rev A) (Program)
+Game Toshokan (Japan) (Rev A) (Program)
 Game no Kandzume Otokuyou (Sega Net) - VGM Player v3.30
 Game no Kanzume Otokuyou (Japan) (Sega Channel)
 Gandalf Party (PD) Purple Studios 2015 Euskal
@@ -298,15 +337,14 @@ Golden Axe III (part 1) - VGM Player v3.30
 Golden Axe III (part 2) - VGM Player v3.30
 Golden Axe Warrior - VGM Player v3.10
 Golvellius - VGM Player v3.10
-Goofy's Hysterical History Tour (USA)
 Gran Turismo 5 (R) (Unl)
 Grand Theft Auto 5 (R) (Unl)
 Gravity Pig (PD) ComradeOj 2015
 Gravity Pig Creation Engine (PD) ComradeOj 2018-04-12
 Greendog - The Beached Surfer Dude! (USA, Europe)
 Griel's Quest for the Holy Porron (PD) v1 moon-watcher
-Gunfight 3 in 1 (Taiwan) (En) 
-Gunstar Heroes (Japan) (Sample) 
+Gunfight 3 in 1 (Taiwan) (En) (Unl)
+Gunstar Heroes (Japan) (Sample) (April, 1993)
 Gunstar Heroes - VGM Player v3.30
 Gynoug (Europe)
 Hacking CulT Demo SH (PD) drx
@@ -317,7 +355,7 @@ Hellfire (part 1) - VGM Player v3.30
 Hellfire (part 2) - VGM Player v3.30
 Hercules (Unl) [!]
 Herzog Zwei - VGM Player v3.10
-Home Alone (USA, Europe) (Beta) 
+Home Alone (USA, Europe) (Beta) (July, 1992)
 Honoo no Toukyuuji Dodge Danpei (J) [f1]
 Huan Le Tao Qi Shu - Smart Mouse (Taiwan) (Unl)
 Hybrid Front (Part 1) - VGM Player v3.10
@@ -326,20 +364,20 @@ Hyper Marbles (Japan) (Game no Kanzume Otokuyou)
 Hyper Marbles (Japan) (SegaNet)
 IK+ (PD) pre-alpha troudki 2016-12-03
 IK+ Deluxe (PD) 
-IMG International Tour Tennis (USA, Europe)
 Incredibles (The Tick Hack)
 Indiana Jones Corridors of Time - Rick Dangerous (R) (Unl)
 Indigo Operating System (PD) Sik 5-2017
 Infected Mushroom Sa'eed (PD) XGMv3 Savaged Regime
-Instruments of Chaos Starring Young Indiana Jones (USA) (Beta) 
+Instruments of Chaos Starring Young Indiana Jones (USA) (Beta) (July, 1992)
 Intro (PD) Sundown 2016 SOS-Party
 Invasion - Free Edition (PD) v2.0 Psycatic Software
 Iron Horse Arcade PCB (Konami) Conversion by l_oliveira - VGM Player v3.30
+Iron Man (Russia) (Unl)
 Iron Man (Unl)
 Ixion (PD) v0.9 Nendo-16
 James Pond 3 (USA, Europe)
 Janou Touryuumon (Japan)
-Jesse 'The Body' Ventura - Wrestling Superstars (USA) (Proto) 
+Jesse 'The Body' Ventura - Wrestling Superstars (USA) (Proto) (1992-03-02)
 Jewel Master - VGM Player v3.10
 Jimmy White's Whirlwind Snooker (Europe)
 John Madden ACC-BIG10 (John Madden Football Hack)
@@ -369,8 +407,8 @@ John Madden BIGEAST-SEC (John Madden Football Hack)
 John Madden BIGEAST-SWC (John Madden Football Hack)
 John Madden BIGEAST-WAC (John Madden Football Hack)
 John Madden Football '93 (USA, Europe)
+John Madden Football (USA, Europe) (1990-11-07) (Sega Channel)
 John Madden Football (USA, Europe)
-John Madden Football (USA, Europe) (1990-11-07) 
 John Madden Football - Championship Edition (USA)
 John Madden Football - VGM Player v3.10
 John Madden IND-PAC10 (John Madden Football Hack)
@@ -386,8 +424,10 @@ John Madden SWC-WAC (John Madden Football Hack)
 Jungle Book, The (Europe) (Beta)
 Jungle Strike - Uketsugareta Kyouki (Japan)
 Junkbots (PD) Moon Watcher & Bitslap
-Jurassic Park (USA) (Beta) 
-Jurassic Park - Rampage Edition (USA, Europe) (Beta) 
+Jurassic Park (USA) (Beta) (June, 1993)
+Jurassic Park - Rampage Edition (USA, Europe) (Beta) (1994-06-20)
+Jurassic Park - Rampage Edition (USA, Europe) (Beta) (1994-06-22)
+Jurassic Park - Rampage Edition (USA, Europe) (Beta) (1994-06-30)
 Kavinsky Nightcall Drive MD (PD) v07 Boyfinn
 Kavinsky Nightcall MD (PD) v07 Boyfinn
 Kenseiden - VGM Player v3.10
@@ -401,25 +441,24 @@ Kishi Densetsu - VGM Player v3.10
 Kiss Shot (Japan) (SegaNet)
 Kokushin (PD) v0.11
 Kraftwerk The Model MD (PD) v01 Boyfinn
-Krusty's Super Fun House (USA, Europe)
 Krusty's Super Fun House (USA, Europe) (Rev A)
+Krusty's Super Fun House (USA, Europe)
 Kung-Fu Kid - VGM Player v3.10
 Kyuukyou Tiger Arcade Restore (Hack) v2 fusaru
 L'Abbaye des Morts (PD) v1 moon-watcher
 La Russa Baseball 95 (USA, Australia)
 Landstalker (Part 1) - VGM Player v3.10
 Landstalker (Part 2) - VGM Player v3.10
-Landstalker (USA)
-Landstalker (USA) (1993-07-13) 
+Landstalker (USA) (1993-07-13) (Sega Channel)
 Landstalker (USA) (Genesis Mini)
-Landstalker - Die Schatze von Konig Nolo (Germany)
 Landstalker - Die Schatze von Konig Nolo (Germany) (Mega Drive Mini)
+Landstalker - Die Schatze von Konig Nolo (Germany)
 Landstalker - Koutei no Zaihou (Japan) (Mega Drive Mini)
-Landstalker - Le Tresor du Roi Nole (France)
 Landstalker - Le Tresor du Roi Nole (France) (Mega Drive Mini)
+Landstalker - Le Tresor du Roi Nole (France)
 Landstalker - The Treasures of King Nole (E) [T-Spa1.0v_Paspallas]
-Landstalker - The Treasures of King Nole (Europe)
 Landstalker - The Treasures of King Nole (Europe) (Mega Drive Mini)
+Landstalker - The Treasures of King Nole (Europe)
 Langrisser (Japan)
 Langrisser 2 (Part 1) - VGM Player v3.10
 Langrisser 2 (Part 2) - VGM Player v3.10
@@ -429,24 +468,26 @@ Langrisser Graphics+Text Fix (Warsong Hack) MIJET v20070103, D v20010219
 Langrisser II by w4784495 (V070820) (Hack)
 Last Action Hero (USA, Europe)
 Last Battle - VGM Player v3.10
-Legend of Wukong (World) (Aftermarket) 
+Legend of Wukong (World) (Aftermarket) (Unl)
 Legendary Wings Arcade PCB Conversion by l_oliveira - VGM Player v3.30
+Lego Batman (Russia) (Unl)
 Lego Batman (Unl)
+Lego Pirates of the Caribbean (Russia) (Unl)
 Lego Pirates of the Caribbean (Unl)
-Lethal Wedding (USA) (v0446) 
+Lethal Wedding (USA) (v0446) (Sample) (Unl)
+Light Crusader (Europe) (En,Fr,De,Es) (Mega Drive Mini)
 Light Crusader (Europe) (En,Fr,De,Es)
-Light Crusader (Europe) (En,Fr,De,Es) 
-Light Crusader (Japan)
 Light Crusader (Japan) (Mega Drive Mini)
+Light Crusader (Japan)
 Light Crusader (Korea) (En,Ko)
-Light Crusader (USA)
-Light Crusader (USA) (Beta) 
+Light Crusader (USA) (Beta) (1995-06-08)
 Light Crusader (USA) (Genesis Mini)
+Light Crusader (USA)
 Light Crusader - Gopher Mod (Hack)
 Light Crusader - VGM Player v3.30
 Ling Huan Daoshi - Super Magican (Taiwan) (Unl)
-Lion King 3 (Taiwan) (En) 
-Lion King II (Taiwan) (En) 
+Lion King 3 (Taiwan) (En) (Unl)
+Lion King II (Taiwan) (En) (Unl)
 Liquid Space Dodger (PD) v3 ComradeOj
 Liquid Space Dodger - DEBUG (PD) v3 ComradeOj
 Lobo (USA) (Proto)
@@ -479,18 +520,22 @@ Madden NFL 95 (USA, Europe)
 Madden NFL 98 (USA)
 Madonna Songs for 50HZ (PD)
 Madou Monogatari - VGM Player v3.10
-Magic School Bus, The - Space Exploration Game (USA) (Beta) 
+Magic School Bus, The - Space Exploration Game (USA) (Beta) (1995-01-12)
+Magic School Bus, The - Space Exploration Game (USA) (Beta) (1995-02-02)
 Mainhall Door Intro (PD) SigFLUP
 Maldita Castilla - Sound Test 20130629
+Mallet Legend's Whac-a-Critter ~ Mallet Legend (USA, Taiwan) (En) (Unl)
 Mallet Legend's Whac-a-Critter ~ Mallet Legend (USA, Taiwan) (Unl)
 Marble Madness (USA, Europe)
 Mario & Battle City (Unl)
+Mario 3 - Around the World (Russia) (Unl)
 Mario 3 Around the World (Unl) [Rus]
+Mario 4 - Space Odyssey (Russia) (Unl)
 Mario 4 Space Odyssey (Unl)[Rus]
 Mario Style Platformer Demo (PD) v1 turbobillx82
 Master of Darkness - VGM Player v3.10
+Master of Monsters (Japan) (Beta) (1991-04-26)
 Master of Monsters (Japan)
-Master of Monsters (Japan) (Beta) 
 Master of Monsters (U) [T-Spa1.0v_Wave]
 Master of Monsters (USA)
 Maten no Soumetsu (Japan)
@@ -501,7 +546,7 @@ Mega Anser - VGM Player v3.10
 Mega Bomberman - 8 Player Demo (Unl)
 Mega Bomberman - Special 8-Player-Demo (Europe) (Proto)
 Mega Bomberman - VGM Player v3.30
-Mega Cheril Perils (World) (En,Es) 
+Mega Cheril Perils (World) (En,Es) (Aftermarket) (Unl)
 Mega Flappy Sis (PD) Lennart Brink-Abeler
 Mega Games 2 (Europe)
 Mega Games 2 NTSC Patched (Hack) [h1C]
@@ -518,47 +563,74 @@ Mega Squad Advantage (PD) Michael Moffitt
 Mega Turrican (Part 1) - VGM Player v3.30
 Mega Turrican (Part 2) - VGM Player v3.30
 MegaNet (Brazil) (Program)
-Michael Jackson's Moonwalker (Japan, USA) (Beta) 
+Michael Jackson's Moonwalker (Japan, USA) (Beta) (1990-04-24)
 Michael Jackson's Moonwalker - VGM Player v3.30
-Mickey Mania - The Timeless Adventures of Mickey Mouse (USA) (Beta) 
-Micro Machines (USA)
+Mickey Mania - The Timeless Adventures of Mickey Mouse (USA) (Beta) (July, 1994)
 Micro Machines (USA) (Rev 1)
+Micro Machines (USA)
 Midnight Resistance - VGM Player v3.10
 Midway Presents Arcade's Greatest Hits (Europe)
 Mig-29 Fighter Pilot (Europe) (En,Fr,De,Es,It,Nl,Sv,Fi)
+Mighty Morphin Power Rangers - The Fighting Edition (Russia) (En) (Unl)
 Mighty Morphin Power Rangers - The Fighting Edition (Russia) (Unl)
 Mighty Morphin Power Rangers - The Movie - VGM Player v3.10
 MineSweeper (PD) v2 Mixail
-Miniplanets (World) (Rev 3) 
+Miniplanets (World) (Rev 3) (Aftermarket) (Unl)
 Miracle Warriors - VGM Player v3.10
 Monk and Monkeys (PD) Fonzie
 Monster World IV - VGM Player v3.10
 Mortal Kombat (World) (Beta)
 Most Greatest Game Demo (PD) Paul Lee
-NBA Action '95 Starring David Robinson (USA, Europe) (Beta) 
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1994-11-18)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1994-11-23)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1994-12-09)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1994-12-15)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1994-12-22)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1994-12-30)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1995-01-03)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1995-01-08)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1995-01-12)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1995-01-15)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1995-01-18)
+NBA Action '95 Starring David Robinson (USA, Europe) (Beta) (1995-01-21)
 NBA Live 95 (Korea)
 NBA Live 95 (USA, Europe)
 NBA Live 95 - VGM Player v3.10
 NBA Live 96 (USA, Europe)
 NBA Live 96 - VGM Player v3.10
-NBA Showdown '94 (USA) (Unl) 
-NFL '95 (USA) (Beta) 
+NBA Showdown '94 (USA) (Unl) (Pirate)
+NFL '95 (USA) (Beta) (1994-08-01)
+NFL '95 (USA) (Beta) (1994-08-05)
+NFL '95 (USA) (Beta) (1994-08-10)
+NFL '95 (USA) (Beta) (1994-08-12) (Alt 1)
+NFL '95 (USA) (Beta) (1994-08-12)
+NFL '95 (USA) (Beta) (1994-08-17) (Alt 1)
+NFL '95 (USA) (Beta) (1994-09-06)
+NFL '95 (USA) (Beta) (1994-09-08)
 NHL '94 (USA, Europe) (Re-release)
 NHL 96 Remix by Pmack (v1A) (Hack)
-NHL All-Star Hockey 95 (USA) (Beta) 
+NHL All-Star Hockey 95 (USA) (Beta) (1994-09-14)
+NHL All-Star Hockey 95 (USA) (Beta) (1994-09-29)
+NHL All-Star Hockey 95 (USA) (Beta) (1994-10-01)
+NHL All-Star Hockey 95 (USA) (Beta) (1994-10-21)
+NHL All-Star Hockey 95 (USA) (Beta) (1994-11-07)
+NHL All-Star Hockey 95 (USA) (Beta) (1994-11-09)
+NHL All-Star Hockey 95 (USA) (Beta) (1994-11-19)
+NHL All-Star Hockey 95 (USA) (Beta) (1994-11-21)
+NHL All-Star Hockey 95 (USA) (Beta) (1994-11-22)
 Need for Speed Undercover (R) (Unl)
 Neo Geo MVS Arcade Startup - YM2610 by l_oliveira - VGM Player v3.30
 New Zealand Story, The (J) [T-Spa1.0v_Wave]
 NewZealand Story, The (Japan)
-Nightmare Circus (Brazil)
 Nightmare Circus (Brazil) (Beta 1)
 Nightmare Circus (Brazil) (Beta 2)
+Nightmare Circus (Brazil)
 Ninja Fight Demo (PD)
 Ninja Gaiden - VGM Player v3.10
 Nobunaga no Yabou - Bushou Fuuunroku (Japan)
 Normy's Beach Babe-O-Rama (USA, Europe)
 Odeio Carros - I Hate Cars (PD)
-Oh Mummy Genesis (World) (Aftermarket) 
+Oh Mummy Genesis (World) (Aftermarket) (Unl)
 Old Skill (PD) Kaneda
 On Dal Jang Goon (Korea)
 OutRun (part 1) - VGM Player v3.30
@@ -566,6 +638,7 @@ OutRun (part 2) - VGM Player v3.30
 OutRunners (Japan)
 OutRunners (U) [T-Spa1.0v_Wave]
 OutRunners (USA)
+Outback Joey (USA)
 Outrun 2019 (Part 1) - VGM Player v3.30
 Outrun 2019 (Part 2) - VGM Player v3.30
 Outrun 2019 (Part 3) - VGM Player v3.30
@@ -578,14 +651,14 @@ Papi Commando Tennis (PD) v1
 Parallax Scrolling by Scroger (PD)
 Pat Riley Basketball - VGM Player v3.10
 Pebble Beach Golf Links (Europe)
-Pete Sampras Tennis (Europe) (Rev 2) 
-Pete Sampras Tennis (USA, Europe) (MDST6636) 
+Pete Sampras Tennis (Europe) (Rev 2) (MDSTEE13)
+Pete Sampras Tennis (USA, Europe) (MDST6636) (J-Cart)
 Phantasy Star - VGM Player v3.10
 Phantasy Star Adventure - VGM Player v3.10
 Phantasy Star Fukkokuban (Japan)
 Phantasy Star Gaiden - VGM Player v3.10
 Phantasy Star II (Japan) - VGM Player v3.30
-Phantasy Star II (USA, Europe) (Rev A) 
+Phantasy Star II (USA, Europe) (Rev A) (Virtual Console)
 Phantasy Star II - Amia's Adventure (Japan) (SegaNet)
 Phantasy Star II - Anne's Adventure (Japan) (SegaNet)
 Phantasy Star II - Huey's Adventure (Japan) (SegaNet)
@@ -611,7 +684,7 @@ Phantasy Star III Easy Edition by Aridia (Hack)
 Phantasy Star III Knife Only Challenge (Hack)
 Phantasy Star III Parallax Scrolling (Hack) v1 lory1990
 Phantasy Star IV (Europe)
-Phantasy Star IV (USA) (Beta) 
+Phantasy Star IV (USA) (Beta) (1994-11-07)
 Phantasy Star IV (part 1) - VGM Player v3.30
 Phantasy Star IV (part 2) - VGM Player v3.30
 Phantom 2040 (Europe) (En,Fr,De)
@@ -623,15 +696,17 @@ Pingouin Rose (PD) djcouchycouch
 Pinocchio (Europe)
 Pirates of Dark Water, The (Europe)
 Pitfall - The Mayan Adventure (Europe)
-Planet Contra (Russia) (Unl) 
+Planet Contra (Russia) (Unl) (Mega Turrican Hack) T+Rus Pirates
 Plants Vs Zombies (Unl) [Rus]
+Plants vs. Zombies (Russia) (Unl)
 Platformer (PD) Sik
 Pocahontas (Europe)
-Pocket Monsters (Taiwan) (En) 
-Pocket Monsters 2 (Taiwan) (En) 
+Pocket Monsters (Taiwan) (En) (Alt 1) (Unl)
+Pocket Monsters (Taiwan) (En) (Unl)
+Pocket Monsters 2 (Taiwan) (En) (Unl)
 Point and Click Escape Game (PD) ComradeOj
 Point and Click Genesis Console (PD) ComradeOj 2014
-Pokemon Stadium (Taiwan) (En) 
+Pokemon Stadium (Taiwan) (En) (Unl)
 Populous (Europe)
 Populous II - Two Tribes (Europe)
 Populous II - Two Tribes NTSC Patched (Hack) [f1+3C]
@@ -645,13 +720,15 @@ Premier Manager 97 (Europe)
 Premier Manager 97 NTSC Patched (Hack) [f1]
 Pretty Girl Mahjongg (Ch)
 Prime Time NFL Starring Deion Sanders (USA)
-Prince of Persia (Europe)
 Prince of Persia (Europe) (Beta 1)
-Pro Action Replay (Europe) (Program) 
-Pro Action Replay 2 (Europe) (v2.1) 
+Prince of Persia (Europe)
+Pro Action Replay (Europe) (Program) (Unl)
+Pro Action Replay 2 (Europe) (v2.1) (Alt 1) (Program) (Unl)
+Pro Action Replay 2 (Europe) (v2.1) (Program) (Unl)
 Pro Moves Soccer (USA)
 Probotector (Europe) (En,Fr,De)
-Psycho Pinball (Europe) (En,Fr,De,Es,It) 
+Psycho Pinball (Europe) (En,Fr,De,Es,It) (Beta)
+Psycho Pinball (Europe) (En,Fr,De,Es,It) (Rev 1)
 Puggsy (Europe)
 Puggsy (USA) (Beta)
 Puggsy - VGM Player v3.10
@@ -677,23 +754,25 @@ Rastan Saga II (USA)
 Red Queen Rampage (PD) v1 Demens Deum
 Ren & Stimpy Show Presents, The - Stimpy's Invention (USA) (Beta)
 Rent-a-Hero - VGM Player v3.10
-ResQ (unreleased)
 ResQ (unreleased) - VGM Player v3.30
-Resident Evil (Russia) (Unl) 
+ResQ (unreleased)
+Resident Evil (Russia) (Unl) (Body Count Hack) Glorysun T+Rus_Chinese Pirates
+Resident Evil (Russia) (Unl) (Body Count Hack) Glorysun
 Revenge of Shinobi - VGM Player v3.30
-Richard Scarry's Busytown (USA) (Beta) 
+Richard Scarry's Busytown (USA) (Beta) (1994-07-21)
+Richard Scarry's Busytown (USA) (Beta) (1994-08-26) (Alt 1)
 Risk (USA)
 Ristar - VGM Player v3.30
 Road Rash - VGM Player v3.10
 Road Rash 2 - VGM Player v3.10
+RoboCop Versus The Terminator (Europe) (Beta) (1993-07-27)
 RoboCop Versus The Terminator (Europe)
-RoboCop Versus The Terminator (Europe) (Beta) 
-RoboCop Versus The Terminator (USA) (Beta) 
+RoboCop Versus The Terminator (USA) (Beta) (1993-04-30)
 Robot Battler (Japan) (SegaNet)
-Robot Wreckage (USA) (Beta) 
+Robot Wreckage (USA) (Beta) (July, 1992)
 Rock n' Roll Racing Music Trax (PD)
 Rocket Knight Adventures - VGM Player v3.30
-Rockman X3 (Taiwan) (En) 
+Rockman X3 (Taiwan) (En) (Unl)
 Rocky - VGM Player v3.10
 Roger Clemens' MVP Baseball (USA)
 Rolling Thunder 3 (part 1) - VGM Player v3.30
@@ -782,16 +861,17 @@ Sansan (Japan)
 Scoopex Release Intro (PD) 1994
 Scorpion Illuminati (PD) moon-watcher 3-2016
 SegGala Galaga Clone (PD) v0.06 Bill Eubanks
-Sega Art Tool (Japan) (En) 
-Sega Channel (Japan) (v2.11) 
-Sega Channel (USA) (General Instrument) 
-Sega Channel (USA) (Scientific Atlanta) 
+Sega Art Tool (Japan) (En) (Program)
+Sega Channel (Japan) (v2.11) (Earlier) (Program)
+Sega Channel (Japan) (v2.11) (Program)
+Sega Channel (USA) (General Instrument) (Program)
+Sega Channel (USA) (Scientific Atlanta) (Program)
 Sega Channel Demo (USA) (Program)
-Sega Sound Tool (USA) (v2.2) 
+Sega Sound Tool (USA) (v2.2) (Program)
 Sega Sports 1 (Europe)
 Sega Top Five (Brazil)
-Sensible Soccer (Europe) (En,Fr,De,It) 
-Serie a Manager 2005 (Russia) (Unl) 
+Sensible Soccer (Europe) (En,Fr,De,It) (Beta)
+Serie a Manager 2005 (Russia) (Unl) (Premier Manager Hack) Glorysun
 Sesame Street Counting Cafe (USA)
 Shadow Blasters (U) [T-Spa1.0v_Wave]
 Shadow Blasters (USA)
@@ -800,8 +880,11 @@ Shadow of the Beast 2 Enhanced Colors (Hack) v1.5 Linkuei
 Shadow of the Beast II (UE) [T-Spa1.0v_Wave]
 Shadow of the Beast II (USA, Europe)
 Shadowrun (Asia) (En)
+Shadowrun (USA) (Beta) (1993-12-28)
+Shadowrun (USA) (Beta) (1993-12-31)
+Shadowrun (USA) (Beta) (1994-01-25) (Alt 1)
+Shadowrun (USA) (Beta) (1994-01-25)
 Shadowrun (USA)
-Shadowrun (USA) (Beta) 
 Shadowrun 2050 (Hack) v1.3 Vikfield
 Shadowrun 2050 + Conversion Mod (Hack) v1.3 Vikfield & v2.2 Magus77
 Shadowrun 2050 + Female Player (Hack) v1.3 Vikfield & v1.1 Prof1515
@@ -831,7 +914,8 @@ Skeleton Krew - VGM Player v3.30
 Skew Test (PD) ComradeOj 2015
 Slam - Shaq vs. the Legends (USA) (Proto)
 Slap Fight MD - VGM Player v3.10
-Smeshariki (Russia) (Unl) 
+Smeshariki (Russia) (Unl) (Mr. Nutz Hack) T+Rus Pirates
+Smeshariki (Russia) (Unl)
 SmokeMonster Boss Battle Split Vol 2 ft Barfood (PD) v4 VGMv3.42 SmokeMonster
 Smokemonster Columns Intro (PD) v1 RingsOfSaturn
 Smokemonster Everdrive Intro (PD) v1 RingsOfSaturn, PaK-Zer0
@@ -847,15 +931,16 @@ Sonic & Knuckles - VGM Player v3.30
 Sonic 3-in-1 (Multi Hack) vladikcomper
 Sonic 3D (part 1) - VGM Player v3.30
 Sonic 3D (part 2) - VGM Player v3.30
-Sonic 3D Blast (USA, Europe, Korea) (Beta) 
+Sonic 3D Blast (USA, Europe, Korea) (Beta) (1996-07-03)
 Sonic 4-in-1 (Multi Hack) Natsumi SHC2016
 Sonic Compilation (Europe)
+Sonic Compilation ~ Sonic Classics (USA, Europe, Korea) (En) (Rev A)
 Sonic Compilation ~ Sonic Classics (USA, Europe, Korea) (Rev A)
-Sonic Crackers (World) (Proto) 
+Sonic Crackers (World) (Proto) (1994-07-xx)
 Sonic Crackers - VGM Player v3.30
 Sonic Eraser (Japan) (SegaNet)
 Sonic Eraser (SN) (J) [T+Eng1.0_Derrick Sobodash]
-Sonic Jam 6 (Taiwan) (En) 
+Sonic Jam 6 (Taiwan) (En) (Unl)
 Sonic Jump MD (PD) Sik
 Sonic Team Racing (PD) Rh2 gasega68k
 Sonic Team Racing - NoEXRAM (PD) Rh2 gasega68k
@@ -868,12 +953,12 @@ Sonic the Hedgehog 2 - VGM Player v3.30
 Sonic the Hedgehog 3 (part 1) - VGM Player v3.30
 Sonic the Hedgehog 3 (part 2) - VGM Player v3.30
 Sorcerian (J) [T+Eng10%_NaflignsEgo]
+Sorcerian (Japan) (Rev 1) (Virtual Console)
 Sorcerian (Japan)
-Sorcerian (Japan) (Rev 1) 
 Sorcerian (Part 1) - VGM Player v3.30
 Sorcerian (Part 2) - VGM Player v3.30
 Sorcerian (Part 3) - VGM Player v3.30
-Soul Edge VS Samurai Spirits (Taiwan) (En) 
+Soul Edge VS Samurai Spirits (Taiwan) (En) (Unl)
 Space Harrier II - VGM Player v3.30
 Space Invaders '91 (U) [T-Spa1.0v_Wave]
 Space Invaders '91 (USA)
@@ -884,17 +969,18 @@ Spiritual Warfare (USA) (Unl)
 Spirou NTSC Patched (Hack)
 Splatterhouse 2 - VGM Player v3.30
 SpongeBob Square Pants (R) (Unl)
+SpongeBob SquarePants (Russia) (Unl)
 Squirrel King - VGM Player v3.30
 Star Chaser (PD) Sik 20140705
-Star Cruiser (Japan)
 Star Cruiser (Japan) v0.991 Nebulous
+Star Cruiser (Japan)
 Star Cruiser - VGM Player v3.10
 Star Odyssey (World) (Unl)
 Star Odyssey - VGM Player v3.10
 Star Raiders Demo (PD)
-Star Wars (USA) (Proto) 
-Starflight (USA, Europe)
+Star Wars (USA) (Proto) (1993-01-25)
 Starflight (USA, Europe) (Rev A)
+Starflight (USA, Europe)
 Starfox 3D Test (PD) gasega68k
 Stargate (USA, Europe) (Beta)
 Stellar Assault - VGM Player v3.10
@@ -905,7 +991,7 @@ Street Fighter II Turbo (Beta) - VGM Player v3.10
 Streets of Rage - VGM Player v3.10
 Streets of Rage - VGM Player v3.30
 Streets of Rage 2 - VGM Player v3.30
-Streets of Rage 3 (USA) (Beta) 
+Streets of Rage 3 (USA) (Beta) (1994-03-17)
 Streets of Rage 3 (part 1) - VGM Player v3.30
 Streets of Rage 3 (part 2) - VGM Player v3.30
 Streets of Rage 3 (part 3) - VGM Player v3.30
@@ -916,19 +1002,19 @@ Sub-Terrania Trax (PD)
 Sumo Slam! (PD) 2013
 Sunset Riders - VGM Player v3.30
 Super 3 in 1 Trax (PD)
-Super Bubble Bobble (Taiwan) (En) 
+Super Bubble Bobble (Taiwan) (En) (Unl)
 Super Bubble Bobble MD - VGM Player v3.30
 Super Daisenryaku - VGM Player v3.10
 Super Hydlide (Europe)
 Super Hydlide (Japan)
+Super Hydlide (USA) (Beta) (1989-10-16)
 Super Hydlide (USA)
-Super Hydlide (USA) (Beta) 
-Super King Kong 99 (Taiwan) (En) 
-Super Mario 2 (Taiwan) (En) 
+Super King Kong 99 (Taiwan) (En) (Unl)
+Super Mario 2 (Taiwan) (En) (Unl)
 Super Mario 2 1998 (Sonic Jam 6) - VGM Player v3.30
-Super Mario Bros. (Taiwan) (En) 
-Super Mario World 64 (Taiwan) (En) 
-Super Tank War (Taiwan) (En) 
+Super Mario Bros. (Taiwan) (En) (Unl)
+Super Mario World 64 (Taiwan) (En) (Unl)
+Super Tank War (Taiwan) (En) (Unl)
 Super Tank War (Unl) [Sound Fix]
 Superfighter Demo 1 (PD)
 Superman - The Man of Steel (Europe)
@@ -939,17 +1025,18 @@ Sword of Vermilion (UE) [T-Spa0.99v_jackic]
 Sword of Vermilion (USA, Europe)
 Sword of Vermillion - VGM Player v3.10
 TFM Music Player Pack (PD) v1 KRIKzz
-Tanglewood (World) (Demo) 
+Tanglewood (World) (Demo) (Aftermarket) (0.9.37) (Unl)
 Target Earth - VGM Player v3.10
 Tech Demo (PD) v1 Gamehut
+Technocop (USA) (Beta) (1990-09-12)
+Technocop (USA) (Beta) (September, 1990)
 Technocop (USA)
-Technocop (USA) (Beta) 
 Tecmo Super Baseball - VGM Player v3.30
 Tecmo World Cup - VGM Player v3.30
 Teenage Mutant Ninja Turtles - The Legend Returns (Russia) (Unl)
 Teenage Queen - Atari ST Port (PD) Alpha v1 pascalorama
 Teenage Queen - The Demo (PD)
-Tekken Special (Taiwan) (En) 
+Tekken Special (Taiwan) (En) (Unl)
 Tel-Tel Mahjong (Japan)
 Telebradesco Residencia (Brazil) (Program)
 Tempo Theme 26KHz WAV (PD) Tiido
@@ -970,21 +1057,21 @@ TheIsoZone Sonic Chase Demo (PD) v1 RingsOfSaturn
 Thomas the Tank Engine & Friends (USA)
 Thunder Blade - VGM Player v3.10
 Thunder Force II - VGM Player v3.10
-Thunder Force III (Japan, USA) (Beta) 
+Thunder Force III (Japan, USA) (Beta) (1990-08-01)
 Thunder Force III - VGM Player v3.10
 Thunder Force IV (Lightening Force) (part 1) - VGM Player v3.30
 Thunder Force IV (Lightening Force) (part 2) - VGM Player v3.30
-Thunderbolt II (Taiwan) (En) 
+Thunderbolt II (Taiwan) (En) (Unl)
 Tiido's MD Music Cart (PD) Tiido
 Time Invaders (PD) v0.02 Kaneda
 Time Trax (Prototype) - VGM Player v3.30
 Tintin Au Tibet NTSC Patched (Hack)
 Tiny Toon Adventures (Korea)
-Tiny Toon Adventures 3 (Taiwan) (En) 
-Tom Clown (Taiwan) (En) 
-Tom Mason's Dinosaurs for Hire (USA) (Beta) 
+Tiny Toon Adventures 3 (Taiwan) (En) (Unl)
+Tom Clown (Taiwan) (En) (Unl)
+Tom Mason's Dinosaurs for Hire (USA) (Beta) (March, 1993)
 Tommy Lasorda Baseball - VGM Player v3.10
-Top Fighter 2000 MK VIII (Taiwan) (En) 
+Top Fighter 2000 MK VIII (Taiwan) (En) (Unl)
 Top Gear 2 (USA)
 Top Pro Golf (Japan)
 Top Pro Golf 2 (Japan)
@@ -1013,16 +1100,15 @@ Undead Line (Japan)
 Urban Strike (USA, Europe)
 Urban Strike - Height Mod by TI (Hack)
 Uwol - Quest For Money (PD) Mojon Twins
-VGM
 VIP 2017 Invitation Demo (PD) Resistance 2017-4
 Valis (Part 1) - VGM Player v3.30
 Valis (Part 2) - VGM Player v3.30
 Vapor Trail - VGM Player v3.10
-Vermilion (Japan)
 Vermilion (Japan) (Mega Drive Mini)
+Vermilion (Japan)
 Verytex (Japan)
 Verytex - VGM Player v3.10
-Viewpoint (USA) (Beta) 
+Viewpoint (USA) (Beta) (1994-07-22)
 Vigilante - VGM Player v3.10
 VilQ (PD) AceMan+Axi0maT+tehKaiN 2016-09-04
 VilQ Adventure (PD) AceMan+Axi0maT+Koyot1222
@@ -1036,17 +1122,20 @@ Visual VGM Player - Gravity Pig Ending (PD) ComradeOj
 Visual VGM Player - Tetris (PD) ComradeOj
 WWF WrestleMania - The Arcade Game (USA, Europe) (Beta)
 Wacky Willy Weiner Sausage Surfer (PD) Cr30s+Bjorn
-Wacky Worlds Creativity Studio (USA) (Beta) 
+Wacky Worlds Creativity Studio (USA) (Beta) (1994-08-08)
+Wacky Worlds Creativity Studio (USA) (Beta) (1994-08-17)
+Wacky Worlds Creativity Studio (USA) (Beta) (1994-08-19)
 Wani Wani World - VGM Player v3.10
 Warsong (U) [T-Spa1.0v_Luceid]
+Warsong (USA) (Beta) (1991-10-01)
 Warsong (USA)
-Warsong (USA) (Beta) 
 What is Love 8-bit (PD) v1 Moon-Watcher
 Where in Time Is Carmen Sandiego (Brazil) (Es,Pt)
 Where in Time Is Carmen Sandiego (USA, Europe) (En,Fr,De,Es,It)
 Whip Rush - VGM Player v3.10
 Windows 68K Edition Setup Demo (PD) v1.08.1215 Tom Maneiro
-Winx The Secret of the Lost Kingdom (Russia) (Unl) 
+Winx The Secret of the Lost Kingdom (Russia) (Unl) (Valis Hack) T+Rus Pirates
+Winx The Secret of the Lost Kingdom (Russia) (Unl)
 Wiz 'n' Liz - VGM Player v3.10
 Wonder Boy III Monster Lair - VGM Player v3.10
 Wonder Boy III The Dragon's Trap - VGM Player v3.10
@@ -1054,14 +1143,25 @@ Wonder Boy in Monster Land - VGM Player v3.10
 Wonder Boy in Monster World - VGM Player v3.10
 Wonder Boy in Monster World Sound Test (PD)
 Wonder Library (Japan) (Program)
-World Championship Soccer II (USA) (Beta) 
-World Series Baseball '95 (USA) (Beta) 
-World Series Baseball (USA) (Beta) 
+World Championship Soccer II (USA) (Beta) (1994-02-22)
+World Championship Soccer II (USA) (Beta) (January, 1994)
+World Series Baseball '95 (USA) (Beta) (1995-01-14)
+World Series Baseball '95 (USA) (Beta) (1995-01-18)
+World Series Baseball (USA) (Beta) (1993-12-22)
+World Series Baseball (USA) (Beta) (1994-03-04)
 World of Illusion starring Mickey Mouse & Donald Duck (USA, Korea) (Beta 1)
 World of Illusion starring Mickey Mouse & Donald Duck (USA, Korea) (Beta 2)
-X-Men 2 - Clone Wars (USA, Europe) (Beta) 
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-05-06)
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-05-10)
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-10-18)
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-11-17)
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-11-23)
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-11-28)
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-11-30)
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-12-02)
+X-Men 2 - Clone Wars (USA, Europe) (Beta) (1994-12-03)
+X-Perts (USA) (Beta) (June, 1995)
 X-Perts (USA)
-X-Perts (USA) (Beta) 
 XDR - X-Dazedly-Ray (J) [T-Spa1.0v_Wave]
 XDR - X-Dazedly-Ray (Japan)
 XGM - Homebrew Tracks (PD) XGMv3 Peeteris
@@ -1077,14 +1177,14 @@ Xump 2 (PD) v0.5 Retroguru
 Yie Ar Kung-Fu (PD)
 Ys - The Vanished Omens - VGM Player v3.10
 Ys - Wanderers from Ys (Japan)
+Ys III (USA) (Beta) (1991-08-28)
 Ys III (USA)
-Ys III (USA) (Beta) 
 Ys III - Wanderers From Ys (part 1) - VGM Player v3.30
 Ys III - Wanderers From Ys (part 2) - VGM Player v3.30
 Zan Yasha Enbukyoku - VGM Player v3.10
 Zhong Guo Xiang Qi (Taiwan) (Unl)
 Zillion - VGM Player v3.10
-Zombie High (USA) (Proto) 
+Zombie High (USA) (Proto) (1992-08-11)
 Zontar's Mega Swirl (PD) v0.1.4b Zontar
 Zooming Secretary (PD) AfroMonkeys20170907
 Zsenilia Intro (PD) Resistance 2015

@@ -1,5 +1,3 @@
-tmp.mra
-280Z-ZZAP
 Astro Flash (Japan)
 Body Slam (World, S16) [8751 317-0015]
 Burger Time
@@ -33,3 +31,108 @@ Super Puzzle Fighter II X (Japan 960531) [Decrypted]
 Tetris (Japan, System E)
 Tough Turf 
 Transformer
+280Z-ZZAP
+Aerolitos (ES)
+Air Duel (W, M72 hardware)
+Air Duel (World, M72 hardware)
+Asterock (Sidam) [bl]
+Asterock (Videotron) [bl]
+Asteroids Deluxe
+Asteroids
+Astropede II [hb]
+Astropede [hb]
+Blasto
+Body Slam (W, 317-0015)
+Body Slam (World, S16) [8751 317-0015]
+Breakout (TTL)
+Breakout
+Burger Time
+Canyon Bomber
+Cemescary [hb]
+Centipede (revision 4)
+Centipede
+Computer Space
+DoDonPachi (no warn)
+DoDonPachi Trainer (Japan)
+Double Dragon
+Dump Matsumoto (JP, 317-0011a)
+Dump Matsumoto (Japan, S16A) [8751 317-0011a]
+Final Fight 30th Anniversary Edition (World, hack)
+Galaga
+Gaous [hb]
+Golden Axe (US, Set 6)
+Golden Axe (set 2, US) (8751 317-0112)
+Hangly Man (Fast) [hb]
+Hangly Man [f] - HBMame
+Hellfire (2P set)
+Hellfire (2P set, older)
+Karate Champ (US VS version, set 1)
+Karate Champ (US VS version, set 2)
+Karate Champ (US VS version, set 3)
+Karate Champ (US VS version, set 4)
+Karate Champ (US, VS Ver, Set 1)
+Karate Champ (US, VS Ver, Set 3)
+Karate Champ (US, VS Ver, Set 4)
+Killipede [hb]
+King And Balloon (Japan)
+King And Balloon
+King and Balloon (US)
+Lucky Today
+Lupin III
+Marvel Vs. Capcom Clash of Super Heroes (Japan 980123) (Single PCB)
+Marvel Vs. Capcom- Clash of Super Heroes (JP, 980123, Single PCB)
+Megumi Rescue (Japan)
+MotoTour - Zippy Race (Tecfri license)
+Nekketsu Kouha Kunio-kun (Japan bootleg)
+New Puc2 (Set 2) - HBMame
+New Puck 2 (Cheat) [hb]
+New Puck 2 (Fast) [hb]
+New Puck 2 (Set 2) [hb]
+New Puck X (Cheat) [hb]
+New Puck X (Fast) [hb]
+New Puck-X [c] - HBMame
+New Puck-X [f] - HBMame
+New Puck2 [c] - HBMame
+New Puck2 [f] - HBMame
+Nova 2001 (Hack)
+Out Zone
+Pac Snoop (v1.3, Fast) [hb]
+Pac Snoop v1.3 [f] - HBMame
+Pac-Man & Chomp Chomp
+Pac-Man (Cheat) [hb]
+Pac-Man (Sil Hack, Cheat) [hb]
+Pac-Man 3D (Cheat) [hb]
+Pac-Manic Miner
+Pacipede [hb]
+Pacman (Namco) (Sil hack) [c] - HBMame
+Pacman 3D [c] - HBMame
+Pacman Plus
+Pacman [c] - HBMame
+Pacmanic Miner
+Pang (World)
+Poly Play
+PolyPlay
+Pong (Rev E)
+Pong
+Popeye
+Radar Scope (rev. D)
+Road Fighter (set 3, unencrypted)
+Sea Wolf
+Shuttle Invader
+Space Race [TTL]
+Space Race
+Sprint 1
+Street Fighter Zero 2 Alpha (Asia 960805)
+Super Pang (World 900914)
+Super Puzzle Fighter II Turbo (Hispanic 960531) [Decrypted]
+Super Puzzle Fighter II X (Japan 960531) [Decrypted]
+Taisen Karate Dou (JP, VS version)
+Taisen Karate Dou (Japan VS version)
+Tough Turf (JP, Set 2)
+Tough Turf (set 2, Japan) (8751 317-0104)
+Traverse (US) [bl]
+Traverse USA (bootleg)
+Ultra Tank
+Vectipede [hb]
+Vectorpede [hb]
+Vigilante (World, Rev E)

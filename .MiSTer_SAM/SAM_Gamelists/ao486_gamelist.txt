@@ -1,0 +1,7 @@
+/media/fat/games/AO486/screensaver/Indy.vhd
+/media/fat/games/AO486/screensaver/Flying Toasters.vhd
+/media/fat/games/AO486/screensaver/Johnny Castaway.vhd
+/media/fat/games/AO486/screensaver/Mortal Kombat II.vhd
+/media/fat/games/AO486/screensaver/Raiden.vhd
+/media/fat/games/AO486/screensaver/StarWars_AfterDark.vhd
+/media/fat/games/AO486/screensaver/samnmax.vhd

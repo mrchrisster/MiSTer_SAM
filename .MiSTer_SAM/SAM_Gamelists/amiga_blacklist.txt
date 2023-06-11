@@ -484,7 +484,6 @@ Dungeon_Quest
 Dungeons_Of_Avalon
 Dux
 Dynasty_Wars
-D�but_Planet_Simulation
 E-Motion
 Eagle's_Rider
 Earl_Weaver_Baseball
@@ -518,7 +517,6 @@ Enlightenment
 Entity
 Epic_Extra_Missions
 Erik
-Espa�a_The_Games_'92
 European_Champions
 European_Football_Champ
 European_Space_Simulator
@@ -1161,6 +1159,7 @@ Pinball_Dreams_Crack_Intro
 Pinball_Fantasies
 Pinball_Hazard
 Pinball_Magic
+Pinball_Mania
 Pinball_Wizard
 Pink_Circle
 Pink_Panther
