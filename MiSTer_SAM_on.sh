@@ -1139,8 +1139,7 @@ function next_core() { # next_core (core)
 
 function load_samvideo() {
 	#Load the actual rom (or play a video)
-	if [ "${samvideo}" == "yes" ]; then
-		bgm_stop
+	if [ "${samvideo}" == "yes" ]; then		
 		if [ "${samvideo_freq}" == "only" ]; then
 			samvideo_play
 			return 1
@@ -1154,7 +1153,7 @@ function load_samvideo() {
 			done
 
 			if [[ "$found" == false ]]; then
-				corelisttmp+=("samvideo")
+				echo "samvideo" >> ${corelistfile}		
 			fi
 			if [ "$1" == "samvideo" ]; then
 				samvideo_play
@@ -2750,13 +2749,14 @@ function sv_yt360() {
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
+	res="$(mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}')"
 	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
 
 	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
 	#declare -g ytid="$(echo "$yt360" | awk '{print $1}')"
 	#declare -g ytres="$(echo "$yt360" | awk '{print $3}')"
 	#res_comma=$(echo "$ytres" | tr 'x' ',')
-	#res_space=$(echo "$ytres" | tr 'x' ' ')
+	res_space=$(echo "$res" | tr 'x' ' ')
 
 }
 
@@ -2775,6 +2775,7 @@ function samvideo_play() {
 	#Get res and 360p file
 	#declare -g yt360="$("${mrsampath}"/ytdl --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only" )"
 	# Find out resolution of file to play
+	bgm_stop
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
@@ -2791,9 +2792,12 @@ function samvideo_play() {
 		#chvt 2
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
-		mplayer -cache 8120 "$tmpvideo"
+		mplayer "$tmpvideo"
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
+	if [ "${samvideo_freq}" != "only" ]; then
+		bgm_play
+	fi
 	next_core
 }
 
