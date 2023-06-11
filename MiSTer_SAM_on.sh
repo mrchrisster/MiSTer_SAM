@@ -2717,7 +2717,7 @@ function samvideo_play() {
 	samdebug "Playing $yt360"
 	res_comma=$(echo "$ytres" | tr 'x' ',')
 	res_space=$(echo "$ytres" | tr 'x' ' ')
-	if [ ! -s "$tmpvideo" ]; then
+	if [ -s "$tmpvideo" ]; then
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 		sleep 2
 		# TODO delete blinking cursor
