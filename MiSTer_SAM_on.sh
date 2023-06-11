@@ -1099,6 +1099,9 @@ function loop_core() { # loop_core (core)
 
 function next_core() { # next_core (core)
 	
+	load_samvideo
+	if [ $? -ne 0 ]; then return; fi
+	
 	if [[ ! ${corelist[*]} ]]; then
 		echo "ERROR: FATAL - List of cores is empty."
 		echo "Using default corelist"
@@ -1131,11 +1134,16 @@ function next_core() { # next_core (core)
 	
 	delete_played_game
 	
+	load_core "${nextcore}" "${rompath}" "${romname%.*}"
+}
+
+function load_samvideo() {
 	#Load the actual rom (or play a video)
 	if [ "${samvideo}" == "yes" ]; then
 		bgm_stop
 		if [ "${samvideo_freq}" == "only" ]; then
 			samvideo_play
+			return 1
 		elif [ "${samvideo_freq}" == "core" ]; then
 			found=false
 
@@ -1150,20 +1158,17 @@ function next_core() { # next_core (core)
 			fi
 			if [ "$1" == "samvideo" ]; then
 				samvideo_play
+				return 1
 			else
-				load_core "${nextcore}" "${rompath}" "${romname%.*}"
+				return 0
 			fi
 		elif [ "${samvideo_freq}" == "alternate" ]; then
 				samvideo_play
-				load_core "${nextcore}" "${rompath}" "${romname%.*}"
+				return 1
 		fi
 		
-	else
-		load_core "${nextcore}" "${rompath}" "${romname%.*}"
 	fi
-	
 }
-
 
 # Don't repeat same core twice
 function corelist_update() {
@@ -1902,7 +1907,7 @@ function kill_all_sams() {
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
 	sam_cleanup
-	
+	[ "${samvideo}" == "yes" ] && misterini_reset
 	if [ "${1}" -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
@@ -2012,7 +2017,7 @@ function sam_prep() {
 	fi
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
-	[ "${samvideo}" == "yes" ] && change_menures
+	[ "${samvideo}" == "yes" ] && misterini_mod
 	[ "${samvideo}" == "yes" ] && cp "${mrsampath}/samvideo_list.txt" "/tmp/.SAM_List/samvideo_list.txt"
 
 }
@@ -2681,27 +2686,86 @@ function mplayer() {
 	LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer "$@"
 }
 
-function change_menures() {
-	
-	if [ "$(tail -n1 "$ini_file")" != "video_mode=640,360,60" ]; then
-		#append menu info
-		echo -e "\n[menu]" >> "$ini_file"
-		echo -e "video_mode=640,360,60" >> "$ini_file"
-		echo "[menu] entry created in $ini_file."
+function misterini_mod() {
+
+	echo "For samvideo playback to work, we need to modify /media/fat/MiSTer.ini"
+	echo "This will be reset when SAM quits. If it doesn't reset, please delete the last two lines from the ini manually."
+	if [ -f "$ini_file" ]; then
+		cp "$ini_file" "${ini_file}".sam
+	else
+		touch "$ini_file"
+	fi
+	if [ "$samvideo_output" == "hdmi" ]; then
+		if [ "${samvideo_source}" == "youtube" ]; then
+			ini_res=640x360
+		else
+			ini_res=640x480
+		fi
+		res_comma=$(echo "$ini_res" | tr 'x' ',')
+		
+		if [ "$(tail -n1 "$ini_file")" != "video_mode=${res_comma},60" ]; then
+			#append menu info
+			echo -e "\n[menu]" >> "$ini_file"
+			echo -e "video_mode=${res_comma},60" >> "$ini_file"
+			echo "[menu] entry created in $ini_file."
+		fi
+	#CRT mode	
+	else
+		if [ "$(tail -n1 "$ini_file")" != "video_mode=640,240,60" ]; then
+			#append menu info
+			echo -e "\n[menu]" >> "$ini_file"
+			echo -e "video_mode=640,240,60" >> "$ini_file"
+			echo "[menu] entry created in $ini_file."
+		fi
 	fi
 }
 
-function predownload() {
-	yt360=""
+function misterini_reset() {
+	cp "${ini_file}".sam "$ini_file" &>/dev/null
+}
+
+function sv_yt360() {
+	
+	declare -g yt360=""
 	if [ ! -s /tmp/.SAM_List/samvideo_list.txt ]; then
 		cp "${mrsampath}/samvideo_list.txt" "/tmp/.SAM_List/samvideo_list.txt"
 	fi
-	local url="$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)"
-	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
-	yt360=$("${mrsampath}/ytdl" --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only")
-
 	echo "Please wait... downloading file"
-	"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
+	declare -g url="$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)"
+	#declare -g yt360=$("${mrsampath}/ytdl" --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only")
+	url=""
+
+	while [ -z "$url" ]; do
+		url=$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)
+		"${mrsampath}/ytdl" --format "best[height=360][ext=mp4]" --no-continue -o "$tmpvideo" "$url"
+		exit_code=$?
+
+		if [ $exit_code -eq 0 ]; then
+			echo "Download successful!"
+			break  # Exit the loop if the download was successful
+		else
+			echo "Invalid URL or download error. Retrying with another URL..."
+			awk -vLine="$url" '!index($0,Line)' "${mrsampath}/samvideo_list.txt" >${tmpfile} && cp -f ${tmpfile} "${mrsampath}/samvideo_list.txt"
+
+			url=""  # Clear the URL variable to repeat the loop
+		fi
+	done
+	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
+
+	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
+	#declare -g ytid="$(echo "$yt360" | awk '{print $1}')"
+	#declare -g ytres="$(echo "$yt360" | awk '{print $3}')"
+	#res_comma=$(echo "$ytres" | tr 'x' ',')
+	#res_space=$(echo "$ytres" | tr 'x' ' ')
+
+}
+
+function sv_local() {
+	if [ ! -s /tmp/.SAM_List/sv_local_list.txt ]; then
+		find "$samvideo_path" -type f > /tmp/.SAM_List/sv_local_list.txt
+	fi
+	tmpvideo=$(cat /tmp/.SAM_List/sv_local_list.txt | shuf -n1)
+	awk -vLine="$tmpvideo" '!index($0,Line)' /tmp/.SAM_List/sv_local_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_local_list.txt
 }
 
 
@@ -2711,12 +2775,14 @@ function samvideo_play() {
 	#Get res and 360p file
 	#declare -g yt360="$("${mrsampath}"/ytdl --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only" )"
 	# Find out resolution of file to play
-	predownload
-	declare -g ytid="$(echo "$yt360" | awk '{print $1}')"
-	declare -g ytres="$(echo "$yt360" | awk '{print $3}')"
-	samdebug "Playing $yt360"
-	res_comma=$(echo "$ytres" | tr 'x' ',')
-	res_space=$(echo "$ytres" | tr 'x' ' ')
+	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
+		sv_yt360
+	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
+		sv_yt240
+	elif [ "${samvideo_source}" == "local" ]; then
+		sv_local
+	fi
+
 	if [ -s "$tmpvideo" ]; then
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 		sleep 2
@@ -2725,7 +2791,7 @@ function samvideo_play() {
 		#chvt 2
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
-		mplayer "$tmpvideo"
+		mplayer -cache 8120 "$tmpvideo"
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	next_core
