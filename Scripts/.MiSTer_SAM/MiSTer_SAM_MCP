@@ -226,8 +226,10 @@ while :; do
 		fi
 	else
 		# Check activity files against timeout
-		echo " Triggered after menuonly=no"
-		sam_trigger
+		if [[ "$(/bin/find /tmp/CORENAME -mmin +1)" ]]; then
+			echo " Triggered after menuonly=no"
+			sam_trigger
+		fi
 	fi
 sleep 3
 done
