@@ -114,8 +114,10 @@ function init_vars() {
 	declare -g ini_file="/media/fat/MiSTer.ini"
 	declare -g ini_contents=$(cat "$ini_file")
 	declare -g sv_loadcounter=0
-	
-	
+	declare -g samvideo_path="/media/fat/video"
+	declare -g samvideo_archivelist="https://ia902700.us.archive.org/3/items/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
+	declare -g samvideo_youtubelist="/media/fat/Scripts/.MiSTer_SAM/samvideo_list.txt"
+
 
 	# ======== CORE PATHS RBF ========
 	declare -g amigapathrbf="_Computer"
@@ -2726,7 +2728,7 @@ function sv_yt360() {
 	
 	declare -g yt360=""
 	if [ ! -s /tmp/.SAM_List/samvideo_list.txt ]; then
-		cp "${mrsampath}/samvideo_list.txt" "/tmp/.SAM_List/samvideo_list.txt"
+		cp "${samvideo_youtubelist}" "/tmp/.SAM_List/samvideo_list.txt"
 	fi
 	echo "Please wait... downloading file"
 	declare -g url="$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)"
@@ -2768,34 +2770,43 @@ function sv_local() {
 }
 
 function sv_ar480() {
-	if [ ! -s /tmp/.SAM_List/sv_archive_list.txt ]; then
-		declare -g v640480="http://ia902700.us.archive.org/3/items/640x480_videogame_commercials/"
-		declare -g v640480xml="640x480_videogame_commercials_files.xml"
-		curl_download /tmp/SAMvideos.xml  "${v640480}${v640480xml}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' > /tmp/.SAM_List/sv_archive_list.txt
+	if [ ! -s /tmp/.SAM_List/sv_archive_hdmilist.txt ]; then
+		http_archive=${samvideo_archivelist//https/http}
+		curl_download /tmp/SAMvideos.xml  "${http_archive}"
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' > /tmp/.SAM_List/sv_archive_hdmilist.txt
 	fi
-	selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_list.txt)"
-	url="${v640480}${selected}"
-	http_url=${url//https/http}
-	wget -O "$tmpvideo" "${http_url}"
-	awk -vLine="$selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_list.txt
+	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_hdmilist.txt)"
+	sv_selected_url="${http_archive%/*}/${sv_selected}"
+	tmpvideo="/tmp/SAMvideo.avi"
+	wget -O "$tmpvideo" "${sv_selected_url}"
+	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_hdmilist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_hdmilist.txt
+
+}
+
+function sv_ar240() {
+	if [ ! -s /tmp/.SAM_List/sv_archive_crtlist.txt ]; then
+		http_archive=${samvideo_archivelist//https/http}
+		curl_download /tmp/SAMvideos.xml  "${http_archive}"
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' > /tmp/.SAM_List/sv_archive_crtlist.txt
+	fi
+	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_crtlist.txt)"
+	sv_selected_url="${http_archive%/*}/${sv_selected}"
+	tmpvideo="/tmp/SAMvideo.avi"
+	wget -O "$tmpvideo" "${sv_selected_url}"
+	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_crtlist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_crtlist.txt
 
 }
 
 ## Play video
 function samvideo_play() {
-	#pick a random url
-	#Get res and 360p file
-	#declare -g yt360="$("${mrsampath}"/ytdl --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only" )"
-	# Find out resolution of file to play
-	#bgm_stop
-	#Show Splash
-	source ${ttyuserini}
-	source ${ttysystemini}
-	echo "CMDAPD,SAM_splash" >${TTYDEV}
-	tail -n +4 "/media/fat/tty2oled/pics/GSC/SAM_splash.gsc" | xxd -r -p >${TTYDEV}
-	echo "CMDSPIC,-1" >${TTYDEV}
-			
+	#Show tty2oled splash
+	if [ "${ttyenable}" == "yes" ]; then
+		source ${ttyuserini}
+		source ${ttysystemini}
+		echo "CMDAPD,SAM_splash" >${TTYDEV}
+		tail -n +4 "/media/fat/tty2oled/pics/GSC/SAM_splash.gsc" | xxd -r -p >${TTYDEV}
+		echo "CMDSPIC,-1" >${TTYDEV}
+	fi	
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
