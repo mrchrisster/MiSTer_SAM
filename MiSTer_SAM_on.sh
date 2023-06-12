@@ -1139,24 +1139,29 @@ function next_core() { # next_core (core)
 }
 
 function load_samvideo() {
+	sv_loadcounter=$((sv_loadcounter + 1))
 	#Load the actual rom (or play a video)
 	if [ "${samvideo}" == "yes" ]; then		
 		if [ "${samvideo_freq}" == "only" ]; then
 			samvideo_play
 			return 1
 		elif [ "${samvideo_freq}" == "core" ]; then
-		  	sv_loadcounter=$((counter + 1))
-		  	echo "samvideo load core counter is now $counter"
-		  	if ((counter % ${#corelist[@]} == 0)); then
+		  	echo "samvideo load core counter is now $sv_loadcounter"
+		  	if ((sv_loadcounter % ${#corelist[@]} == 0)); then
 				samvideo_play
-				counter=0
+				sv_loadcounter=0
 				return 1
 		  	fi
 		  	return 0
 
 		elif [ "${samvideo_freq}" == "alternate" ]; then
+			if ((sv_loadcounter % 2 == 1)); then
 				samvideo_play
+				sv_loadcounter=0
 				return 1
+		  	else
+				return 0
+			fi
 		fi
 		
 	fi
@@ -1521,6 +1526,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 	echo "$(date +%H:%M:%S) - ${1} - $([ "${samdebug}" == "yes" ] && echo ${rompath} || echo ${3})" "$(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >>/tmp/SAM_Games.log
 	echo "${3} (${1}) $(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >/tmp/SAM_Game.txt
 	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"
+	
 	
 	if [[ "${ttyname_cleanup}" == "yes" ]]; then
 		gamename="$(echo "${gamename}" | awk -F "(" '{print $1}')"
@@ -2768,7 +2774,26 @@ function samvideo_play() {
 	#Get res and 360p file
 	#declare -g yt360="$("${mrsampath}"/ytdl --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only" )"
 	# Find out resolution of file to play
-	bgm_stop
+	#bgm_stop
+		tty_corename="SAM_splash"
+		
+		if [ "${ttyenable}" == "yes" ]; then
+			tty_currentinfo=(
+				[core_pretty]="SAM_splash"
+				[name]=Video
+				[core]=${tty_corename}
+				[date]=$EPOCHSECONDS
+				[counter]=${gametimer}
+				[name_scroll]="${agpretty:0:21}"
+				[name_scroll_position]=0
+				[name_scroll_direction]=1
+				[update_pause]=${ttyupdate_pause}
+			)
+			declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+			write_to_TTY_cmd_pipe "display_info" &
+			local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+			SECONDS=${elapsed}
+		fi
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
@@ -2785,12 +2810,14 @@ function samvideo_play() {
 		#chvt 2
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
-		mplayer "$tmpvideo"
+		if [ "$bgm" == "yes" ]; then
+			mplayer -nosound "$tmpvideo"
+		else
+			mplayer "$tmpvideo"
+		fi
+		
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
-	if [ "${samvideo_freq}" != "only" ]; then
-		bgm_play
-	fi
 	next_core
 }
 
