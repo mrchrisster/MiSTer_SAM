@@ -2837,7 +2837,7 @@ function sv_ar240() {
 	tmpvideo="/tmp/SAMvideo.avi"
 	wget -O "$tmpvideo" "${sv_selected_url}"
 	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_crtlist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_crtlist.txt
-
+	res_space="640 240"
 }
 
 ## Play video
@@ -2871,9 +2871,9 @@ function samvideo_play() {
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
 		if [ "$bgm" == "yes" ]; then
-			mplayer -nosound "$tmpvideo"
+			mplayer -nosound -cache 8192 "$tmpvideo"
 		else
-			mplayer "$tmpvideo"
+			mplayer -cache 8192 "$tmpvideo"
 		fi
 		
 	fi
