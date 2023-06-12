@@ -1911,7 +1911,6 @@ function kill_all_sams() {
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
 	sam_cleanup
-	[ "${samvideo}" == "yes" ] && misterini_reset
 	if [ "${1}" -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
@@ -2035,6 +2034,7 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
 	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
+	[ "${samvideo}" == "yes" ] && misterini_reset
 	samdebug "Cleanup done."
 }
 
@@ -2712,6 +2712,10 @@ function misterini_mod() {
 		fi
 	#CRT mode	
 	elif [ "$samvideo_output" == "crt" ]; then
+		if [ "$samvideo_source" == "youtube" ]; then
+			echo "Youtube and CRT: Setting CRT out to 320x240"
+			samvideo_crtmode="video_mode=320,-16,32,32,240,1,3,13,5670"
+		fi
 		if [ "$(tail -n1 "$ini_file")" != "${samvideo_crtmode}" ]; then
 			#append menu info
 			echo -e "\n[menu]" >> "$ini_file"
@@ -2790,15 +2794,8 @@ function sv_yt240() {
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
-	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}')"
 	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
-
-	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
-	#declare -g ytid="$(echo "$yt360" | awk '{print $1}')"
-	#declare -g ytres="$(echo "$yt360" | awk '{print $3}')"
-	#res_comma=$(echo "$ytres" | tr 'x' ',')
-	res_space=$(echo "$res" | tr 'x' ' ')
-
+	res_space="640 240"
 }
 
 function sv_local() {
@@ -2858,7 +2855,11 @@ function samvideo_play() {
 	elif [ "${samvideo_source}" == "local" ]; then
 		sv_local
 	fi
-
+	
+	if [ "$bgm" == "yes" ]; then
+		options="-nosound"
+	fi
+	
 	if [ -s "$tmpvideo" ]; then
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 		sleep "${samvideo_displaywait}"
@@ -2867,12 +2868,7 @@ function samvideo_play() {
 		echo "\033[?25l" > /dev/tty2
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
-		if [ "$bgm" == "yes" ]; then
-			nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -nosound -cache 8192 "$tmpvideo"
-		else
-			nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -cache 8192 "$tmpvideo"
-		fi
-		
+		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer "${options}" "$tmpvideo"
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	next_core
