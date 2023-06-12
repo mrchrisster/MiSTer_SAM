@@ -110,12 +110,16 @@ function init_vars() {
 	# ======== SAMVIDEO =======
 	declare -gl samvideo
 	declare -gl samvideo_freq
+	declare -gl samvideo_output="hdmi"
+	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
+	declare -g samvideo_displaywait="2"
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
 	declare -g ini_file="/media/fat/MiSTer.ini"
 	declare -g ini_contents=$(cat "$ini_file")
 	declare -g sv_loadcounter=0
 	declare -g samvideo_path="/media/fat/video"
-	declare -g samvideo_archivelist="https://ia902700.us.archive.org/3/items/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
+	declare -g sv_archive_hdmilist="https://ia902700.us.archive.org/3/items/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
+	declare -g sv_archive_crtlist="https://ia902700.us.archive.org/3/items/640x240_videogame_commercials/640x240_videogame_commercials_files.xml"
 	declare -g samvideo_youtubelist="/media/fat/Scripts/.MiSTer_SAM/samvideo_list.txt"
 
 
@@ -2710,12 +2714,14 @@ function misterini_mod() {
 			echo "[menu] entry created in $ini_file."
 		fi
 	#CRT mode	
-	else
-		if [ "$(tail -n1 "$ini_file")" != "video_mode=640,240,60" ]; then
+	elif [ "$samvideo_output" == "crt" ]; then
+		if [ "$(tail -n1 "$ini_file")" != "${samvideo_crtmode}" ]; then
 			#append menu info
 			echo -e "\n[menu]" >> "$ini_file"
-			echo -e "video_mode=640,240,60" >> "$ini_file"
+			echo -e "${samvideo_crtmode}" >> "$ini_file"
+			echo -e "vga_scaler=1" >> "$ini_file"
 			echo "[menu] entry created in $ini_file."
+
 		fi
 	fi
 }
@@ -2761,6 +2767,43 @@ function sv_yt360() {
 
 }
 
+function sv_yt240() {
+	
+	declare -g yt240=""
+	if [ ! -s /tmp/.SAM_List/samvideo_list.txt ]; then
+		cp "${samvideo_youtubelist}" "/tmp/.SAM_List/samvideo_list.txt"
+	fi
+	echo "Please wait... downloading file"
+	declare -g url="$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)"
+	#declare -g yt360=$("${mrsampath}/ytdl" --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only")
+	url=""
+
+	while [ -z "$url" ]; do
+		url=$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)
+		"${mrsampath}/ytdl" --format "best[height=240][ext=mp4]" --no-continue -o "$tmpvideo" "$url"
+		exit_code=$?
+
+		if [ $exit_code -eq 0 ]; then
+			echo "Download successful!"
+			break  # Exit the loop if the download was successful
+		else
+			echo "Invalid URL or download error. Retrying with another URL..."
+			awk -vLine="$url" '!index($0,Line)' "${mrsampath}/samvideo_list.txt" >${tmpfile} && cp -f ${tmpfile} "${mrsampath}/samvideo_list.txt"
+
+			url=""  # Clear the URL variable to repeat the loop
+		fi
+	done
+	res="$(mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}')"
+	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
+
+	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
+	#declare -g ytid="$(echo "$yt360" | awk '{print $1}')"
+	#declare -g ytres="$(echo "$yt360" | awk '{print $3}')"
+	#res_comma=$(echo "$ytres" | tr 'x' ',')
+	res_space=$(echo "$res" | tr 'x' ' ')
+
+}
+
 function sv_local() {
 	if [ ! -s /tmp/.SAM_List/sv_local_list.txt ]; then
 		find "$samvideo_path" -type f > /tmp/.SAM_List/sv_local_list.txt
@@ -2770,8 +2813,8 @@ function sv_local() {
 }
 
 function sv_ar480() {
+	http_archive=${sv_archive_hdmilist//https/http}
 	if [ ! -s /tmp/.SAM_List/sv_archive_hdmilist.txt ]; then
-		http_archive=${samvideo_archivelist//https/http}
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
 		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' > /tmp/.SAM_List/sv_archive_hdmilist.txt
 	fi
@@ -2784,8 +2827,8 @@ function sv_ar480() {
 }
 
 function sv_ar240() {
+	http_archive=${sv_archive_crtlist//https/http}
 	if [ ! -s /tmp/.SAM_List/sv_archive_crtlist.txt ]; then
-		http_archive=${samvideo_archivelist//https/http}
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
 		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' > /tmp/.SAM_List/sv_archive_crtlist.txt
 	fi
@@ -2821,10 +2864,10 @@ function samvideo_play() {
 
 	if [ -s "$tmpvideo" ]; then
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
-		sleep 2
+		sleep "${samvideo_displaywait}"
 		# TODO delete blinking cursor
-		#echo "\033[?25l" > /dev/tty2
-		#chvt 2
+		chvt 2
+		echo "\033[?25l" > /dev/tty2
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
 		if [ "$bgm" == "yes" ]; then
