@@ -2775,25 +2775,6 @@ function samvideo_play() {
 	#declare -g yt360="$("${mrsampath}"/ytdl --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only" )"
 	# Find out resolution of file to play
 	#bgm_stop
-		tty_corename="SAM_splash"
-		
-		if [ "${ttyenable}" == "yes" ]; then
-			tty_currentinfo=(
-				[core_pretty]="SAM_splash"
-				[name]=Video
-				[core]=${tty_corename}
-				[date]=$EPOCHSECONDS
-				[counter]=${gametimer}
-				[name_scroll]="${agpretty:0:21}"
-				[name_scroll_position]=0
-				[name_scroll_direction]=1
-				[update_pause]=${ttyupdate_pause}
-			)
-			declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-			write_to_TTY_cmd_pipe "display_info" &
-			local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
-			SECONDS=${elapsed}
-		fi
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
