@@ -113,6 +113,7 @@ function init_vars() {
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
 	declare -g ini_file="/media/fat/MiSTer.ini"
 	declare -g ini_contents=$(cat "$ini_file")
+	declare -g sv_loadcounter=0
 	
 	
 
@@ -1144,23 +1145,15 @@ function load_samvideo() {
 			samvideo_play
 			return 1
 		elif [ "${samvideo_freq}" == "core" ]; then
-			found=false
-
-			for element in "${corelisttmp[@]}"; do
-				if [[ "$element" == "samvideo" ]]; then
-					found=true
-				fi
-			done
-
-			if [[ "$found" == false ]]; then
-				echo "samvideo" >> ${corelistfile}		
-			fi
-			if [ "$1" == "samvideo" ]; then
+		  	sv_loadcounter=$((counter + 1))
+		  	echo "samvideo load core counter is now $counter"
+		  	if ((counter % ${#corelist[@]} == 0)); then
 				samvideo_play
+				counter=0
 				return 1
-			else
-				return 0
-			fi
+		  	fi
+		  	return 0
+
 		elif [ "${samvideo_freq}" == "alternate" ]; then
 				samvideo_play
 				return 1
