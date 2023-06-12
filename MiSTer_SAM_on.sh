@@ -2686,9 +2686,6 @@ function write_to_TTY_cmd_pipe() {
 
 # ======== SAM VIDEO PLAYER FUNCTIONS ========
 
-function mplayer() {
-	LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer "$@"
-}
 
 function misterini_mod() {
 
@@ -2756,7 +2753,7 @@ function sv_yt360() {
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
-	res="$(mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}')"
+	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}')"
 	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
 
 	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
@@ -2793,7 +2790,7 @@ function sv_yt240() {
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
-	res="$(mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}')"
+	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}')"
 	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
 
 	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
@@ -2871,9 +2868,9 @@ function samvideo_play() {
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
 		if [ "$bgm" == "yes" ]; then
-			mplayer -nosound -cache 8192 "$tmpvideo"
+			nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -nosound -cache 8192 "$tmpvideo"
 		else
-			mplayer -cache 8192 "$tmpvideo"
+			nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -cache 8192 "$tmpvideo"
 		fi
 		
 	fi
