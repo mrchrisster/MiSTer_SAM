@@ -2767,6 +2767,20 @@ function sv_local() {
 	awk -vLine="$tmpvideo" '!index($0,Line)' /tmp/.SAM_List/sv_local_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_local_list.txt
 }
 
+function sv_ar480() {
+	if [ ! -s /tmp/.SAM_List/sv_archive_list.txt ]; then
+		declare -g v640480="http://ia902700.us.archive.org/3/items/640x480_videogame_commercials/"
+		declare -g v640480xml="640x480_videogame_commercials_files.xml"
+		curl_download /tmp/SAMvideos.xml  "${v640480}${v640480xml}"
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' > /tmp/.SAM_List/sv_archive_list.txt
+	fi
+	selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_list.txt)"
+	url="${v640480}${selected}"
+	http_url=${url//https/http}
+	wget -O "$tmpvideo" "${http_url}"
+	awk -vLine="$selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_list.txt
+
+}
 
 ## Play video
 function samvideo_play() {
@@ -2775,10 +2789,21 @@ function samvideo_play() {
 	#declare -g yt360="$("${mrsampath}"/ytdl --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only" )"
 	# Find out resolution of file to play
 	#bgm_stop
+	#Show Splash
+	source ${ttyuserini}
+	source ${ttysystemini}
+	echo "CMDAPD,SAM_splash" >${TTYDEV}
+	tail -n +4 "/media/fat/tty2oled/pics/GSC/SAM_splash.gsc" | xxd -r -p >${TTYDEV}
+	echo "CMDSPIC,-1" >${TTYDEV}
+			
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
 		sv_yt240
+	elif [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "hdmi" ]; then
+		sv_ar480
+	elif [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "crt" ]; then
+		sv_ar240
 	elif [ "${samvideo_source}" == "local" ]; then
 		sv_local
 	fi
