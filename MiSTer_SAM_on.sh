@@ -2758,7 +2758,7 @@ function sv_yt360() {
 		else
 			echo "Invalid URL or download error. Retrying with another URL..."
 			awk -vLine="$url" '!index($0,Line)' "${sv_youtube_hdmilist}" >${tmpfile} && cp -f ${tmpfile} "${sv_youtube_hdmilist}"
-			cp "${samvideo_youtubelist}" "/tmp/.SAM_List/samvideo_list.txt"
+			cp "${sv_youtube_hdmilist}" "/tmp/.SAM_List/samvideo_list.txt"
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
@@ -2795,7 +2795,7 @@ function sv_yt240() {
 		else
 			echo "Invalid URL or download error. Retrying with another URL..."
 			awk -vLine="$url" '!index($0,Line)' "${sv_youtube_crtlist}" >${tmpfile} && cp -f ${tmpfile} "${sv_youtube_crtlist}"
-			cp "${samvideo_youtubelist}" "/tmp/.SAM_List/samvideo_list.txt"
+			cp "${sv_youtube_crtlist}" "/tmp/.SAM_List/samvideo_list.txt"
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
@@ -2904,7 +2904,7 @@ function samvideo_play() {
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
 		echo "Playing video now."
-		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -really-quiet "${options}" "$tmpvideo" >/dev/null 2>&1
+		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer --really-quiet "${options}" "$tmpvideo" >/dev/null 2>&1
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	next_core
