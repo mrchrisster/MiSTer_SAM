@@ -2842,7 +2842,7 @@ function sv_ar240() {
 function samvideo_play() {
 	if [ ! -f "${mrsampath}"/mplayer ]; then
 		if [ -f "${mrsampath}"/mplayer.zip ]; then
-			unzip -ojq ""${mrsampath}"/mplayer.zip -d "${mrsampath}" # &>/dev/null
+			unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}" # &>/dev/null
 		else
 			get_samvideo
 		fi
