@@ -2714,7 +2714,10 @@ function misterini_mod() {
 	elif [ "$samvideo_output" == "crt" ]; then
 		if [ "$samvideo_source" == "youtube" ]; then
 			echo "Youtube and CRT: Setting CRT out to 320x240"
-			samvideo_crtmode="video_mode=320,-16,32,32,240,1,3,13,5670"
+			samvideo_crtmode="${samvideo_crtmode320}"
+		elif [ "$samvideo_source" == "archive" ]; then
+			echo "Archive and CRT: Setting CRT out to 640x240"
+			samvideo_crtmode="${samvideo_crtmode640}"
 		fi
 		if [ "$(tail -n1 "$ini_file")" != "${samvideo_crtmode}" ]; then
 			#append menu info
@@ -2753,7 +2756,7 @@ function sv_yt360() {
 		else
 			echo "Invalid URL or download error. Retrying with another URL..."
 			awk -vLine="$url" '!index($0,Line)' "${mrsampath}/samvideo_list.txt" >${tmpfile} && cp -f ${tmpfile} "${mrsampath}/samvideo_list.txt"
-
+			cp "${samvideo_youtubelist}" "/tmp/.SAM_List/samvideo_list.txt"
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
@@ -2790,7 +2793,7 @@ function sv_yt240() {
 		else
 			echo "Invalid URL or download error. Retrying with another URL..."
 			awk -vLine="$url" '!index($0,Line)' "${mrsampath}/samvideo_list.txt" >${tmpfile} && cp -f ${tmpfile} "${mrsampath}/samvideo_list.txt"
-
+			cp "${samvideo_youtubelist}" "/tmp/.SAM_List/samvideo_list.txt"
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
@@ -2836,14 +2839,6 @@ function sv_ar240() {
 
 ## Play video
 function samvideo_play() {
-	#Show tty2oled splash
-	if [ "${ttyenable}" == "yes" ]; then
-		source ${ttyuserini}
-		source ${ttysystemini}
-		echo "CMDAPD,SAM_splash" >${TTYDEV}
-		tail -n +4 "/media/fat/tty2oled/pics/GSC/SAM_splash.gsc" | xxd -r -p >${TTYDEV}
-		echo "CMDSPIC,-1" >${TTYDEV}
-	fi	
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
@@ -2854,6 +2849,28 @@ function samvideo_play() {
 		sv_ar240
 	elif [ "${samvideo_source}" == "local" ]; then
 		sv_local
+	fi
+	
+	#Show tty2oled splash
+	if [ "${ttyenable}" == "yes" ]; then
+		sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
+		tty_currentinfo=(
+			[core_pretty]="SAM Video Player"
+			[name]="Video Playback"
+			[core]=SAM_splash
+			[date]=$EPOCHSECONDS
+			[counter]=${sv_gametimer}
+			[name_scroll]="Video Playback"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+		)
+	
+		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+		tty_displayswitch=$(($gametimer / $ttycoresleep - 1))
+		write_to_TTY_cmd_pipe "display_info" &		
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		SECONDS=${elapsed}
 	fi
 	
 	if [ "$bgm" == "yes" ]; then
@@ -2868,7 +2885,8 @@ function samvideo_play() {
 		echo "\033[?25l" > /dev/tty2
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
-		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer "${options}" "$tmpvideo"
+		echo "Playing video now."
+		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -quiet "${options}" "$tmpvideo" >/dev/null 2>&1
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	next_core
