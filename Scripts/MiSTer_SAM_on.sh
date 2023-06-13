@@ -40,6 +40,7 @@ function init_vars() {
 	samprocess="$(basename -- "${0}")"
 	declare -g menuonly="Yes"
 	declare -gi inmenu=0
+	declare -gi sam_bgmmenu=0					  
 	declare -gi shown=0
 	declare -gi coreretries=3
 	declare -gi romloadfails=0
@@ -2839,6 +2840,13 @@ function sv_ar240() {
 
 ## Play video
 function samvideo_play() {
+	if [ ! -f "${mrsampath}"/mplayer ]; then
+		if [ -f "${mrsampath}"/mplayer.zip ]; then
+			unzip -ojq ""${mrsampath}"/mplayer.zip -d "${mrsampath}" # &>/dev/null
+		else
+			get_samvideo
+		fi
+	fi
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
@@ -3181,7 +3189,7 @@ function sam_menu() {
 		sam_coreconfig "Configure Core List" \
 		sam_exittask "Configure Exit Behavior" \
 		sam_filters "Filters (by Orientation or Category)" \
-		sam_bgm "Add-ons: Background Music Player, TTY2OLED" \
+		sam_bgm "Add-ons: SAMVIDEO, BGM, TTY2OLED" \
 		Gamemode "Game Roulette" \
 		Favorite "Copy current game to _Favorites folder" \
 		Reset "Reset or uninstall SAM" 2>"/tmp/.SAMmenu"
@@ -3971,80 +3979,104 @@ function samedit_excltags_old() {
 }
 
 function sam_bgmmenu() {
-	dialog --clear --no-cancel --ascii-lines \
-	--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER & TTY2OLED]" \
-	--msgbox "BGM\n----------------\nWhile SAM is shuffling games, play some music.\nThis installs wizzomafizzo's BGM script to play music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder.\n\n\nTTY2OLED\n----------------\nTTY2OLED is a hardware display for the MiSTer. ONLY ENABLE THIS IF YOU HAVE A TTY2OLED DISPLAY, or else SAM might not work correctly." 0 0
-	dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER & TTY2OLED]" \
-		--menu "Select from the following options?" 0 0 0 \
-		enablebgm "Enable BGM for SAM" \
-		disableplay "Disable BGM Play (in case songs play twice)" \
-		disablebgm "Disable BGM for SAM" \
-		enabletty "Enable TTY2OLED support for SAM" \
-		disabletty "Disable TTY2OLED support for SAM" 2>"/tmp/.SAMmenu" 
-
-	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
-	
-	if [ "$opt" != "0" ]; then
-		sam_menu
+	if [ "$sam_bgmmenu" == "0" ]; then
+		dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ SAMVIDEO, BGM & TTY2OLED ]" \
+		--msgbox "SAMVIDEO\n----------------\nSAM can play back video on the MiSTer\nBy default, playback alternates with other cores. You can change more settings in MiSTer_SAM.ini\n\n\nBGM\n----------------\nWhile SAM is shuffling games, play some music.\nThis installs wizzomafizzo's BGM script to play music in SAM.\n\nWe'll drop one playlist in the music folder (80s.pls) as a default playlist. You can customize this later or to your liking by dropping mp3's or pls files in /media/fat/music folder.\n\n\nTTY2OLED\n----------------\nTTY2OLED is a hardware display for the MiSTer. ONLY ENABLE THIS IF YOU HAVE A TTY2OLED DISPLAY, or else SAM might not work correctly." 0 0
+		sam_bgmmenu=1
+		sam_bgmmenu
 	else
-		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
-			if [[ "${menuresponse,,}" == "enablebgm" ]]; then
-				if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
-					echo " Installing BGM to Scripts folder"
-					repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-					get_samstuff bgm.sh /tmp
-					mv --force /tmp/bgm.sh /media/fat/Scripts/
-				else
-					echo " BGM script is installed already. Updating just in case..."
-					echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-					kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
-					rm /tmp/bgm.sock 2>/dev/null
-					repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-					get_samstuff bgm.sh /tmp
-					mv --force /tmp/bgm.sh /media/fat/Scripts/
-					echo " Resetting BGM now."
-				fi
-				echo " Updating MiSTer_SAM.ini to use Mute=Core"
-				sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
-				/media/fat/Scripts/bgm.sh
-				sync
-				repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-				get_samstuff Media/80s.pls /media/fat/music
-				[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
-				sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-				#echo " All Done. Starting SAM now."
-				#/media/fat/Scripts/MiSTer_SAM_on.sh start
-			elif [[ "${menuresponse,,}" == "disableplay" ]]; then
-				sed -i '/bgmplay=/c\bgmplay="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		dialog --clear --ascii-lines --no-tags \
+			--backtitle "Super Attract Mode" --title "[ SAMVIDEO, BGM & TTY2OLED ]" \
+			--menu "Select from the following options?" 0 0 0 \
+			enablesv "SAMVIDEO: Enable Video Playback for SAM" \
+			disablesv "SAMVIDEO: Disable Video Playback for SAM" \
+			enablehdmi "SAMVIDEO: CRT output" \
+			enablecrt "SAMVIDEO: HDMI output" \
+			enableyt "SAMVIDEO: Youtube Playback" \
+			enablear "SAMVIDEO: Archive Playback" \
+			enablebgm "BGM: Enable BGM for SAM" \
+			disableplay "BGM: Disable BGM Play (in case songs play twice)" \
+			disablebgm "BGM: Disable BGM for SAM" \
+			enabletty "TTY2OLED: Enable TTY2OLED support for SAM" \
+			disabletty "TTY2OLED: Disable TTY2OLED support for SAM" 2>"/tmp/.SAMmenu" 
 
-			elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
-				echo " Uninstalling BGM, please wait..."
-				echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-				[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
-				[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
-				[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
-				rm /tmp/bgm.sock 2>/dev/null
-				sed -i '/bgm.sh/d' ${userstartup}
-				sed -i '/Startup BGM/d' ${userstartup}
-				sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-				sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-				#echo " Done."
-			elif [[ "${menuresponse,,}" == "enabletty" ]]; then
-				sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			elif [[ "${menuresponse,,}" == "disabletty" ]]; then
-				sed -i '/ttyenablee=/c\ttyenable="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			fi
-			dialog --clear --ascii-lines --no-cancel \
-			--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
-			--msgbox "Changes saved!" 0 0
+		opt=$?
+		menuresponse=$(<"/tmp/.SAMmenu")
+		
+		if [ "$opt" != "0" ]; then
 			sam_menu
 		else
-			echo "Error: MiSTer_SAM.ini not found. Please update SAM first"
+			if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+				if [[ "${menuresponse,,}" == "enablebgm" ]]; then
+					if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
+						echo " Installing BGM to Scripts folder"
+						repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+						get_samstuff bgm.sh /tmp
+						mv --force /tmp/bgm.sh /media/fat/Scripts/
+					else
+						echo " BGM script is installed already. Updating just in case..."
+						echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+						kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
+						rm /tmp/bgm.sock 2>/dev/null
+						repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+						get_samstuff bgm.sh /tmp
+						mv --force /tmp/bgm.sh /media/fat/Scripts/
+						echo " Resetting BGM now."
+					fi
+					echo " Updating MiSTer_SAM.ini to use Mute=Core"
+					sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					/media/fat/Scripts/bgm.sh
+					sync
+					repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+					get_samstuff Media/80s.pls /media/fat/music
+					[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
+					sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					#echo " All Done. Starting SAM now."
+					#/media/fat/Scripts/MiSTer_SAM_on.sh start
+				elif [[ "${menuresponse,,}" == "disableplay" ]]; then
+					sed -i '/bgmplay=/c\bgmplay="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+
+				elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
+					echo " Uninstalling BGM, please wait..."
+					echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+					[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
+					[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
+					[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
+					rm /tmp/bgm.sock 2>/dev/null
+					sed -i '/bgm.sh/d' ${userstartup}
+					sed -i '/Startup BGM/d' ${userstartup}
+					sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					#echo " Done."
+				elif [[ "${menuresponse,,}" == "enabletty" ]]; then
+					sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				elif [[ "${menuresponse,,}" == "disabletty" ]]; then
+					sed -i '/ttyenable=/c\ttyenable="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				elif [[ "${menuresponse,,}" == "enablesv" ]]; then
+					sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				elif [[ "${menuresponse,,}" == "disablesv" ]]; then
+					sed -i '/samvideo=/c\samvideo="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				elif [[ "${menuresponse,,}" == "enableyt" ]]; then
+					sed -i '/samvideo_source=/c\samvideo_source="'"Youtube"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				elif [[ "${menuresponse,,}" == "enablear" ]]; then
+					sed -i '/samvideo_source=/c\samvideo_source="'"Archive"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				elif [[ "${menuresponse,,}" == "enablehdmi" ]]; then
+					sed -i '/samvideo_output=/c\samvideo_output="'"HDMI"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				elif [[ "${menuresponse,,}" == "enablecrt" ]]; then
+					sed -i '/samvideo_output=/c\samvideo_output="'"CRT"'"' /media/fat/Scripts/MiSTer_SAM.ini
+				fi
+				dialog --clear --ascii-lines --no-cancel \
+				--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
+				--msgbox "Changes saved!" 0 0
+				sam_bgmmenu
+			else
+				echo "Error: MiSTer_SAM.ini not found. Please update SAM first"
+			fi
 		fi
 	fi
 }
+
 
 
 
