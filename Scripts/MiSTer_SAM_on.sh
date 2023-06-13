@@ -2023,7 +2023,19 @@ function sam_prep() {
 	fi
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
-	[ "${samvideo}" == "yes" ] && misterini_mod
+	if [ "${samvideo}" == "yes" ]; then
+		misterini_mod
+		if [ ! -f "${mrsampath}"/mplayer ]; then
+			if [ -f "${mrsampath}"/mplayer.zip ]; then
+				unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}" # &>/dev/null
+			else
+				get_samvideo
+			fi
+		fi
+	fi
+	if [ ! -f "${mrsampath}"/ytdl ]; then
+			curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
+	fi
 
 }
 
@@ -2482,7 +2494,7 @@ function check_gamelists() {
 			done
 			#[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
 			#[ -n ${corelistupdate} ] && sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}"| tr ' ' ',') "
+			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}" ) "
 			echo "No games were found for these cores."
 		fi 
 		
@@ -2764,7 +2776,7 @@ function sv_yt360() {
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
-	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}')"
+	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}' >/dev/null 2>&1)"
 	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
 
 	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
@@ -2843,16 +2855,6 @@ function sv_ar240() {
 
 ## Play video
 function samvideo_play() {
-	if [ ! -f "${mrsampath}"/mplayer ]; then
-		if [ -f "${mrsampath}"/mplayer.zip ]; then
-			unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}" # &>/dev/null
-		else
-			get_samvideo
-		fi
-	fi
-	if [ ! -f "${mrsampath}"/ytdl ]; then
-			get_samvideo
-	fi
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
@@ -2873,7 +2875,7 @@ function samvideo_play() {
 	
 	#Show tty2oled splash
 	if [ "${ttyenable}" == "yes" ]; then
-		sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
+		sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}' >/dev/null 2>&1)"
 		tty_currentinfo=(
 			[core_pretty]="SAM Video Player"
 			[name]="Video Playback"
@@ -2906,7 +2908,7 @@ function samvideo_play() {
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
 		echo "Playing video now."
-		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer --really-quiet "${options}" "$tmpvideo" >/dev/null 2>&1
+		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer "${options}" "$tmpvideo" >/dev/null 2>&1
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	next_core
