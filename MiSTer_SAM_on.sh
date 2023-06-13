@@ -2691,6 +2691,8 @@ function write_to_TTY_cmd_pipe() {
 
 function misterini_mod() {
 
+	samdebug "samvideo_output: $samvideo_output"
+	samdebug "samvideo_source: $samvideo_source"
 	echo "For samvideo playback to work, we need to modify /media/fat/MiSTer.ini"
 	echo "This will be reset when SAM quits. If it doesn't reset, please delete the last two lines from the ini manually."
 	if [ -f "$ini_file" ]; then
@@ -2724,8 +2726,8 @@ function misterini_mod() {
 		if [ "$(tail -n1 "$ini_file")" != "${samvideo_crtmode}" ]; then
 			#append menu info
 			echo -e "\n[menu]" >> "$ini_file"
-			echo -e "${samvideo_crtmode}" >> "$ini_file"
 			echo -e "vga_scaler=1" >> "$ini_file"
+			echo -e "${samvideo_crtmode}" >> "$ini_file"
 			echo "[menu] entry created in $ini_file."
 
 		fi
