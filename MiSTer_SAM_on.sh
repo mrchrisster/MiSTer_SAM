@@ -4001,8 +4001,8 @@ function sam_bgmmenu() {
 			--menu "Select from the following options?" 0 0 0 \
 			enablesv "SAMVIDEO: Enable Video Playback for SAM" \
 			disablesv "SAMVIDEO: Disable Video Playback for SAM" \
-			enablehdmi "SAMVIDEO: CRT output" \
-			enablecrt "SAMVIDEO: HDMI output" \
+			enablecrt "SAMVIDEO: CRT output" \
+			enablehdmi "SAMVIDEO: HDMI output" \
 			enableyt "SAMVIDEO: Youtube Playback" \
 			enablear "SAMVIDEO: Archive Playback" \
 			enablebgm "BGM: Enable BGM for SAM" \
