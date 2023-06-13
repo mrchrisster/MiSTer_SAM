@@ -112,6 +112,7 @@ function init_vars() {
 	declare -gl samvideo
 	declare -gl samvideo_freq
 	declare -gl samvideo_output="hdmi"
+	declare -gl samvideo_source
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
@@ -2847,6 +2848,9 @@ function samvideo_play() {
 			get_samvideo
 		fi
 	fi
+	if [ ! -f "${mrsampath}"/ytdl ]; then
+			get_samvideo
+	fi
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt360
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
@@ -2857,6 +2861,12 @@ function samvideo_play() {
 		sv_ar240
 	elif [ "${samvideo_source}" == "local" ]; then
 		sv_local
+	fi
+	
+	if [ ! -s "$tmpvideo" ]; then
+		echo "No video was downloaded. Skipping video playback.."
+		next_core
+		return
 	fi
 	
 	#Show tty2oled splash
@@ -2894,7 +2904,7 @@ function samvideo_play() {
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
 		echo "Playing video now."
-		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -quiet "${options}" "$tmpvideo" >/dev/null 2>&1
+		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -really-quiet "${options}" "$tmpvideo" >/dev/null 2>&1
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	next_core
