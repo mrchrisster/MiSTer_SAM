@@ -1058,7 +1058,19 @@ function loop_core() { # loop_core (core)
 
 		while [ ${counter} -gt 0 ]; do
 			trap 'counter=0' INT #Break out of loop for skip & next command
-			echo -ne " Next game in ${counter}...\033[0K\r"
+			
+			#Only show game counter when samvideo is not active
+			if [ "${samvideo}" == "yes" ] && [ "$nextcore" == "samvideo" ]; then
+				if [ -f /tmp/sv_gametimer ]; then
+					counter=$(cat /tmp/sv_gametimer)	
+					rm /tmp/sv_gametimer 2>/dev/null
+				fi
+			else
+				echo -ne " Next game in ${counter}...\033[0K\r"
+			fi
+			
+
+
 			sleep 1
 			((counter--))
 
@@ -1110,7 +1122,7 @@ function loop_core() { # loop_core (core)
 function next_core() { # next_core (core)
 	
 	load_samvideo
-	if [ $? -ne 0 ]; then return; fi
+	if [ $? -ne 0 ]; then nextcore="samvideo" && return; fi
 	
 	if [[ ! ${corelist[*]} ]]; then
 		echo "ERROR: FATAL - List of cores is empty."
@@ -1152,12 +1164,14 @@ function load_samvideo() {
 	#Load the actual rom (or play a video)
 	if [ "${samvideo}" == "yes" ]; then		
 		if [ "${samvideo_freq}" == "only" ]; then
-			samvideo_play
+			activity_reset
+			samvideo_play &
 			return 1
 		elif [ "${samvideo_freq}" == "core" ]; then
 		  	echo "samvideo load core counter is now $sv_loadcounter"
 		  	if ((sv_loadcounter % ${#corelist[@]} == 0)); then
-				samvideo_play
+				activity_reset
+				samvideo_play &
 				sv_loadcounter=0
 				return 1
 		  	fi
@@ -1165,8 +1179,8 @@ function load_samvideo() {
 
 		elif [ "${samvideo_freq}" == "alternate" ]; then
 			if ((sv_loadcounter % 2 == 1)); then
-				samvideo_play
-				sv_loadcounter=0
+				activity_reset
+				samvideo_play &
 				return 1
 		  	else
 				return 0
@@ -1911,6 +1925,15 @@ function kill_all_sams() {
 	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
 }
 
+function play_or_exit() {
+	if [ "${playcurrentgame}" == "yes" ] && { [ ${mute} == "yes" ] || [ ${mute} == "global" ] || [ ${mute} == "core" ]; }; then
+		sam_exit 3
+	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
+		sam_exit 2
+	else
+		sam_exit 0
+	fi
+}
 
 function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
 	sam_cleanup
@@ -1938,16 +1961,6 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 	tty_exit
 	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
 
-}
-
-function play_or_exit() {
-	if [ "${playcurrentgame}" == "yes" ] && { [ ${mute} == "yes" ] || [ ${mute} == "global" ] || [ ${mute} == "core" ]; }; then
-		sam_exit 3
-	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
-		sam_exit 2
-	else
-		sam_exit 0
-	fi
 }
 
 
@@ -2834,8 +2847,8 @@ function sv_ar480() {
 	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_hdmilist.txt)"
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
-	echo "Preloading video to /tmp"
-	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"
+	echo "Preloading ${sv_selected} from archive.org for smooth playback"
+	wget --progress=dot:2 "$tmpvideo" "${sv_selected_url}"
 	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_hdmilist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_hdmilist.txt
 
 }
@@ -2849,8 +2862,8 @@ function sv_ar240() {
 	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_crtlist.txt)"
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
-	echo "Preloading video to /tmp"
-	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"
+	echo "Preloading ${sv_selected} from archive.org for smooth playback"
+	wget -q --progress=dot -O "$tmpvideo" "${sv_selected_url}"  
 	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_crtlist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_crtlist.txt
 	res_space="640 240"
 }
@@ -2874,10 +2887,10 @@ function samvideo_play() {
 		next_core
 		return
 	fi
-	
+	sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
+
 	#Show tty2oled splash
 	if [ "${ttyenable}" == "yes" ]; then
-		sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
 		tty_currentinfo=(
 			[core_pretty]="SAM Video Player"
 			[name]="Video Playback"
@@ -2907,13 +2920,16 @@ function samvideo_play() {
 		# TODO delete blinking cursor
 		#chvt 2
 		#echo "\033[?25l" > /dev/tty2
+		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
-		echo "Playing video now."
-		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -msglevel all=0:statusline=5 "${options}" "$tmpvideo" 2>/dev/null
+		echo -e "\nPlaying video now."
+		echo -e "Length: ${sv_gametimer} seconds\n"
+		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -msglevel all=0:statusline=5 "${options}" "$tmpvideo" 2>/dev/null 
+		rm /tmp/sv_gametimer 2>/dev/null
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
-	next_core
+	#next_core
 }
 
 
