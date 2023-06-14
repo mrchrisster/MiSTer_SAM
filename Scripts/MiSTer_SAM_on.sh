@@ -2884,7 +2884,7 @@ function samvideo_play() {
 	
 	if [ ! -s "$tmpvideo" ]; then
 		echo "No video was downloaded. Skipping video playback.."
-		next_core
+		echo "1" > /tmp/sv_gametimer
 		return
 	fi
 	sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
