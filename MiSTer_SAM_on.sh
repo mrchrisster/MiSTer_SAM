@@ -2776,7 +2776,7 @@ function sv_yt360() {
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
-	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "VIDEO:" | awk '{print $3}' >/dev/null 2>&1)"
+	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
 	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
 
 	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
@@ -2834,7 +2834,8 @@ function sv_ar480() {
 	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_hdmilist.txt)"
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
-	wget -O "$tmpvideo" "${sv_selected_url}"
+	echo "Preloading video to /tmp"
+	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"
 	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_hdmilist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_hdmilist.txt
 
 }
@@ -2848,7 +2849,8 @@ function sv_ar240() {
 	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_crtlist.txt)"
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
-	wget -O "$tmpvideo" "${sv_selected_url}"
+	echo "Preloading video to /tmp"
+	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"
 	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_crtlist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_crtlist.txt
 	res_space="640 240"
 }
@@ -2875,7 +2877,7 @@ function samvideo_play() {
 	
 	#Show tty2oled splash
 	if [ "${ttyenable}" == "yes" ]; then
-		sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}' >/dev/null 2>&1)"
+		sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
 		tty_currentinfo=(
 			[core_pretty]="SAM Video Player"
 			[name]="Video Playback"
@@ -2903,12 +2905,12 @@ function samvideo_play() {
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 		sleep "${samvideo_displaywait}"
 		# TODO delete blinking cursor
-		chvt 2
-		echo "\033[?25l" > /dev/tty2
+		#chvt 2
+		#echo "\033[?25l" > /dev/tty2
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
 		echo "Playing video now."
-		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer "${options}" "$tmpvideo" >/dev/null 2>&1
+		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -msglevel all=0:statusline=5 "${options}" "$tmpvideo" 2>/dev/null
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	next_core
