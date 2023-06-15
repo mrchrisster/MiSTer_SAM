@@ -2733,7 +2733,7 @@ function misterini_mod() {
 			ini_res="640x480"
 		fi
 		res_comma=$(echo "$ini_res" | tr 'x' ',')
-		new_value="${res_comma},24"
+		new_value="${res_comma},60"
 		# Use awk to modify the INI file
 		if awk -F= -v sec="$section" '$1 == sec { found = 1 } END { exit !found }' "$ini_file"; then
 			# Modify existing [Menu] section
