@@ -2922,7 +2922,7 @@ function samvideo_play() {
 		SECONDS=${elapsed}
 	fi
 	
-	if [ "$mute" != "no" ] || [ "$bgm" == "yes" ]; then
+	if [ "$mute" != "no" ]; then
 		options="-nosound"
 	fi
 	
