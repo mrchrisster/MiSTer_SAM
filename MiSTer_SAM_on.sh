@@ -2836,6 +2836,9 @@ function sv_local() {
 	fi
 	tmpvideo=$(cat /tmp/.SAM_List/sv_local_list.txt | shuf -n1)
 	awk -vLine="$tmpvideo" '!index($0,Line)' /tmp/.SAM_List/sv_local_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_local_list.txt
+	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
+	res_space=$(echo "$res" | tr 'x' ' ')
+
 }
 
 function sv_ar480() {
@@ -2850,7 +2853,7 @@ function sv_ar480() {
 	echo "Preloading ${sv_selected} from archive.org for smooth playback"
 	wget --progress=dot:2 "$tmpvideo" "${sv_selected_url}"
 	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_hdmilist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_hdmilist.txt
-
+	res_space="640 480"
 }
 
 function sv_ar240() {
@@ -2922,6 +2925,7 @@ function samvideo_play() {
 		#echo "\033[?25l" > /dev/tty2
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
+		echo "Resolution: ${res_space}"
 		vmode -r ${res_space} rgb32
 		echo -e "\nPlaying video now."
 		echo -e "Length: ${sv_gametimer} seconds\n"
