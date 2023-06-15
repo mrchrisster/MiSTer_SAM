@@ -2715,7 +2715,6 @@ function write_to_TTY_cmd_pipe() {
 
 
 function misterini_mod() {
-
 	samdebug "samvideo_output: $samvideo_output"
 	samdebug "samvideo_source: $samvideo_source"
 	echo "For samvideo playback to work, we need to modify /media/fat/MiSTer.ini"
@@ -2725,19 +2724,23 @@ function misterini_mod() {
 	else
 		touch "$ini_file"
 	fi
+	section="[Menu]"
+
 	if [ "$samvideo_output" == "hdmi" ]; then
 		if [ "${samvideo_source}" == "youtube" ]; then
-			ini_res=640x360
+			ini_res="640x360"
 		else
-			ini_res=640x480
+			ini_res="640x480"
 		fi
 		res_comma=$(echo "$ini_res" | tr 'x' ',')
-		
-		if [ "$(tail -n1 "$ini_file")" != "video_mode=${res_comma},60" ]; then
-			#append menu info
-			echo -e "\n[menu]" >> "$ini_file"
-			echo -e "video_mode=${res_comma},60" >> "$ini_file"
-			echo "[menu] entry created in $ini_file."
+		new_value="${res_comma},24"
+		# Use awk to modify the INI file
+		if awk -F= -v sec="$section" '$1 == sec { found = 1 } END { exit !found }' "$ini_file"; then
+			# Modify existing [Menu] section
+			sed -i "/$section/,/^\[/ s|^video_mode=.*|video_mode=$new_value|" "$ini_file"
+		else
+			# Append [Menu] section with new entry to the INI file
+			printf "\n%s\nvideo_mode=%s\n" "$section" "$new_value" >> "$ini_file"
 		fi
 	#CRT mode	
 	elif [ "$samvideo_output" == "crt" ]; then
@@ -2748,15 +2751,19 @@ function misterini_mod() {
 			echo "Archive and CRT: Setting CRT out to 640x240"
 			samvideo_crtmode="${samvideo_crtmode640}"
 		fi
-		if [ "$(tail -n1 "$ini_file")" != "${samvideo_crtmode}" ]; then
-			#append menu info
-			echo -e "\n[menu]" >> "$ini_file"
-			echo -e "vga_scaler=1" >> "$ini_file"
-			echo -e "${samvideo_crtmode}" >> "$ini_file"
-			echo "[menu] entry created in $ini_file."
-
+		new_value="$(echo $samvideo_crtmode |awk -F'=' '{print $2}')"
+		# Use awk to modify the INI file
+		if awk -F= -v sec="$section" '$1 == sec { found = 1 } END { exit !found }' "$ini_file"; then
+			# Modify existing [Menu] section
+    		sed -i "/$section/,/^\[/ s|^\(video_mode=\).*|\1$new_value\nvga_scaler=1|" "$ini_file"
+		else
+			# Append [Menu] section with new entry to the INI file
+    		printf "\n%s\nvideo_mode=%s\nvga_scaler=1\n" "$section" "$new_value" >> "$ini_file"
 		fi
+
 	fi
+	
+	
 }
 
 function misterini_reset() {
@@ -2830,17 +2837,6 @@ function sv_yt240() {
 	res_space="640 240"
 }
 
-function sv_local() {
-	if [ ! -s /tmp/.SAM_List/sv_local_list.txt ]; then
-		find "$samvideo_path" -type f > /tmp/.SAM_List/sv_local_list.txt
-	fi
-	tmpvideo=$(cat /tmp/.SAM_List/sv_local_list.txt | shuf -n1)
-	awk -vLine="$tmpvideo" '!index($0,Line)' /tmp/.SAM_List/sv_local_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_local_list.txt
-	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
-	res_space=$(echo "$res" | tr 'x' ' ')
-
-}
-
 function sv_ar480() {
 	http_archive=${sv_archive_hdmilist//https/http}
 	if [ ! -s /tmp/.SAM_List/sv_archive_hdmilist.txt ]; then
@@ -2871,6 +2867,18 @@ function sv_ar240() {
 	res_space="640 240"
 }
 
+function sv_local() {
+	if [ ! -s /tmp/.SAM_List/sv_local_list.txt ]; then
+		find "$samvideo_path" -type f > /tmp/.SAM_List/sv_local_list.txt
+	fi
+	tmpvideo=$(cat /tmp/.SAM_List/sv_local_list.txt | shuf -n1)
+	awk -vLine="$tmpvideo" '!index($0,Line)' /tmp/.SAM_List/sv_local_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_local_list.txt
+	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
+	res_space=$(echo "$res" | tr 'x' ' ')
+	res_comma=$(echo "$res" | tr 'x' ',')
+
+}
+
 ## Play video
 function samvideo_play() {
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
@@ -2884,6 +2892,7 @@ function samvideo_play() {
 	elif [ "${samvideo_source}" == "local" ]; then
 		sv_local
 	fi
+	
 	
 	if [ ! -s "$tmpvideo" ]; then
 		echo "No video was downloaded. Skipping video playback.."
@@ -2923,6 +2932,7 @@ function samvideo_play() {
 		# TODO delete blinking cursor
 		#chvt 2
 		#echo "\033[?25l" > /dev/tty2
+		#setterm -cursor off
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		echo "Resolution: ${res_space}"
