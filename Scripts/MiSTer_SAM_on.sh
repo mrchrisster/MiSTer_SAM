@@ -1992,7 +1992,7 @@ function init_paths() {
 
 function sam_prep() {
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
-	[ ! -d "${mrsampath}/video" ] && mkdir -p "${mrsampath}/video"
+	[ ! -d "${misterpath}/video" ] && mkdir -p "${misterpath}/video"
 	[[ -f /tmp/SAM_game.previous.mgl ]] && rm /tmp/SAM_game.previous.mgl
 	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
 	[[ ! -d "${mrsamtmp}" ]] && mkdir -p "${mrsamtmp}"
@@ -2851,7 +2851,7 @@ function sv_ar480() {
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
 	echo "Preloading ${sv_selected} from archive.org for smooth playback"
-	wget --progress=dot:2 "$tmpvideo" "${sv_selected_url}"
+	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"
 	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_hdmilist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_hdmilist.txt
 	res_space="640 480"
 }
@@ -2866,7 +2866,7 @@ function sv_ar240() {
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
 	echo "Preloading ${sv_selected} from archive.org for smooth playback"
-	wget -q --progress=dot -O "$tmpvideo" "${sv_selected_url}"  
+	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"  
 	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_crtlist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_crtlist.txt
 	res_space="640 240"
 }
