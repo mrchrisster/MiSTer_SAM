@@ -2930,11 +2930,11 @@ function samvideo_play() {
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 		sleep "${samvideo_displaywait}"
 		# TODO delete blinking cursor
-		#chvt 2
 		#echo "\033[?25l" > /dev/tty2
 		#setterm -cursor off
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
+		chvt 2
 		echo "Resolution: ${res_space}"
 		vmode -r ${res_space} rgb32
 		echo -e "\nPlaying video now."
