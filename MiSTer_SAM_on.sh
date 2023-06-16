@@ -2841,7 +2841,7 @@ function sv_ar480() {
 	http_archive=${sv_archive_hdmilist//https/http}
 	if [ ! -s /tmp/.SAM_List/sv_archive_hdmilist.txt ]; then
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' > /tmp/.SAM_List/sv_archive_hdmilist.txt
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > /tmp/.SAM_List/sv_archive_hdmilist.txt
 	fi
 	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_hdmilist.txt)"
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
@@ -2856,7 +2856,7 @@ function sv_ar240() {
 	http_archive=${sv_archive_crtlist//https/http}
 	if [ ! -s /tmp/.SAM_List/sv_archive_crtlist.txt ]; then
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' > /tmp/.SAM_List/sv_archive_crtlist.txt
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > /tmp/.SAM_List/sv_archive_crtlist.txt
 	fi
 	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_crtlist.txt)"
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
