@@ -163,6 +163,7 @@ function tty_display() { # tty_update core game
 			splash=1
 		fi
 		source "${tty_currentinfo_file}"
+		gametimer="${tty_currentinfo[counter]}"
 		sleepfile_expiration=$((tty_currentinfo[date] + (tty_currentinfo[counter] + 10)))
 		echo "${sleepfile_expiration}" >${tty_sleepfile}
 		# Wait for tty2oled daemon to show the core logo
