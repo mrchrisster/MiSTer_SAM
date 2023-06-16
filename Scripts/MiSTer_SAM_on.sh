@@ -2783,11 +2783,13 @@ function sv_yt360() {
 
 	while [ -z "$url" ]; do
 		url=$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)
-		"${mrsampath}/ytdl" --format "best[height=360][ext=mp4]" --no-continue -o "$tmpvideo" "$url"
+		"${mrsampath}/ytdl" --format "best[height=360][ext=mp4]" --no-continue -o /tmp/"%(title)s (YT).mp4" "$url"
 		exit_code=$?
 
 		if [ $exit_code -eq 0 ]; then
 			echo "Download successful!"
+			sv_selected="$(ls /tmp | grep "(YT)")"
+			mv /tmp/"${sv_selected}" "${tmpvideo}"
 			break  # Exit the loop if the download was successful
 		else
 			echo "Invalid URL or download error. Retrying with another URL..."
@@ -2820,11 +2822,13 @@ function sv_yt240() {
 
 	while [ -z "$url" ]; do
 		url=$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)
-		"${mrsampath}/ytdl" --format "best[height=240][ext=mp4]" --no-continue -o "$tmpvideo" "$url"
+		"${mrsampath}/ytdl" --format "best[height=240][ext=mp4]" --no-continue -o /tmp/"%(title)s (YT).mp4" "$url"
 		exit_code=$?
 
 		if [ $exit_code -eq 0 ]; then
 			echo "Download successful!"
+			sv_selected="$(ls /tmp | grep "(YT)")"
+			mv /tmp/"${sv_selected}" "${tmpvideo}"
 			break  # Exit the loop if the download was successful
 		else
 			echo "Invalid URL or download error. Retrying with another URL..."
@@ -2909,7 +2913,7 @@ function samvideo_play() {
 			[core]=SAM_splash
 			[date]=$EPOCHSECONDS
 			[counter]=${sv_gametimer}
-			[name_scroll]="Video Playback"
+			[name_scroll]="${sv_selected%.*:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
@@ -2937,7 +2941,8 @@ function samvideo_play() {
 		chvt 2
 		echo "Resolution: ${res_space}"
 		vmode -r ${res_space} rgb32
-		echo -e "\nPlaying video now."
+		echo -e "\nPlaying video now.\n"
+		echo -e "Title: ${sv_selected%.*}"
 		echo -e "Length: ${sv_gametimer} seconds\n"
 		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -msglevel all=0:statusline=5 "${options}" "$tmpvideo" 2>/dev/null 
 		rm /tmp/sv_gametimer 2>/dev/null
