@@ -2904,16 +2904,17 @@ function samvideo_play() {
 		return
 	fi
 	sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
+	sv_title=${sv_selected%.*}
 
 	#Show tty2oled splash
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
 			[core_pretty]="SAM Video Player"
-			[name]="Video Playback"
+			[name]="${sv_title}"
 			[core]=SAM_splash
 			[date]=$EPOCHSECONDS
 			[counter]=${sv_gametimer}
-			[name_scroll]="${sv_selected%.*:0:21}"
+			[name_scroll]="${sv_title:0:21}"
 			[name_scroll_position]=0
 			[name_scroll_direction]=1
 			[update_pause]=${ttyupdate_pause}
@@ -2939,11 +2940,12 @@ function samvideo_play() {
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		chvt 2
-		echo "Resolution: ${res_space}"
 		vmode -r ${res_space} rgb32
 		echo -e "\nPlaying video now.\n"
 		echo -e "Title: ${sv_selected%.*}"
+		echo -e "Resolution: ${res_space}"
 		echo -e "Length: ${sv_gametimer} seconds\n"
+
 		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -msglevel all=0:statusline=5 "${options}" "$tmpvideo" 2>/dev/null 
 		rm /tmp/sv_gametimer 2>/dev/null
 	fi
