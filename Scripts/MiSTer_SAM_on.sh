@@ -2037,9 +2037,12 @@ function sam_prep() {
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 	if [ "${samvideo}" == "yes" ]; then
-		echo 0 > /sys/class/graphics/fbcon/cursor_blink
+		# Hide login prompt
 		echo -e '\033[2J' > /dev/tty1
-
+		# Hide blinking cursor
+		echo 0 > /sys/class/graphics/fbcon/cursor_blink
+		echo -e '\033[?17;0;0c' > /dev/tty1 
+		
 		misterini_mod
 		if [ ! -f "${mrsampath}"/mplayer ]; then
 			if [ -f "${mrsampath}"/mplayer.zip ]; then
@@ -2065,7 +2068,8 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
 	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
 	if [ "${samvideo}" == "yes" ]; then
-		
+		echo 1 > /sys/class/graphics/fbcon/cursor_blink
+		echo 'Login:' > /dev/tty1 
 		misterini_reset
 	fi
 	samdebug "Cleanup done."
@@ -2942,7 +2946,7 @@ function samvideo_play() {
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 		sleep "${samvideo_displaywait}"
 		# TODO delete blinking cursor
-		#echo "\033[?25l" > /dev/tty2
+		#echo "\033[?25l" > /dev/tty1
 		#setterm -cursor off
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
