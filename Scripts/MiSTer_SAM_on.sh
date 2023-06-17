@@ -2069,6 +2069,9 @@ function sam_cleanup() {
 	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
 	if [ "${samvideo}" == "yes" ]; then
 		echo 1 > /sys/class/graphics/fbcon/cursor_blink
+		echo 'Super Attract Mode Video was used.' > /dev/tty1 
+		echo 'Please reboot for proper MiSTer Terminal' > /dev/tty1 
+		echo '' > /dev/tty1 
 		echo 'Login:' > /dev/tty1 
 		misterini_reset
 	fi
