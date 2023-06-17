@@ -2037,6 +2037,9 @@ function sam_prep() {
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 	if [ "${samvideo}" == "yes" ]; then
+		echo 0 > /sys/class/graphics/fbcon/cursor_blink
+		#echo 0 > /sys/class/graphics/fb0/blank 
+
 		misterini_mod
 		if [ ! -f "${mrsampath}"/mplayer ]; then
 			if [ -f "${mrsampath}"/mplayer.zip ]; then
@@ -2061,7 +2064,10 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
 	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
-	[ "${samvideo}" == "yes" ] && misterini_reset
+	if [ "${samvideo}" == "yes" ]; then
+		#echo 0 > /sys/class/graphics/fb0/blank
+		misterini_reset
+	fi
 	samdebug "Cleanup done."
 }
 
@@ -2719,6 +2725,7 @@ function misterini_mod() {
 	samdebug "samvideo_source: $samvideo_source"
 	echo "For samvideo playback to work, we need to modify /media/fat/MiSTer.ini"
 	echo "This will be reset when SAM quits. If it doesn't reset, please delete the last two lines from the ini manually."
+	echo "We will also blank out the terminal, please restart to reset"
 	if [ -f "$ini_file" ]; then
 		cp "$ini_file" "${ini_file}".sam
 	else
