@@ -2911,6 +2911,10 @@ function samvideo_play() {
 		sv_local
 	fi
 	
+	if [ -z ${sv_selected} ]; then
+		echo "Error while downloading"
+		return
+	fi
 	
 	if [ ! -s "$tmpvideo" ]; then
 		echo "No video was downloaded. Skipping video playback.."
