@@ -2038,7 +2038,7 @@ function sam_prep() {
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 	if [ "${samvideo}" == "yes" ]; then
 		echo 0 > /sys/class/graphics/fbcon/cursor_blink
-		#echo 0 > /sys/class/graphics/fb0/blank 
+		echo -e '\033[2J' > /dev/tty1
 
 		misterini_mod
 		if [ ! -f "${mrsampath}"/mplayer ]; then
@@ -2065,7 +2065,7 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
 	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
 	if [ "${samvideo}" == "yes" ]; then
-		#echo 0 > /sys/class/graphics/fb0/blank
+		
 		misterini_reset
 	fi
 	samdebug "Cleanup done."
@@ -2946,7 +2946,7 @@ function samvideo_play() {
 		#setterm -cursor off
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
-		chvt 2
+		#chvt 2
 		vmode -r ${res_space} rgb32
 		echo -e "\nPlaying video now.\n"
 		echo -e "Title: ${sv_selected%.*}"
