@@ -2911,7 +2911,7 @@ function samvideo_play() {
 		sv_local
 	fi
 	
-	if [ -z ${sv_selected} ]; then
+	if [ -z "${sv_selected}" ]; then
 		echo "Error while downloading"
 		return
 	fi
