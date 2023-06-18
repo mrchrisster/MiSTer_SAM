@@ -2747,15 +2747,25 @@ function misterini_mod() {
 			ini_res="640x480"
 		fi
 		res_comma=$(echo "$ini_res" | tr 'x' ',')
-		new_value="${res_comma},60"
-		# Use awk to modify the INI file
-		if awk -F= -v sec="$section" '$1 == sec { found = 1 } END { exit !found }' "$ini_file"; then
-			# Modify existing [Menu] section
-			sed -i "/$section/,/^\[/ s|^video_mode=.*|video_mode=$new_value|" "$ini_file"
+		video_mode="${res_comma},60"
+		fb_terminal="1"
+		vga_scaler="1"
+		# Use sed to modify the INI file
+		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
+  		# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
+		  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
+			/^video_mode[[:space:]]*=/ { s/=.*/=${video_mode}/ }
+			/^fb_terminal[[:space:]]*=/ { s/=.*/=${fb_terminal}/ }
+			/^vga_scaler[[:space:]]*=/ { s/=.*/=${vga_scaler}/ }
+			/^\[.*\]/! {
+			  /^\s*$/d
+			}
+		  }" "$ini_file"
 		else
-			# Append [Menu] section with new entry to the INI file
-			printf "\n%s\nvideo_mode=%s\n" "$section" "$new_value" >> "$ini_file"
+		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
+		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nvga_scaler=${vga_scaler}\n" >> "$ini_file"
 		fi
+
 	#CRT mode	
 	elif [ "$samvideo_output" == "crt" ]; then
 		if [ "$samvideo_source" == "youtube" ]; then
@@ -2765,14 +2775,24 @@ function misterini_mod() {
 			echo "Archive and CRT: Setting CRT out to 640x240"
 			samvideo_crtmode="${samvideo_crtmode640}"
 		fi
-		new_value="$(echo $samvideo_crtmode |awk -F'=' '{print $2}')"
+		video_mode="$(echo $samvideo_crtmode |awk -F'=' '{print $2}')"
+		# Use sed to modify the INI file
+		fb_terminal="1"
+		vga_scaler="1"
 		# Use awk to modify the INI file
-		if awk -F= -v sec="$section" '$1 == sec { found = 1 } END { exit !found }' "$ini_file"; then
-			# Modify existing [Menu] section
-    		sed -i "/$section/,/^\[/ s|^\(video_mode=\).*|\1$new_value\nvga_scaler=1|" "$ini_file"
+		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
+  		# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
+		  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
+			/^video_mode[[:space:]]*=/ { s/=.*/=${video_mode}/ }
+			/^fb_terminal[[:space:]]*=/ { s/=.*/=${fb_terminal}/ }
+			/^vga_scaler[[:space:]]*=/ { s/=.*/=${vga_scaler}/ }
+			/^\[.*\]/! {
+			  /^\s*$/d
+			}
+		  }" "$ini_file"
 		else
-			# Append [Menu] section with new entry to the INI file
-    		printf "\n%s\nvideo_mode=%s\nvga_scaler=1\n" "$section" "$new_value" >> "$ini_file"
+		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
+		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nvga_scaler=${vga_scaler}\n" >> "$ini_file"
 		fi
 
 	fi
