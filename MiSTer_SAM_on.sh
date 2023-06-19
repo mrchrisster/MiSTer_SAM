@@ -2044,17 +2044,16 @@ function sam_prep() {
 		echo -e '\033[?17;0;0c' > /dev/tty1 
 		
 		misterini_mod
-		if [ ! -f "${mrsampath}"/mplayer ]; then
+		if [ ! -f "${mrsampath}"/mplayer ] || [ ! -f "${mrsampath}"/ytdl ]; then
 			if [ -f "${mrsampath}"/mplayer.zip ]; then
-				unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}" # &>/dev/null
+				unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}"
+				curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
 			else
 				get_samvideo
 			fi
 		fi
 	fi
-	if [ ! -f "${mrsampath}"/ytdl ]; then
-			curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
-	fi
+
 
 }
 
@@ -2073,7 +2072,7 @@ function sam_cleanup() {
 		echo 'Please reboot for proper MiSTer Terminal' > /dev/tty1 
 		echo '' > /dev/tty1 
 		echo 'Login:' > /dev/tty1 
-		misterini_reset
+		#misterini_reset
 	fi
 	samdebug "Cleanup done."
 }
@@ -2730,16 +2729,17 @@ function write_to_TTY_cmd_pipe() {
 function misterini_mod() {
 	samdebug "samvideo_output: $samvideo_output"
 	samdebug "samvideo_source: $samvideo_source"
-	echo "For samvideo playback to work, we need to modify /media/fat/MiSTer.ini"
-	echo "This will be reset when SAM quits. If it doesn't reset, please delete the last two lines from the ini manually."
-	echo "We will also blank out the terminal, please restart to reset"
-	if [ -f "$ini_file" ]; then
-		cp "$ini_file" "${ini_file}".sam
-	else
-		touch "$ini_file"
-	fi
-	section="[Menu]"
+	echo "WARNING: For samvideo playback to work, we need to modify /media/fat/MiSTer.ini"
+	#echo "This will be reset when SAM quits. If it doesn't reset, please delete the last two lines from the ini manually."
+	#echo "We will also blank out the terminal, please restart to reset"
+	#if [ -f "$ini_file" ]; then
+	#	cp "$ini_file" "${ini_file}".sam
+	#else
+	#	touch "$ini_file"
+	#fi
 
+	fb_terminal="1"
+	vga_scaler="1"
 	if [ "$samvideo_output" == "hdmi" ]; then
 		if [ "${samvideo_source}" == "youtube" ]; then
 			ini_res="640x360"
@@ -2748,22 +2748,21 @@ function misterini_mod() {
 		fi
 		res_comma=$(echo "$ini_res" | tr 'x' ',')
 		video_mode="${res_comma},60"
-		fb_terminal="1"
-		vga_scaler="1"
+
 		# Use sed to modify the INI file
-		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-  		# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
-		  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
-			/^video_mode[[:space:]]*=/ { s/=.*/=${video_mode}/ }
-			/^fb_terminal[[:space:]]*=/ { s/=.*/=${fb_terminal}/ }
-			/^vga_scaler[[:space:]]*=/ { s/=.*/=${vga_scaler}/ }
-			/^\[.*\]/! {
-			  /^\s*$/d
-			}
-		  }" "$ini_file"
-		else
-		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
-		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nvga_scaler=${vga_scaler}\n" >> "$ini_file"
+		if grep -qE "fb_terminal=0" "$ini_file"; then
+			if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
+			# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
+			  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
+				/^fb_terminal[[:space:]]*=/ { s/=.*/=${fb_terminal}/ }
+				/^\[.*\]/! {
+				  /^\s*$/d
+				}
+			  }" "$ini_file"
+			else
+			  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
+			  echo -e "[menu]\nfb_terminal=${fb_terminal}\n" >> "$ini_file"
+			fi
 		fi
 
 	#CRT mode	
@@ -2776,20 +2775,36 @@ function misterini_mod() {
 			samvideo_crtmode="${samvideo_crtmode640}"
 		fi
 		video_mode="$(echo $samvideo_crtmode |awk -F'=' '{print $2}')"
-		# Use sed to modify the INI file
-		fb_terminal="1"
-		vga_scaler="1"
-		# Use awk to modify the INI file
+		# Use sed to modify the INI file 
 		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-  		# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
-		  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
-			/^video_mode[[:space:]]*=/ { s/=.*/=${video_mode}/ }
-			/^fb_terminal[[:space:]]*=/ { s/=.*/=${fb_terminal}/ }
-			/^vga_scaler[[:space:]]*=/ { s/=.*/=${vga_scaler}/ }
-			/^\[.*\]/! {
-			  /^\s*$/d
-			}
-		  }" "$ini_file"
+			samdebug "[menu] entry found in MiSTer.ini"
+			if ! grep -qE "${video_mode}" "$ini_file"; then
+			  samdebug "Setting video_mode to ${video_mode}"
+				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
+				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
+					/^video_mode[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				video_mode=${video_mode}
+						}
+					}
+					/^fb_terminal[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				fb_terminal=${fb_terminal}
+						}
+					}
+					/^vga_scaler[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				vga_scaler=${vga_scaler}
+						}
+					}
+					/^\[.*\]/! {
+						/^\s*$/d
+					}
+				}" "$ini_file"
+			fi
 		else
 		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
 		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nvga_scaler=${vga_scaler}\n" >> "$ini_file"
@@ -2933,6 +2948,7 @@ function samvideo_play() {
 	
 	if [ -z "${sv_selected}" ]; then
 		echo "Error while downloading"
+		echo "1" > /tmp/sv_gametimer
 		return
 	fi
 	
@@ -2978,7 +2994,11 @@ function samvideo_play() {
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		#chvt 2
-		vmode -r ${res_space} rgb32
+		if [ -z "${sv_custom_vmode}" ]; then
+			vmode -r ${res_space} rgb32
+		else
+			vmode -r ${sv_custom_vmode} rgb32
+		fi
 		echo -e "\nPlaying video now.\n"
 		echo -e "Title: ${sv_selected%.*}"
 		echo -e "Resolution: ${res_space}"
@@ -3473,7 +3493,7 @@ function sam_mute() {
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		enablemute "Mute Volume for all Cores" \
-		disablemute "Unmute Volume fore all Cores" \
+		disablemute "Unmute Volume for all Cores" \
 		globalmute "Mute Global Volume (not recommended)" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
@@ -4087,7 +4107,6 @@ function sam_bgmmenu() {
 			enableyt "SAMVIDEO: Youtube Playback" \
 			enablear "SAMVIDEO: Archive Playback" \
 			enablebgm "BGM: Enable BGM for SAM" \
-			disableplay "BGM: Disable BGM Play (in case songs play twice)" \
 			disablebgm "BGM: Disable BGM for SAM" \
 			enabletty "TTY2OLED: Enable TTY2OLED support for SAM" \
 			disabletty "TTY2OLED: Disable TTY2OLED support for SAM" 2>"/tmp/.SAMmenu" 
