@@ -1749,7 +1749,7 @@ function load_core_amiga() {
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
 		# This is for MegaAGS version June 2022 or older
 		echo -n "Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[${amiga}]}\e[0m: "
+		echo -ne "\e[4m${CORE_PRETTY[amiga]}\e[0m: "
 		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
 
 		# Tell MiSTer to load the next MRA
