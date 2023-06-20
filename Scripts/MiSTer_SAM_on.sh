@@ -806,14 +806,12 @@ function init_data() {
 	
 	
 	declare -glA SV_TVC=(
-		["fds"]="nes"
+		["fds"]="^nes-"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
-		["gba"]="gba"
 		["genesis"]="genesis"
-		["gg"]="gg"
 		["megacd"]="megacd"
-		["nes"]="nes"
+		["nes"]="^nes-"
 		["snes"]="snes"
 		["tgfx16cd"]="turboduo"
 		["psx"]="psx"
@@ -1150,10 +1148,13 @@ function next_core() { # next_core (core)
 	# Pick a core if no corename was supplied as argument (eg "MiSTer_SAM_on.sh psx")
 	if [ -z "${1}" ]; then
 		corelist_update	
-		create_all_gamelists	
-		pick_core
-
-	fi
+		create_all_gamelists
+		if [ "$samvideo_tvc" != "yes" ]; then
+			pick_core
+		else
+			nextcore=$(cat /tmp/sv_core)
+		fi
+	fi	
 	
 	load_special_core
 	if [ $? -ne 0 ]; then return; fi
@@ -1194,6 +1195,7 @@ function load_samvideo() {
 				sv_loadcounter=0
 				return 1
 		  	fi
+		  	sv_nextcore=""
 		  	return 0
 
 		elif [ "${samvideo_freq}" == "alternate" ]; then
@@ -1202,6 +1204,7 @@ function load_samvideo() {
 				samvideo_play &
 				return 1
 		  	else
+		  		sv_nextcore=""
 				return 0
 			fi
 		fi
@@ -1297,11 +1300,8 @@ function check_gamelistupdate() {
 #Pick next core
 function pick_core(){
 	
-	if [ "$samvideo_tvc" != "yes" ]; then
-		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
-	else
-		nextcore=$(cat /tmp/sv_core)
-	fi
+	nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
+
 	
 	if [[ ! "${nextcore}" ]]; then
 		samdebug "nextcore empty. Using arcade core for now"
@@ -2777,9 +2777,9 @@ function misterini_mod() {
 
 		# Use sed to modify the INI file
 		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-			samdebug "[menu] entry found in MiSTer.ini"
+			echo "[menu] entry found in MiSTer.ini"
 			if ! grep -qE "video_mode=${video_mode}" "$ini_file"; then
-			  samdebug "Setting video_mode to ${video_mode}"
+			  echo "Setting video_mode to ${video_mode}"
 				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
 				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
 					/^video_mode[[:space:]]*=/! { 
@@ -2805,7 +2805,7 @@ function misterini_mod() {
 					}
 				}" "$ini_file"
 			else
-				samdebug "No MiSTer.ini modification necessary"
+				echo "No MiSTer.ini modification necessary"
 			fi
 		else
 		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
@@ -2826,9 +2826,9 @@ function misterini_mod() {
 		
 		# Use sed to modify the INI file 
 		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-			samdebug "[menu] entry found in MiSTer.ini"
+			echo "[menu] entry found in MiSTer.ini"
 			if ! grep -qE "${video_mode}" "$ini_file"; then
-			  samdebug "Setting video_mode to ${video_mode}"
+			  echo "Setting video_mode to ${video_mode}"
 				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
 				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
 					/^video_mode[[:space:]]*=/! { 
@@ -2854,7 +2854,7 @@ function misterini_mod() {
 					}
 				}" "$ini_file"
 			else
-				samdebug "No MiSTer.ini modification necessary"
+				echo "No MiSTer.ini modification necessary"
 			fi
 		else
 		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
@@ -2946,7 +2946,10 @@ function sv_ar480() {
 	http_archive=${sv_archive_hdmilist//https/http}
 	if [ ! -s ${samvideo_list} ]; then
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > ${samvideo_list}
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
+			| sed 's/<file name="//;s/"$//' \
+			| sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
+			> ${samvideo_list}
 	fi
 	# Select a video
 	if [ "$samvideo_tvc" == "yes" ]; then
@@ -2968,8 +2971,11 @@ function sv_ar240() {
 	http_archive=${sv_archive_crtlist//https/http}
 	if [ ! -s ${samvideo_list} ]; then
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > ${samvideo_list}
-	fi
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
+			| sed 's/<file name="//;s/"$//' \
+			| sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
+			> ${samvideo_list}
+    fi
 	# Select a video
 	if [ "$samvideo_tvc" == "yes" ]; then
 		samvideo_tvc
@@ -3002,7 +3008,9 @@ function samvideo_tvc() {
 	samdebug "samvideo corelist: ${!SV_TVC[@]}"
 	nextcore=$(printf "%s\n" "${!SV_TVC[@]}" | shuf --random-source=/dev/urandom | head -1)
 	echo $nextcore > /tmp/sv_core
+	samdebug "Searching for ${SV_TVC[$nextcore]}"
 	sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
+	samdebug "Picked $sv_selected"
 }
 
 ## Play video
@@ -3371,11 +3379,11 @@ function sam_menu() {
 		Stop "Stop SAM" \
 		Update "Update SAM to latest" \
 		----- "-----------------------------" \
-		gamemode "Presets and Game Modes" \
 		sam_coreconfig "Configure Core List" \
 		sam_exittask "Configure Exit Behavior" \
 		sam_filters "Filters (by Orientation or Category)" \
 		sam_bgm "Add-ons: SAMVIDEO, BGM, TTY2OLED" \
+		gamemode "Presets and Game Modes" \
 		config "MiSTer_SAM.ini Editor" \
 		Settings "Settings" \
 		Reset "Reset or uninstall SAM" 2>"/tmp/.SAMmenu"
@@ -3386,6 +3394,10 @@ function sam_menu() {
 	
 	if [ "$opt" != "0" ]; then
 		exit
+	elif [[ "${menuresponse,,}" == "start" ]]; then
+		/media/fat/Scripts/MiSTer_SAM_on.sh start
+	elif [[ "${menuresponse,,}" == "startmonitor" ]]; then
+		/media/fat/Scripts/MiSTer_SAM_on.sh sm
 	elif [[ "${menuresponse,,}" == "sam_coreconfig" ]]; then
 		sam_coreconfig
 	elif [[ "${menuresponse,,}" == "-----" ]]; then
@@ -3964,6 +3976,7 @@ function sam_svc() {
 	sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/samvideo_source=/c\samvideo_source="'"Archive"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/samvideo_tvc=/c\samvideo_tvc="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	/media/fat/Scripts/MiSTer_SAM_on.sh start	
 }
 	
 
