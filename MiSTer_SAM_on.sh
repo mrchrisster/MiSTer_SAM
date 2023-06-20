@@ -3965,6 +3965,7 @@ function sam_gamemodemenu() {
 
 function sam_80s() {
 	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	enablebgm
 	/media/fat/Scripts/MiSTer_SAM_on.sh start
 }
