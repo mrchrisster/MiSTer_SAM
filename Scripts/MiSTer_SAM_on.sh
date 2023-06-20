@@ -1154,6 +1154,9 @@ function next_core() { # next_core (core)
 		pick_core
 
 	fi
+	
+	load_special_core
+	if [ $? -ne 0 ]; then return; fi
 
 	#samdebug "corelist: ${corelist[*]}"
 	#samdebug "corelisttmp: ${corelisttmp[*]}"
@@ -1541,8 +1544,6 @@ function delete_played_game() {
 # Load selected core and rom
 function load_core() { # load_core core /path/to/rom name_of_rom 
 	# Load arcade, ao486 or amiga cores
-	load_special_core
-	if [ $? -ne 0 ]; then return; fi
 	local core=${1}
 	local rompath=${2}
 	local romname=${3}
@@ -1708,6 +1709,14 @@ function load_core_arcade() {
 
 function create_amigalist () {
 
+	# Create List in gamelistpath
+	if [ ! -f "${gamelistpath}/amiga_gamelist.txt" ]; then
+		cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+		sed -i -e 's/^/Demo: /' ${gamelistpathtmp}/amiga_gamelist.txt
+		cat "${amigapath}/listings/games.txt" >> ${gamelistpathtmp}/amiga_gamelist.txt
+		cp ${gamelistpathtmp}/amiga_gamelist.txt ${gamelistpath}/amiga_gamelist.txt
+	fi
+	
 	if [ -f "${amigapath}/listings/games.txt" ]; then
 		if [[ "${amigaselect}" == "demos" ]]; then
 			cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
@@ -1733,11 +1742,6 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
-	if [ ! -f "${gamelistpath}/amiga_gamelist.txt" ]; then
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
-		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
-	fi
 
 	if [ ! -s "${gamelistpathtmp}/amiga_gamelist.txt" ]; then
 		create_amigalist
