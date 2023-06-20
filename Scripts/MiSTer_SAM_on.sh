@@ -120,8 +120,8 @@ function init_vars() {
 	declare -g ini_contents=$(cat "$ini_file")
 	declare -g sv_loadcounter=0
 	declare -g samvideo_path="/media/fat/video"
-	declare -g sv_archive_hdmilist="https://ia902700.us.archive.org/3/items/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
-	declare -g sv_archive_crtlist="https://ia902700.us.archive.org/3/items/640x240_videogame_commercials/640x240_videogame_commercials_files.xml"
+	declare -g sv_archive_hdmilist="https://archive.org/download/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
+	declare -g sv_archive_crtlist="https://archive.org/download/640x240_videogame_commercials/640x240_videogame_commercials_files.xml"
 	declare -g sv_youtube_hdmilist="/media/fat/Scripts/.MiSTer_SAM/sv_yt360_list.txt"
 	declare -g sv_youtube_crtlist="/media/fat/Scripts/.MiSTer_SAM/sv_yt240_list.txt"
 
@@ -803,6 +803,22 @@ function init_data() {
 		["zintrkcd"]="ZinTricK (CD conversion)"
 		["zupapa"]="Zupapa!"
 	)
+	
+	
+	declare -glA SV_TVC=(
+		["fds"]="nes"
+		["gb"]="gb\|game boy"
+		["gbc"]="gb\|game boy"
+		["gba"]="gba"
+		["genesis"]="genesis"
+		["gg"]="gg"
+		["megacd"]="megacd"
+		["nes"]="nes"
+		["snes"]="snes"
+		["tgfx16cd"]="turboduo"
+		["psx"]="psx"
+	)
+
 }
 
 # ========= PARSE INI =========
@@ -1060,7 +1076,7 @@ function loop_core() { # loop_core (core)
 			trap 'counter=0' INT #Break out of loop for skip & next command
 			
 			#Only show game counter when samvideo is not active
-			if [ "${samvideo}" == "yes" ] && [ "$nextcore" == "samvideo" ]; then
+			if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
 				if [ -f /tmp/sv_gametimer ]; then
 					counter=$(cat /tmp/sv_gametimer)	
 					rm /tmp/sv_gametimer 2>/dev/null
@@ -1122,7 +1138,7 @@ function loop_core() { # loop_core (core)
 function next_core() { # next_core (core)
 	
 	load_samvideo
-	if [ $? -ne 0 ]; then nextcore="samvideo" && return; fi
+	if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
 	
 	if [[ ! ${corelist[*]} ]]; then
 		echo "ERROR: FATAL - List of cores is empty."
@@ -1277,8 +1293,12 @@ function check_gamelistupdate() {
 
 #Pick next core
 function pick_core(){
-
-	nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
+	
+	if [ "$samvideo_tvc" != "yes" ]; then
+		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
+	else
+		nextcore=$(cat /tmp/sv_core)
+	fi
 	
 	if [[ ! "${nextcore}" ]]; then
 		samdebug "nextcore empty. Using arcade core for now"
@@ -1713,13 +1733,13 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
-	if [ ! -f "${gamelistpath}/${nextcore}_gamelist.txt" ]; then
+	if [ ! -f "${gamelistpath}/amiga_gamelist.txt" ]; then
 		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
 		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
 		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
 	fi
 
-	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+	if [ ! -s "${gamelistpathtmp}/amiga_gamelist.txt" ]; then
 		create_amigalist
 		filter_list amiga
 	fi
@@ -1729,7 +1749,7 @@ function load_core_amiga() {
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
 		# This is for MegaAGS version June 2022 or older
 		echo -n "Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+		echo -ne "\e[4m${CORE_PRETTY[amiga]}\e[0m: "
 		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
 
 		# Tell MiSTer to load the next MRA
@@ -1742,7 +1762,7 @@ function load_core_amiga() {
 	else
 		# This is for MegaAGS version July 2022 or newer
 
-		rompath="$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
+		rompath="$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/amiga_gamelist.txt)"
 		agpretty="$(echo "${rompath}" | tr '_' ' ')"
 		
 		# Special case for demo
@@ -1753,7 +1773,7 @@ function load_core_amiga() {
 		# Delete played game from list
 		samdebug "Selected file: ${rompath}"
 		if [ "${norepeat}" == "yes" ]; then
-			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+			awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/amiga_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/amiga_gamelist.txt"
 		fi
 
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
@@ -1761,7 +1781,7 @@ function load_core_amiga() {
 		
 		if [ "${ttyenable}" == "yes" ]; then
 			tty_currentinfo=(
-				[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+				[core_pretty]="${CORE_PRETTY[amiga]}"
 				[name]="${agpretty}"
 				[core]=${tty_corename}
 				[date]=$EPOCHSECONDS
@@ -1780,7 +1800,7 @@ function load_core_amiga() {
 
 
 		echo -n "Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+		echo -ne "\e[4m${CORE_PRETTY[amiga]}\e[0m: "
 		echo -e "\e[1m${agpretty}\e[0m"
 		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
 		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
@@ -2746,23 +2766,46 @@ function misterini_mod() {
 		else
 			ini_res="640x480"
 		fi
+		
 		res_comma=$(echo "$ini_res" | tr 'x' ',')
-		video_mode="${res_comma},60"
+		video_mode="8"
+		fb_size=1
 
 		# Use sed to modify the INI file
-		if grep -qE "fb_terminal=0" "$ini_file"; then
-			if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-			# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
-			  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
-				/^fb_terminal[[:space:]]*=/ { s/=.*/=${fb_terminal}/ }
-				/^\[.*\]/! {
-				  /^\s*$/d
-				}
-			  }" "$ini_file"
+		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
+			samdebug "[menu] entry found in MiSTer.ini"
+			if ! grep -qE "video_mode=${video_mode}" "$ini_file"; then
+			  samdebug "Setting video_mode to ${video_mode}"
+				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
+				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
+					/^video_mode[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				video_mode=${video_mode}
+						}
+					}
+					/^fb_terminal[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				fb_terminal=${fb_terminal}
+						}
+					}
+					/^vga_scaler[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				fb_size=${fb_size}
+						}
+					}
+					/^\[.*\]/! {
+						/^\s*$/d
+					}
+				}" "$ini_file"
 			else
-			  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
-			  echo -e "[menu]\nfb_terminal=${fb_terminal}\n" >> "$ini_file"
+				samdebug "No MiSTer.ini modification necessary"
 			fi
+		else
+		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
+		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nfb_size=${fb_size}\n" >> "$ini_file"
 		fi
 
 	#CRT mode	
@@ -2774,14 +2817,16 @@ function misterini_mod() {
 			echo "Archive and CRT: Setting CRT out to 640x240"
 			samvideo_crtmode="${samvideo_crtmode640}"
 		fi
+		
 		video_mode="$(echo $samvideo_crtmode |awk -F'=' '{print $2}')"
+		
 		# Use sed to modify the INI file 
 		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
 			samdebug "[menu] entry found in MiSTer.ini"
 			if ! grep -qE "${video_mode}" "$ini_file"; then
 			  samdebug "Setting video_mode to ${video_mode}"
 				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
-				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
+				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
 					/^video_mode[[:space:]]*=/! { 
 						/^(\[|\[[:alnum:]]+[^menu])$/! {
 							/^(\[|\[[:alnum:]]+[^menu])/a\
@@ -2804,6 +2849,8 @@ function misterini_mod() {
 						/^\s*$/d
 					}
 				}" "$ini_file"
+			else
+				samdebug "No MiSTer.ini modification necessary"
 			fi
 		else
 		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
@@ -2820,18 +2867,18 @@ function misterini_reset() {
 }
 
 function sv_yt360() {
-	
+	samvideo_list="/tmp/.SAM_List/samvideo_list.txt"
 	declare -g yt360=""
-	if [ ! -s /tmp/.SAM_List/samvideo_list.txt ]; then
-		cp "${sv_youtube_hdmilist}" "/tmp/.SAM_List/samvideo_list.txt"
+	if [ ! -s ${samvideo_list} ]; then
+		cp "${sv_youtube_hdmilist}" "${samvideo_list}"
 	fi
 	echo "Please wait... downloading file"
-	declare -g url="$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)"
+	declare -g url="$(shuf -n1 ${samvideo_list})"
 	#declare -g yt360=$("${mrsampath}/ytdl" --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only")
 	url=""
 
 	while [ -z "$url" ]; do
-		url=$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)
+		url=$(shuf -n1 ${samvideo_list})
 		"${mrsampath}/ytdl" --format "best[height=360][ext=mp4]" --no-continue -o /tmp/"%(title)s (YT).mp4" "$url"
 		exit_code=$?
 
@@ -2843,12 +2890,12 @@ function sv_yt360() {
 		else
 			echo "Invalid URL or download error. Retrying with another URL..."
 			awk -vLine="$url" '!index($0,Line)' "${sv_youtube_hdmilist}" >${tmpfile} && cp -f ${tmpfile} "${sv_youtube_hdmilist}"
-			cp "${sv_youtube_hdmilist}" "/tmp/.SAM_List/samvideo_list.txt"
+			cp "${sv_youtube_hdmilist}" "${samvideo_list}"
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
 	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
-	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
+	awk -vLine="$url" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 
 	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
 	#declare -g ytid="$(echo "$yt360" | awk '{print $1}')"
@@ -2859,18 +2906,18 @@ function sv_yt360() {
 }
 
 function sv_yt240() {
-	
+	samvideo_list="/tmp/.SAM_List/samvideo_list.txt"
 	declare -g yt240=""
-	if [ ! -s /tmp/.SAM_List/samvideo_list.txt ]; then
-		cp "${sv_youtube_crtlist}" "/tmp/.SAM_List/samvideo_list.txt"
+	if [ ! -s ${samvideo_list} ]; then
+		cp "${sv_youtube_crtlist}" "${samvideo_list}"
 	fi
 	echo "Please wait... downloading file"
-	declare -g url="$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)"
+	declare -g url="$(shuf -n1 ${samvideo_list})"
 	#declare -g yt360=$("${mrsampath}/ytdl" --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only")
 	url=""
 
 	while [ -z "$url" ]; do
-		url=$(shuf -n1 /tmp/.SAM_List/samvideo_list.txt)
+		url=$(shuf -n1 ${samvideo_list})
 		"${mrsampath}/ytdl" --format "best[height=240][ext=mp4]" --no-continue -o /tmp/"%(title)s (YT).mp4" "$url"
 		exit_code=$?
 
@@ -2882,54 +2929,76 @@ function sv_yt240() {
 		else
 			echo "Invalid URL or download error. Retrying with another URL..."
 			awk -vLine="$url" '!index($0,Line)' "${sv_youtube_crtlist}" >${tmpfile} && cp -f ${tmpfile} "${sv_youtube_crtlist}"
-			cp "${sv_youtube_crtlist}" "/tmp/.SAM_List/samvideo_list.txt"
+			cp "${sv_youtube_crtlist}" "${samvideo_list}"
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
-	awk -vLine="$url" '!index($0,Line)' /tmp/.SAM_List/samvideo_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/samvideo_list.txt
+	awk -vLine="$url" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res_space="640 240"
 }
 
 function sv_ar480() {
+	samvideo_list="/tmp/.SAM_List/sv_archive_hdmilist.txt"
 	http_archive=${sv_archive_hdmilist//https/http}
-	if [ ! -s /tmp/.SAM_List/sv_archive_hdmilist.txt ]; then
+	if [ ! -s ${samvideo_list} ]; then
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > /tmp/.SAM_List/sv_archive_hdmilist.txt
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > ${samvideo_list}
 	fi
-	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_hdmilist.txt)"
+	# Select a video
+	if [ "$samvideo_tvc" == "yes" ]; then
+		samvideo_tvc
+		samdebug "Selected core for video: $nextcore"
+	else
+		sv_selected="$(shuf -n1 ${samvideo_list})"
+	fi
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
 	echo "Preloading ${sv_selected} from archive.org for smooth playback"
 	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"
-	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_hdmilist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_hdmilist.txt
+	awk -vLine="$sv_selected" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res_space="640 480"
 }
 
 function sv_ar240() {
+	samvideo_list="/tmp/.SAM_List/sv_archive_crtlist.txt"
 	http_archive=${sv_archive_crtlist//https/http}
-	if [ ! -s /tmp/.SAM_List/sv_archive_crtlist.txt ]; then
+	if [ ! -s ${samvideo_list} ]; then
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > /tmp/.SAM_List/sv_archive_crtlist.txt
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > ${samvideo_list}
 	fi
-	sv_selected="$(shuf -n1 /tmp/.SAM_List/sv_archive_crtlist.txt)"
+	# Select a video
+	if [ "$samvideo_tvc" == "yes" ]; then
+		samvideo_tvc
+	else
+		sv_selected="$(shuf -n1 ${samvideo_list})"
+	fi
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
 	echo "Preloading ${sv_selected} from archive.org for smooth playback"
 	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"  
-	awk -vLine="$sv_selected" '!index($0,Line)' /tmp/.SAM_List/sv_archive_crtlist.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_archive_crtlist.txt
+	awk -vLine="$sv_selected" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res_space="640 240"
 }
 
 function sv_local() {
-	if [ ! -s /tmp/.SAM_List/sv_local_list.txt ]; then
-		find "$samvideo_path" -type f > /tmp/.SAM_List/sv_local_list.txt
+	samvideo_list="/tmp/.SAM_List/sv_local_list.txt"
+	if [ ! -s ${samvideo_list} ]; then
+		find "$samvideo_path" -type f > ${samvideo_list}
 	fi
-	tmpvideo=$(cat /tmp/.SAM_List/sv_local_list.txt | shuf -n1)
-	awk -vLine="$tmpvideo" '!index($0,Line)' /tmp/.SAM_List/sv_local_list.txt >${tmpfile} && cp -f ${tmpfile} /tmp/.SAM_List/sv_local_list.txt
+	tmpvideo=$(cat ${samvideo_list} | shuf -n1)
+	awk -vLine="$tmpvideo" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
 	res_space=$(echo "$res" | tr 'x' ' ')
 	res_comma=$(echo "$res" | tr 'x' ',')
 
+}
+
+function samvideo_tvc() {
+	#Setting corelist to available commercials
+	samdebug "samvideo corelist: ${!SV_TVC[@]}"
+	nextcore=$(printf "%s\n" "${!SV_TVC[@]}" | shuf --random-source=/dev/urandom | head -1)
+	echo $nextcore > /tmp/sv_core
+	sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
 }
 
 ## Play video
@@ -2981,9 +3050,11 @@ function samvideo_play() {
 		SECONDS=${elapsed}
 	fi
 	
+	
 	if [ "$mute" != "no" ]; then
 		options="-nosound"
 	fi
+	
 	
 	if [ -s "$tmpvideo" ]; then
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
@@ -3295,14 +3366,14 @@ function sam_menu() {
 		Ignore "Ignore current game and exclude from SAM" \
 		Stop "Stop SAM" \
 		Update "Update SAM to latest" \
-		Settings "Settings" \
 		----- "-----------------------------" \
+		gamemode "Presets and Game Modes" \
 		sam_coreconfig "Configure Core List" \
 		sam_exittask "Configure Exit Behavior" \
 		sam_filters "Filters (by Orientation or Category)" \
 		sam_bgm "Add-ons: SAMVIDEO, BGM, TTY2OLED" \
-		Gamemode "Game Roulette" \
-		Favorite "Copy current game to _Favorites folder" \
+		config "MiSTer_SAM.ini Editor" \
+		Settings "Settings" \
 		Reset "Reset or uninstall SAM" 2>"/tmp/.SAMmenu"
 	
 	opt=$?
@@ -3343,8 +3414,7 @@ function sam_settings() {
 		autoplay "Autoplay Configuration" \
 		enablekidssafe "Enable Kids Safe Filter" \
 		disablekidssafe "Disable Kids Safe Filter" \
-		sam_misc "Advanced Settings" \
-		config "Manual Settings Editor (MiSTer_SAM.ini)" 2>"/tmp/.SAMmenu"
+		sam_misc "Advanced Settings" 2>"/tmp/.SAMmenu"
 	
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -3857,8 +3927,43 @@ function sam_configmenu() {
 
 	parse_cmd menu
 }
-
 function sam_gamemodemenu() {
+	inmenu=1
+	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
+		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
+		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
+		sam_svc "Play Video game commercials and then show the games" \
+		sam_roulettemenu "Game Roulette" 2>"/tmp/.SAMmenu"	
+	
+	opt=$?
+	menuresponse=$(<"/tmp/.SAMmenu")
+	clear
+	
+	if [ "$opt" != "0" ]; then
+		sam_menu
+	else 
+		"${menuresponse}"
+	fi
+}
+
+function sam_80s() {
+	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	enablebgm
+	/media/fat/Scripts/MiSTer_SAM_on.sh start
+}
+	
+function sam_svc() {
+	dialog --clear --ascii-lines --no-cancel \
+		--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
+		--msgbox "Please make sure you have set your output device in \nAdd-ons -> SAMVIDEO: HMDI or CRT" 0 0
+	sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/samvideo_source=/c\samvideo_source="'"Archive"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/samvideo_tvc=/c\samvideo_tvc="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+}
+	
+
+function sam_roulettemenu() {
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
@@ -4119,31 +4224,7 @@ function sam_bgmmenu() {
 		else
 			if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 				if [[ "${menuresponse,,}" == "enablebgm" ]]; then
-					if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
-						echo " Installing BGM to Scripts folder"
-						repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-						get_samstuff bgm.sh /tmp
-						mv --force /tmp/bgm.sh /media/fat/Scripts/
-					else
-						echo " BGM script is installed already. Updating just in case..."
-						echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-						kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
-						rm /tmp/bgm.sock 2>/dev/null
-						repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-						get_samstuff bgm.sh /tmp
-						mv --force /tmp/bgm.sh /media/fat/Scripts/
-						echo " Resetting BGM now."
-					fi
-					echo " Updating MiSTer_SAM.ini to use Mute=Core"
-					sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
-					/media/fat/Scripts/bgm.sh
-					sync
-					repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-					get_samstuff Media/80s.pls /media/fat/music
-					[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
-					sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-					#echo " All Done. Starting SAM now."
-					#/media/fat/Scripts/MiSTer_SAM_on.sh start
+					enablebgm
 				elif [[ "${menuresponse,,}" == "disableplay" ]]; then
 					sed -i '/bgmplay=/c\bgmplay="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 
@@ -4187,6 +4268,34 @@ function sam_bgmmenu() {
 	fi
 }
 
+
+function enablebgm() {
+	if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
+		echo " Installing BGM to Scripts folder"
+		repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+		get_samstuff bgm.sh /tmp
+		mv --force /tmp/bgm.sh /media/fat/Scripts/
+	else
+		echo " BGM script is installed already. Updating just in case..."
+		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+		kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
+		rm /tmp/bgm.sock 2>/dev/null
+		repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+		get_samstuff bgm.sh /tmp
+		mv --force /tmp/bgm.sh /media/fat/Scripts/
+		echo " Resetting BGM now."
+	fi
+	echo " Updating MiSTer_SAM.ini to use Mute=Core"
+	sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	/media/fat/Scripts/bgm.sh
+	sync
+	repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+	get_samstuff Media/80s.pls /media/fat/music
+	[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	#echo " All Done. Starting SAM now."
+	#/media/fat/Scripts/MiSTer_SAM_on.sh start
+}
 
 
 
