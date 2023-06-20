@@ -113,6 +113,7 @@ function init_vars() {
 	declare -gl samvideo_freq
 	declare -gl samvideo_output="hdmi"
 	declare -gl samvideo_source
+	declare -gl samvideo_tvc
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
@@ -1149,10 +1150,10 @@ function next_core() { # next_core (core)
 	if [ -z "${1}" ]; then
 		corelist_update	
 		create_all_gamelists
-		if [ "$samvideo_tvc" != "yes" ]; then
-			pick_core
-		else
+		if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ]; then
 			nextcore=$(cat /tmp/sv_core)
+		else
+			pick_core			
 		fi
 	fi	
 	
