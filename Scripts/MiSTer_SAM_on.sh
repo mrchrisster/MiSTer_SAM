@@ -3949,7 +3949,7 @@ function sam_gamemodemenu() {
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
-		sam_svc "Play a TV commercial of eg NES and than show a NES game." \
+		sam_svc "Play a TV commercial of eg NES and then show a NES game." \
 		sam_roulettemenu "Game Roulette" 2>"/tmp/.SAMmenu"	
 	
 	opt=$?
