@@ -114,6 +114,7 @@ function init_vars() {
 	declare -gl samvideo_output="hdmi"
 	declare -gl samvideo_source
 	declare -gl samvideo_tvc
+	declare -gl sv_aspectfix_vmode
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
@@ -807,15 +808,15 @@ function init_data() {
 	
 	
 	declare -glA SV_TVC=(
-		["fds"]="^nes-"
+		["fds"]="^nes-\| nes"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
 		["megacd"]="megacd"
-		["nes"]="^nes-"
+		["nes"]="^nes-\| nes"
 		["snes"]="snes"
 		["tgfx16cd"]="turboduo"
-		["psx"]="psx"
+		["psx"]="psx\|playstation"
 	)
 
 }
@@ -2771,9 +2772,14 @@ function misterini_mod() {
 		else
 			ini_res="640x480"
 		fi
-		
 		res_comma=$(echo "$ini_res" | tr 'x' ',')
-		video_mode="8"
+		if [ "${sv_aspectfix_vmode}" == "yes" ]; then
+			video_mode="${res_comma},60"
+		else
+			# Setting video mode to FullHD seems to work for most HDMI displays
+			video_mode="8"
+		fi
+
 		fb_size=1
 
 		# Use sed to modify the INI file
@@ -2812,6 +2818,7 @@ function misterini_mod() {
 		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
 		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nfb_size=${fb_size}\n" >> "$ini_file"
 		fi
+		
 
 	#CRT mode	
 	elif [ "$samvideo_output" == "crt" ]; then
@@ -3078,11 +3085,6 @@ function samvideo_play() {
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
 		#chvt 2
-		if [ -z "${sv_custom_vmode}" ]; then
-			vmode -r ${res_space} rgb32
-		else
-			vmode -r ${sv_custom_vmode} rgb32
-		fi
 		echo -e "\nPlaying video now.\n"
 		echo -e "Title: ${sv_selected%.*}"
 		echo -e "Resolution: ${res_space}"
