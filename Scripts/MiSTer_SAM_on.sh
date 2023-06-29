@@ -1479,6 +1479,14 @@ function pick_rom() {
 		echo "Gamelist creation failed. Will try again on next core launch. Trying another rom..."	
 		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 	fi
+	if [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/sv_gamename ]; then
+		rompath="$(cat ${gamelistpathtmp}/"${nextcore}"_gamelist.txt | grep -if /tmp/sv_gamename | shuf -n 1)"
+		if [ -z ${rompath} ]; then
+			echo "Error with picking the corresponding game for the commercial. Playing random game now."
+			rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
+		fi
+	fi
+	
 
 }
 
@@ -2962,7 +2970,6 @@ function sv_ar480() {
 	# Select a video
 	if [ "$samvideo_tvc" == "yes" ]; then
 		samvideo_tvc
-		samdebug "Selected core for video: $nextcore"
 	else
 		sv_selected="$(shuf -n1 ${samvideo_list})"
 	fi
@@ -3013,6 +3020,7 @@ function sv_local() {
 
 function samvideo_tvc() {
 	#Setting corelist to available commercials
+	unset TVC_LIST
 	unset SV_TVC_CL
 	for g in "${!SV_TVC[@]}"; do 
 		for c in "${corelist[@]}"; do 
@@ -3023,9 +3031,29 @@ function samvideo_tvc() {
 	done
 	samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
 	nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+	count=0
+	while [ $count -lt 15 ]; do
+		if [ -f "${gamelistpath}"/${nextcore}_tvc.txt ]; then
+			samdebug "${nextcore}_tvc.txt found."
+			sv_selected=$(jq -r 'keys[]' "${gamelistpath}"/${nextcore}_tvc.txt | shuf -n 1)
+			tvc_selected=$(jq -r ".[\"$sv_selected\"]" "${gamelistpath}"/${nextcore}_tvc.txt)		
+			echo "${tvc_selected}"> /tmp/sv_gamename
+			break
+		else
+			# If file is not found, select a new core randomly
+			nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+			samdebug "${nextcore}_tvc.txt not found, selecting new core: $nextcore"
+		fi
+
+		((count++))
+
+	done
 	echo $nextcore > /tmp/sv_core
 	samdebug "Searching for ${SV_TVC[$nextcore]}"
-	sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
+	if [ -z "${tvc_selected}" ]; then
+		echo "Couldn't find TVC list. Selecting random game from system"
+		sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
+	fi
 	samdebug "Picked $sv_selected"
 }
 
@@ -3177,6 +3205,9 @@ function get_samvideo() {
 	curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
 	get_samstuff .MiSTer_SAM/sv_yt360_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
 	get_samstuff .MiSTer_SAM/sv_yt240_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/snes_tvc.txt >/dev/null
 	echo " Done."
 }
 
