@@ -1480,8 +1480,8 @@ function pick_rom() {
 		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 	fi
 	if [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/sv_gamename ]; then
-		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/sv_gamename | grep -iv "VGM" | shuf -n 1)"
-		if [ -z ${rompath} ]; then
+		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/sv_gamename |  grep -iv "VGM\|MSU" | shuf -n 1)"
+		if [ -z "${rompath}" ]; then
 			echo "Error with picking the corresponding game for the commercial. Playing random game now."
 			rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 		fi
