@@ -3013,8 +3013,16 @@ function sv_local() {
 
 function samvideo_tvc() {
 	#Setting corelist to available commercials
-	samdebug "samvideo corelist: ${!SV_TVC[@]}"
-	nextcore=$(printf "%s\n" "${!SV_TVC[@]}" | shuf --random-source=/dev/urandom | head -1)
+	unset SV_TVC_CL
+	for g in "${!SV_TVC[@]}"; do 
+		for c in "${corelist[@]}"; do 
+			if [[ "$c" == "$g" ]]; then 
+				SV_TVC_CL+=("$c")
+			fi
+		done 
+	done
+	samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
+	nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
 	echo $nextcore > /tmp/sv_core
 	samdebug "Searching for ${SV_TVC[$nextcore]}"
 	sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
