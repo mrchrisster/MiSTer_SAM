@@ -29,7 +29,7 @@
     "SNES-NCAA Basketball That Answer Your Question.avi": "NCAA Basketball",
     "SNES-Nickelodeon GUTS.avi": "Nickelodeon GUTS",
     "SNES-Pepsi & Nintendo Training Camp.avi": "Super Mario World (",
-    "SNES-Play It LOUD They Can't Hear You.avi": "Ultimate Mortal Kombat 3",
+    "SNES-Play It LOUD They Can't Hear You.avi": "Mortal Kombat (",
     "SNES-Play It Loud Coolest Games.avi": "Super Punch-Out!!",
     "SNES-Road Runner's Death Valley Rally Videus Gamicus.avi": "Road Runner's Death Valley",
     "SNES-Rocko's Modern Life It's Your Dog. It's Your Problem 4K.avi": "Rocko's Modern Life",
