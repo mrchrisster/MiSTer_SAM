@@ -3205,9 +3205,9 @@ function get_samvideo() {
 	curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
 	get_samstuff .MiSTer_SAM/sv_yt360_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
 	get_samstuff .MiSTer_SAM/sv_yt240_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/snes_tvc.txt >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
 	echo " Done."
 }
 
