@@ -1,10 +1,10 @@
 {
-	"7Up Commercial With Cool Spot "Spot: The Video Game" NES.avi": "Spot - The Video Game",
-	"Bases Loaded II: Second Season "Live Action That Never Ends" NES.avi": "Bases Loaded II",
-	"Castlevania II: Simon's Quest "MAM" NES.avi": "Simon's Quest",
-	"Dr.Mario "He's Got The Cure!" NES.avi": "Dr. Mario",
-	"Kirby's Adventure "Who's Kirby?" NES.avi": "Kirby's Adventure",
-	"Mike Tyson's Punch-Out!! "POWER" NES.avi": "Punch-Out!!",
+	"7Up Commercial With Cool Spot \"Spot: The Video Game\" NES.avi": "Spot - The Video Game",
+	"Bases Loaded II: Second Season \"Live Action That Never Ends\" NES.avi": "Bases Loaded II",
+	"Castlevania II: Simon's Quest \"MAM\" NES.avi": "Simon's Quest",
+	"Dr.Mario \"He's Got The Cure!\" NES.avi": "Dr. Mario",
+	"Kirby's Adventure \"Who's Kirby?\" NES.avi": "Kirby's Adventure",
+	"Mike Tyson's Punch-Out!! \"POWER\" NES.avi": "Punch-Out!!",
 	"NES-7Up_Commercial_With_Cool_Spot_Spot_The_Video_Game.avi": "Spot - The Video Game",
 	"NES-Back_to_the_Future_II_-_III.avi": "Back to the Future Part II",
 	"NES-Bases_Loaded_II_Second_Season_Live_Action_That_Never_Ends.avi": "Bases Loaded II",
@@ -25,7 +25,7 @@
 	"NES-What_Will_The_Future_Bring_From_Nintendo.avi": "R.C. Pro-Am",
 	"NES-Zelda_II_The_Adventure_of_Link.avi": "Zelda II",
 	"Nintendo Power Pad for NES (1988) TV Commercial.avi": "Track & Field",
-	"Power Glove "Everything Else Is Child's To Play" NES.avi": "Bad Street Brawler",
-	"Super Mario Bros. "It's Fantastic" NES.avi": "Super Mario Bros. (",
-	"Super Mario Bros. 2 "He's Back!" NES.avi": "Super Mario Bros. 2"
+	"Power Glove \"Everything Else Is Child's To Play\" NES.avi": "Bad Street Brawler",
+	"Super Mario Bros. \"It's Fantastic\" NES.avi": "Super Mario Bros. (",
+	"Super Mario Bros. 2 \"He's Back!\" NES.avi": "Super Mario Bros. 2"
 }
