@@ -3025,6 +3025,9 @@ function sv_local() {
 }
 
 function samvideo_tvc() {
+	if [ -f "${gamelistpath}"/nes_tvc.txt ]; then
+		get_samvideo
+	fi
 	#Setting corelist to available commercials
 	unset TVC_LIST
 	unset SV_TVC_CL
@@ -4030,6 +4033,9 @@ function sam_svc() {
 	sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/samvideo_source=/c\samvideo_source="'"Archive"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/samvideo_tvc=/c\samvideo_tvc="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	if [ -f "${gamelistpath}"/nes_tvc.txt ]; then
+		get_samvideo
+	fi
 	/media/fat/Scripts/MiSTer_SAM_on.sh start	
 }
 	
