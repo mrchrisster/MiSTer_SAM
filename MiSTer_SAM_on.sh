@@ -1303,8 +1303,8 @@ function check_gamelistupdate() {
 #Pick next core
 function pick_core(){
 	
-	local -n array=$1
 	if [ -n "$1" ]; then 
+		local -n array=$1
 		nextcore=$(printf "%s\n" "${array[@]}" | shuf --random-source=/dev/urandom | head -1)
 	else
 		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
