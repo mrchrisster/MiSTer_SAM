@@ -109,6 +109,7 @@ function init_vars() {
 	)
 	
 	# ======== SAMVIDEO =======
+	declare -gA SV_TVC_CL
 	declare -gl samvideo
 	declare -gl samvideo_freq
 	declare -gl samvideo_output="hdmi"
@@ -1302,8 +1303,12 @@ function check_gamelistupdate() {
 #Pick next core
 function pick_core(){
 	
-	nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
-
+	local -n array=$1
+	if [ -n "$1" ]; then 
+		nextcore=$(printf "%s\n" "${array[@]}" | shuf --random-source=/dev/urandom | head -1)
+	else
+		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
+	fi
 	
 	if [[ ! "${nextcore}" ]]; then
 		samdebug "nextcore empty. Using arcade core for now"
@@ -1480,7 +1485,7 @@ function pick_rom() {
 		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 	fi
 	if [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/sv_gamename ]; then
-		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/sv_gamename |  grep -iv "VGM\|MSU" | shuf -n 1)"
+		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/sv_gamename |  grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
 		if [ -z "${rompath}" ]; then
 			echo "Error with picking the corresponding game for the commercial. Playing random game now."
 			rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
@@ -2068,6 +2073,7 @@ function sam_prep() {
 		echo "Kids Safe lists missing for cores: ${nclr[@]}"
 		printf "%s\n" "${clr[@]}" > "${corelistfile}"
 	fi
+	#[ "${samvideo}" == "yes" ] && [ "${samvideo_tvc}" == "yes" ] && coreweight=yes
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 	if [ "${samvideo}" == "yes" ]; then
@@ -3030,18 +3036,21 @@ function samvideo_tvc() {
 		done 
 	done
 	samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
-	nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+	pick_core "SV_TVC_CL"
+	
+	#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
 	count=0
 	while [ $count -lt 15 ]; do
 		if [ -f "${gamelistpath}"/${nextcore}_tvc.txt ]; then
 			samdebug "${nextcore}_tvc.txt found."
 			sv_selected=$(jq -r 'keys[]' "${gamelistpath}"/${nextcore}_tvc.txt | shuf -n 1)
-			tvc_selected=$(jq -r ".[\"$sv_selected\"]" "${gamelistpath}"/${nextcore}_tvc.txt)		
+			tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "${gamelistpath}/${nextcore}_tvc.txt")					
 			echo "${tvc_selected}"> /tmp/sv_gamename
 			break
 		else
 			# If file is not found, select a new core randomly
-			nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+			#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+			pick_core "SV_TVC_CL"
 			samdebug "${nextcore}_tvc.txt not found, selecting new core: $nextcore"
 		fi
 
