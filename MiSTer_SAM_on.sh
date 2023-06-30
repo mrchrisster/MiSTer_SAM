@@ -3215,8 +3215,10 @@ function get_samvideo() {
 	get_samstuff .MiSTer_SAM/sv_yt360_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
 	get_samstuff .MiSTer_SAM/sv_yt240_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null	
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null	
 	echo " Done."
 }
 
@@ -4000,7 +4002,7 @@ function sam_gamemodemenu() {
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
-		sam_svc "Play a TV commercial of eg NES and then show a NES game." \
+		sam_svc "Play a TV commercial of eg NES and then show the advertised game." \
 		sam_roulettemenu "Game Roulette" 2>"/tmp/.SAMmenu"	
 	
 	opt=$?
