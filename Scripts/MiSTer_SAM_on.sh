@@ -3120,7 +3120,7 @@ function samvideo_play() {
 		#setterm -cursor off
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
-		#chvt 2
+		vmode -r ${res_space} rgb32
 		echo -e "\nPlaying video now.\n"
 		echo -e "Title: ${sv_selected%.*}"
 		echo -e "Resolution: ${res_space}"
