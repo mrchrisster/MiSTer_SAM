@@ -54,9 +54,10 @@ function init_vars() {
 	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,saturn,sms,snes,tgfx16,tgfx16cd,psx"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
+	declare -gl skiptime="10"
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl amigaselect="All"
@@ -148,6 +149,7 @@ function init_vars() {
 	declare -g neogeopathrbf="_Console"
 	declare -g nespathrbf="_Console"
 	declare -g s32xpathrbf="_Console"
+	declare -g saturnpathrbf="_Console"
 	declare -g smspathrbf="_Console"
 	declare -g snespathrbf="_Console"
 	declare -g tgfx16pathrbf="_Console"
@@ -184,6 +186,7 @@ function init_data() {
 		["neogeo"]="SNK NeoGeo"
 		["nes"]="Nintendo Entertainment System"
 		["s32x"]="Sega 32x"
+		["saturn"]="Sega Saturn"		
 		["sms"]="Sega Master System"
 		["snes"]="Super Nintendo"
 		["tgfx16"]="NEC TurboGrafx-16 "
@@ -211,6 +214,7 @@ function init_data() {
 		["neogeo"]="neo"
 		["nes"]="nes"
 		["s32x"]="32x"
+		["saturn"]="cue"
 		["sms"]="sms,sg"
 		["snes"]="sfc,smc" 	 	# Should we include? "bin,bs"
 		["tgfx16"]="pce,sgx"		
@@ -264,6 +268,7 @@ function init_data() {
 		["neogeo"]="0"
 		["nes"]="0"
 		["s32x"]="0"
+		["saturn"]="0"
 		["sms"]="0"
 		["snes"]="0"	
 		["tgfx16"]="0"
@@ -292,6 +297,7 @@ function init_data() {
 		["neogeo"]="${neogeopathrbf}"
 		["nes"]="${nespathrbf}"
 		["s32x"]="${s32xpathrbf}"
+		["saturn"]="${saturnpathrbf}"
 		["sms"]="${smspathrbf}"
 		["snes"]="${snespathrbf}"
 		["tgfx16"]="${tgfx16pathrbf}"
@@ -319,6 +325,7 @@ function init_data() {
 		["neogeo"]="No"
 		["nes"]="No"
 		["s32x"]="No"
+		["saturn"]="Yes"
 		["sms"]="No"
 		["snes"]="No"
 		["tgfx16"]="No"
@@ -346,6 +353,7 @@ function init_data() {
 		["neogeo"]="Yes"
 		["nes"]="Yes"
 		["s32x"]="Yes"
+		["saturn"]="No"
 		["sms"]="Yes"
 		["snes"]="Yes"
 		["tgfx16"]="Yes"
@@ -373,6 +381,7 @@ function init_data() {
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
+		["saturn"]="SATURN"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TGFX16"
@@ -400,6 +409,7 @@ function init_data() {
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
+		["saturn"]="SATURN"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TGFX16"
@@ -427,6 +437,7 @@ function init_data() {
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
+		["saturn"]="SATURN"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TurboGrafx16"
@@ -454,6 +465,7 @@ function init_data() {
 		["neogeo"]="1"
 		["nes"]="2"
 		["s32x"]="1"
+		["saturn"]="1"
 		["sms"]="1"
 		["snes"]="2"
 		["tgfx16"]="1"
@@ -481,6 +493,7 @@ function init_data() {
 		["neogeo"]="1"
 		["nes"]="0"
 		["s32x"]="0"
+		["saturn"]="1"
 		["sms"]="1"
 		["snes"]="0"
 		["tgfx16"]="1"
@@ -508,6 +521,7 @@ function init_data() {
 		["neogeo"]="f"
 		["nes"]="f"
 		["s32x"]="f"
+		["saturn"]="s"
 		["sms"]="f"
 		["snes"]="f"
 		["tgfx16"]="f"
@@ -868,7 +882,7 @@ function parse_cmd() {
 		# If we're given a core name, we need to set it first
 		for arg in "${@,,}"; do
 			case ${arg} in
-			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo "${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				disablecoredel=1
@@ -967,7 +981,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -2320,7 +2334,7 @@ function creategl() {
 
 function skipmessage() {
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		sleep 10
+		sleep "$skiptime"
 		samdebug "Button push sent to skip BIOS"
 		"${mrsampath}/mbc" raw_seq :31
 		sleep 1
@@ -3869,7 +3883,7 @@ function sam_corelist_preset() {
 		elif [[ "${menuresponse}" == "1" ]]; then
 			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "2" ]]; then
-			sed -i '/corelist=/c\corelist="'"arcade,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"arcade,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "3" ]]; then
 			sed -i '/corelist=/c\corelist="'"gb,gbc,gba,gg,atarilynx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "4" ]]; then
@@ -3886,7 +3900,7 @@ function sam_corelist_preset() {
 				;;
 			   255) exit;;
 			esac
-			sed -i '/corelist=/c\corelist="'"arcade,genesis,megacd,neogeo,s32x,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"arcade,genesis,megacd,neogeo,saturn,s32x,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [ "${menuresponse}" -eq "6" ]; then
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
@@ -3901,7 +3915,7 @@ function sam_corelist_preset() {
 			esac
 			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "7" ]]; then
-			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		fi
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
@@ -4020,7 +4034,7 @@ function sam_gamemodemenu() {
 }
 
 function sam_80s() {
-	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	enablebgm
 	/media/fat/Scripts/MiSTer_SAM_on.sh start
