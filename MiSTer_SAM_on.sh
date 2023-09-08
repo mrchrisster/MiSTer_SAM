@@ -54,7 +54,7 @@ function init_vars() {
 	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,saturn,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sms,snes,tgfx16,tgfx16cd,psx"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl skiptime="10"
@@ -146,6 +146,7 @@ function init_vars() {
 	declare -g genesispathrbf="_Console"
 	declare -g ggpathrbf="_Console"
 	declare -g megacdpathrbf="_Console"
+	declare -g n64pathrbf="_Console"
 	declare -g neogeopathrbf="_Console"
 	declare -g nespathrbf="_Console"
 	declare -g s32xpathrbf="_Console"
@@ -183,6 +184,7 @@ function init_data() {
 		["genesis"]="Sega Genesis / Megadrive"
 		["gg"]="Sega Game Gear"
 		["megacd"]="Sega CD / Mega CD"
+		["n64"]="Nintendo N64"
 		["neogeo"]="SNK NeoGeo"
 		["nes"]="Nintendo Entertainment System"
 		["s32x"]="Sega 32x"
@@ -211,6 +213,7 @@ function init_data() {
 		["genesis"]="md,gen" 		
 		["gg"]="gg"
 		["megacd"]="chd,cue"
+		["n64"]="n64,z64"
 		["neogeo"]="neo"
 		["nes"]="nes"
 		["s32x"]="32x"
@@ -239,6 +242,7 @@ function init_data() {
 		["genesis"]="${genesispathfilter}"
 		["gg"]="${ggpathfilter}"
 		["megacd"]="${megacdpathfilter}"
+		["n64"]="${n64pathfilter}"
 		["neogeo"]="${neogeopathfilter}"
 		["nes"]="${nespathfilter}"
 		["s32x"]="${s32xpathfilter}"
@@ -265,6 +269,7 @@ function init_data() {
 		["genesis"]="0"
 		["gg"]="0"
 		["megacd"]="0"
+		["n64"]="0"
 		["neogeo"]="0"
 		["nes"]="0"
 		["s32x"]="0"
@@ -294,6 +299,7 @@ function init_data() {
 		["genesis"]="${genesispathrbf}"
 		["gg"]="${ggpathrbf}"
 		["megacd"]="${megacdpathrbf}"
+		["n64"]="${n64pathrbf}"
 		["neogeo"]="${neogeopathrbf}"
 		["nes"]="${nespathrbf}"
 		["s32x"]="${s32xpathrbf}"
@@ -322,6 +328,7 @@ function init_data() {
 		["genesis"]="No"
 		["gg"]="No"
 		["megacd"]="Yes"
+		["n64"]="No"
 		["neogeo"]="No"
 		["nes"]="No"
 		["s32x"]="No"
@@ -349,6 +356,7 @@ function init_data() {
 		["gba"]="Yes"
 		["genesis"]="Yes"
 		["gamegear"]="Yes"
+		["n64"]="No"
 		["megacd"]="No"
 		["neogeo"]="Yes"
 		["nes"]="Yes"
@@ -378,6 +386,7 @@ function init_data() {
 		["genesis"]="Genesis"
 		["gg"]="SMS"
 		["megacd"]="MegaCD"
+		["n64"]="N64"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
@@ -406,6 +415,7 @@ function init_data() {
 		["genesis"]="Genesis"
 		["gg"]="gamegear"
 		["megacd"]="MegaCD"
+		["n64"]="N64"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
@@ -434,6 +444,7 @@ function init_data() {
 		["genesis"]="Genesis"
 		["gg"]="SMS"
 		["megacd"]="MegaCD"
+		["n64"]="N64"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
@@ -462,6 +473,7 @@ function init_data() {
 		["genesis"]="1"
 		["gg"]="1"
 		["megacd"]="1"
+		["n64"]="1"
 		["neogeo"]="1"
 		["nes"]="2"
 		["s32x"]="1"
@@ -490,6 +502,7 @@ function init_data() {
 		["genesis"]="0"
 		["gg"]="2"
 		["megacd"]="0"
+		["n64"]="1"
 		["neogeo"]="1"
 		["nes"]="0"
 		["s32x"]="0"
@@ -518,6 +531,7 @@ function init_data() {
 		["genesis"]="f"
 		["gg"]="f"
 		["megacd"]="s"
+		["n64"]="f"
 		["neogeo"]="f"
 		["nes"]="f"
 		["s32x"]="f"
@@ -882,7 +896,7 @@ function parse_cmd() {
 		# If we're given a core name, we need to set it first
 		for arg in "${@,,}"; do
 			case ${arg} in
-			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo "${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				disablecoredel=1
@@ -981,7 +995,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
