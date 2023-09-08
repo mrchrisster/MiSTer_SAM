@@ -2830,6 +2830,7 @@ function misterini_mod() {
 			if ! grep -qE "video_mode=${video_mode}" "$ini_file"; then
 			  echo "Setting video_mode to ${video_mode}"
 				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
+				[ "$(tail -c 1 "$ini_file")" != "" ] && echo "" >> "$ini_file"
 				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
 					/^video_mode[[:space:]]*=/! { 
 						/^(\[|\[[:alnum:]]+[^menu])$/! {
@@ -2879,6 +2880,7 @@ function misterini_mod() {
 			echo "[menu] entry found in MiSTer.ini"
 			if ! grep -qE "${video_mode}" "$ini_file"; then
 			  echo "Setting video_mode to ${video_mode}"
+				[ "$(tail -c 1 "$ini_file")" != "" ] && echo "" >> "$ini_file"
 				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
 				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
 					/^video_mode[[:space:]]*=/! { 
