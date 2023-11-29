@@ -1,0 +1,11 @@
+[NEOGEO]
+aof
+kof94
+[ARCADE]
+X-Men Vs. Street Fighter (Euro 961004)
+Street Fighter II The World Warrior (World 910522)
+Cadillacs and Dinosaurs (W, 930201)
+Mega Man 2- The Power Fighters (US, 960708)
+Marvel Vs. Capcom- Clash of Super Heroes (EU, 980123)
+Mercs (W, 900302)
+Saturday Night Slam Masters (W, 930713)
