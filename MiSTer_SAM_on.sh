@@ -4075,7 +4075,7 @@ function sam_gamemodemenu() {
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		sam_goat_mode "Play the Greatest of All Time Attract modes." \
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
-		sam_svc "Play a TV commercials and then show the advertised game." \
+		sam_svc "Play TV commercials and then show the advertised game." \
 		sam_roulettemenu "Game Roulette" 2>"/tmp/.SAMmenu"	
 	
 	opt=$?
@@ -4103,8 +4103,8 @@ sam_goat_mode() {
     if [ ! -f "$goat_list_path" ]; then
         echo "Error: The GOAT list file ($goat_list_path) does not exist. Updating SAM now. Please try again."
 		repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-		get_samstuff .MiSTer_SAM/SAM_Rated/sam_goat_list.txt "${gamelistpath}"/sam_goat_list.txt
-        return 1  # Exit the function with an error status
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/sam_goat_list.txt "${gamelistpath}"
+        #return 1  # Exit the function with an error status
     fi
 	
 	#Reset gamelists
