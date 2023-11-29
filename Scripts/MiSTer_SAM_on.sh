@@ -878,6 +878,12 @@ function read_samini() {
 		source /tmp/.SAM_tmp/gameroulette.ini
 	fi
 	
+	#GOAT Mode
+	if [ "$sam_goat_list" == "yes" ]; then
+		sam_goat_mode	
+	fi
+	
+	
 }
 
 
@@ -1073,6 +1079,10 @@ function parse_cmd() {
 				;;
 			help)
 				sam_help
+				break
+				;;
+			sshconfig)
+				sam_sshconfig
 				break
 				;;
 			*)
@@ -1494,6 +1504,10 @@ function check_list() { # args ${nextcore}
 	#	check_zips ${1} &
 	#fi
 	
+	if [ "${sam_goat_list}" == "yes" ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+		sam_goat_mode
+		return
+	fi
 	
 	# Copy gamelist to tmp
 	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then	
@@ -2690,6 +2704,30 @@ function samdebug() {
     fi
 }
 
+function sam_sshconfig() {
+	# Alias to be added
+	alias_m='alias m="/media/fat/Scripts/MiSTer_SAM_on.sh"'
+	alias_ms='alias ms="source /media/fat/Scripts/MiSTer_SAM_on.sh --sourceonly"'
+	alias_u='alias u="/media/fat/Scripts/update_all.sh"'
+
+	# Path to the .bash_profile
+	bash_profile="${HOME}/.bash_profile"
+	# Check if .bash_profile exists
+	if [ ! -f "$bash_profile" ]; then
+		touch "$bash_profile"
+	fi
+	   # Check if the alias already exists in the file
+    if grep -Fxq "$alias_m" "$bash_profile"; then
+        echo "Alias already exists in $bash_profile"
+    else
+        # Add the alias to .bash_profile
+        echo "$alias_m" >> "$bash_profile"
+		echo "$alias_ms" >> "$bash_profile"
+		echo "$alias_u" >> "$bash_profile"
+        echo "Alias added to $bash_profile. Please relaunch terminal. Type 'm' to start MiSTer_SAM_on.sh"
+    fi
+	source ~/.bash_profile
+}
 
 function sam_help() { # sam_help
 	echo " start - start immediately"
@@ -4035,6 +4073,7 @@ function sam_gamemodemenu() {
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+		sam_goat_mode "Play the Greatest of All Time Attract modes." \
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
 		sam_svc "Play a TV commercials and then show the advertised game." \
 		sam_roulettemenu "Game Roulette" 2>"/tmp/.SAMmenu"	
@@ -4050,11 +4089,55 @@ function sam_gamemodemenu() {
 	fi
 }
 
+
+# Function to process the GOAT list and create game list files
+sam_goat_mode() {
+	if [ "${menuresponse}" == "sam_goat_mode" ]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
+			--msgbox "SAM will start now and only play games deemed to have the Greatest of All Time Attract Modes.\n\nOn cold reboot, SAM will get reset automatically to play all games again.\n\nTo activate the GOAT list permanently, set sam_goat_list=yes in MiSTer_SAM.ini" 0 0
+	fi	
+    local current_core=""
+    local goat_list_path="${gamelistpath}"/sam_goat_list.txt
+	# Check if the GOAT list file exists
+    if [ ! -f "$goat_list_path" ]; then
+        echo "Error: The GOAT list file ($goat_list_path) does not exist. Updating SAM now. Please try again."
+		repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+		get_samstuff SAM_Rated/sam_goat_list.txt "${gamelistpath}"/sam_goat_list.txt
+        return 1  # Exit the function with an error status
+    fi
+	
+	#Reset gamelists
+	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
+	mkdir -p "${gamelistpathtmp}"
+
+	# process files
+	
+	while read -r line; do
+		if [[ "$line" =~ ^\[.+\]$ ]]; then
+			current_core=${line:1:-1}
+			current_core=${current_core,,} 
+			if [ ! -f "${gamelistpath}/${current_core}_gamelist.txt" ]; then
+                # Create the gamelist if it doesn't exist
+                create_gamelist "$current_core"
+            fi
+       elif [ -n "$current_core" ]; then
+            # Filter the existing gamelist for the current core
+            fgrep -i -m 1 "$line" "${gamelistpath}/${current_core}_gamelist.txt" >> "${gamelistpathtmp}/${current_core}_gamelist.txt"
+        fi
+	done < "$goat_list_path"
+	readarray -t corelist <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)"
+	printf "%s\n" "${corelist[@]}" > "${corelistfile}"
+	if [ "${menuresponse}" == "sam_goat_mode" ]; then
+		sam_start
+	fi
+}
+
 function sam_80s() {
 	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	enablebgm
-	/media/fat/Scripts/MiSTer_SAM_on.sh start
+	sam_start
 }
 	
 function sam_svc() {
@@ -4067,7 +4150,7 @@ function sam_svc() {
 	if [ ! -f "${gamelistpath}"/nes_tvc.txt ]; then
 		get_samvideo
 	fi
-	/media/fat/Scripts/MiSTer_SAM_on.sh start	
+	sam_start
 }
 	
 
