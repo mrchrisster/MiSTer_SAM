@@ -4103,7 +4103,7 @@ sam_goat_mode() {
     if [ ! -f "$goat_list_path" ]; then
         echo "Error: The GOAT list file ($goat_list_path) does not exist. Updating SAM now. Please try again."
 		repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-		get_samstuff SAM_Rated/sam_goat_list.txt "${gamelistpath}"/sam_goat_list.txt
+		get_samstuff .MiSTer_SAM/SAM_Rated/sam_goat_list.txt "${gamelistpath}"/sam_goat_list.txt
         return 1  # Exit the function with an error status
     fi
 	
