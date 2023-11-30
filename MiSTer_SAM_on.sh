@@ -54,9 +54,10 @@ function init_vars() {
 	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sms,snes,tgfx16,tgfx16cd,psx"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
+	declare -gl skiptime="10"
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl amigaselect="All"
@@ -109,10 +110,13 @@ function init_vars() {
 	)
 	
 	# ======== SAMVIDEO =======
+	declare -gA SV_TVC_CL
 	declare -gl samvideo
 	declare -gl samvideo_freq
 	declare -gl samvideo_output="hdmi"
 	declare -gl samvideo_source
+	declare -gl samvideo_tvc
+	declare -gl sv_aspectfix_vmode
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
@@ -142,9 +146,11 @@ function init_vars() {
 	declare -g genesispathrbf="_Console"
 	declare -g ggpathrbf="_Console"
 	declare -g megacdpathrbf="_Console"
+	declare -g n64pathrbf="_Console"
 	declare -g neogeopathrbf="_Console"
 	declare -g nespathrbf="_Console"
 	declare -g s32xpathrbf="_Console"
+	declare -g saturnpathrbf="_Console"
 	declare -g smspathrbf="_Console"
 	declare -g snespathrbf="_Console"
 	declare -g tgfx16pathrbf="_Console"
@@ -178,9 +184,11 @@ function init_data() {
 		["genesis"]="Sega Genesis / Megadrive"
 		["gg"]="Sega Game Gear"
 		["megacd"]="Sega CD / Mega CD"
+		["n64"]="Nintendo N64"
 		["neogeo"]="SNK NeoGeo"
 		["nes"]="Nintendo Entertainment System"
 		["s32x"]="Sega 32x"
+		["saturn"]="Sega Saturn"		
 		["sms"]="Sega Master System"
 		["snes"]="Super Nintendo"
 		["tgfx16"]="NEC TurboGrafx-16 "
@@ -205,9 +213,11 @@ function init_data() {
 		["genesis"]="md,gen" 		
 		["gg"]="gg"
 		["megacd"]="chd,cue"
+		["n64"]="n64,z64"
 		["neogeo"]="neo"
 		["nes"]="nes"
 		["s32x"]="32x"
+		["saturn"]="cue"
 		["sms"]="sms,sg"
 		["snes"]="sfc,smc" 	 	# Should we include? "bin,bs"
 		["tgfx16"]="pce,sgx"		
@@ -232,6 +242,7 @@ function init_data() {
 		["genesis"]="${genesispathfilter}"
 		["gg"]="${ggpathfilter}"
 		["megacd"]="${megacdpathfilter}"
+		["n64"]="${n64pathfilter}"
 		["neogeo"]="${neogeopathfilter}"
 		["nes"]="${nespathfilter}"
 		["s32x"]="${s32xpathfilter}"
@@ -258,9 +269,11 @@ function init_data() {
 		["genesis"]="0"
 		["gg"]="0"
 		["megacd"]="0"
+		["n64"]="0"
 		["neogeo"]="0"
 		["nes"]="0"
 		["s32x"]="0"
+		["saturn"]="0"
 		["sms"]="0"
 		["snes"]="0"	
 		["tgfx16"]="0"
@@ -286,9 +299,11 @@ function init_data() {
 		["genesis"]="${genesispathrbf}"
 		["gg"]="${ggpathrbf}"
 		["megacd"]="${megacdpathrbf}"
+		["n64"]="${n64pathrbf}"
 		["neogeo"]="${neogeopathrbf}"
 		["nes"]="${nespathrbf}"
 		["s32x"]="${s32xpathrbf}"
+		["saturn"]="${saturnpathrbf}"
 		["sms"]="${smspathrbf}"
 		["snes"]="${snespathrbf}"
 		["tgfx16"]="${tgfx16pathrbf}"
@@ -313,9 +328,11 @@ function init_data() {
 		["genesis"]="No"
 		["gg"]="No"
 		["megacd"]="Yes"
+		["n64"]="No"
 		["neogeo"]="No"
 		["nes"]="No"
 		["s32x"]="No"
+		["saturn"]="Yes"
 		["sms"]="No"
 		["snes"]="No"
 		["tgfx16"]="No"
@@ -339,10 +356,12 @@ function init_data() {
 		["gba"]="Yes"
 		["genesis"]="Yes"
 		["gamegear"]="Yes"
+		["n64"]="No"
 		["megacd"]="No"
 		["neogeo"]="Yes"
 		["nes"]="Yes"
 		["s32x"]="Yes"
+		["saturn"]="No"
 		["sms"]="Yes"
 		["snes"]="Yes"
 		["tgfx16"]="Yes"
@@ -367,9 +386,11 @@ function init_data() {
 		["genesis"]="Genesis"
 		["gg"]="SMS"
 		["megacd"]="MegaCD"
+		["n64"]="N64"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
+		["saturn"]="SATURN"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TGFX16"
@@ -394,9 +415,11 @@ function init_data() {
 		["genesis"]="Genesis"
 		["gg"]="gamegear"
 		["megacd"]="MegaCD"
+		["n64"]="N64"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
+		["saturn"]="SATURN"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TGFX16"
@@ -421,9 +444,11 @@ function init_data() {
 		["genesis"]="Genesis"
 		["gg"]="SMS"
 		["megacd"]="MegaCD"
+		["n64"]="N64"
 		["neogeo"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
+		["saturn"]="SATURN"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TurboGrafx16"
@@ -448,9 +473,11 @@ function init_data() {
 		["genesis"]="1"
 		["gg"]="1"
 		["megacd"]="1"
+		["n64"]="1"
 		["neogeo"]="1"
 		["nes"]="2"
 		["s32x"]="1"
+		["saturn"]="1"
 		["sms"]="1"
 		["snes"]="2"
 		["tgfx16"]="1"
@@ -475,9 +502,11 @@ function init_data() {
 		["genesis"]="0"
 		["gg"]="2"
 		["megacd"]="0"
+		["n64"]="1"
 		["neogeo"]="1"
 		["nes"]="0"
 		["s32x"]="0"
+		["saturn"]="1"
 		["sms"]="1"
 		["snes"]="0"
 		["tgfx16"]="1"
@@ -502,9 +531,11 @@ function init_data() {
 		["genesis"]="f"
 		["gg"]="f"
 		["megacd"]="s"
+		["n64"]="f"
 		["neogeo"]="f"
 		["nes"]="f"
 		["s32x"]="f"
+		["saturn"]="s"
 		["sms"]="f"
 		["snes"]="f"
 		["tgfx16"]="f"
@@ -806,17 +837,15 @@ function init_data() {
 	
 	
 	declare -glA SV_TVC=(
-		["fds"]="nes"
+		["fds"]="^nes-\| nes"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
-		["gba"]="gba"
 		["genesis"]="genesis"
-		["gg"]="gg"
 		["megacd"]="megacd"
-		["nes"]="nes"
+		["nes"]="^nes-\| nes"
 		["snes"]="snes"
 		["tgfx16cd"]="turboduo"
-		["psx"]="psx"
+		["psx"]="psx\|playstation"
 	)
 
 }
@@ -849,6 +878,12 @@ function read_samini() {
 		source /tmp/.SAM_tmp/gameroulette.ini
 	fi
 	
+	#GOAT Mode
+	if [ "$sam_goat_list" == "yes" ]; then
+		sam_goat_mode	
+	fi
+	
+	
 }
 
 
@@ -867,7 +902,7 @@ function parse_cmd() {
 		# If we're given a core name, we need to set it first
 		for arg in "${@,,}"; do
 			case ${arg} in
-			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo "${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				disablecoredel=1
@@ -966,7 +1001,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -1044,6 +1079,10 @@ function parse_cmd() {
 				;;
 			help)
 				sam_help
+				break
+				;;
+			sshconfig)
+				sam_sshconfig
 				break
 				;;
 			*)
@@ -1150,10 +1189,16 @@ function next_core() { # next_core (core)
 	# Pick a core if no corename was supplied as argument (eg "MiSTer_SAM_on.sh psx")
 	if [ -z "${1}" ]; then
 		corelist_update	
-		create_all_gamelists	
-		pick_core
-
-	fi
+		create_all_gamelists
+		if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ]; then
+			nextcore=$(cat /tmp/sv_core)
+		else
+			pick_core			
+		fi
+	fi	
+	
+	load_special_core
+	if [ $? -ne 0 ]; then return; fi
 
 	#samdebug "corelist: ${corelist[*]}"
 	#samdebug "corelisttmp: ${corelisttmp[*]}"
@@ -1191,6 +1236,7 @@ function load_samvideo() {
 				sv_loadcounter=0
 				return 1
 		  	fi
+		  	sv_nextcore=""
 		  	return 0
 
 		elif [ "${samvideo_freq}" == "alternate" ]; then
@@ -1199,6 +1245,7 @@ function load_samvideo() {
 				samvideo_play &
 				return 1
 		  	else
+		  		sv_nextcore=""
 				return 0
 			fi
 		fi
@@ -1294,10 +1341,11 @@ function check_gamelistupdate() {
 #Pick next core
 function pick_core(){
 	
-	if [ "$samvideo_tvc" != "yes" ]; then
-		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
+	if [ -n "$1" ]; then 
+		local -n array=$1
+		nextcore=$(printf "%s\n" "${array[@]}" | shuf --random-source=/dev/urandom | head -1)
 	else
-		nextcore=$(cat /tmp/sv_core)
+		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
 	fi
 	
 	if [[ ! "${nextcore}" ]]; then
@@ -1456,6 +1504,10 @@ function check_list() { # args ${nextcore}
 	#	check_zips ${1} &
 	#fi
 	
+	if [ "${sam_goat_list}" == "yes" ] || [ -e /tmp/.SAM_tmp/goat ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+		sam_goat_mode
+		return
+	fi
 	
 	# Copy gamelist to tmp
 	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then	
@@ -1474,6 +1526,14 @@ function pick_rom() {
 		echo "Gamelist creation failed. Will try again on next core launch. Trying another rom..."	
 		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 	fi
+	if [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/sv_gamename ]; then
+		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/sv_gamename |  grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
+		if [ -z "${rompath}" ]; then
+			echo "Error with picking the corresponding game for the commercial. Playing random game now."
+			rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
+		fi
+	fi
+	
 
 }
 
@@ -1541,8 +1601,6 @@ function delete_played_game() {
 # Load selected core and rom
 function load_core() { # load_core core /path/to/rom name_of_rom 
 	# Load arcade, ao486 or amiga cores
-	load_special_core
-	if [ $? -ne 0 ]; then return; fi
 	local core=${1}
 	local rompath=${2}
 	local romname=${3}
@@ -1708,6 +1766,14 @@ function load_core_arcade() {
 
 function create_amigalist () {
 
+	# Create List in gamelistpath
+	if [ ! -f "${gamelistpath}/amiga_gamelist.txt" ]; then
+		cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
+		sed -i -e 's/^/Demo: /' ${gamelistpathtmp}/amiga_gamelist.txt
+		cat "${amigapath}/listings/games.txt" >> ${gamelistpathtmp}/amiga_gamelist.txt
+		cp ${gamelistpathtmp}/amiga_gamelist.txt ${gamelistpath}/amiga_gamelist.txt
+	fi
+	
 	if [ -f "${amigapath}/listings/games.txt" ]; then
 		if [[ "${amigaselect}" == "demos" ]]; then
 			cat "${amigapath}/listings/demos.txt" > ${gamelistpathtmp}/amiga_gamelist.txt
@@ -1733,11 +1799,6 @@ function create_amigalist () {
 
 function load_core_amiga() {
 
-	if [ ! -f "${gamelistpath}/amiga_gamelist.txt" ]; then
-		[ -f "${amigapath}/listings/demos.txt" ] && cat "${amigapath}/listings/demos.txt" > ${gamelistpath}/amiga_gamelist.txt
-		sed -i -e 's/^/Demo: /' ${gamelistpath}/amiga_gamelist.txt
-		[ -f "${amigapath}/listings/games.txt" ] && cat "${amigapath}/listings/games.txt" >> ${gamelistpath}/amiga_gamelist.txt
-	fi
 
 	if [ ! -s "${gamelistpathtmp}/amiga_gamelist.txt" ]; then
 		create_amigalist
@@ -1816,7 +1877,46 @@ function create_ao486list () {
 }
 
 function load_core_ao486() {
+	ao486_top300=yes
+	function select_top300() {
+		#wait til core and top300 image is loaded
+		sleep 13
+		
+		local random_num=$(echo $((10 + RANDOM % 17)))		
+		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :${random_num}
+		
+		local count=$((1 + RANDOM % 5))
 
+		for i in $(seq 1 $count); do
+			# Randomly choose between 0 and 1
+			local commandChoice=$((RANDOM % 2))
+
+			if [ $commandChoice -eq 0 ]; then
+				/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq U
+			else
+				/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq D
+			fi
+		done
+		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq O
+		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq O
+		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq O
+	}
+	if [ "${ao486_top300}" == "yes" ]; then			
+	
+		{
+		echo "<mistergamedescription>"
+		echo "<rbf>_Computer/ao486</rbf>"
+		echo "<file delay="1" type="s" index="2" path="../../../../../media/fat/games/AO486/IDE 0-0 BOOT-DOS98.vhd"/>"
+		echo "<file delay="1" type="s" index="3" path="../../../../../media/fat/games/AO486/IDE 0-1 Top 300 DOS Games.vhd"/>"
+		echo "</mistergamedescription>"
+		} >/tmp/SAM_game.mgl
+		echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+		
+		select_top300 &
+		return
+	fi
+	
+	
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		create_ao486list
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
@@ -2054,6 +2154,7 @@ function sam_prep() {
 		echo "Kids Safe lists missing for cores: ${nclr[@]}"
 		printf "%s\n" "${clr[@]}" > "${corelistfile}"
 	fi
+	#[ "${samvideo}" == "yes" ] && [ "${samvideo_tvc}" == "yes" ] && coreweight=yes
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 	if [ "${samvideo}" == "yes" ]; then
@@ -2300,7 +2401,7 @@ function creategl() {
 
 function skipmessage() {
 	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		sleep 10
+		sleep "$skiptime"
 		samdebug "Button push sent to skip BIOS"
 		"${mrsampath}/mbc" raw_seq :31
 		sleep 1
@@ -2642,6 +2743,30 @@ function samdebug() {
     fi
 }
 
+function sam_sshconfig() {
+	# Alias to be added
+	alias_m='alias m="/media/fat/Scripts/MiSTer_SAM_on.sh"'
+	alias_ms='alias ms="source /media/fat/Scripts/MiSTer_SAM_on.sh --sourceonly"'
+	alias_u='alias u="/media/fat/Scripts/update_all.sh"'
+
+	# Path to the .bash_profile
+	bash_profile="${HOME}/.bash_profile"
+	# Check if .bash_profile exists
+	if [ ! -f "$bash_profile" ]; then
+		touch "$bash_profile"
+	fi
+	   # Check if the alias already exists in the file
+    if grep -Fxq "$alias_m" "$bash_profile"; then
+        echo "Alias already exists in $bash_profile"
+    else
+        # Add the alias to .bash_profile
+        echo "$alias_m" >> "$bash_profile"
+		echo "$alias_ms" >> "$bash_profile"
+		echo "$alias_u" >> "$bash_profile"
+        echo "Alias added to $bash_profile. Please relaunch terminal. Type 'm' to start MiSTer_SAM_on.sh"
+    fi
+	source ~/.bash_profile
+}
 
 function sam_help() { # sam_help
 	echo " start - start immediately"
@@ -2767,23 +2892,53 @@ function misterini_mod() {
 			ini_res="640x480"
 		fi
 		res_comma=$(echo "$ini_res" | tr 'x' ',')
-		video_mode="${res_comma},60"
+		if [ "${sv_aspectfix_vmode}" == "yes" ]; then
+			video_mode="${res_comma},60"
+		else
+			# Setting video mode to FullHD seems to work for most HDMI displays
+			video_mode="8"
+		fi
+
+		fb_size=1
 
 		# Use sed to modify the INI file
-		if grep -qE "fb_terminal=0" "$ini_file"; then
-			if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-			# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
-			  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
-				/^fb_terminal[[:space:]]*=/ { s/=.*/=${fb_terminal}/ }
-				/^\[.*\]/! {
-				  /^\s*$/d
-				}
-			  }" "$ini_file"
+		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
+			echo "[menu] entry found in MiSTer.ini"
+			if ! grep -qE "video_mode=${video_mode}" "$ini_file"; then
+			  echo "Setting video_mode to ${video_mode}"
+				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
+				[ "$(tail -c 1 "$ini_file")" != "" ] && echo "" >> "$ini_file"
+				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
+					/^video_mode[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				video_mode=${video_mode}
+						}
+					}
+					/^fb_terminal[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				fb_terminal=${fb_terminal}
+						}
+					}
+					/^vga_scaler[[:space:]]*=/! { 
+						/^(\[|\[[:alnum:]]+[^menu])$/! {
+							/^(\[|\[[:alnum:]]+[^menu])/a\
+				fb_size=${fb_size}
+						}
+					}
+					/^\[.*\]/! {
+						/^\s*$/d
+					}
+				}" "$ini_file"
 			else
-			  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
-			  echo -e "[menu]\nfb_terminal=${fb_terminal}\n" >> "$ini_file"
+				echo "No MiSTer.ini modification necessary"
 			fi
+		else
+		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
+		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nfb_size=${fb_size}\n" >> "$ini_file"
 		fi
+		
 
 	#CRT mode	
 	elif [ "$samvideo_output" == "crt" ]; then
@@ -2794,14 +2949,17 @@ function misterini_mod() {
 			echo "Archive and CRT: Setting CRT out to 640x240"
 			samvideo_crtmode="${samvideo_crtmode640}"
 		fi
+		
 		video_mode="$(echo $samvideo_crtmode |awk -F'=' '{print $2}')"
+		
 		# Use sed to modify the INI file 
 		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-			samdebug "[menu] entry found in MiSTer.ini"
+			echo "[menu] entry found in MiSTer.ini"
 			if ! grep -qE "${video_mode}" "$ini_file"; then
-			  samdebug "Setting video_mode to ${video_mode}"
+			  echo "Setting video_mode to ${video_mode}"
+				[ "$(tail -c 1 "$ini_file")" != "" ] && echo "" >> "$ini_file"
 				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
-				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|\[[:alnum:]]+[^menu])/ {
+				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
 					/^video_mode[[:space:]]*=/! { 
 						/^(\[|\[[:alnum:]]+[^menu])$/! {
 							/^(\[|\[[:alnum:]]+[^menu])/a\
@@ -2825,7 +2983,7 @@ function misterini_mod() {
 					}
 				}" "$ini_file"
 			else
-				samdebug "No MiSTer.ini modification necessary"
+				echo "No MiSTer.ini modification necessary"
 			fi
 		else
 		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
@@ -2917,12 +3075,14 @@ function sv_ar480() {
 	http_archive=${sv_archive_hdmilist//https/http}
 	if [ ! -s ${samvideo_list} ]; then
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > ${samvideo_list}
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
+			| sed 's/<file name="//;s/"$//' \
+			| sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
+			> ${samvideo_list}
 	fi
 	# Select a video
 	if [ "$samvideo_tvc" == "yes" ]; then
 		samvideo_tvc
-		samdebug "Selected core for video: $nextcore"
 	else
 		sv_selected="$(shuf -n1 ${samvideo_list})"
 	fi
@@ -2939,8 +3099,11 @@ function sv_ar240() {
 	http_archive=${sv_archive_crtlist//https/http}
 	if [ ! -s ${samvideo_list} ]; then
 		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml | sed 's/<file name="//;s/"$//' | grep -v -E 'quot|#|"|\?' > ${samvideo_list}
-	fi
+		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
+			| sed 's/<file name="//;s/"$//' \
+			| sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
+			> ${samvideo_list}
+    fi
 	# Select a video
 	if [ "$samvideo_tvc" == "yes" ]; then
 		samvideo_tvc
@@ -2969,11 +3132,48 @@ function sv_local() {
 }
 
 function samvideo_tvc() {
+	if [ ! -f "${gamelistpath}"/nes_tvc.txt ]; then
+		get_samvideo
+	fi
 	#Setting corelist to available commercials
-	samdebug "samvideo corelist: ${!SV_TVC[@]}"
-	nextcore=$(printf "%s\n" "${!SV_TVC[@]}" | shuf --random-source=/dev/urandom | head -1)
+	unset TVC_LIST
+	unset SV_TVC_CL
+	for g in "${!SV_TVC[@]}"; do 
+		for c in "${corelist[@]}"; do 
+			if [[ "$c" == "$g" ]]; then 
+				SV_TVC_CL+=("$c")
+			fi
+		done 
+	done
+	samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
+	pick_core "SV_TVC_CL"
+	
+	#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+	count=0
+	while [ $count -lt 15 ]; do
+		if [ -f "${gamelistpath}"/${nextcore}_tvc.txt ]; then
+			samdebug "${nextcore}_tvc.txt found."
+			sv_selected=$(jq -r 'keys[]' "${gamelistpath}"/${nextcore}_tvc.txt | shuf -n 1)
+			tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "${gamelistpath}/${nextcore}_tvc.txt")					
+			echo "${tvc_selected}"> /tmp/sv_gamename
+			break
+		else
+			# If file is not found, select a new core randomly
+			#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+			pick_core "SV_TVC_CL"
+			samdebug "${nextcore}_tvc.txt not found, selecting new core: $nextcore"
+		fi
+
+		((count++))
+
+	done
 	echo $nextcore > /tmp/sv_core
-	sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
+	samdebug "Searching for ${SV_TVC[$nextcore]}"
+	if [ -z "${tvc_selected}" ]; then
+		echo "Couldn't find TVC list. Selecting random game from system"
+		sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
+	fi
+	samdebug "Picked $sv_selected"
 }
 
 ## Play video
@@ -3039,12 +3239,7 @@ function samvideo_play() {
 		#setterm -cursor off
 		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
 		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
-		#chvt 2
-		if [ -z "${sv_custom_vmode}" ]; then
-			vmode -r ${res_space} rgb32
-		else
-			vmode -r ${sv_custom_vmode} rgb32
-		fi
+		vmode -r ${res_space} rgb32
 		echo -e "\nPlaying video now.\n"
 		echo -e "Title: ${sv_selected%.*}"
 		echo -e "Resolution: ${res_space}"
@@ -3129,6 +3324,11 @@ function get_samvideo() {
 	curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
 	get_samstuff .MiSTer_SAM/sv_yt360_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
 	get_samstuff .MiSTer_SAM/sv_yt240_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null	
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null	
 	echo " Done."
 }
 
@@ -3145,6 +3345,7 @@ function get_inputmap() {
 	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	get_samstuff .MiSTer_SAM/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
+	get_samstuff .MiSTer_SAM/inputs/SATURN_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
 	echo " Done."
 }
 
@@ -3342,11 +3543,11 @@ function sam_menu() {
 		Stop "Stop SAM" \
 		Update "Update SAM to latest" \
 		----- "-----------------------------" \
-		gamemode "Presets and Game Modes" \
 		sam_coreconfig "Configure Core List" \
 		sam_exittask "Configure Exit Behavior" \
 		sam_filters "Filters (by Orientation or Category)" \
 		sam_bgm "Add-ons: SAMVIDEO, BGM, TTY2OLED" \
+		gamemode "Presets and Game Modes" \
 		config "MiSTer_SAM.ini Editor" \
 		Settings "Settings" \
 		Reset "Reset or uninstall SAM" 2>"/tmp/.SAMmenu"
@@ -3357,6 +3558,10 @@ function sam_menu() {
 	
 	if [ "$opt" != "0" ]; then
 		exit
+	elif [[ "${menuresponse,,}" == "start" ]]; then
+		/media/fat/Scripts/MiSTer_SAM_on.sh start
+	elif [[ "${menuresponse,,}" == "startmonitor" ]]; then
+		/media/fat/Scripts/MiSTer_SAM_on.sh sm
 	elif [[ "${menuresponse,,}" == "sam_coreconfig" ]]; then
 		sam_coreconfig
 	elif [[ "${menuresponse,,}" == "-----" ]]; then
@@ -3772,7 +3977,7 @@ function sam_corelist_preset() {
 		elif [[ "${menuresponse}" == "1" ]]; then
 			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "2" ]]; then
-			sed -i '/corelist=/c\corelist="'"arcade,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"arcade,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "3" ]]; then
 			sed -i '/corelist=/c\corelist="'"gb,gbc,gba,gg,atarilynx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "4" ]]; then
@@ -3789,7 +3994,7 @@ function sam_corelist_preset() {
 				;;
 			   255) exit;;
 			esac
-			sed -i '/corelist=/c\corelist="'"arcade,genesis,megacd,neogeo,s32x,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"arcade,genesis,megacd,neogeo,saturn,s32x,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [ "${menuresponse}" -eq "6" ]; then
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
@@ -3804,7 +4009,7 @@ function sam_corelist_preset() {
 			esac
 			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "7" ]]; then
-			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		fi
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
@@ -3907,8 +4112,9 @@ function sam_gamemodemenu() {
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+		sam_goat_mode "Play the Greatest of All Time Attract modes." \
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
-		sam_svc "Play Video game commercials and then show the games" \
+		sam_svc "Play TV commercials and then show the advertised game." \
 		sam_roulettemenu "Game Roulette" 2>"/tmp/.SAMmenu"	
 	
 	opt=$?
@@ -3922,10 +4128,56 @@ function sam_gamemodemenu() {
 	fi
 }
 
+
+# Function to process the GOAT list and create game list files
+sam_goat_mode() {
+	if [ "${menuresponse}" == "sam_goat_mode" ]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
+			--msgbox "SAM will start now and only play games deemed to have the Greatest of All Time Attract Modes.\n\nOn cold reboot, SAM will get reset automatically to play all games again.\n\nTo activate the GOAT list permanently, set sam_goat_list=yes in MiSTer_SAM.ini" 0 0
+	fi	
+    local current_core=""
+    local goat_list_path="${gamelistpath}"/sam_goat_list.txt
+	# Check if the GOAT list file exists
+    if [ ! -f "$goat_list_path" ]; then
+        echo "Error: The GOAT list file ($goat_list_path) does not exist. Updating SAM now. Please try again."
+		repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+		get_samstuff .MiSTer_SAM/SAM_Gamelists/sam_goat_list.txt "${gamelistpath}"
+        #return 1  # Exit the function with an error status
+    fi
+	
+	#Reset gamelists
+	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
+	mkdir -p "${gamelistpathtmp}"
+
+	# process files
+	
+	while read -r line; do
+		if [[ "$line" =~ ^\[.+\]$ ]]; then
+			current_core=${line:1:-1}
+			current_core=${current_core,,} 
+			if [ ! -f "${gamelistpath}/${current_core}_gamelist.txt" ]; then
+                # Create the gamelist if it doesn't exist
+                create_gamelist "$current_core"
+            fi
+       elif [ -n "$current_core" ]; then
+            # Filter the existing gamelist for the current core
+            fgrep -i -m 1 "$line" "${gamelistpath}/${current_core}_gamelist.txt" >> "${gamelistpathtmp}/${current_core}_gamelist.txt"
+        fi
+	done < "$goat_list_path"
+	readarray -t corelist <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)"
+	printf "%s\n" "${corelist[@]}" > "${corelistfile}"
+	if [ "${menuresponse}" == "sam_goat_mode" ]; then
+		sam_start
+		touch /tmp/.SAM_tmp/goat
+	fi
+}
+
 function sam_80s() {
-	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	enablebgm
-	/media/fat/Scripts/MiSTer_SAM_on.sh start
+	sam_start
 }
 	
 function sam_svc() {
@@ -3935,6 +4187,10 @@ function sam_svc() {
 	sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/samvideo_source=/c\samvideo_source="'"Archive"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/samvideo_tvc=/c\samvideo_tvc="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	if [ ! -f "${gamelistpath}"/nes_tvc.txt ]; then
+		get_samvideo
+	fi
+	sam_start
 }
 	
 
