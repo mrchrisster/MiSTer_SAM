@@ -1504,7 +1504,7 @@ function check_list() { # args ${nextcore}
 	#	check_zips ${1} &
 	#fi
 	
-	if [ "${sam_goat_list}" == "yes" ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+	if [ "${sam_goat_list}" == "yes" ] || [ -e /tmp/.SAM_tmp/goat ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 		sam_goat_mode
 		return
 	fi
@@ -4108,7 +4108,7 @@ sam_goat_mode() {
     fi
 	
 	#Reset gamelists
-	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
+	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
 	mkdir -p "${gamelistpathtmp}"
 
 	# process files
@@ -4130,6 +4130,7 @@ sam_goat_mode() {
 	printf "%s\n" "${corelist[@]}" > "${corelistfile}"
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
 		sam_start
+		touch /tmp/.SAM_tmp/goat
 	fi
 }
 
