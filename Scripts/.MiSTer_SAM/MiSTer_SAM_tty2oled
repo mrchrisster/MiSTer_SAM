@@ -94,14 +94,21 @@ function tty_init() { # tty_init
 
 	# Stopping ScreenSaver
 	samquiet "-n" " Stopping tty2oled ScreenSaver..."
-	echo "CMDSAVER,0,0,0" >${ttydevice}
+	echo "CMDSWSAVER,0" >${ttydevice}
 	tty_waitfor
 	#sleep 2
 	samquiet " Done!"
 
 }
 
-
+function tty_exit() {
+	#Enable screensaver
+	[[ -c ${ttydevice} ]] && echo "CMDSWSAVER,1" >${ttydevice}
+	# Clear Display	with Random effect
+	[[ -c ${ttydevice} ]] && echo "CMDCLST,-1,0" >${ttydevice}
+	tty_waitfor
+}
+ 
 function tty_waitfor() {
 	[[ -c ${ttydevice} ]] && read -t 10 -d ";" ttyresponse <${ttydevice} # Read now with Timeout and without "loop"
 	ttyresponse=""
@@ -254,7 +261,7 @@ function write_to_TTY_cmd_pipe() {
 function update_loop() {
 	while [[ -p ${TTY_cmd_pipe} ]]; do
 		sleep ${ttyscroll_speed_int}
-		#sleep 0.5
+		sleep 0.5
 		write_to_TTY_cmd_pipe "update_counter" &
 	done
 }
