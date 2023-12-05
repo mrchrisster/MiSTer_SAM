@@ -2816,6 +2816,7 @@ function tty_start() {
 function tty_exit() {
 	if [ "${ttyenable}" == "yes" ]; then
 		echo -n "Stopping tty2oled... "
+		[[ -p ${TTY_cmd_pipe} ]] && echo "stop" >${TTY_cmd_pipe} &
 		tmux kill-session -t OLED &>/dev/null
 		rm "${tty_sleepfile}" &>/dev/null
 		#/media/fat/tty2oled/S60tty2oled restart 
