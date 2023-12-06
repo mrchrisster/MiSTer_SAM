@@ -261,7 +261,6 @@ function write_to_TTY_cmd_pipe() {
 function update_loop() {
 	while [[ -p ${TTY_cmd_pipe} ]]; do
 		sleep ${ttyscroll_speed_int}
-		sleep 0.5
 		write_to_TTY_cmd_pipe "update_counter" &
 	done
 }
