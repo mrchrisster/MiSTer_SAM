@@ -2469,11 +2469,12 @@ function mute() {
 		if [ -f "/media/fat/config/Volume.dat" ]; then
 	 		if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 				# Mute Global Volume
-				echo "volume mute" > /dev/MiSTer_cmd
+				echo -e "\0020\c" >/media/fat/config/Volume.dat
+				#echo "volume mute" > /dev/MiSTer_cmd
 			fi
 		else
-			#echo -e "\0020\c" >/media/fat/config/Volume.dat
-			echo "volume mute" > /dev/MiSTer_cmd
+			echo -e "\0020\c" >/media/fat/config/Volume.dat
+			#echo "volume mute" > /dev/MiSTer_cmd
 		fi
 			
 	elif [ "${mute}" == "core" ] || [ "${mute}" == "yes" ]; then
