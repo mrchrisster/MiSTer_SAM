@@ -4130,6 +4130,7 @@ sam_goat_mode() {
 	done < "$goat_list_path"
 	readarray -t corelist <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)"
 	printf "%s\n" "${corelist[@]}" > "${corelistfile}"
+	sed -i '/samvideo=/c\samvideo="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
 		sam_start
 		touch /tmp/.SAM_tmp/goat
@@ -4139,6 +4140,7 @@ sam_goat_mode() {
 function sam_80s() {
 	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/samvideo=/c\samvideo="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	enablebgm
 	sam_start
 }
