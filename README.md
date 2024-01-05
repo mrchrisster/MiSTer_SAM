@@ -112,9 +112,6 @@ Uncomment one of the "arcadepath" settings in the `MiSTer_SAM.ini` file to choos
 
 Simply edit the `MiSTer_SAM.ini` and change the `ttyenable` setting to `ttyenable="Yes"`. If you need to use a non-standard device change it with `ttydevice="/dev/ttyUSB0"`.
 
-### Exclude
-Want to exclude certain arcade games? Just add them to `mraexclude` in the `MiSTer_SAM.ini` file.
-
 ## FAQs
 
 ### How does it work?
