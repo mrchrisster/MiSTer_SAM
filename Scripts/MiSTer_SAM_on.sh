@@ -2615,16 +2615,28 @@ function filter_list() { # args ${nextcore}
 	# Check path filter
 	if [ -n "${PATHFILTER[${1}]}" ]; then 
 		echo "Found path filter for ${1} core: ${PATHFILTER[${1}]}."
-		fgrep "${PATHFILTER[${1}]}" "${gamelistpathtmp}/${1}_gamelist.txt"  > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+		fgrep "${PATHFILTER[${1}]}" "${gamelistpath}/${1}_gamelist.txt"  > "${tmpfile}"
+		cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 	
 	if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
-		cat "${gamelistpath}/${1}_gamelist.txt" | fgrep "Rotation/" | fgrep -i "${arcadeorient}" > $tmpfile
-		if [ -s ${tmpfile} ]; then
-			mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"	
+		echo "Setting orientation for Arcade Games to ${arcadeorient} only."
+		cat "${gamelistpath}/${1}_gamelist.txt" | fgrep "Rotation/" | fgrep -i "${arcadeorient}" > "${tmpfile}_rotation"
+		
+		if [ -s "${tmpfile}_rotation" ]; then 
+			if [ -n "${PATHFILTER[${1}]}" ]; then
+				# Apply both path filter and orientation filter
+				awk -F/ '{print $NF}' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}_filenames"
+				fgrep -f "${tmpfile}_filenames" "${tmpfile}_rotation" > "${tmpfile}"
+				mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"
+			else
+				# Apply only orientation filter
+				mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"
+			fi
 		else
 			echo "Arcade Orientation Filter Error."
 		fi
+		
 	fi
 
 	# Strip dupes			
