@@ -11,7 +11,7 @@ Like a screen saver, SAM comes on when your MiSTer is idle. Just wait a couple o
 
 ## Installation
   
-- The easiest way to install SAM is launch `update_all.sh` menu, select "Unofficial Scripts" and select "Mister Super Attract Mode". After running update_all, you will have a file called `MiSter_SAM_on.sh` in the Scripts folder. Run `MiSter_SAM_on.sh` and wait until SAM is fully installed/updated. You can configure SAM from the menu by running `MiSTer_SAM_on.sh` and pushing up.
+- The easiest way to install SAM is launch `update_all.sh` menu, select "Tools & Scripts" and select "Mister Super Attract Mode". After running update_all, you will have a file called `MiSter_SAM_on.sh` in the Scripts folder. Run `MiSter_SAM_on.sh` and wait until SAM is fully installed/updated. You can configure SAM from the menu by running `MiSTer_SAM_on.sh` and pushing up.
   
 or  
   
