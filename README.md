@@ -23,7 +23,7 @@ or
 
 - Issue the following command in ssh
   `cd /media/fat/Scripts && curl -kLO https://github.com/mrchrisster/MiSTer_SAM/blob/main/MiSTer_SAM_on.sh`
-- Run `/media/fat/Scripts/MiSTer_SAM_on.sh`
+- Run `/media/fat/Scripts/MiSTer_SAM_on.sh` and let SAM do the auto install to download the other installation files.
   
 ## Offline Installation  
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
