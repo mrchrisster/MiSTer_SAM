@@ -18,6 +18,12 @@ or
 - Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory
 - From the main MiSTer menu navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
 - **NOTE** Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`.
+
+or
+
+- Issue the following command in ssh
+  `cd /media/fat/Scripts && curl -kLO https://github.com/mrchrisster/MiSTer_SAM/blob/main/MiSTer_SAM_on.sh`
+- Run `/media/fat/Scripts/MiSTer_SAM_on.sh`
   
 ## Offline Installation  
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
@@ -100,6 +106,7 @@ Currently supported MiSTer cores:
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
+Make sure you have Arcade Organizer enabled for some of SAM's advanced features.
 
 ## Attract Mode Configuration
 ### Arcade Horizontal or Vertical Only
