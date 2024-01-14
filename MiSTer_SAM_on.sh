@@ -54,7 +54,7 @@ function init_vars() {
 	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl skiptime="10"
@@ -152,6 +152,7 @@ function init_vars() {
 	declare -g nespathrbf="_Console"
 	declare -g s32xpathrbf="_Console"
 	declare -g saturnpathrbf="_Console"
+	declare -g sgbpathrbf="_Console"
 	declare -g smspathrbf="_Console"
 	declare -g snespathrbf="_Console"
 	declare -g tgfx16pathrbf="_Console"
@@ -189,7 +190,8 @@ function init_data() {
 		["neogeo"]="SNK NeoGeo"
 		["nes"]="Nintendo Entertainment System"
 		["s32x"]="Sega 32x"
-		["saturn"]="Sega Saturn"		
+		["saturn"]="Sega Saturn"
+		["sgb"]="Super Gameboy"		
 		["sms"]="Sega Master System"
 		["snes"]="Super Nintendo"
 		["tgfx16"]="NEC TurboGrafx-16 "
@@ -219,6 +221,7 @@ function init_data() {
 		["nes"]="nes"
 		["s32x"]="32x"
 		["saturn"]="cue"
+		["sgb"]="gb,gbc" 
 		["sms"]="sms,sg"
 		["snes"]="sfc,smc" 	 	# Should we include? "bin,bs"
 		["tgfx16"]="pce,sgx"		
@@ -247,39 +250,13 @@ function init_data() {
 		["neogeo"]="${neogeopathfilter}"
 		["nes"]="${nespathfilter}"
 		["s32x"]="${s32xpathfilter}"
+		["saturn"]="${saturnpathfilter}"
+		["sgb"]="${sgbpathfilter}"
 		["sms"]="${smspathfilter}"
 		["snes"]="${snespathfilter}"
 		["tgfx16"]="${tgfx16pathfilter}"
 		["tgfx16cd"]="${tgfx16cdpathfilter}"
 		["psx"]="${psxpathfilter}"
-	)
-	
-	declare -glA FIRSTRUN=(
-		["amiga"]="0"	
-		["ao486"]="0"
-		["arcade"]="0"
-		["atari2600"]="0"
-		["atari5200"]="0"
-		["atari7800"]="0"
-		["atarilynx"]="0"
-		["c64"]="0"
-		["fds"]="0"
-		["gb"]="0" 		
-		["gbc"]="0" 		
-		["gba"]="0"
-		["genesis"]="0"
-		["gg"]="0"
-		["megacd"]="0"
-		["n64"]="0"
-		["neogeo"]="0"
-		["nes"]="0"
-		["s32x"]="0"
-		["saturn"]="0"
-		["sms"]="0"
-		["snes"]="0"	
-		["tgfx16"]="0"
-		["tgfx16cd"]="0"
-		["psx"]="0"
 	)
 
 
@@ -305,6 +282,7 @@ function init_data() {
 		["nes"]="${nespathrbf}"
 		["s32x"]="${s32xpathrbf}"
 		["saturn"]="${saturnpathrbf}"
+		["sgb"]="${sgbpathrbf}"
 		["sms"]="${smspathrbf}"
 		["snes"]="${snespathrbf}"
 		["tgfx16"]="${tgfx16pathrbf}"
@@ -334,6 +312,7 @@ function init_data() {
 		["nes"]="No"
 		["s32x"]="No"
 		["saturn"]="Yes"
+		["sgb"]="No"
 		["sms"]="No"
 		["snes"]="No"
 		["tgfx16"]="No"
@@ -341,34 +320,6 @@ function init_data() {
 		["psx"]="No"
 	)
 	
-	# Can this core use ZIPped ROMs
-	declare -glA CORE_ZIPPED=(
-		["amiga"]="No"
-		["ao486"]="No"
-		["arcade"]="No"
-		["atari2600"]="Yes"
-		["atari5200"]="Yes"
-		["atari7800"]="Yes"
-		["atarilynx"]="Yes"
-		["c64"]="Yes"
-		["fds"]="Yes"
-		["gameboy"]="Yes"
-		["gbc"]="Yes"
-		["gba"]="Yes"
-		["genesis"]="Yes"
-		["gamegear"]="Yes"
-		["n64"]="No"
-		["megacd"]="No"
-		["neogeo"]="Yes"
-		["nes"]="Yes"
-		["s32x"]="Yes"
-		["saturn"]="No"
-		["sms"]="Yes"
-		["snes"]="Yes"
-		["tgfx16"]="Yes"
-		["tgfx16cd"]="No"
-		["psx"]="No"
-	)
 
 	# Core to input maps mapping
 	declare -gA CORE_LAUNCH=(
@@ -392,6 +343,7 @@ function init_data() {
 		["nes"]="NES"
 		["s32x"]="S32X"
 		["saturn"]="SATURN"
+		["sgb"]="SGB"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TGFX16"
@@ -421,6 +373,7 @@ function init_data() {
 		["nes"]="NES"
 		["s32x"]="S32X"
 		["saturn"]="SATURN"
+		["sgb"]="SGB"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TGFX16"
@@ -450,6 +403,7 @@ function init_data() {
 		["nes"]="NES"
 		["s32x"]="S32X"
 		["saturn"]="SATURN"
+		["sgb"]="SGB"
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["tgfx16"]="TurboGrafx16"
@@ -479,6 +433,7 @@ function init_data() {
 		["nes"]="2"
 		["s32x"]="1"
 		["saturn"]="1"
+		["sgb"]="1"
 		["sms"]="1"
 		["snes"]="2"
 		["tgfx16"]="1"
@@ -508,6 +463,7 @@ function init_data() {
 		["nes"]="0"
 		["s32x"]="0"
 		["saturn"]="1"
+		["sgb"]="1"
 		["sms"]="1"
 		["snes"]="0"
 		["tgfx16"]="1"
@@ -537,6 +493,7 @@ function init_data() {
 		["nes"]="f"
 		["s32x"]="f"
 		["saturn"]="s"
+		["sgb"]="f"
 		["sms"]="f"
 		["snes"]="f"
 		["tgfx16"]="f"
@@ -903,7 +860,7 @@ function parse_cmd() {
 		# If we're given a core name, we need to set it first
 		for arg in "${@,,}"; do
 			case ${arg} in
-			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo "${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				disablecoredel=1
@@ -1002,7 +959,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -1501,9 +1458,6 @@ function check_list() { # args ${nextcore}
 		fi
 	fi
 	
-	#if [ "${FIRSTRUN[${1}]}" == "0" ] && [ "${CORE_ZIPPED[${1}]}" == "yes" ] && [ "$(fgrep -c -m 1 ".zip" ${gamelistpath}/${1}_gamelist.txt)" != "0" ]; then
-	#	check_zips ${1} &
-	#fi
 	
 	if [ "${sam_goat_list}" == "yes" ] || [ -e /tmp/.SAM_tmp/goat ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 		sam_goat_mode
