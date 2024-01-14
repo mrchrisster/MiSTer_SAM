@@ -65,6 +65,7 @@ function init_vars() {
 	declare -gl coreweight="No"
 	declare -gl playcurrentgame="No"
 	declare -gl kids_safe="No"
+	declare -gl dupe_mode="normal"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
 	declare -gl listenjoy="Yes"
@@ -441,7 +442,7 @@ function init_data() {
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
 		["gba"]="GBA"
-		["genesis"]="Genesis"
+		["genesis"]="MegaDrive"
 		["gg"]="SMS"
 		["megacd"]="MegaCD"
 		["n64"]="N64"
@@ -2639,8 +2640,14 @@ function filter_list() { # args ${nextcore}
 		
 	fi
 
-	# Strip dupes			
-	awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}" && cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	# Strip dupes	
+	if [ "${dupe_mode}" == "strict" ]; then	
+		samdebug "Using strict mode for finding duplicate roms"
+		awk -F'/' '{split($NF, a, "("); if (!seen[a[1]]++) print $0}' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}"
+	else
+		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}"
+	fi
+	cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
 
 	#Check exclusion or kids safe white lists
