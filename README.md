@@ -97,8 +97,12 @@ Currently supported MiSTer cores:
 * MegaCD AKA SegaCD (.chd .cue) - Highly recommend `JP Mega-CD 2 (Region Free) 921222 l_oliveira.bin` for best compatibility. Find it in MegaCD folder, google `htgdb-gamepacks`
 * NeoGeo (.neo)
 * NES (.nes)
+* Nintendo N64 (.z64)
 * Genesis 32X (.32x)
+* Sega 32x (.s32)
+* Sega Saturn (.chd .cue)
 * Sega Master System (.sms .sg)
+* Super GameBoy (.gb .gbc)
 * SNES (.sfc .smc)
 * PSX (.chd .cue .exe)
 * TurboGrafx-16 AKA PC Engine (.pce .sgx)
