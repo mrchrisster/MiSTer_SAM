@@ -7,7 +7,7 @@ function init_vars() {
 	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 	declare -g misterpath="/media/fat"
 	# Save our PID and process
-	declare -g  sshwinconnect="chelm@192.168.1.64"
+	declare -g  sshwinconnect="christoph@192.168.1.64"
 
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
@@ -178,7 +178,7 @@ function init_paths() {
 	declare -g GET_SYSTEM_FOLDER_RESULT=""
 	# Create folders if they don't exist
 	mkdir -p "${mrsampath}/SAM_Gamelists"
-	rm -rf /tmp/.SAM_List
+	#rm -rf /tmp/.SAM_List
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
@@ -370,7 +370,7 @@ function init_data() {
 		["sms"]="No"
 		["snes"]="No"
 		["tgfx16"]="No"
-		["tgfx16cd"]="No"
+		["tgfx16cd"]="Yes"
 		["psx"]="No"
 	)
 
@@ -868,7 +868,7 @@ function check_list() { # args ${nextcore}
 
 function compare_mp4-gl() {
 	nextcore=${1}
-	ssh "${sshwinconnect}" 'dir /b "c:\SAM\'${nextcore}'\*.mp4"' /s | awk -F'\\' '{print $NF}' | awk -F'.mp4' '{print $1}'| sort > "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt"
+	ssh "${sshwinconnect}" 'dir /b "c:\SAM\system_mp4s\'${nextcore}'\*.mp4"' /s | awk -F'\\' '{print $NF}' | awk -F'.mp4' '{print $1}'| sort > "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt"
 	#cat "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" | awk -F/ '{print $NF}' | sort > "${gamelistpathtmp}/${nextcore}_gamelist_hdmi_stripped.txt"
 	echo -n "Comparing existing mp4's to gamelist..."
 	if [ "${nextcore}" == "amiga" ]; then
@@ -1032,8 +1032,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 	sleep 30
 	
-	ssh "${sshwinconnect}" 'mkdir "c:\SAM\'${nextcore}'"'
-	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
+	ssh "${sshwinconnect}" 'mkdir "c:\SAM\system_mp4s\'${nextcore}'"'
+	ssh "${sshwinconnect}" 'C:\SAM\scripts\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\system_mp4s\'${nextcore}'\'${GAMENAME}'".mp4'
 
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
@@ -1141,14 +1141,14 @@ function load_core_arcade() {
 	fi
 	if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l)" == "0" ]]; then
 			if [[ "$yesno" == y ]]; then
-				ssh "${sshwinconnect}" 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
+				ssh "${sshwinconnect}" 'wsl sh -c "python3 /mnt/c/SAM/scripts/blacklist_maker.py '${nextcore}'"'
 			fi
 	fi
 
 	# Tell MiSTer to load the next MRA
 	echo "load_core ${mra}" >/dev/MiSTer_cmd
 	sleep 30
-	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\arcade\'${mraname}'".mp4'
+	ssh "${sshwinconnect}" 'C:\SAM\scripts\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\system_mp4s\arcade\'${mraname}'".mp4'
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
@@ -1158,8 +1158,8 @@ function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
 		sort "${amigapath}"/listings/demos.txt "${amigapath}"/listings/games.txt > ${gamelistpath}/amiga_gamelist_hdmi.txt
-		cp --force ${gamelistpath}/${nextcore}_gamelist_hdmi.txt "${gamelistpathtmp}"/${nextcore}_gamelist_hdmi.txt
-		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" | sed '/^\s*$/d' | wc -l))
+		cp --force ${gamelistpath}/amiga_gamelist_hdmi.txt "${gamelistpathtmp}"/amiga_gamelist_hdmi.txt
+		total_games=$(echo $(cat "${gamelistpath}/amiga_gamelist_hdmi.txt" | sed '/^\s*$/d' | wc -l))
 
 	fi
 
@@ -1205,8 +1205,8 @@ function load_core_amiga() {
 	echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 	sleep 30
 	
-	ssh "${sshwinconnect}" 'mkdir "c:\SAM\'${nextcore}'"'
-	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
+	ssh "${sshwinconnect}" 'mkdir "c:\SAM\system_mp4s\'${nextcore}'"'
+	ssh "${sshwinconnect}" 'C:\SAM\scripts\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\system_mp4s\'${nextcore}'\'"${GAMENAME}"'".mp4'
 	
 	# Delete played game from list
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
@@ -1230,28 +1230,45 @@ function main() {
 	init_paths
 
 	init_data # Setup data arrays
+
+	# Kill all SAM processes
+	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
+	tmux kill-session -t OLED &>/dev/null
 	
 	args="$(echo "$@")"
-
-
-
-	if [[ "$1" == "amiga" ]]; then
-		create_amigalist
+	if [[ "${args}" != *"-y"* ]]; then
+		echo "Create new romlist? y/n"
+		read answer
+		echo "Update existing list? y/n"
+		read answer2
+		echo "Create blacklist? y/n"
+		read yesno
 	else
-		if [ ! -d "${gamelistpath}/samcapture" ]; then
-			mkdir -p "${gamelistpath}/samcapture"
-		fi
-		"${mrsampath}"/samindex -s ${1} -o "${gamelistpath}/samcapture"
-		for file in "${gamelistpath}/samcapture"/*; do
-			filename=$(basename "$file")
-			cp "$file" "${gamelistpath}/${filename%.*}_hdmi.txt"
-		done
-		echo "Copying gamelist to ${sshwinconnect} machine"
-		scp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${sshwinconnect}:/SAM/${1}/${1}_gamelist_hdmi.txt"
+		answer=y
+		yesno=y
 	fi
 
+	if [[ "$answer" == y ]]; then
+		if [[ "$1" == "amiga" ]]; then
+			create_amigalist
+		else
+			if [ ! -d "${gamelistpath}/samcapture" ]; then
+				mkdir -p "${gamelistpath}/samcapture"
+			fi
+			"${mrsampath}"/samindex -s ${1} -o "${gamelistpath}/samcapture"
+			for file in "${gamelistpath}/samcapture"/*; do
+				filename=$(basename "$file")
+				cp "$file" "${gamelistpath}/${filename%.*}_hdmi.txt"
+			done
+			echo "Copying gamelist to ${sshwinconnect} machine"
+			scp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${sshwinconnect}:/i:/SAM/${1}/${1}_gamelist_hdmi.txt"
+		fi
+	fi
 
-	compare_mp4-gl ${1}
+	if [[ "$answer2" == y ]]; then
+		compare_mp4-gl ${1}
+	fi
+
 
 	
 	parse_cmd ${1} # Parse command line parameters for input
