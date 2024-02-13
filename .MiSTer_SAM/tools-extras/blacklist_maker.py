@@ -4,9 +4,7 @@ import re
 from pathlib import Path
 
 def get_scene_threshold(system_name):
-    # Default scene threshold
     scene_threshold = "0.1"
-    # Adjust scene threshold for specific system names, e.g., "arcade"
     if system_name == "arcade":
         scene_threshold = "0.005"
     return scene_threshold
@@ -34,7 +32,6 @@ def extract_scene_changes(ffmpeg_output):
             time = round(float(match.group(1)))
             if time > 5:  # Filter out changes in the first 5 seconds
                 scene_changes.add(time)
-            scene_changes.add(time)
     return sorted(scene_changes)
 
 def filter_consecutive_scene_changes(scene_changes):
@@ -74,10 +71,49 @@ def update_json_file(json_file_path, video_folder_path, scene_threshold):
         print("JSON file updated.")
     else:
         print("No new files to process.")
+        
+
+
+def update_blacklist_file(json_file_path, blacklist_folder_path, system_name):
+    if not json_file_path.exists():
+        print("JSON database does not exist. No blacklist file created.")
+        return
+
+    with open(json_file_path, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    
+    # Initialize a list to hold blacklisted game titles without the .mp4 extension
+    blacklisted_games = []
+    for entry in data:
+        if entry.get('blacklisted'):
+            # Directly remove .mp4 extension, preserving any special characters
+            filename_without_extension = Path(entry['filename']).stem
+            blacklisted_games.append(filename_without_extension)
+
+    if blacklisted_games:
+        blacklist_file_path = blacklist_folder_path / f"{system_name}_blacklist.txt"
+        with open(blacklist_file_path, 'w', encoding='utf-8') as file:
+            for game in blacklisted_games:
+                file.write(game + '\n')
+        print(f"Blacklist file updated at {blacklist_file_path}")
+    else:
+        print("No blacklisted games found. No blacklist file updated.")
+
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        system_name = sys.argv[1]
+    else:
+        system_name = input("Enter the system name: ")
     system_name = input("Enter the system name: ")
     scene_threshold = get_scene_threshold(system_name)
     json_file_path = Path(f"/mnt/c/SAM/json/{system_name}.json")
     video_folder_path = Path(f"/mnt/c/SAM/system_mp4s/{system_name}")
+    blacklist_folder_path = Path(f"/mnt/c/SAM/blacklists")
+    
+    # Ensure the blacklist folder exists
+    blacklist_folder_path.mkdir(parents=True, exist_ok=True)
+    
+    # Update the JSON database and the blacklist file
     update_json_file(json_file_path, video_folder_path, scene_threshold)
+    update_blacklist_file(json_file_path, blacklist_folder_path, system_name)
