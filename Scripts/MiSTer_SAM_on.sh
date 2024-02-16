@@ -220,7 +220,7 @@ function init_data() {
 		["neogeo"]="neo"
 		["nes"]="nes"
 		["s32x"]="32x"
-		["saturn"]="cue"
+		["saturn"]="cue,chd"
 		["sgb"]="gb,gbc" 
 		["sms"]="sms,sg"
 		["snes"]="sfc,smc" 	 	# Should we include? "bin,bs"
