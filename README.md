@@ -58,10 +58,7 @@ video_mode=640,-16,56,56,240,1,3,13,11350
 vga_scaler=1
 ```
   
-- **Exclusion Lists** - You can exclude any amount of games that you don't want to have displayed by adding a file called for example `snes_excludelist.txt` in /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists folder. One line per game, can be full file path or just the game name. Or just launch the game you want to exclude and type
-
-`/media/fat/Scripts/MiSTer_SAM_on.sh ignore`
-in SSH. SAM will create the exclude list for you.
+- **Exclusion Lists** - You can exclude any amount of games that you don't want to have displayed by adding a file called for example `snes_excludelist.txt` in /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists folder. One line per game, can be full file path or just the game name. Or just launch the game you want to exclude and type `/media/fat/Scripts/MiSTer_SAM_on.sh ignore` in SSH. SAM will create the exclude list for you.
   
 - **Auto Folder Detection** - No matter if your games are on SD or USB, SAM will find your default game folders.
   
