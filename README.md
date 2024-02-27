@@ -3,7 +3,7 @@
 (Thanks to [@HendrixTrog](https://twitter.com/HendrixTrog) for the video!)
 ![Main_Menu](https://github.com/mrchrisster/MiSTer_SAM/blob/main/Media/2023-04-sam_menu1.png)
 ======== Credits ========  
-SAM has been a joined effort from the start. Huge thanks to Mellified and all other supporters!
+SAM has been a joined effort from the start. Huge thanks to Mellified and all other supporters!  
 Original concept and implementation: mrchrisster  
 Script layout & watchdog functionality: Mellified   
 tty2oled submodule: Paradox  
