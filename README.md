@@ -2,12 +2,6 @@
 ![MiSTer_SAM](https://user-images.githubusercontent.com/81110968/117765392-8024d980-b1f3-11eb-8ecd-18f5e7c95bff.gif)
 (Thanks to [@HendrixTrog](https://twitter.com/HendrixTrog) for the video!)
 ![Main_Menu](https://github.com/mrchrisster/MiSTer_SAM/blob/main/Media/2023-04-sam_menu1.png)
-======== Credits ========  
-SAM has been a joined effort from the start. Huge thanks to Mellified and all other supporters!  
-Original concept and implementation: mrchrisster  
-Script layout & watchdog functionality: Mellified   
-tty2oled submodule: Paradox  
-Indexing tool: wizzomafizzo  
 
 # MiSTer Super Attract Mode (SAM)
 **Super Attract Mode puts all your games on display to enjoy whenever your MiSTer is idle.**
@@ -202,11 +196,18 @@ Some commands to control SAM from the command line
 - `MiSTer_SAM_on.sh reset` - Reset SAM
 - `MiSTer_SAM_on.sh arcade | psx | genesis | s32x | etc...` - Only launch specific system
 - `MiSTer_SAM_on.sh favorite` - Copy the current game to "_Favorites" folder
-   
+
+## Credits
+SAM has been a joined effort from the start. Huge thanks to Mellified and all other supporters!  
+Original concept and implementation: mrchrisster  
+Script layout & watchdog functionality: Mellified   
+tty2oled submodule: Paradox  
+Indexing tool: wizzomafizzo  
    
 ## Release History
+- 26 Feb 2024 - Saturn, N64 and video mode implemented. Watch game commercials from back in the day and then play those games.
 - 02 Feb 2023 - ao486 integration, Kids Safe Mode, Dynamically finding new roms, Adjust global volume for BGM
-- 10 Aug 2022 - tty2oled and gamelist updates. Default blacklists now filter out bring attract screens
+- 10 Aug 2022 - tty2oled and gamelist updates. Default blacklists now filter out static screens.
 - 24 Jun 2022 - Added category exclusion mode, atari core support and BGM support
 - 25 Apr 2022 - Added gb,gbc,gg and s32x support. SAM now uses game lists for faster load times and better exclusion options.
 - 22 Mar 2022 - Added support for Famicom Disk System and `MiSTer_SAM_on.sh favorite`
