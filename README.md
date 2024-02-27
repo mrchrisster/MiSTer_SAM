@@ -7,7 +7,7 @@
 **Super Attract Mode puts all your games on display to enjoy whenever your MiSTer is idle.**
 
 ## What is it?
-Like a screen saver, SAM comes on when your MiSTer is idle. Just wait a couple of minutes in the main menu and SAM will launch a random game from your library. Every few minutes it will randomly select and load a new game. If you like a game that's currently playing, just pick up your controller and push a button, press a key, or move the mouse. SAM will start another game once you return to the main menu. Then the gaming tour begins again!
+Like a screen saver, SAM comes on when your MiSTer is idle. Just wait a couple of minutes in the main menu and SAM will launch a random game from your library. Every few minutes it will randomly select and load a new game. If you like a game that's currently playing, just pick up your controller and push a button, press a key, or move the mouse. Wait another two minutes and the gaming tour begins again!
 
 ## Installation
   
