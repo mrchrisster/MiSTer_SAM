@@ -4119,7 +4119,7 @@ sam_m82_mode() {
 	if [ "${menuresponse}" == "sam_m82_mode" ]; then
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
-			--msgbox "SAM will act as an M82 unit for NES. MiSter will restart now. To disable this, go tyour MiSTer_SAM.ini and find m82 option.\n\n" 0 0
+			--msgbox "SAM will act as an M82 unit for NES. MiSter will restart now. To disable this, go to MiSTer_SAM.ini and find m82 option.\n\n" 0 0
 			sed -i '/m82=/c\m82="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			reboot -f
 	fi	
