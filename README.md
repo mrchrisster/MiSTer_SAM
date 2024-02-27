@@ -2,6 +2,11 @@
 ![MiSTer_SAM](https://user-images.githubusercontent.com/81110968/117765392-8024d980-b1f3-11eb-8ecd-18f5e7c95bff.gif)
 (Thanks to [@HendrixTrog](https://twitter.com/HendrixTrog) for the video!)
 ![Main_Menu](https://github.com/mrchrisster/MiSTer_SAM/blob/main/Media/2023-04-sam_menu1.png)
+======== Credits ========
+Original concept and implementation: mrchrisster
+Script layout & watchdog functionality: Mellified 
+tty2oled submodule: Paradox
+Indexing tool: wizzomafizzo
 
 # MiSTer Super Attract Mode (SAM)
 **Super Attract Mode puts all your games on display to enjoy whenever your MiSTer is idle.**
