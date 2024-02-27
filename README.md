@@ -202,7 +202,7 @@ SAM has been a joined effort from the start. Huge thanks to Mellified and all ot
 Original concept and implementation: mrchrisster  
 Script layout & watchdog functionality: Mellified   
 tty2oled submodule: Paradox  
-Indexing tool: wizzomafizzo  
+Indexing tool & input detection: wizzomafizzo  
    
 ## Release History
 - 26 Feb 2024 - Saturn, N64 and video mode implemented. Watch game commercials from back in the day and then play those games.
