@@ -167,6 +167,7 @@ function init_vars() {
 		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 		declare -g ao486path="$("${mrsampath}"/samindex -q -s ao486 -d |awk -F':' '{print $2}')/screensaver"
 	fi
+	
 
 }
 
@@ -845,7 +846,13 @@ function read_samini() {
 	fi
 
 	#NES M82 Mode
-	if [ "$m82" == "yes" ]; then				
+	if [ "$m82" == "yes" ]; then	
+		if [ ! -f "$gamelistpath/nes_gamelist.txt" ]; then
+			echo "Error: NES gamelist missing. Disable m82 mode and start nes core at least once."
+			exit
+		fi
+		[ ! -d "/tmp/.SAM_List" ] && mkdir /tmp/.SAM_List/ 
+		[ ! -d "/tmp/.SAM_tmp" ] && mkdir /tmp/.SAM_tmp/
 		printf "%s\n" nes > "${corelistfile}"
 		if [ ! -f /tmp/.SAM_tmp/m82.ini ]; then 
 			local current_core=""
@@ -872,7 +879,6 @@ function read_samini() {
 		fi
 		source /tmp/.SAM_tmp/m82.ini
 	fi
-	
 }
 
 
@@ -1495,25 +1501,40 @@ function check_list() { # args ${nextcore}
 		return
 	fi
 	
+	# m82 populate lists
+	if [ "${m82}" == "yes" ]; then
+		if [[ -z "$m82_bios_path" ]]; then 
+			# process m82_list
+			echo "M82 mode active. Finding M82 bios..."
+			declare -g m82_bios_path="$(fgrep -i "m82 game" "$gamelistpath/nes_gamelist.txt" | head -n 1)"
+			echo "Found."
+			samdebug "m82 bios found at: "$m82_bios_path""
+		fi
+		if [[ -z "$m82_bios_path" ]]; then 
+			echo "Error: No suitable m82 bios could be found in your nes folder. The file should be called 'M82 Game[..].nes'"
+			exit
+		fi
+		if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+			samdebug "Creating m82 game list"
+			while IFS= read -r line; do 
+				echo "$m82_bios_path" 
+				fgrep "$line" "${gamelistpath}"/nes_gamelist.txt | head -n 1
+			done < "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/m82_list.txt" > "${gamelistpathtmp}/nes_gamelist.txt"
+			samdebug "Found the following games: \n$(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82)"
+			samdebug "Found $(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82 | wc -l) games"
+		fi
+
+		return
+	fi
+	
 	# Copy gamelist to tmp
 	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-		if [ "${m82}" == "yes" ]; then
-			# process m82_list
-			echo "Processing M82 List. Finding local game matches."
-			while IFS= read -r line; do fgrep "$line" "${gamelistpath}"/nes_gamelist.txt | head -n 1; done < "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/m82_list.txt" > "${tmpfile}"
-			
-			# Find m82_bios
-			fgrep -i "m82 game" "$gamelistpath/nes_gamelist.txt" | head -n 1 > "${gamelistpathtmp}/nes_gamelist.txt"
-			cat "${tmpfile}" >> "${gamelistpathtmp}/nes_gamelist.txt"
-			return
-		fi	
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
-		
+	
 		filter_list "${1}"
-		if [ $? -ne 0 ]; then return 1; fi
-		
+		if [ $? -ne 0 ]; then return 1; fi		
 	fi
-
+	
 }
 
 function pick_rom() {	
@@ -1597,7 +1618,17 @@ function delete_played_game() {
 	# Delete played game from list
 	samdebug "Selected file: ${rompath}"
 	if [ "${norepeat}" == "yes" ]; then
-		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		#Deletes all occurences: awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+		awk -v Line="$rompath" '
+			$0 == Line {
+				if (!found) {
+					found = 1
+					next
+				}
+			}
+			{ print }
+		' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+
 	fi
 }
 
@@ -2118,7 +2149,6 @@ function sam_prep() {
 		echo "Kids Safe lists missing for cores: ${nclr[@]}"
 		printf "%s\n" "${clr[@]}" > "${corelistfile}"
 	fi
-	#[ "${samvideo}" == "yes" ] && [ "${samvideo_tvc}" == "yes" ] && coreweight=yes
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 	if [ "${samvideo}" == "yes" ]; then
