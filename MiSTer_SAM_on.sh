@@ -19,7 +19,9 @@
 
 # ======== Credits ========
 # Original concept and implementation: mrchrisster
-# Additional development and script layout: Mellified and Paradox
+# Script layout & watchdog functionality: Mellified 
+# tty2oled submodule: Paradox
+# Indexing tool: wizzomafizzo
 #
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, theypsilon
