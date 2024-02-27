@@ -19,9 +19,7 @@
 
 # ======== Credits ========
 # Original concept and implementation: mrchrisster
-# Script layout & watchdog functionality: Mellified 
-# tty2oled submodule: Paradox
-# Indexing tool: wizzomafizzo
+# Additional development and script layout: Mellified and Paradox
 #
 # Thanks for the contributions and support:
 # pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, theypsilon
@@ -63,6 +61,7 @@ function init_vars() {
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
 	declare -gl amigaselect="All"
+	declare -gl m82="no"
 	declare -gl mute="No"
 	declare -gl coreweight="No"
 	declare -gl playcurrentgame="No"
@@ -222,7 +221,7 @@ function init_data() {
 		["neogeo"]="neo"
 		["nes"]="nes"
 		["s32x"]="32x"
-		["saturn"]="cue,chd"
+		["saturn"]="cue"
 		["sgb"]="gb,gbc" 
 		["sms"]="sms,sg"
 		["snes"]="sfc,smc" 	 	# Should we include? "bin,bs"
@@ -842,7 +841,35 @@ function read_samini() {
 	if [ "$sam_goat_list" == "yes" ]; then
 		sam_goat_mode	
 	fi
-	
+
+	#NES M82 Mode
+	if [ "$m82" == "yes" ]; then				
+		printf "%s\n" nes > "${corelistfile}"
+		if [ ! -f /tmp/.SAM_tmp/m82.ini ]; then 
+			local current_core=""
+			local m82_list_path="${gamelistpath}"/m82_list.txt
+			# Check if the M82 list file exists
+			if [ ! -f "$m82_list_path" ]; then
+				echo "Error: The M82 list file ($m82_list_path) does not exist. Updating SAM now. Please try again."
+				repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+				get_samstuff .MiSTer_SAM/SAM_Gamelists/m82_list.txt "${gamelistpath}"
+			fi
+			
+			#Reset gamelists
+			[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
+			mkdir -p "${gamelistpathtmp}"
+			
+			{
+			echo "gametimer=${m82timer}"
+			echo "mute=no"
+			#echo "listenmouse=No"
+			#echo "listenkeyboard=No"
+			#echo "listenjoy=No"
+			} >/tmp/.SAM_tmp/m82.ini
+			
+		fi
+		source /tmp/.SAM_tmp/m82.ini
+	fi
 	
 }
 
@@ -1288,7 +1315,7 @@ function create_all_gamelists() {
 }
 
 function check_gamelistupdate() {
-	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]]; then
+	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${m82}" == "no" ]]; then
 		create_gamelist ${1} comp
 		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
 			samdebug "Changes detected in ${1} folder. Updating gamelist now."
@@ -1467,13 +1494,24 @@ function check_list() { # args ${nextcore}
 	fi
 	
 	# Copy gamelist to tmp
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then	
+	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+		if [ "${m82}" == "yes" ]; then
+			# process m82_list
+			echo "Processing M82 List. Finding local game matches."
+			while IFS= read -r line; do fgrep "$line" "${gamelistpath}"/nes_gamelist.txt | head -n 1; done < "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/m82_list.txt" > "${tmpfile}"
+			
+			# Find m82_bios
+			fgrep -i "m82 game" "$gamelistpath/nes_gamelist.txt" | head -n 1 > "${gamelistpathtmp}/nes_gamelist.txt"
+			cat "${tmpfile}" >> "${gamelistpathtmp}/nes_gamelist.txt"
+			return
+		fi	
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 		
 		filter_list "${1}"
 		if [ $? -ne 0 ]; then return 1; fi
+		
 	fi
-	
+
 }
 
 function pick_rom() {	
@@ -1483,6 +1521,8 @@ function pick_rom() {
 		echo "Gamelist creation failed. Will try again on next core launch. Trying another rom..."	
 		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 	fi
+	
+	#samvideo mode
 	if [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/sv_gamename ]; then
 		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/sv_gamename |  grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
 		if [ -z "${rompath}" ]; then
@@ -1491,6 +1531,10 @@ function pick_rom() {
 		fi
 	fi
 	
+	#m82 mode
+	if [ "$m82" == "yes" ]; then
+		rompath="$(cat ${gamelistpathtmp}/nes_gamelist.txt | head -n 1)"
+	fi
 
 }
 
@@ -2104,6 +2148,7 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	[ -f /tmp/.SAM_tmp/m82.ini ] && rm /tmp/.SAM_tmp/m82.ini
 	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
 	if [ "${samvideo}" == "yes" ]; then
 		echo 1 > /sys/class/graphics/fbcon/cursor_blink
@@ -4053,6 +4098,7 @@ function sam_gamemodemenu() {
 		sam_goat_mode "Play the Greatest of All Time Attract modes." \
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
 		sam_svc "Play TV commercials and then show the advertised game." \
+		sam_m82_mode "Turn your MiSTer into a NES M82 unit." \
 		sam_roulettemenu "Game Roulette" 2>"/tmp/.SAMmenu"	
 	
 	opt=$?
@@ -4064,6 +4110,19 @@ function sam_gamemodemenu() {
 	else 
 		"${menuresponse}"
 	fi
+}
+
+# M82 mode
+sam_m82_mode() {
+	if [ "${menuresponse}" == "sam_m82_mode" ]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
+			--msgbox "SAM will act as an M82 unit for NES. MiSter will restart now. To disable this, go tyour MiSTer_SAM.ini and find m82 option.\n\n" 0 0
+			sed -i '/m82=/c\m82="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			reboot -f
+	fi	
+	
+
 }
 
 
