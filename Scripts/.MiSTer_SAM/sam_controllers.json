@@ -7,14 +7,6 @@
     },
     "axis": {}
   },
-  "054c_0269": {
-    "name": "PLAYSTATION(R)3 Controller",
-    "button": {
-      "start": 9,
-      "next": 8
-    },
-    "axis": {}
-  },
   "054c_05c4": {
     "name": "Sony DualShock 4",
     "button": {
@@ -25,6 +17,14 @@
   },
   "default": {
     "name": "Generic Controller",
+    "button": {
+      "start": 9,
+      "next": 8
+    },
+    "axis": {}
+  },
+  "054c_0268": {
+    "name": "PLAYSTATION(R)3 Controller",
     "button": {
       "start": 9,
       "next": 8
