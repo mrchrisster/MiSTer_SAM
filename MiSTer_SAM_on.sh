@@ -3570,6 +3570,7 @@ function sam_menu() {
 		----- "-----------------------------" \
 		sam_coreconfig "Configure Core List" \
 		sam_exittask "Configure Exit Behavior" \
+		sam_controller "Configure Gamepad" \
 		sam_filters "Filters (by Orientation or Category)" \
 		sam_bgm "Add-ons: SAMVIDEO, BGM, TTY2OLED" \
 		gamemode "Presets and Game Modes" \
@@ -3593,6 +3594,8 @@ function sam_menu() {
 		sam_menu
 	elif [[ "${menuresponse,,}" == "sam_exittask" ]]; then
 		sam_exittask
+	elif [[ "${menuresponse,,}" == "sam_controller" ]]; then
+		sam_controller
 	elif [[ "${menuresponse,,}" == "sam_bgm" ]]; then
 		sam_bgmmenu	
 	elif [[ "${menuresponse,,}" == "sam_filters" ]]; then
@@ -3807,8 +3810,7 @@ function sam_exittask() {
 		--backtitle "Super Attract Mode" --title "[ SAM EXIT ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		enableplaycurrent "On Exit, Play current Game" \
-		disableplaycurrent "On Exit, Return to Menu (Except Start Button)" \
-		sam_controller "Setup Controller - Configure Start button" 2>"/tmp/.SAMmenu" 
+		disableplaycurrent "On Exit, Return to Menu (Except Start Button)" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
@@ -3821,8 +3823,6 @@ function sam_exittask() {
 	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
 		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		changes_saved
-	elif [[ "${menuresponse,,}" == "sam_controller" ]]; then
-		sam_controller
 	elif [[ "${menuresponse,,}" == "globalmute" ]]; then
 		sed -i '/mute=/c\mute="'"Global"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	fi
@@ -3835,10 +3835,10 @@ function sam_exittask() {
 function sam_controller() {
     dialog --clear --no-cancel --ascii-lines \
         --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-        --msgbox "Configure your controller so that pushing the start button will play the current game.\nAny other button will exit SAM. " 0 0
+        --msgbox "Configure your controller so that pushing the start button will play the current game.\nNext button will shuffle to next game.\n\nAny other button will exit SAM. " 0 0
     dialog --clear --no-cancel --ascii-lines \
         --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-        --msgbox "Connect one controller at a time.\n\nPush start button when ready!" 0 0
+        --msgbox "Connect one controller at a time.\n\nPress ok and push start button on blank screen" 0 0
     c_json="/media/fat/Scripts/.MiSTer_SAM/sam_controllers.json"
     id="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 id)"
     name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
@@ -3863,8 +3863,19 @@ function sam_controller() {
             '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json ${c_json}
         dialog --clear --no-cancel --ascii-lines \
         --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP COMPLETED ]" \
-        --msgbox "Added $name with Start and Next buttons configured. \n\nPlease reboot MiSTer or reconnect controller for changes to take effect. " 0 0
-        sam_exittask
+        --msgbox "Added $name with Start and Next buttons configured." 0 0
+        # New Yes/No dialog to recommend setting playcurrentgame to no
+		dialog --clear --yesno "Since you now have a button to start a game,\nI recommend we set playcurrentgame variable to no. \nThis will quit SAM and exit to the menu except if start button is pushed." 0 0
+		response=$?
+		
+		if [ $response -eq 0 ]; then
+			sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			dialog --clear --msgbox "playcurrentgame has been set to no. Please reboot MiSTer or reconnect controller for changes to take effect." 0 0
+		else
+			dialog --clear --msgbox "Keeping current playcurrentgame setting..." 0 0
+		fi
+		sam_menu
+
     fi
 }
 
