@@ -8,14 +8,14 @@ import json
 
 
 ACTIVITY_FILE = "/tmp/.SAM_Joy_Activity"
-POLL_RATE = 0.2
+POLL_RATE = 0.1
 AXIS_DEADZONE = 2000
 
 script_path = os.path.abspath(__file__)
 json_file_path = os.path.join(os.path.dirname(script_path), "sam_controllers.json")
 
 # these values will be written to the activity file
-ACTIVITIES = {"start": "Start", "default": "Button pushed"}
+ACTIVITIES = {"start": "Start", "default": "Button pushed", "next": "Next"}
 # each key in the button/axis sections should match back to an activity key
 with open(json_file_path, "r") as f:
     CONTROLLERS = json.load(f)
@@ -49,43 +49,47 @@ def read_state(dev_path: str) -> list[dict[str, int]]:
 
 def get_activity(
     prev: list[dict[str, int]], next: list[dict[str, int]], device_id: str = None
-) -> str:
+) -> tuple[str, str]:
     if len(prev) != len(next):
-        return
+        return None, None
 
     activity = None
+    action = None
+    global CONTROLLERS  # Assuming CONTROLLERS is defined globally
 
-    # this doesn't handle multiple activities in a single check
-    # in practice it shouldn't really matter
+    # Use the specific controller config if available, otherwise fall back to default
+    controller_config = CONTROLLERS.get(device_id, CONTROLLERS["default"])
+
     for i in range(len(prev)):
         pe = prev[i]
         np = next[i]
-        event_type = None
 
-        if pe["type"] & BUTTON == BUTTON:
-            # button depresses count as an activity currently
-            if pe["value"] != np["value"]:
-                if "start" in ARGS:
-                    print(format(pe["number"]))
-                    sys.exit(1)
-                event_type = "button"
-                activity = ACTIVITIES["default"]
-                break
-        elif pe["type"] & AXIS == AXIS:
-            if abs(pe["value"] - np["value"]) > AXIS_DEADZONE:
-                event_type = "axis"
-                activity = ACTIVITIES["default"]
-                break
+        # Handle button events
+        if pe["type"] & BUTTON == BUTTON and pe["value"] != np["value"]:
+            # Set to default initially
+            activity = ACTIVITIES["default"]
+            action = "default"
+            # Iterate through the button mappings in the controller_config
+            for activity_key, button_number in controller_config["button"].items():
+                if np["number"] == button_number:
+                    activity = ACTIVITIES.get(activity_key)
+                    action = activity_key
+                    break  # Break if a specific activity is found
 
-    if event_type and device_id in CONTROLLERS:
-        controller = CONTROLLERS[device_id]
-        for k, v in controller[event_type].items():
-            if v == np["number"]:
-                activity = ACTIVITIES[k]
-                break
+        # Handle axis events
+        elif pe["type"] & AXIS == AXIS and abs(pe["value"] - np["value"]) > AXIS_DEADZONE:
+            # Set to default initially for axis movement
+            activity = ACTIVITIES["default"]
+            action = "default"
+            # Check if there are specific mappings for axis in the controller_config
+            if "axis" in controller_config:
+                for activity_key, axis_number in controller_config["axis"].items():
+                    if np["number"] == axis_number:
+                        activity = ACTIVITIES.get(activity_key, "Axis movement")
+                        action = activity_key
+                        break  # Break if a specific activity is found
 
-    return activity
-
+    return activity, action
 
 def get_device_id(dev_path: str) -> str:
     i = None
@@ -116,33 +120,40 @@ def get_device_id(dev_path: str) -> str:
 
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
-        print("Usage: {} /dev/input/jsX".format(sys.argv[0]))
+        print(f"Usage: {sys.argv[0]} /dev/input/jsX [--id]")
         sys.exit(1)
 
-    events = []
-    device_id = None
+    dev_path = sys.argv[1]
+    ARGS = sys.argv[2:]  # Capture additional arguments beyond the device path
+
+    # Attempt to read the device state and get the device ID
     try:
-        events = read_state(sys.argv[1])
-        device_id = get_device_id(sys.argv[1])
-        if "id" in ARGS:
-            print(format(device_id))
-            sys.exit(1)
-            
+        events = read_state(dev_path)
+        device_id = get_device_id(dev_path)
     except FileNotFoundError:
-        print("Joystick does not exist: {}".format(sys.argv[1]))
+        print(f"Joystick does not exist: {dev_path}")
         sys.exit(1)
 
+    # Check if the "id" argument is provided and print the device ID if so
+    if "id" in ARGS:
+        print(device_id)
+        sys.exit(0)  # Exit after printing the device ID
+
+
+    # Your existing activity monitoring loop here...
     while True:
         try:
-            next_events = read_state(sys.argv[1])
+            next_events = read_state(dev_path)
         except FileNotFoundError:
-            print("Joystick disconnected: {}".format(sys.argv[1]))
+            print(f"Joystick disconnected: {dev_path}")
             sys.exit(1)
 
-        activity = get_activity(events, next_events, device_id)
+        activity, action = get_activity(events, next_events, device_id)
         if activity:
-            with open(ACTIVITY_FILE, "w") as f:
-                f.write(activity)
+                # This includes handling for axis movements or other button activities
+                with open(ACTIVITY_FILE, "w") as f:
+                    f.write(activity)
+                print(f"Activity '{activity}' triggered. Written to file.")
 
         events = next_events
         time.sleep(POLL_RATE)
