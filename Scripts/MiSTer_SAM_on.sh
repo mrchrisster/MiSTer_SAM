@@ -870,7 +870,7 @@ function read_samini() {
 			
 			{
 			echo "gametimer=${m82timer}"
-			echo "mute=no"
+			#echo "mute=no"
 			#echo "listenmouse=No"
 			#echo "listenkeyboard=No"
 			#echo "listenjoy=No"
@@ -1126,7 +1126,7 @@ function loop_core() { # loop_core (core)
 
 			if [ -s /tmp/.SAM_Mouse_Activity ]; then
 				if [ "${listenmouse}" == "yes" ]; then
-					echo " Mouse activity detected!"
+					echo "Mouse activity detected!"
 					play_or_exit
 				else
 					#echo " Mouse activity ignored!"
@@ -1136,7 +1136,7 @@ function loop_core() { # loop_core (core)
 
 			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
-					echo " Keyboard activity detected!"
+					echo "Keyboard activity detected!"
 					play_or_exit
 
 				else
@@ -1146,14 +1146,24 @@ function loop_core() { # loop_core (core)
 			fi
 
 			if [ -s /tmp/.SAM_Joy_Activity ]; then
-				if [ "${listenjoy}" == "yes" ] && [[ "$(cat /tmp/.SAM_Joy_Activity)" != "Start" ]]; then
-					echo " Controller activity detected!"
-					play_or_exit
-				elif [ "${listenmouse}" == "no" ]; then		
+				
+				if [ "${listenjoy}" == "yes" ]; then
+					echo "Controller activity detected"
+					if [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Start" ]]; then
+						#Play game
+						samdebug "Start button pushed. Exiting SAM."
+						sam_exit 3
+						#return
+					elif [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
+						echo "Starting next Game"
+						counter=0
+					else
+						play_or_exit
+						#return
+					fi
+				else	
 					#echo " Controller activity ignored!"
-					truncate -s 0 /tmp/.SAM_Joy_Activity
-				else
-					sam_exit 3
+					truncate -s 0 /tmp/.SAM_Joy_Activity			
 				fi
 			fi
 
@@ -3679,7 +3689,7 @@ function sam_filters() {
 function sam_misc() {
 	if [[ "$shown" == "0" ]]; then
 		dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+			--backtitle "Super Attract Mode" --title "[ ALT CORE MODE ]" \
 			--msgbox "Alternative Core Mode will prefer cores with larger libraries so you don't have many game repeats.\n\nPlease set up controller in main menu instead of using Play Current Game if possible." 0 0
 	fi
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
@@ -3751,7 +3761,7 @@ function sam_misc() {
 
 function sam_mute() {
 	dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+		--backtitle "Super Attract Mode" --title "[ MUTE ]" \
 		--msgbox "SAM uses the core mute feature of MiSTer which will turn the volume low.\n\nYou might still hear a bit of the core's sounds.\n\nYou can also use global mute but it's not as well supported with SAM." 0 0
 
 	dialog --clear --ascii-lines --no-tags \
@@ -3823,32 +3833,41 @@ function sam_exittask() {
 }
 
 function sam_controller() {
-	dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-		--msgbox "Configure your controller so that pushing the start button will play the current game.\nAny other button will exit SAM. " 0 0
-	dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-		--msgbox "Connect one controller at a time.\n\nPush start button when ready!" 0 0
-		c_json="/media/fat/Scripts/.MiSTer_SAM/sam_controllers.json"
-		id="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 id)"
-		name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"	
-		startbutton="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 start)"
-		echo start button: "$startbutton"
-		echo controller id: "$id"
+    dialog --clear --no-cancel --ascii-lines \
+        --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+        --msgbox "Configure your controller so that pushing the start button will play the current game.\nAny other button will exit SAM. " 0 0
+    dialog --clear --no-cancel --ascii-lines \
+        --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+        --msgbox "Connect one controller at a time.\n\nPush start button when ready!" 0 0
+    c_json="/media/fat/Scripts/.MiSTer_SAM/sam_controllers.json"
+    id="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 id)"
+    name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
+    startbutton="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 button)"
+    echo start button: "$startbutton"
+    echo controller id: "$id"
 
-		if [[ "$startbutton" == *"not exist"* ]]; then
-			dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-			--msgbox "No joysticks connected. " 0 0
-			sam_exittask
-		else
-			jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" '. + {($id): {"name": $name, "button": {"start": $start}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json ${c_json}
-			dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-			--msgbox "Added $name. \n\nPlease reboot MiSTer or reconnect controller for changes to take effect. " 0 0		
-			sam_exittask
-		fi
+    # New dialog to capture the "next" button
+    dialog --clear --no-cancel --ascii-lines \
+        --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
+        --msgbox "Now, push the button you want to use for the 'next' action.\nThis button will be used to navigate to the next game in SAM." 0 0
+    nextbutton="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 button)"
+    echo next button: "$nextbutton"
+
+    if [[ "$startbutton" == *"not exist"* ]]; then
+        dialog --clear --no-cancel --ascii-lines \
+        --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+        --msgbox "No joysticks connected. " 0 0
+        sam_exittask
+    else
+        jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" --argjson next "$nextbutton" \
+            '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json ${c_json}
+        dialog --clear --no-cancel --ascii-lines \
+        --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP COMPLETED ]" \
+        --msgbox "Added $name with Start and Next buttons configured. \n\nPlease reboot MiSTer or reconnect controller for changes to take effect. " 0 0
+        sam_exittask
+    fi
 }
+
 
 function sam_timer() {
 	if [[ "$shown" == "0" ]]; then
@@ -3930,7 +3949,7 @@ function sam_coreconfig() {
 function sam_corelist() {
 	dialog --clear --no-cancel --ascii-lines \
 	--backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION]" \
-	--msgbox "Joystick is currently not supported to select cores. You need a keyboard and can enable/disable cores with space key.\n\nPlease exit this menu if you are using a joystick." 0 0
+	--msgbox "Joystick is currently not supported to select cores. You need a keyboard to enable/disable cores with space key.\n\nPlease exit this menu if you are using a joystick." 0 0
 	declare -a corelistmenu=()
 	for core in "${corelistall[@]}"; do
 		corelistmenu+=("${core}")
