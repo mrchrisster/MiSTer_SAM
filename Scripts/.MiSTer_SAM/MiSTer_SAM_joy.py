@@ -66,6 +66,10 @@ def get_activity(
 
         # Handle button events
         if pe["type"] & BUTTON == BUTTON and pe["value"] != np["value"]:
+            if "button" in ARGS:
+                print(format(pe["number"]))
+                sys.exit(0)  # Exit after printing the device ID
+   
             # Set to default initially
             activity = ACTIVITIES["default"]
             action = "default"
@@ -139,7 +143,7 @@ if __name__ == "__main__":
         print(device_id)
         sys.exit(0)  # Exit after printing the device ID
 
-
+     
     # Your existing activity monitoring loop here...
     while True:
         try:
