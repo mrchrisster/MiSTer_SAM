@@ -66,6 +66,7 @@ function init_vars() {
 	declare -gl amigaselect="All"
 	declare -gl m82="no"
 	declare -gl mute="No"
+	declare -gl ignore_when_skip="no"
 	declare -gl coreweight="No"
 	declare -gl playcurrentgame="No"
 	declare -gl kids_safe="No"
@@ -1148,13 +1149,17 @@ function loop_core() { # loop_core (core)
 						#return
 					elif [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
 						echo "Starting next Game"
+						if [[ "$ignore_when_skip" == "yes" ]]; then
+							ignoregame
+						fi
 						counter=0
 						truncate -s 0 /tmp/.SAM_Joy_Activity
 					else
 						play_or_exit
 						#return
 					fi
-				else	
+				else # ignore gamepad input
+					#special case for m82
 					if [ "$m82" == "yes" ]; then
 						local m82bios_active="$(cat $gamelistpathtmp/nes_gamelist.txt | head -n 1 | grep -i m82)"
 						if [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
@@ -1162,6 +1167,7 @@ function loop_core() { # loop_core (core)
 							if [ -n "$m82bios_active" ]; then 
 								sed -i '1d' "$gamelistpathtmp"/nes_gamelist.txt
 								sync
+								counter=0
 							fi
 							echo "Starting next Game"
 							counter=0
@@ -1186,7 +1192,6 @@ function loop_core() { # loop_core (core)
 		next_core "${1}"
 
 	done
-	update_done=0
 	trap - INT
 	sleep 1
 }
