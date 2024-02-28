@@ -847,26 +847,27 @@ function read_samini() {
 
 	#NES M82 Mode
 	if [ "$m82" == "yes" ]; then	
-		if [ ! -f "$gamelistpath/nes_gamelist.txt" ]; then
+		[ ! -d "/tmp/.SAM_List" ] && mkdir /tmp/.SAM_List/ 
+		[ ! -d "/tmp/.SAM_tmp" ] && mkdir /tmp/.SAM_tmp/
+
+		if [ ! -f "${gamelistpath}"/nes_gamelist.txt ]; then
 			echo "Error: NES gamelist missing. Disable m82 mode and start nes core at least once."
 			exit
 		fi
-		[ ! -d "/tmp/.SAM_List" ] && mkdir /tmp/.SAM_List/ 
-		[ ! -d "/tmp/.SAM_tmp" ] && mkdir /tmp/.SAM_tmp/
+		if [ -f "${gamelistpathtmp}"/nes_gamelist.txt ]; then
+			rm "${gamelistpathtmp}"/nes_gamelist.txt
+		fi
+		local m82_list_path="${gamelistpath}"/m82_list.txt
+		# Check if the M82 list file exists
+		if [ ! -f "$m82_list_path" ]; then
+			echo "Error: The M82 list file ($m82_list_path) does not exist. Updating SAM now. Please try again."
+			repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+			get_samstuff .MiSTer_SAM/SAM_Gamelists/m82_list.txt "${gamelistpath}"
+		fi
+
 		printf "%s\n" nes > "${corelistfile}"
+		
 		if [ ! -f /tmp/.SAM_tmp/m82.ini ]; then 
-			local current_core=""
-			local m82_list_path="${gamelistpath}"/m82_list.txt
-			# Check if the M82 list file exists
-			if [ ! -f "$m82_list_path" ]; then
-				echo "Error: The M82 list file ($m82_list_path) does not exist. Updating SAM now. Please try again."
-				repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-				get_samstuff .MiSTer_SAM/SAM_Gamelists/m82_list.txt "${gamelistpath}"
-			fi
-			
-			#Reset gamelists
-			[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
-			mkdir -p "${gamelistpathtmp}"
 			
 			{
 			echo "gametimer=${m82timer}"
@@ -877,7 +878,9 @@ function read_samini() {
 			} >/tmp/.SAM_tmp/m82.ini
 			
 		fi
-		source /tmp/.SAM_tmp/m82.ini
+		gametimer=${m82timer}
+		
+		#source /tmp/.SAM_tmp/m82.ini
 	fi
 }
 
@@ -1156,7 +1159,14 @@ function loop_core() { # loop_core (core)
 						#return
 					elif [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
 						echo "Starting next Game"
+						if [ "$m82" == "yes" ]; then
+							if [[ "$(cat $gamelistpathtmp/nes_gamelist.txt | head -n 1 | grep -i m82)" ]]; then 
+								sed -i '1d' "$gamelistpathtmp"/nes_gamelist.txt
+								sync
+							fi
+						fi
 						counter=0
+						truncate -s 0 /tmp/.SAM_Joy_Activity
 					else
 						play_or_exit
 						#return
