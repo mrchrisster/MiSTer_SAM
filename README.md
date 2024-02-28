@@ -44,7 +44,7 @@ Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` 
 
 - **Controller Detection** - MiSTer SAM will only start when no input has been received from your controllers for the amount of time set in `MiSTer_SAM.ini`.
 
-- **Controller Mapping - SAM can have custom button assignments for "Show next game" or "Start game". Check in SAM's menu under "Configure Gamepad" or try out if the default mapping works for you. Select button goes to next game and start button will play the current game.
+- **Controller Mapping** - SAM can have custom button assignments for "Show next game" or "Start game". Check in SAM's menu under "Configure Gamepad" or try out if the default mapping works for you. Select button goes to next game and start button will play the current game.
 
 - **Options Menu** - All options of SAM can be configured from a menu when launching `MiSTer_SAM_on.sh`. Push UP button after launching `MiSTer_SAM_on.sh` script. 
 **NOTE** The menu does not work out of the box on CRT's . Please try adding the following settings to your `/media/fat/MiSTer.ini` and see if it will make the menu work for your CRT setup:  
