@@ -59,6 +59,7 @@ function init_vars() {
 	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
+	declare -gl disablebootrom="no"
 	declare -gl skiptime="10"
 	declare -gl norepeat="Yes"
 	declare -gl disablebootrom="Yes"
@@ -867,20 +868,8 @@ function read_samini() {
 
 		printf "%s\n" nes > "${corelistfile}"
 		
-		if [ ! -f /tmp/.SAM_tmp/m82.ini ]; then 
-			
-			{
-			echo "gametimer=${m82timer}"
-			#echo "mute=no"
-			#echo "listenmouse=No"
-			#echo "listenkeyboard=No"
-			#echo "listenjoy=No"
-			} >/tmp/.SAM_tmp/m82.ini
-			
-		fi
-		gametimer=${m82timer}
+		listenjoy=no
 		
-		#source /tmp/.SAM_tmp/m82.ini
 	fi
 }
 
@@ -1159,12 +1148,6 @@ function loop_core() { # loop_core (core)
 						#return
 					elif [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
 						echo "Starting next Game"
-						if [ "$m82" == "yes" ]; then
-							if [[ "$(cat $gamelistpathtmp/nes_gamelist.txt | head -n 1 | grep -i m82)" ]]; then 
-								sed -i '1d' "$gamelistpathtmp"/nes_gamelist.txt
-								sync
-							fi
-						fi
 						counter=0
 						truncate -s 0 /tmp/.SAM_Joy_Activity
 					else
@@ -1172,6 +1155,26 @@ function loop_core() { # loop_core (core)
 						#return
 					fi
 				else	
+					if [ "$m82" == "yes" ]; then
+						local m82bios_active="$(cat $gamelistpathtmp/nes_gamelist.txt | head -n 1 | grep -i m82)"
+						if [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
+							#Next game is M82 bios, so skip
+							if [ -n "$m82bios_active" ]; then 
+								sed -i '1d' "$gamelistpathtmp"/nes_gamelist.txt
+								sync
+							fi
+							echo "Starting next Game"
+							counter=0
+							truncate -s 0 /tmp/.SAM_Joy_Activity
+						fi
+						#Next game is not M82 bios, so set gametimer
+						if [ -n "$m82bios_active" ] && [ "$update_done" -eq 0 ]; then 
+							counter=$m82_gametimer
+							update_done=1
+							truncate -s 0 /tmp/.SAM_Joy_Activity
+						fi
+
+					fi
 					#echo " Controller activity ignored!"
 					truncate -s 0 /tmp/.SAM_Joy_Activity			
 				fi
@@ -1183,6 +1186,7 @@ function loop_core() { # loop_core (core)
 		next_core "${1}"
 
 	done
+	update_done=0
 	trap - INT
 	sleep 1
 }
@@ -1543,7 +1547,8 @@ function check_list() { # args ${nextcore}
 			samdebug "Found the following games: \n$(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82)"
 			samdebug "Found $(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82 | wc -l) games"
 		fi
-
+		gametimer=22
+		update_done=0
 		return
 	fi
 	
@@ -2016,7 +2021,7 @@ function sam_start() {
 	there_can_be_only_one
 	mcp_start
 	sam_prep
-	disable_bootrom # Disable Bootrom until Reboot
+	disable_bootrom # Disable NES Bootrom until Reboot
 	bgm_start
 	tty_start
 	echo "Starting SAM in the background."
@@ -2200,7 +2205,6 @@ function sam_cleanup() {
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	[ -f /tmp/.SAM_tmp/m82.ini ] && rm /tmp/.SAM_tmp/m82.ini
 	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
 	if [ "${samvideo}" == "yes" ]; then
 		echo 1 > /sys/class/graphics/fbcon/cursor_blink
@@ -2507,7 +2511,7 @@ function core_error_checklist() { # core_error core /path/to/ROM
 
 
 function disable_bootrom() {
-	if [ "${disablebootrom}" == "Yes" ]; then
+	if [ "${disablebootrom}" == "yes" ]; then
 		# Make Bootrom folder inaccessible until restart
 		mkdir -p /tmp/.SAM_List/Bootrom
 		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /tmp/.SAM_List/Bootrom "${misterpath}/Bootrom"
