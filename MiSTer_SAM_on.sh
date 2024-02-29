@@ -1149,6 +1149,7 @@ function loop_core() { # loop_core (core)
 					if [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Start" ]]; then
 						#Play game
 						samdebug "Start button pushed. Exiting SAM."
+						playcurrentgame="yes"
 						play_or_exit
 						truncate -s 0 /tmp/.SAM_Joy_Activity
 					elif [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
@@ -2089,10 +2090,12 @@ function kill_all_sams() {
 }
 
 function play_or_exit() {
-    if [[ "${playcurrentgame}" == "yes" ]] && [[ ${mute} == "core" ]]; then
-		sam_exit 3
-    elif [[ "${playcurrentgame}" == "yes" ]] && ([[ ${mute} == "no" ]] || [[ ${mute} == "global" ]]); then
-		sam_exit 2
+    if [[ "${playcurrentgame}" == "yes" ]]; then
+    	if [[ ${mute} == "core" ]]; then
+			sam_exit 3
+		else
+			sam_exit 2
+		fi
 	else
 		sam_exit 0
 	fi
