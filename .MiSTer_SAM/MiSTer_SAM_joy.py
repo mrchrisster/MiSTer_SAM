@@ -7,7 +7,7 @@ import os
 import json
 
 
-ACTIVITY_FILE = "/tmp/.SAM_Joy_Activity"
+ACTIVITY_FILE = "/tmp/.SAM_tmp/SAM_Joy_Activity"
 POLL_RATE = 0.1
 AXIS_DEADZONE = 2000
 
