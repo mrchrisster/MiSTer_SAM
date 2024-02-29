@@ -1555,6 +1555,11 @@ function check_list() { # args ${nextcore}
 			done < "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/m82_list.txt" > "${gamelistpathtmp}/nes_gamelist.txt"
 			samdebug "Found the following games: \n$(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82)"
 			samdebug "Found $(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82 | wc -l) games"
+			# If button was pushed to skip game
+			if [ "$update_done" -eq 1 ]; then
+				sed -i '1d' "$gamelistpathtmp"/nes_gamelist.txt
+			fi
+
 		fi
 		gametimer="21"
 		update_done=0
