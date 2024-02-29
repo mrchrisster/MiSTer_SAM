@@ -33,6 +33,8 @@ do
  		fi
 done
 
+mkdir -p /tmp/.SAM_tmp
+
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
 fi
