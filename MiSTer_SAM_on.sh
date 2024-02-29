@@ -2553,25 +2553,22 @@ function disable_bootrom() {
 
 function mute() {
 	if [ "${bgm}" == "yes" ]; then
-		return
+		unmute
+		mute="core"
 	fi
+
 	if [ "${mute}" == "global" ] || [ "${mute}" == "yes" ]; then
-		
-		if [[ "$(mount | grep -ic "Volume.dat")" == "0" ]]; then
-			touch /tmp/Volume.dat
-			mount --bind /tmp/Volume.dat "/media/fat/config/Volume.dat"
-		fi
-		#if [ -f "/media/fat/config/Volume.dat" ]; then
-	 		if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+		samdebug "Global volume mute."
+		if [ -f "/media/fat/config/Volume.dat" ]; then
+			if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 				# Mute Global Volume
 				echo -e "\0020\c" >/media/fat/config/Volume.dat
 				#echo "volume mute" > /dev/MiSTer_cmd
 			fi
-		#else
-		#	echo -e "\0020\c" >/media/fat/config/Volume.dat
+		else
+			echo -e "\0020\c" >/media/fat/config/Volume.dat
 		#	#echo "volume mute" > /dev/MiSTer_cmd
-		#fi
-			
+		fi
 	elif [ "${mute}" == "core" ]; then
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
 		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
@@ -2607,7 +2604,6 @@ function mute() {
 }
 
 function unmute() {
-		bgm_stop
 		echo "volume unmute" > /dev/MiSTer_cmd
 }
 
@@ -2871,8 +2867,6 @@ function sam_help() { # sam_help
 function bgm_start() {
 
 	if [ "${bgm}" == "yes" ]; then
-		mute="core"
-		unmute
 		if [ ! "$(ps -o pid,args | grep '[b]gm' | head -1)" ]; then
 			/media/fat/Scripts/bgm.sh
 		else
