@@ -66,6 +66,7 @@ function init_vars() {
 	declare -gl amigaselect="All"
 	declare -gl m82="no"
 	declare -gl mute="No"
+	declare -gi update_done=0
 	declare -gl ignore_when_skip="no"
 	declare -gl coreweight="No"
 	declare -gl playcurrentgame="No"
@@ -868,6 +869,9 @@ function read_samini() {
 		fi
 
 		printf "%s\n" nes > "${corelistfile}"
+		if [[ "$m82_mute" == "yes" ]]; then
+			mute="global"
+		fi
 		gametimer="21"
 		listenjoy=no
 		
@@ -1177,8 +1181,13 @@ function loop_core() { # loop_core (core)
 							counter=0
 							truncate -s 0 /tmp/.SAM_Joy_Activity
 						fi
-						#Next game is not M82 bios, so set gametimer
+						#Next game is not M82 bios. Let's play some NES!
 						if [[ "$romname" != *"m82"* ]] && [ "$update_done" -eq 0 ]; then 
+							# Unmute game
+							if [[ "$m82_mute" == "yes" ]]; then
+								unmute
+								#echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+							fi
 							counter=$m82_gametimer
 							update_done=1
 							truncate -s 0 /tmp/.SAM_Joy_Activity
@@ -1359,8 +1368,8 @@ function check_gamelistupdate() {
 	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${m82}" == "no" ]]; then
 		create_gamelist ${1} comp
 		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
-			samdebug "Changes detected in ${1} folder. Updating gamelist now."
 			cp "${gamelistpathtmp}/comp/${1}_gamelist.txt" "${gamelistpath}/${1}_gamelist.txt" 
+			samdebug "Changes detected in ${1} folder. Gamelist updated."
 		fi
 	fi
 	
@@ -2080,9 +2089,9 @@ function kill_all_sams() {
 }
 
 function play_or_exit() {
-	if [ "${playcurrentgame}" == "yes" ] && { [ ${mute} == "yes" ] || [ ${mute} == "global" ] || [ ${mute} == "core" ]; }; then
+    if [[ "${playcurrentgame}" == "yes" ]] && ([[ ${mute} == "yes" ]] || [[ ${mute} == "core" ]]); then
 		sam_exit 3
-	elif [ "${playcurrentgame}" == "yes" ] && [ ${mute} == "no" ]; then
+    elif [[ "${playcurrentgame}" == "yes" ]] && ([[ ${mute} == "no" ]] || [[ ${mute} == "global" ]]); then
 		sam_exit 2
 	else
 		sam_exit 0
@@ -2100,8 +2109,9 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		sleep 1
 		echo "There was an error ${2}" # Pass error messages in ${2}
 	elif [ "${1}" -eq 2 ]; then        # Play Current Game
+		unmute
 		sleep 1
-	elif [ "${1}" -eq 3 ]; then # Play Current Game, relaunch because of mute
+	elif [ "${1}" -eq 3 ]; then # Play Current Game, relaunch because of core mute
 		sleep 1
 		if [ "${nextcore}" == "arcade" ]; then
 			echo "load_core ${mra}" >/dev/MiSTer_cmd
@@ -2580,6 +2590,12 @@ function mute() {
 		fi	
 		prevcore=${1}
 
+	fi
+}
+
+function unmute() {
+	if [ "${mute}" == "global" ]; then
+		echo "volume unmute" > /dev/MiSTer_cmd
 	fi
 }
 
