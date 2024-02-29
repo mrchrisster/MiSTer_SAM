@@ -2233,7 +2233,6 @@ function sam_prep() {
 			fi
 		fi
 	fi
-	[ "${bgm}" == "no" ] && [ -f /tmp/bgm.sock ] && echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 
 
 }
@@ -2347,13 +2346,15 @@ function env_check() {
 }
 
 function resetini() {
+	rm -rf "/tmp/.SAM_List"
+	rm -rf "/tmp/.SAM_tmp"
 	if [ -f "${mrsampath}"/MiSTer_SAM.default.ini ]; then
 		cp "${mrsampath}"/MiSTer_SAM.default.ini /media/fat/Scripts/MiSTer_SAM.ini
 	else
 		get_samstuff MiSTer_SAM.ini /tmp
 		cp /tmp/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini
 	fi
-	
+	read_samini
 }
 
 function deleteall() {
@@ -2909,7 +2910,11 @@ function bgm_start() {
 		if [ "${bgmplay}" == "yes" ]; then
 			echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		fi
+	else
+		[ -e /tmp/bgm.sock ] && echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+
 	fi
+	
 
 }
 
@@ -4241,7 +4246,7 @@ function sam_gamemodemenu() {
 	if [ "$opt" != "0" ]; then	
 		sam_menu
 	else 
-		resetini
+		resetini	
 		"${menuresponse}"
 	fi
 }
@@ -4253,7 +4258,7 @@ sam_m82_mode() {
 			--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
 			--msgbox "SAM will act as an M82 unit for NES. MiSter will restart now. To disable this, go to MiSTer_SAM.ini and find m82 option.\n\n" 0 0
 			sed -i '/m82=/c\m82="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			reboot -f
+			sam_start
 	fi	
 	
 
@@ -4650,7 +4655,7 @@ function enablebgm() {
 		mv --force /tmp/bgm.sh /media/fat/Scripts/
 		echo " Resetting BGM now."
 	fi
-	echo " Updating MiSTer_SAM.ini to use Mute=Core"
+	echo " Updating MiSTer_SAM.ini to use Mute=No"
 	sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	/media/fat/Scripts/bgm.sh
 	sync
