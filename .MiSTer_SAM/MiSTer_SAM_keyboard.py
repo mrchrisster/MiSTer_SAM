@@ -15,7 +15,7 @@ while True:
         event = file.read(EVENT_SIZE)
         (a) = struct.unpack(packstring, event)
         if a != 111 :
-           f = open("/tmp/.SAM_Keyboard_Activity", "w")
+           f = open("/tmp/.SAM_tmp/SAM_Keyboard_Activity", "w")
            f.write("Button pushed")
            f.close()
         time.sleep(0.3)
