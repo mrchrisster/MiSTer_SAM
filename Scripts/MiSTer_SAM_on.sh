@@ -838,6 +838,12 @@ function read_samini() {
 	IFS=',' read -ra corelist <<< "${corelist}"
 	IFS=',' read -ra corelistall <<< "${corelistall}"
 	
+	#BGM mode
+	if [ "${bgm}" == "yes" ]; then
+		unmute
+		mute="core"
+	fi
+	
 	#Roulette Mode
 	if [ -f /tmp/.SAM_tmp/gameroulette.ini ]; then
 		source /tmp/.SAM_tmp/gameroulette.ini
@@ -876,6 +882,7 @@ function read_samini() {
 		listenjoy=no
 		
 	fi
+	
 }
 
 
@@ -1035,6 +1042,10 @@ function parse_cmd() {
 				;;
 			deleteall)
 				deleteall
+				break
+				;;
+			resetini)
+				resetini
 				break
 				;;
 			exclude)
@@ -2049,6 +2060,7 @@ function sam_start() {
 	bgm_start
 	tty_start
 	echo "Starting SAM in the background."
+	[[ "$samvideo" == "yes" ]] && echo "Samvideo mode. Please wait for video to load"
 	tmux new-session -x 180 -y 40 -n "-= SAM Monitor -- Detach with ctrl-b, then push d  =-" -s SAM -d "${misterpath}/Scripts/MiSTer_SAM_on.sh" start_real "${nextcore}"
 }
 
@@ -2334,6 +2346,16 @@ function env_check() {
 	fi
 }
 
+function resetini() {
+	if [ -f "${mrsampath}"/MiSTer_SAM.default.ini ]; then
+		cp "${mrsampath}"/MiSTer_SAM.default.ini /media/fat/Scripts/MiSTer_SAM.ini
+	else
+		get_samstuff MiSTer_SAM.ini /tmp
+		cp /tmp/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini
+	fi
+	
+}
+
 function deleteall() {
 	# In case of issues, reset SAM
 
@@ -2552,11 +2574,6 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ "${bgm}" == "yes" ]; then
-		unmute
-		mute="core"
-	fi
-
 	if [ "${mute}" == "global" ] || [ "${mute}" == "yes" ]; then
 		samdebug "Global volume mute."
 		if [ -f "/media/fat/config/Volume.dat" ]; then
@@ -2599,7 +2616,9 @@ function mute() {
 			sync
 		fi	
 		prevcore=${1}
-
+	elif [ "${mute}" == "no" ]; then
+		samdebug "Sent unmute"
+		unmute
 	fi
 }
 
@@ -3520,6 +3539,7 @@ function sam_update() { # sam_update (next command)
 		get_partun
 		get_samindex
 		get_mbc
+		get_samstuff .MiSTer_SAM/MiSTer_SAM.default.ini
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
@@ -3620,12 +3640,12 @@ function sam_menu() {
 		Stop "Stop SAM" \
 		Update "Update SAM to latest" \
 		----- "-----------------------------" \
+		gamemode "Presets and Game Modes" \
 		sam_coreconfig "Configure Core List" \
 		sam_exittask "Configure Exit Behavior" \
 		sam_controller "Configure Gamepad" \
 		sam_filters "Filters (by Orientation or Category)" \
 		sam_bgm "Add-ons: SAMVIDEO, BGM, TTY2OLED" \
-		gamemode "Presets and Game Modes" \
 		config "MiSTer_SAM.ini Editor" \
 		Settings "Settings" \
 		Reset "Reset or uninstall SAM" 2>"/tmp/.SAMmenu"
@@ -4135,14 +4155,16 @@ function sam_singlemenu() {
 
 }
 
+
 function sam_resetmenu() {
 	inmenu=1
 	dialog --clear --no-cancel --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ Reset ]" \
 		--menu "Select an option" 0 0 0 \
-		Deleteall "Reset/Delete all files" \
-		Gamelists "Create/Delete only Game Lists" \
-		Default "Reinstall SAM and enable Autostart" \
+		Gamelists "Reset Game Lists" \
+		Resetini "Reset MiSTer_SAM.ini to defaults" \
+		Deleteall "Uninstall SAM" \
+		Default "Reinstall SAM" \
 		Back 'Previous menu' 2>"/tmp/.SAMmenu"
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
@@ -4216,9 +4238,10 @@ function sam_gamemodemenu() {
 	menuresponse=$(<"/tmp/.SAMmenu")
 	clear
 	
-	if [ "$opt" != "0" ]; then
+	if [ "$opt" != "0" ]; then	
 		sam_menu
 	else 
+		resetini
 		"${menuresponse}"
 	fi
 }
@@ -4242,7 +4265,7 @@ sam_goat_mode() {
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
-			--msgbox "SAM will start now and only play games deemed to have the Greatest of All Time Attract Modes.\n\nOn cold reboot, SAM will get reset automatically to play all games again.\n\nTo activate the GOAT list permanently, set sam_goat_list=yes in MiSTer_SAM.ini" 0 0
+			--msgbox "SAM will start now and only play games deemed to have the Greatest of All Time Attract Modes.\n\n" 0 0
 	fi	
     local current_core=""
     local goat_list_path="${gamelistpath}"/sam_goat_list.txt
@@ -4275,7 +4298,8 @@ sam_goat_mode() {
 	done < "$goat_list_path"
 	readarray -t corelist <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)"
 	printf "%s\n" "${corelist[@]}" > "${corelistfile}"
-	sed -i '/samvideo=/c\samvideo="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/sam_goat_list=/c\sam_goat_list="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
 		sam_start
 		touch /tmp/.SAM_tmp/goat
