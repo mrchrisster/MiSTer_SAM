@@ -1149,8 +1149,8 @@ function loop_core() { # loop_core (core)
 					if [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Start" ]]; then
 						#Play game
 						samdebug "Start button pushed. Exiting SAM."
-						sam_exit 3
-						#return
+						play_or_exit
+						truncate -s 0 /tmp/.SAM_Joy_Activity
 					elif [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
 						echo "Starting next Game"
 						if [[ "$ignore_when_skip" == "yes" ]]; then
@@ -2089,7 +2089,7 @@ function kill_all_sams() {
 }
 
 function play_or_exit() {
-    if [[ "${playcurrentgame}" == "yes" ]] && ([[ ${mute} == "yes" ]] || [[ ${mute} == "core" ]]); then
+    if [[ "${playcurrentgame}" == "yes" ]] && [[ ${mute} == "core" ]]; then
 		sam_exit 3
     elif [[ "${playcurrentgame}" == "yes" ]] && ([[ ${mute} == "no" ]] || [[ ${mute} == "global" ]]); then
 		sam_exit 2
@@ -2217,6 +2217,7 @@ function sam_prep() {
 			fi
 		fi
 	fi
+	[ "${bgm}" == "no" ] && [ -f /tmp/bgm.sock ] && echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 
 
 }
@@ -2547,19 +2548,23 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ "${mute}" == "global" ]; then
-		if [ -f "/media/fat/config/Volume.dat" ]; then
+	if [ "${mute}" == "global" ] || [ "${mute}" == "yes" ]; then
+		if [[ "$(mount | grep -ic "Volume.dat")" == "0" ]]; then
+			touch /tmp/Volume.dat
+			mount --bind /tmp/Volume.dat "/media/fat/config/Volume.dat"
+		fi
+		#if [ -f "/media/fat/config/Volume.dat" ]; then
 	 		if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 				# Mute Global Volume
 				echo -e "\0020\c" >/media/fat/config/Volume.dat
 				#echo "volume mute" > /dev/MiSTer_cmd
 			fi
-		else
-			echo -e "\0020\c" >/media/fat/config/Volume.dat
-			#echo "volume mute" > /dev/MiSTer_cmd
-		fi
+		#else
+		#	echo -e "\0020\c" >/media/fat/config/Volume.dat
+		#	#echo "volume mute" > /dev/MiSTer_cmd
+		#fi
 			
-	elif [ "${mute}" == "core" ] || [ "${mute}" == "yes" ]; then
+	elif [ "${mute}" == "core" ]; then
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
 		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
 		[ ! -f "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" ] && touch "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"		
@@ -2594,9 +2599,8 @@ function mute() {
 }
 
 function unmute() {
-	if [ "${mute}" == "global" ]; then
+		bgm_stop
 		echo "volume unmute" > /dev/MiSTer_cmd
-	fi
 }
 
 function check_zips() { # check_zips core
@@ -2858,7 +2862,9 @@ function sam_help() { # sam_help
 
 function bgm_start() {
 
-	if [ "${bgm}" == "yes" ] && [ "${mute}" == "core" ]; then
+	if [ "${bgm}" == "yes" ]; then
+		mute="core"
+		unmute
 		if [ ! "$(ps -o pid,args | grep '[b]gm' | head -1)" ]; then
 			/media/fat/Scripts/bgm.sh
 		else
@@ -3814,9 +3820,9 @@ function sam_mute() {
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
-		enablemute "Mute Volume for all Cores" \
-		disablemute "Unmute Volume for all Cores" \
-		globalmute "Mute Global Volume (not recommended)" 2>"/tmp/.SAMmenu" 
+		globalmute "Mute Global Volume" 
+		enablemute "Mute Volume for all Cores (BGM mode)" \
+		disablemute "Unmute Volume for all Cores" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
 	menuresponse=$(<"/tmp/.SAMmenu")
