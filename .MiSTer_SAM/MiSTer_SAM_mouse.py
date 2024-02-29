@@ -15,7 +15,7 @@ while True:
         event = file.read(EVENT_SIZE)
         (a) = struct.unpack(packstring, event)
         if a != 111 :
-           f = open("/tmp/.SAM_Mouse_Activity", "w")
+           f = open("/tmp/.SAM_tmp/SAM_Mouse_Activity", "w")
            f.write("Mouse moved")
            f.close()
         time.sleep(0.4)
