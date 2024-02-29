@@ -868,7 +868,7 @@ function read_samini() {
 		fi
 
 		printf "%s\n" nes > "${corelistfile}"
-		
+		gametimer="21"
 		listenjoy=no
 		
 	fi
@@ -1161,20 +1161,24 @@ function loop_core() { # loop_core (core)
 				else # ignore gamepad input
 					#special case for m82
 					if [ "$m82" == "yes" ]; then
-						local m82bios_active="$(cat $gamelistpathtmp/nes_gamelist.txt | head -n 1 | grep -i m82)"
+						romname="${romname,,}"
+						local m82bios_active="$romname"
 						if [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
 							#Next game is M82 bios, so skip
-							if [ -n "$m82bios_active" ]; then 
+							if [[ "$romname" != *"m82"* ]]; then 
+								samdebug "romname: $romname"
+								samdebug "Skipping M82 and jump to next game"
 								sed -i '1d' "$gamelistpathtmp"/nes_gamelist.txt
 								sync
-								counter=0
+							else
+								echo "Starting next Game"
 							fi
-							echo "Starting next Game"
+							update_done=1
 							counter=0
 							truncate -s 0 /tmp/.SAM_Joy_Activity
 						fi
 						#Next game is not M82 bios, so set gametimer
-						if [ -n "$m82bios_active" ] && [ "$update_done" -eq 0 ]; then 
+						if [[ "$romname" != *"m82"* ]] && [ "$update_done" -eq 0 ]; then 
 							counter=$m82_gametimer
 							update_done=1
 							truncate -s 0 /tmp/.SAM_Joy_Activity
@@ -1552,7 +1556,7 @@ function check_list() { # args ${nextcore}
 			samdebug "Found the following games: \n$(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82)"
 			samdebug "Found $(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82 | wc -l) games"
 		fi
-		gametimer=22
+		gametimer="21"
 		update_done=0
 		return
 	fi
@@ -3891,7 +3895,7 @@ function sam_controller() {
 			sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 			dialog --clear --msgbox "playcurrentgame has been set to no. Please reboot MiSTer or reconnect controller for changes to take effect." 0 0
 		else
-			dialog --clear --msgbox "Keeping current playcurrentgame setting..." 0 0
+			dialog --clear --msgbox "Keeping current playcurrentgame setting. Please reboot MiSTer or reconnect controller for changes to take effect." 0 0
 		fi
 		sam_menu
 
