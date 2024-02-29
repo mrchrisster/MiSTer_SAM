@@ -3823,7 +3823,6 @@ function sam_mute() {
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		globalmute "Mute Global Volume" 
-		enablemute "Mute Volume for all Cores (BGM mode)" \
 		disablemute "Unmute Volume for all Cores" 2>"/tmp/.SAMmenu" 
 
 	opt=$?
@@ -3831,8 +3830,6 @@ function sam_mute() {
 	
 	if [ "$opt" != "0" ]; then
 		sam_menu
-	elif [[ "${menuresponse,,}" == "enablemute" ]]; then
-		sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "disablemute" ]]; then
 		sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "globalmute" ]]; then
@@ -4630,7 +4627,7 @@ function enablebgm() {
 		echo " Resetting BGM now."
 	fi
 	echo " Updating MiSTer_SAM.ini to use Mute=Core"
-	sed -i '/mute=/c\mute="'"Core"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	/media/fat/Scripts/bgm.sh
 	sync
 	repository_url="https://github.com/mrchrisster/MiSTer_SAM"
