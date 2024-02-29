@@ -33,7 +33,9 @@ do
  		fi
 done
 
-mkdir -p /tmp/.SAM_tmp
+#Set up SAM paths
+[ ! -d "/tmp/.SAM_List" ] && mkdir /tmp/.SAM_List/ 
+[ ! -d "/tmp/.SAM_tmp" ] && mkdir /tmp/.SAM_tmp/
 
 if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
 	source "${misterpath}/Scripts/MiSTer_SAM.ini"
