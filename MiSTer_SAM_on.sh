@@ -2094,6 +2094,7 @@ function play_or_exit() {
     	if [[ ${mute} == "core" ]]; then
 			sam_exit 3
 		else
+			#unmute 
 			sam_exit 2
 		fi
 	else
@@ -2551,7 +2552,11 @@ function disable_bootrom() {
 }
 
 function mute() {
+	if [ "${bgm}" == "yes" ]; then
+		return
+	fi
 	if [ "${mute}" == "global" ] || [ "${mute}" == "yes" ]; then
+		
 		if [[ "$(mount | grep -ic "Volume.dat")" == "0" ]]; then
 			touch /tmp/Volume.dat
 			mount --bind /tmp/Volume.dat "/media/fat/config/Volume.dat"
