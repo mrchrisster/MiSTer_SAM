@@ -41,6 +41,11 @@ function init_vars() {
 	declare -g samprocess
 	samprocess="$(basename -- "${0}")"
 	declare -g menuonly="Yes"
+	declare -g key_activity_file="/tmp/.SAM_tmp/SAM_Keyboard_Activity"
+	declare -g joy_activity_file="/tmp/.SAM_tmp/SAM_Joy_Activity"
+	declare -g mouse_activity_file="/tmp/.SAM_tmp/SAM_Mouse_Activity"
+	declare -g sam_menu_file="/tmp/.SAM_tmp/.SAMmenu"
+	declare -g brfake="/tmp/.SAM_tmp/brfake"
 	declare -gi inmenu=0
 	declare -gi sam_bgmmenu=0					  
 	declare -gi shown=0
@@ -129,12 +134,14 @@ function init_vars() {
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
 	declare -g ini_file="/media/fat/MiSTer.ini"
 	declare -g ini_contents=$(cat "$ini_file")
+	declare -g sv_core="/tmp/.SAM_tmp/sv_core"
+	declare -g sv_gametimer_file="/tmp/.SAM_tmp/sv_gametimer"
 	declare -g sv_loadcounter=0
 	declare -g samvideo_path="/media/fat/video"
 	declare -g sv_archive_hdmilist="https://archive.org/download/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
 	declare -g sv_archive_crtlist="https://archive.org/download/640x240_videogame_commercials/640x240_videogame_commercials_files.xml"
-	declare -g sv_youtube_hdmilist="/media/fat/Scripts/.MiSTer_SAM/sv_yt360_list.txt"
-	declare -g sv_youtube_crtlist="/media/fat/Scripts/.MiSTer_SAM/sv_yt240_list.txt"
+	declare -g sv_youtube_hdmilist="${mrsampath}/sv_yt360_list.txt"
+	declare -g sv_youtube_crtlist="${mrsampath}/sv_yt240_list.txt"
 
 
 	# ======== CORE PATHS RBF ========
@@ -875,7 +882,7 @@ function read_samini() {
 		fi
 
 		printf "%s\n" nes > "${corelistfile}"
-		if [[ "$m82_mute" == "yes" ]]; then
+		if [[ "$m82_muted" == "yes" ]]; then
 			mute="global"
 		fi
 		gametimer="21"
@@ -1119,9 +1126,9 @@ function loop_core() { # loop_core (core)
 			
 			#Only show game counter when samvideo is not active
 			if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
-				if [ -f /tmp/sv_gametimer ]; then
-					counter=$(cat /tmp/sv_gametimer)	
-					rm /tmp/sv_gametimer 2>/dev/null
+				if [ -f "$sv_gametimer_file" ]; then
+					counter=$(cat "$sv_gametimer_file")	
+					rm "$sv_gametimer_file" 2>/dev/null
 				fi
 			else
 				echo -ne " Next game in ${counter}...\033[0K\r"
@@ -1132,44 +1139,44 @@ function loop_core() { # loop_core (core)
 			sleep 1
 			((counter--))
 
-			if [ -s /tmp/.SAM_Mouse_Activity ]; then
+			if [ -s "$mouse_activity_file" ]; then
 				if [ "${listenmouse}" == "yes" ]; then
 					echo "Mouse activity detected!"
 					play_or_exit
 				else
 					#echo " Mouse activity ignored!"
-					truncate -s 0 /tmp/.SAM_Mouse_Activity
+					truncate -s 0 "$mouse_activity_file"
 				fi
 			fi
 
-			if [ -s /tmp/.SAM_Keyboard_Activity ]; then
+			if [ -s "$key_activity_file" ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo "Keyboard activity detected!"
 					play_or_exit
 
 				else
 					echo " Keyboard activity ignored!"
-					truncate -s 0 /tmp/.SAM_Keyboard_Activity
+					truncate -s 0 "$key_activity_file"
 				fi
 			fi
 
-			if [ -s /tmp/.SAM_Joy_Activity ]; then
+			if [ -s "$joy_activity_file" ]; then
 				
 				if [ "${listenjoy}" == "yes" ]; then
 					echo "Controller activity detected"
-					if [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Start" ]]; then
+					if [[ "$(cat "$joy_activity_file")" == "Start" ]]; then
 						#Play game
 						samdebug "Start button pushed. Exiting SAM."
 						playcurrentgame="yes"
 						play_or_exit
-						truncate -s 0 /tmp/.SAM_Joy_Activity
-					elif [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
+						truncate -s 0 "$joy_activity_file"
+					elif [[ "$(cat "$joy_activity_file")" == "Next" ]]; then
 						echo "Starting next Game"
 						if [[ "$ignore_when_skip" == "yes" ]]; then
 							ignoregame
 						fi
 						counter=0
-						truncate -s 0 /tmp/.SAM_Joy_Activity
+						truncate -s 0 "$joy_activity_file"
 					else
 						play_or_exit
 						#return
@@ -1179,7 +1186,7 @@ function loop_core() { # loop_core (core)
 					if [ "$m82" == "yes" ]; then
 						romname="${romname,,}"
 						local m82bios_active="$romname"
-						if [[ "$(cat /tmp/.SAM_Joy_Activity)" == "Next" ]]; then
+						if [[ "$(cat "$joy_activity_file")" == "Next" ]]; then
 							#Next game is M82 bios, so skip
 							if [[ "$romname" != *"m82"* ]]; then 
 								samdebug "romname: $romname"
@@ -1191,23 +1198,23 @@ function loop_core() { # loop_core (core)
 							fi
 							update_done=1
 							counter=0
-							truncate -s 0 /tmp/.SAM_Joy_Activity
+							truncate -s 0 "$joy_activity_file"
 						fi
 						#Next game is not M82 bios. Let's play some NES!
 						if [[ "$romname" != *"m82"* ]] && [ "$update_done" -eq 0 ]; then 
 							# Unmute game
-							if [[ "$m82_mute" == "yes" ]]; then
+							if [[ "$m82_muted" == "yes" ]]; then
 								unmute
-								#echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+								#echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
 							fi
-							counter=$m82_gametimer
+							counter=$m82_game_timer
 							update_done=1
-							truncate -s 0 /tmp/.SAM_Joy_Activity
+							truncate -s 0 "$joy_activity_file"
 						fi
 
 					fi
 					#echo " Controller activity ignored!"
-					truncate -s 0 /tmp/.SAM_Joy_Activity			
+					truncate -s 0 "$joy_activity_file"			
 				fi
 			fi
 
@@ -1240,7 +1247,7 @@ function next_core() { # next_core (core)
 		corelist_update	
 		create_all_gamelists
 		if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ]; then
-			nextcore=$(cat /tmp/sv_core)
+			nextcore=$(cat /tmp/.SAM_tmp/sv_core)
 		else
 			pick_core			
 		fi
@@ -1573,7 +1580,7 @@ function check_list() { # args ${nextcore}
 			while IFS= read -r line; do 
 				echo "$m82_bios_path" 
 				fgrep "$line" "${gamelistpath}"/nes_gamelist.txt | head -n 1
-			done < "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/m82_list.txt" > "${gamelistpathtmp}/nes_gamelist.txt"
+			done < "${mrsampath}/SAM_Gamelists/m82_list.txt" > "${gamelistpathtmp}/nes_gamelist.txt"
 			samdebug "Found the following games: \n$(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82)"
 			samdebug "Found $(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82 | wc -l) games"
 			# If button was pushed to skip game
@@ -1606,8 +1613,8 @@ function pick_rom() {
 	fi
 	
 	#samvideo mode
-	if [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/sv_gamename ]; then
-		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/sv_gamename |  grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
+	if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/.SAM_tmp/sv_gamename ]; then
+		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/.SAM_tmp/sv_gamename |  grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
 		if [ -z "${rompath}" ]; then
 			echo "Error with picking the corresponding game for the commercial. Playing random game now."
 			rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
@@ -1749,18 +1756,18 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 
 
 	# Create mgl file and launch game
-	if [ -s /tmp/SAM_game.mgl ]; then
-		mv /tmp/SAM_game.mgl /tmp/SAM_game.previous.mgl
+	if [ -s /tmp/SAM_Game.mgl ]; then
+		mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl
 	fi
 	
 	{
 	  echo "<mistergamedescription>"
 	  echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
 	  echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
-	} >/tmp/SAM_game.mgl
+	} >/tmp/SAM_Game.mgl
 
 
-	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+	echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
 
 	sleep 1
 	activity_reset
@@ -2038,9 +2045,9 @@ function load_core_ao486() {
 	  fi
 	  echo 
 	  echo "<reset delay=0/>"
-	} >/tmp/SAM_game.mgl
+	} >/tmp/SAM_Game.mgl
 	
-	echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+	echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
 
 	sleep 1
 	activity_reset
@@ -2051,6 +2058,7 @@ function load_core_ao486() {
 # ========= SAM START AND STOP =========
 
 function sam_start() {
+	read_samini
 	env_check
 	# Terminate any other running SAM processes
 	there_can_be_only_one
@@ -2106,7 +2114,6 @@ function play_or_exit() {
     	if [[ ${mute} == "core" ]]; then
 			sam_exit 3
 		else
-			#unmute 
 			sam_exit 2
 		fi
 	else
@@ -2131,8 +2138,11 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		sleep 1
 		if [ "${nextcore}" == "arcade" ]; then
 			echo "load_core ${mra}" >/dev/MiSTer_cmd
+		elif [ "${nextcore}" == "amiga" ]; then
+			echo "${rompath}" > "${amigapath}"/shared/ags_boot
+			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 		else
-			echo "load_core /tmp/SAM_game.mgl" >/dev/MiSTer_cmd
+			echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
 		fi
 	fi
 	
@@ -2154,9 +2164,9 @@ function mcp_start() {
 }
 
 function activity_reset() {
-		truncate -s 0 /tmp/.SAM_Joy_Activity
-		truncate -s 0 /tmp/.SAM_Mouse_Activity
-		truncate -s 0 /tmp/.SAM_Keyboard_Activity
+		truncate -s 0 "$joy_activity_file"
+		truncate -s 0 "$mouse_activity_file"
+		truncate -s 0 "$key_activity_file"
 }								 
 
 function init_paths() {
@@ -2346,16 +2356,46 @@ function env_check() {
 }
 
 function resetini() {
-	rm -rf "/tmp/.SAM_List"
-	rm -rf "/tmp/.SAM_tmp"
-	if [ -f "${mrsampath}"/MiSTer_SAM.default.ini ]; then
-		cp "${mrsampath}"/MiSTer_SAM.default.ini /media/fat/Scripts/MiSTer_SAM.ini
-	else
-		get_samstuff MiSTer_SAM.ini /tmp
-		cp /tmp/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini
-	fi
-	read_samini
+    # Remove temporary files
+    rm -rf "/tmp/.SAM_List"
+    rm -rf "/tmp/.SAM_tmp"
+    sam_cleanup
+    # Check if at least one argument is provided
+    if [ $# -eq 0 ]; then
+        # No arguments provided, reset INI file to default
+        if [ -f "${mrsampath}/MiSTer_SAM.default.ini" ]; then
+            cp "${mrsampath}/MiSTer_SAM.default.ini" /media/fat/Scripts/MiSTer_SAM.ini
+        else
+            get_samstuff MiSTer_SAM.ini /tmp
+            cp /tmp/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini
+        fi
+    else
+        # Iterate over each argument
+        for arg in "$@"
+        do
+            case "$arg" in
+                "bgm")
+                    # Example: Reset background music setting
+					bgm_stop force
+                    sed -i '/bgm=/c\bgm="no"' /media/fat/Scripts/MiSTer_SAM.ini
+                    ;;
+                "samvideo")
+                    # Example: Reset samvideo setting
+                    sed -i '/samvideo=/c\samvideo="no"' /media/fat/Scripts/MiSTer_SAM.ini
+                    ;;
+                "m82")
+                    # Example: Reset samvideo setting
+                    sed -i '/m82=/c\m82="no"' /media/fat/Scripts/MiSTer_SAM.ini
+                    ;;
+                *)
+                    echo "Invalid option ($arg). No changes made."
+                    ;;
+            esac
+        done
+    fi
 }
+
+
 
 function deleteall() {
 	# In case of issues, reset SAM
@@ -2363,7 +2403,7 @@ function deleteall() {
 	there_can_be_only_one
 	
 	mkdir -p /media/fat/Scripts/.SAM_Backup
-	find "/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists" -name "*_excludelist.txt" -exec cp '{}' "/media/fat/Scripts/.SAM_Backup" \;
+	find "${mrsampath}/SAM_Gamelists" -name "*_excludelist.txt" -exec cp '{}' "/media/fat/Scripts/.SAM_Backup" \;
 	cp /media/fat/Scripts/MiSTer_SAM.ini "/media/fat/Scripts/.SAM_Backup" 2>/dev/null
 	
 	if [ -d "${mrsampath}" ]; then
@@ -2487,7 +2527,7 @@ function mglfavorite() {
 	if [ ! -d "${misterpath}/_Favorites" ]; then
 		mkdir -p "${misterpath}/_Favorites"
 	fi
-	cp /tmp/SAM_game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl"
+	cp /tmp/SAM_Game.mgl "${misterpath}/_Favorites/$(cat /tmp/SAM_Game.txt).mgl"
 
 }
 
@@ -2568,9 +2608,9 @@ function disable_bootrom() {
 		mkdir -p /tmp/.SAM_List/Bootrom
 		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /tmp/.SAM_List/Bootrom "${misterpath}/Bootrom"
 		# Disable Nes bootroms except for FDS Bios (boot0.rom)
-		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot1.rom"
-		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot2.rom"
-		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch /tmp/brfake && mount --bind /tmp/brfake "${misterpath}/Games/NES/boot3.rom"
+		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch "$brfake" && mount --bind "$brfake" "${misterpath}/Games/NES/boot1.rom"
+		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch "$brfake" && mount --bind "$brfake" "${misterpath}/Games/NES/boot2.rom"
+		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch "$brfake" && mount --bind "$brfake" "${misterpath}/Games/NES/boot3.rom"
 	fi
 }
 
@@ -2618,8 +2658,10 @@ function mute() {
 		fi	
 		prevcore=${1}
 	elif [ "${mute}" == "no" ]; then
-		samdebug "Sent unmute"
-		unmute
+		if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+			samdebug "Sent unmute"
+			unmute
+		fi
 	fi
 }
 
@@ -2894,6 +2936,7 @@ function bgm_start() {
 		fi
 		sleep 2
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "set playback random" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 		#BGM playback tends to be louder than most cores. Let's adjust global volume down..
 		if [ "${gvoladjust}" -ne 0 ] &&  [ "${bgmstop}" == "yes" ]; then
 			if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
@@ -2909,9 +2952,10 @@ function bgm_start() {
 		fi
 		if [ "${bgmplay}" == "yes" ]; then
 			echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+			echo -n "set playback disabled" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 		fi
 	else
-		[ -e /tmp/bgm.sock ] && echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+		bgm_stop
 
 	fi
 	
@@ -2920,12 +2964,16 @@ function bgm_start() {
 
 function bgm_stop() {
 
-	if [ "${bgm}" == "yes" ]; then
+	if [ "${bgm}" == "yes" ] || [ "$1" == "force" ]; then
 		echo -n "Stopping Background Music Player... "
 		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		sleep 0.2
 		if [ "${bgmstop}" == "yes" ]; then
 			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+			sleep 0.2
+			echo -n "set playback disabled" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 			kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
+			kill -9 "$(ps -o pid,args | grep 'mpg123' | awk '{print $1}' | head -1)" 2>/dev/null
 			rm /tmp/bgm.sock 2>/dev/null
 			if [ "${gvoladjust}" -ne 0 ]; then
 				#local oldvol=$((7 - $currentvol + $gvoladjust))
@@ -2947,7 +2995,7 @@ function tty_start() {
 		#[ -f /media/fat/tty2oled/S60tty2oled ] && /media/fat/tty2oled/S60tty2oled restart && sleep 3
 		touch "${tty_sleepfile}"
 		echo -n "Starting tty2oled... "
-		tmux new -s OLED -d "/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_tty2oled" &>/dev/null
+		tmux new -s OLED -d "${mrsampath}/MiSTer_SAM_tty2oled" &>/dev/null
 		echo "Done."
 	fi
 }
@@ -3128,7 +3176,7 @@ function sv_yt360() {
 			url=""  # Clear the URL variable to repeat the loop
 		fi
 	done
-	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
+	res="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
 	awk -vLine="$url" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 
 	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
@@ -3226,7 +3274,7 @@ function sv_local() {
 	fi
 	tmpvideo=$(cat ${samvideo_list} | shuf -n1)
 	awk -vLine="$tmpvideo" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
-	res="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
+	res="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
 	res_space=$(echo "$res" | tr 'x' ' ')
 	res_comma=$(echo "$res" | tr 'x' ',')
 
@@ -3256,7 +3304,7 @@ function samvideo_tvc() {
 			samdebug "${nextcore}_tvc.txt found."
 			sv_selected=$(jq -r 'keys[]' "${gamelistpath}"/${nextcore}_tvc.txt | shuf -n 1)
 			tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "${gamelistpath}/${nextcore}_tvc.txt")					
-			echo "${tvc_selected}"> /tmp/sv_gamename
+			echo "${tvc_selected}"> /tmp/.SAM_tmp/sv_gamename
 			break
 		else
 			# If file is not found, select a new core randomly
@@ -3268,7 +3316,7 @@ function samvideo_tvc() {
 		((count++))
 
 	done
-	echo $nextcore > /tmp/sv_core
+	echo $nextcore > /tmp/.SAM_tmp/sv_core
 	samdebug "Searching for ${SV_TVC[$nextcore]}"
 	if [ -z "${tvc_selected}" ]; then
 		echo "Couldn't find TVC list. Selecting random game from system"
@@ -3293,16 +3341,16 @@ function samvideo_play() {
 	
 	if [ -z "${sv_selected}" ]; then
 		echo "Error while downloading"
-		echo "1" > /tmp/sv_gametimer
+		echo "1" > "$sv_gametimer_file"
 		return
 	fi
 	
 	if [ ! -s "$tmpvideo" ]; then
 		echo "No video was downloaded. Skipping video playback.."
-		echo "1" > /tmp/sv_gametimer
+		echo "1" > "$sv_gametimer_file"
 		return
 	fi
-	sv_gametimer="$(LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
+	sv_gametimer="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
 	sv_title=${sv_selected%.*}
 
 	#Show tty2oled splash
@@ -3338,16 +3386,16 @@ function samvideo_play() {
 		# TODO delete blinking cursor
 		#echo "\033[?25l" > /dev/tty1
 		#setterm -cursor off
-		echo $(("$sv_gametimer" + 2)) > /tmp/sv_gametimer
-		/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :43
+		echo $(("$sv_gametimer" + 2)) > "$sv_gametimer_file"
+		${mrsampath}/mbc raw_seq :43
 		vmode -r ${res_space} rgb32
 		echo -e "\nPlaying video now.\n"
 		echo -e "Title: ${sv_selected%.*}"
 		echo -e "Resolution: ${res_space}"
 		echo -e "Length: ${sv_gametimer} seconds\n"
 
-		nice -n -20 env LD_LIBRARY_PATH=/media/fat/Scripts/.MiSTer_SAM /media/fat/Scripts/.MiSTer_SAM/mplayer -msglevel all=0:statusline=5 "${options}" "$tmpvideo" 2>/dev/null 
-		rm /tmp/sv_gametimer 2>/dev/null
+		nice -n -20 env LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -msglevel all=0:statusline=5 "${options}" "$tmpvideo" 2>/dev/null 
+		rm "$sv_gametimer_file" 2>/dev/null
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	#next_core
@@ -3423,13 +3471,13 @@ function get_samvideo() {
 	curl_download "/tmp/mplayer.zip" "${latest}"
 	unzip -ojq /tmp/mplayer.zip -d "${mrsampath}" # &>/dev/null
 	curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
-	get_samstuff .MiSTer_SAM/sv_yt360_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
-	get_samstuff .MiSTer_SAM/sv_yt240_list.txt /media/fat/Scripts/.MiSTer_SAM >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null	
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null	
+	get_samstuff .MiSTer_SAM/sv_yt360_list.txt ${mrsampath} >/dev/null
+	get_samstuff .MiSTer_SAM/sv_yt240_list.txt ${mrsampath} >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
 	echo " Done."
 }
 
@@ -3452,43 +3500,43 @@ function get_inputmap() {
 
 function get_blacklist() {
 	echo -n " Downloading blacklist files - SAM can auto-detect games with static screens and filter them out..."
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/amiga_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/gba_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/neogeo_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/s32x_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/sms_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16cd_blacklist.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/amiga_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/gba_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/neogeo_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/s32x_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/sms_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16cd_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
 	echo " Done."
 }
 
 function get_ratedlist() {
 	if [ "${kids_safe}" == "yes" ]; then 
 		echo -n " Downloading lists with kids friendly games..."
-		get_samstuff .MiSTer_SAM/SAM_Rated/arcade_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/amiga_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/ao486_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/fds_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/gb_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/gbc_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/gba_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/gg_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/genesis_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/megacd_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/nes_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/neogeo_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/psx_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/sms_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/snes_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16cd_rated.txt /media/fat/Scripts/.MiSTer_SAM/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/arcade_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/amiga_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/ao486_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/fds_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/gb_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/gbc_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/gba_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/gg_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/genesis_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/megacd_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/nes_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/neogeo_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/psx_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/sms_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/snes_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16_rated.txt ${mrsampath}/SAM_Rated >/dev/null
+		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16cd_rated.txt ${mrsampath}/SAM_Rated >/dev/null
 		echo " Done."
 	fi
 }
@@ -3549,7 +3597,7 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
-		if [ ! -f "/media/fat/Scripts/.MiSTer_SAM/sam_controllers.json" ]; then
+		if [ ! -f "${mrsampath}/sam_controllers.json" ]; then
 			get_samstuff .MiSTer_SAM/sam_controllers.json
 		fi
 		if [ "${samvideo}" == "yes" ]; then
@@ -3653,10 +3701,10 @@ function sam_menu() {
 		sam_bgm "Add-ons: SAMVIDEO, BGM, TTY2OLED" \
 		config "MiSTer_SAM.ini Editor" \
 		Settings "Settings" \
-		Reset "Reset or uninstall SAM" 2>"/tmp/.SAMmenu"
+		Reset "Reset or uninstall SAM" 2>"${sam_menu_file}"
 	
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	clear
 	
 	if [ "$opt" != "0" ]; then
@@ -3699,10 +3747,10 @@ function sam_settings() {
 		autoplay "Autoplay Configuration" \
 		enablekidssafe "Enable Kids Safe Filter" \
 		disablekidssafe "Disable Kids Safe Filter" \
-		sam_misc "Advanced Settings" 2>"/tmp/.SAMmenu"
+		sam_misc "Advanced Settings" 2>"${sam_menu_file}"
 	
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	clear
 	
 	if [ "$opt" != "0" ]; then
@@ -3744,10 +3792,10 @@ function sam_filters() {
 		exclude "Exclude Categories/Genres" \
 		arcadehoriz "Only show Horizontal Arcade Games" \
 		arcadevert "Only show Vertical Arcade Games" \
-		arcadedisable "Show all Arcade Games" 2>"/tmp/.SAMmenu" 
+		arcadedisable "Show all Arcade Games" 2>"${sam_menu_file}" 
 
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	
 	if [ "$opt" != "0" ]; then
 		sam_menu
@@ -3791,10 +3839,10 @@ function sam_misc() {
 		enabledebug "Enable Debug" \
 		disabledebug  "Disable Debug" \
 		enabledebuglog "Enable Debug Log File" \
-		disabledebuglog  "Disable Debug Log File" 2>"/tmp/.SAMmenu" 
+		disabledebuglog  "Disable Debug Log File" 2>"${sam_menu_file}" 
 
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	
 	if [ "$opt" != "0" ]; then
 		sam_menu
@@ -3848,10 +3896,10 @@ function sam_mute() {
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		globalmute "Mute Global Volume" 
-		disablemute "Unmute Volume for all Cores" 2>"/tmp/.SAMmenu" 
+		disablemute "Unmute Volume for all Cores" 2>"${sam_menu_file}" 
 
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	
 	if [ "$opt" != "0" ]; then
 		sam_menu
@@ -3884,10 +3932,10 @@ function sam_exittask() {
 		--backtitle "Super Attract Mode" --title "[ SAM EXIT ]" \
 		--menu "Select from the following options?" 0 0 0 \
 		enableplaycurrent "On Exit, Play current Game" \
-		disableplaycurrent "On Exit, Return to Menu (Except Start Button)" 2>"/tmp/.SAMmenu" 
+		disableplaycurrent "On Exit, Return to Menu (Except Start Button)" 2>"${sam_menu_file}" 
 
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	
 	if [ "$opt" != "0" ]; then
 		sam_menu
@@ -3913,10 +3961,10 @@ function sam_controller() {
     dialog --clear --no-cancel --ascii-lines \
         --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
         --msgbox "Connect one controller at a time.\n\nPress ok and push start button on blank screen" 0 0
-    c_json="/media/fat/Scripts/.MiSTer_SAM/sam_controllers.json"
-    id="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 id)"
+    c_json="${mrsampath}/sam_controllers.json"
+    id="$(${mrsampath}/MiSTer_SAM_joy.py /dev/input/js0 id)"
     name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
-    startbutton="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 button)"
+    startbutton="$(${mrsampath}/MiSTer_SAM_joy.py /dev/input/js0 button)"
     echo start button: "$startbutton"
     echo controller id: "$id"
 
@@ -3924,7 +3972,7 @@ function sam_controller() {
     dialog --clear --no-cancel --ascii-lines \
         --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
         --msgbox "Now, push the button you want to use for the 'next' action.\nThis button will be used to navigate to the next game in SAM." 0 0
-    nextbutton="$(/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_joy.py /dev/input/js0 button)"
+    nextbutton="$(${mrsampath}/MiSTer_SAM_joy.py /dev/input/js0 button)"
     echo next button: "$nextbutton"
 
     if [[ "$startbutton" == *"not exist"* ]]; then
@@ -3972,10 +4020,10 @@ function sam_timer() {
 		gametimer3 "Show Games for 3 minutes" \
 		gametimer5 "Show Games for 5 minutes" \
 		gametimer10 "Show Games for 10 minutes" \
-		gametimer15 "Show Games for 15 minutes" 2>"/tmp/.SAMmenu"	
+		gametimer15 "Show Games for 15 minutes" 2>"${sam_menu_file}"	
 	
 		opt=$?
-		menuresponse=$(<"/tmp/.SAMmenu")
+		menuresponse=$(<"${sam_menu_file}")
 		
 		if [ "$opt" != "0" ]; then
 			sam_menu
@@ -4013,10 +4061,10 @@ function sam_coreconfig() {
 		--menu "Select from the following options?" 0 0 0 \
 		sam_corelist_preset "Presets for Core List" \
 		sam_corelist "Enable/Disable cores (Keyboard support only)" \
-		single "Only play Games from one Core" 2>"/tmp/.SAMmenu" 
+		single "Only play Games from one Core" 2>"${sam_menu_file}" 
 
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	
 	if [ "$opt" != "0" ]; then
 		sam_menu
@@ -4048,9 +4096,9 @@ function sam_corelist() {
 
 	dialog --ok-label "Select" --cancel-label "Back" \
 	--separate-output --checklist "Corelist Config:" 0 0 0 \
-	"${corelistmenu[@]}" 2>"/tmp/.SAMmenu"
+	"${corelistmenu[@]}" 2>"${sam_menu_file}"
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	clear
 	
 	if [ "$opt" != "0" ]; then
@@ -4086,10 +4134,10 @@ function sam_corelist_preset() {
 		3 "Only Handheld Cores" \
 		4 "Only Computer Cores" \
 		5 "Only Cores from the 1990s (no handheld)" \
-		7 "mrchrisster's Selection of favorite cores" 2>"/tmp/.SAMmenu"	
+		7 "mrchrisster's Selection of favorite cores" 2>"${sam_menu_file}"	
 	
 		opt=$?
-		menuresponse=$(<"/tmp/.SAMmenu")
+		menuresponse=$(<"${sam_menu_file}")
 		
 		if [ "$opt" != "0" ]; then
 			sam_menu
@@ -4147,9 +4195,9 @@ function sam_singlemenu() {
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ Single System Select ]" \
 		--menu "Which system?" 0 0 0 \
-		"${menulist[@]}" 2>"/tmp/.SAMmenu"
+		"${menulist[@]}" 2>"${sam_menu_file}"
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	clear
 	
 	if [ "$opt" != "0" ]; then
@@ -4170,8 +4218,8 @@ function sam_resetmenu() {
 		Resetini "Reset MiSTer_SAM.ini to defaults" \
 		Deleteall "Uninstall SAM" \
 		Default "Reinstall SAM" \
-		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
+		Back 'Previous menu' 2>"${sam_menu_file}"
+	menuresponse=$(<"${sam_menu_file}")
 	clear
 
 	samdebug "menuresponse: ${menuresponse}"
@@ -4188,8 +4236,8 @@ function sam_gamelistmenu() {
 		--menu "Select an option" 0 0 0 \
 		CreateGL "Create all Game Lists" \
 		DeleteGL "Delete all Game Lists" \
-		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
+		Back 'Previous menu' 2>"${sam_menu_file}"
+	menuresponse=$(<"${sam_menu_file}")
 	clear
 
 	samdebug  "menuresponse: ${menuresponse}"
@@ -4202,8 +4250,8 @@ function sam_autoplaymenu() {
 		--menu "Select an option" 0 0 0 \
 		Enable "Enable Autoplay" \
 		Disable "Disable Autoplay" \
-		Back 'Previous menu' 2>"/tmp/.SAMmenu"
-	menuresponse=$(<"/tmp/.SAMmenu")
+		Back 'Previous menu' 2>"${sam_menu_file}"
+	menuresponse=$(<"${sam_menu_file}")
 
 	clear
 	samdebug  "menuresponse: ${menuresponse}"
@@ -4217,10 +4265,10 @@ function sam_configmenu() {
 
 	dialog --clear --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
-		--editbox "${misterpath}/Scripts/MiSTer_SAM.ini" 0 0 2>"/tmp/.SAMmenu"
+		--editbox "${misterpath}/Scripts/MiSTer_SAM.ini" 0 0 2>"${sam_menu_file}"
 
-	if [ -s "/tmp/.SAMmenu" ] && [ "$(diff -wq "/tmp/.SAMmenu" "${misterpath}/Scripts/MiSTer_SAM.ini")" ]; then
-		cp -f "/tmp/.SAMmenu" "${misterpath}/Scripts/MiSTer_SAM.ini"
+	if [ -s "${sam_menu_file}" ] && [ "$(diff -wq "${sam_menu_file}" "${misterpath}/Scripts/MiSTer_SAM.ini")" ]; then
+		cp -f "${sam_menu_file}" "${misterpath}/Scripts/MiSTer_SAM.ini"
 		dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
 			--msgbox "Changes saved!" 0 0
@@ -4237,16 +4285,16 @@ function sam_gamemodemenu() {
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
 		sam_svc "Play TV commercials and then show the advertised game." \
 		sam_m82_mode "Turn your MiSTer into a NES M82 unit." \
-		sam_roulettemenu "Game Roulette" 2>"/tmp/.SAMmenu"	
+		sam_roulettemenu "Game Roulette" 2>"${sam_menu_file}"	
 	
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	clear
 	
 	if [ "$opt" != "0" ]; then	
 		sam_menu
 	else 
-		resetini	
+		resetini bgm samvideo m82
 		"${menuresponse}"
 	fi
 }
@@ -4314,23 +4362,62 @@ sam_goat_mode() {
 function sam_80s() {
 	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	sed -i '/samvideo=/c\samvideo="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	enablebgm
 	sam_start
 }
-	
+
+
 function sam_svc() {
-	dialog --clear --ascii-lines --no-cancel \
-		--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
-		--msgbox "Please make sure you have set your output device in \nAdd-ons -> SAMVIDEO: HMDI or CRT" 0 0
+    # Display initial message
+    dialog --clear --ascii-lines --no-cancel \
+        --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
+        --msgbox "SAM can play video on your MiSTer. This mode will download commercials from archive.org and then play them.\n\nIt will try and find the game that was advertised afterwards." 0 0
+
+    # Ask the user to choose between HDMI and CRT
+    exec 3>&1
+    selection=$(dialog --clear --ascii-lines --no-cancel --backtitle "Super Attract Mode" \
+        --title "[ Output Selection ]" \
+        --menu "Choose your video output device:" 15 50 2 \
+        "1" "HDMI" \
+        "2" "CRT" \
+        2>&1 1>&3)
+    exit_status=$?
+    exec 3>&-
+
+    # Check if user pressed cancel or escape
+    if [ $exit_status != 0 ]; then
+        echo "Operation cancelled."
+        return
+    fi
+
+    # Update configuration based on the selection
+    case $selection in
+        1) # HDMI selected
+            echo "Setting up for HDMI output..."
+            sed -i '/samvideo_output=/c\samvideo_output="HDMI"' /media/fat/Scripts/MiSTer_SAM.ini
+            ;;
+        2) # CRT selected
+            echo "Setting up for CRT output..."
+            sed -i '/samvideo_output=/c\samvideo_output="CRT"' /media/fat/Scripts/MiSTer_SAM.ini
+            ;;
+    esac
 	sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	sed -i '/samvideo_source=/c\samvideo_source="'"Archive"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	sed -i '/samvideo_tvc=/c\samvideo_tvc="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	if [ ! -f "${gamelistpath}"/nes_tvc.txt ]; then
-		get_samvideo
-	fi
-	sam_start
+    sed -i '/samvideo_source=/c\samvideo_source="Archive"' /media/fat/Scripts/MiSTer_SAM.ini
+    sed -i '/samvideo_tvc=/c\samvideo_tvc="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
+
+    # Check for specific game list for the chosen output device, for example
+    if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
+        get_samvideo
+    fi
+    dialog --clear --ascii-lines --no-cancel \
+        --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
+        --msgbox "All set.\n\nIf nothing happens after you press ok, please allow some time for the commercial to download first." 0 0
+
+
+    # Start the SAM video mode or any other service
+    sam_start
 }
+
 	
 
 function sam_roulettemenu() {
@@ -4347,10 +4434,10 @@ function sam_roulettemenu() {
 		Roulette20 "Play a random game for 20 minutes. " \
 		Roulette25 "Play a random game for 25 minutes. " \
 		Roulette30 "Play a random game for 30 minutes. " \
-		Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in MiSTer_SAM.ini). " 2>"/tmp/.SAMmenu"	
+		Roulettetimer "Play a random game for ${roulettetimer} secs (roulettetimer in MiSTer_SAM.ini). " 2>"${sam_menu_file}"	
 	
 		opt=$?
-		menuresponse=$(<"/tmp/.SAMmenu")
+		menuresponse=$(<"${sam_menu_file}")
 		
 		if [ "$opt" != "0" ]; then
 			sam_menu
@@ -4397,10 +4484,10 @@ function samedit_include() {
 		hacks "Only Hacks" \
 		kiosk "Only Kiosk mode games" \
 		translations "Only Translated Games" \
-		homebrew "Only Homebrew" 2>"/tmp/.SAMmenu"
+		homebrew "Only Homebrew" 2>"${sam_menu_file}"
 
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	clear
 
 	if [ "$opt" != "0" ]; then
@@ -4473,10 +4560,10 @@ function samedit_excltags() {
 		USA "USA" \
 		Japan "Japan" \
 		Europe "Europe" \
-		'' "Reset Exclusion Lists" 2>"/tmp/.SAMmenu" 
+		'' "Reset Exclusion Lists" 2>"${sam_menu_file}" 
 
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 	
 	categ="${menuresponse}"
 	
@@ -4536,10 +4623,10 @@ function samedit_excltags_old() {
 		"Germany" "" OFF "Italy" "" OFF \
 		"Korea" "" OFF \
 		"Spain" "" OFF \
-		"Sweden" "" OFF 2>"/tmp/.SAMmenu"
+		"Sweden" "" OFF 2>"${sam_menu_file}"
 
 	opt=$?
-	menuresponse=$(<"/tmp/.SAMmenu")
+	menuresponse=$(<"${sam_menu_file}")
 
 	if [ "$opt" != "0" ]; then
 		sam_menu
@@ -4584,10 +4671,10 @@ function sam_bgmmenu() {
 			enablebgm "BGM: Enable BGM for SAM" \
 			disablebgm "BGM: Disable BGM for SAM" \
 			enabletty "TTY2OLED: Enable TTY2OLED support for SAM" \
-			disabletty "TTY2OLED: Disable TTY2OLED support for SAM" 2>"/tmp/.SAMmenu" 
+			disabletty "TTY2OLED: Disable TTY2OLED support for SAM" 2>"${sam_menu_file}" 
 
 		opt=$?
-		menuresponse=$(<"/tmp/.SAMmenu")
+		menuresponse=$(<"${sam_menu_file}")
 		
 		if [ "$opt" != "0" ]; then
 			sam_menu
