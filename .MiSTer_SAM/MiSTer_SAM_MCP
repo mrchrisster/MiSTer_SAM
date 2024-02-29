@@ -6,6 +6,11 @@
 #======== GLOBAL VARIABLES =========
 declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 declare -g misterpath="/media/fat"
+declare -g joychange="/tmp/.SAM_tmp/Joy_Change"
+declare -g keychange="/tmp/.SAM_tmp/Key_Change"
+declare -g key_activity_file="/tmp/.SAM_tmp/SAM_Keyboard_Activity"
+declare -g joy_activity_file="/tmp/.SAM_tmp/SAM_Joy_Activity"
+declare -g mouse_activity_file="/tmp/.SAM_tmp/SAM_Mouse_Activity"
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -36,28 +41,28 @@ fi
 #======== FUNCTIONS ========
 function sam_jschange() {
 	# Reset trigger file
-	echo "" |>/tmp/.SAM_Joy_Change
+	echo "" |>"$joychange"
 	# Monitor joystick devices for changes
-	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --outfile /tmp/.SAM_Joy_Change 2>/dev/null &
+	inotifywait --quiet --monitor --event create --event delete /dev/input --include js --outfile "$joychange" 2>/dev/null &
 }
 
 function sam_keybchange() {
 	# Reset trigger file
-	echo "" |>/tmp/.SAM_Keyb_Change
+	echo "" |>"$keychange"
 	# Monitor keyboard devices for changes
-	inotifywait -r --quiet --monitor --event create --event delete /dev/input/ --include by-path --outfile /tmp/.SAM_Keyb_Change 2>/dev/null &
+	inotifywait -r --quiet --monitor --event create --event delete /dev/input/ --include by-path --outfile "$keychange" 2>/dev/null &
 }
 
 
 function input_clear() {
 	# Reset activity triggers
-	echo "" |>/tmp/.SAM_Joy_Activity
-	echo "" |>/tmp/.SAM_Mouse_Activity
-	echo "" |>/tmp/.SAM_Keyboard_Activity
+	echo "" |>"$joy_activity_file"
+	echo "" |>"$mouse_activity_file"
+	echo "" |>"$key_activity_file"
 }
 
 function sam_trigger() {
-	if [ "$(/bin/find /tmp/.SAM_Joy_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Mouse_Activity -mmin +${samtimeout})" ] && [ "$(/bin/find /tmp/.SAM_Keyboard_Activity -mmin +${samtimeout})" ]; then				
+	if [ "$(/bin/find "$joy_activity_file" -mmin +${samtimeout})" ] && [ "$(/bin/find "$mouse_activity_file" -mmin +${samtimeout})" ] && [ "$(/bin/find "$key_activity_file" -mmin +${samtimeout})" ]; then				
 	input_clear	
 		if [ "$(ps aux | grep -ice "[M]iSTer_SAM_on")" == "0" ] && [ "$(ps aux | grep -ice [u]pdate)" == "0" ]; then
 			echo " No activity detected for ${samtimeout} minutes. SAM starting..."
@@ -177,7 +182,7 @@ input_clear
 #======== MAIN LOOP ========
 while :; do
 	# If we detect a change to connected joysticks:
-	if [ -s /tmp/.SAM_Joy_Change ]; then
+	if [ -s "$joychange" ]; then
 		#echo " Device change(s) detected!"
 		# Wait for devices to stabilize
 		sleep 1
@@ -192,11 +197,11 @@ while :; do
 		sam_jsmonitor
 
 		# Reset trigger
-		echo "" |>/tmp/.SAM_Joy_Change
+		echo "" |>"$joychange"
 	fi
 
 	
-	if [ -s /tmp/.SAM_Keyb_Change ]; then
+	if [ -s "$keychange" ]; then
 		#echo " Device change(s) detected!"
 		# Wait for devices to stabilize
 		sleep 1
@@ -213,7 +218,7 @@ while :; do
 		fi
 
 		# Reset trigger
-		echo "" |>/tmp/.SAM_Keyb_Change
+		echo "" |>"$keychange"
 	fi
 	
 	# Start SAM after input event
