@@ -35,6 +35,7 @@ jobs:
       run: |
         mkdir -p Scripts
         rsync -av --exclude ".git" --exclude ".github" --exclude "tools-extras" --exclude "MiSTer_SAM.ini" --exclude "README.md" --exclude "MiSTer_SAMdb.json" --exclude "Media" main/ Scripts/
+        cp main/MiSTer_SAM.ini main/.MiSTer_SAM/MiSTer_SAM.default.ini
         rm -rf main
 
     - name: Commit changes
