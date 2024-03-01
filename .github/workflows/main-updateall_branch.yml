@@ -34,8 +34,8 @@ jobs:
     - name: Copy Files to Scripts subfolder
       run: |
         mkdir -p Scripts
-        rsync -av --exclude ".git" --exclude ".github" --exclude "tools-extras" --exclude "sam_controllers.json" --exclude "MiSTer_SAM.ini" --exclude "README.md" --exclude "MiSTer_SAMdb.json" --exclude "Media" main/ Scripts/
         cp main/MiSTer_SAM.ini main/.MiSTer_SAM/MiSTer_SAM.default.ini
+        rsync -av --exclude ".git" --exclude ".github" --exclude "tools-extras" --exclude "sam_controllers.json" --exclude "MiSTer_SAM.ini" --exclude "README.md" --exclude "MiSTer_SAMdb.json" --exclude "Media" main/ Scripts/
         rm -rf main
 
     - name: Commit changes
