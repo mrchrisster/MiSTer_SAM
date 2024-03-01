@@ -46,6 +46,8 @@ function init_vars() {
 	declare -g mouse_activity_file="/tmp/.SAM_tmp/SAM_Mouse_Activity"
 	declare -g sam_menu_file="/tmp/.SAM_tmp/.SAMmenu"
 	declare -g brfake="/tmp/.SAM_tmp/brfake"
+	declare -g samini_file="/media/fat/Scripts/MiSTer_SAM.ini"
+	declare -g samini_update_file="${mrsampath}/MiSTer_SAM.default.ini"
 	declare -gi inmenu=0
 	declare -gi sam_bgmmenu=0					  
 	declare -gi shown=0
@@ -822,11 +824,11 @@ function init_data() {
 
 }
 
-# ========= PARSE INI =========
+# ========= SOUCRCE INI & UPDATE =========
 
 # Read INI
 function read_samini() {
-	if [ ! -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	if [ ! -f "${samini_file}" ]; then
 		echo "Error: MiSTer_SAM.ini not found. Attempting to update now..."
 		get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 		if [ $? -ne 0 ]; then 
@@ -834,10 +836,10 @@ function read_samini() {
 			exit 1
 		fi
 	fi
-	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+	source "${samini_file}"
 	
 	# Remove trailing slash from paths
-	grep "^[^#;]" < "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
+	grep "^[^#;]" < "${samini_file}" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
 		declare -g "${var}"="${!var%/}"
 	done
 	
@@ -892,6 +894,22 @@ function read_samini() {
 	
 }
 
+function update_samini() {
+	[ ! -f /media/fat/Scripts/.config/downloader/downloader.log ] && return
+	[ ! -f ${samini_file} ] && return
+	if [[ "$(cat /media/fat/Scripts/.config/downloader/downloader.log | grep -c "MiSTer_SAM.default.ini")" != "0" ]] && [ "${samini_update_file}" -nt "${samini_file}" ]; then
+		echo "New MiSTer_SAM.ini version downloaded from update_all. Merging with new ini."
+		echo "Backing up MiSTer_SAM.ini to MiSTer_SAM.ini.bak"
+		cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak
+		echo -n "Merging ini values.."
+		# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
+		sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i 's/-=/--/g' /media/fat/Scripts/MiSTer_SAM.ini
+		awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp /media/fat/Scripts/MiSTer_SAM.ini
+		echo "Done."
+	fi
+
+}
 
 # ============== PARSE COMMANDS ===============
 
@@ -2058,10 +2076,11 @@ function load_core_ao486() {
 # ========= SAM START AND STOP =========
 
 function sam_start() {
-	read_samini
 	env_check
 	# Terminate any other running SAM processes
 	there_can_be_only_one
+	update_samini	
+	read_samini
 	mcp_start
 	sam_prep
 	disable_bootrom # Disable NES Bootrom until Reboot
@@ -2306,7 +2325,7 @@ function sam_enable() { # Enable autoplay
 	fi
 	echo "SAM install complete."
 	echo -e "\n\n\n"
-	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+	source "${samini_file}"
 	echo -ne "\e[1m" SAM will start ${samtimeout} sec. after boot"\e[0m"
 	if [ "${menuonly,,}" == "yes" ]; then
 		echo -ne "\e[1m" in the main menu"\e[0m"
@@ -4265,10 +4284,10 @@ function sam_configmenu() {
 
 	dialog --clear --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
-		--editbox "${misterpath}/Scripts/MiSTer_SAM.ini" 0 0 2>"${sam_menu_file}"
+		--editbox "${samini_file}" 0 0 2>"${sam_menu_file}"
 
-	if [ -s "${sam_menu_file}" ] && [ "$(diff -wq "${sam_menu_file}" "${misterpath}/Scripts/MiSTer_SAM.ini")" ]; then
-		cp -f "${sam_menu_file}" "${misterpath}/Scripts/MiSTer_SAM.ini"
+	if [ -s "${sam_menu_file}" ] && [ "$(diff -wq "${sam_menu_file}" "${samini_file}")" ]; then
+		cp -f "${sam_menu_file}" "${samini_file}"
 		dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ INI Settings ]" \
 			--msgbox "Changes saved!" 0 0
