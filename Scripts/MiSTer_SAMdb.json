@@ -1,0 +1,19 @@
+{
+    "base_files_url": "",
+    "db_files": [],
+    "db_id": "MiSTer_SAM_files",
+    "db_url": "https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/main/MiSTer_SAMdb.json",
+    "default_options": {},
+    "files": {
+	"Scripts/MiSTer_SAM_on.sh": {
+	    "hash": "b1c215ff17f1247ef1dff20e39b759b2",
+	    "size": 125382,
+	    "url": "https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/main/MiSTer_SAM_on.sh"
+	}
+    },
+    "folders": {
+	"Scripts": {}
+    },
+    "timestamp": 1686352679,
+    "zips": {}
+}
