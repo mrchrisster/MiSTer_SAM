@@ -3611,7 +3611,7 @@ function sam_update() { # sam_update (next command)
 		get_partun
 		get_samindex
 		get_mbc
-		get_samstuff .MiSTer_SAM/MiSTer_SAM.default.ini
+		#get_samstuff .MiSTer_SAM/MiSTer_SAM.default.ini
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
