@@ -4774,9 +4774,6 @@ function enablebgm() {
 }
 
 
-
-
-
 # ========= MAIN =========
 
 init_vars
