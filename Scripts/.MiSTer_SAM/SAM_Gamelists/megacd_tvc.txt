@@ -1,0 +1,15 @@
+{
+    "MegaCD-Bram Stoker's Dracula It's Just A Game.avi": "Bram Stoker",
+    "MegaCD-Cliffhanger Eat This.avi": "Cliffhanger",
+    "MegaCD-Cliffhanger Fire in the hole.avi": "Cliffhanger",
+    "MegaCD-Crazy Circus - SEGA.avi": "Final Fight CD",
+    "MegaCD-Ground Zero Texas.avi": "Ground Zero Texas",
+    "MegaCD-It is No Nintendo CD - Understood.avi": "Make my Video",
+    "MegaCD-JVC X'Eye Genesis + Sega CD + Karaoke.avi": "Sonic CD",
+    "MegaCD-Make My Video Marky Mark and the Funky Bunch.avi": "Make My Video",
+    "MegaCD-Mickey Mania No Mercy.avi": "Mickey Mania",
+    "MegaCD-Plug The future into your Mega Drive.avi": "Night Trap (",
+    "MegaCD-Prize Fighter.avi": "Prize Fighter",
+    "MegaCD-Real Interactive Video.avi": "Lethal Enforcers ",
+    "MegaCD-You Want To See More.avi": "Rebel Assault "
+}

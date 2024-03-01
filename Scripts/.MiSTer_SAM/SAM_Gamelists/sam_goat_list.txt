@@ -1,0 +1,69 @@
+[NEOGEO]
+garou
+kof98
+blazstar
+turfmast
+pulstar
+wjammers
+lastbld2
+twinspri
+lresort
+ssideki3
+mslug3
+samsho2
+tophuntr
+fatfursp
+maglord
+sonicwi2
+wakuwak7
+kizuna
+kof2002
+rbff2
+neobombe
+bstars2
+kof2003
+spinmast
+lastbld2
+samsho
+mutnat
+mslug2
+whp
+sengoku3
+rbffspec
+nam1975
+mslug5
+ninjamas
+crsword
+sengoku
+lbowling
+aof2
+cyberlip
+magdrop3
+superspy
+roboarmy
+breakers
+rotd
+kotm2
+3countb
+mslug
+ssideki2
+[ARCADE]
+Alien vs. Predator (JP, 940520)
+Cadillacs and Dinosaurs (W, 930201)
+Captain Commando (JP, 920928)
+Darkstalkers- The Night Warriors (EU, 940705)
+Hyper Street Fighter II- The Anniversary Edition (US, 040202)
+In The Hunt (World)
+Mighty! Pang (EU, 001010)
+Marvel Super Heroes (EU, 951024)
+Marvel Super Heroes Vs. Street Fighter (EU, 970625)
+Mega Man- The Power Battle (US, 951006)
+Mega Man 2- The Power Fighters (US, 960708)
+Marvel Vs. Capcom- Clash of Super Heroes (EU, 980123)
+Nemo (W, 901130)
+Saturday Night Slam Masters (W, 930713)
+Street Fighter II The World Warrior (World 910522)
+Street Fighter Alpha 3 (EU, 980904)
+The King of Dragons (W, 910805)
+X-Men- Children of the Atom (EU, 950331)
+X-Men Vs. Street Fighter (Euro 961004)
