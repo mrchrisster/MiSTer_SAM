@@ -1,4 +1,4 @@
-name: Update and Copy Files
+name: Update and Copy Files from main to updateall
 
 on:
   push:
@@ -26,36 +26,66 @@ jobs:
           git commit -m "Update MiSTer_SAM.ini"
           git push
 
-  copy-to-updateall:
+  copy-files:
     needs: update-main
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout updateall branch
-        uses: actions/checkout@v2
-        with:
-          ref: updateall
-          fetch-depth: 0
+    - name: Checkout updateall branch
+      uses: actions/checkout@v2
+      with:
+        ref: updateall
+        checkout: true
 
-      - name: Delete all files in Scripts folder
-        run: |
-          rm -rf Scripts
+    - name: Fetch and merge remote changes
+      run: |
+        git fetch origin updateall
+        git merge origin/updateall
 
-      - name: Checkout main branch with updated files
-        uses: actions/checkout@v2
-        with:
-          ref: main
-          path: main
+    - name: Delete all files in Scripts folder
+      run: |
+        rm -rf Scripts
 
-      - name: Copy Files to Scripts subfolder
-        run: |
-          mkdir -p Scripts
-          cp -r main/* Scripts/
-          rm -rf main
+    - name: Checkout main branch
+      uses: actions/checkout@v2
+      with:
+        ref: main
+        path: main
 
-      - name: Commit changes to updateall
-        run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add .
-          git commit -m "Copy updated files from main to updateall"
-          git push origin updateall
+    - name: Copy Files to Scripts subfolder
+      run: |
+        mkdir -p Scripts
+        rsync -av --exclude ".git" --exclude ".github" --exclude "tools-extras" --exclude "sam_controllers.json" --exclude "MiSTer_SAM.ini" --exclude "README.md" --exclude "MiSTer_SAMdb.json" --exclude "Media" main/ Scripts/
+        rm -rf main
+
+    - name: Commit changes
+      run: |
+        git add -A
+        git config --local user.email "github-actions@github.com"
+        git config --local user.name "Github Actions"
+        git commit -m "Copy Files from main"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: updateall
+
+  build_db:
+    needs: copy-files
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Install apt-get utilities
+      run: sudo apt-get install detox sharutils
+
+    - uses: actions/checkout@v2
+      with:
+        ref: updateall
+        checkout: true
+
+    - name: Build Custom Database for MiSTer Downloader
+      run: set -o pipefail && curl --fail --location https://raw.githubusercontent.com/theypsilon/Downloader_DB-Template_MiSTer/main/.github/build_db.py | python3 -
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DB_ID: MiSTer_SAM_files
