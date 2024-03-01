@@ -23,8 +23,8 @@ jobs:
           git config --local user.email "github-actions@github.com"
           git config --local user.name "GitHub Actions"
           git add .
-          git commit -m "Update MiSTer_SAM.ini"
-          git push
+          git diff --staged --quiet || git commit -m "Update MiSTer_SAM.ini"
+          git push || echo "No changes to commit and push"
 
   copy-files:
     needs: update-main
