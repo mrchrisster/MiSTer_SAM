@@ -4020,7 +4020,6 @@ function sam_controller() {
     fi
 }
 
-
 function sam_timer() {
 	if [[ "$shown" == "0" ]]; then
 		dialog --clear --no-cancel --ascii-lines \
