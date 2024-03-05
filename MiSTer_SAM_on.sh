@@ -872,7 +872,7 @@ function read_samini() {
 			samdebug "Creating NES gamelist"
 			${mrsampath}/samindex -q -s "nes" -o "${gamelistpath}" 
 			if [ $? -gt 1 ]; then
-				echo "Error: NES gamelist missing. Mkae sure you have NES games." 
+				echo "Error: NES gamelist missing. Make sure you have NES games." 
 			fi
 		fi
 		if [ -f "${gamelistpathtmp}"/nes_gamelist.txt ]; then
