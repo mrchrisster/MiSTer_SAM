@@ -869,8 +869,11 @@ function read_samini() {
 		[ ! -d "/tmp/.SAM_tmp" ] && mkdir /tmp/.SAM_tmp/
 
 		if [ ! -f "${gamelistpath}"/nes_gamelist.txt ]; then
-			echo "Error: NES gamelist missing. Disable m82 mode and start nes core at least once."
-			exit
+			samdebug "Creating NES gamelist"
+			${mrsampath}/samindex -q -s "nes" -o "${gamelistpath}" 
+			if [ $? -gt 1 ]; then
+				echo "Error: NES gamelist missing. Mkae sure you have NES games." 
+			fi
 		fi
 		if [ -f "${gamelistpathtmp}"/nes_gamelist.txt ]; then
 			rm "${gamelistpathtmp}"/nes_gamelist.txt
@@ -1584,9 +1587,9 @@ function check_list() { # args ${nextcore}
 	if [ "${m82}" == "yes" ]; then
 		if [[ -z "$m82_bios_path" ]]; then 
 			# process m82_list
-			echo "M82 mode active. Finding M82 bios..."
+			echo -n "M82 mode active. Finding M82 bios..."
 			declare -g m82_bios_path="$(fgrep -i "m82 game" "$gamelistpath/nes_gamelist.txt" | head -n 1)"
-			echo "Found."
+			echo "Success."
 			samdebug "m82 bios found at: "$m82_bios_path""
 		fi
 		if [[ -z "$m82_bios_path" ]]; then 
