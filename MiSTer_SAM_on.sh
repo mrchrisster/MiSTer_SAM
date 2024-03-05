@@ -3985,6 +3985,7 @@ function sam_controller() {
         --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
         --msgbox "Connect one controller at a time.\n\nPress ok and push start button on blank screen" 0 0
     c_json="${mrsampath}/sam_controllers.json"
+    c_custom_json="${mrsampath}/sam_controllers.custom.json"
     id="$(${mrsampath}/MiSTer_SAM_joy.py /dev/input/js0 id)"
     name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
     startbutton="$(${mrsampath}/MiSTer_SAM_joy.py /dev/input/js0 button)"
@@ -4005,7 +4006,7 @@ function sam_controller() {
         sam_exittask
     else
         jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" --argjson next "$nextbutton" \
-            '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json ${c_json}
+            '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json "${c_custom_json}"
         dialog --clear --no-cancel --ascii-lines \
         --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP COMPLETED ]" \
         --msgbox "Added $name with Start and Next buttons configured." 0 0
