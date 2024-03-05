@@ -12,7 +12,12 @@ POLL_RATE = 0.1
 AXIS_DEADZONE = 2000
 
 script_path = os.path.abspath(__file__)
-json_file_path = os.path.join(os.path.dirname(script_path), "sam_controllers.json")
+# Check for existence of sam_controllers.custom.json
+custom_json_file_path = os.path.join(os.path.dirname(script_path), "sam_controllers.custom.json")
+if os.path.exists(custom_json_file_path):
+    json_file_path = custom_json_file_path
+else:
+    json_file_path = os.path.join(os.path.dirname(script_path), "sam_controllers.json")
 
 # these values will be written to the activity file
 ACTIVITIES = {"start": "Start", "default": "Button pushed", "next": "Next"}
