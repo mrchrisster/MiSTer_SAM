@@ -4005,8 +4005,14 @@ function sam_controller() {
         --msgbox "No joysticks connected. " 0 0
         sam_exittask
     else
-        jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" --argjson next "$nextbutton" \
+    	if [ -e "${c_custom_json}" ]; then
+        	jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" --argjson next "$nextbutton" \
+            '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' ${c_custom_json} > /tmp/temp.json && mv /tmp/temp.json "${c_custom_json}"
+        else 
+            jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" --argjson next "$nextbutton" \
             '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json "${c_custom_json}"
+        fi
+
         dialog --clear --no-cancel --ascii-lines \
         --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP COMPLETED ]" \
         --msgbox "Added $name with Start and Next buttons configured." 0 0
