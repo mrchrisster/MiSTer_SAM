@@ -2958,6 +2958,7 @@ function bgm_start() {
 		fi
 		sleep 2
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		sleep 1
 		echo -n "set playback random" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 		#BGM playback tends to be louder than most cores. Let's adjust global volume down..
 		if [ "${gvoladjust}" -ne 0 ] &&  [ "${bgmstop}" == "yes" ]; then
@@ -3917,7 +3918,7 @@ function sam_mute() {
 	dialog --clear --ascii-lines --no-tags \
 		--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC ENABLER ]" \
 		--menu "Select from the following options?" 0 0 0 \
-		globalmute "Mute Global Volume" 
+		globalmute "Mute Global Volume" \
 		disablemute "Unmute Volume for all Cores" 2>"${sam_menu_file}" 
 
 	opt=$?
@@ -3928,7 +3929,7 @@ function sam_mute() {
 	elif [[ "${menuresponse,,}" == "disablemute" ]]; then
 		sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	elif [[ "${menuresponse,,}" == "globalmute" ]]; then
-		sed -i '/mute=/c\mute="'"Global"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i '/mute=/c\mute="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	fi
 	dialog --clear --ascii-lines --no-cancel \
 	--backtitle "Super Attract Mode" --title "[ Settings ]" \
