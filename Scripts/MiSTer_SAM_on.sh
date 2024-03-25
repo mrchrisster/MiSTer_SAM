@@ -177,7 +177,7 @@ function init_vars() {
 	if [[ "${corelist[@]}" == *"amiga"* ]] || [[ "${corelist[@]}" == *"ao486"* ]] && [ -f "${mrsampath}"/samindex ]; then
 		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
 		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
-		declare -g ao486path="$("${mrsampath}"/samindex -q -s ao486 -d |awk -F':' '{print $2}')/screensaver"
+		declare -g ao486path="$("${mrsampath}"/samindex -q -s ao486 -d |awk -F':' '{print $2}')"
 	fi
 	
 
@@ -189,7 +189,7 @@ function init_data() {
 	declare -gA CORE_PRETTY=(
 		["amiga"]="Commodore Amiga"
 		["arcade"]="MiSTer Arcade"
-		["ao486"]="PC 486 DX-33"
+		["ao486"]="PC 486 DX-100"
 		["atari2600"]="Atari 2600"
 		["atari5200"]="Atari 5200"
 		["atari7800"]="Atari 7800"
@@ -1531,8 +1531,8 @@ function load_special_core() {
 		return 2
 	fi
 	if [ "${nextcore}" == "ao486" ]; then
-		if [ "$(find "${ao486path}" -name "*.vhd" | wc -l )" == "0" ]; then
-			echo "ERROR - No ao486 screensavers found..."
+		if [ "$(find "/media/fat/_DOS Games" -name "*.mgl" | wc -l )" == "0" ]; then
+			echo "ERROR - No ao486 screensavers found...Please install 0Mhz collection."
 			delete_from_corelist ao486
 			next_core
 		else
@@ -1994,7 +1994,7 @@ function load_core_amiga() {
 
 function create_ao486list () {
 
-	find "${ao486path}" -name "*.vhd" > "${gamelistpath}/${nextcore}_gamelist.txt"
+	find "/media/fat/_DOS Games" -name "*.mgl" > "${gamelistpath}/${nextcore}_gamelist.txt"
 
 }
 
@@ -2049,26 +2049,8 @@ function load_core_ao486() {
 	echo "$(date +%H:%M:%S) - ${nextcore} - ${romname}" >>/tmp/SAM_Games.log
 	echo "${romname} (${nextcore})" >/tmp/SAM_Game.txt
 
-	if [ "$(find "${ao486path}" -maxdepth 1 -iname "${romname%.*}.cue" | wc -l )" != "0" ]; then
-	  extension=".cue"
-	elif [ "$(find "${ao486path}" -maxdepth 1 -iname "${romname%.*}.iso" | wc -l )" != "0" ]; then
-	  extension=".iso"
-	else
-	  extension=""
-	fi
-
-	{
-	  echo "<mistergamedescription>" 
-	  echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
-	  echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
-	  if [ -n "$extension" ]; then
-		echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"4\" path=\"../../../../..${rompath%.*}$extension\"/>"
-	  fi
-	  echo 
-	  echo "<reset delay=0/>"
-	} >/tmp/SAM_Game.mgl
 	
-	echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
+	echo "load_core ${rompath}" >/dev/MiSTer_cmd
 
 	sleep 1
 	activity_reset
