@@ -3511,6 +3511,7 @@ function get_blacklist() {
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/gba_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/n64_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/neogeo_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
