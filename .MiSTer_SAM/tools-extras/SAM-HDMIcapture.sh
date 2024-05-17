@@ -33,7 +33,7 @@ function init_vars() {
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"													 
 	declare -gi gametimer=110
-	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,coco2,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
 	declare -gl create_all_gamelists="No"
@@ -79,6 +79,7 @@ function init_vars() {
 	declare -g atari7800path="/media/fat/Games/Atari7800"
 	declare -g atarilynxpath="/media/fat/Games/AtariLynx"
 	declare -g c64path="/media/fat/Games/C64"
+	declare -g coco2path="/media/fat/Games/CoCo2"
 	declare -g fdspath="/media/fat/Games/NES"
 	declare -g gbpath="/media/fat/Games/Gameboy"
 	declare -g gbcpath="/media/fat/Games/Gameboy"
@@ -103,6 +104,7 @@ function init_vars() {
 	declare -g atari7800pathextra=""
 	declare -g atarilynxpathextra=""
 	declare -g c64pathextra=""
+	declare -g coco2pathextra=""
 	declare -g fdspathextra=""
 	declare -g gbpathextra=""
 	declare -g gbcpathextra=""
@@ -127,6 +129,7 @@ function init_vars() {
 	declare -g atari7800pathrbf="_Console"
 	declare -g atarilynxpathrbf="_Console"
 	declare -g c64pathrbf="_Computer"
+	declare -g coco2pathrbf="_Computer"
 	declare -g fdspathrbf="_Console"
 	declare -g gbpathrbf="_Console"
 	declare -g gbcpathrbf="_Console"
@@ -201,6 +204,7 @@ function init_data() {
 		["atarilynx"]="Atari Lynx"
 		["amiga"]="Commodore Amiga"
 		["c64"]="Commodore 64"
+		["coco2"]="TRS-80 Color Computer 2"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
 		["gbc"]="Nintendo Game Boy Color"
@@ -227,6 +231,7 @@ function init_data() {
 		["atari7800"]="a78"     
 		["atarilynx"]="lnx"		 
 		["c64"]="crt,prg" 			# need to be tested "reu,tap,flt,rom,c1581"
+		["coco2"]="ccc"
 		["fds"]="fds"
 		["gb"]="gb"			 		
 		["gbc"]="gbc"		 		
@@ -253,6 +258,7 @@ function init_data() {
 		["atari7800"]="${atari7800path}"
 		["atarilynx"]="${atarilynxpath}"				  
 		["c64"]="${c64path}"
+		["coco2"]="${coco2path}"
 		["fds"]="${fdspath}"
 		["gb"]="${gbpath}"
 		["gbc"]="${gbcpath}"
@@ -279,6 +285,7 @@ function init_data() {
 		["atari7800"]="${atari7800pathextra}"
 		["atarilynx"]="${atarilynxpathextra}"					   
 		["c64"]="${c64pathextra}"
+		["coco2"]="${coco2pathextra}"
 		["fds"]="${fdspathextra}"
 		["gb"]="${gbpathextra}"
 		["gbc"]="${gbcpathextra}"
@@ -305,6 +312,7 @@ function init_data() {
 		["atari7800"]="${atari7800pathrbf}"
 		["atarilynx"]="${atarilynxpathrbf}"					 
 		["c64"]="${c64pathrbf}"
+		["coco2"]="${coco2pathrbf}"
 		["fds"]="${fdspathrbf}"
 		["gb"]="${gbpathrbf}"
 		["gbc"]="${gbcpathrbf}"
@@ -331,6 +339,7 @@ function init_data() {
 		["atari7800"]="Yes"
 		["atarilynx"]="Yes"			 
 		["c64"]="Yes"
+		["coco2"]="No"
 		["fds"]="Yes"
 		["gb"]="Yes"
 		["gbc"]="Yes"
@@ -357,6 +366,7 @@ function init_data() {
 		["atari7800"]="No"
 		["atarilynx"]="No"		
 		["c64"]="No"
+		["coco2"]="No"
 		["fds"]="Yes"
 		["gb"]="No"
 		["gbc"]="No"
@@ -383,6 +393,7 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
+		["coco2"]="CoCo2"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -409,6 +420,7 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"		   
 		["c64"]="C64"
+		["coco2"]="CoCo2"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -435,6 +447,7 @@ function init_data() {
 		["atari7800"]="1"
 		["atarilynx"]="1"
 		["c64"]="1"
+		["coco2"]="1"
 		["fds"]="2"
 		["gb"]="2"
 		["gbc"]="2"
@@ -461,6 +474,7 @@ function init_data() {
 		["atari7800"]="1"
 		["atarilynx"]="1"   
 		["c64"]="1"
+		["coco2"]="1"
 		["fds"]="0"
 		["gb"]="0"
 		["gbc"]="0"
@@ -487,6 +501,7 @@ function init_data() {
 		["atari7800"]="f"
 		["atarilynx"]="f"
 		["c64"]="f"
+		["coco2"]="f"
 		["fds"]="f"
 		["gb"]="f"
 		["gbc"]="f"
@@ -599,7 +614,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@,,}; do
 			case ${arg} in
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				;;
@@ -683,7 +698,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)

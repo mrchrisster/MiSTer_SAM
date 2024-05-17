@@ -37,7 +37,7 @@ function parse_cmd() {
 		# If we're given a core name, we need to set it first
 		for arg in ${@,,}; do
 			case ${arg} in
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				disablecoredel=1
@@ -126,7 +126,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -265,6 +265,7 @@ function sam_settings_1() {
 						 atari7800 "Show Atari7800 Games" ON
 						 atarilynx "Show Atari Lynx Games" ON
 						 c64 "Show Commodore 64 Games" ON
+						 coco2 "Show TRS-80 Color Computer 2 Games" ON
 					 	 fds "Show Famicom Disk System Games" ON
 					 	 gb "Show Gameboy Games" ON
 						 gbc "Show Gameboy Color Games" ON
@@ -311,6 +312,9 @@ function sam_settings_1() {
 							;;							
 						c64)
 							corelistmenu+=(c64)
+							;;
+						coco2)
+							corelistmenu+=(coco2)
 							;;
 						fds)
 							corelistmenu+=(fds)
@@ -389,7 +393,7 @@ function sam_settings_2() {
 							handheld="gb,gbc,gba,gg,atarilynx,"
 							;;
 						3)
-							computer="amiga,c64,"
+							computer="amiga,c64,coco2,"
 							;;
 						4)
 							sed -i '/corelist=/c\corelist="arcade,neogeo"' /media/fat/Scripts/MiSTer_SAM.ini

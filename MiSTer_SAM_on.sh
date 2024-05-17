@@ -63,7 +63,7 @@ function init_vars() {
 	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,coco2,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
@@ -155,6 +155,7 @@ function init_vars() {
 	declare -g atari7800pathrbf="_Console"
 	declare -g atarilynxpathrbf="_Console"
 	declare -g c64pathrbf="_Computer"
+	declare -g coco2pathrbf="_Computer"
 	declare -g fdspathrbf="_Console"
 	declare -g gbpathrbf="_Console"
 	declare -g gbcpathrbf="_Console"
@@ -195,6 +196,7 @@ function init_data() {
 		["atari7800"]="Atari 7800"
 		["atarilynx"]="Atari Lynx"
 		["c64"]="Commodore 64"
+		["coco2"]="TRS-80 Color Computer 2"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
 		["gbc"]="Nintendo Game Boy Color"
@@ -225,6 +227,7 @@ function init_data() {
 		["atari7800"]="a78"     
 		["atarilynx"]="lnx"		 
 		["c64"]="crt,prg" 		# need to be tested "reu,tap,flt,rom,c1581"
+		["coco2"]="ccc"
 		["fds"]="fds"
 		["gb"]="gb"			 		
 		["gbc"]="gbc"		 		
@@ -255,6 +258,7 @@ function init_data() {
 		["atari7800"]="${atari7800pathfilter}"
 		["atarilynx"]="${atarilynxpathfilter}"				  
 		["c64"]="${c64pathfilter}"
+		["coco2"]="${coco2pathfilter}"
 		["fds"]="${fdspathfilter}"
 		["gb"]="${gbpathfilter}"
 		["gbc"]="${gbcpathfilter}"
@@ -286,6 +290,7 @@ function init_data() {
 		["atari7800"]="${atari7800pathrbf}"
 		["atarilynx"]="${atarilynxpathrbf}"					 
 		["c64"]="${c64pathrbf}"
+		["coco2"]="${coco2pathrbf}"
 		["fds"]="${fdspathrbf}"
 		["gb"]="${gbpathrbf}"
 		["gbc"]="${gbcpathrbf}"
@@ -316,6 +321,7 @@ function init_data() {
 		["atari7800"]="No"
 		["atarilynx"]="No"		
 		["c64"]="No"
+		["coco2"]="No"
 		["fds"]="Yes"
 		["gb"]="No"
 		["gbc"]="No"
@@ -347,6 +353,7 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
+		["coco2"]="CoCo2"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -377,6 +384,7 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
+		["coco2"]="CoCo2"
 		["fds"]="fds"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -407,6 +415,7 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"		   
 		["c64"]="C64"
+		["coco2"]="CoCo2"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -437,6 +446,7 @@ function init_data() {
 		["atari7800"]="1"
 		["atarilynx"]="1"
 		["c64"]="1"
+		["coco2"]="1"
 		["fds"]="2"
 		["gb"]="2"
 		["gbc"]="2"
@@ -467,6 +477,7 @@ function init_data() {
 		["atari7800"]="1"
 		["atarilynx"]="1"   
 		["c64"]="1"
+		["coco2"]="1"
 		["fds"]="0"
 		["gb"]="0"
 		["gbc"]="0"
@@ -497,6 +508,7 @@ function init_data() {
 		["atari7800"]="f"
 		["atarilynx"]="f"
 		["c64"]="f"
+		["coco2"]="f"
 		["fds"]="f"
 		["gb"]="f"
 		["gbc"]="f"
@@ -929,7 +941,7 @@ function parse_cmd() {
 		# If we're given a core name, we need to set it first
 		for arg in "${@,,}"; do
 			case ${arg} in
-			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo "${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				disablecoredel=1
@@ -1028,7 +1040,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -4160,7 +4172,7 @@ function sam_corelist_preset() {
 		elif [[ "${menuresponse}" == "3" ]]; then
 			sed -i '/corelist=/c\corelist="'"gb,gbc,gba,gg,atarilynx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "4" ]]; then
-			sed -i '/corelist=/c\corelist="'"amiga,c64"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"amiga,c64,coco2"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [ "${menuresponse}" -eq "5" ]; then
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
