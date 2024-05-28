@@ -48,6 +48,7 @@ declare -gA PATHFILTER=(
 ["atari7800"]="${atari7800pathfilter}"
 ["atarilynx"]="${atarilynxpathfilter}"				  
 ["c64"]="${c64pathfilter}"
+["coco2"]="${coco2pathfilter}"
 ["fds"]="${fdspathfilter}"
 ["gb"]="${gbpathfilter}"
 ["gbc"]="${gbcpathfilter}"
