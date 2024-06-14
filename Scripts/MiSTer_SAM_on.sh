@@ -358,7 +358,7 @@ function init_data() {
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
 		["gba"]="GBA"
-		["genesis"]="Genesis"
+		["genesis"]="MEGADRIVE"
 		["gg"]="SMS"
 		["megacd"]="MegaCD"
 		["n64"]="N64"
