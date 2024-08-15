@@ -130,6 +130,7 @@ function init_vars() {
 	declare -gl samvideo_output="hdmi"
 	declare -gl samvideo_source
 	declare -gl samvideo_tvc
+	declare -gl download_manager="yes"
 	declare -gl sv_aspectfix_vmode
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
@@ -2250,6 +2251,7 @@ function sam_prep() {
 		echo -e '\033[?17;0;0c' > /dev/tty1 
 		
 		misterini_mod
+		get_dlmanager
 		if [ ! -f "${mrsampath}"/mplayer ] || [ ! -f "${mrsampath}"/ytdl ]; then
 			if [ -f "${mrsampath}"/mplayer.zip ]; then
 				unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}"
@@ -3074,29 +3076,18 @@ function misterini_mod() {
 			  echo "Setting video_mode to ${video_mode}"
 				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
 				[ "$(tail -c 1 "$ini_file")" != "" ] && echo "" >> "$ini_file"
-				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
-					/^video_mode[[:space:]]*=/! { 
-						/^(\[|\[[:alnum:]]+[^menu])$/! {
-							/^(\[|\[[:alnum:]]+[^menu])/a\
-				video_mode=${video_mode}
-						}
-					}
-					/^fb_terminal[[:space:]]*=/! { 
-						/^(\[|\[[:alnum:]]+[^menu])$/! {
-							/^(\[|\[[:alnum:]]+[^menu])/a\
-				fb_terminal=${fb_terminal}
-						}
-					}
-					/^vga_scaler[[:space:]]*=/! { 
-						/^(\[|\[[:alnum:]]+[^menu])$/! {
-							/^(\[|\[[:alnum:]]+[^menu])/a\
-				fb_size=${fb_size}
-						}
-					}
-					/^\[.*\]/! {
-						/^\s*$/d
-					}
-				}" "$ini_file"
+			  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
+				s/^video_mode[[:space:]]*=.*/video_mode=${video_mode}/
+				s/^fb_terminal[[:space:]]*=.*/fb_terminal=${fb_terminal}/
+				s/^vga_scaler[[:space:]]*=.*/vga_scaler=${fb_size}/
+				t
+				/^(\[|\[[:alnum:]]+[^menu])$/! {
+				  /^(\[|\[[:alnum:]]+[^menu])/a\
+			video_mode=${video_mode}\
+			fb_terminal=${fb_terminal}\
+			vga_scaler=${fb_size}
+				}
+			  }" "$ini_file"
 			else
 				echo "No MiSTer.ini modification necessary"
 			fi
@@ -3163,6 +3154,15 @@ function misterini_mod() {
 
 function misterini_reset() {
 	cp "${ini_file}".sam "$ini_file" &>/dev/null
+}
+
+function dl_video() {
+	if [ "$download_manager" = yes ]; then
+		/media/fat/linux/aria2c --dir="/tmp" --file-allocation=none -o "$tmpvideo" -s 4 -x 4 -k 1M --summary-interval=0 --console-log-level=warn --download-result=hide --quiet=false  --allow-overwrite=true --always-resume=true --ca-certificate=/etc/ssl/certs/cacert.pem "${1}"
+
+	else
+		wget -q --show-progress -O "$tmpvideo" "${1}"
+	fi
 }
 
 function sv_yt360() {
@@ -3255,7 +3255,7 @@ function sv_ar480() {
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
 	echo "Preloading ${sv_selected} from archive.org for smooth playback"
-	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"
+	dl_video "${sv_selected_url}"
 	awk -vLine="$sv_selected" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res_space="640 480"
 }
@@ -3279,7 +3279,7 @@ function sv_ar240() {
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
 	echo "Preloading ${sv_selected} from archive.org for smooth playback"
-	wget -q --show-progress -O "$tmpvideo" "${sv_selected_url}"  
+	dl_video "${sv_selected_url}"
 	awk -vLine="$sv_selected" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res_space="640 240"
 }
@@ -3559,6 +3559,45 @@ function get_ratedlist() {
 	fi
 }
 
+get_dlmanager() {
+
+	if [ "$download_manager" = yes ]; then
+	
+		aria2_path="/media/fat/linux/aria2c"
+		
+		if [ ! -f "$aria2_path" ]; then
+			
+			aria2_urls=(
+				"https://github.com/mrchrisster/0mhz-collection/blob/main/aria2c/aria2c.zip.001?raw=true"
+				"https://github.com/mrchrisster/0mhz-collection/blob/main/aria2c/aria2c.zip.002?raw=true"
+				"https://github.com/mrchrisster/0mhz-collection/blob/main/aria2c/aria2c.zip.003?raw=true"
+				"https://github.com/mrchrisster/0mhz-collection/blob/main/aria2c/aria2c.zip.004?raw=true"
+			)	
+			echo ""
+			echo -n "Installing aria2c Download Manager... "
+			for url in "${aria2_urls[@]}"; do
+				file_name=$(basename "${url%%\?*}")
+				curl -s --insecure -L $url -o /tmp/"$file_name"
+				if [ $? -ne 0 ]; then
+					echo "Failed to download $file_name"
+					download_manager=no
+				fi
+			done
+			
+			# Check if the download was successful
+			if [ $? -eq 0 ]; then
+				echo "Done."
+			else
+				echo "Failed."
+			fi
+		
+			cat /tmp/aria2c.zip.* > /tmp/aria2c_full.zip
+			unzip -qq -o /tmp/aria2c_full.zip -d /media/fat/linux
+
+		fi
+	fi
+}
+
 
 function sam_update() { # sam_update (next command)
 
@@ -3627,6 +3666,7 @@ function sam_update() { # sam_update (next command)
 		get_blacklist
 		get_ratedlist
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
+		
 
 		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
 			echo " MiSTer SAM INI already exists... Merging with new ini."
