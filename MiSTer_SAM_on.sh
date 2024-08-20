@@ -3294,6 +3294,7 @@ function sv_local() {
 	res="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
 	res_space=$(echo "$res" | tr 'x' ' ')
 	res_comma=$(echo "$res" | tr 'x' ',')
+	sv_selected="$(basename "${tmpvideo}")"
 
 }
 
