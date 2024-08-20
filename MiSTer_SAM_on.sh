@@ -3158,7 +3158,7 @@ function misterini_reset() {
 
 function dl_video() {
 	if [ "$download_manager" = yes ]; then
-		/media/fat/linux/aria2c --dir="/tmp" --file-allocation=none -o "$tmpvideo" -s 4 -x 4 -k 1M --summary-interval=0 --console-log-level=warn --download-result=hide --quiet=false  --allow-overwrite=true --always-resume=true --ca-certificate=/etc/ssl/certs/cacert.pem "${1}"
+		/media/fat/linux/aria2c --dir="$(dirname "$tmpvideo")" --file-allocation=none -o "$(basename "$tmpvideo")" -s 4 -x 4 -k 1M --summary-interval=0 --console-log-level=warn --download-result=hide --quiet=false  --allow-overwrite=true --always-resume=true --ca-certificate=/etc/ssl/certs/cacert.pem "${1}"
 
 	else
 		wget -q --show-progress -O "$tmpvideo" "${1}"
@@ -3362,11 +3362,6 @@ function samvideo_play() {
 		return
 	fi
 	
-	if [ ! -s "$tmpvideo" ]; then
-		echo "No video was downloaded. Skipping video playback.."
-		echo "1" > "$sv_gametimer_file"
-		return
-	fi
 	sv_gametimer="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
 	sv_title=${sv_selected%.*}
 
@@ -3413,6 +3408,10 @@ function samvideo_play() {
 
 		nice -n -20 env LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -msglevel all=0:statusline=5 "${options}" "$tmpvideo" 2>/dev/null 
 		rm "$sv_gametimer_file" 2>/dev/null
+	else
+		echo "No video was downloaded. Skipping video playback.."
+		echo "1" > "$sv_gametimer_file"
+		return
 	fi
 	#echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 	#next_core
@@ -4468,6 +4467,12 @@ function sam_svc() {
 	sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo_source=/c\samvideo_source="Archive"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo_tvc=/c\samvideo_tvc="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
+    sed -i '/kids_safe=/c\kids_safe="no"' /media/fat/Scripts/MiSTer_SAM.ini
+    sed -i '/coreweight=/c\coreweight="no"' /media/fat/Scripts/MiSTer_SAM.ini
+
+    
+
+    kids_safe
 
     # Check for specific game list for the chosen output device, for example
     if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
