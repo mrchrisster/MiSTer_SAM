@@ -1341,6 +1341,7 @@ function load_samvideo() {
 		fi
 		
 	fi
+
 }
 
 # Don't repeat same core twice
@@ -2260,6 +2261,10 @@ function sam_prep() {
 				get_samvideo
 			fi
 		fi
+
+		if { [ "$samvideo_source" == "local" ] || [ "$samvideo_source" == "youtube" ]; } && [ "$samvideo_tvc" == "yes" ]; then
+			sed -i '/samvideo_tvc=/c\samvideo_tvc="no"' /media/fat/Scripts/MiSTer_SAM.ini
+		fi
 	fi
 
 
@@ -3163,6 +3168,9 @@ function dl_video() {
 	else
 		wget -q --show-progress -O "$tmpvideo" "${1}"
 	fi
+	if [ $? -eq 0 ] && [ "$keep_local_copy" == "yes" ]; then
+		cp $tmpvideo "${samvideo_path}/${sv_selected}"
+	fi
 }
 
 function sv_yt360() {
@@ -3278,8 +3286,17 @@ function sv_ar240() {
 	fi
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
-	echo "Preloading ${sv_selected} from archive.org for smooth playback"
-	dl_video "${sv_selected_url}"
+	echo "Checking if file is available locally:"
+	local local_svfile="${samvideo_path}/${sv_selected}"
+
+    if [ -f "$local_svfile" ]; then
+        echo "Local file exists: $local_svfile"
+		cp "$local_svfile" "$tmpvideo"
+    else
+		echo "Preloading ${sv_selected} from archive.org for smooth playback"
+		dl_video "${sv_selected_url}"
+    fi
+
 	awk -vLine="$sv_selected" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res_space="640 240"
 }
