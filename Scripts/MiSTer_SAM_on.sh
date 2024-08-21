@@ -3162,8 +3162,9 @@ function misterini_reset() {
 }
 
 function dl_video() {
+	rm -f "$tmpvideo"
 	if [ "$download_manager" = yes ]; then
-		/media/fat/linux/aria2c --dir="$(dirname "$tmpvideo")" --file-allocation=none -o "$(basename "$tmpvideo")" -s 4 -x 4 -k 1M --summary-interval=0 --console-log-level=warn --download-result=hide --quiet=false  --allow-overwrite=true --always-resume=true --ca-certificate=/etc/ssl/certs/cacert.pem "${1}"
+		/media/fat/linux/aria2c --dir="$(dirname "$tmpvideo")" --file-allocation=none -o "$(basename "$tmpvideo")" -s 4 -x 4 -k 1M --summary-interval=0 --console-log-level=warn --download-result=hide --quiet=false  --allow-overwrite=true --ca-certificate=/etc/ssl/certs/cacert.pem "${1}"
 
 	else
 		wget -q --show-progress -O "$tmpvideo" "${1}"
@@ -3262,8 +3263,15 @@ function sv_ar480() {
 	fi
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
-	echo "Preloading ${sv_selected} from archive.org for smooth playback"
-	dl_video "${sv_selected_url}"
+	samdebug "Checking if file is available locally...${samvideo_path}/${sv_selected}"
+	local local_svfile="${samvideo_path}/${sv_selected}"
+    if [ -f "$local_svfile" ]; then
+        echo "Local file exists: $local_svfile"
+		cp "$local_svfile" "$tmpvideo"
+    else
+		echo "Preloading ${sv_selected} from archive.org for smooth playback"
+		dl_video "${sv_selected_url}"
+    fi
 	awk -vLine="$sv_selected" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res_space="640 480"
 }
@@ -3286,7 +3294,7 @@ function sv_ar240() {
 	fi
 	sv_selected_url="${http_archive%/*}/${sv_selected}"
 	tmpvideo="/tmp/SAMvideo.avi"
-	echo "Checking if file is available locally:"
+	samdebug "Checking if file is available locally...${samvideo_path}/${sv_selected}"
 	local local_svfile="${samvideo_path}/${sv_selected}"
 
     if [ -f "$local_svfile" ]; then
