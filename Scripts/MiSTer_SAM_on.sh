@@ -3345,7 +3345,7 @@ function samvideo_tvc() {
 			# If file is not found, select a new core randomly
 			#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
 			pick_core "SV_TVC_CL"
-			samdebug "${nextcore}_tvc.txt not found, selecting new core: $nextcore"
+			samdebug "${nextcore}_tvc.txt not found, selecting new core."
 		fi
 
 		((count++))
