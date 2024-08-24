@@ -437,6 +437,12 @@ function init_data() {
 		["psx"]="PSX"
 	)
 
+	# MGL setname settings
+	declare -gA MGL_SETNAME=(
+		["gbc"]="GBC"
+		["gg"]="GameGear"
+	)
+
 	# MGL delay settings
 	declare -giA MGL_DELAY=(
 		["amiga"]="1"
@@ -1799,6 +1805,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 	  echo "<mistergamedescription>"
 	  echo "<rbf>${CORE_PATH_RBF[${nextcore}]}/${MGL_CORE[${nextcore}]}</rbf>"
 	  echo "<file delay=\"${MGL_DELAY[${nextcore}]}\" type=\"${MGL_TYPE[${nextcore}]}\" index=\"${MGL_INDEX[${nextcore}]}\" path=\"../../../../..${rompath}\"/>"
+	  [ -n "${MGL_SETNAME[${nextcore}]}" ] && echo "<setname>${MGL_SETNAME[${nextcore}]}</setname>"
 	} >/tmp/SAM_Game.mgl
 
 
