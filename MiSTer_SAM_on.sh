@@ -72,6 +72,7 @@ function init_vars() {
 	declare -gl disablebootrom="Yes"
 	declare -gl amigaselect="All"
 	declare -gl m82="no"
+	declare -gl sam_goat_list="no"
 	declare -gl mute="No"
 	declare -gi update_done=0
 	declare -gl ignore_when_skip="no"
@@ -2810,6 +2811,7 @@ function filter_list() { # args ${nextcore}
 	if [ -n "${arcadeorient}" ] && [[ "${1}" == "arcade" ]]; then
 		echo "Setting orientation for Arcade Games to ${arcadeorient} only."
 		cat "${gamelistpath}/${1}_gamelist.txt" | fgrep "Rotation/" | fgrep -i "${arcadeorient}" > "${tmpfile}_rotation"
+		echo "Found $(cat "${tmpfile}_rotation" | wc -l) ${arcadeorient} games"
 		
 		if [ -s "${tmpfile}_rotation" ]; then 
 			if [ -n "${PATHFILTER[${1}]}" ]; then
@@ -2819,7 +2821,7 @@ function filter_list() { # args ${nextcore}
 				mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"
 			else
 				# Apply only orientation filter
-				mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"
+				mv -f "${tmpfile}_rotation" "${gamelistpathtmp}/${1}_gamelist.txt"
 			fi
 		else
 			echo "Arcade Orientation Filter Error."
@@ -4416,6 +4418,7 @@ sam_goat_mode() {
 			--backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
 			--msgbox "SAM will start now and only play games deemed to have the Greatest of All Time Attract Modes.\n\n" 0 0
 	fi	
+	samdebug "SAM GOAT mode active"
     local current_core=""
     local goat_list_path="${gamelistpath}"/sam_goat_list.txt
 	# Check if the GOAT list file exists
