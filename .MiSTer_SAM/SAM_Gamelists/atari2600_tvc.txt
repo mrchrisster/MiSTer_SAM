@@ -1,0 +1,18 @@
+{
+	"ATARI 2600 (aka ATARI 2600 Jr.) (1986) TVC.avi": "Ms. Pac\\|Joust\\|Space Invaders\\|Pole\\|Solari\\|Midnight\\|H.E.R.O.",
+	"1983 Data Age Journey Escape Atari 2600.avi": "Journey Escape",
+	"1983 Phoenix Atari 2600 Commercial.avi": "Phoenix",
+	"Atari 2600 - The Fly (Theatrical Commercial).avi": "Yars\\|Asteroids\\|Star Raiders",
+	"Atari 2600 Vanguard Commercial.avi": "Vanguard",
+	"Atari 2600 - Ms. Pac-Man Commercial (1983).avi": "Ms. Pac-Man",
+	"Atari 5200 Jungle Hunt 1982 Commercial.avi": "Jungle Hunt",
+	"Atari ET Christmas 1982.avi": "Extra-Terrestrial",
+	"Atari Joust commercial (1983).avi": "Joust",
+	"Atari Star Trek commercial 1983.avi": "Star Trek",
+	"Dig Dug Atari 2600 & 5200 1983.avi": "Dig Dug",
+	"Imagic - Atlantis (Commercial, 1982).avi": "Atlantis",
+	"Mario Bros. Game for Atari Commercial.avi": "Mario Bros",
+	"Mattel Electronics Tron video games commercial.avi": "Deadly Discs\\|Adventures of",
+	"Pitfall From Activision TV Commercial.avi": "Pitfall",
+	"Super Breakout Atari 2600 Video Game Ad (1982).avi": "Super Breakout"
+}

@@ -1,0 +1,9 @@
+{	
+	"1984 Atari 5200 Earth Shattering Commercial.avi": "Dig Dug\\|Joust\\|Pole Pos\\|Moon P\\|Realsports Ba\\|Berz\\|Miner\\|Bounty",
+	"ATARI 5200 TVC.avi": "Centipede \\|Vanguard \\|Galaxian \\|Ms. \\|Ballblazer \\|Rescue ",
+	"Atari 5200 Jungle Hunt 1982 Commercial.avi": "Jungle Hunt",
+	"Atari Joust commercial (1983).avi": "Joust",
+	"Atari Star Trek commercial 1983.avi": "Star Trek",
+	"Dig Dug Atari 2600 & 5200 1983.avi": "Dig Dug",
+	"Mario Bros. Game for Atari Commercial.avi": "Mario Bros"
+}

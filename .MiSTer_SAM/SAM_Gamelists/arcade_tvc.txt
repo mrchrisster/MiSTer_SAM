@@ -1,0 +1,5 @@
+{
+	"7UP Pac-Man Commercial (1982)Cropped.avi": "Pac-Man (Midway)\\|Ms. Pac-Man\\|Super Pac-Man.mra\\|PacMan Plus",
+	"Gauntlet - Atari arcade commercial.avi": "Gauntlet (Rev 14)\\|Gauntlet II.mra",
+	"Atari arcade game commercial - Dig Dug.avi": "Dig Dug (Atari, rev 2)"
+}
