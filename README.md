@@ -196,6 +196,7 @@ Some commands to control SAM from the command line
 - `MiSTer_SAM_on.sh enable` - Enable SAM autoplay mode
 - `MiSTer_SAM_on.sh disable` - Disable SAM autoplay
 - `MiSTer_SAM_on.sh reset` - Reset SAM
+- `MiSTer_SAM_on.sh sshconfig` - Quick access to SAM's SSH features. Type this once and now you can type `m update` for example to update.
 - `MiSTer_SAM_on.sh arcade | psx | genesis | s32x | etc...` - Only launch specific system
 - `MiSTer_SAM_on.sh favorite` - Copy the current game to "_Favorites" folder
 
