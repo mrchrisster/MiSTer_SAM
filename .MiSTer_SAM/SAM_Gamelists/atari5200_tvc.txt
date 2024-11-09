@@ -1,9 +1,9 @@
 {	
-	"1984 Atari 5200 Earth Shattering Commercial.avi": "Dig Dug\\|Joust\\|Pole Pos\\|Moon P\\|Realsports Ba\\|Berz\\|Miner\\|Bounty",
-	"ATARI 5200 TVC.avi": "Centipede \\|Vanguard \\|Galaxian \\|Ms. \\|Ballblazer \\|Rescue ",
-	"Atari 5200 Jungle Hunt 1982 Commercial.avi": "Jungle Hunt",
-	"Atari Joust commercial (1983).avi": "Joust",
-	"Atari Star Trek commercial 1983.avi": "Star Trek",
-	"Dig Dug Atari 2600 & 5200 1983.avi": "Dig Dug",
-	"Mario Bros. Game for Atari Commercial.avi": "Mario Bros"
+	"Atari 5200- 1984 Earth Shattering Commercial.avi": "Dig Dug (USA).car\\|Joust (USA).car\\|Pole Position (USA).car\\|Moon Patrol (USA).car\\|Realsports Base\\|Berzerk (USA).car\\|Bob Strikes",
+	"ATARI 5200- TVC.avi":"Centipede  (USA).car\\|Vanguard \\|Galaxian \\|Ms. Pac-Man (USA).car\\|Ballblazer \\|Rescue ",
+	"Atari 5200- Jungle Hunt & 2600 1982 Commercial.avi": "Jungle Hunt (USA).car",
+	"Atari 5200- Joust & 2600 commercial (1983).avi": "Joust (USA).car",
+	"Atari 5200- Star Trek & 2600 commercial 1983.avi": "Star Trek - Strategic Operations Simulator (USA).car",
+	"Atari 5200- Dig Dug & 2600 1983.avi": "Dig Dug (USA).car",
+	"Atari 5200- Mario Bros. Game & 2600 Commercial.avi": "Mario Bros"
 }
