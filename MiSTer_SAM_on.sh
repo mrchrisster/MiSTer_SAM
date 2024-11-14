@@ -2639,6 +2639,19 @@ function reset_core_gl() { # args ${nextcore}
 	sync
 }
 
+function reset_ini() { # args ${nextcore}
+	#Reset gamelists
+	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
+	mkdir -p "${gamelistpathtmp}"
+	mkdir -p /tmp/.SAM_tmp
+
+	sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+    sed -i '/samvideo=/c\samvideo="No"' /media/fat/Scripts/MiSTer_SAM.ini
+    sed -i '/samvideo_tvc=/c\samvideo_tvc="No"' /media/fat/Scripts/MiSTer_SAM.ini
+    sed -i '/kids_safe=/c\kids_safe="no"' /media/fat/Scripts/MiSTer_SAM.ini
+    sed -i '/coreweight=/c\coreweight="no"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/sam_goat_list=/c\sam_goat_list="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
+}
 
 function core_error_rom() { # core_error core /path/to/ROM
 	if [ ${romloadfails} -lt ${coreretries} ]; then
@@ -4434,6 +4447,7 @@ function sam_gamemodemenu() {
 
 # M82 mode
 sam_m82_mode() {
+	reset_ini
 	if [ "${menuresponse}" == "sam_m82_mode" ]; then
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
@@ -4448,6 +4462,7 @@ sam_m82_mode() {
 
 # Function to process the GOAT list and create game list files
 sam_goat_mode() {
+	reset_ini
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
@@ -4464,11 +4479,6 @@ sam_goat_mode() {
         #return 1  # Exit the function with an error status
     fi
 	
-	#Reset gamelists
-	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
-	mkdir -p "${gamelistpathtmp}"
-	mkdir -p /tmp/.SAM_tmp
-
 	# process files
 	
 	while read -r line; do
@@ -4494,6 +4504,7 @@ sam_goat_mode() {
 }
 
 function sam_80s() {
+	reset_ini
 	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	enablebgm
@@ -4502,6 +4513,7 @@ function sam_80s() {
 
 
 function sam_svc() {
+	reset_ini
     # Display initial message
     dialog --clear --ascii-lines --no-cancel \
         --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
@@ -4561,12 +4573,6 @@ function sam_svc() {
     sed -i '/coreweight=/c\coreweight="yes"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/sam_goat_list=/c\sam_goat_list="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	
-	#reset
-	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
-	mkdir -p "${gamelistpathtmp}"
-	mkdir -p /tmp/.SAM_tmp
-	
-	
     # Check for specific game list for the chosen output device
     if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
         get_samvideo
@@ -4586,6 +4592,7 @@ function sam_svc() {
 	
 
 function sam_roulettemenu() {
+	reset_ini
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
 		--msgbox "In Game Roulette mode SAM selects games for you. \n\nYou have a pre-defined amount of time to play this game, then SAM will move on to play the next game. \n\nPlease do a cold reboot when done playing." 0 0
