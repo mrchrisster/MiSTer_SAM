@@ -1,0 +1,4 @@
+{
+	"ATARI LYNX (1990) TVC 1.avi": "Blue Lightning",
+	"ATARI LYNX (1990) TVC 2.avi": "(USA"
+}

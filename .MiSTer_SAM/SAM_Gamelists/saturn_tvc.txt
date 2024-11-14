@@ -1,0 +1,4 @@
+{
+	"SEGA Saturn (1996) TVC.avi": "(USA",
+	"SEGA Saturn (1997) TVC.avi": "Virtua Fighter 2 \\| Daytona \\| Virtua Cop 2"
+}

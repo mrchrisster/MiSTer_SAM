@@ -1,0 +1,4 @@
+{
+	"SEGA Game Gear (1994) TVC 1.avi": "Hog (W\\|ple Trouble (U\\|s Baseball (U\\|Kombat II\\|phin (U",
+	"SEGA Game Gear (1994) TVC.avi": "Hog (W\\|X-Men (U\\|Headdy (U\\|Spinball (U\\|Couples' Golf (U\\|s Baseball (U\\|phin (U\\|Kombat II\\|ple Trouble (U"
+}

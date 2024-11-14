@@ -1,0 +1,7 @@
+{
+	"TurboDuo-Promotional Video - Air Zonk.avi": "Air Zonk",
+	"TurboDuo-Promotional Video - Bonk's Adventure.avi": "Bonk's Adventure",
+	"TurboDuo-Promotional Video - Super System Card.avi": "(USA",
+	"TurboGrafx-16 (1992) TVC.avi": "New Adventure Island",
+	"TurboGrafx-16 and Keith Courage in Alpha Zones (1989) TVC.avi": "Keith Courage in Alpha Zones (USA"
+}
