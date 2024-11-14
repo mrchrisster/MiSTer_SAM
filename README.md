@@ -29,7 +29,7 @@ or
 If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
 - Copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. 
 - Additionally copy the entire `.MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
-- To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu.
+- To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu under Settings.
 
 ## Update  
 - Running `MiSTer_SAM_on.sh` will update your existing version to the newest version.
