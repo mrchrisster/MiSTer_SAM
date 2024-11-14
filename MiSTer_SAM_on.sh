@@ -1457,11 +1457,11 @@ function check_gamelistupdate() {
 #Pick next core
 function pick_core() {
     if [ -z "$1" ]; then
-        # Fallback if no array is provided, use simple shuffle selection
+        # Standard mode
         nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
-        samdebug "No array provided. Defaulting to shuffled core selection: $nextcore"
+        samdebug "Picked core: $nextcore"
     else
-        # Main logic if array is provided
+        # Samvideo mode with coreweight built in
         local -n array=$1
         declare -A core_counts
         total_count=0
