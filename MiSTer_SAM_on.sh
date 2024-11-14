@@ -855,6 +855,7 @@ function init_data() {
 		#["arcade"]="arcade"
 	)
 
+
 }
 
 # ========= SOUCRCE INI & UPDATE =========
@@ -1465,7 +1466,7 @@ function pick_core(){
 	fi
 			
 	#Core Weight mode
-	if [ "$coreweight" == "yes" ]; then
+	if [ "$coreweight" == "yes" ] && [ "$samvideo_tvc" == "no" ]; then
 		#Check if all gamelists have been created
 		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort -u)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort -u)" ]]; then
 			#Check if every core's game library has been counted
@@ -1668,6 +1669,7 @@ function pick_rom() {
 	fi
 	
 	#samvideo mode
+	# Commercial linked to game through /tmp/SAMvideos.xml. Find this game in Gamelist
 	if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/.SAM_tmp/sv_gamename ]; then
 		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/.SAM_tmp/sv_gamename |  grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
 		if [ -z "${rompath}" ]; then
@@ -3302,6 +3304,7 @@ function sv_yt240() {
 }
 
 function sv_ar480() {
+	#Select random video from list samvideo_list
 	samvideo_list="/tmp/.SAM_List/sv_archive_hdmilist.txt"
 	http_archive=${sv_archive_hdmilist//https/http}
 	if [ ! -s ${samvideo_list} ]; then
@@ -3394,8 +3397,8 @@ function samvideo_tvc() {
 		done 
 	done
 	samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
-	pick_core "SV_TVC_CL"
-	
+	pick_core SV_TVC_CL
+	samdebug "nextcore = $nextcore"
 	#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
 	count=0
 	while [ $count -lt 15 ]; do
@@ -3408,7 +3411,7 @@ function samvideo_tvc() {
 		else
 			# If file is not found, select a new core randomly
 			#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
-			pick_core "SV_TVC_CL"
+			pick_core SV_TVC_CL
 			samdebug "${nextcore}_tvc.txt not found, selecting new core."
 		fi
 
@@ -4569,9 +4572,6 @@ function sam_svc() {
     sed -i '/samvideo=/c\samvideo="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo_source=/c\samvideo_source="Archive"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo_tvc=/c\samvideo_tvc="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/kids_safe=/c\kids_safe="no"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/coreweight=/c\coreweight="yes"' /media/fat/Scripts/MiSTer_SAM.ini
-	sed -i '/sam_goat_list=/c\sam_goat_list="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	
     # Check for specific game list for the chosen output device
     if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
