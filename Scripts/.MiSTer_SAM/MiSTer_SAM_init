@@ -195,7 +195,7 @@ function filter_list() { # args ${nextcore}
 	fi
  
 	#Check blacklist	
-	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
+	if [ "${disable_blacklist}" == "no" ] && [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
 		echo "Disabling static screen games for ${1} core. This can take a moment..."
 		# Process file names without extensions from blacklist
