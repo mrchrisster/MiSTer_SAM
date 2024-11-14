@@ -68,6 +68,7 @@ function init_vars() {
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
 	declare -gl skiptime="10"
+	declare -gi core_counts_initialized=0 
 	declare -gl norepeat="Yes"
 	declare -gl disable_blacklist="No"
 	declare -gl disablebootrom="Yes"
@@ -1450,20 +1451,61 @@ function check_gamelistupdate() {
 	
 }
 
+
+
+
 #Pick next core
-function pick_core(){
-	
-	if [ -n "$1" ]; then 
-		local -n array=$1
-		nextcore=$(printf "%s\n" "${array[@]}" | shuf --random-source=/dev/urandom | head -1)
-	else
-		nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
-	fi
-	
-	if [[ ! "${nextcore}" ]]; then
-		samdebug "nextcore empty. Using arcade core for now"
-		nextcore=arcade
-	fi
+function pick_core() {
+    if [ -z "$1" ]; then
+        # Fallback if no array is provided, use simple shuffle selection
+        nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
+        samdebug "No array provided. Defaulting to shuffled core selection: $nextcore"
+    else
+        # Main logic if array is provided
+        local -n array=$1
+        declare -A core_counts
+        total_count=0
+        
+        samdebug "Starting pick_core with array: ${array[@]}"
+        
+        # Calculate game counts from `_tvc.txt` files only if not already done
+        if [ "$core_counts_initialized" -eq 0 ]; then
+			for core in "${array[@]}"; do
+				tvc_file="${gamelistpath}/${core}_tvc.txt"
+				if [[ -f "$tvc_file" ]]; then
+					count=$(wc -l < "$tvc_file")
+					samdebug "Found ${count} games in ${tvc_file}"
+				else
+					count=1  # Default to 1 if no `_tvc.txt` file exists
+					samdebug "No ${tvc_file} found; defaulting count to 1 for core ${core}"
+				fi
+				core_counts["$core"]=$count
+				((total_count += count))
+			done
+			core_counts_initialized=1
+			samdebug "Total count of games across all cores: $total_count"
+        fi
+        
+        # Select a random value within the total count range for weighted probability
+        pick_value=$(shuf --random-source=/dev/urandom -i 1-"$total_count" -n 1)
+        
+        # Use cumulative probability to select the core
+        cumulative=0
+        for core in "${!core_counts[@]}"; do
+            cumulative=$((cumulative + core_counts["$core"]))
+            if (( pick_value <= cumulative )); then
+                nextcore="$core"
+                samdebug "Selected core: $nextcore based on pick value $pick_value"
+                break
+            fi
+        done
+    fi
+
+    # Fallback if nextcore is empty
+    if [[ -z "${nextcore}" ]]; then
+        samdebug "nextcore empty. Using arcade core as fallback."
+        nextcore="arcade"
+    fi
 			
 	#Core Weight mode
 	if [ "$coreweight" == "yes" ] && [ "$samvideo_tvc" == "no" ]; then
