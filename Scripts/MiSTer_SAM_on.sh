@@ -838,8 +838,20 @@ function init_data() {
 		["megacd"]="megacd"
 		["nes"]="^nes-\| nes"
 		["snes"]="snes"
+		["n64"]="n64-\|n64"
+		["atari2600"]="atari vcs"
+		["atari5200"]="atari 5200"
+		["atari7800"]="atari 7800"
+		["atarilynx"]="atari lynx"
+		["saturn"]="sega saturn"
+		["s32x"]="sega 32x"
+		["sgb"]="super game boy\|gb-super game boy\|snes-super game boy"
 		["tgfx16cd"]="turboduo"
+		["tgfx16"]="turboduo\|turbografx-16"
+		["gg"]="sega game"
+		["sms"]="sega master"
 		["psx"]="psx\|playstation"
+		["arcade"]="arcade"
 	)
 
 }
@@ -1658,7 +1670,7 @@ function pick_rom() {
 	if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/.SAM_tmp/sv_gamename ]; then
 		rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | grep -if /tmp/.SAM_tmp/sv_gamename |  grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
 		if [ -z "${rompath}" ]; then
-			echo "Error with picking the corresponding game for the commercial. Playing random game now."
+			samdebug "Error with picking the corresponding game for the commercial. Playing random game now."
 			rompath="$(cat ${gamelistpath}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
 		fi
 	fi
@@ -1849,8 +1861,18 @@ function load_core_arcade() {
 	sed -i '/^$/d' "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 	
 	
-	# Get a random game from the list
-	mra="$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
+	#samvideo mode
+	if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ] && [ -f /tmp/.SAM_tmp/sv_gamename ]; then
+		mra="$(cat ${gamelistpathtmp}/"${nextcore}"_gamelist.txt | grep -if /tmp/.SAM_tmp/sv_gamename | shuf -n 1)"
+		if [ -z "${mra}" ]; then
+			samdebug "Error with picking the corresponding game for the commercial. Playing random game now."
+			mra="$(cat ${gamelistpathtmp}/"${nextcore}"_gamelist.txt | shuf --random-source=/dev/urandom --head-count=1)"
+		fi
+		sleep 5   #anything lower than 5 doesn't work
+	else
+		# Get a random game from the list
+		mra="$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/${nextcore}_gamelist.txt)"
+	fi
 	
 	# Check if Game exists
 	if [ ! -f "${mra}" ]; then
@@ -1867,7 +1889,7 @@ function load_core_arcade() {
 	samdebug "Selected file: ${mra}"
 
 	# Delete mra from list so it doesn't repeat
-	if [ "${norepeat}" == "yes" ]; then
+	if [ "${norepeat}" == "yes" ] && [ "$samvideo_tvc" != "yes" ]; then
 		awk -vLine="$mra" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 
 	fi

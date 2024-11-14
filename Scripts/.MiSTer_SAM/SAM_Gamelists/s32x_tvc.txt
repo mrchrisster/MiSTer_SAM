@@ -1,0 +1,4 @@
+{
+	"SEGA 32X (1994) TVC 1.avi": "Doom (\\|Star Wars Arc\\|Virtual Racing Deluxe (U\\|Couples\\|Cosmic Carnage",
+	"SEGA 32X (1994) TVC 2.avi": "Doom (\\|Star Wars Arc\\|Virtual Racing Deluxe (U\\|Couples\\|Cosmic Carnage\\|Motocross\\|Metal"
+}

@@ -41,7 +41,7 @@
     "SNES-Spider-Man and Venom Maximum Carnage.avi": "Spider-Man - Venom",
     "SNES-Sports Illustrated- Championship Football & Baseball.avi": "Championship Football",
     "SNES-Star Fox Fox McCloud.avi": "Star Fox",
-    "SNES-Street Fighter 2 Looking 4 A Fight .avi": "Street Fighter 2",
+    "SNES-Street Fighter 2 Looking 4 A Fight .avi": "Street Fighter II",
     "SNES-Stunt Race FX Pig Cop.avi": "Stunt Race FX",
     "SNES-Super Game Boy For Super NES In Living Color 4K.avi": "Super Mario Land",
     "SNES-Super Ghouls 'n Ghosts.avi": "Super Ghouls 'n Ghosts",

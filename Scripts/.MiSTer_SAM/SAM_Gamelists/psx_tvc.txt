@@ -90,7 +90,7 @@
 	"PSX-Metal Gear Solid - Suicide mission.avi": "Metal Gear Solid",
 	"PSX-Mortal Kombat Mythologies Sub-Zero.avi": "Mortal Kombat Mythologies",
 	"PSX-Ms. Pac-Man Maze Madness.avi": "Pac-Man Maze Madness",
-	"PSX-NASCAR 98 Radio Broadcast.avi": "NASCAR 98 Radio",
+	"PSX-NASCAR 98 Radio Broadcast.avi": "NASCAR 98",
 	"PSX-NBA Live 98 Radio Broadcast.avi": "NBA Live 98",
 	"PSX-NBA ShootOut '98 Vin Baker.avi": "NBA ShootOut 98",
 	"PSX-NBA Showtime NBA on NBC Shaq.avi": "NBA Showtime - NBA",
