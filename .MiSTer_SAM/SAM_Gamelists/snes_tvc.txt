@@ -49,7 +49,6 @@
     "SNES-Super Mario Kart .avi": "Super Mario Kart",
     "SNES-Super Mario RPG Crazy Grandpa.avi": "Super Mario RPG",
     "SNES-Super Mario World 2 Yoshi's Island Bonus Level.avi": "Super Mario World 2",
-    "SNES-Super Mario World 2 Yoshi's Island Still The Big One.avi": "Super Mario World 2",
     "SNES-Super Mario World Game Testers.avi": "Super Mario World (",
     "SNES-Super Mario World The New Generation.avi": "Super Mario World (",
     "SNES-Super Mario World You've Got A Reputation.avi": "Super Mario World (",
