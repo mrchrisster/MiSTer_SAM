@@ -831,7 +831,7 @@ function init_data() {
 	
 	#TO DO: Upload tallendorf encodes and enable cores
 	declare -glA SV_TVC=(
-		["fds"]="^nes-\| nes"
+		#["fds"]="^nes-\| nes"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
@@ -848,8 +848,8 @@ function init_data() {
 		["sgb"]="super game boy\|gb-super game boy\|snes-super game boy"
 		["tgfx16cd"]="turboduo"
 		["tgfx16"]="turboduo\|turbografx-16"
-		["gg"]="sega game"
-		["sms"]="sega master"
+		#["gg"]="sega game"
+		#["sms"]="sega master"
 		["psx"]="psx\|playstation"
 		#["arcade"]="arcade"
 	)
@@ -3562,6 +3562,7 @@ function get_samvideo() {
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/n64_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
 	echo " Done."
 }
 
