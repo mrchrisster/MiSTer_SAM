@@ -829,9 +829,9 @@ function init_data() {
 		["zupapa"]="Zupapa!"
 	)
 	
-	
+	#TO DO: Upload tallendorf encodes and enable cores
 	declare -glA SV_TVC=(
-		["fds"]="^nes-\| nes"
+		#["fds"]="^nes-\| nes"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
@@ -839,19 +839,19 @@ function init_data() {
 		["nes"]="^nes-\| nes"
 		["snes"]="snes"
 		["n64"]="n64-\|n64"
-		["atari2600"]="atari vcs"
-		["atari5200"]="atari 5200"
-		["atari7800"]="atari 7800"
-		["atarilynx"]="atari lynx"
+		#["atari2600"]="atari vcs"
+		#["atari5200"]="atari 5200"
+		#["atari7800"]="atari 7800"
+		#["atarilynx"]="atari lynx"
 		["saturn"]="sega saturn"
 		["s32x"]="sega 32x"
 		["sgb"]="super game boy\|gb-super game boy\|snes-super game boy"
 		["tgfx16cd"]="turboduo"
 		["tgfx16"]="turboduo\|turbografx-16"
-		["gg"]="sega game"
-		["sms"]="sega master"
+		#["gg"]="sega game"
+		#["sms"]="sega master"
 		["psx"]="psx\|playstation"
-		["arcade"]="arcade"
+		#["arcade"]="arcade"
 	)
 
 }
@@ -1889,7 +1889,7 @@ function load_core_arcade() {
 	samdebug "Selected file: ${mra}"
 
 	# Delete mra from list so it doesn't repeat
-	if [ "${norepeat}" == "yes" ] && [ "$samvideo_tvc" != "yes" ]; then
+	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$mra" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 
 	fi
@@ -2400,12 +2400,23 @@ function sam_disable() { # Disable autoplay
 
 function env_check() {
 	# Check if we've been installed
-	if [ ! -f "${mrsampath}/partun" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
-		echo " SAM required files not found."
-		echo " Installing now."
-		sam_update autoconfig
-		echo " Setup complete."
+	if [ ! -f "${mrsampath}/samindex" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
+		#Probably offline install
+		if [ -f "${mrsampath}/samindex.zip" ]; then
+			unzip -ojq "${mrsampath}/samindex.zip" -d "${mrsampath}" # &>/dev/null
+			cp "${mrsampath}/inputs/GBA_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/NES_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/TGFX16_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/SATURN_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/MegaCD_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+		else
+			echo " SAM required files not found."
+			echo " Installing now."
+			sam_update autoconfig
+			echo " Setup complete."
+		fi
 	fi
+
 }
 
 function resetini() {
@@ -3551,6 +3562,7 @@ function get_samvideo() {
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
 	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
+	get_samstuff .MiSTer_SAM/SAM_Gamelists/n64_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
 	echo " Done."
 }
 
@@ -4522,28 +4534,48 @@ function sam_svc() {
             sed -i '/samvideo_output=/c\samvideo_output="CRT"' /media/fat/Scripts/MiSTer_SAM.ini
             ;;
     esac
-	sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+
+    # Ask if the user wants to keep local copies of videos
+    exec 3>&1
+    keep_local_copy=$(dialog --clear --ascii-lines --no-cancel --backtitle "Super Attract Mode" \
+        --title "[ Local Copy Option ]" \
+        --menu "Do you want to keep local copies of videos? (Make sure you have around 4GB available on SD)" 15 50 2 \
+        "1" "Yes" \
+        "2" "No" \
+        2>&1 1>&3)
+    exec 3>&-
+
+    # Set the keep_local_copy variable in the configuration file
+    if [ "$keep_local_copy" == "1" ]; then
+        sed -i '/keep_local_copy=/c\keep_local_copy="yes"' /media/fat/Scripts/MiSTer_SAM.ini
+    else
+        sed -i '/keep_local_copy=/c\keep_local_copy="no"' /media/fat/Scripts/MiSTer_SAM.ini
+    fi
+
+    # Additional configuration settings
+    sed -i '/samvideo=/c\samvideo="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo_source=/c\samvideo_source="Archive"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo_tvc=/c\samvideo_tvc="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/kids_safe=/c\kids_safe="no"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/coreweight=/c\coreweight="no"' /media/fat/Scripts/MiSTer_SAM.ini
+    sed -i '/coreweight=/c\coreweight="yes"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/sam_goat_list=/c\sam_goat_list="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
 
-    
-
-    kids_safe
-
-    # Check for specific game list for the chosen output device, for example
+    # Check for specific game list for the chosen output device
     if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
         get_samvideo
     fi
+
+    # Final confirmation message
     dialog --clear --ascii-lines --no-cancel \
         --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
-        --msgbox "All set.\n\nIf nothing happens after you press ok, please allow some time for the commercial to download first." 0 0
-
+        --msgbox "All set.\n\nIf nothing happens after you press OK, please allow some time for the commercial to download first." 0 0
 
     # Start the SAM video mode or any other service
+    
     sam_start
 }
+
 
 	
 
