@@ -69,6 +69,7 @@ function init_vars() {
 	declare -gl disablebootrom="no"
 	declare -gl skiptime="10"
 	declare -gl norepeat="Yes"
+	declare -gl disable_blacklist="No"
 	declare -gl disablebootrom="Yes"
 	declare -gl amigaselect="All"
 	declare -gl m82="no"
@@ -1611,7 +1612,7 @@ function check_list() { # args ${nextcore}
 	fi
 	
 	
-	if [ "${sam_goat_list}" == "yes" ] || [ -e /tmp/.SAM_tmp/goat ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+	if [ "${sam_goat_list}" == "yes" ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
 		sam_goat_mode
 		return
 	fi
@@ -2918,7 +2919,7 @@ function filter_list() { # args ${nextcore}
 	fi
  
 	#Check blacklist	
-	if [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
+	if [ "${disable_blacklist}" == "no" ] && [ -f "${gamelistpath}/${1}_blacklist.txt" ]; then
 		# Sometimes fails, can't use --line-buffered in busybox fgrep which would probably fix error. 
 		echo -n "Disabling static screen games for ${1} core..."
 		
@@ -4450,7 +4451,7 @@ sam_goat_mode() {
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
-			--msgbox "SAM will start now and only play games deemed to have the Greatest of All Time Attract Modes.\n\n" 0 0
+			--msgbox "SAM will only play games deemed to have the Greatest of All Time Attract Modes.\n\nPress start now." 0 0
 	fi	
 	samdebug "SAM GOAT mode active"
     local current_core=""
@@ -4466,6 +4467,7 @@ sam_goat_mode() {
 	#Reset gamelists
 	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
 	mkdir -p "${gamelistpathtmp}"
+	mkdir -p /tmp/.SAM_tmp
 
 	# process files
 	
@@ -4487,8 +4489,7 @@ sam_goat_mode() {
 	sed -i '/sam_goat_list=/c\sam_goat_list="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
-		sam_start
-		touch /tmp/.SAM_tmp/goat
+		sam_menu
 	fi
 }
 
@@ -4559,8 +4560,13 @@ function sam_svc() {
     sed -i '/kids_safe=/c\kids_safe="no"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/coreweight=/c\coreweight="yes"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/sam_goat_list=/c\sam_goat_list="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	
+	#reset
 	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
-
+	mkdir -p "${gamelistpathtmp}"
+	mkdir -p /tmp/.SAM_tmp
+	
+	
     # Check for specific game list for the chosen output device
     if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
         get_samvideo
