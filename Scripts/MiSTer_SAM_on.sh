@@ -61,6 +61,7 @@ function init_vars() {
 	declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelisttmp.tmp"
 	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
+	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
 	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,coco2,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx"
@@ -68,7 +69,6 @@ function init_vars() {
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
 	declare -gl skiptime="10"
-	declare -gi core_counts_initialized=0 
 	declare -gl norepeat="Yes"
 	declare -gl disable_blacklist="No"
 	declare -gl disablebootrom="Yes"
@@ -96,7 +96,6 @@ function init_vars() {
 	declare -gl arcadeorient
 	declare -gl checkzipsondisk="Yes"
 	declare -gi bootsleep="60"
-	declare -g ntpserver="0.pool.ntp.org"
 	declare -gi totalgamecount		
 	# ======== DEBUG VARIABLES ========
 	declare -gl samdebug="No"
@@ -1465,35 +1464,52 @@ function pick_core() {
         local -n array=$1
         declare -A core_counts
         total_count=0
-        
+
         samdebug "Starting pick_core with array: ${array[@]}"
-        
-        # Calculate game counts from `_tvc.txt` files only if not already done
-        if [ "$core_counts_initialized" -eq 0 ]; then
-			for core in "${array[@]}"; do
-				tvc_file="${gamelistpath}/${core}_tvc.txt"
-				if [[ -f "$tvc_file" ]]; then
-					count=$(wc -l < "$tvc_file")
-					samdebug "Found ${count} games in ${tvc_file}"
-				else
-					count=1  # Default to 1 if no `_tvc.txt` file exists
-					samdebug "No ${tvc_file} found; defaulting count to 1 for core ${core}"
-				fi
-				core_counts["$core"]=$count
-				((total_count += count))
-			done
-			core_counts_initialized=1
-			samdebug "Total count of games across all cores: $total_count"
+
+        # Load or initialize core counts
+        if [[ -f "$core_count_file" ]]; then
+            samdebug "Loading core counts from $core_count_file"
+            while IFS="=" read -r core count; do
+                if [[ "$core" == "total_count" ]]; then
+                    total_count=$count
+                else
+                    core_counts["$core"]=$count
+                fi
+            done < "$core_count_file"
+        else
+            samdebug "Initializing core counts for the first time"
+            for core in "${array[@]}"; do
+                tvc_file="${gamelistpath}/${core}_tvc.txt"
+                if [[ -f "$tvc_file" ]]; then
+                    count=$(wc -l < "$tvc_file")
+                    samdebug "Found ${count} games in ${tvc_file}"
+                else
+                    count=1
+                    samdebug "No ${tvc_file} found; defaulting count to 1 for core ${core}"
+                fi
+                core_counts["$core"]=$count
+                ((total_count += count))
+            done
+
+            # Save core counts to the file
+            mkdir -p "$(dirname "$core_count_file")"
+            > "$core_count_file"
+            for core in "${!core_counts[@]}"; do
+                echo "$core=${core_counts[$core]}" >> "$core_count_file"
+            done
+            echo "total_count=$total_count" >> "$core_count_file"
+            samdebug "Saved core counts to $core_count_file"
         fi
-        
+
         # Select a random value within the total count range for weighted probability
         pick_value=$(shuf --random-source=/dev/urandom -i 1-"$total_count" -n 1)
-        
+
         # Use cumulative probability to select the core
         cumulative=0
         for core in "${!core_counts[@]}"; do
             cumulative=$((cumulative + core_counts["$core"]))
-            if (( pick_value <= cumulative )); then
+            if ((pick_value <= cumulative)); then
                 nextcore="$core"
                 samdebug "Selected core: $nextcore based on pick value $pick_value"
                 break
@@ -1506,6 +1522,7 @@ function pick_core() {
         samdebug "nextcore empty. Using arcade core as fallback."
         nextcore="arcade"
     fi
+
 			
 	#Core Weight mode
 	if [ "$coreweight" == "yes" ] && [ "$samvideo_tvc" == "no" ]; then
@@ -2361,6 +2378,7 @@ function sam_cleanup() {
 		echo '' > /dev/tty1 
 		echo 'Login:' > /dev/tty1 
 		#misterini_reset
+		rm /tmp/.SAM_tmp/sv_corecount
 	fi
 	samdebug "Cleanup done."
 }
@@ -4550,7 +4568,7 @@ sam_goat_mode() {
 
 function sam_80s() {
 	reset_ini
-	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,n64,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	enablebgm
 	sam_start
