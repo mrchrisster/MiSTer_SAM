@@ -830,9 +830,7 @@ function init_data() {
 		["zupapa"]="Zupapa!"
 	)
 	
-	#TO DO: Upload tallendorf encodes and enable cores
 	declare -glA SV_TVC=(
-		#["fds"]="^nes-\| nes"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
@@ -840,19 +838,19 @@ function init_data() {
 		["nes"]="^nes-\| nes"
 		["snes"]="snes"
 		["n64"]="n64-\|n64"
-		#["atari2600"]="atari vcs"
-		#["atari5200"]="atari 5200"
-		#["atari7800"]="atari 7800"
-		#["atarilynx"]="atari lynx"
+		["atari2600"]="atari vcs"
+		["atari5200"]="atari 5200"
+		["atari7800"]="atari 7800"
+		["atarilynx"]="atari lynx"
 		["saturn"]="sega saturn"
 		["s32x"]="sega 32x"
 		["sgb"]="super game boy\|gb-super game boy\|snes-super game boy"
 		["tgfx16cd"]="turboduo"
 		["tgfx16"]="turboduo\|turbografx-16"
-		#["gg"]="sega game"
-		#["sms"]="sega master"
+		["gg"]="sega game"
+		["sms"]="sega master"
 		["psx"]="psx\|playstation"
-		#["arcade"]="arcade"
+		["arcade"]="arcade"
 	)
 
 
@@ -2377,7 +2375,6 @@ function sam_cleanup() {
 		echo 'Please reboot for proper MiSTer Terminal' > /dev/tty1 
 		echo '' > /dev/tty1 
 		echo 'Login:' > /dev/tty1 
-		#misterini_reset
 		rm /tmp/.SAM_tmp/sv_corecount
 	fi
 	samdebug "Cleanup done."
@@ -2467,11 +2464,6 @@ function env_check() {
 		#Probably offline install
 		if [ -f "${mrsampath}/samindex.zip" ]; then
 			unzip -ojq "${mrsampath}/samindex.zip" -d "${mrsampath}" # &>/dev/null
-			cp "${mrsampath}/inputs/GBA_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
-			cp "${mrsampath}/inputs/NES_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
-			cp "${mrsampath}/inputs/TGFX16_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
-			cp "${mrsampath}/inputs/SATURN_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
-			cp "${mrsampath}/inputs/MegaCD_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
 		else
 			echo " SAM required files not found."
 			echo " Installing now."
@@ -2479,7 +2471,18 @@ function env_check() {
 			echo " Setup complete."
 		fi
 	fi
-
+	#Probably offline or update_all install
+	if [ ! -f "/media/fat/Config/inputs/GBA_input_1234_5678_v3.map" ]; then
+		if [ -f "${mrsampath}/inputs/GBA_input_1234_5678_v3.map" ]; then
+			cp "${mrsampath}/inputs/GBA_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/NES_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/TGFX16_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/SATURN_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/MegaCD_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+		else
+			get_inputmap
+		fi		
+	fi
 }
 
 function resetini() {
@@ -3163,121 +3166,86 @@ function write_to_TTY_cmd_pipe() {
 
 
 function misterini_mod() {
-	samdebug "samvideo_output: $samvideo_output"
-	samdebug "samvideo_source: $samvideo_source"
-	echo "WARNING: For samvideo playback to work, we need to modify /media/fat/MiSTer.ini"
-	#echo "This will be reset when SAM quits. If it doesn't reset, please delete the last two lines from the ini manually."
-	#echo "We will also blank out the terminal, please restart to reset"
-	#if [ -f "$ini_file" ]; then
-	#	cp "$ini_file" "${ini_file}".sam
-	#else
-	#	touch "$ini_file"
-	#fi
+    echo "Checking and modifying /media/fat/MiSTer.ini for samvideo playback."
 
-	fb_terminal="1"
-	vga_scaler="1"
-	if [ "$samvideo_output" == "hdmi" ]; then
-		if [ "${samvideo_source}" == "youtube" ]; then
-			ini_res="640x360"
-		else
-			ini_res="640x480"
-		fi
-		res_comma=$(echo "$ini_res" | tr 'x' ',')
-		if [ "${sv_aspectfix_vmode}" == "yes" ]; then
-			video_mode="${res_comma},60"
-		else
-			# Setting video mode to FullHD seems to work for most HDMI displays
-			video_mode="8"
-		fi
+    # Define desired settings
+    fb_terminal="1"
+    vga_scaler="1"
+    if [ "$samvideo_output" == "hdmi" ]; then
+        if [ "$samvideo_source" == "youtube" ]; then
+            ini_res="640x360"
+        else
+            ini_res="640x480"
+        fi
+        res_comma=$(echo "$ini_res" | tr 'x' ',')
+        if [ "${sv_aspectfix_vmode}" == "yes" ]; then
+            video_mode="${res_comma},60"
+        else
+            video_mode="8"
+        fi
+    elif [ "$samvideo_output" == "crt" ]; then
+        if [ "$samvideo_source" == "youtube" ]; then
+            samvideo_crtmode="${samvideo_crtmode320}"
+        elif [ "$samvideo_source" == "archive" ]; then
+            samvideo_crtmode="${samvideo_crtmode640}"
+        fi
+        video_mode="$(echo $samvideo_crtmode | awk -F'=' '{print $2}')"
+    else
+        echo "Unknown video output mode: $samvideo_output"
+        return 1
+    fi
 
-		fb_size=1
+    temp_file=$(mktemp)
+    modified=0
 
-		# Use sed to modify the INI file
-		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-			echo "[menu] entry found in MiSTer.ini"
-			if ! grep -qE "video_mode=${video_mode}" "$ini_file"; then
-			  echo "Setting video_mode to ${video_mode}"
-				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
-				[ "$(tail -c 1 "$ini_file")" != "" ] && echo "" >> "$ini_file"
-			  sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
-				s/^video_mode[[:space:]]*=.*/video_mode=${video_mode}/
-				s/^fb_terminal[[:space:]]*=.*/fb_terminal=${fb_terminal}/
-				s/^vga_scaler[[:space:]]*=.*/vga_scaler=${fb_size}/
-				t
-				/^(\[|\[[:alnum:]]+[^menu])$/! {
-				  /^(\[|\[[:alnum:]]+[^menu])/a\
-			video_mode=${video_mode}\
-			fb_terminal=${fb_terminal}\
-			vga_scaler=${fb_size}
-				}
-			  }" "$ini_file"
-			else
-				echo "No MiSTer.ini modification necessary"
-			fi
-		else
-		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
-		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nfb_size=${fb_size}\n" >> "$ini_file"
-		fi
-		
+    # Extract the last [menu] section
+    last_menu=$(awk '
+        BEGIN { inside_menu = 0; output = "" }
+        /^\[menu\]/i { inside_menu = 1; output = ""; next }
+        /^\[.*\]/ { inside_menu = 0 }
+        inside_menu { output = output $0 "\n" }
+        END { print output }
+    ' "$ini_file")
 
-	#CRT mode	
-	elif [ "$samvideo_output" == "crt" ]; then
-		if [ "$samvideo_source" == "youtube" ]; then
-			echo "Youtube and CRT: Setting CRT out to 320x240"
-			samvideo_crtmode="${samvideo_crtmode320}"
-		elif [ "$samvideo_source" == "archive" ]; then
-			echo "Archive and CRT: Setting CRT out to 640x240"
-			samvideo_crtmode="${samvideo_crtmode640}"
-		fi
-		
-		video_mode="$(echo $samvideo_crtmode |awk -F'=' '{print $2}')"
-		
-		# Use sed to modify the INI file 
-		if grep -qE "^\[menu\]|^\[Menu\]" "$ini_file"; then
-			echo "[menu] entry found in MiSTer.ini"
-			if ! grep -qE "${video_mode}" "$ini_file"; then
-			  echo "Setting video_mode to ${video_mode}"
-				[ "$(tail -c 1 "$ini_file")" != "" ] && echo "" >> "$ini_file"
-				# Modify the video_mode, fb_terminal, and vga_scaler settings within the [menu] section
-				sed -i -E "/^\[menu\]|^\[Menu\]/,/^(\[|$)/ {
-					/^video_mode[[:space:]]*=/! { 
-						/^(\[|\[[:alnum:]]+[^menu])$/! {
-							/^(\[|\[[:alnum:]]+[^menu])/a\
-				video_mode=${video_mode}
-						}
-					}
-					/^fb_terminal[[:space:]]*=/! { 
-						/^(\[|\[[:alnum:]]+[^menu])$/! {
-							/^(\[|\[[:alnum:]]+[^menu])/a\
-				fb_terminal=${fb_terminal}
-						}
-					}
-					/^vga_scaler[[:space:]]*=/! { 
-						/^(\[|\[[:alnum:]]+[^menu])$/! {
-							/^(\[|\[[:alnum:]]+[^menu])/a\
-				vga_scaler=${vga_scaler}
-						}
-					}
-					/^\[.*\]/! {
-						/^\s*$/d
-					}
-				}" "$ini_file"
-			else
-				echo "No MiSTer.ini modification necessary"
-			fi
-		else
-		  # Create the [menu] section and add the video_mode, fb_terminal, and vga_scaler settings
-		  echo -e "[menu]\nvideo_mode=${video_mode}\nfb_terminal=${fb_terminal}\nvga_scaler=${vga_scaler}\n" >> "$ini_file"
-		fi
+    # Check if the last [menu] section has all required keys
+    declare -A required_keys
+    required_keys["video_mode"]="$video_mode"
+    required_keys["fb_terminal"]="$fb_terminal"
+    required_keys["vga_scaler"]="$vga_scaler"
 
-	fi
-	
-	
+    for key in "${!required_keys[@]}"; do
+        if ! echo "$last_menu" | grep -qE "^$key=${required_keys[$key]}$"; then
+            echo "Missing or incorrect value for $key in [menu]."
+            modified=1
+            break
+        fi
+    done
+
+    # Modify the file only if corrections are required
+    if [ $modified -eq 1 ]; then
+        # Remove all [menu] sections
+        awk '
+            BEGIN { inside_menu = 0 }
+            /^\[menu\]/i { inside_menu = 1; next }
+            /^\[.*\]/ { inside_menu = 0 }
+            inside_menu == 0 { print }
+        ' "$ini_file" > "$temp_file"
+
+        # Append the correct [menu] section at the bottom
+        echo -e "\n[menu]" >> "$temp_file"
+        for key in "${!required_keys[@]}"; do
+            echo "$key=${required_keys[$key]}" >> "$temp_file"
+        done
+
+        # Overwrite the original file
+        mv "$temp_file" "$ini_file"
+        echo "MiSTer.ini modified successfully."
+    else
+        rm "$temp_file"
+        echo "No changes needed for MiSTer.ini."
+    fi
 }
 
-function misterini_reset() {
-	cp "${ini_file}".sam "$ini_file" &>/dev/null
-}
 
 function dl_video() {
 	rm -f "$tmpvideo"
@@ -3578,6 +3546,45 @@ function curl_download() { # curl_download ${filepath} ${URL}
 		"${2}"
 }
 
+
+function check_and_update() {
+    local url="$1"
+    local tmp_file="$2"
+    local local_file="$3"
+    local description="$4"
+
+    # Fetch the remote file size (follow redirects)
+    remote_size=$(curl -sI --location --insecure "$url" | awk '/^Content-Length:/ {size=$2} END {print size}' | tr -d '\r')
+    if [ -z "$remote_size" ]; then
+        echo "Error: Unable to determine the size of $description at $url" >&2
+        return 1
+    fi
+
+    # Get the local file size, if it exists
+    if [ -f "$local_file" ]; then
+        local_size=$(stat --format="%s" "$local_file")
+    else
+        local_size=0
+    fi
+
+    # Debugging output
+    samdebug "Remote size: $remote_size"
+    samdebug "Local size: $local_size"
+
+    # Compare sizes and update if needed
+    if [ "$remote_size" -eq "$local_size" ]; then
+        echo "$description is up-to-date. No update required."
+        return 0  # File is up-to-date
+    else
+        echo "Sizes differ. Updating $description..."
+        curl_download "$tmp_file" "$url" || return 1  # Download failed
+        echo "$description updated successfully."
+        return 2  # File was updated
+    fi
+}
+
+
+
 function get_samstuff() { #get_samstuff file (path)
 	
 	if [ -z "${1}" ]; then
@@ -3604,105 +3611,203 @@ function get_samstuff() { #get_samstuff file (path)
 }
 
 function get_partun() {
-	REPOSITORY_URL="https://github.com/woelper/partun"
-	echo " Downloading partun - needed for unzipping roms from big archives..."
-	echo " Created for MiSTer by woelper - Talk to him at this year's PartunCon"
-	echo " ${REPOSITORY_URL}"
-	latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
-	curl_download "/tmp/partun" "${latest}"
-	mv --force "/tmp/partun" "${mrsampath}/partun"
-	echo " Done."
+    REPOSITORY_URL="https://github.com/woelper/partun"
+    echo "Downloading partun - needed for unzipping roms from big archives..."
+    echo "Created for MiSTer by woelper - Talk to him at this year's PartunCon"
+    echo "${REPOSITORY_URL}"
+
+    # Fetch the latest download URL for partun
+    latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
+    if [ -z "$latest" ]; then
+        echo "Error: Unable to fetch the latest release URL for partun" >&2
+        return 1
+    fi
+
+    # Define paths
+    tmp_file="/tmp/partun"
+    local_file="${mrsampath}/partun"
+
+    # Check and update partun
+    check_and_update "$latest" "$tmp_file" "$local_file" "partun"
+    result=$?
+
+    if [ "$result" -eq 2 ]; then
+        echo "Moving new partun binary..."
+        mv --force "$tmp_file" "$local_file" 
+        echo "partun updated successfully."
+    fi
 }
+
+
+
 
 function get_samindex() {
-	echo " Downloading samindex - needed for creating gamelists..."
-	echo " Created for MiSTer by wizzo"
-	echo " https://github.com/wizzomafizzo/mrext"
-	latest="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
-	curl_download "/tmp/samindex.zip" "${latest}"
-	unzip -ojq /tmp/samindex.zip -d "${mrsampath}" # &>/dev/null
-	echo " Done."
+    echo "Downloading samindex - needed for creating gamelists..."
+    echo "Created for MiSTer by wizzo"
+    echo "https://github.com/wizzomafizzo/mrext"
+
+    # Define URLs and file paths
+    latest_url="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
+    tmp_file="/tmp/samindex.zip"
+    local_file="${mrsampath}/samindex.zip"
+
+    # Check and update samindex.zip
+    check_and_update "$latest_url" "$tmp_file" "$local_file" "samindex"
+
+    # Extract only if the file is new
+	result=$?
+	if [ "$result" -eq 2 ] || [ ! -f "${mrsampath}/samindex" ]; then
+        echo "Extracting samindex..."
+        unzip -ojq "$local_file" -d "${mrsampath}" || {
+            echo "Error: Failed to extract samindex.zip" >&2
+            return 1
+        }
+        echo "samindex updated and extracted successfully."
+    fi
 }
+
 
 function get_samvideo() {
-	echo " Downloading wizzo's mplayer for SAM..."
-	echo " Created for MiSTer by wizzo"
-	echo " https://github.com/wizzomafizzo/mrext"
-	latest="${repository_url}/blob/${branch}/.MiSTer_SAM/mplayer.zip?raw=true"
-	curl_download "/tmp/mplayer.zip" "${latest}"
-	unzip -ojq /tmp/mplayer.zip -d "${mrsampath}" # &>/dev/null
-	curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
-	get_samstuff .MiSTer_SAM/sv_yt360_list.txt ${mrsampath} >/dev/null
-	get_samstuff .MiSTer_SAM/sv_yt240_list.txt ${mrsampath} >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/n64_tvc.txt ${mrsampath}/SAM_Gamelists >/dev/null	
-	echo " Done."
+    echo "Checking and updating components for SAM video playback..."
+    echo "Created for MiSTer by wizzo"
+    echo "https://github.com/wizzomafizzo/mrext"
+
+    # Define URLs and file paths
+    latest_mplayer="${repository_url}/blob/${branch}/.MiSTer_SAM/mplayer.zip?raw=true"
+    tmp_mplayer="/tmp/mplayer.zip"
+    local_mplayer="${mrsampath}/mplayer.zip"
+
+    latest_ytdl="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
+    tmp_ytdl="/tmp/yt-dlp"
+    local_ytdl="${mrsampath}/ytdl"
+
+    # Check and update mplayer
+    check_and_update "$latest_mplayer" "$tmp_mplayer" "$local_mplayer" "mplayer" 
+	result=$?
+	if [ "$result" -eq 2 ] || [ ! -f "${mrsampath}/mplayer" ]; then
+        echo "Extracting mplayer..."
+        unzip -ojq "$local_mplayer" -d "${mrsampath}" || {
+            echo "Error: Failed to extract mplayer.zip" >&2
+            return 1
+        }
+        echo "mplayer updated and extracted successfully."
+    fi
+
+    # Check and update yt-dlp
+    check_and_update "$latest_ytdl" "$tmp_ytdl" "$local_ytdl" "yt-dlp" 
+	if [ ! -f "$local_ytdl" ]; then
+	    echo "Moving new partun binary..."
+		mv --force "$tmp_ytdl" "$local_ytdl"
+	fi
+
+    # Check and update SAM gamelists
+    echo "Checking and updating SAM gamelists..."
+    for key in "${!SV_TVC[@]}"; do
+        file=".MiSTer_SAM/SAM_Gamelists/${key}_tvc.txt"
+        local_file="${mrsampath}/SAM_Gamelists/${key}_tvc.txt"
+        tmp_file="/tmp/${key}_tvc.txt"
+        remote_url="${repository_url}/blob/${branch}/${file}?raw=true"
+
+        check_and_update "$remote_url" "$tmp_file" "$local_file" "${key}_tvc gamelist" 
+    done
+
+    echo "Done."
 }
+
+
 
 function get_mbc() {
-	echo " Downloading mbc - Control MiSTer from cmd..."
-	echo " Created for MiSTer by pocomane"
-	get_samstuff .MiSTer_SAM/mbc
+    echo "Downloading mbc - Control MiSTer from cmd..."
+    echo "Created for MiSTer by pocomane"
+    remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/mbc?raw=true"
+    tmp_file="/tmp/mbc"
+    local_file="${mrsampath}/mbc"
+
+    check_and_update "$remote_url" "$tmp_file" "$local_file" "mbc"
 }
+
 
 function get_inputmap() {
-	echo -n " Downloading input maps - needed to skip past BIOS for some systems..."
-	[ ! -d "/media/fat/Config/inputs" ] && mkdir -p "/media/fat/Config/inputs"
-	get_samstuff .MiSTer_SAM/inputs/GBA_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .MiSTer_SAM/inputs/MegaCD_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .MiSTer_SAM/inputs/NES_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .MiSTer_SAM/inputs/TGFX16_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	get_samstuff .MiSTer_SAM/inputs/SATURN_input_1234_5678_v3.map /media/fat/Config/inputs >/dev/null
-	echo " Done."
+    echo "Downloading input maps - needed to skip past BIOS for some systems..."
+    [ ! -d "/media/fat/Config/inputs" ] && mkdir -p "/media/fat/Config/inputs"
+
+    for input_file in \
+        "GBA_input_1234_5678_v3.map" \
+        "MegaCD_input_1234_5678_v3.map" \
+        "NES_input_1234_5678_v3.map" \
+        "TGFX16_input_1234_5678_v3.map" \
+        "SATURN_input_1234_5678_v3.map"; do
+        remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/$input_file?raw=true"
+        tmp_file="/tmp/$input_file"
+        local_file="/media/fat/Config/inputs/$input_file"
+
+        check_and_update "$remote_url" "$tmp_file" "$local_file" "$input_file"
+    done
+    echo "Input maps updated."
 }
+
 
 function get_blacklist() {
-	echo -n " Downloading blacklist files - SAM can auto-detect games with static screens and filter them out..."
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/amiga_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/arcade_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/fds_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/gba_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/genesis_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/megacd_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/n64_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/nes_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/neogeo_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/psx_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/s32x_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/sms_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/snes_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/tgfx16cd_blacklist.txt ${mrsampath}/SAM_Gamelists >/dev/null
-	echo " Done."
+    echo "Downloading blacklist files - SAM can auto-detect games with static screens and filter them out..."
+
+    for blacklist_file in \
+        "amiga_blacklist.txt" \
+        "arcade_blacklist.txt" \
+        "fds_blacklist.txt" \
+        "gba_blacklist.txt" \
+        "genesis_blacklist.txt" \
+        "megacd_blacklist.txt" \
+        "n64_blacklist.txt" \
+        "nes_blacklist.txt" \
+        "neogeo_blacklist.txt" \
+        "psx_blacklist.txt" \
+        "s32x_blacklist.txt" \
+        "sms_blacklist.txt" \
+        "snes_blacklist.txt" \
+        "tgfx16_blacklist.txt" \
+        "tgfx16cd_blacklist.txt"; do
+        remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/SAM_Gamelists/$blacklist_file?raw=true"
+        tmp_file="/tmp/$blacklist_file"
+        local_file="${mrsampath}/SAM_Gamelists/$blacklist_file"
+
+        check_and_update "$remote_url" "$tmp_file" "$local_file" "$blacklist_file"
+    done
+    echo "Blacklist files updated."
 }
 
+
 function get_ratedlist() {
-	if [ "${kids_safe}" == "yes" ]; then 
-		echo -n " Downloading lists with kids friendly games..."
-		get_samstuff .MiSTer_SAM/SAM_Rated/arcade_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/amiga_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/ao486_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/fds_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/gb_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/gbc_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/gba_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/gg_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/genesis_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/megacd_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/nes_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/neogeo_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/psx_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/sms_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/snes_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		get_samstuff .MiSTer_SAM/SAM_Rated/tgfx16cd_rated.txt ${mrsampath}/SAM_Rated >/dev/null
-		echo " Done."
-	fi
+    if [ "${kids_safe}" == "yes" ]; then
+        echo "Downloading lists with kids-friendly games..."
+
+        for rated_file in \
+            "arcade_rated.txt" \
+            "amiga_rated.txt" \
+            "ao486_rated.txt" \
+            "fds_rated.txt" \
+            "gb_rated.txt" \
+            "gbc_rated.txt" \
+            "gba_rated.txt" \
+            "gg_rated.txt" \
+            "genesis_rated.txt" \
+            "megacd_rated.txt" \
+            "nes_rated.txt" \
+            "neogeo_rated.txt" \
+            "psx_rated.txt" \
+            "sms_rated.txt" \
+            "snes_rated.txt" \
+            "tgfx16_rated.txt" \
+            "tgfx16cd_rated.txt"; do
+            remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/SAM_Rated/$rated_file?raw=true"
+            tmp_file="/tmp/$rated_file"
+            local_file="${mrsampath}/SAM_Rated/$rated_file"
+
+            check_and_update "$remote_url" "$tmp_file" "$local_file" "$rated_file"
+        done
+        echo "Rated lists updated."
+    fi
 }
+
 
 get_dlmanager() {
 
