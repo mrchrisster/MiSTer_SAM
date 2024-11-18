@@ -3260,140 +3260,94 @@ function dl_video() {
 	fi
 }
 
-function sv_yt360() {
-	samvideo_list="/tmp/.SAM_List/samvideo_list.txt"
-	declare -g yt360=""
-	if [ ! -s ${samvideo_list} ]; then
-		cp "${sv_youtube_hdmilist}" "${samvideo_list}"
-	fi
-	echo "Please wait... downloading file"
-	declare -g url="$(shuf -n1 ${samvideo_list})"
-	#declare -g yt360=$("${mrsampath}/ytdl" --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only")
-	url=""
+function sv_yt_download() {
+    local resolution="$1" # Resolution (360 or 240)
+    local list_file="$2"  
 
-	while [ -z "$url" ]; do
-		url=$(shuf -n1 ${samvideo_list})
-		"${mrsampath}/ytdl" --format "best[height=360][ext=mp4]" --no-continue -o /tmp/"%(title)s (YT).mp4" "$url"
-		exit_code=$?
+    samvideo_list="/tmp/.SAM_List/samvideo_list.txt"
+    local format="best[height=${resolution}][ext=mp4]"
 
-		if [ $exit_code -eq 0 ]; then
-			echo "Download successful!"
-			sv_selected="$(ls /tmp | grep "(YT)")"
-			mv /tmp/"${sv_selected}" "${tmpvideo}"
-			break  # Exit the loop if the download was successful
-		else
-			echo "Invalid URL or download error. Retrying with another URL..."
-			awk -vLine="$url" '!index($0,Line)' "${sv_youtube_hdmilist}" >${tmpfile} && cp -f ${tmpfile} "${sv_youtube_hdmilist}"
-			cp "${sv_youtube_hdmilist}" "${samvideo_list}"
-			url=""  # Clear the URL variable to repeat the loop
-		fi
-	done
-	res="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
-	awk -vLine="$url" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
+    # Ensure the samvideo_list is populated
+    if [ ! -s "${samvideo_list}" ]; then
+        cp "${list_file}" "${samvideo_list}"
+    fi
 
-	#"${mrsampath}"/ytdl -f $ytid --no-continue -o "$tmpvideo" "$url"
-	#declare -g ytid="$(echo "$yt360" | awk '{print $1}')"
-	#declare -g ytres="$(echo "$yt360" | awk '{print $3}')"
-	#res_comma=$(echo "$ytres" | tr 'x' ',')
-	res_space=$(echo "$res" | tr 'x' ' ')
+    echo "Please wait... downloading file"
+    local url=""
+    while [ -z "$url" ]; do
+        url=$(shuf -n1 ${samvideo_list})
+        "${mrsampath}/ytdl" --format "${format}" --no-continue -o "/tmp/%(title)s (YT).mp4" "$url"
+        exit_code=$?
 
-}
+        if [ $exit_code -eq 0 ]; then
+            echo "Download successful!"
+            sv_selected=$(ls /tmp | grep "(YT)")
+            mv "/tmp/${sv_selected}" "${tmpvideo}"
+            break
+        else
+            echo "Invalid URL or download error. Retrying with another URL..."
+            awk -v Line="$url" '!index($0, Line)' "${list_file}" >${tmpfile} && cp -f ${tmpfile} "${list_file}"
+            cp "${list_file}" "${samvideo_list}"
+            url=""
+        fi
+    done
 
-function sv_yt240() {
-	samvideo_list="/tmp/.SAM_List/samvideo_list.txt"
-	declare -g yt240=""
-	if [ ! -s ${samvideo_list} ]; then
-		cp "${sv_youtube_crtlist}" "${samvideo_list}"
-	fi
-	echo "Please wait... downloading file"
-	declare -g url="$(shuf -n1 ${samvideo_list})"
-	#declare -g yt360=$("${mrsampath}/ytdl" --list-formats "$url" | grep 360p | grep mp4 | grep -v "video only")
-	url=""
+    # Update samvideo_list to remove the processed URL
+    awk -v Line="$url" '!index($0, Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
 
-	while [ -z "$url" ]; do
-		url=$(shuf -n1 ${samvideo_list})
-		"${mrsampath}/ytdl" --format "best[height=240][ext=mp4]" --no-continue -o /tmp/"%(title)s (YT).mp4" "$url"
-		exit_code=$?
-
-		if [ $exit_code -eq 0 ]; then
-			echo "Download successful!"
-			sv_selected="$(ls /tmp | grep "(YT)")"
-			mv /tmp/"${sv_selected}" "${tmpvideo}"
-			break  # Exit the loop if the download was successful
-		else
-			echo "Invalid URL or download error. Retrying with another URL..."
-			awk -vLine="$url" '!index($0,Line)' "${sv_youtube_crtlist}" >${tmpfile} && cp -f ${tmpfile} "${sv_youtube_crtlist}"
-			cp "${sv_youtube_crtlist}" "${samvideo_list}"
-			url=""  # Clear the URL variable to repeat the loop
-		fi
-	done
-	awk -vLine="$url" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
-	res_space="640 240"
-}
-
-function sv_ar480() {
-	#Select random video from list samvideo_list
-	samvideo_list="/tmp/.SAM_List/sv_archive_hdmilist.txt"
-	http_archive=${sv_archive_hdmilist//https/http}
-	if [ ! -s ${samvideo_list} ]; then
-		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
-			| sed 's/<file name="//;s/"$//' \
-			| sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
-			> ${samvideo_list}
-	fi
-	# Select a video
-	if [ "$samvideo_tvc" == "yes" ]; then
-		samvideo_tvc
-	else
-		sv_selected="$(shuf -n1 ${samvideo_list})"
-	fi
-	sv_selected_url="${http_archive%/*}/${sv_selected}"
-	tmpvideo="/tmp/SAMvideo.avi"
-	samdebug "Checking if file is available locally...${samvideo_path}/${sv_selected}"
-	local local_svfile="${samvideo_path}/${sv_selected}"
-    if [ -f "$local_svfile" ]; then
-        echo "Local file exists: $local_svfile"
-		cp "$local_svfile" "$tmpvideo"
+    # Set resolution-specific variables
+    if [ "$resolution" -eq 360 ]; then
+        res="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
+        res_space=$(echo "$res" | tr 'x' ' ')
     else
-		echo "Preloading ${sv_selected} from archive.org for smooth playback"
-		dl_video "${sv_selected_url}"
+        res_space="640 240"
     fi
-	awk -vLine="$sv_selected" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
-	res_space="640 480"
 }
 
-function sv_ar240() {
-	samvideo_list="/tmp/.SAM_List/sv_archive_crtlist.txt"
-	http_archive=${sv_archive_crtlist//https/http}
-	if [ ! -s ${samvideo_list} ]; then
-		curl_download /tmp/SAMvideos.xml  "${http_archive}"
-		grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
-			| sed 's/<file name="//;s/"$//' \
-			| sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
-			> ${samvideo_list}
+function sv_ar_download() {
+    local resolution="$1"   # Resolution, e.g., 480 or 240
+    local list_file="$2"    # Associated list file, e.g., sv_archive_hdmilist or sv_archive_crtlist
+
+    samvideo_list="/tmp/.SAM_List/${list_file}"
+    local http_archive="${list_file//https/http}"
+
+    # Populate the samvideo_list if it's empty
+    if [ ! -s "${samvideo_list}" ]; then
+        curl_download /tmp/SAMvideos.xml "${http_archive}"
+        grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
+            | sed 's/<file name="//;s/"$//' \
+            | sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
+            > "${samvideo_list}"
     fi
-	# Select a video
-	if [ "$samvideo_tvc" == "yes" ]; then
-		samvideo_tvc
-	else
-		sv_selected="$(shuf -n1 ${samvideo_list})"
-	fi
-	sv_selected_url="${http_archive%/*}/${sv_selected}"
-	tmpvideo="/tmp/SAMvideo.avi"
-	samdebug "Checking if file is available locally...${samvideo_path}/${sv_selected}"
-	local local_svfile="${samvideo_path}/${sv_selected}"
+
+    # Select a video
+    if [ "$samvideo_tvc" == "yes" ]; then
+        samvideo_tvc
+    else
+        sv_selected="$(shuf -n1 "${samvideo_list}")"
+    fi
+    sv_selected_url="${http_archive%/*}/${sv_selected}"
+    tmpvideo="/tmp/SAMvideo.avi"
+    samdebug "Checking if file is available locally...${samvideo_path}/${sv_selected}"
+    local local_svfile="${samvideo_path}/${sv_selected}"
 
     if [ -f "$local_svfile" ]; then
         echo "Local file exists: $local_svfile"
-		cp "$local_svfile" "$tmpvideo"
+        cp "$local_svfile" "$tmpvideo"
     else
-		echo "Preloading ${sv_selected} from archive.org for smooth playback"
-		dl_video "${sv_selected_url}"
+        echo "Preloading ${sv_selected} from archive.org for smooth playback"
+        dl_video "${sv_selected_url}"
     fi
 
-	awk -vLine="$sv_selected" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
-	res_space="640 240"
+    # Update samvideo_list to remove the processed file
+    awk -vLine="$sv_selected" '!index($0,Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
+
+    # Set resolution-specific variables
+    if [ "$resolution" -eq 480 ]; then
+        res_space="640 480"
+    else
+        res_space="640 240"
+    fi
 }
 
 function sv_local() {
@@ -3458,13 +3412,13 @@ function samvideo_tvc() {
 ## Play video
 function samvideo_play() {
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
-		sv_yt360
+		sv_yt_download 360 "${sv_youtube_hdmilist}"
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
-		sv_yt240
+		sv_yt_download 240 "${sv_youtube_crtlist}"
 	elif [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "hdmi" ]; then
-		sv_ar480
+		sv_ar_download 480 "${sv_archive_hdmilist}"
 	elif [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "crt" ]; then
-		sv_ar240
+		sv_ar_download 240 "${sv_archive_crtlist}"
 	elif [ "${samvideo_source}" == "local" ]; then
 		sv_local
 	fi
@@ -3724,6 +3678,11 @@ function get_mbc() {
     local_file="${mrsampath}/mbc"
 
     check_and_update "$remote_url" "$tmp_file" "$local_file" "mbc"
+	if [ ! -f "$local_file" ]; then
+	    echo "Moving new partun binary..."
+		mv --force "$tmp_file" "$local_file"
+	fi
+	
 }
 
 
