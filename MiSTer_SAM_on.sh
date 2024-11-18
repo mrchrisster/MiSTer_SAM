@@ -3264,7 +3264,7 @@ function sv_yt_download() {
     local resolution="$1" # Resolution (360 or 240)
     local list_file="$2"  
 
-    samvideo_list="/tmp/.SAM_List/samvideo_list.txt"
+    samvideo_list="/tmp/.SAM_List/sv_youtube_list.txt"
     local format="best[height=${resolution}][ext=mp4]"
 
     # Ensure the samvideo_list is populated
@@ -3308,7 +3308,7 @@ function sv_ar_download() {
     local resolution="$1"   # Resolution, 480 or 240
     local list_file="$2"    # Associated list file, sv_archive_hdmilist or sv_archive_crtlist
 
-    samvideo_list="/tmp/.SAM_List/${list_file}"
+    samvideo_list="/tmp/.SAM_List/sv_archive_list.txt"
     local http_archive="${list_file//https/http}"
 
     # Populate the samvideo_list if it's empty
@@ -3320,13 +3320,26 @@ function sv_ar_download() {
             > "${samvideo_list}"
     fi
 
-    # Select a video
-    if [ "$samvideo_tvc" == "yes" ]; then
-        samvideo_tvc
-    else
-        sv_selected="$(shuf -n1 "${samvideo_list}")"
-    fi
-    sv_selected_url="${http_archive%/*}/${sv_selected}"
+    # Select a video and check availability
+    while true; do
+        if [ "$samvideo_tvc" == "yes" ]; then
+            samvideo_tvc
+        else
+            sv_selected="$(shuf -n1 "${samvideo_list}")"
+        fi
+        sv_selected_url="${http_archive%/*}/${sv_selected}"
+
+        # Check if the URL is available using wget
+        echo "Checking availability of ${sv_selected_url}..."
+        if wget --spider --quiet "${sv_selected_url}"; then
+            echo "URL is available: ${sv_selected_url}"
+            break
+        else
+            echo "URL is not available: ${sv_selected_url}. Removing from list and selecting another."
+            awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+        fi
+    done
+
     tmpvideo="/tmp/SAMvideo.avi"
     samdebug "Checking if file is available locally...${samvideo_path}/${sv_selected}"
     local local_svfile="${samvideo_path}/${sv_selected}"
@@ -3338,7 +3351,7 @@ function sv_ar_download() {
         echo "Preloading ${sv_selected} from archive.org for smooth playback"
         dl_video "${sv_selected_url}"
     fi
-
+echo "samvideo_list ${samvideo_list}"
     # Update samvideo_list to remove the processed file
     awk -vLine="$sv_selected" '!index($0,Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
 
@@ -3349,6 +3362,8 @@ function sv_ar_download() {
         res_space="640 240"
     fi
 }
+
+
 
 function sv_local() {
 	samvideo_list="/tmp/.SAM_List/sv_local_list.txt"
@@ -3365,57 +3380,48 @@ function sv_local() {
 }
 
 function samvideo_tvc() {
-    if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
-        get_samvideo
-    fi
+	if [ ! -f "${gamelistpath}"/nes_tvc.txt ]; then
+		get_samvideo
+	fi
+	#Setting corelist to available commercials
+	unset TVC_LIST
+	unset SV_TVC_CL
+	for g in "${!SV_TVC[@]}"; do 
+		for c in "${corelist[@]}"; do 
+			if [[ "$c" == "$g" ]]; then 
+				SV_TVC_CL+=("$c")
+			fi
+		done 
+	done
+	samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
+	pick_core SV_TVC_CL
+	samdebug "nextcore = $nextcore"
+	#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+	count=0
+	while [ $count -lt 15 ]; do
+		if [ -f "${gamelistpath}"/${nextcore}_tvc.txt ]; then
+			samdebug "${nextcore}_tvc.txt found."
+			sv_selected=$(jq -r 'keys[]' "${gamelistpath}"/${nextcore}_tvc.txt | shuf -n 1)
+			tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "${gamelistpath}/${nextcore}_tvc.txt")					
+			echo "${tvc_selected}"> /tmp/.SAM_tmp/sv_gamename
+			break
+		else
+			# If file is not found, select a new core randomly
+			#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
+			pick_core SV_TVC_CL
+			samdebug "${nextcore}_tvc.txt not found, selecting new core."
+		fi
 
-    # Setting corelist to available commercials
-    unset TVC_LIST
-    unset SV_TVC_CL
-    for g in "${!SV_TVC[@]}"; do 
-        for c in "${corelist[@]}"; do 
-            if [[ "$c" == "$g" ]]; then 
-                SV_TVC_CL+=("$c")
-            fi
-        done 
-    done
-    samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
-    pick_core SV_TVC_CL
-    samdebug "nextcore = $nextcore"
+		((count++))
 
-    count=0
-    while [ $count -lt 15 ]; do
-        if [ -f "${gamelistpath}/${nextcore}_tvc.txt" ]; then
-            samdebug "${nextcore}_tvc.txt found."
-            sv_selected=$(jq -r 'keys[]' "${gamelistpath}/${nextcore}_tvc.txt" | shuf -n 1)
-            tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "${gamelistpath}/${nextcore}_tvc.txt")
-
-            # Check if the URL is available
-            echo "Checking availability of ${tvc_selected}..."
-            if curl --head --silent --fail "${tvc_selected}" > /dev/null; then
-                echo "${tvc_selected}" > /tmp/.SAM_tmp/sv_gamename
-                samdebug "URL is available: ${tvc_selected}"
-                break
-            else
-                samdebug "URL is not available: ${tvc_selected}. Retrying..."
-                tvc_selected=""
-            fi
-        else
-            # If file is not found, select a new core randomly
-            pick_core SV_TVC_CL
-            samdebug "${nextcore}_tvc.txt not found, selecting new core."
-        fi
-
-        ((count++))
-    done
-
-    echo $nextcore > /tmp/.SAM_tmp/sv_core
-    samdebug "Searching for ${SV_TVC[$nextcore]}"
-    if [ -z "${tvc_selected}" ]; then
-        echo "Couldn't find TVC list. Selecting random game from system"
-        sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
-    fi
-    samdebug "Picked $sv_selected"
+	done
+	echo $nextcore > /tmp/.SAM_tmp/sv_core
+	samdebug "Searching for ${SV_TVC[$nextcore]}"
+	if [ -z "${tvc_selected}" ]; then
+		echo "Couldn't find TVC list. Selecting random game from system"
+		sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
+	fi
+	samdebug "Picked $sv_selected"
 }
 
 
