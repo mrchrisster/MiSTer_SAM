@@ -3305,8 +3305,8 @@ function sv_yt_download() {
 }
 
 function sv_ar_download() {
-    local resolution="$1"   # Resolution, e.g., 480 or 240
-    local list_file="$2"    # Associated list file, e.g., sv_archive_hdmilist or sv_archive_crtlist
+    local resolution="$1"   # Resolution, 480 or 240
+    local list_file="$2"    # Associated list file, sv_archive_hdmilist or sv_archive_crtlist
 
     samvideo_list="/tmp/.SAM_List/${list_file}"
     local http_archive="${list_file//https/http}"
@@ -3365,49 +3365,59 @@ function sv_local() {
 }
 
 function samvideo_tvc() {
-	if [ ! -f "${gamelistpath}"/nes_tvc.txt ]; then
-		get_samvideo
-	fi
-	#Setting corelist to available commercials
-	unset TVC_LIST
-	unset SV_TVC_CL
-	for g in "${!SV_TVC[@]}"; do 
-		for c in "${corelist[@]}"; do 
-			if [[ "$c" == "$g" ]]; then 
-				SV_TVC_CL+=("$c")
-			fi
-		done 
-	done
-	samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
-	pick_core SV_TVC_CL
-	samdebug "nextcore = $nextcore"
-	#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
-	count=0
-	while [ $count -lt 15 ]; do
-		if [ -f "${gamelistpath}"/${nextcore}_tvc.txt ]; then
-			samdebug "${nextcore}_tvc.txt found."
-			sv_selected=$(jq -r 'keys[]' "${gamelistpath}"/${nextcore}_tvc.txt | shuf -n 1)
-			tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "${gamelistpath}/${nextcore}_tvc.txt")					
-			echo "${tvc_selected}"> /tmp/.SAM_tmp/sv_gamename
-			break
-		else
-			# If file is not found, select a new core randomly
-			#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
-			pick_core SV_TVC_CL
-			samdebug "${nextcore}_tvc.txt not found, selecting new core."
-		fi
+    if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
+        get_samvideo
+    fi
 
-		((count++))
+    # Setting corelist to available commercials
+    unset TVC_LIST
+    unset SV_TVC_CL
+    for g in "${!SV_TVC[@]}"; do 
+        for c in "${corelist[@]}"; do 
+            if [[ "$c" == "$g" ]]; then 
+                SV_TVC_CL+=("$c")
+            fi
+        done 
+    done
+    samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
+    pick_core SV_TVC_CL
+    samdebug "nextcore = $nextcore"
 
-	done
-	echo $nextcore > /tmp/.SAM_tmp/sv_core
-	samdebug "Searching for ${SV_TVC[$nextcore]}"
-	if [ -z "${tvc_selected}" ]; then
-		echo "Couldn't find TVC list. Selecting random game from system"
-		sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
-	fi
-	samdebug "Picked $sv_selected"
+    count=0
+    while [ $count -lt 15 ]; do
+        if [ -f "${gamelistpath}/${nextcore}_tvc.txt" ]; then
+            samdebug "${nextcore}_tvc.txt found."
+            sv_selected=$(jq -r 'keys[]' "${gamelistpath}/${nextcore}_tvc.txt" | shuf -n 1)
+            tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "${gamelistpath}/${nextcore}_tvc.txt")
+
+            # Check if the URL is available
+            echo "Checking availability of ${tvc_selected}..."
+            if curl --head --silent --fail "${tvc_selected}" > /dev/null; then
+                echo "${tvc_selected}" > /tmp/.SAM_tmp/sv_gamename
+                samdebug "URL is available: ${tvc_selected}"
+                break
+            else
+                samdebug "URL is not available: ${tvc_selected}. Retrying..."
+                tvc_selected=""
+            fi
+        else
+            # If file is not found, select a new core randomly
+            pick_core SV_TVC_CL
+            samdebug "${nextcore}_tvc.txt not found, selecting new core."
+        fi
+
+        ((count++))
+    done
+
+    echo $nextcore > /tmp/.SAM_tmp/sv_core
+    samdebug "Searching for ${SV_TVC[$nextcore]}"
+    if [ -z "${tvc_selected}" ]; then
+        echo "Couldn't find TVC list. Selecting random game from system"
+        sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
+    fi
+    samdebug "Picked $sv_selected"
 }
+
 
 ## Play video
 function samvideo_play() {
