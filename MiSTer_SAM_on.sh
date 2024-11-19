@@ -1480,14 +1480,16 @@ function pick_core() {
             for core in "${array[@]}"; do
                 tvc_file="${gamelistpath}/${core}_tvc.txt"
                 if [[ -f "$tvc_file" ]]; then
-                    count=$(wc -l < "$tvc_file")
+                    count=$(jq -r 'keys | length' "$tvc_file")
                     samdebug "Found ${count} games in ${tvc_file}"
                 else
-                    count=1
-                    samdebug "No ${tvc_file} found; defaulting count to 1 for core ${core}"
+                    count=0
+                    samdebug "No ${tvc_file} found"
                 fi
-                core_counts["$core"]=$count
-                ((total_count += count))
+				if (( count > 0 )); then
+					core_counts["$core"]=$count
+					((total_count += count))
+				fi
             done
 
             # Save core counts to the file
@@ -3367,8 +3369,10 @@ function sv_ar_download() {
         dl_video "${sv_selected_url}"
     fi
 
-    # Update samvideo_list to remove the processed file
-    awk -vLine="$sv_selected" '!index($0,Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
+    # Update samvideo_list to remove the processed file 
+	if [ "$samvideo_tvc" == "no" ]; then
+		awk -vLine="$sv_selected" '!index($0,Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
+	fi
 
     # Set resolution-specific variables
     if [ "$resolution" -eq 480 ]; then
@@ -3395,49 +3399,67 @@ function sv_local() {
 }
 
 function samvideo_tvc() {
-	if [ ! -f "${gamelistpath}"/nes_tvc.txt ]; then
-		get_samvideo
-	fi
-	#Setting corelist to available commercials
-	unset TVC_LIST
-	unset SV_TVC_CL
-	for g in "${!SV_TVC[@]}"; do 
-		for c in "${corelist[@]}"; do 
-			if [[ "$c" == "$g" ]]; then 
-				SV_TVC_CL+=("$c")
-			fi
-		done 
-	done
-	samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
-	pick_core SV_TVC_CL
-	samdebug "nextcore = $nextcore"
-	#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
-	count=0
-	while [ $count -lt 15 ]; do
-		if [ -f "${gamelistpath}"/${nextcore}_tvc.txt ]; then
-			samdebug "${nextcore}_tvc.txt found."
-			sv_selected=$(jq -r 'keys[]' "${gamelistpath}"/${nextcore}_tvc.txt | shuf -n 1)
-			tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "${gamelistpath}/${nextcore}_tvc.txt")					
-			echo "${tvc_selected}"> /tmp/.SAM_tmp/sv_gamename
-			break
-		else
-			# If file is not found, select a new core randomly
-			#nextcore=$(printf "%s\n" "${SV_TVC_CL[@]}" | shuf --random-source=/dev/urandom | head -1)
-			pick_core SV_TVC_CL
-			samdebug "${nextcore}_tvc.txt not found, selecting new core."
-		fi
+    if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
+        get_samvideo
+    fi
 
-		((count++))
+    # Setting corelist to available commercials
+    unset TVC_LIST
+    unset SV_TVC_CL
+    for g in "${!SV_TVC[@]}"; do 
+        for c in "${corelist[@]}"; do 
+            if [[ "$c" == "$g" ]]; then 
+                SV_TVC_CL+=("$c")
+            fi
+        done 
+    done
+    samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
+    pick_core SV_TVC_CL
+    samdebug "nextcore = $nextcore"
 
-	done
-	echo $nextcore > /tmp/.SAM_tmp/sv_core
-	samdebug "Searching for ${SV_TVC[$nextcore]}"
-	if [ -z "${tvc_selected}" ]; then
-		echo "Couldn't find TVC list. Selecting random game from system"
-		sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
-	fi
-	samdebug "Picked $sv_selected"
+    # Initialize variables
+    count=0
+    local gamelist_tmp="${gamelistpathtmp}/${nextcore}_tvc.txt"
+    local gamelist_original="${gamelistpath}/${nextcore}_tvc.txt"
+
+    # Ensure a local temporary copy exists or reset it if empty
+	if [ ! -f "$gamelist_tmp" ] || [ "$(cat "$gamelist_tmp")" = "{}" ]; then
+        samdebug "Copying original gamelist to temporary file: $gamelist_tmp"
+        cp "$gamelist_original" "$gamelist_tmp"
+    fi
+
+    while [ $count -lt 15 ]; do
+        if [ -f "$gamelist_tmp" ]; then
+            samdebug "$gamelist_tmp found."
+
+            # Select a random game and its corresponding entry
+            sv_selected=$(jq -r 'keys[]' "$gamelist_tmp" | shuf -n 1)
+            tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "$gamelist_tmp")
+
+            # Remove the selected entry from the temporary file
+            samdebug "Removing $sv_selected from $gamelist_tmp"
+            jq --arg key "$sv_selected" 'del(.[$key])' "$gamelist_tmp" > "${gamelist_tmp}.tmp" && mv "${gamelist_tmp}.tmp" "$gamelist_tmp"
+            # Save the selected game information
+            echo "${tvc_selected}" > /tmp/.SAM_tmp/sv_gamename
+            break
+        else
+            # If the file is not found, select a new core randomly
+            pick_core SV_TVC_CL
+            samdebug "${nextcore}_tvc.txt not found, selecting new core."
+        fi
+
+        ((count++))
+    done
+
+    echo $nextcore > /tmp/.SAM_tmp/sv_core
+    samdebug "Searching for ${SV_TVC[$nextcore]}"
+    if [ -z "${tvc_selected}" ]; then
+        echo "Couldn't find TVC list. Selecting random game from system"
+        sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
+    fi
+    samdebug "Picked $sv_selected"
 }
+
 
 
 ## Play video
