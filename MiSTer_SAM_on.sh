@@ -2375,7 +2375,7 @@ function sam_cleanup() {
 		echo 'Please reboot for proper MiSTer Terminal' > /dev/tty1 
 		echo '' > /dev/tty1 
 		echo 'Login:' > /dev/tty1 
-		rm /tmp/.SAM_tmp/sv_corecount
+		[ -f /tmp/.SAM_tmp/sv_corecount ] && rm /tmp/.SAM_tmp/sv_corecount
 	fi
 	samdebug "Cleanup done."
 }
@@ -3248,16 +3248,30 @@ function misterini_mod() {
 
 
 function dl_video() {
-	rm -f "$tmpvideo"
-	if [ "$download_manager" = yes ]; then
-		/media/fat/linux/aria2c --dir="$(dirname "$tmpvideo")" --file-allocation=none -o "$(basename "$tmpvideo")" -s 4 -x 4 -k 1M --summary-interval=0 --console-log-level=warn --download-result=hide --quiet=false  --allow-overwrite=true --ca-certificate=/etc/ssl/certs/cacert.pem "${1}"
+    rm -f "$tmpvideo"
 
-	else
-		wget -q --show-progress -O "$tmpvideo" "${1}"
-	fi
-	if [ $? -eq 0 ] && [ "$keep_local_copy" == "yes" ]; then
-		cp $tmpvideo "${samvideo_path}/${sv_selected}"
-	fi
+    if [ "$download_manager" = "yes" ]; then
+        /media/fat/linux/aria2c \
+            --dir="$(dirname "$tmpvideo")" \
+            --file-allocation=none \
+            -o "$(basename "$tmpvideo")" \
+            -s 4 -x 4 -k 1M \
+            --summary-interval=0 \
+            --console-log-level=warn \
+            --download-result=hide \
+            --quiet=false \
+            --allow-overwrite=true \
+            --ca-certificate=/etc/ssl/certs/cacert.pem \
+            "${1}"
+    else
+        wget -q --show-progress -O "$tmpvideo" "${1}"
+    fi
+
+    # Check if the download was successful
+    if [ $? -eq 0 ] && [ "$keep_local_copy" == "yes" ]; then
+        # Reuse `local_svfile` for saving the local copy
+        cp "$tmpvideo" "$local_svfile"
+    fi
 }
 
 function sv_yt_download() {
@@ -3330,19 +3344,19 @@ function sv_ar_download() {
         sv_selected_url="${http_archive%/*}/${sv_selected}"
 
         # Check if the URL is available using wget
-        echo "Checking availability of ${sv_selected_url}..."
+        samdebug "Checking availability of ${sv_selected_url}..."
         if wget --spider --quiet "${sv_selected_url}"; then
-            echo "URL is available: ${sv_selected_url}"
+            samdebug "URL is available: ${sv_selected_url}"
             break
         else
-            echo "URL is not available: ${sv_selected_url}. Removing from list and selecting another."
+            samdebug "URL is not available: ${sv_selected_url}. Removing from list and selecting another."
             awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
         fi
     done
 
     tmpvideo="/tmp/SAMvideo.avi"
     samdebug "Checking if file is available locally...${samvideo_path}/${sv_selected}"
-    local local_svfile="${samvideo_path}/${sv_selected}"
+	local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\"?]//g")"
 
     if [ -f "$local_svfile" ]; then
         echo "Local file exists: $local_svfile"
@@ -3351,7 +3365,7 @@ function sv_ar_download() {
         echo "Preloading ${sv_selected} from archive.org for smooth playback"
         dl_video "${sv_selected_url}"
     fi
-echo "samvideo_list ${samvideo_list}"
+
     # Update samvideo_list to remove the processed file
     awk -vLine="$sv_selected" '!index($0,Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
 
