@@ -3355,8 +3355,9 @@ function sv_ar_download() {
     done
 
     tmpvideo="/tmp/SAMvideo.avi"
-    samdebug "Checking if file is available locally...${samvideo_path}/${sv_selected}"
-	local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\"?]//g")"
+	local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
+	samdebug "Checking if file is available locally...$local_svfile"
+
 
     if [ -f "$local_svfile" ]; then
         echo "Local file exists: $local_svfile"
