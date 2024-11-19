@@ -3585,10 +3585,12 @@ function check_and_update() {
     else
         echo "Sizes differ. Updating $description..."
         curl_download "$tmp_file" "$url" || return 1  # Download failed
+        mv "$tmp_file" "$local_file" || { echo "Error: Unable to move $tmp_file to $local_file" >&2; return 1; }
         echo "$description updated successfully."
         return 2  # File was updated
     fi
 }
+
 
 
 
@@ -3638,11 +3640,6 @@ function get_partun() {
     check_and_update "$latest" "$tmp_file" "$local_file" "partun"
     result=$?
 
-    if [ "$result" -eq 2 ]; then
-        echo "Moving new partun binary..."
-        mv --force "$tmp_file" "$local_file" 
-        echo "partun updated successfully."
-    fi
 }
 
 
@@ -3702,10 +3699,7 @@ function get_samvideo() {
 
     # Check and update yt-dlp
     check_and_update "$latest_ytdl" "$tmp_ytdl" "$local_ytdl" "yt-dlp" 
-	if [ ! -f "$local_ytdl" ]; then
-	    echo "Moving new partun binary..."
-		mv --force "$tmp_ytdl" "$local_ytdl"
-	fi
+
 
     # Check and update SAM gamelists
     echo "Checking and updating SAM gamelists..."
@@ -3731,10 +3725,6 @@ function get_mbc() {
     local_file="${mrsampath}/mbc"
 
     check_and_update "$remote_url" "$tmp_file" "$local_file" "mbc"
-	if [ ! -f "$local_file" ]; then
-	    echo "Moving new partun binary..."
-		mv --force "$tmp_file" "$local_file"
-	fi
 	
 }
 
