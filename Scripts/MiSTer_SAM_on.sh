@@ -3167,19 +3167,6 @@ function write_to_TTY_cmd_pipe() {
 # ======== SAM VIDEO PLAYER FUNCTIONS ========
 
 function misterini_mod() {
-    # Get input parameters
-    local samvideo_output=$1
-    local samvideo_param=$2
-    echo "Checking and modifying /media/fat/MiSTer.ini for samvideo playback."
-
-    # Define default values
-    local fb_terminal="1"
-    local vga_scaler="1"
-    local video_mode	
-
-
-
-function misterini_mod() {
     echo "Checking and modifying /media/fat/MiSTer.ini for samvideo playback."
 
     # Define desired settings
