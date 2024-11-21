@@ -3166,6 +3166,18 @@ function write_to_TTY_cmd_pipe() {
 
 # ======== SAM VIDEO PLAYER FUNCTIONS ========
 
+function misterini_mod() {
+    # Get input parameters
+    local samvideo_output=$1
+    local samvideo_param=$2
+    echo "Checking and modifying /media/fat/MiSTer.ini for samvideo playback."
+
+    # Define default values
+    local fb_terminal="1"
+    local vga_scaler="1"
+    local video_mode	
+
+
 
 function misterini_mod() {
     echo "Checking and modifying /media/fat/MiSTer.ini for samvideo playback."
@@ -3179,9 +3191,8 @@ function misterini_mod() {
         else
             ini_res="640x480"
         fi
-        res_comma=$(echo "$ini_res" | tr 'x' ',')
         if [ "${sv_aspectfix_vmode}" == "yes" ]; then
-            video_mode="${res_comma},60"
+            video_mode="6"
         else
             video_mode="8"
         fi
@@ -3393,7 +3404,6 @@ function sv_local() {
 	awk -vLine="$tmpvideo" '!index($0,Line)' ${samvideo_list} >${tmpfile} && cp -f ${tmpfile} ${samvideo_list}
 	res="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
 	res_space=$(echo "$res" | tr 'x' ' ')
-	res_comma=$(echo "$res" | tr 'x' ',')
 	sv_selected="$(basename "${tmpvideo}")"
 
 }
