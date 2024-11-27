@@ -184,6 +184,41 @@ function init_vars() {
 		declare -g ao486path="$("${mrsampath}"/samindex -q -s ao486 -d |awk -F':' '{print $2}')"
 	fi
 	
+	# ======= MiSTer.ini AITORGOMEZ FORK =======  
+	declare -g cfgcore_configpath=$(
+		awk -F '=' '
+			BEGIN { found = 0 }
+			/^cfgcore_subfolder[[:space:]]*=/ {
+				if (!found) {
+					print "/media/fat/config/" $2;
+					found = 1
+				}
+			}
+			END {
+				if (!found) print ""
+			}
+		' "$ini_file" | tr -d '"' | sed -e 's|//|/|g' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+	)
+	declare -g cfgarcade_configpath=$(
+		awk -F '=' '
+			BEGIN { found = 0 }
+			/^cfgarcade_subfolder[[:space:]]*=/ {
+				if (!found) {
+					print "/media/fat/config/" $2;
+					found = 1
+				}
+			}
+			END {
+				if (!found) print ""
+			}
+		' "$ini_file" | tr -d '"' | sed -e 's|//|/|g' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+	)
+
+	if [[ -n "$cfgcore_configpath" ]]; then
+		declare -g configpath="$cfgcore_configpath"
+	else
+		declare -g configpath="/media/fat/config/"
+	fi
 
 }
 
@@ -1285,6 +1320,12 @@ function loop_core() { # loop_core (core)
 
 function next_core() { # next_core (core)
 	
+	if [[ -n "$cfgcore_configpath" ]]; then
+		configpath="$cfgcore_configpath"
+	else
+		configpath="/media/fat/config/"
+	fi
+	
 	load_samvideo
 	if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
 	
@@ -1610,6 +1651,9 @@ function load_special_core() {
 	# If $nextcore is ao486, amiga or arcade 
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
+		if [[ -n "$cfgarcade_configpath" ]]; then
+			configpath="$cfgarcade_configpath"
+		fi
 		load_core_arcade
 		return 2
 	fi
@@ -2364,7 +2408,7 @@ function sam_prep() {
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
-	[ -f "/media/fat/config/Volume.dat" ] && [ ${mute} == "global" ] && rm "/media/fat/config/Volume.dat"
+	[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "global" ] && rm "${configpath}/Volume.dat"
 	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
@@ -2474,13 +2518,13 @@ function env_check() {
 		fi
 	fi
 	#Probably offline or update_all install
-	if [ ! -f "/media/fat/Config/inputs/GBA_input_1234_5678_v3.map" ]; then
+	if [ ! -f "${configpath}/inputs/GBA_input_1234_5678_v3.map" ]; then
 		if [ -f "${mrsampath}/inputs/GBA_input_1234_5678_v3.map" ]; then
-			cp "${mrsampath}/inputs/GBA_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
-			cp "${mrsampath}/inputs/NES_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
-			cp "${mrsampath}/inputs/TGFX16_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
-			cp "${mrsampath}/inputs/SATURN_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
-			cp "${mrsampath}/inputs/MegaCD_input_1234_5678_v3.map" /media/fat/Config/inputs >/dev/null
+			cp "${mrsampath}/inputs/GBA_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
+			cp "${mrsampath}/inputs/NES_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
+			cp "${mrsampath}/inputs/TGFX16_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
+			cp "${mrsampath}/inputs/SATURN_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
+			cp "${mrsampath}/inputs/MegaCD_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
 		else
 			get_inputmap
 		fi		
@@ -2557,9 +2601,9 @@ function deleteall() {
 		rm -rf "/tmp/.SAM_List"
 	fi
 	
-	if ls /media/fat/Config/inputs/*_input_1234_5678_v3.map 1>/dev/null 2>&1; then
+	if ls "${configpath}/inputs*_input_1234_5678_v3.map" 1>/dev/null 2>&1; then
 		echo "Deleting Keyboard mapping files"
-		rm /media/fat/Config/inputs/*_input_1234_5678_v3.map
+		rm "${configpath}/inputs*_input_1234_5678_v3.map"
 	fi
 	# Remount root as read-write if read-only so we can remove daemon
 	mount | grep "on / .*[(,]ro[,$]" -q && RO_ROOT="true"
@@ -2762,27 +2806,27 @@ function disable_bootrom() {
 function mute() {
 	if [ "${mute}" == "global" ] || [ "${mute}" == "yes" ]; then
 		samdebug "Global volume mute."
-		if [ -f "/media/fat/config/Volume.dat" ]; then
-			if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+		if [ -f "${configpath}/Volume.dat" ]; then
+			if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 				# Mute Global Volume
-				echo -e "\0020\c" >/media/fat/config/Volume.dat
+				echo -e "\0020\c" >"${configpath}/Volume.dat"
 				#echo "volume mute" > /dev/MiSTer_cmd
 			fi
 		else
-			echo -e "\0020\c" >/media/fat/config/Volume.dat
+			echo -e "\0020\c" >"${configpath}/Volume.dat"
 		#	#echo "volume mute" > /dev/MiSTer_cmd
 		fi
 	elif [ "${mute}" == "core" ]; then
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
-		[ ! -f "/media/fat/config/${1}_volume.cfg" ] && touch "/media/fat/config/${1}_volume.cfg"
+		[ ! -f "${configpath}/${1}_volume.cfg" ] && touch "${configpath}/${1}_volume.cfg"
 		[ ! -f "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" ] && touch "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"		
 		for i in {1..3}; do
-		  if mount | grep -iq "/media/fat/config/${1}_volume.cfg"; then
+		  if mount | grep -iq "${configpath}/${1}_volume.cfg"; then
 			samdebug "${1}_volume.cfg already mounted"
 			break
 		  fi
 
-		  mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" "/media/fat/config/${1}_volume.cfg"
+		  mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" "${configpath}/${1}_volume.cfg"
 		  
 		  if [ $? -eq 0 ]; then
 			samdebug "${1}_volume.cfg mounted successfully"
@@ -2798,12 +2842,12 @@ function mute() {
 		[[ "$(mount | grep -ic "${1}"_volume.cfg)" != "0" ]] && echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
 		# Only keep one volume.cfg file mounted
 		if [ -n "${prevcore}" ] && [ "${prevcore}" != "${1}" ]; then
-			umount /media/fat/config/"${prevcore}_volume.cfg"
+			umount "${configpath}/${prevcore}_volume.cfg"
 			sync
 		fi	
 		prevcore=${1}
 	elif [ "${mute}" == "no" ]; then
-		if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 			samdebug "Sent unmute"
 			unmute
 		fi
@@ -3086,14 +3130,14 @@ function bgm_start() {
 		echo -n "set playback random" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 		#BGM playback tends to be louder than most cores. Let's adjust global volume down..
 		if [ "${gvoladjust}" -ne 0 ] &&  [ "${bgmstop}" == "yes" ]; then
-			if [[ "$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')" != 10 ]]; then
-				declare -g currentvol=$(xxd "/media/fat/config/Volume.dat" |awk '{print $2}')
+			if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+				declare -g currentvol=$(xxd "${configpath}/Volume.dat" |awk '{print $2}')
 				unset newvol
 				local newvol=$(($currentvol + $gvoladjust))
 				samdebug "Changing global volume to $newvol"
 				if [ $newvol -le 7 ]; then 
 					#echo "volume ${newvol}" > /dev/MiSTer_cmd &
-					echo -e "\00$newvol\c" >/media/fat/config/Volume.dat
+					echo -e "\00$newvol\c" >"${configpath}/Volume.dat"
 				fi
 			fi
 		fi
@@ -3126,7 +3170,7 @@ function bgm_stop() {
 				#local oldvol=$((7 - $currentvol + $gvoladjust))
 				#samdebug "Changing global volume back to $oldvol"
 				#echo "volume ${oldvol}" > /dev/MiSTer_cmd &
-				echo -e "\00$currentvol\c" >/media/fat/config/Volume.dat
+				echo -e "\00$currentvol\c" >"${configpath}/Volume.dat"
 			fi
 		fi
 		echo "Done."
@@ -3728,7 +3772,7 @@ function get_mbc() {
 
 function get_inputmap() {
     echo "Downloading input maps - needed to skip past BIOS for some systems..."
-    [ ! -d "/media/fat/Config/inputs" ] && mkdir -p "/media/fat/Config/inputs"
+    [ ! -d "${configpath}/inputs" ] && mkdir -p "${configpath}/inputs"
 
     for input_file in \
         "GBA_input_1234_5678_v3.map" \
@@ -3738,7 +3782,7 @@ function get_inputmap() {
         "SATURN_input_1234_5678_v3.map"; do
         remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/$input_file?raw=true"
         tmp_file="/tmp/$input_file"
-        local_file="/media/fat/Config/inputs/$input_file"
+        local_file="${configpath}/inputs/$input_file"
 
         check_and_update "$remote_url" "$tmp_file" "$local_file" "$input_file"
     done
