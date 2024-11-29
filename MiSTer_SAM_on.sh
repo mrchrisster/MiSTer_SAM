@@ -3464,7 +3464,7 @@ function samvideo_tvc() {
     local gamelist_original="${gamelistpath}/${nextcore}_tvc.txt"
 
     # Ensure a local temporary copy exists or reset it if empty
-	if [ ! -f "$gamelist_tmp" ] || [ "$(cat "$gamelist_tmp")" = "{}" ]; then
+	if [ ! -f "$gamelist_tmp" ] || [ ! -s "$gamelist_tmp" ] || [ "$(cat "$gamelist_tmp")" = "{}" ]; then
         samdebug "Copying original gamelist to temporary file: $gamelist_tmp"
         cp "$gamelist_original" "$gamelist_tmp"
     fi
