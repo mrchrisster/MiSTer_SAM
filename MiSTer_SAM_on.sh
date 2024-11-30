@@ -134,6 +134,7 @@ function init_vars() {
 	declare -gl samvideo_tvc
 	declare -gl download_manager="yes"
 	declare -gl sv_aspectfix_vmode
+	declare -gl sv_inimod="yes"
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
@@ -3210,6 +3211,12 @@ function write_to_TTY_cmd_pipe() {
 
 # ======== SAM VIDEO PLAYER FUNCTIONS ========
 function misterini_mod() {
+    # Check if sv_inimod is set to "no"
+    if [ "$sv_inimod" == "no" ]; then
+        echo "sv_inimod is set to 'no'. Skipping MiSTer.ini modification."
+        return 0
+    fi
+
     echo "Checking and updating /media/fat/MiSTer.ini for samvideo playback."
 
     # Desired settings
@@ -3248,28 +3255,49 @@ function misterini_mod() {
     ini_file="/media/fat/MiSTer.ini"
     temp_file=$(mktemp)
 
-    # Extract all existing `[Menu]` values
+    # Extract all existing `[Menu]` values and comments
     declare -A existing_menu
+    declare -A comments
     while IFS="=" read -r key value; do
         key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')   # Trim spaces
+        if [[ "$value" == *";"* ]]; then
+            comments["$key"]="${value#*;}"  # Extract comment, preserving its formatting
+            value="${value%;*}"            # Remove comment from value
+        fi
         value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//') # Trim spaces
         existing_menu["$key"]="$value"
     done < <(awk '
     BEGIN { inside_menu = 0 }
 /^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 1; next }
 /^[[]/ && !/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 0 }
-inside_menu && /=/ { gsub(/;.*/, "", $0); print }
+inside_menu && /=/ { print }
 ' "$ini_file")
 
     # Merge desired values into existing `[Menu]` values
     for key in "${!desired_menu[@]}"; do
-        existing_menu["$key"]="${desired_menu[$key]}"  # Overwrite or add desired values
+        if [[ -n "${existing_menu[$key]}" && "${existing_menu[$key]}" != "${desired_menu[$key]}" ]]; then
+            # Preserve existing `Previous:` comment if it exists
+            if [[ "${comments[$key]}" != *"Previous"* ]]; then
+                comments["$key"]=" Previous: ${existing_menu[$key]}"
+            fi
+            existing_menu["$key"]="${desired_menu[$key]}"
+        else
+            # If no change, retain the existing comment
+            existing_menu["$key"]="${desired_menu[$key]}"
+        fi
     done
 
     # Construct the new `[Menu]` section
     new_menu="[Menu]"
+    new_menu+=$'\n'"; Modified by SAM Video. Please set video_mode in MiSTer_SAM.ini or disable SAM's ini mod by setting sv_inimod to no"
     for key in "${!existing_menu[@]}"; do
-        new_menu+=$'\n'"$key=${existing_menu[$key]}"
+        if [[ -n "${comments[$key]}" ]]; then
+            # Include comments with exactly one space after the value
+            new_menu+=$'\n'"$key=${existing_menu[$key]} ;${comments[$key]}"
+        else
+            # Add key-value pair without comments
+            new_menu+=$'\n'"$key=${existing_menu[$key]}"
+        fi
     done
 
     # Remove all existing `[Menu]` sections and write the rest of the file to a temp file
@@ -3289,9 +3317,10 @@ inside_menu && /=/ { gsub(/;.*/, "", $0); print }
 
     if [ "$original_checksum" == "$new_checksum" ]; then
         rm "$temp_file"
-        echo "MiSTer.ini update not necessary."
+        echo "MiSTer.ini update not needed."
     else
         # Replace the original file with the updated version
+        cp "$ini_file" "${ini_file}.bak"
         mv "$temp_file" "$ini_file"
         echo "MiSTer.ini updated successfully."
     fi
