@@ -3209,13 +3209,13 @@ function write_to_TTY_cmd_pipe() {
 }
 
 # ======== SAM VIDEO PLAYER FUNCTIONS ========
-
 function misterini_mod() {
-    echo "Checking and modifying /media/fat/MiSTer.ini for samvideo playback."
+    echo "Checking and updating /media/fat/MiSTer.ini for samvideo playback."
 
-    # Define desired settings
+    # Desired settings
     fb_terminal="1"
     vga_scaler="1"
+
     if [ "$samvideo_output" == "hdmi" ]; then
         if [ "$samvideo_source" == "youtube" ]; then
             ini_res="640x360"
@@ -3233,62 +3233,70 @@ function misterini_mod() {
         elif [ "$samvideo_source" == "archive" ]; then
             samvideo_crtmode="${samvideo_crtmode640}"
         fi
-        video_mode="$(echo $samvideo_crtmode | awk -F'=' '{print $2}')"
+        video_mode="$(echo "$samvideo_crtmode" | awk -F'=' '{print $2}')"
     else
         echo "Unknown video output mode: $samvideo_output"
         return 1
     fi
 
+    # Desired `[Menu]` values
+    declare -A desired_menu
+    desired_menu["video_mode"]="$video_mode"
+    desired_menu["fb_terminal"]="$fb_terminal"
+    desired_menu["vga_scaler"]="$vga_scaler"
+
+    ini_file="/media/fat/MiSTer.ini"
     temp_file=$(mktemp)
-    modified=0
 
-    # Extract the last [menu] section
-    last_menu=$(awk '
-        BEGIN { inside_menu = 0; output = "" }
-        /^\[menu\]/i { inside_menu = 1; output = ""; next }
-        /^\[.*\]/ { inside_menu = 0 }
-        inside_menu { output = output $0 "\n" }
-        END { print output }
-    ' "$ini_file")
+    # Extract all existing `[Menu]` values
+    declare -A existing_menu
+    while IFS="=" read -r key value; do
+        key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')   # Trim spaces
+        value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//') # Trim spaces
+        existing_menu["$key"]="$value"
+    done < <(awk '
+    BEGIN { inside_menu = 0 }
+/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 1; next }
+/^[[]/ && !/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 0 }
+inside_menu && /=/ { gsub(/;.*/, "", $0); print }
+' "$ini_file")
 
-    # Check if the last [menu] section has all required keys
-    declare -A required_keys
-    required_keys["video_mode"]="$video_mode"
-    required_keys["fb_terminal"]="$fb_terminal"
-    required_keys["vga_scaler"]="$vga_scaler"
-
-    for key in "${!required_keys[@]}"; do
-        if ! echo "$last_menu" | grep -qE "^$key=${required_keys[$key]}$"; then
-            echo "Missing or incorrect value for $key in [menu]."
-            modified=1
-            break
-        fi
+    # Merge desired values into existing `[Menu]` values
+    for key in "${!desired_menu[@]}"; do
+        existing_menu["$key"]="${desired_menu[$key]}"  # Overwrite or add desired values
     done
 
-    # Modify the file only if corrections are required
-    if [ $modified -eq 1 ]; then
-        # Remove all [menu] sections
-        awk '
-            BEGIN { inside_menu = 0 }
-            /^\[menu\]/i { inside_menu = 1; next }
-            /^\[.*\]/ { inside_menu = 0 }
-            inside_menu == 0 { print }
-        ' "$ini_file" > "$temp_file"
+    # Construct the new `[Menu]` section
+    new_menu="[Menu]"
+    for key in "${!existing_menu[@]}"; do
+        new_menu+=$'\n'"$key=${existing_menu[$key]}"
+    done
 
-        # Append the correct [menu] section at the bottom
-        echo -e "\n[menu]" >> "$temp_file"
-        for key in "${!required_keys[@]}"; do
-            echo "$key=${required_keys[$key]}" >> "$temp_file"
-        done
+    # Remove all existing `[Menu]` sections and write the rest of the file to a temp file
+    awk '
+    BEGIN { inside_menu = 0 }
+/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 1; next }
+/^[[]/ && !/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 0 }
+!inside_menu { print }
+' "$ini_file" > "$temp_file"
 
-        # Overwrite the original file
-        mv "$temp_file" "$ini_file"
-        echo "MiSTer.ini modified successfully."
-    else
+    # Append the new `[Menu]` section without extra blank lines
+    echo "$new_menu" >> "$temp_file"
+
+    # Compare checksums to decide if a write operation is needed
+    original_checksum=$(md5sum "$ini_file" | awk '{print $1}')
+    new_checksum=$(md5sum "$temp_file" | awk '{print $1}')
+
+    if [ "$original_checksum" == "$new_checksum" ]; then
         rm "$temp_file"
-        echo "No changes needed for MiSTer.ini."
+        echo "MiSTer.ini update not necessary."
+    else
+        # Replace the original file with the updated version
+        mv "$temp_file" "$ini_file"
+        echo "MiSTer.ini updated successfully."
     fi
 }
+
 
 
 function dl_video() {
