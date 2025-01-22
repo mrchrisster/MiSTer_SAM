@@ -3122,6 +3122,9 @@ function filter_list() { # args ${nextcore}
 				awk -F/ '{print $NF}' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}_filenames"
 				fgrep -f "${tmpfile}_filenames" "${tmpfile}_rotation" > "${tmpfile}"
 				mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"
+			else
+				# Apply only orientation filter
+				mv -f "${tmpfile}_rotation" "${gamelistpathtmp}/${1}_gamelist.txt"
 			fi
 		else
 			echo "Arcade Orientation Filter Error."
