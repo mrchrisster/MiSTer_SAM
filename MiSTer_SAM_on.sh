@@ -64,7 +64,7 @@ function init_vars() {
 	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,coco2,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,coco2,fds,gb,gbc,gba,genesis,gg,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
@@ -152,6 +152,7 @@ function init_vars() {
 
 	# ======== CORE PATHS RBF ========
 	declare -g amigapathrbf="_Computer"
+	declare -g amigacd32pathrbf="_Computer"
 	declare -g arcadepathrbf="_Arcade"
 	declare -g ao486pathrbf="_Computer"
 	declare -g atari2600pathrbf="_Console"
@@ -169,6 +170,7 @@ function init_vars() {
 	declare -g megacdpathrbf="_Console"
 	declare -g n64pathrbf="_Console"
 	declare -g neogeopathrbf="_Console"
+	declare -g neogeocdpathrbf="_Console"
 	declare -g nespathrbf="_Console"
 	declare -g s32xpathrbf="_Console"
 	declare -g saturnpathrbf="_Console"
@@ -179,9 +181,10 @@ function init_vars() {
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
 	
-	if [[ "${corelist[@]}" == *"amiga"* ]] || [[ "${corelist[@]}" == *"ao486"* ]] && [ -f "${mrsampath}"/samindex ]; then
+	if [[ "${corelist[@]}" == *"amiga"* ]] || [[ "${corelist[@]}" == *"amigacd32"* ]] || [[ "${corelist[@]}" == *"ao486"* ]] && [ -f "${mrsampath}"/samindex ]; then
 		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
 		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
+		declare -g amigacd32path="$("${mrsampath}"/samindex -q -s amigacd32 -d |awk -F':' '{print $2}')"
 		declare -g ao486path="$("${mrsampath}"/samindex -q -s ao486 -d |awk -F':' '{print $2}')"
 	fi
 	
@@ -228,6 +231,7 @@ function init_data() {
 	# Core to long name mappings
 	declare -gA CORE_PRETTY=(
 		["amiga"]="Commodore Amiga"
+		["amigacd32"]="Commodore Amiga CD32"
 		["arcade"]="MiSTer Arcade"
 		["ao486"]="PC 486 DX-100"
 		["atari2600"]="Atari 2600"
@@ -245,6 +249,7 @@ function init_data() {
 		["megacd"]="Sega CD / Mega CD"
 		["n64"]="Nintendo N64"
 		["neogeo"]="SNK NeoGeo"
+		["neogeocd"]="SNK NeoGeo CD"
 		["nes"]="Nintendo Entertainment System"
 		["s32x"]="Sega 32x"
 		["saturn"]="Sega Saturn"
@@ -259,6 +264,7 @@ function init_data() {
 	# Core to file extension mappings
 	declare -glA CORE_EXT=(
 		["amiga"]="hdf" 			#This is just a placeholder
+		["amigacd32"]="chd,cue" 
 		["ao486"]="vhd"		#This is just a placeholder
 		["arcade"]="mra"
 		["atari2600"]="a26"     
@@ -276,6 +282,7 @@ function init_data() {
 		["megacd"]="chd,cue"
 		["n64"]="n64,z64"
 		["neogeo"]="neo"
+		["neogeocd"]="cue,chd"
 		["nes"]="nes"
 		["s32x"]="32x"
 		["saturn"]="cue,chd"
@@ -290,6 +297,7 @@ function init_data() {
 	# Core to path mappings
 	declare -gA PATHFILTER=(
 		["amiga"]="${amigapathfilter}"
+		["amigacd32"]="${amigacd32pathfilter}"
 		["ao486"]="${ao486pathfilter}"
 		["arcade"]="${arcadepathfilter}"
 		["atari2600"]="${atari2600pathfilter}"
@@ -307,6 +315,7 @@ function init_data() {
 		["megacd"]="${megacdpathfilter}"
 		["n64"]="${n64pathfilter}"
 		["neogeo"]="${neogeopathfilter}"
+		["neogeocd"]="${neogeocdpathfilter}"
 		["nes"]="${nespathfilter}"
 		["s32x"]="${s32xpathfilter}"
 		["saturn"]="${saturnpathfilter}"
@@ -322,6 +331,7 @@ function init_data() {
 	# Core to path mappings for rbf files
 	declare -gA CORE_PATH_RBF=(
 		["amiga"]="${amigapathrbf}"
+		["amigacd32"]="${amigacd32pathrbf}"
 		["ao486"]="${ao486pathrbf}"
 		["arcade"]="${arcadepathrbf}"
 		["atari2600"]="${atari2600pathrbf}"
@@ -339,6 +349,7 @@ function init_data() {
 		["megacd"]="${megacdpathrbf}"
 		["n64"]="${n64pathrbf}"
 		["neogeo"]="${neogeopathrbf}"
+		["neogeocd"]="${neogeocdpathrbf}"
 		["nes"]="${nespathrbf}"
 		["s32x"]="${s32xpathrbf}"
 		["saturn"]="${saturnpathrbf}"
@@ -353,6 +364,7 @@ function init_data() {
 	# Can this core skip Bios/Safety warning messages
 	declare -glA CORE_SKIP=(
 		["amiga"]="No"
+		["amigacd32"]="Yes"
 		["ao486"]="No"
 		["arcade"]="No"
 		["atari2600"]="No"
@@ -370,6 +382,7 @@ function init_data() {
 		["megacd"]="Yes"
 		["n64"]="No"
 		["neogeo"]="No"
+		["neogeocd"]="No"
 		["nes"]="No"
 		["s32x"]="No"
 		["saturn"]="Yes"
@@ -385,6 +398,7 @@ function init_data() {
 	# Core to input maps mapping
 	declare -gA CORE_LAUNCH=(
 		["amiga"]="Minimig"
+		["amigacd32"]="Minimig"
 		["ao486"]="ao486"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
@@ -402,6 +416,7 @@ function init_data() {
 		["megacd"]="MegaCD"
 		["n64"]="N64"
 		["neogeo"]="NEOGEO"
+		["neogeocd"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
 		["saturn"]="SATURN"
@@ -416,6 +431,7 @@ function init_data() {
 	# TTY2OLED Core Pic mappings
 	declare -gA TTY2OLED_PIC_NAME=(
 		["amiga"]="Minimig"
+		["amigacd32"]="Minimig"
 		["ao486"]="ao486"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI2600"
@@ -433,6 +449,7 @@ function init_data() {
 		["megacd"]="MegaCD"
 		["n64"]="N64"
 		["neogeo"]="NEOGEO"
+		["neogeocd"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
 		["saturn"]="SATURN"
@@ -447,6 +464,7 @@ function init_data() {
 	# MGL core name settings
 	declare -gA MGL_CORE=(
 		["amiga"]="Minimig"
+		["amigacd32"]="Minimig"
 		["ao486"]="ao486"
 		["arcade"]="Arcade"
 		["atari2600"]="ATARI7800"
@@ -464,6 +482,7 @@ function init_data() {
 		["megacd"]="MegaCD"
 		["n64"]="N64"
 		["neogeo"]="NEOGEO"
+		["neogeocd"]="NEOGEO"
 		["nes"]="NES"
 		["s32x"]="S32X"
 		["saturn"]="SATURN"
@@ -477,6 +496,7 @@ function init_data() {
 
 	# MGL setname settings
 	declare -gA MGL_SETNAME=(
+		["amigacd32"]="AmigaCD32"
 		["gbc"]="GBC"
 		["gg"]="GameGear"
 	)
@@ -484,6 +504,7 @@ function init_data() {
 	# MGL delay settings
 	declare -giA MGL_DELAY=(
 		["amiga"]="1"
+		["amigacd32"]="1"
 		["ao486"]="0"
 		["arcade"]="2"
 		["atari2600"]="1"
@@ -501,6 +522,7 @@ function init_data() {
 		["megacd"]="1"
 		["n64"]="1"
 		["neogeo"]="1"
+		["neogeocd"]="1"
 		["nes"]="2"
 		["s32x"]="1"
 		["saturn"]="1"
@@ -515,6 +537,7 @@ function init_data() {
 	# MGL index settings
 	declare -giA MGL_INDEX=(
 		["amiga"]="0"
+		["amigacd32"]="0"
 		["ao486"]="2"
 		["arcade"]="0"
 		["atari2600"]="0"
@@ -532,6 +555,7 @@ function init_data() {
 		["megacd"]="0"
 		["n64"]="1"
 		["neogeo"]="1"
+		["neogeocd"]="1"
 		["nes"]="0"
 		["s32x"]="0"
 		["saturn"]="1"
@@ -546,6 +570,7 @@ function init_data() {
 	# MGL type settings
 	declare -glA MGL_TYPE=(
 		["amiga"]="f"
+		["amigacd32"]="f"
 		["ao486"]="s"
 		["arcade"]="f"
 		["atari2600"]="f"
@@ -563,6 +588,7 @@ function init_data() {
 		["megacd"]="s"
 		["n64"]="f"
 		["neogeo"]="f"
+		["neogeocd"]="s"
 		["nes"]="f"
 		["s32x"]="f"
 		["saturn"]="s"
@@ -997,7 +1023,7 @@ function parse_cmd() {
 		# If we're given a core name, we need to set it first
 		for arg in "${@,,}"; do
 			case ${arg} in
-			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | amigacd32 | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | neogeocd | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo "${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				disablecoredel=1
@@ -1096,8 +1122,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
-				: # Placeholder since we parsed these above
+			amiga | amigacd32 | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | neogeocd | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
 				;;
 			single)
 				sam_singlemenu
@@ -1195,8 +1220,6 @@ function parse_cmd() {
 		done
 	fi
 }
-
-
 
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
@@ -1480,7 +1503,7 @@ function create_all_gamelists() {
 }
 
 function check_gamelistupdate() {
-	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${m82}" == "no" ]]; then
+	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${1}" != "amigacd32" ]] && [[ "${m82}" == "no" ]]; then
 		create_gamelist ${1} comp
 		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
 			cp "${gamelistpathtmp}/comp/${1}_gamelist.txt" "${gamelistpath}/${1}_gamelist.txt" 
@@ -1662,6 +1685,17 @@ function load_special_core() {
 		
 		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
 			load_core_amiga
+		else
+			echo "ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
+			delete_from_corelist amiga
+			next_core
+		fi
+		return 2
+	fi
+	if [ "${nextcore}" == "amigacd32" ]; then
+		
+		if [ -f "/media/fat/_Console/Amiga CD32.mgl" ]; then
+			load_core_amigacd32
 		else
 			echo "ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
 			delete_from_corelist amiga
@@ -2141,6 +2175,116 @@ function load_core_amiga() {
 		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 		activity_reset
 	fi
+}
+
+
+function load_core_amigacd32() {
+
+	check_list "${nextcore}"
+	if [ $? -ne 0 ]; then next_core; return; fi
+	
+	# Check if new roms got added
+	check_gamelistupdate ${nextcore} &
+	
+	pick_rom
+	
+	check_rom "${nextcore}"
+	if [ $? -ne 0 ]; then return; fi
+	
+	delete_played_game
+
+	local gamename
+	local tty_corename
+
+	if [ ! "${gamename}" ]; then
+		gamename="${romname}"
+	fi
+	
+	mute "${CORE_LAUNCH[amigacd32]}"
+	
+
+	echo -n "Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+	echo -e "\e[1m${gamename}\e[0m"
+	echo "$(date +%H:%M:%S) - ${nextcore} - $([ "${samdebug}" == "yes" ] && echo ${rompath} || echo ${romname})" "$(if [ "${nextcore}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >>/tmp/SAM_Games.log
+	echo "${romname} (${nextcore}) $(if [ "${nextcore}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >/tmp/SAM_Game.txt
+	tty_corename="${TTY2OLED_PIC_NAME[${nextcore}]}"
+	
+	
+	if [[ "${ttyname_cleanup}" == "yes" ]]; then
+		gamename="$(echo "${gamename}" | awk -F "(" '{print $nextcore}')"
+	fi
+
+	if [ "${ttyenable}" == "yes" ]; then
+		tty_currentinfo=(
+			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[name]="${gamename}"
+			[core]=${tty_corename}
+			[date]=$EPOCHSECONDS
+			[counter]=${gametimer}
+			[name_scroll]="${gamename:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+		)
+	
+		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+		tty_displayswitch=$(($gametimer / $ttycoresleep - 1))
+		write_to_TTY_cmd_pipe "display_info" &		
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		SECONDS=${elapsed}
+	fi
+
+
+	# Write game to AmigaCD32
+
+	CONFIG_FILE="/media/fat/config/AmigaCD32.cfg"
+
+	if [ ! -f "$CONFIG_FILE" ]; then
+		echo "ERROR - Please make sure AmigaCD32 is installed. Skipping to next core..."
+		delete_from_corelist amigacd32
+		next_core
+	fi
+	
+	# **Always write at offset 3100**
+	START_BYTE=3100
+	CLEAR_LENGTH=108  # Make sure we clear enough for full filename
+	NEW_GAME_PATH="$rompath"
+	
+	# **Zero out only the path section (not the header)**
+	dd if=/dev/zero bs=1 count=$CLEAR_LENGTH seek=$START_BYTE of="$CONFIG_FILE" conv=notrunc 2>/dev/null
+
+	# **Remove '/media' prefix if present**
+	NEW_GAME_PATH=$(echo "$NEW_GAME_PATH" | sed 's|^/media||')
+
+	# **Ensure no leading double slashes**
+	NEW_GAME_PATH=$(echo "$NEW_GAME_PATH" | sed 's|^/||')
+
+	# Ensure the path starts with `../` (if needed)
+	if [[ "$NEW_GAME_PATH" != ../* ]]; then
+		NEW_GAME_PATH="../$NEW_GAME_PATH"
+	fi
+
+	# Convert the new game path to a clean hex string
+	NEW_GAME_HEX=$(echo -n "$NEW_GAME_PATH" | xxd -p | tr -d '\n')
+
+	# Ensure proper padding with 00 bytes if path is shorter than max allowed length
+	HEX_PADDING=$(yes "00" | head -n $((CLEAR_LENGTH - ${#NEW_GAME_HEX} / 2)) | tr -d '\n')
+
+	# Combine actual data and padding
+	FINAL_GAME_HEX="${NEW_GAME_HEX}${HEX_PADDING}"
+
+	# Convert hex string into binary and write at the correct path offset
+	echo -n "$FINAL_GAME_HEX" | xxd -r -p | dd of="$CONFIG_FILE" bs=1 seek=$START_BYTE conv=notrunc 2>/dev/null
+
+
+	echo "load_core /media/fat/_Console/Amiga CD32.mgl" >/dev/MiSTer_cmd
+
+	sleep 10
+	activity_reset
+
+	# Boot game
+	/media/fat/Scripts/.MiSTer_SAM/mbc raw_seq :30
 }
 
 function create_ao486list () {
@@ -2978,9 +3122,6 @@ function filter_list() { # args ${nextcore}
 				awk -F/ '{print $NF}' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}_filenames"
 				fgrep -f "${tmpfile}_filenames" "${tmpfile}_rotation" > "${tmpfile}"
 				mv -f $tmpfile "${gamelistpathtmp}/${1}_gamelist.txt"
-			else
-				# Apply only orientation filter
-				mv -f "${tmpfile}_rotation" "${gamelistpathtmp}/${1}_gamelist.txt"
 			fi
 		else
 			echo "Arcade Orientation Filter Error."
