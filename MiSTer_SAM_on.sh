@@ -382,7 +382,7 @@ function init_data() {
 		["megacd"]="Yes"
 		["n64"]="No"
 		["neogeo"]="No"
-		["neogeocd"]="No"
+		["neogeocd"]="Yes"
 		["nes"]="No"
 		["s32x"]="No"
 		["saturn"]="Yes"
@@ -2670,6 +2670,7 @@ function env_check() {
 			cp "${mrsampath}/inputs/TGFX16_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
 			cp "${mrsampath}/inputs/SATURN_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
 			cp "${mrsampath}/inputs/MegaCD_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
+  			cp "${mrsampath}/inputs/NEOGEO_input_1234_5678_v3.map" "${configpath}/inputs" >/dev/null
 		else
 			get_inputmap
 		fi		
@@ -3960,6 +3961,7 @@ function get_inputmap() {
         "MegaCD_input_1234_5678_v3.map" \
         "NES_input_1234_5678_v3.map" \
         "TGFX16_input_1234_5678_v3.map" \
+	"NEOGEO_input_1234_5678_v3.map" \
         "SATURN_input_1234_5678_v3.map"; do
         remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/$input_file?raw=true"
         tmp_file="/tmp/$input_file"
