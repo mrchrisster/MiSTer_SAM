@@ -2635,15 +2635,10 @@ function sam_disable() { # Disable autoplay
 function env_check() {
 	# Check if we've been installed
 	if [ ! -f "${mrsampath}/samindex" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
-		#Probably offline install
-		if [ -f "${mrsampath}/samindex.zip" ]; then
-			unzip -ojq "${mrsampath}/samindex.zip" -d "${mrsampath}" # &>/dev/null
-		else
-			echo " SAM required files not found."
-			echo " Installing now."
-			sam_update autoconfig
-			echo " Setup complete."
-		fi
+		echo " SAM required files not found."
+		echo " Installing now."
+		sam_update autoconfig
+		echo " Setup complete."
 	fi
 	#Probably offline or update_all install
 	if [ ! -f "${configpath}/inputs/GBA_input_1234_5678_v3.map" ]; then
@@ -3858,22 +3853,22 @@ function get_samindex() {
     echo "https://github.com/wizzomafizzo/mrext"
 
     # Define URLs and file paths
-    latest_url="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
-    tmp_file="/tmp/samindex.zip"
-    local_file="${mrsampath}/samindex.zip"
+    latest_url="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex?raw=true"
+    tmp_file="/tmp/samindex"
+    local_file="${mrsampath}/samindex"
 
-    # Check and update samindex.zip
+    # Check and update samindex
     check_and_update "$latest_url" "$tmp_file" "$local_file" "samindex"
 
     # Extract only if the file is new
 	result=$?
 	if [ "$result" -eq 2 ] || [ ! -f "${mrsampath}/samindex" ]; then
-        echo "Extracting samindex..."
-        unzip -ojq "$local_file" -d "${mrsampath}" || {
-            echo "Error: Failed to extract samindex.zip" >&2
+        echo "Copying samindex..."
+        cp "$local_file" "${mrsampath}" || {
+            echo "Error: Failed to copy samindex" >&2
             return 1
         }
-        echo "samindex updated and extracted successfully."
+        echo "samindex updated successfully."
     fi
 }
 
