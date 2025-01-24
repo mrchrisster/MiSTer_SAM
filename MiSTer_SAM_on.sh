@@ -1773,8 +1773,10 @@ function check_list() { # args ${nextcore}
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 	
 		filter_list "${1}"
-		if [ $? -ne 0 ]; then return 1; fi		
-		samdebug "The return code for filter_list is $?."
+		if [ $? -ne 0 ]; then 
+			return 1
+			samdebug "filter_list encountered an error"
+		fi		
 	fi
 	return 0
 }
