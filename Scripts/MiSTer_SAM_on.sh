@@ -3860,16 +3860,6 @@ function get_samindex() {
     # Check and update samindex
     check_and_update "$latest_url" "$tmp_file" "$local_file" "samindex"
 
-    # Extract only if the file is new
-	result=$?
-	if [ "$result" -eq 2 ] || [ ! -f "${mrsampath}/samindex" ]; then
-        echo "Copying samindex..."
-        cp "$local_file" "${mrsampath}" || {
-            echo "Error: Failed to copy samindex" >&2
-            return 1
-        }
-        echo "samindex updated successfully."
-    fi
 }
 
 
