@@ -1353,7 +1353,11 @@ function next_core() { # next_core (core)
 	samdebug "Selected core: ${nextcore}"
 		
 	check_list "${nextcore}"
-	if [ $? -ne 0 ]; then next_core; return; fi
+	if [ $? -ne 0 ]; then 
+		next_core
+		samdebug "check_list function returned an error."
+		return
+	fi
 	
 	# Check if new roms got added
 	check_gamelistupdate ${nextcore} &
@@ -1478,11 +1482,14 @@ function create_all_gamelists() {
 }
 
 function check_gamelistupdate() {
-	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${1}" != "amigacd32" ]] && [[ "${m82}" == "no" ]]; then
+	sleep 5
+	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${m82}" == "no" ]]; then
 		create_gamelist ${1} comp
 		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
 			cp "${gamelistpathtmp}/comp/${1}_gamelist.txt" "${gamelistpath}/${1}_gamelist.txt" 
 			samdebug "Changes detected in ${1} folder. Gamelist updated."
+		else
+		 	samdebug "No changes detected in ${1} gamelist."
 		fi
 	fi
 	
@@ -1720,8 +1727,6 @@ function check_list() { # args ${nextcore}
 		if [ $? -ne 0 ]; then 
 			samdebug "check_list function returned error code"
 			return 1
-		else
-			return
 		fi
 	fi
 	
@@ -1769,8 +1774,9 @@ function check_list() { # args ${nextcore}
 	
 		filter_list "${1}"
 		if [ $? -ne 0 ]; then return 1; fi		
+		samdebug "The return code for filter_list is $?."
 	fi
-	
+	return 0
 }
 
 function pick_rom() {	
@@ -3158,7 +3164,7 @@ function filter_list() { # args ${nextcore}
 	#Check ini exclusion
 	if [[ "${exclude[*]}" ]]; then 
 		for e in "${exclude[@]}"; do
-			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt" || true
 		done
 
 	fi
@@ -3179,6 +3185,7 @@ function filter_list() { # args ${nextcore}
 		fi
 		echo " $(wc -l <"${gamelistpathtmp}/${1}_gamelist.txt") games will be shuffled."
 	fi
+	return 0
 }
 
 
@@ -4833,10 +4840,11 @@ sam_standard() {
 	if [ "${menuresponse}" == "sam_standard" ]; then
 		reset_ini
 		# Build corelistall dynamically from CORE_PRETTY keys
-		corelistall=$(IFS=,; echo "${!CORE_PRETTY[*]}")
+		corelistall=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
 		sed -i '/mute=/c\mute="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		sed -i "/^corelist=/c\corelist=\"$corelistall\"" /media/fat/Scripts/MiSTer_SAM.ini		
 	    sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	    sam_start
 	fi
 }
 
