@@ -2183,7 +2183,7 @@ function load_core_amigacd32() {
 		gamename="${romname%.*}"
 	fi
 	
-	mute "${CORE_LAUNCH[${nextcore}]}"
+	mute amigacd32 
 	
 
 	echo -n "Starting now on the "
