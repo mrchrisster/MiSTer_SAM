@@ -208,6 +208,7 @@ tty2oled submodule: Paradox
 Indexing tool & input detection: wizzomafizzo  
    
 ## Release History
+- 4 Feb 2025 - Added amigacd32, neogeocd and various bugfixes
 - 26 Feb 2024 - Saturn, N64 and video mode implemented. Watch game commercials from back in the day and then play those games.
 - 02 Feb 2023 - ao486 integration, Kids Safe Mode, Dynamically finding new roms, Adjust global volume for BGM
 - 10 Aug 2022 - tty2oled and gamelist updates. Default blacklists now filter out static screens.
