@@ -1108,6 +1108,9 @@ function parse_cmd() {
                 env_check "${commands[0]}"
                 sam_enable
                 ;;
+            ignore)
+            	ignoregame
+            	;;
             disable)
                 sam_cleanup
                 sam_disable
