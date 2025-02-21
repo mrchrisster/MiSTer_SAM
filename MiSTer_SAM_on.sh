@@ -5234,8 +5234,7 @@ function sam_bgmmenu() {
 
 				elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
 					echo " Uninstalling BGM, please wait..."
-					echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-					[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
+					bgm_stop
 					[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
 					[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
 					rm /tmp/bgm.sock 2>/dev/null
