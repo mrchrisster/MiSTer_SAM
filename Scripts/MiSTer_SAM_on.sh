@@ -1682,7 +1682,7 @@ function load_special_core() {
 		if [ -f "/media/fat/_Console/Amiga CD32.mgl" ]; then
 			load_core_amigacd32
 		else
-			echo "ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
+			echo "ERROR - /media/fat/_Console/Amiga CD32.mgl not found. Skipping to next core..."
 			delete_from_corelist amiga
 			next_core
 		fi
@@ -2159,7 +2159,7 @@ function load_core_amiga() {
 		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
 		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
 		# Amigavision uses Amiga.mgl instead of minimig core
-		if [ ! -f "/media/fat/_Console/Amiga.mgl" ]; then
+		if [ ! -f "/media/fat/_Computer/Amiga.mgl" ]; then
 			echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
 		else
 			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
