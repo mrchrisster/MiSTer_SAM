@@ -496,7 +496,6 @@ function init_data() {
 
 	# MGL setname settings
 	declare -gA MGL_SETNAME=(
-		["amiga"]="Amiga"
 		["amigacd32"]="AmigaCD32"
 		["gbc"]="GBC"
 		["gg"]="GameGear"
@@ -919,6 +918,8 @@ function init_data() {
 
 }
 
+
+
 # ========= SOUCRCE INI & UPDATE =========
 
 # Read INI
@@ -1015,211 +1016,187 @@ function update_samini() {
 # If core is supplied as first argument, we start SAM in single core mode - parse_cmd ${nextcore} start. In function next_core, corelist shuffle is ignored and nextcore always stays the same
 # If no argument is passed to SAM, we shuffle the corelist in next_core
 
+
 function parse_cmd() {
-	if [ ${#} -gt 2 ]; then # We don't accept more than 2 parameters
-		sam_help
-	elif [ ${#} -eq 0 ]; then # No options - show the pre-menu
-		sam_premenu
-	else
-		# If we're given a core name, we need to set it first
-		for arg in "${@,,}"; do
-			case ${arg} in
-			arcade | ao486 | atari2600 | atari5200 | atari7800 | atarilynx | amiga | amigacd32 | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | neogeocd | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
-				echo "${CORE_PRETTY[${arg}]} selected!"
-				nextcore="${arg}"
-				disablecoredel=1
-				;;
-			esac
-		done
+	VALID_CORES=("${!CORE_PRETTY[@]}")
+    local args=("$@")
+    local nextcore=""
+    local recognized_core="no"
+    local commands=()
 
-		# If the one command was a core then we need to call in again with "start" specified
-		if [ "${nextcore}" ] && [ ${#} -eq 1 ]; then
-			# Move cursor up a line to avoid duplicate message
-			echo -n -e "\033[A"
-			# Re-enter this function with start added
-			parse_cmd "${nextcore}" start
-			return
-		fi
+    # 1. Detect if a recognized core was passed.
+    for arg in "${args[@]}"; do
+        # Convert to lowercase
+        local lower="${arg,,}"
 
-		while [ ${#} -gt 0 ]; do
-			case "${1,,}" in
-			default) # sam_update relaunches itself
-				sam_update autoconfig
-				break
-				;;
-			--sourceonly | --create-gamelists)
-				break
-				;;
-			autoconfig | defaultb)
-				tmux kill-session -t MCP &>/dev/null
-				there_can_be_only_one
-				sam_update
-				mcp_start
-				sam_enable
-				break
-				;;
-			bootstart) # Start as from init
-				env_check "${1}"
-				# Sleep before startup so clock of Mister can synchronize if connected to the internet.
-				# We assume most people don't have RTC add-on so sleep is default.
-				# Only start MCP on boot
-				boot_sleep
-				mcp_start
-				break
-				;;
-			start | restart) # Start as a detached tmux session for monitoring
-				sam_start
-				break
-				;;
-			start_real) # Start SAM immediately
-				loop_core "${nextcore}"
-				break
-				;;
-			skip | next) # Load next game - stops monitor
-				echo " Skipping to next game..."
-				tmux send-keys -t SAM C-c ENTER
-				# break
-				;;
-			ignore) # Exclude current game
-				ignoregame
-				break
-				;;
-			stop) # Stop SAM immediately	
-				kill_all_sams
-				sam_exit 0
-				break
-				;;
-			kill) # Stop and reset SAM completely
-				[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
-				kill_all_sams
-				sam_exit 0
-				break
-				;;
-			update) # Update SAM
-				sam_cleanup
-				sam_update
-				break
-				;;
-			enable) # Enable SAM autoplay mode
-				env_check "${1}"
-				sam_enable
-				break
-				;;
-			disable) # Disable SAM autoplay
-				sam_cleanup
-				sam_disable
-				break
-				;;
-			monitor) # Warn user of changes
-				sam_monitor
-				break
-				;;
-			playcurrent)
-				sam_exit 2
-				break
-				;;
-			startmonitor | sm)
-				sam_start
-				sam_monitor
-				break
-				;;
-			amiga | amigacd32 | ao486 | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | n64 | neogeo | neogeocd | nes | saturn | s32x | sgb | sms | snes | tgfx16 | tgfx16cd | psx)
-				;;
-			single)
-				sam_singlemenu
-				break
-				;;
-			utility)
-				sam_utilitymenu
-				break
-				;;
-			autoplay)
-				sam_autoplaymenu
-				break
-				;;
-			favorite)
-				mglfavorite
-				break
-				;;
-			reset)
-				sam_resetmenu
-				break
-				;;
-			config)
-				sam_configmenu
-				break
-				;;
-			back)
-				sam_menu
-				break
-				;;
-			menu)
-				sam_menu
-				break
-				;;
-			cancel) # Exit
-				echo " It's pitch dark; You are likely to be eaten by a Grue."
-				inmenu=0
-				break
-				;;
-			deleteall)
-				deleteall
-				break
-				;;
-			resetini)
-				resetini
-				break
-				;;
-			exclude)
-				samedit_excltags
-				break
-				;;
-			settings)
-				sam_settings
-				break
-				;;
-			include)
-				samedit_include
-				break
-				;;
-			gamemode)
-				sam_gamemodemenu
-				break
-				;;
-			bgm)
-				sam_bgmmenu
-				break
-				;;
-			gamelists)
-				sam_gamelistmenu
-				break
-				;;
-			creategl)
-				creategl
-				break
-				;;
-			deletegl)
-				deletegl
-				break
-				;;
-			help)
-				sam_help
-				break
-				;;
-			sshconfig)
-				sam_sshconfig
-				break
-				;;
-			*)
-				echo " ERROR! ${1} is unknown."
-				echo " Try $(basename -- "${0}") help"
-				echo " Or check the Github readme."
-				break
-				;;
-			esac
-			shift
-		done
-	fi
+        # Check if in VALID_CORES array
+        if [[ " ${VALID_CORES[*]} " =~ " ${lower} " ]]; then
+            echo "${CORE_PRETTY[$lower]} selected!"
+            nextcore="$lower"
+            recognized_core="yes"
+        else
+            # Not a recognized core, so treat it as a possible command
+            commands+=("$arg")
+        fi
+    done
+
+    # 2. If no arguments given at all...
+    if [ ${#args[@]} -eq 0 ]; then
+        sam_premenu
+        return
+    fi
+
+    # 3. If we have a recognized core but no subsequent commands,
+    #    re-enter parse_cmd so that it calls "start" once.
+    if [[ "$recognized_core" == "yes" && ${#commands[@]} -eq 0 ]]; then
+        # Move cursor up a line to avoid duplicate message if you want
+        echo -n -e "\033[A"
+        parse_cmd "${nextcore}" "start"
+        return
+    fi
+
+    # 4. Otherwise, parse the rest of the commands in a single case statement.
+    #    Each time we shift a command, we handle it. 
+    #    If you only want to handle the *first* command and ignore the rest, 
+    #    you can "break" inside the case statement. 
+    #    If you want to handle *all* commands, loop over them.
+
+    while [ ${#commands[@]} -gt 0 ]; do
+        case "${commands[0],,}" in
+
+            # ——— Major commands ———
+            default)
+                sam_update autoconfig
+                ;;
+            autoconfig | defaultb)
+                tmux kill-session -t MCP &>/dev/null
+                there_can_be_only_one
+                sam_update
+                mcp_start
+                sam_enable
+                ;;
+            bootstart)
+                env_check "${commands[0]}"
+                boot_sleep
+                mcp_start
+                ;;
+            start | restart)
+                sam_start
+                ;;
+            start_real)
+                # If we recognized a core, pass it to loop_core
+                loop_core "$nextcore"
+                ;;
+            skip | next)
+                echo "Skipping to next game..."
+                tmux send-keys -t SAM C-c ENTER
+                ;;
+            stop)
+                kill_all_sams
+                sam_exit 0
+                ;;
+            kill)
+                [[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
+                kill_all_sams
+                sam_exit 0
+                ;;
+            update)
+                sam_cleanup
+                sam_update
+                ;;
+            enable)
+                env_check "${commands[0]}"
+                sam_enable
+                ;;
+            ignore)
+            	ignoregame
+            	;;
+            disable)
+                sam_cleanup
+                sam_disable
+                ;;
+            monitor)
+                sam_monitor
+                ;;
+            playcurrent)
+                sam_exit 2
+                ;;
+            startmonitor | sm)
+                sam_start
+                sam_monitor
+                ;;
+            
+            # ——— Additional submenus ———
+            single)
+                sam_singlemenu
+                ;;
+            autoplay)
+                sam_autoplaymenu
+                ;;
+            favorite)
+                mglfavorite
+                ;;
+            reset)
+                sam_resetmenu
+                ;;
+            config)
+                sam_configmenu
+                ;;
+            back | menu)
+                sam_menu
+                ;;
+            cancel)
+                echo " It's pitch dark; You are likely to be eaten by a Grue."
+                inmenu=0
+                ;;
+            deleteall)
+                deleteall
+                ;;
+            resetini)
+                resetini
+                ;;
+            exclude)
+                samedit_excltags
+                ;;
+            settings)
+                sam_settings
+                ;;
+            include)
+                samedit_include
+                ;;
+            gamemode)
+                sam_gamemodemenu
+                ;;
+            bgm)
+                sam_bgmmenu
+                ;;
+            gamelists)
+                sam_gamelistmenu
+                ;;
+            creategl)
+                creategl
+                ;;
+            deletegl)
+                deletegl
+                ;;
+            help)
+                sam_help
+                ;;
+            sshconfig)
+                sam_sshconfig
+                ;;
+            
+            # ——— Unknown command fallback ———
+            *)
+                echo " ERROR! ${commands[0]} is unknown."
+                echo " Try $(basename -- "${0}") help"
+                echo " Or check the GitHub readme."
+                ;;
+        esac
+        
+        # Now drop this command and move on
+        commands=("${commands[@]:1}")
+    done
 }
 
 
@@ -1342,7 +1319,6 @@ function loop_core() { # loop_core (core)
 }
 
 # Pick a random core
-
 function next_core() { # next_core (core)
 	
 	if [[ -n "$cfgcore_configpath" ]]; then
@@ -1380,7 +1356,11 @@ function next_core() { # next_core (core)
 	samdebug "Selected core: ${nextcore}"
 		
 	check_list "${nextcore}"
-	if [ $? -ne 0 ]; then next_core; return; fi
+	if [ $? -ne 0 ]; then 
+		next_core
+		samdebug "check_list function returned an error."
+		return
+	fi
 	
 	# Check if new roms got added
 	check_gamelistupdate ${nextcore} &
@@ -1394,6 +1374,7 @@ function next_core() { # next_core (core)
 	
 	load_core "${nextcore}" "${rompath}" "${romname%.*}"
 }
+	
 
 function load_samvideo() {
 	sv_loadcounter=$((sv_loadcounter + 1))
@@ -1504,11 +1485,14 @@ function create_all_gamelists() {
 }
 
 function check_gamelistupdate() {
-	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${1}" != "amigacd32" ]] && [[ "${m82}" == "no" ]]; then
+	sleep 5
+	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${m82}" == "no" ]]; then
 		create_gamelist ${1} comp
 		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
 			cp "${gamelistpathtmp}/comp/${1}_gamelist.txt" "${gamelistpath}/${1}_gamelist.txt" 
 			samdebug "Changes detected in ${1} folder. Gamelist updated."
+		else
+		 	samdebug "No changes detected in ${1} gamelist."
 		fi
 	fi
 	
@@ -1698,7 +1682,7 @@ function load_special_core() {
 		if [ -f "/media/fat/_Console/Amiga CD32.mgl" ]; then
 			load_core_amigacd32
 		else
-			echo "ERROR - /media/fat/_Console/Amiga CD32.mgl not found. Skipping to next core..."
+			echo "ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
 			delete_from_corelist amiga
 			next_core
 		fi
@@ -1746,8 +1730,6 @@ function check_list() { # args ${nextcore}
 		if [ $? -ne 0 ]; then 
 			samdebug "check_list function returned error code"
 			return 1
-		else
-			return
 		fi
 	fi
 	
@@ -1794,9 +1776,12 @@ function check_list() { # args ${nextcore}
 		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
 	
 		filter_list "${1}"
-		if [ $? -ne 0 ]; then return 1; fi		
+		if [ $? -ne 0 ]; then 
+			return 1
+			samdebug "filter_list encountered an error"
+		fi		
 	fi
-	
+	return 0
 }
 
 function pick_rom() {	
@@ -2120,7 +2105,9 @@ function load_core_amiga() {
 		echo -n "Starting now on the "
 		echo -ne "\e[4m${CORE_PRETTY[amiga]}\e[0m: "
 		echo -e "\e[1mMegaAGS Amiga Game\e[0m"
-		
+
+		# Tell MiSTer to load the next MRA
+
 		echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 		sleep 13
 		"${mrsampath}/mbc" raw_seq {6c
@@ -2171,7 +2158,6 @@ function load_core_amiga() {
 		echo -e "\e[1m${agpretty}\e[0m"
 		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
 		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
-		
 		# Amigavision uses Amiga.mgl instead of minimig core
 		if [ ! -f "/media/fat/_Console/Amiga.mgl" ]; then
 			echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
@@ -2202,10 +2188,10 @@ function load_core_amigacd32() {
 	local tty_corename
 
 	if [ ! "${gamename}" ]; then
-		gamename="${romname}"
+		gamename="${romname%.*}"
 	fi
 	
-	mute "${CORE_LAUNCH[minimig]}"
+	mute amigacd32 
 	
 
 	echo -n "Starting now on the "
@@ -2662,15 +2648,10 @@ function sam_disable() { # Disable autoplay
 function env_check() {
 	# Check if we've been installed
 	if [ ! -f "${mrsampath}/samindex" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
-		#Probably offline install
-		if [ -f "${mrsampath}/samindex.zip" ]; then
-			unzip -ojq "${mrsampath}/samindex.zip" -d "${mrsampath}" # &>/dev/null
-		else
-			echo " SAM required files not found."
-			echo " Installing now."
-			sam_update autoconfig
-			echo " Setup complete."
-		fi
+		echo " SAM required files not found."
+		echo " Installing now."
+		sam_update autoconfig
+		echo " Setup complete."
 	fi
 	#Probably offline or update_all install
 	if [ ! -f "${configpath}/inputs/GBA_input_1234_5678_v3.map" ]; then
@@ -3193,7 +3174,7 @@ function filter_list() { # args ${nextcore}
 	#Check ini exclusion
 	if [[ "${exclude[*]}" ]]; then 
 		for e in "${exclude[@]}"; do
-			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+			fgrep -viw "$e" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" && cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt" || true
 		done
 
 	fi
@@ -3214,6 +3195,7 @@ function filter_list() { # args ${nextcore}
 		fi
 		echo " $(wc -l <"${gamelistpathtmp}/${1}_gamelist.txt") games will be shuffled."
 	fi
+	return 0
 }
 
 
@@ -3884,23 +3866,13 @@ function get_samindex() {
     echo "https://github.com/wizzomafizzo/mrext"
 
     # Define URLs and file paths
-    latest_url="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex.zip?raw=true"
-    tmp_file="/tmp/samindex.zip"
-    local_file="${mrsampath}/samindex.zip"
+    latest_url="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex?raw=true"
+    tmp_file="/tmp/samindex"
+    local_file="${mrsampath}/samindex"
 
-    # Check and update samindex.zip
+    # Check and update samindex
     check_and_update "$latest_url" "$tmp_file" "$local_file" "samindex"
 
-    # Extract only if the file is new
-	result=$?
-	if [ "$result" -eq 2 ] || [ ! -f "${mrsampath}/samindex" ]; then
-        echo "Extracting samindex..."
-        unzip -ojq "$local_file" -d "${mrsampath}" || {
-            echo "Error: Failed to extract samindex.zip" >&2
-            return 1
-        }
-        echo "samindex updated and extracted successfully."
-    fi
 }
 
 
@@ -4831,6 +4803,7 @@ function sam_gamemodemenu() {
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
+		sam_standard "Default Setting - Play all cores muted" \
 		sam_goat_mode "Play the Greatest of All Time Attract modes." \
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
 		sam_svc "Play TV commercials and then show the advertised game." \
@@ -4863,6 +4836,17 @@ sam_m82_mode() {
 
 }
 
+sam_standard() {
+	if [ "${menuresponse}" == "sam_standard" ]; then
+		reset_ini
+		# Build corelistall dynamically from CORE_PRETTY keys
+		corelistall=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
+		sed -i '/mute=/c\mute="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i "/^corelist=/c\corelist=\"$corelistall\"" /media/fat/Scripts/MiSTer_SAM.ini		
+	    sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	    sam_start
+	fi
+}
 
 # Function to process the GOAT list and create game list files
 sam_goat_mode() {
@@ -5260,8 +5244,7 @@ function sam_bgmmenu() {
 
 				elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
 					echo " Uninstalling BGM, please wait..."
-					echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-					[[ -e /media/fat/Scripts/bgm.sh ]] && /media/fat/Scripts/bgm.sh stop
+					bgm_stop
 					[[ -e /media/fat/Scripts/bgm.sh ]] && rm /media/fat/Scripts/bgm.sh
 					[[ -e /media/fat/music/bgm.ini ]] && rm /media/fat/music/bgm.ini
 					rm /tmp/bgm.sock 2>/dev/null
