@@ -2159,7 +2159,7 @@ function load_core_amiga() {
 		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
 		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
 		# Amigavision uses Amiga.mgl instead of minimig core
-		if [ ! -f "/media/fat/_Computer/Amiga.mgl" ]; then
+		if [ -f "/media/fat/_Computer/Amiga.mgl" ]; then
 			echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
 		else
 			echo "load_core ${amigacore}" >/dev/MiSTer_cmd
@@ -2431,7 +2431,7 @@ function sam_exit() { # args = ${1}(exit_code required) ${2} optional error mess
 		elif [ "${nextcore}" == "amiga" ]; then
 			echo "${rompath}" > "${amigapath}"/shared/ags_boot
 			# Amigavision uses Amiga.mgl instead of minimig core
-			if [ ! -f "/media/fat/_Console/Amiga.mgl" ]; then
+			if [ -f "/media/fat/_Console/Amiga.mgl" ]; then
 				echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
 			else
 				echo "load_core ${amigacore}" >/dev/MiSTer_cmd
