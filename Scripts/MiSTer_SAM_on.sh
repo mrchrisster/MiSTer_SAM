@@ -44,7 +44,7 @@ function init_vars() {
 	declare -g key_activity_file="/tmp/.SAM_tmp/SAM_Keyboard_Activity"
 	declare -g joy_activity_file="/tmp/.SAM_tmp/SAM_Joy_Activity"
 	declare -g mouse_activity_file="/tmp/.SAM_tmp/SAM_Mouse_Activity"
-	declare -g sam_menu_file="/tmp/.SAM_tmp/.SAMmenu"
+	declare -g sam_menu_file="/tmp/.SAMmenu"
 	declare -g brfake="/tmp/.SAM_tmp/brfake"
 	declare -g samini_file="/media/fat/Scripts/MiSTer_SAM.ini"
 	declare -g samini_update_file="${mrsampath}/MiSTer_SAM.default.ini"
@@ -1091,11 +1091,11 @@ function parse_cmd() {
                 echo "Skipping to next game..."
                 tmux send-keys -t SAM C-c ENTER
                 ;;
-            stop)
+            juststop)
                 kill_all_sams
                 sam_exit 0
                 ;;
-            kill)
+            stop | kill)
                 [[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
                 kill_all_sams
                 sam_exit 0
