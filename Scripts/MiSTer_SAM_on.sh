@@ -4202,19 +4202,19 @@ function sam_menu() {
 	dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
-		Start "Start SAM now" \
-		Startmonitor "Start SAM now And Monitor (SSH)" \
+		Start "Start now" \
+		Startmonitor "Start now And Monitor (SSH)" \
 		Skip "Skip Game" \
-		Ignore "Ignore current game and exclude from SAM" \
-		Stop "Stop and reset SAM" \
-		Update "Update SAM to latest" \
+		Ignore "Ignore current game and exclude" \
+		Stop "Stop and reset Gamelists" \
+		Update "Update to latest" \
 		----- "-----------------------------" \
 		gamemode "Presets and Game Modes" \
 		sam_coreconfig "Configure Core List" \
 		sam_exittask "Configure Exit Behavior" \
 		sam_controller "Configure Gamepad" \
-		sam_filters "Filters (by Orientation or Category)" \
-		sam_bgm "Add-ons: SAMVIDEO, BGM, TTY2OLED" \
+		sam_filters "Filters" \
+		sam_bgm "Add-ons" \
 		config "MiSTer_SAM.ini Editor" \
 		Settings "Settings" \
 		Reset "Reset or uninstall SAM" 2>"${sam_menu_file}"
