@@ -4206,7 +4206,7 @@ function sam_menu() {
 		Startmonitor "Start SAM now And Monitor (SSH)" \
 		Skip "Skip Game" \
 		Ignore "Ignore current game and exclude from SAM" \
-		Stop "Stop SAM" \
+		Stop "Stop and reset SAM" \
 		Update "Update SAM to latest" \
 		----- "-----------------------------" \
 		gamemode "Presets and Game Modes" \
