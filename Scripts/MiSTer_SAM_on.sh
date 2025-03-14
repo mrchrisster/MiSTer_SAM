@@ -2098,7 +2098,11 @@ function load_core_amiga() {
 		filter_list amiga
 	fi
 		
-	mute Minimig
+	if [ -f "/media/fat/_Computer/Amiga.mgl" ]; then
+		mute Amiga
+	else
+		mute Minimig
+	fi
 
 	if [ ! -f "${amigapath}/listings/games.txt" ]; then
 		# This is for MegaAGS version June 2022 or older
