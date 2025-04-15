@@ -3216,7 +3216,7 @@ function samdebug() {
 function sam_sshconfig() {
 	# Alias to be added
 	alias_m='alias m="/media/fat/Scripts/MiSTer_SAM_on.sh"'
-	alias_ms='alias ms="source /media/fat/Scripts/MiSTer_SAM_on.sh --sourceonly"'
+	alias_ms='alias ms="source /media/fat/Scripts/MiSTer_SAM_on.sh --source-only"'
 	alias_u='alias u="/media/fat/Scripts/update_all.sh"'
 
 	# Path to the .bash_profile
