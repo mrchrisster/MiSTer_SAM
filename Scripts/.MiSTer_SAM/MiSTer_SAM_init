@@ -15,6 +15,7 @@ declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 declare -g saminit_log="/tmp/saminit.log"
 declare -gl kids_safe
+declare -gl unmute_on_boot
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
@@ -27,6 +28,15 @@ do
         exit 1
     fi
 done
+
+if [ -f "${misterpath}/Scripts/MiSTer_SAM.ini" ]; then
+	source "${misterpath}/Scripts/MiSTer_SAM.ini"
+	IFS=',' read -ra corelist <<< "${corelist}"
+	IFS=',' read -ra corelistall <<< "${corelistall}"
+	grep "^[^#;]" < "${misterpath}/Scripts/MiSTer_SAM.ini" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
+		declare -g "${var}"="${!var%/}"
+	done
+fi
 
 #======== DEBUG VARIABLES ========
 samquiet="Yes"
@@ -50,6 +60,10 @@ echo " Done!"
 
 #========= PREP =========
 mkdir -p "${gamelistpathtmp}"
+#Unmute MiSTer
+if [ "${unmute_on_boot}" == "yes" ]; then
+	echo "volume unmute" > /dev/MiSTer_cmd
+fi
 
 #======== Local Functions Unique to the Init Script ========
 function start() {
