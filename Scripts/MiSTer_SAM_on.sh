@@ -2553,13 +2553,18 @@ function sam_prep() {
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
-	[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "global" ] && rm "${configpath}/Volume.dat"
-	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount "${amigapath}/shared"
+	[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
+	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
 	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
 	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
-	[ ${mute} != "no" ] && [ "$(mount | grep -qic _volume.cfg)" != "0" ] && readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')" && umount "${volmount[@]}" >/dev/null
+	if [ "${mute}" != "no" ]; then
+		readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')"
+		if [ "${#volmount[@]}" -gt 0 ]; then
+			umount -l "${volmount[@]}" >/dev/null 2>&1
+		fi
+	fi
 	if [ "${samvideo}" == "yes" ]; then
 		echo 1 > /sys/class/graphics/fbcon/cursor_blink
 		echo 'Super Attract Mode Video was used.' > /dev/tty1 
@@ -2996,7 +3001,8 @@ function mute() {
 }
 
 function unmute() {
-		echo "volume unmute" > /dev/MiSTer_cmd
+	echo "volume unmute" > /dev/MiSTer_cmd
+	samdebug "Sent unmute command"
 }
 
 function check_zips() { # check_zips core
