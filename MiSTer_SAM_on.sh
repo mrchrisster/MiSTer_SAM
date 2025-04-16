@@ -1093,12 +1093,14 @@ function parse_cmd() {
                 ;;
             juststop)
                 kill_all_sams
-                sam_exit 0
+				playcurrentgame=no
+                play_or_exit
                 ;;
             stop | kill)
                 [[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* && rm -rf /tmp/SAM* && rm -rf /tmp/MiSTer_SAM*
                 kill_all_sams
-                sam_exit 0
+				playcurrentgame=no
+                play_or_exit
                 ;;
             update)
                 sam_cleanup
@@ -1119,7 +1121,8 @@ function parse_cmd() {
                 sam_monitor
                 ;;
             playcurrent)
-                sam_exit 2
+				playcurrentgame=yes
+                play_or_exit
                 ;;
             startmonitor | sm)
                 sam_start
@@ -1208,7 +1211,6 @@ function loop_core() { # loop_core (core)
 	# Reset game log for this session
 	echo "" >/tmp/SAM_Games.log
 	samdebug "corelist: ${corelist[*]}"
-
 	while :; do
 
 		while [ ${counter} -gt 0 ]; do
@@ -1268,7 +1270,7 @@ function loop_core() { # loop_core (core)
 						counter=0
 						truncate -s 0 "$joy_activity_file"
 					else
-						play_or_exit
+						play_or_exit &
 						#return
 					fi
 				else # ignore gamepad input
@@ -2404,53 +2406,38 @@ function kill_all_sams() {
 }
 
 function play_or_exit() {
+	sam_cleanup
     if [[ "${playcurrentgame}" == "yes" ]]; then
     	if [[ ${mute} == "core" ]]; then
-			sam_exit 3
-		else
-			sam_exit 2
+			sleep 1
+			if [ "${nextcore}" == "arcade" ]; then
+				echo "load_core ${mra}" >/dev/MiSTer_cmd
+			elif [ "${nextcore}" == "amiga" ]; then
+				echo "${rompath}" > "${amigapath}"/shared/ags_boot
+				# Amigavision uses Amiga.mgl instead of minimig core
+				if [ -f "/media/fat/_Console/Amiga.mgl" ]; then
+					echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
+				else
+					echo "load_core ${amigacore}" >/dev/MiSTer_cmd
+				fi
+			else
+				echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
+			fi
+
+		elif [[ ${mute} == "yes" ]]; then
+			unmute
 		fi
 	else
-		sam_exit 0
-	fi
-}
-
-function sam_exit() { # args = ${1}(exit_code required) ${2} optional error message
-	sam_cleanup
-	if [ "${1}" -eq 0 ]; then # just exit
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
 		sleep 1
 		echo "Thanks for playing!"
-	elif [ "${1}" -eq 1 ]; then # Error
-		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-		sleep 1
-		echo "There was an error ${2}" # Pass error messages in ${2}
-	elif [ "${1}" -eq 2 ]; then        # Play Current Game
-		unmute
-		sleep 1
-	elif [ "${1}" -eq 3 ]; then # Play Current Game, relaunch because of core mute
-		sleep 1
-		if [ "${nextcore}" == "arcade" ]; then
-			echo "load_core ${mra}" >/dev/MiSTer_cmd
-		elif [ "${nextcore}" == "amiga" ]; then
-			echo "${rompath}" > "${amigapath}"/shared/ags_boot
-			# Amigavision uses Amiga.mgl instead of minimig core
-			if [ -f "/media/fat/_Console/Amiga.mgl" ]; then
-				echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
-			else
-				echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-			fi
-		else
-			echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
-		fi
 	fi
-	
-	#	Exit SAM Modules
 	bgm_stop
 	tty_exit
-	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
-
+	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
 }
+
+
 
 
 # ======== UTILITY FUNCTIONS ========
