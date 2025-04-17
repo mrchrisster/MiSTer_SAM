@@ -945,7 +945,7 @@ function read_samini() {
 	
 	#BGM mode
 	if [ "${bgm}" == "yes" ]; then
-		unmute
+		#unmute
 		mute="core"
 	fi
 	
@@ -3256,30 +3256,18 @@ function bgm_start() {
 	if [ "${bgm}" == "yes" ]; then
 		if [ ! "$(ps -o pid,args | grep '[b]gm' | head -1)" ]; then
 			/media/fat/Scripts/bgm.sh
+			sleep 2
 		else
 			echo "BGM already running."
 		fi
-		sleep 2
+		echo -n "set debug yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		sleep 1
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		sleep 1
 		echo -n "set playback random" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-		#BGM playback tends to be louder than most cores. Let's adjust global volume down..
-		if [ "${gvoladjust}" -ne 0 ] &&  [ "${bgmstop}" == "yes" ]; then
-			if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
-				declare -g currentvol=$(xxd "${configpath}/Volume.dat" |awk '{print $2}')
-				unset newvol
-				local newvol=$(($currentvol + $gvoladjust))
-				samdebug "Changing global volume to $newvol"
-				if [ $newvol -le 7 ]; then 
-					#echo "volume ${newvol}" > /dev/MiSTer_cmd &
-					echo -e "\00$newvol\c" >"${configpath}/Volume.dat"
-				fi
-			fi
-		fi
-		if [ "${bgmplay}" == "yes" ]; then
-			echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-			echo -n "set playback disabled" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-		fi
+		sleep 1
+		echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+
 	else
 		bgm_stop
 
