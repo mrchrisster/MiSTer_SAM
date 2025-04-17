@@ -5359,6 +5359,7 @@ function enablebgm() {
 	[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	echo " Enabling BGM debug so SAM can see what's playing.."
+	sleep 5
 	if grep -q '^debug = no' /media/fat/music/bgm.ini; then
 		sed -i 's/^debug = no/debug = yes/' /media/fat/music/bgm.ini
 		sleep 1
