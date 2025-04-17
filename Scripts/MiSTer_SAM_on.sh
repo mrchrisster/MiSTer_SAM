@@ -945,7 +945,16 @@ function read_samini() {
 	
 	#BGM mode
 	if [ "${bgm}" == "yes" ]; then
-		#unmute
+		# delete n64 and psx
+		# echo "Deleting N64 and PSX from corelist"
+		new_corelist=()
+		for core in "${corelist[@]}"; do
+			if [[ "$core" != "n64" && "$core" != "psx" ]]; then
+				new_corelist+=("$core")
+			fi
+		done
+
+		corelist=("${new_corelist[@]}")
 		mute="core"
 	fi
 	
@@ -3006,6 +3015,11 @@ function mute() {
 		#	#echo "volume mute" > /dev/MiSTer_cmd
 		fi
 	elif [ "${mute}" == "core" ]; then
+		samdebug "mute=core"
+		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 00 ]]; then
+			echo -e "\0000\c" >"${configpath}/Volume.dat"
+			unmute
+		fi
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
 		[ ! -f "${configpath}/${1}_volume.cfg" ] && touch "${configpath}/${1}_volume.cfg"
 		[ ! -f "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" ] && touch "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"		
@@ -3036,7 +3050,7 @@ function mute() {
 		fi	
 		prevcore=${1}
 	elif [ "${mute}" == "no" ]; then
-		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 00 ]]; then
 			samdebug "Sent unmute"
 			unmute
 		fi
@@ -5336,19 +5350,19 @@ function enablebgm() {
 		mv --force /tmp/bgm.sh /media/fat/Scripts/
 		echo " Resetting BGM now."
 	fi
-	echo " Updating MiSTer_SAM.ini to use Mute=No"
-	sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	echo " Enabling BGM debug so SAM can see what's playing.."
-	if grep -q '^debug = no' /media/fat/music/bgm.ini; then
-		sed -i 's/^debug = no/debug = yes/' /media/fat/music/bgm.ini
-		sleep 1
-	fi
-	/media/fat/Scripts/bgm.sh
+	#echo " Updating MiSTer_SAM.ini to use Mute=No"
+	#sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	/media/fat/Scripts/bgm.sh &>/dev/null &
 	sync
 	repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 	get_samstuff Media/80s.pls /media/fat/music
 	[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	echo " Enabling BGM debug so SAM can see what's playing.."
+	if grep -q '^debug = no' /media/fat/music/bgm.ini; then
+		sed -i 's/^debug = no/debug = yes/' /media/fat/music/bgm.ini
+		sleep 1
+	fi
 	#echo " All Done. Starting SAM now."
 	#/media/fat/Scripts/MiSTer_SAM_on.sh start
 }
