@@ -118,6 +118,11 @@ Make sure you have Arcade Organizer enabled for some of SAM's advanced features.
 ### Arcade Horizontal or Vertical Only
 Uncomment one of the "arcadepath" settings in the `MiSTer_SAM.ini` file to choose from only horizontal or vertical arcade games.
 
+### BGM Support
+You can set up BGM from SAM's menu. It will lower the core volume while showing games and reset the core volume when SAM exits.  
+Currently BGM support is broken for N64 and PSX core  
+  
+  
 ### Enhanced tty2oled output
 ![IMG_1029](https://github.com/mrchrisster/MiSTer_SAM/blob/main/Media/tty2oled-moving.gif)
 
