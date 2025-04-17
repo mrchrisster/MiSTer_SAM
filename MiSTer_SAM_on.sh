@@ -1904,17 +1904,28 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 	
 	mute "${CORE_LAUNCH[${1}]}"
 	
+	#BGM title
+	if [ "${bgm}" == "yes" ]; then
+		streamtitle=$(awk -F"'" '/StreamTitle=/{title=$2} END{print title}' /tmp/bgm.log 2>/dev/null)
+	fi
 
 	echo -n "Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${1}]}\e[0m: "
 	echo -e "\e[1m${gamename}\e[0m"
+	[[ -n "$streamtitle" ]] && echo -e "BGM playing: \e[1m${streamtitle}\e[0m"
 	echo "$(date +%H:%M:%S) - ${1} - $([ "${samdebug}" == "yes" ] && echo ${rompath} || echo ${3})" "$(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >>/tmp/SAM_Games.log
 	echo "${3} (${1}) $(if [ "${1}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >/tmp/SAM_Game.txt
-	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"
 	
+
 	
+	#TTY2OLED
+	tty_corename="${TTY2OLED_PIC_NAME[${1}]}"	
 	if [[ "${ttyname_cleanup}" == "yes" ]]; then
 		gamename="$(echo "${gamename}" | awk -F "(" '{print $1}')"
+	fi
+	
+	if [[ -n "$streamtitle" ]]; then
+		gamename="${gamename} - BGM: ${streamtitle}"
 	fi
 
 	if [ "${ttyenable}" == "yes" ]; then
@@ -2020,9 +2031,32 @@ function load_core_arcade() {
 	# Delete mra from list so it doesn't repeat
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$mra" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-
 	fi
-		if [ "${ttyenable}" == "yes" ]; then
+	
+	mute "${mrasetname}"
+
+	#BGM title
+	if [ "${bgm}" == "yes" ]; then
+		streamtitle=$(awk -F"'" '/StreamTitle=/{title=$2} END{print title}' /tmp/bgm.log 2>/dev/null)
+	fi
+
+
+
+	echo -n "Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+	echo -e "\e[1m${mraname}\e[0m"
+	[[ -n "$streamtitle" ]] && echo -e "BGM playing: \e[1m${streamtitle}\e[0m"
+	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >>/tmp/SAM_Games.log
+	echo "${mraname} (${nextcore})" >/tmp/SAM_Game.txt
+	
+
+	#TTY2OLED
+	
+	if [[ -n "$streamtitle" ]]; then
+		gamename="${mraname} - BGM: ${streamtitle}"
+	fi
+	
+	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
 			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
 			[name]="${mraname}"
@@ -2039,16 +2073,6 @@ function load_core_arcade() {
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		SECONDS=${elapsed}
 	fi
-
-
-
-	echo -n "Starting now on the "
-	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
-	echo -e "\e[1m${mraname}\e[0m"
-	echo "$(date +%H:%M:%S) - Arcade - ${mraname}" >>/tmp/SAM_Games.log
-	echo "${mraname} (${nextcore})" >/tmp/SAM_Game.txt
-	
-	mute "${mrasetname}"
 	
 	# Tell MiSTer to load the next MRA
 	echo "load_core ${mra}" >/dev/MiSTer_cmd
@@ -2139,6 +2163,25 @@ function load_core_amiga() {
 		echo "${rompath}" > "${amigapath}"/shared/ags_boot
 		tty_corename="Minimig"
 		
+
+		#BGM title
+		if [ "${bgm}" == "yes" ]; then
+			streamtitle=$(awk -F"'" '/StreamTitle=/{title=$2} END{print title}' /tmp/bgm.log 2>/dev/null)
+		fi
+
+		echo -n "Starting now on the "
+		echo -ne "\e[4m${CORE_PRETTY[amiga]}\e[0m: "
+		echo -e "\e[1m${agpretty}\e[0m"
+		[[ -n "$streamtitle" ]] && echo -e "BGM playing: \e[1m${streamtitle}\e[0m"
+		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
+		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
+		
+		#TTY2OLED
+		
+		if [[ -n "$streamtitle" ]]; then
+			gamename="${agpretty} - BGM: ${streamtitle}"
+		fi		
+		
 		if [ "${ttyenable}" == "yes" ]; then
 			tty_currentinfo=(
 				[core_pretty]="${CORE_PRETTY[amiga]}"
@@ -2157,13 +2200,7 @@ function load_core_amiga() {
 			SECONDS=${elapsed}
 		fi
 		
-
-
-		echo -n "Starting now on the "
-		echo -ne "\e[4m${CORE_PRETTY[amiga]}\e[0m: "
-		echo -e "\e[1m${agpretty}\e[0m"
-		echo "$(date +%H:%M:%S) - ${nextcore} - ${rompath}" >>/tmp/SAM_Games.log
-		echo "${rompath} (${nextcore})" >/tmp/SAM_Game.txt
+		
 		# Amigavision uses Amiga.mgl instead of minimig core
 		if [ -f "/media/fat/_Computer/Amiga.mgl" ]; then
 			echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
@@ -2199,18 +2236,28 @@ function load_core_amigacd32() {
 	
 	mute amigacd32 
 	
+	#BGM title
+	if [ "${bgm}" == "yes" ]; then
+		streamtitle=$(awk -F"'" '/StreamTitle=/{title=$2} END{print title}' /tmp/bgm.log 2>/dev/null)
+	fi
+
 
 	echo -n "Starting now on the "
 	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
 	echo -e "\e[1m${gamename}\e[0m"
+	[[ -n "$streamtitle" ]] && echo -e "BGM playing: \e[1m${streamtitle}\e[0m"
 	echo "$(date +%H:%M:%S) - ${nextcore} - $([ "${samdebug}" == "yes" ] && echo ${rompath} || echo ${romname})" "$(if [ "${nextcore}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >>/tmp/SAM_Games.log
 	echo "${romname} (${nextcore}) $(if [ "${nextcore}" == "neogeo" ] && [ ${useneogeotitles} == "yes" ]; then echo "(${gamename})"; fi)" >/tmp/SAM_Game.txt
 	tty_corename="${TTY2OLED_PIC_NAME[${nextcore}]}"
 	
-	
+	#TTY2OLED
 	if [[ "${ttyname_cleanup}" == "yes" ]]; then
 		gamename="$(echo "${gamename}" | awk -F "(" '{print $nextcore}')"
 	fi
+	
+	if [[ -n "$streamtitle" ]]; then
+		gamename="${gamename} - BGM: ${streamtitle}"
+	fi	
 
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
@@ -2312,8 +2359,26 @@ function load_core_ao486() {
 	if [ "${norepeat}" == "yes" ]; then
 		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
 	fi
+	
 
+	#BGM title
+	if [ "${bgm}" == "yes" ]; then
+		streamtitle=$(awk -F"'" '/StreamTitle=/{title=$2} END{print title}' /tmp/bgm.log 2>/dev/null)
+	fi
+
+
+	echo -n "Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+	echo -e "\e[1m${aopretty}\e[0m"
+	[[ -n "$streamtitle" ]] && echo -e "BGM playing: \e[1m${streamtitle}\e[0m"
+	echo "$(date +%H:%M:%S) - ${nextcore} - ${romname}" >>/tmp/SAM_Games.log
+	echo "${romname} (${nextcore})" >/tmp/SAM_Game.txt
+
+	#tty2oled
 	tty_corename="ao486"
+	if [[ -n "$streamtitle" ]]; then
+		gamename="${aopretty} - BGM: ${streamtitle}"
+	fi	
 	
 	if [ "${ttyenable}" == "yes" ]; then
 		tty_currentinfo=(
@@ -2332,15 +2397,6 @@ function load_core_ao486() {
 		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
 		SECONDS=${elapsed}
 	fi
-	
-
-
-	echo -n "Starting now on the "
-	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
-	echo -e "\e[1m${aopretty}\e[0m"
-	echo "$(date +%H:%M:%S) - ${nextcore} - ${romname}" >>/tmp/SAM_Games.log
-	echo "${romname} (${nextcore})" >/tmp/SAM_Game.txt
-
 	
 	echo "load_core ${rompath}" >/dev/MiSTer_cmd
 
@@ -2540,7 +2596,7 @@ function sam_prep() {
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
-	[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
+	#[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
 	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
@@ -3255,7 +3311,7 @@ function bgm_start() {
 
 	if [ "${bgm}" == "yes" ]; then
 		if [ ! "$(ps -o pid,args | grep '[b]gm' | head -1)" ]; then
-			/media/fat/Scripts/bgm.sh
+			/media/fat/Scripts/bgm.sh &>/dev/null &
 			sleep 2
 		else
 			echo "BGM already running."
@@ -5234,7 +5290,6 @@ function sam_bgmmenu() {
 					sed -i '/bgm.sh/d' ${userstartup}
 					sed -i '/Startup BGM/d' ${userstartup}
 					sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-					sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 					#echo " Done."
 				elif [[ "${menuresponse,,}" == "enabletty" ]]; then
 					sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
@@ -5283,6 +5338,11 @@ function enablebgm() {
 	fi
 	echo " Updating MiSTer_SAM.ini to use Mute=No"
 	sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	echo " Enabling BGM debug so SAM can see what's playing.."
+	if grep -q '^debug = no' /media/fat/music/bgm.ini; then
+		sed -i 's/^debug = no/debug = yes/' /media/fat/music/bgm.ini
+		sleep 1
+	fi
 	/media/fat/Scripts/bgm.sh
 	sync
 	repository_url="https://github.com/mrchrisster/MiSTer_SAM"
