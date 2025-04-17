@@ -3260,8 +3260,6 @@ function bgm_start() {
 		else
 			echo "BGM already running."
 		fi
-		echo -n "set debug yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-		sleep 1
 		echo -n "set playincore yes" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
 		sleep 1
 		echo -n "set playback random" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
