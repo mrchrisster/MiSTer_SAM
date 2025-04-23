@@ -446,7 +446,7 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
-		["cdi"]="CDI"
+		["cdi"]="CD-i"
 		["coco2"]="CoCo2"
 		["fds"]="fds"
 		["gb"]="GAMEBOY"
