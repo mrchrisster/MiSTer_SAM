@@ -2431,6 +2431,7 @@ function load_core_ao486() {
 		SECONDS=${elapsed}
 	fi
 	
+	skipmessage_ao486 &
 	echo "load_core ${rompath}" >/dev/MiSTer_cmd
 
 	sleep 1
@@ -2917,6 +2918,21 @@ function skipmessage() {
 		"${mrsampath}/mbc" raw_seq :31
 		
 	fi
+}
+
+function skipmessage_ao486() {
+		sleep "$skiptime"
+		samdebug "Button pushes sent to (hopefully) skip past selection screens"
+		"${mrsampath}/mbc" raw_seq :02
+		sleep 1
+		"${mrsampath}/mbc" raw_seq :22
+		sleep 1
+		"${mrsampath}/mbc" raw_seq :1C
+		sleep 1
+		"${mrsampath}/mbc" raw_seq :19
+		sleep 1
+		"${mrsampath}/mbc" raw_seq :32
+
 }
 
 function mglfavorite() {
