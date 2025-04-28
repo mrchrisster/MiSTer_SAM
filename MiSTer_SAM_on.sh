@@ -1306,7 +1306,7 @@ function loop_core() { # loop_core (core)
 					elif [[ "$(cat "$joy_activity_file")" == "zaparoo" ]]; then
 						echo "Zaparoo starting. SAM exiting"
 						# SAM will restart core if mute=core which is set by bgm
-						mute="yes"
+						#mute="yes"
 						play_or_exit &
 					else
 						play_or_exit &
@@ -4682,7 +4682,7 @@ function sam_coreconfig() {
 		--menu "Select from the following options?" 0 0 0 \
 		sam_corelist_preset "Presets for Core List" \
 		sam_corelist "Enable/Disable cores (Keyboard support only)" \
-		single "Only play Games from one Core" 2>"${sam_menu_file}" 
+		single "Only play Games from one Core (until reboot)" 2>"${sam_menu_file}" 
 
 	opt=$?
 	menuresponse=$(<"${sam_menu_file}")
@@ -4797,7 +4797,7 @@ function sam_corelist_preset() {
 			esac
 			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "7" ]]; then
-			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,n64,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		fi
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
