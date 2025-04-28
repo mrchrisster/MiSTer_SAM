@@ -1293,7 +1293,7 @@ function loop_core() { # loop_core (core)
 						#Play game
 						samdebug "Start button pushed. Exiting SAM."
 						playcurrentgame="yes"
-						play_or_exit
+						play_or_exit &
 						truncate -s 0 "$joy_activity_file"
 					elif [[ "$(cat "$joy_activity_file")" == "Next" ]]; then
 						echo "Starting next Game"
@@ -1302,6 +1302,12 @@ function loop_core() { # loop_core (core)
 						fi
 						counter=0
 						truncate -s 0 "$joy_activity_file"
+					#Support zaparoo	
+					elif [[ "$(cat "$joy_activity_file")" == "zaparoo" ]]; then
+						echo "Zaparoo starting. SAM exiting"
+						# SAM will restart core if mute=core which is set by bgm
+						mute="yes"
+						play_or_exit &
 					else
 						play_or_exit &
 						#return
