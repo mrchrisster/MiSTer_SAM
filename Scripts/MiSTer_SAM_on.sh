@@ -1306,7 +1306,7 @@ function loop_core() { # loop_core (core)
 					elif [[ "$(cat "$joy_activity_file")" == "zaparoo" ]]; then
 						echo "Zaparoo starting. SAM exiting"
 						# SAM will restart core if mute=core which is set by bgm
-						#mute="yes"
+						mute="yes"
 						play_or_exit &
 					else
 						play_or_exit &
