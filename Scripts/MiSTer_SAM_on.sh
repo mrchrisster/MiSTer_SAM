@@ -64,7 +64,7 @@ function init_vars() {
 	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,tgfx16,tgfx16cd,psx,x68k"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
@@ -182,6 +182,7 @@ function init_vars() {
 	declare -g tgfx16pathrbf="_Console"
 	declare -g tgfx16cdpathrbf="_Console"
 	declare -g psxpathrbf="_Console"
+	declare -g x68kpathrbf="_Computer"
 	
 	if [[ "${corelist[@]}" == *"amiga"* ]] || [[ "${corelist[@]}" == *"amigacd32"* ]] || [[ "${corelist[@]}" == *"ao486"* ]] && [ -f "${mrsampath}"/samindex ]; then
 		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
@@ -263,6 +264,7 @@ function init_data() {
 		["tgfx16"]="NEC TurboGrafx-16 "
 		["tgfx16cd"]="NEC TurboGrafx-16 CD"
 		["psx"]="Sony Playstation"
+		["x68k"]="Sharp X68000"
 	)
 
 	# Core to file extension mappings
@@ -298,6 +300,7 @@ function init_data() {
 		["tgfx16"]="pce,sgx"		
 		["tgfx16cd"]="chd,cue"
 		["psx"]="chd,cue,exe"
+		["x68k"]="vhd"		#This is just a placeholder
 	)
 	
 	# Core to path mappings
@@ -333,6 +336,7 @@ function init_data() {
 		["tgfx16"]="${tgfx16pathfilter}"
 		["tgfx16cd"]="${tgfx16cdpathfilter}"
 		["psx"]="${psxpathfilter}"
+		["x68k"]="${x68kpathfilter}"
 	)
 
 
@@ -369,6 +373,7 @@ function init_data() {
 		["tgfx16"]="${tgfx16pathrbf}"
 		["tgfx16cd"]="${tgfx16cdpathrbf}"
 		["psx"]="${psxpathrbf}"
+		["x68k"]="${x68kpathrbf}"
 	)
 
 	# Can this core skip Bios/Safety warning messages
@@ -404,6 +409,7 @@ function init_data() {
 		["tgfx16"]="No"
 		["tgfx16cd"]="Yes"
 		["psx"]="No"
+		["x68k"]="No"
 	)
 	
 
@@ -440,6 +446,7 @@ function init_data() {
 		["tgfx16"]="TGFX16"
 		["tgfx16cd"]="TGFX16"
 		["psx"]="PSX"
+		["x68k"]="X68000"
 	)
 	
 	# TTY2OLED Core Pic mappings
@@ -475,6 +482,7 @@ function init_data() {
 		["tgfx16"]="TGFX16"
 		["tgfx16cd"]="TGFX16"
 		["psx"]="PSX"
+		["x68k"]="X68000"
 	)
 
 	# MGL core name settings
@@ -510,6 +518,7 @@ function init_data() {
 		["tgfx16"]="TurboGrafx16"
 		["tgfx16cd"]="TurboGrafx16"
 		["psx"]="PSX"
+		["x68k"]="X68000"
 	)
 
 	# MGL setname settings
@@ -552,6 +561,8 @@ function init_data() {
 		["tgfx16"]="1"
 		["tgfx16cd"]="1"
 		["psx"]="1"
+		["x68k"]="1"
+
 	)
 
 	# MGL index settings
@@ -587,6 +598,7 @@ function init_data() {
 		["tgfx16"]="1"
 		["tgfx16cd"]="0"
 		["psx"]="1"
+		["x68k"]="2"
 	)
 
 	# MGL type settings
@@ -622,6 +634,7 @@ function init_data() {
 		["tgfx16"]="f"
 		["tgfx16cd"]="s"
 		["psx"]="s"
+		["x68k"]="s"
 	)
 
 
@@ -1698,7 +1711,7 @@ function pick_core() {
 }
 
 function load_special_core() {
-	# If $nextcore is ao486, amiga or arcade 
+	# If $nextcore is ao486, amiga, arcade or X68000 
 	if [ "${nextcore}" == "arcade" ]; then
 		# If this is an arcade core we go to special code
 		if [[ -n "$cfgarcade_configpath" ]]; then
@@ -1729,16 +1742,49 @@ function load_special_core() {
 		fi
 		return 2
 	fi
-	if [ "${nextcore}" == "ao486" ]; then
-		if [ "$(find "/media/fat/_DOS Games" -name "*.mgl" | wc -l )" == "0" ]; then
-			echo "ERROR - No ao486 screensavers found...Please install 0Mhz collection."
+	if [ "${nextcore}" = "ao486" ]; then
+		dir1="/media/fat/_DOS Games"
+		dir2="/media/fat/_Computer/_DOS Games"
+	
+		# count in dir1, or dir2 if dir1 is empty
+		count1=$(find "$dir1"  -type f -iname '*.mgl' 2>/dev/null | wc -l)
+		count2=$(find "$dir2"  -type f -iname '*.mgl' 2>/dev/null | wc -l)
+	
+		if [ "$count1" -gt 0 ] || [ "$count2" -gt 0 ]; then
+			load_core_ao486
+		else
+			echo "ERROR - No ao486 screensavers found in either:"
+			echo "  $dir1"
+			echo "  $dir2"
+			echo "Please install the 0Mhz collection."
 			delete_from_corelist ao486
 			next_core
-		else
-			load_core_ao486
 		fi
+	
 		return 2
 	fi
+	if [ "${nextcore}" = "x68k" ]; then
+		dir1="/media/fat/_X68000 Games"
+		dir2="/media/fat/_Computer/_X68000 Games"
+	
+		# count in dir1, or dir2 if dir1 is empty
+		count1=$(find "$dir1"  -type f -iname '*.mgl' 2>/dev/null | wc -l)
+		count2=$(find "$dir2"  -type f -iname '*.mgl' 2>/dev/null | wc -l)
+	
+		if [ "$count1" -gt 0 ] || [ "$count2" -gt 0 ]; then
+			load_core_x68k
+		else
+			echo "ERROR - No x68k mgls found in either:"
+			echo "  $dir1"
+			echo "  $dir2"
+			echo "Please install the neon68k collection."
+			delete_from_corelist x68k
+			next_core
+		fi
+	
+		return 2
+	fi
+
 }
 
 
@@ -2371,10 +2417,15 @@ function load_core_amigacd32() {
 }
 
 function create_ao486list () {
+    local dir1="/media/fat/_DOS Games"
+    local dir2="/media/fat/_Computer/_DOS Games"
+    local out="${gamelistpath}/${nextcore}_gamelist.txt"
 
-	find "/media/fat/_DOS Games" -name "*.mgl" > "${gamelistpath}/${nextcore}_gamelist.txt"
-
+    # look in both dirs (silence errors if a dir is missing)
+    find "$dir1" "$dir2" -type f -iname '*.mgl' 2>/dev/null \
+        > "$out"
 }
+
 
 function load_core_ao486() {
 
@@ -2445,6 +2496,89 @@ function load_core_ao486() {
 
 
 }
+
+
+function create_x68klist () {
+    local dir1="/media/fat/_X68000 Games"
+    local dir2="/media/fat/_Computer/_X68000 Games"
+    local out="${gamelistpath}/${nextcore}_gamelist.txt"
+
+    # look in both dirs (silence errors if a dir is missing)
+    find "$dir1" "$dir2" -type f -iname '*.mgl' 2>/dev/null \
+        > "$out"
+}
+
+function load_core_x68k() {
+
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+		create_x68klist
+		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
+		#filter_list x68k
+		if [ $? -eq 1 ]; then
+			next_core
+			return
+		fi
+	fi
+		
+	mute X68000
+	rompath="$(shuf --random-source=/dev/urandom --head-count=1 ${gamelistpathtmp}/"${nextcore}"_gamelist.txt)"
+	romname=$(basename "${rompath}")
+	aopretty="$(echo "${romname%.*}" | tr '_' ' ')"		
+
+	# Delete played game from list
+	samdebug "Selected file: ${rompath}"
+	if [ "${norepeat}" == "yes" ]; then
+		awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
+	fi
+	
+
+	#BGM title
+	if [ "${bgm}" == "yes" ]; then
+		streamtitle=$(awk -F"'" '/StreamTitle=/{title=$2} END{print title}' /tmp/bgm.log 2>/dev/null)
+	fi
+
+
+	echo -n "Starting now on the "
+	echo -ne "\e[4m${CORE_PRETTY[${nextcore}]}\e[0m: "
+	echo -e "\e[1m${aopretty}\e[0m"
+	[[ -n "$streamtitle" ]] && echo -e "BGM playing: \e[1m${streamtitle}\e[0m"
+	echo "$(date +%H:%M:%S) - ${nextcore} - ${romname}" >>/tmp/SAM_Games.log
+	echo "${romname} (${nextcore})" >/tmp/SAM_Game.txt
+
+	#tty2oled
+	tty_corename="X68000"
+	if [[ -n "$streamtitle" ]]; then
+		gamename="${aopretty} - BGM: ${streamtitle}"
+	fi	
+	
+	if [ "${ttyenable}" == "yes" ]; then
+		tty_currentinfo=(
+			[core_pretty]="${CORE_PRETTY[${nextcore}]}"
+			[name]="${aopretty}"
+			[core]=${tty_corename}
+			[date]=$EPOCHSECONDS
+			[counter]=${gametimer}
+			[name_scroll]="${aopretty:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+		)
+		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+		write_to_TTY_cmd_pipe "display_info" &
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		SECONDS=${elapsed}
+	fi
+	
+	#skipmessage_x68k &
+	echo "load_core ${rompath}" >/dev/MiSTer_cmd
+
+	sleep 1
+	activity_reset
+
+
+}
+
+
 
 # ========= SAM START AND STOP =========
 
@@ -4258,43 +4392,51 @@ function sam_update() { # sam_update (next command)
 
 # ======== SAM MENU ========
 function sam_premenu() {
-	echo "+---------------------------+"
-	echo "| MiSTer Super Attract Mode |"
-	echo "+---------------------------+"
-	echo " SAM Configuration:"
-	if [ "$(grep -ic "mister_sam" "${userstartup}")" != "0" ]; then
-		echo " -SAM autoplay ENABLED"
-	else
-		echo " -SAM autoplay DISABLED"
-	fi
-	echo " -Start after ${samtimeout} sec. idle"
-	echo " -Start only on the menu: ${menuonly^}"
-	echo " -Show each game for ${gametimer} sec."
-	echo ""
-	echo " Press UP to open menu"
-	echo " Press DOWN to start SAM"
-	echo ""
-	echo " Or wait for"
-	echo " auto-configuration"
-	echo ""
+    echo "+---------------------------+"
+    echo "| MiSTer Super Attract Mode |"
+    echo "+---------------------------+"
+    echo " SAM Configuration:"
+    if grep -iq "mister_sam" "${userstartup}"; then
+        echo " -SAM autoplay ENABLED"
+    else
+        echo " -SAM autoplay DISABLED"
+    fi
+    echo " -Start after ${samtimeout} sec. idle"
+    echo " -Start only on the menu: ${menuonly^}"
+    echo " -Show each game for ${gametimer} sec."
+    echo ""
+    echo " Press UP to open menu"
+    echo " Press DOWN to start SAM"
+    echo ""
+    echo " Or wait for"
+    echo " auto-start"
+    echo ""
 
-	for i in {10..1}; do
-		echo -ne " Updating SAM in ${i} secs...\033[0K\r"
-		premenu="Default"
-		read -r -s -N 1 -t 1 key
-		if [[ "${key}" == "A" ]]; then
-			premenu="Menu"
-			break
-		elif [[ "${key}" == "B" ]]; then
-			premenu="Start"
-			break
-		elif [[ "${key}" == "C" ]]; then
-			premenu="Default"
-			break
-		fi
-	done
-	parse_cmd ${premenu}
+    # default action to Start
+    premenu="Start"
+
+    for i in {10..1}; do
+        echo -ne " Starting SAM in ${i} secs...\033[0K\r"
+        read -r -s -N 1 -t 1 key
+        case "$key" in
+            A)  # UP arrow
+                premenu="Menu"
+                break
+                ;;
+            B)  # DOWN arrow
+                premenu="Start"
+                break
+                ;;
+            C)  # RIGHT arrow (or Ctrl‑something)
+                premenu="Default"
+                break
+                ;;
+        esac
+    done
+    echo # clear the countdown line
+    parse_cmd "${premenu}"
 }
+
 
 function sam_menu() {
 	inmenu=1
