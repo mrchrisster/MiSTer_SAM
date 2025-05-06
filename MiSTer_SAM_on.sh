@@ -87,6 +87,7 @@ function init_vars() {
 	declare -gl listenjoy="Yes"
 	declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 	declare -g branch="main"
+	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"
 	declare -gi counter=0
 	declare -gA corewc
 	declare -gA corep
@@ -4053,7 +4054,7 @@ function get_samstuff() { #get_samstuff file (path)
 		filepath="${mrsampath}"
 	fi
 
-	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
+	echo -n " Downloading from ${raw_base}/${1} to ${filepath}/..."
 	curl_download "/tmp/${1##*/}" "${raw_base}/${1}"
 
 
@@ -4259,10 +4260,11 @@ get_dlmanager() {
 		if [ ! -f "$aria2_path" ]; then
 			
 			aria2_urls=(
-				"https://github.com/mrchrisster/0mhz-collection/blob/main/aria2c/aria2c.zip.001?raw=true"
-				"https://github.com/mrchrisster/0mhz-collection/blob/main/aria2c/aria2c.zip.002?raw=true"
-				"https://github.com/mrchrisster/0mhz-collection/blob/main/aria2c/aria2c.zip.003?raw=true"
-				"https://github.com/mrchrisster/0mhz-collection/blob/main/aria2c/aria2c.zip.004?raw=true"
+				"https://raw.githubusercontent.com/mrchrisster/0mhz-collection/main/aria2c/aria2c.zip.001"
+				"https://raw.githubusercontent.com/mrchrisster/0mhz-collection/main/aria2c/aria2c.zip.002"
+				"https://raw.githubusercontent.com/mrchrisster/0mhz-collection/main/aria2c/aria2c.zip.003"
+				"https://raw.githubusercontent.com/mrchrisster/0mhz-collection/main/aria2c/aria2c.zip.004"
+				
 			)	
 			echo ""
 			echo -n "Installing aria2c Download Manager... "
