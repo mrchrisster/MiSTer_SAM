@@ -87,7 +87,6 @@ function init_vars() {
 	declare -gl listenjoy="Yes"
 	declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 	declare -g branch="main"
-	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"
 	declare -gi counter=0
 	declare -gA corewc
 	declare -gA corep
@@ -3991,25 +3990,15 @@ function samvideo_play() {
 # ======== SAM UPDATE ========
 
 
-function curl_download() {
-  # $1 = local output path, $2 = repo‐relative path under the repo
-  local out="$1" path="$2" url="${raw_base}/${path}"
-  local etagf="${out}.etag"
+function curl_download() { # curl_download ${filepath} ${URL}
 
-  if [ -f "$out" ]; then
-    # send If-None-Match and save new ETag
-    curl --fail --location --silent --show-error --insecure \
-         --etag-compare "$etagf" \
-         --etag-save    "$etagf" \
-         -o "$out" \
-         "$url"
-  else
-    # first-time download, save ETag
-    curl --fail --location --silent --show-error --insecure \
-         --etag-save    "$etagf" \
-         -o "$out" \
-         "$url"
-  fi
+	curl \
+		--connect-timeout 15 --max-time 600 --retry 3 --retry-delay 5 --silent --show-error \
+		--insecure \
+		--fail \
+		--location \
+		-o "${1}" \
+		"${2}"
 }
 
 
@@ -4053,17 +4042,30 @@ function check_and_update() {
 
 
 
-function get_samstuff() {
-    local file_path_in_repo="$1"
-    local dest_dir="$2"; dest_dir="${dest_dir:-$mrsampath}"
-    local tmp="/tmp/${file_path_in_repo##*/}"
+function get_samstuff() { #get_samstuff file (path)
+	
+	if [ -z "${1}" ]; then
+		return 1
+	fi
 
-    echo -n " Downloading from ${raw_base}/${file_path_in_repo} to ${dest_dir}/…"
-    curl_download "$tmp" "$file_path_in_repo"
-    mv -f "$tmp" "${dest_dir}/${file_path_in_repo##*/}"
-    chmod +x "${dest_dir}/${file_path_in_repo##*/}"
+	filepath="${2}"
+	if [ -z "${filepath}" ]; then
+		filepath="${mrsampath}"
+	fi
 
-    echo " Done."
+	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
+	curl_download "/tmp/${1##*/}" "${raw_base}/${1}"
+
+
+	if [ ! "${filepath}" == "/tmp" ]; then
+		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
+	fi
+
+	if [ "${1##*.}" == "sh" ]; then
+		chmod +x "${filepath}/${1##*/}"
+	fi
+
+	echo " Done."
 }
 
 function get_partun() {
@@ -4098,7 +4100,7 @@ function get_samindex() {
     echo "https://github.com/wizzomafizzo/mrext"
 
     # Define URLs and file paths
-    latest_url="${repository_url}/blob/${branch}/.MiSTer_SAM/samindex?raw=true"
+    latest_url="${raw_base}/.MiSTer_SAM/samindex"
     tmp_file="/tmp/samindex"
     local_file="${mrsampath}/samindex"
 
@@ -4114,7 +4116,7 @@ function get_samvideo() {
     echo "https://github.com/wizzomafizzo/mrext"
 
     # Define URLs and file paths
-    latest_mplayer="${repository_url}/blob/${branch}/.MiSTer_SAM/mplayer.zip?raw=true"
+    latest_mplayer="${raw_base}/.MiSTer_SAM/mplayer.zip"
     tmp_mplayer="/tmp/mplayer.zip"
     local_mplayer="${mrsampath}/mplayer.zip"
 
@@ -4139,15 +4141,14 @@ function get_samvideo() {
 
 
     # Check and update SAM gamelists
-    echo "Checking and updating SAM gamelists..."
-    for key in "${!SV_TVC[@]}"; do
-        file=".MiSTer_SAM/SAM_Gamelists/${key}_tvc.txt"
-        local_file="${mrsampath}/SAM_Gamelists/${key}_tvc.txt"
-        tmp_file="/tmp/${key}_tvc.txt"
-        remote_url="${repository_url}/blob/${branch}/${file}?raw=true"
+	echo "Checking and updating SAM gamelists..."
+	for key in "${!SV_TVC[@]}"; do
+		local_file="${mrsampath}/SAM_Gamelists/${key}_tvc.txt"
+		tmp_file="/tmp/${key}_tvc.txt"
+		remote_url="${raw_base}/.MiSTer_SAM/SAM_Gamelists/${key}_tvc.txt"
 
-        check_and_update "$remote_url" "$tmp_file" "$local_file" "${key}_tvc gamelist" 
-    done
+		check_and_update "$remote_url" "$tmp_file" "$local_file" "${key}_tvc gamelist"
+	done
 
     echo "Done."
 }
@@ -4157,7 +4158,7 @@ function get_samvideo() {
 function get_mbc() {
     echo "Downloading mbc - Control MiSTer from cmd..."
     echo "Created for MiSTer by pocomane"
-    remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/mbc?raw=true"
+    remote_url="${raw_base}/.MiSTer_SAM/mbc"
     tmp_file="/tmp/mbc"
     local_file="${mrsampath}/mbc"
 
@@ -4177,7 +4178,7 @@ function get_inputmap() {
         "TGFX16_input_1234_5678_v3.map" \
 	"NEOGEO_input_1234_5678_v3.map" \
         "SATURN_input_1234_5678_v3.map"; do
-        remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/inputs/$input_file?raw=true"
+        remote_url="${raw_base}/.MiSTer_SAM/inputs/$input_file"
         tmp_file="/tmp/$input_file"
         local_file="${configpath}/inputs/$input_file"
 
@@ -4206,7 +4207,7 @@ function get_blacklist() {
         "snes_blacklist.txt" \
         "tgfx16_blacklist.txt" \
         "tgfx16cd_blacklist.txt"; do
-        remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/SAM_Gamelists/$blacklist_file?raw=true"
+        remote_url="${raw_base}/.MiSTer_SAM/SAM_Gamelists/$blacklist_file"
         tmp_file="/tmp/$blacklist_file"
         local_file="${mrsampath}/SAM_Gamelists/$blacklist_file"
 
@@ -4238,7 +4239,7 @@ function get_ratedlist() {
             "snes_rated.txt" \
             "tgfx16_rated.txt" \
             "tgfx16cd_rated.txt"; do
-            remote_url="${repository_url}/blob/${branch}/.MiSTer_SAM/SAM_Rated/$rated_file?raw=true"
+            remote_url="${raw_base}/.MiSTer_SAM/SAM_Rated/$rated_file"
             tmp_file="/tmp/$rated_file"
             local_file="${mrsampath}/SAM_Rated/$rated_file"
 
