@@ -87,6 +87,7 @@ function init_vars() {
 	declare -gl listenjoy="Yes"
 	declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 	declare -g branch="main"
+	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"
 	declare -gi counter=0
 	declare -gA corewc
 	declare -gA corep
@@ -286,7 +287,7 @@ function init_data() {
 		["gba"]="gba"
 		["genesis"]="md,gen" 		
 		["gg"]="gg"
-		["jaguar"]="j64,rom"
+		["jaguar"]="j64,rom,bin,jag"
 		["megacd"]="chd,cue"
 		["n64"]="n64,z64"
 		["neogeo"]="neo"
@@ -3990,15 +3991,25 @@ function samvideo_play() {
 # ======== SAM UPDATE ========
 
 
-function curl_download() { # curl_download ${filepath} ${URL}
+function curl_download() {
+  # $1 = local output path, $2 = repo‐relative path under the repo
+  local out="$1" path="$2" url="${raw_base}/${path}"
+  local etagf="${out}.etag"
 
-	curl \
-		--connect-timeout 15 --max-time 600 --retry 3 --retry-delay 5 --silent --show-error \
-		--insecure \
-		--fail \
-		--location \
-		-o "${1}" \
-		"${2}"
+  if [ -f "$out" ]; then
+    # send If-None-Match and save new ETag
+    curl --fail --location --silent --show-error --insecure \
+         --etag-compare "$etagf" \
+         --etag-save    "$etagf" \
+         -o "$out" \
+         "$url"
+  else
+    # first-time download, save ETag
+    curl --fail --location --silent --show-error --insecure \
+         --etag-save    "$etagf" \
+         -o "$out" \
+         "$url"
+  fi
 }
 
 
@@ -4042,7 +4053,7 @@ function check_and_update() {
 
 
 
-function get_samstuff() { #get_samstuff file (path)
+function get_samstuff() { # get_samstuff file (path inside repo)
 	
 	if [ -z "${1}" ]; then
 		return 1
@@ -4054,7 +4065,8 @@ function get_samstuff() { #get_samstuff file (path)
 	fi
 
 	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
-	curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
+	#curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
+	curl_download "/tmp/${1##*/}" "${1}"
 
 	if [ ! "${filepath}" == "/tmp" ]; then
 		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
