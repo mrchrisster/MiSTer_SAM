@@ -286,7 +286,7 @@ function init_data() {
 		["gba"]="gba"
 		["genesis"]="md,gen" 		
 		["gg"]="gg"
-		["jaguar"]="j64"
+		["jaguar"]="j64,rom"
 		["megacd"]="chd,cue"
 		["n64"]="n64,z64"
 		["neogeo"]="neo"
