@@ -4053,30 +4053,17 @@ function check_and_update() {
 
 
 
-function get_samstuff() { # get_samstuff file (path inside repo)
-	
-	if [ -z "${1}" ]; then
-		return 1
-	fi
+function get_samstuff() {
+    local file_path_in_repo="$1"
+    local dest_dir="$2"; dest_dir="${dest_dir:-$mrsampath}"
+    local tmp="/tmp/${file_path_in_repo##*/}"
 
-	filepath="${2}"
-	if [ -z "${filepath}" ]; then
-		filepath="${mrsampath}"
-	fi
+    echo -n " Downloading from ${raw_base}/${file_path_in_repo} to ${dest_dir}/…"
+    curl_download "$tmp" "$file_path_in_repo"
+    mv -f "$tmp" "${dest_dir}/${file_path_in_repo##*/}"
+    chmod +x "${dest_dir}/${file_path_in_repo##*/}"
 
-	echo -n " Downloading from ${repository_url}/blob/${branch}/${1} to ${filepath}/..."
-	#curl_download "/tmp/${1##*/}" "${repository_url}/blob/${branch}/${1}?raw=true"
-	curl_download "/tmp/${1##*/}" "${1}"
-
-	if [ ! "${filepath}" == "/tmp" ]; then
-		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
-	fi
-
-	if [ "${1##*.}" == "sh" ]; then
-		chmod +x "${filepath}/${1##*/}"
-	fi
-
-	echo " Done."
+    echo " Done."
 }
 
 function get_partun() {
