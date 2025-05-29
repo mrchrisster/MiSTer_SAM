@@ -1572,12 +1572,25 @@ function create_all_gamelists() {
 
 
 function check_gamelistupdate() {
-    sleep 5
-
     local core="$1"
     local orig="${gamelistpath}/${core}_gamelist.txt"
     local compdir="${gamelistpathtmp}/comp"
     local comp="${compdir}/${core}_gamelist.txt"
+
+
+    # ── only run once per core (across all bg children) ───────────
+    local flag_dir="${gamelistpathtmp}/.checked"
+    mkdir -p "$flag_dir"
+    local flag_file="$flag_dir/${1}"
+    if [[ -e "$flag_file" ]]; then
+        samdebug "[${1}] already checked—skipping."
+        return
+    fi
+    # mark it done so future bg jobs skip
+    touch "$flag_file"
+	
+    sleep 5
+
 
     if [[ "$m82" == "no" ]]; then
 
@@ -1864,7 +1877,9 @@ function create_gamelist() { # args ${nextcore}
 		fi
 	elif [ -n "${2}" ]; then
 		mkdir -p "${gamelistpathtmp}/comp"
+		sync "${gamelistpathtmp}/comp"
 		${mrsampath}/samindex -q -s "${1}" -o "${gamelistpathtmp}/comp"
+		sleep 5
 		sync "${gamelistpathtmp}/comp"
 	fi
 
