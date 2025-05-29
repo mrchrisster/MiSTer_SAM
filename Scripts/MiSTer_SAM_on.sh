@@ -1782,7 +1782,7 @@ function load_special_core() {
 	fi
 	if [ "${nextcore}" == "amiga" ]; then
 		
-		if [ -f "${amigapath}/MegaAGS.hdf" ]; then
+		if [ -f "${amigapath}/MegaAGS.hdf" ] || [ -f "${amigapath}/AmigaVision.hdf" ]; then
 			load_core_amiga
 		else
 			echo "ERROR - MegaAGS Pack not found in Amiga folder. Skipping to next core..."
@@ -2723,6 +2723,7 @@ function kill_all_sams() {
 
 function play_or_exit() {
 	sam_cleanup
+	unmute
     if [[ "${playcurrentgame}" == "yes" ]]; then
     	if [[ ${mute} == "core" ]]; then
 			sleep 1
@@ -2739,9 +2740,6 @@ function play_or_exit() {
 			else
 				echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
 			fi
-
-		elif [[ ${mute} == "yes" ]]; then
-			unmute
 		fi
 	else
 		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
@@ -3316,16 +3314,17 @@ function mute() {
 		fi	
 		prevcore=${1}
 	elif [ "${mute}" == "no" ]; then
-		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 00 ]]; then
-			samdebug "Sent unmute"
-			unmute
-		fi
+		samdebug "Sent unmute"
+		unmute
 	fi
 }
 
 function unmute() {
-	echo "volume unmute" > /dev/MiSTer_cmd
-	samdebug "Sent unmute command"
+	if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 00 ]]; then
+		echo -e "\0000\c" >"${configpath}/Volume.dat"
+		echo "volume unmute" > /dev/MiSTer_cmd
+		samdebug "Sent unmute command"
+	fi
 }
 
 function check_zips() { # check_zips core
