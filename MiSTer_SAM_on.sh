@@ -1412,10 +1412,6 @@ function next_core() { # next_core (core)
 	
 	load_special_core
 	if [ $? -ne 0 ]; then return; fi
-
-	#samdebug "corelist: ${corelist[*]}"
-	#samdebug "corelisttmp: ${corelisttmp[*]}"
-	samdebug "Selected core: ${nextcore}"
 		
 	check_list "${nextcore}"
 	if [ $? -ne 0 ]; then 
@@ -1576,18 +1572,45 @@ function create_all_gamelists() {
 
 
 function check_gamelistupdate() {
-	sleep 5
-	if [ ! -f "${gamelistpathtmp}/comp/${1}_gamelist.txt" ] && [[ "${1}" != "amiga" ]] && [[ "${m82}" == "no" ]]; then
-		create_gamelist ${1} comp
-		if [[ "$(wc -c "${gamelistpath}/${1}_gamelist.txt" | awk '{print $1}')" != "$(wc -c "${gamelistpathtmp}/comp/${1}_gamelist.txt" | awk '{print $1}')" ]]; then
-			cp "${gamelistpathtmp}/comp/${1}_gamelist.txt" "${gamelistpath}/${1}_gamelist.txt" 
-			samdebug "Changes detected in ${1} folder. Gamelist updated."
-		else
-		 	samdebug "No changes detected in ${1} gamelist."
-		fi
-	fi
-	
+    sleep 5
+
+    local core="$1"
+    local orig="${gamelistpath}/${core}_gamelist.txt"
+    local compdir="${gamelistpathtmp}/comp"
+    local comp="${compdir}/${core}_gamelist.txt"
+
+    if [[ "$m82" == "no" ]]; then
+
+        # make sure comp directory exists
+        mkdir -p "$compdir"
+        # rebuild into tmp
+        create_gamelist "$core" comp
+
+        # gather stats
+        local orig_bytes comp_bytes orig_lines comp_lines
+        orig_bytes=$(wc -c <"$orig")
+        comp_bytes=$(wc -c <"$comp")
+        orig_lines=$(wc -l <"$orig")
+        comp_lines=$(wc -l <"$comp")
+
+        if [[ "$orig_bytes" != "$comp_bytes" || "$orig_lines" != "$comp_lines" ]]; then
+            samdebug "[${core}] difference detected, updating gamelist…"
+		    samdebug "[${core}] orig size=${orig_bytes}B lines=${orig_lines}; comp size=${comp_bytes}B lines=${comp_lines}"
+
+            # show up to 10 added/removed lines
+            samdebug "[${core}] DIFF:"
+            comm -3 <(sort "$orig") <(sort "$comp") | head -n10 | while read -r ln; do
+                samdebug "   $ln"
+            done
+
+            cp "$comp" "$orig"
+            samdebug "[${core}] Gamelist updated."
+        else
+            samdebug "[${core}] No changes detected in ${core} gamelist."
+        fi
+    fi
 }
+
 
 
 
@@ -2459,16 +2482,29 @@ function create_ao486list () {
     local out="${gamelistpath}/${nextcore}_gamelist.txt"
 
     # look in both dirs (silence errors if a dir is missing)
-    find "$dir1" "$dir2" -type f -iname '*.mgl' 2>/dev/null \
-        > "$out"
-	samdebug "Created AO486 gamelist"
+    find "$dir1" "$dir2" -type f -iname '*.mgl' 2>/dev/null > "$out"
+
+    # if the resulting list is empty, disable this core
+    if [ ! -s "$out" ]; then
+        samdebug "No ao486 screensavers found—disabling ao486 core."
+        delete_from_corelist ao486
+        delete_from_corelist ao486 tmp
+        return 1
+    fi
+
+    samdebug "Created AO486 gamelist with $(wc -l <"$out") entries."
 }
+
 
 
 function load_core_ao486() {
 
-	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+	if [ ! -f "${gamelistpath}/${nextcore}_gamelist.txt" ]; then
+		samdebug "No AO486 list found — creating one now."
 		create_ao486list
+	fi
+
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		filter_list ao486
 		if [ $? -eq 1 ]; then
@@ -2544,13 +2580,23 @@ function create_x68klist () {
     # look in both dirs (silence errors if a dir is missing)
     find "$dir1" "$dir2" -type f -iname '*.mgl' 2>/dev/null \
         > "$out"
-	samdebug "Created X68000 gamelist"
+
+    if [ ! -s "$out" ]; then
+        samdebug "No X68000 games found—disabling x68k core."
+        delete_from_corelist x68k
+        return 1
+    fi
+
+    samdebug "Created X68000 gamelist with $(wc -l <"$out") entries."
 }
 
 function load_core_x68k() {
 
-	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
+	if [ ! -f "${gamelistpath}/${nextcore}_gamelist.txt" ]; then
+		samdebug "No X68000 list found — creating one now."
 		create_x68klist
+	fi
+	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
 		#filter_list x68k
 		if [ $? -eq 1 ]; then
@@ -3486,12 +3532,18 @@ function filter_list() { # args ${nextcore}
 
 
 function samdebug() {
-    if [ "${samdebug}" == "yes" ]; then
-        echo -e "\e[1m\e[31m${*-}\e[0m"
+    local ts msg
+    ts="$(date '+%Y-%m-%d %H:%M:%S')"
+    msg="$*"
+
+    if [[ "${samdebug}" == "yes" ]]; then
+        # coloured console output
+        echo -e "\e[1m\e[31m[${ts}] ${msg}\e[0m"
     fi
 
-    if [ "${samdebuglog}" == "yes" ]; then
-        echo -e "${*-}" >> /tmp/samdebug.log
+    if [[ "${samdebuglog}" == "yes" ]]; then
+        # plain timestamped log
+        echo "[${ts}] ${msg}" >> /tmp/samdebug.log
     fi
 }
 
