@@ -1606,7 +1606,7 @@ function check_gamelistupdate() {
             cp "$comp" "$orig"
             samdebug "[${core}] Gamelist updated."
         else
-            samdebug "[${core}] No changes detected in ${core} gamelist."
+            samdebug "No changes detected in ${core} gamelist."
         fi
     fi
 }
@@ -1865,6 +1865,7 @@ function create_gamelist() { # args ${nextcore}
 	elif [ -n "${2}" ]; then
 		mkdir -p "${gamelistpathtmp}/comp"
 		${mrsampath}/samindex -q -s "${1}" -o "${gamelistpathtmp}/comp"
+		sync "${gamelistpathtmp}/comp"
 	fi
 
 }
@@ -3210,7 +3211,7 @@ function delete_from_corelist() { # delete_from_corelist core tmp
 function reset_core_gl() { # args ${nextcore}
 	echo " Deleting old game lists for ${1^^}..."
 	rm "${gamelistpath}/${1}_gamelist.txt" &>/dev/null
-	sync
+	sync "${gamelistpath}"
 }
 
 function reset_ini() { # args ${nextcore}
