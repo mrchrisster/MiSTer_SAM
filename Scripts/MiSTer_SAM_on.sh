@@ -185,12 +185,17 @@ function init_vars() {
 	declare -g psxpathrbf="_Console"
 	declare -g x68kpathrbf="_Computer"
 	
+	
+	# SPECIAL CORES
 	if [[ "${corelist[@]}" == *"amiga"* ]] || [[ "${corelist[@]}" == *"amigacd32"* ]] || [[ "${corelist[@]}" == *"ao486"* ]] && [ -f "${mrsampath}"/samindex ]; then
 		declare -g amigapath="$("${mrsampath}"/samindex -q -s amiga -d |awk -F':' '{print $2}')"
 		declare -g amigacore="$(find /media/fat/_Computer/ -iname "*minimig*")"
 		declare -g amigacd32path="$("${mrsampath}"/samindex -q -s amigacd32 -d |awk -F':' '{print $2}')"
 		declare -g ao486path="$("${mrsampath}"/samindex -q -s ao486 -d |awk -F':' '{print $2}')"
 	fi
+	
+	
+	special_cores=(amiga ao486 x68k) #amigacd32 uses normal gamelists since it's chd files
 	
 	# ======= MiSTer.ini AITORGOMEZ FORK =======  
 	declare -g cfgcore_configpath=$(
@@ -637,7 +642,7 @@ function init_data() {
 		["psx"]="s"
 		["x68k"]="s"
 	)
-
+	
 
 	# NEOGEO to long name mappings English
 	declare -gA NEOGEO_PRETTY_ENGLISH=(
@@ -952,6 +957,7 @@ function init_data() {
 		["psx"]="psx\|playstation"
 		["arcade"]="arcade"
 	)
+	
 
 
 }
@@ -1492,52 +1498,75 @@ function corelist_update() {
 # Create all gamelists in the background
 
 function create_all_gamelists() {
-	# Run this until corelist matches exisitng gamelists
-	if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort -u)" != "$(for a in "${corelist[@]}"; do echo "$a"; done | sort -u)" ]]; then
-		
-		samdebug "Checking all game lists now."
-		
-		# Read all gamelists present
-		readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-		samdebug "Game lists stored on SD: ${glondisk[*]}"
-		
-		if [[ "${glondisk[*]}" != *"arcade"* ]]; then	
-			"${mrsampath}"/samindex -s arcade -o "${gamelistpath}"
-		fi
-		if [ $? -gt 1 ]; then
-			echo "Couldn't find Arcade games. Please run update_all.sh first or add some Arcade games manually."
-			sleep 5
-			exit
-		fi
-		
-		# Read all gamelists again in case arcade was missing
-		if [[ ! "${glondisk[*]}" ]]; then
-			unset glondisk
-			readarray -t glondisk <<< "$(find "${gamelistpath}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-		fi
-				
-		# Check if more gamelists have been created
-		unset glclondisk
-		for g in "${glondisk[@]}"; do 
-			for c in "${corelist[@]}"; do 
-				if [[ "$c" == "$g" ]]; then 
-					glclondisk+=("$c")
-				fi
-			done 
-		done
-		
-		samdebug "Game lists that match corelist in ini: ${glclondisk[*]}"
-				
-		# Remove cores with no games in bg
-		check_gamelists &
-		
-		corelisttmp=("${glclondisk[@]}")
-		if [[ "${glclondisk[*]}" ]]; then
-			samdebug "Setting corelisttmp to '${glclondisk[*]}'"
-			corelisttmp=("${glclondisk[@]}")
-		fi
-	fi
+    (
+        # — 1) find exactly *_gamelist.txt in gamelistpath —
+        readarray -t glondisk < <(
+            find "$gamelistpath" -maxdepth 1 -type f -name '*_gamelist.txt' \
+                -printf '%f\n' | sed 's/_gamelist\.txt$//'
+        )
+        samdebug "Game lists on SD: ${glondisk[*]}"
+
+        # — 2) build special cores first —
+        for c in "${special_cores[@]}"; do
+            if [[ " ${corelist[*]} " =~ " $c " ]] && \
+               [[ ! " ${glondisk[*]} "   =~ " $c " ]]; then
+                samdebug "Creating special gamelist for $c"
+                nextcore="$c"
+                create_"$c"list
+                unset nextcore
+            fi
+        done
+
+        # — 3) reload after specials —
+        readarray -t glondisk < <(
+            find "$gamelistpath" -maxdepth 1 -type f -name '*_gamelist.txt' \
+                -printf '%f\n' | sed 's/_gamelist\.txt$//'
+        )
+
+        # — 4) figure out non-special cores still missing —
+        local need=()
+        for c in "${corelist[@]}"; do
+            if [[ ! " ${glondisk[*]} " =~ " $c " ]] && \
+               [[ ! " ${special_cores[*]} " =~ " $c " ]]; then
+                need+=( "$c" )
+            fi
+        done
+
+        # — 5) run samindex on those —
+        if (( ${#need[@]} )); then
+            samdebug "Non‐special missing: ${need[*]}"
+            for c in "${need[@]}"; do
+                samdebug "  → creating $c gamelist"
+                "${mrsampath}/samindex" -q -s "$c" -o "$gamelistpath"
+            done
+
+            # — 6) reload once more —
+            readarray -t glondisk < <(
+                find "$gamelistpath" -maxdepth 1 -type f -name '*_gamelist.txt' \
+                    -printf '%f\n' | sed 's/_gamelist\.txt$//'
+            )
+        else
+            samdebug "All non-special gamelists are present."
+        fi
+
+        # — 7) intersect into glclondisk —
+        unset glclondisk
+        for g in "${glondisk[@]}"; do
+            for c in "${corelist[@]}"; do
+                [[ "$c" == "$g" ]] && glclondisk+=( "$c" )
+            done
+        done
+        samdebug "Now have gamelists for: ${glondisk[*]}"
+
+        # — 8) update corelisttmp —
+        corelisttmp=( "${glclondisk[@]}" )
+        samdebug "corelisttmp ← ${corelisttmp[*]}"
+    ) &
 }
+
+
+
+
 
 function check_gamelistupdate() {
 	sleep 5
@@ -2425,6 +2454,7 @@ function create_ao486list () {
     # look in both dirs (silence errors if a dir is missing)
     find "$dir1" "$dir2" -type f -iname '*.mgl' 2>/dev/null \
         > "$out"
+	samdebug "Created AO486 gamelist"
 }
 
 
@@ -2507,6 +2537,7 @@ function create_x68klist () {
     # look in both dirs (silence errors if a dir is missing)
     find "$dir1" "$dir2" -type f -iname '*.mgl' 2>/dev/null \
         > "$out"
+	samdebug "Created X68000 gamelist"
 }
 
 function load_core_x68k() {
@@ -3297,49 +3328,49 @@ function check_zips() { # check_zips core
 	
 	
 function check_gamelists() {
+    # --- build the list of cores that need a gamelist ---
+    unset glcreate
+    readarray -t glexistcl <<< "$(
+        printf '%s\n' "${corelist[@]}" "${glondisk[@]}" |
+        sort | uniq -iu
+    )"
 
-	unset glcreate
-	readarray -t glexistcl <<< "$(printf '%s\n'  "${corelist[@]}" "${glondisk[@]}"  | sort | uniq -iu )"
+    for g in "${glexistcl[@]}"; do
+        for c in "${corelist[@]}"; do
+            [[ "$c" == "$g" ]] && glcreate+=( "$c" )
+        done
+    done
 
-	for g in "${glexistcl[@]}"; do 
-		for c in "${corelist[@]}"; do 
-			if [[ "$c" == "$g" ]]; then 
-				glcreate+=("$c")
-			fi
-		done 
-	done
-	
-	if [[ "${glcreate[*]}" == *"amiga"* ]]; then
-		create_amigalist &
-		glcreate=( "${glcreate[@]/amiga}" )
-	fi
+    # --- filter out all the special cores completely ---
+    local filtered=()
+    for c in "${glcreate[@]}"; do
+        # only keep if c is NOT in special_cores
+        if [[ ! " ${special_cores[*]} " =~ " $c " ]]; then
+            filtered+=( "$c" )
+        fi
+    done
+    glcreate=( "${filtered[@]}" )
 
+    # --- if anything left to create, and no samindex already running ---
+    if (( ${#glcreate[@]} )) && ! pgrep -f samindex &>/dev/null; then
+        nogames=()
+        for c in "${glcreate[@]}"; do
+            samdebug "Creating $c gamelist"
+            "${mrsampath}/samindex" -q -s "$c" -o "$gamelistpath"
+            (( $? > 1 )) && nogames+=( "$c" )
+        done
 
-	if [[ "${glcreate[*]}" ]] && [[ ! "$(ps -ef | grep -i '[s]amindex')" ]]; then
-		unset nogames
-		for c in "${glcreate[@]}"; do
-			samdebug "Creating "$c" gamelist"
-			"${mrsampath}"/samindex -q -s "$c" -o "${gamelistpath}"
-			if [ $? -gt 1 ]; then
-				nogames+=("$c")
-			fi
-		done
-		
-		if [[ "${nogames[*]}" ]]; then
-			for f in "${nogames[@],,}"; do
-				samdebug "Deleting ${f}"
-				delete_from_corelist "${f}"
-				delete_from_corelist "${f}" tmp 
-				#echo "Can't find games for ${CORE_PRETTY[${f}]}"		
-			done
-			#[ -s "${corelistfile}" ] && corelistupdate="$(cat ${corelistfile} | tr '\n' ' ' | tr ' ' ',')"
-			#[ -n ${corelistupdate} ] && sed -i '/corelist=/c\corelist="'"$corelistupdate"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			echo "SAM now has the following cores disabled: $( echo "${nogames[@]}" ) "
-			echo "No games were found for these cores."
-		fi 
-		
-	fi
-
+        # handle cores for which no games were found
+        if (( ${#nogames[@]} )); then
+            for f in "${nogames[@],,}"; do
+                samdebug "Deleting ${f}"
+                delete_from_corelist "$f"
+                delete_from_corelist "$f" tmp
+            done
+            echo "SAM now has the following cores disabled: ${nogames[*]}"
+            echo "No games were found for these cores."
+        fi
+    fi
 }
 
 function filter_list() { # args ${nextcore} 	
