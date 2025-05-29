@@ -79,6 +79,7 @@ function init_vars() {
 	declare -gi update_done=0
 	declare -gl ignore_when_skip="no"
 	declare -gl coreweight="No"
+	declare -gi gamelists_created=0
 	declare -gl playcurrentgame="No"
 	declare -gl kids_safe="No"
 	declare -gl dupe_mode="normal"
@@ -1498,6 +1499,12 @@ function corelist_update() {
 # Create all gamelists in the background
 
 function create_all_gamelists() {
+    # ——— only do this once per script invocation ———
+    if (( gamelists_created )); then
+        return
+    fi
+    gamelists_created=1
+	
     (
         # — 1) find exactly *_gamelist.txt in gamelistpath —
         readarray -t glondisk < <(
@@ -1534,7 +1541,7 @@ function create_all_gamelists() {
 
         # — 5) run samindex on those —
         if (( ${#need[@]} )); then
-            samdebug "Non‐special missing: ${need[*]}"
+            samdebug "Gamelist missing: ${need[*]}"
             for c in "${need[@]}"; do
                 samdebug "  → creating $c gamelist"
                 "${mrsampath}/samindex" -q -s "$c" -o "$gamelistpath"
@@ -1546,7 +1553,7 @@ function create_all_gamelists() {
                     -printf '%f\n' | sed 's/_gamelist\.txt$//'
             )
         else
-            samdebug "All non-special gamelists are present."
+            samdebug "All gamelists are present."
         fi
 
         # — 7) intersect into glclondisk —
