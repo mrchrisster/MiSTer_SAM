@@ -3269,11 +3269,11 @@ function disable_bootrom() {
 
 function mute() {
 	if [ "${mute}" == "global" ] || [ "${mute}" == "yes" ]; then
-		samdebug "Global volume mute."
 		if [ -f "${configpath}/Volume.dat" ]; then
 			if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
 				# Mute Global Volume
 				echo -e "\0020\c" >"${configpath}/Volume.dat"
+				samdebug "Global volume muted."
 				#echo "volume mute" > /dev/MiSTer_cmd
 			fi
 		else
