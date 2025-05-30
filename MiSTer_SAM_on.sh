@@ -3171,6 +3171,8 @@ function skipmessage_ao486() {
 		"${mrsampath}/mbc" raw_seq :19
 		sleep 1
 		"${mrsampath}/mbc" raw_seq :32
+		sleep 1
+		"${mrsampath}/mbc" raw_seq :3B
 
 }
 
@@ -5046,7 +5048,7 @@ function sam_corelist_preset() {
 			esac
 			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		elif [[ "${menuresponse}" == "7" ]]; then
-			sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,neogeo,n64,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"amiga,amigacd32,ao486,arcade,fds,genesis,megacd,neogeo,neogeocd,n64,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
 		fi
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
@@ -5633,15 +5635,14 @@ function enablebgm() {
 	if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
 		echo " Installing BGM to Scripts folder"
 		repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-		get_samstuff bgm.sh /tmp
+		curl_download "/tmp/bgm.sh" "https://raw.githubusercontent.com/wizzomafizzo/MiSTer_BGM/main/bgm.sh"
 		mv --force /tmp/bgm.sh /media/fat/Scripts/
 	else
 		echo " BGM script is installed already. Updating just in case..."
 		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 		kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
 		rm /tmp/bgm.sock 2>/dev/null
-		repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-		get_samstuff bgm.sh /tmp
+		curl_download "/tmp/bgm.sh" "https://raw.githubusercontent.com/wizzomafizzo/MiSTer_BGM/main/bgm.sh"
 		mv --force /tmp/bgm.sh /media/fat/Scripts/
 		echo " Resetting BGM now."
 	fi
@@ -5649,7 +5650,6 @@ function enablebgm() {
 	#sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
 	/media/fat/Scripts/bgm.sh &>/dev/null &
 	sync
-	repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 	get_samstuff Media/80s.pls /media/fat/music
 	[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
