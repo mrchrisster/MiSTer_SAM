@@ -3474,12 +3474,52 @@ function filter_list() { # args ${nextcore}
 	fi
 
 	# Strip dupes	
-	if [ "${dupe_mode}" == "strict" ]; then	
+	if [ "$dupe_mode" = "strict" ]; then
 		samdebug "Using strict mode for finding duplicate roms"
-		awk -F'/' '{split($NF, a, "("); if (!seen[a[1]]++) print $0}' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}"
+
+		awk -F'/' '
+		{
+			full = $0
+			lowpath = tolower(full)
+
+			# ── A) skip if any directory in the path contains hack/beta/proto
+			if ( lowpath ~ /\/[^\/]*(hack|beta|proto)[^\/]*\// )
+				next
+
+			# ── B) skip if the filename has hack/beta/proto inside parentheses
+			fname = $NF
+			if ( tolower(fname) ~ /\([^)]*(hack|beta|proto)[^)]*\)/ )
+				next
+
+			# ── C) strip extension
+			name = fname
+			sub(/\.[^.]+$/, "", name)
+
+			# ── D) remove any parentheses and all that follows
+			sub(/\s*\(.*/, "", name)
+
+			# ── E) strip leading date (YYYY-MM or YYYY-MM-DD) or any numeric prefix
+			sub(/^([0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?|[0-9]+)[^[:alnum:]]*/, "", name)
+
+			# ── F) normalize to lowercase key
+			key = tolower(name)
+
+			# ── G) trim whitespace
+			gsub(/^[ \t]+|[ \t]+$/, "", key)
+
+			# ── H) dedupe
+			if (!seen[key]++)
+				print full
+		}
+		' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}"
 	else
-		awk -F'/' '!seen[$NF]++' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}"
+		awk -F'/' '!seen[$NF]++' \
+			"${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfile}"
 	fi
+
+
+
+
 	cp -f "${tmpfile}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	samdebug "$(wc -l < "${gamelistpathtmp}/${1}_gamelist.txt") Games in list after removing duplicates."
 
