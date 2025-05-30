@@ -1583,7 +1583,7 @@ function check_gamelistupdate() {
     mkdir -p "$flag_dir"
     local flag_file="$flag_dir/${1}"
     if [[ -e "$flag_file" ]]; then
-        samdebug "[${1}] already checked—skipping."
+        #samdebug "[${1}] already checked—skipping."
         return
     fi
     # mark it done so future bg jobs skip
