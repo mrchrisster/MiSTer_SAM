@@ -2883,7 +2883,7 @@ function sam_prep() {
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	#[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
-	global_unmute
+	only_unmute_if_needed
 	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
@@ -3299,10 +3299,7 @@ function disable_bootrom() {
 function mute() {
 	if [ "${mute}" == "core" ]; then
 		samdebug "mute=core"
-		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 00 ]]; then
-			echo -e "\0000\c" >"${configpath}/Volume.dat"
-			global_unmute
-		fi
+		only_unmute_if_needed
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
 		[ ! -f "${configpath}/${1}_volume.cfg" ] && touch "${configpath}/${1}_volume.cfg"
 		[ ! -f "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" ] && touch "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"		
