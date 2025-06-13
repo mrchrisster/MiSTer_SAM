@@ -1288,7 +1288,8 @@ function loop_core() { # loop_core (core)
 			if [ -s "$mouse_activity_file" ]; then
 				if [ "${listenmouse}" == "yes" ]; then
 					echo "Mouse activity detected!"
-					play_or_exit
+						play_or_exit &
+						sleep 10
 				else
 					#echo " Mouse activity ignored!"
 					truncate -s 0 "$mouse_activity_file"
@@ -1298,7 +1299,8 @@ function loop_core() { # loop_core (core)
 			if [ -s "$key_activity_file" ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo "Keyboard activity detected!"
-					play_or_exit
+						play_or_exit &
+						sleep 10
 
 				else
 					echo " Keyboard activity ignored!"
@@ -1314,8 +1316,8 @@ function loop_core() { # loop_core (core)
 						#Play game
 						samdebug "Start button pushed. Exiting SAM."
 						playcurrentgame="yes"
-						play_or_exit &
 						truncate -s 0 "$joy_activity_file"
+						play_or_exit &
 					elif [[ "$(cat "$joy_activity_file")" == "Next" ]]; then
 						echo "Starting next Game"
 						if [[ "$ignore_when_skip" == "yes" ]]; then
@@ -1327,11 +1329,12 @@ function loop_core() { # loop_core (core)
 					elif [[ "$(cat "$joy_activity_file")" == "zaparoo" ]]; then
 						echo "Zaparoo starting. SAM exiting"
 						# SAM will restart core if mute=core which is set by bgm
+						truncate -s 0 "$joy_activity_file"
 						mute="yes"
 						play_or_exit &
 					else
+						truncate -s 0 "$joy_activity_file"
 						play_or_exit &
-						#return
 					fi
 				else # ignore gamepad input
 					#special case for m82
@@ -2063,7 +2066,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 		gamename="${3}"
 	fi
 	
-	mute "${CORE_LAUNCH[${1}]}"
+	mute "${CORE_LAUNCH[${1}]}" &
 	
 	#BGM title
 	if [ "${bgm}" == "yes" ]; then
@@ -2863,13 +2866,24 @@ function sam_prep() {
 			sed -i '/samvideo_tvc=/c\samvideo_tvc="no"' /media/fat/Scripts/MiSTer_SAM.ini
 		fi
 	fi
-
+	if [ -f "${configpath}/Volume.dat" ]; then
+		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
+			# Mute Global Volume
+			#echo -e "\0020\c" >"${configpath}/Volume.dat"
+			echo "volume mute" > /dev/MiSTer_cmd
+			samdebug "Global volume muted."
+		fi
+	else
+		#echo -e "\0020\c" >"${configpath}/Volume.dat"
+		echo "volume mute" > /dev/MiSTer_cmd
+	fi
 
 }
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	#[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
+	echo "volume unmute" > /dev/MiSTer_cmd
 	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
@@ -3283,19 +3297,7 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ "${mute}" == "global" ] || [ "${mute}" == "yes" ]; then
-		if [ -f "${configpath}/Volume.dat" ]; then
-			if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
-				# Mute Global Volume
-				echo -e "\0020\c" >"${configpath}/Volume.dat"
-				samdebug "Global volume muted."
-				#echo "volume mute" > /dev/MiSTer_cmd
-			fi
-		else
-			echo -e "\0020\c" >"${configpath}/Volume.dat"
-		#	#echo "volume mute" > /dev/MiSTer_cmd
-		fi
-	elif [ "${mute}" == "core" ]; then
+	if [ "${mute}" == "core" ]; then
 		samdebug "mute=core"
 		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 00 ]]; then
 			echo -e "\0000\c" >"${configpath}/Volume.dat"
@@ -3337,12 +3339,61 @@ function mute() {
 }
 
 function unmute() {
-	if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 00 ]]; then
-		echo -e "\0000\c" >"${configpath}/Volume.dat"
+	if [[ "$(xxd -p -c 1 "${configpath}/Volume.dat")" != 00 ]]; then
+		#echo -e "\0000\c" >"${configpath}/Volume.dat"
 		echo "volume unmute" > /dev/MiSTer_cmd
 		samdebug "Sent unmute command"
 	fi
 }
+
+#-------------------------------------------------------------------------------
+# Helper: write_byte
+# Writes a single byte (given as a two-digit hex string) into a file, then syncs.
+#
+# Arguments:
+#   $1 = path to file (e.g. "${configpath}/Volume.dat")
+#   $2 = two-digit hex string representing the byte to write (e.g. "05", "15")
+
+function write_byte() {
+  local f="$1"; local hex="$2"
+  printf '%b' "\\x$hex" > "$f" && sync
+}
+
+#-------------------------------------------------------------------------------
+# global_mute
+# Sets the “mute” bit in Volume.dat without altering your current volume level.
+# Then issues a live “volume mute” command to the running MiSTer core.
+#-------------------------------------------------------------------------------
+function global_mute() {
+  local f="${configpath}/Volume.dat"
+  local cur m hex
+
+  # read the single-byte value, e.g. "05"
+  cur=$(xxd -p -c1 "$f")
+
+  # OR in the mute-flag (0x10)
+  m=$(( 0x$cur | 0x10 ))
+
+  # format back to two-digit hex, then write that single byte
+  hex=$(printf '%02x' "$m")
+  write_byte "$f" "$hex"
+
+  # immediately mute the live core
+  echo "volume mute" > /dev/MiSTer_cmd
+  samdebug "Global mute → Volume.dat=0x${hex}"
+}
+
+function global_unmute() {
+  local f="${configpath}/Volume.dat"
+  local cur hex u
+  cur=$(xxd -p -c1 "$f")
+  u=$((0x$cur & 0x0F))
+  hex=$(printf '%02x' "$u")
+  write_byte "$f" "$hex"
+  echo "volume unmute" > /dev/MiSTer_cmd
+  echo "Restored Volume.dat to 0x$hex"
+}
+
 
 function check_zips() { # check_zips core
 	# Check if zip still exists
