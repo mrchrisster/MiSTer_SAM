@@ -1288,8 +1288,8 @@ function loop_core() { # loop_core (core)
 			if [ -s "$mouse_activity_file" ]; then
 				if [ "${listenmouse}" == "yes" ]; then
 					echo "Mouse activity detected!"
+						truncate -s 0 "$mouse_activity_file"
 						play_or_exit &
-						sleep 10
 				else
 					#echo " Mouse activity ignored!"
 					truncate -s 0 "$mouse_activity_file"
@@ -1299,8 +1299,8 @@ function loop_core() { # loop_core (core)
 			if [ -s "$key_activity_file" ]; then
 				if [ "${listenkeyboard}" == "yes" ]; then
 					echo "Keyboard activity detected!"
+						truncate -s 0 "$mouse_activity_file"
 						play_or_exit &
-						sleep 10
 
 				else
 					echo " Keyboard activity ignored!"
@@ -1359,7 +1359,7 @@ function loop_core() { # loop_core (core)
 						if [[ "$romname" != *"m82"* ]] && [ "$update_done" -eq 0 ]; then 
 							# Unmute game
 							if [[ "$m82_muted" == "yes" ]]; then
-								unmute
+								only_unmute_if_needed
 								#echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
 							fi
 							counter=$m82_game_timer
@@ -2066,7 +2066,7 @@ function load_core() { # load_core core /path/to/rom name_of_rom
 		gamename="${3}"
 	fi
 	
-	mute "${CORE_LAUNCH[${1}]}" &
+	mute "${CORE_LAUNCH[${1}]}"
 	
 	#BGM title
 	if [ "${bgm}" == "yes" ]; then
@@ -2741,7 +2741,6 @@ function kill_all_sams() {
 
 function play_or_exit() {
 	sam_cleanup
-	unmute
     if [[ "${playcurrentgame}" == "yes" ]]; then
     	if [[ ${mute} == "core" ]]; then
 			sleep 1
@@ -2866,16 +2865,17 @@ function sam_prep() {
 			sed -i '/samvideo_tvc=/c\samvideo_tvc="no"' /media/fat/Scripts/MiSTer_SAM.ini
 		fi
 	fi
+	# Mute Global Volume
+	# if Volume.dat exists, try to mute only if needed
 	if [ -f "${configpath}/Volume.dat" ]; then
-		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 10 ]]; then
-			# Mute Global Volume
-			#echo -e "\0020\c" >"${configpath}/Volume.dat"
-			echo "volume mute" > /dev/MiSTer_cmd
-			samdebug "Global volume muted."
-		fi
+	  only_mute_if_needed
+
+	# if Volume.dat doesn’t exist yet, create it *and* mute
 	else
-		#echo -e "\0020\c" >"${configpath}/Volume.dat"
-		echo "volume mute" > /dev/MiSTer_cmd
+	  # create a “level=0 + mute” byte = 0x10
+	  write_byte "${configpath}/Volume.dat" "10"
+	  echo "volume mute" > /dev/MiSTer_cmd
+	  samdebug "Volume.dat created (0x10) and muted."
 	fi
 
 }
@@ -2883,7 +2883,7 @@ function sam_prep() {
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	#[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
-	echo "volume unmute" > /dev/MiSTer_cmd
+	global_unmute
 	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
@@ -3301,7 +3301,7 @@ function mute() {
 		samdebug "mute=core"
 		if [[ "$(xxd "${configpath}/Volume.dat" |awk '{print $2}')" != 00 ]]; then
 			echo -e "\0000\c" >"${configpath}/Volume.dat"
-			unmute
+			global_unmute
 		fi
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
 		[ ! -f "${configpath}/${1}_volume.cfg" ] && touch "${configpath}/${1}_volume.cfg"
@@ -3334,17 +3334,13 @@ function mute() {
 		prevcore=${1}
 	elif [ "${mute}" == "no" ]; then
 		samdebug "Sent unmute"
-		unmute
+		only_unmute_if_needed
 	fi
 }
 
-function unmute() {
-	if [[ "$(xxd -p -c 1 "${configpath}/Volume.dat")" != 00 ]]; then
-		#echo -e "\0000\c" >"${configpath}/Volume.dat"
-		echo "volume unmute" > /dev/MiSTer_cmd
-		samdebug "Sent unmute command"
-	fi
-}
+
+
+
 
 #-------------------------------------------------------------------------------
 # Helper: write_byte
@@ -3390,8 +3386,47 @@ function global_unmute() {
   u=$((0x$cur & 0x0F))
   hex=$(printf '%02x' "$u")
   write_byte "$f" "$hex"
-  echo "volume unmute" > /dev/MiSTer_cmd
+  #echo "volume unmute" > /dev/MiSTer_cmd
   echo "Restored Volume.dat to 0x$hex"
+}
+
+#-------------------------------------------------------------------------------
+# only_mute_if_needed
+# Checks Volume.dat’s mute-bit and mutes only if it isn’t already set.
+#-------------------------------------------------------------------------------
+function only_mute_if_needed() {
+  local f="${configpath}/Volume.dat"
+  local cur
+
+  # 1) read the single byte as two hex digits, e.g. "05" or "15"
+  cur=$(xxd -p -c1 "$f")
+
+  # 2) test bit 4 (0x10).  If (cur & 0x10) == 0 then we’re not muted yet.
+  if (( (0x$cur & 0x10) == 0 )); then
+    samdebug "Volume not yet muted (Volume.dat=0x$cur) → muting now"
+    global_mute
+  else
+    samdebug "Already muted (Volume.dat=0x$cur) → skipping write"
+  fi
+}
+
+
+function only_unmute_if_needed() {
+  local f="${configpath}/Volume.dat"
+  local cur
+
+  # 1) Read the single-byte value, e.g. "15" if muted at level5, or "05" if unmuted
+  cur=$(xxd -p -c1 "$f")
+
+  # 2) If bit4 (0x10) *is* set, we’re currently muted → clear it
+  if (( (0x$cur & 0x10) != 0 )); then
+    samdebug "Volume is muted (Volume.dat=0x$cur) → unmuting now"
+    global_unmute
+    return 0    # indicate we did an unmute
+  else
+    samdebug "Volume already unmuted (Volume.dat=0x$cur) → skipping write"
+    return 1    # indicate no action taken
+  fi
 }
 
 
