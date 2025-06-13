@@ -3329,9 +3329,6 @@ function mute() {
 			sync
 		fi	
 		prevcore=${1}
-	elif [ "${mute}" == "no" ]; then
-		samdebug "Sent unmute"
-		only_unmute_if_needed
 	fi
 }
 
@@ -3383,7 +3380,8 @@ function global_unmute() {
   u=$((0x$cur & 0x0F))
   hex=$(printf '%02x' "$u")
   write_byte "$f" "$hex"
-  #echo "volume unmute" > /dev/MiSTer_cmd
+  # sent unmute for interactive unmute
+  echo "volume unmute" > /dev/MiSTer_cmd
   echo "Restored Volume.dat to 0x$hex"
 }
 
