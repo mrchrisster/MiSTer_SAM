@@ -1630,161 +1630,181 @@ function check_gamelistupdate() {
 
 
 
-
-#Pick next core
+# -----------------------------------------------------------------------------
+# Main core picker
+# -----------------------------------------------------------------------------
 function pick_core() {
+    # 1) Standard vs SAM-video pick
     if [ -z "$1" ]; then
-        # Standard mode
-        nextcore=$(printf "%s\n" "${corelisttmp[@]}" | shuf --random-source=/dev/urandom | head -1)
-        samdebug "Picked core: $nextcore"
+        pick_core_standard
     else
-        # Samvideo mode with coreweight built in
-        local -n array=$1
-        declare -A core_counts
-        total_count=0
-
-        samdebug "Starting pick_core with array: ${array[@]}"
-
-        # Load or initialize core counts
-        if [[ -f "$core_count_file" ]]; then
-            samdebug "Loading core counts from $core_count_file"
-            while IFS="=" read -r core count; do
-                if [[ "$core" == "total_count" ]]; then
-                    total_count=$count
-                else
-                    core_counts["$core"]=$count
-                fi
-            done < "$core_count_file"
-        else
-            samdebug "Initializing core counts for the first time"
-            for core in "${array[@]}"; do
-                tvc_file="${gamelistpath}/${core}_tvc.txt"
-                if [[ -f "$tvc_file" ]]; then
-                    count=$(jq -r 'keys | length' "$tvc_file")
-                    samdebug "Found ${count} games in ${tvc_file}"
-                else
-                    count=0
-                    samdebug "No ${tvc_file} found"
-                fi
-				if (( count > 0 )); then
-					core_counts["$core"]=$count
-					((total_count += count))
-				fi
-            done
-
-            # Save core counts to the file
-            mkdir -p "$(dirname "$core_count_file")"
-            > "$core_count_file"
-            for core in "${!core_counts[@]}"; do
-                echo "$core=${core_counts[$core]}" >> "$core_count_file"
-            done
-            echo "total_count=$total_count" >> "$core_count_file"
-            samdebug "Saved core counts to $core_count_file"
-        fi
-
-        # Select a random value within the total count range for weighted probability
-        pick_value=$(shuf --random-source=/dev/urandom -i 1-"$total_count" -n 1)
-
-        # Use cumulative probability to select the core
-        cumulative=0
-        for core in "${!core_counts[@]}"; do
-            cumulative=$((cumulative + core_counts["$core"]))
-            if ((pick_value <= cumulative)); then
-                nextcore="$core"
-                samdebug "Selected core: $nextcore based on pick value $pick_value"
-                break
-            fi
-        done
+        pick_core_samvideo "$1"
     fi
 
-    # Fallback if nextcore is empty
-    if [[ -z "${nextcore}" ]]; then
+    # 2) Always override if core-weight mode is on
+    if [[ "$coreweight" == "yes" && "$samvideo_tvc" == "no" ]]; then
+        pick_core_weighted
+    fi
+
+    # 3) Fallback
+    if [[ -z "$nextcore" ]]; then
         samdebug "nextcore empty. Using arcade core as fallback."
         nextcore="arcade"
     fi
-
-			
-	#Core Weight mode
-	if [ "$coreweight" == "yes" ] && [ "$samvideo_tvc" == "no" ]; then
-		#Check if all gamelists have been created
-		if [[ "$(for a in "${glclondisk[@]}"; do echo "$a"; done | sort -u)" == "$(for a in "${corelist[@]}"; do echo "$a"; done | sort -u)" ]]; then
-			#Check if every core's game library has been counted
-			if [[ ! "${corewc[*]}" ]]; then
-				readarray -t gltmpondisk <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-				unset gltmpclondisk
-				for g in "${gltmpondisk[@]}"; do 
-					for c in "${corelist[@]}"; do 
-						if [[ "$c" == "$g" ]]; then 
-							gltmpclondisk+=("$c")
-						fi
-					done 
-				done
-				readarray -t gltmpexistcl <<< "$(printf '%s\n'  "${corelist[@]}" "${gltmpondisk[@]}"  | sort | uniq -iu )"
-				unset gltmpcreate
-				#samdebug "gltmpexistcl is "${gltmpexistcl[@]}""
-				for g in "${gltmpexistcl[@]}"; do 
-					for c in "${corelist[@]}"; do 
-						if [[ "$c" == "$g" ]]; then 
-							gltmpcreate+=("$c")
-						fi
-					done 
-				done
-				echo -n "Please wait while creating gamelists..."
-				#samdebug "gltmpcreate is "${gltmpcreatel[@]}""
-				for g in "${gltmpcreate[@]}"; do
-					check_list "${g}" >/dev/null
-				done
-				echo "Done."
-				
-				for c in "${corelist[@]}"; do 
-					corewc[$c]="$(wc -l < "${gamelistpathtmp}/${c}_gamelist.txt")"
-				done					 
-				
-				
-				totalgamecount="$(printf "%s\n" "${corewc[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')"
-				i=5
-				# Sorting cores by games
-				while IFS= read -r line; do 
-					played_perc=$((${line#*=}*100/totalgamecount))
-					if [ "$played_perc" -lt "5" ]; then 
-						played_perc=$i
-						if [ $i -gt 2 ]; then ((i--)); fi #minimum core display is 2% of the time
-					fi
-					corep[${line%%=*}]="$played_perc"
-				done <<< "$(for k in "${!corewc[@]}"; do echo "$k"'='"${corewc["$k"]}";done | sort -k2 -t'=' -nr )"
-
-				totalpcount=$(printf "%s\n" "${corep[@]}" | awk '{s+=$1} END {printf "%.0f\n", s}')
-				disablecoredel=1
-				{
-				echo -e "\n\nGames per core:\n"
-				echo "$(for k in "${!corewc[@]}"; do echo ["$k"] '=' "${corewc["$k"]}"; done | sort -rn -k3)"
-				echo -e "\nTotal game count: $totalgamecount\n"
-				} > /tmp/.SAM_tmp/totalgcount
-				{
-				echo -e "\n\nCore selection by app. percentage:\n"
-				echo "$(for k in "${!corep[@]}"; do echo ["$k"] '=' "${corep["$k"]}""%"; done | sort -rn -k3)"
-				} > /tmp/.SAM_tmp/totalpcount
-				pr -Tm /tmp/.SAM_tmp/totalgcount /tmp/.SAM_tmp/totalpcount
-
-				
-				
-			fi
-			#Pick a random core based on how many games a library has
-			game=0
-			samdebug "totalpcount: $totalpcount"
-			pickgame=$(shuf --random-source=/dev/urandom -i 1-"$totalpcount" -n 1)
-			for c in "${!corep[@]}"; do 
-				let game+=${corep["$c"]}
-				if [[ "$game" -gt "$pickgame" ]]; 
-					then nextcore=$c
-					samdebug "Selected game number: $pickgame / $c"
-					break 
-				fi
-			done
-		fi
-	fi
-			
 }
+
+# -----------------------------------------------------------------------------
+# 1) Uniform random selection
+# -----------------------------------------------------------------------------
+function pick_core_standard() {
+    nextcore=$(printf "%s\n" "${corelisttmp[@]}" \
+               | shuf --random-source=/dev/urandom -n1)
+    samdebug "Picked core (standard): $nextcore"
+}
+
+# -----------------------------------------------------------------------------
+# 2) Weighted by _tvc.txt  (SAM-video mode)
+# -----------------------------------------------------------------------------
+function pick_core_samvideo() {
+    local -n array=$1
+    declare -A core_counts
+    local total_count=0
+
+    # Load or initialize counts cache
+    if [[ -f "$core_count_file" ]]; then
+        samdebug "Loading TVC counts from $core_count_file"
+        while IFS="=" read -r core count; do
+            if [[ "$core" == total_count ]]; then
+                total_count=$count
+            else
+                core_counts["$core"]=$count
+            fi
+        done < "$core_count_file"
+    else
+        samdebug "Initializing TVC counts"
+        for core in "${array[@]}"; do
+            local tvc="${gamelistpath}/${core}_tvc.txt"
+            local cnt=0
+            if [[ -f "$tvc" ]]; then
+                cnt=$(jq -r 'keys|length' "$tvc")
+                samdebug "  $core → $cnt entries"
+            fi
+            if (( cnt>0 )); then
+                core_counts["$core"]=$cnt
+                (( total_count += cnt ))
+            fi
+        done
+
+        mkdir -p "$(dirname "$core_count_file")"
+        > "$core_count_file"
+        for c in "${!core_counts[@]}"; do
+            echo "$c=${core_counts[$c]}" >> "$core_count_file"
+        done
+        echo "total_count=$total_count" >> "$core_count_file"
+        samdebug "Saved TVC counts to $core_count_file"
+    fi
+
+    nextcore=$(pick_weighted_random core_counts "$total_count")
+    samdebug "Picked core (samvideo): $nextcore"
+}
+
+# -----------------------------------------------------------------------------
+# 3) Core-weight mode (weighted by _gamelist.txt counts)
+# -----------------------------------------------------------------------------
+function pick_core_weighted() {
+    declare -A corewc corep
+    local totalgamecount=0 totalpcount=0
+
+    # --- a) Discover existing gamelists ---
+    readarray -t have < <(find "$gamelistpathtmp" -name "*_gamelist.txt" \
+                      -printf "%f\n" | cut -d'_' -f1)
+
+    # --- b) Create any missing gamelists on-the-fly ---
+    local sorted_have sorted_all missing
+    sorted_have=$(printf "%s\n" "${have[@]}" | sort -u)
+    sorted_all=$(printf "%s\n" "${corelist[@]}" | sort -u)
+    if [[ "$sorted_have" != "$sorted_all" ]]; then
+        echo -n "Please wait while creating gamelists..."
+        mapfile -t missing < <(comm -23 \
+            <(printf "%s\n" "${corelist[@]}" | sort) \
+            <(printf "%s\n" "${have[@]}"      | sort))
+        for m in "${missing[@]}"; do
+            check_list "$m" >/dev/null
+        done
+        echo " Done."
+        readarray -t have < <(find "$gamelistpathtmp" -name "*_gamelist.txt" \
+                          -printf "%f\n" | cut -d'_' -f1)
+    fi
+
+    # --- c) Build corewc[] = line-counts of each _gamelist.txt ---
+    for core in "${corelist[@]}"; do
+        if [[ " ${have[*]} " == *" $core "* ]]; then
+            corewc["$core"]=$(wc -l < "${gamelistpathtmp}/${core}_gamelist.txt")
+            (( totalgamecount += corewc["$core"] ))
+        fi
+    done
+
+    # --- d) Compute percentage weights, enforcing min 2–5% ---
+    local minpct=5
+    for core in "${!corewc[@]}"; do
+        local raw=${corewc[$core]}
+        local pct=$(( raw * 100 / totalgamecount ))
+        if (( pct < minpct )); then
+            pct=$minpct
+            (( minpct > 2 )) && (( minpct-- ))
+        fi
+        corep["$core"]=$pct
+        (( totalpcount += pct ))
+    done
+
+    # --- e) Print debug tables only once ---
+    if [[ -z "$COREWEIGHT_DEBUG_PRINTED" ]]; then
+        COREWEIGHT_DEBUG_PRINTED=1
+        mkdir -p /tmp/.SAM_tmp
+        {
+          echo -e "\n\nGames per core:\n"
+          for k in "${!corewc[@]}"; do
+            printf "[%s] = %d\n" "$k" "${corewc[$k]}"
+          done | sort -rn -k3
+          echo -e "\nTotal game count: $totalgamecount\n"
+        } > /tmp/.SAM_tmp/totalgcount
+
+        {
+          echo -e "\n\nCore selection by percentage:\n"
+          for k in "${!corep[@]}"; do
+            printf "[%s] = %d%%\n" "$k" "${corep[$k]}"
+          done | sort -rn -k3
+        } > /tmp/.SAM_tmp/totalpcount
+
+        pr -Tm /tmp/.SAM_tmp/totalgcount /tmp/.SAM_tmp/totalpcount
+    fi
+
+    # --- f) Pick nextcore by weighted random ---
+    nextcore=$(pick_weighted_random corep "$totalpcount")
+    local w=${corep[$nextcore]:-0}
+    local likelihood
+    likelihood=$(awk "BEGIN{printf \"%.2f\", ($w * 100) / $totalpcount}")
+    samdebug "Picked core (coreweight): $nextcore (likelihood: ${likelihood}%)"
+}
+
+# -----------------------------------------------------------------------------
+# Helper: pick a key from an associative array by weight
+# -----------------------------------------------------------------------------
+function pick_weighted_random() {
+    local -n weights=$1
+    local total=$2
+    local pick=$(shuf --random-source=/dev/urandom -i 1-"$total" -n1)
+    local sum=0
+
+    for key in "${!weights[@]}"; do
+        (( sum += weights[$key] ))
+        if (( pick <= sum )); then
+            echo "$key"
+            return
+        fi
+    done
+}
+
 
 function load_special_core() {
 	# If $nextcore is ao486, amiga, arcade or X68000 
