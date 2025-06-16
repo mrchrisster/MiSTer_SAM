@@ -2867,17 +2867,18 @@ function sam_prep() {
 	fi
 	# Mute Global Volume
 	# if Volume.dat exists, try to mute only if needed
-	if [ -f "${configpath}/Volume.dat" ]; then
-	  only_mute_if_needed
-
-	# if Volume.dat doesn’t exist yet, create it *and* mute
-	else
-	  # create a “level=0 + mute” byte = 0x10
-	  write_byte "${configpath}/Volume.dat" "10"
-	  echo "volume mute" > /dev/MiSTer_cmd
-	  samdebug "Volume.dat created (0x10) and muted."
+	if [ "${mute}" != "no" ]; then
+		if [ -f "${configpath}/Volume.dat" ]; then
+		  only_mute_if_needed
+	
+		# if Volume.dat doesn’t exist yet, create it *and* mute
+		else
+		  # create a “level=0 + mute” byte = 0x10
+		  write_byte "${configpath}/Volume.dat" "10"
+		  echo "volume mute" > /dev/MiSTer_cmd
+		  samdebug "Volume.dat created (0x10) and muted."
+		fi
 	fi
-
 }
 
 function sam_cleanup() {
