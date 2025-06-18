@@ -17,6 +17,7 @@
 1st Division Manager
 1st Division Manager (OCS)[en]
 1st_Division_Manager
+2^5 Years (Spreadpoint)(OCS)
 20 000 Leagues Under the Sea (OCS)[en]
 20 000 Leguas De Viaje Submarino (OCS)[es]
 20 000 Lieues Sous Les Mers (OCS)[fr]
@@ -25,7 +26,6 @@
 242 (Virtual Dreams)(OCS)
 2D
 2D (Remedy)(OCS)
-2^5 Years (Spreadpoint)(OCS)
 2nd Wave (Pacific)(OCS)
 3001 O'Connors Fight
 3001 O'Connors Fight (OCS)[en]
@@ -83,6 +83,7 @@
 9_Lives
 A Hymn To Hipparchus
 A Hymn to Hipparchus (Offence)(OCS)
+A_Hymn_To_Hipparchus
 A-10 Tank Killer (OCS)[en]
 A-Train (OCS)[cs]
 A-Train (OCS)[de]
@@ -95,21 +96,6 @@ A320 Airbus (OCS)[en]
 A320 Airbus Europa (OCS)[en]
 A320 Airbus USA (OCS)[en]
 A320 Airbus Vol. 2 (OCS)[en]
-ABC Monday Night Football (OCS)[en]
-ADS
-ADS (OCS)[en]
-APB (OCS)[en]
-ATAX
-ATAX (OCS)[en]
-ATF II
-ATF II (OCS)[en]
-ATF_II
-ATR All Terrain Racing (OCS)[en]
-ATR Xmas Demo
-ATR Xmas Demo (OCS)[en]
-ATR_Xmas_Demo
-AV8B Harrier Assault (OCS)[en]
-A_Hymn_To_Hipparchus
 Aaargh!
 Aaargh! (Arcadia) (OCS-Arcadia)[en]
 Aaargh! (OCS)[en]
@@ -121,6 +107,7 @@ Abandoned Places 2
 Abandoned Places 2 (OCS)[en-de-fr]
 Abandoned_Places
 Abandoned_Places_2
+ABC Monday Night Football (OCS)[en]
 Abracadabra
 Abracadabra (OCS)[en-de-fr-it-es]
 Academy
@@ -139,15 +126,17 @@ Addams_Family
 Adidas Championship Football
 Adidas Championship Football (OCS)[en]
 Adrenalynn (OCS)[en]
+ADS
+ADS (OCS)[en]
 Advanced Fruit Machine Simulator (OCS)[en]
 Advanced Ski Simulator
 Advanced Ski Simulator (OCS)[en]
 Advanced_Ski_Simulator
 Advantage Tennis (OCS)[en-de-fr]
 Adventure Construction Set (OCS)[en]
-Adventures Of Robin Hood
 Adventures of Genlock Holmes (OCS)[en]
 Adventures of Quik & Silva (OCS)[en]
+Adventures Of Robin Hood
 Adventures of Robin Hood (OCS)[en-fr-de-it]
 Adventures of Willy Beamish (OCS)[en]
 Adventures_Of_Robin_Hood
@@ -244,8 +233,8 @@ Aloha (Rebels)(OCS)
 Alpha & Omega (Pure Metal Coders)(OCS)
 Alpha Waves
 Alpha Waves (OCS)[en-de-fr-it-es]
-Alpha-1 (OCS)[en]
 Alpha_Waves
+Alpha-1 (OCS)[en]
 Altered Beast
 Altered Beast (OCS)[en]
 Altered Destiny
@@ -284,12 +273,12 @@ Amy_Putt_Crack_Intro
 Analogia (Analog)(OCS)
 Anarchy
 Anarchy (OCS)[en]
-Ancient Art Of War In The Skies
 Ancient Art of War
 Ancient Art of War (OCS)[en]
+Ancient Art Of War In The Skies
 Ancient Art of War in the Skies (OCS)[en]
-Ancient_Art_Of_War_In_The_Skies
 Ancient_Art_of_War
+Ancient_Art_Of_War_In_The_Skies
 Animatunes (New Generation Crew)(AGA)
 Animotion
 Animotion (Phenomena)(OCS)
@@ -328,6 +317,7 @@ Apano Sin
 Apano Sin (OCS)[de]
 Apano Sin (OCS)[en]
 Apano_Sin
+APB (OCS)[en]
 Apocalypse
 Apocalypse (Gods)(OCS)
 Apocalypse (OCS)[en]
@@ -438,6 +428,17 @@ Astï¿½rix Operation Getafix
 Astro Marine Corps (OCS)[en]
 Astrogate
 Astrogate (Byterapers)(OCS)
+Ast�rix Chez Rah�zade (OCS)[fr]
+Ast�rix El Golpe Del Menhir (OCS)[es]
+Ast�rix Im Morgenland (OCS)[de]
+Ast�rix Le Coup Du Menhir (OCS)[fr]
+Ast�rix Operation Getafix (OCS)[en]
+Ast�rix Operation Hinkelstein (OCS)[de]
+ATAX
+ATAX (OCS)[en]
+ATF II
+ATF II (OCS)[en]
+ATF_II
 Atmosphere (Stone Arts)(OCS)
 Atom Smasher
 Atom Smasher (OCS)[en]
@@ -452,6 +453,10 @@ Atomix (OCS)[en]
 Atomix (Vision Factory)(OCS)
 Atomix Crack Intro
 Atomix_Crack_Intro
+ATR All Terrain Racing (OCS)[en]
+ATR Xmas Demo
+ATR Xmas Demo (OCS)[en]
+ATR_Xmas_Demo
 Attack Of The Green Smelly Aliens
 Attack of the Green Smelly Aliens (OCS)[en]
 Attack of the PETSCII Robots
@@ -465,6 +470,7 @@ Aunt_Arctic_Adventure
 Australo Piticus Mechanicus (OCS)[en]
 Authentik (Skarla)(AGA)
 Auto Duel (OCS)[en]
+AV8B Harrier Assault (OCS)[en]
 Avenger Megademo
 Avenger Megademo (Avenger)(OCS)
 Avenger_Megademo
@@ -490,9 +496,6 @@ B.A.T. II (OCS)[fr]
 B.C. Kid
 B.C. Kid (OCS)[en]
 B.C._Kid
-BMX Simulator
-BMX Simulator (OCS)[en]
-BMX_Simulator
 Baal
 Baal (OCS)[en]
 Baba Yaga
@@ -512,9 +515,9 @@ Bad Cat (OCS)[en]
 Bad Company (OCS)[en]
 Bad Dudes vs. Dragon Ninja
 Bad Dudes vs. Dragon Ninja (OCS)[en]
-BadLands (OCS)[en]
 Bad_Cat
 Bad_Dudes_vs._Dragon_Ninja
+BadLands (OCS)[en]
 Badlands Pete
 Badlands Pete (OCS)[en]
 Badlands_Pete
@@ -541,8 +544,8 @@ Ballistix (OCS)[en]
 Bananamen (Stellar)(OCS)
 Bandit Kings Of Ancient China
 Bandit Kings of Ancient China (OCS)[en]
-Bandit's Radio (Mad Elks)(OCS)
 Bandit_Kings_Of_Ancient_China
+Bandit's Radio (Mad Elks)(OCS)
 Bangkok Knights
 Bangkok Knights (OCS)[en]
 Bangkok_Knights
@@ -569,8 +572,8 @@ Bard's_Tale_III
 Bargon Attack (OCS)[en]
 Bargon Attack (OCS)[fr]
 Barney Bear Goes To School
-Barney Bear Goes To Space
 Barney Bear Goes to School (OCS)[en]
+Barney Bear Goes To Space
 Barney Bear Goes to Space (OCS)[en]
 Barney Mouse
 Barney Mouse (OCS)[en]
@@ -599,6 +602,7 @@ Battle Chess II
 Battle Chess II (OCS)[en]
 Battle Command
 Battle Command (OCS)[en]
+Battle for the Ashes (OCS)[en]
 Battle Isle
 Battle Isle (Intro) (OCS)[en]
 Battle Isle (OCS)[en]
@@ -609,8 +613,6 @@ Battle Isle The Moon of Chromos (OCS)[en]
 Battle Squadron (OCS)[en]
 Battle Valley
 Battle Valley (OCS)[en]
-Battle for the Ashes (OCS)[en]
-BattleTech (OCS)[en]
 Battle_Chess
 Battle_Chess_II
 Battle_Command
@@ -624,6 +626,7 @@ Battlemaster (OCS)[en]
 Battleship (OCS)[en]
 Battlestorm
 Battlestorm (OCS)[en]
+BattleTech (OCS)[en]
 Battletoads (OCS)[en]
 Bayeu (Nature)(OCS)
 Baygon (Melon Dezign)(AGA)
@@ -663,8 +666,8 @@ Better_Maths
 Beverly Hills Cop (OCS)[en]
 Beyond Dark Castle (OCS)[en]
 Beyond Justice (Dexion)(OCS)
-Beyond The Ice Palace
 Beyond the Future (Union)(AGA)
+Beyond The Ice Palace
 Beyond the Ice Palace (OCS)[en]
 Beyond_The_Ice_Palace
 Bez Kompromisu
@@ -679,8 +682,8 @@ Big Run (OCS)[en]
 Big_Run
 Biing (Hoodlum)(OCS)
 Biing Crack Intro
-Biing! (AGA)[de]
 Biing_Crack_Intro
+Biing! (AGA)[de]
 Bill & Ted's Excellent Adventure
 Bill & Ted's Excellent Adventure (OCS)[en]
 Bill's Tomato Game (OCS)[en]
@@ -787,6 +790,9 @@ Blueberry (OCS)[de]
 Blueberry (OCS)[es]
 Blueberry (OCS)[fr]
 Blues Brothers (OCS)[en]
+BMX Simulator
+BMX Simulator (OCS)[en]
+BMX_Simulator
 Bob's Bad Day (OCS)[en]
 Bob's Garden (OCS)[en]
 Bobby (Movement)(AGA)
@@ -799,9 +805,9 @@ Bomb Fusion (OCS)[en]
 Bomb Jack
 Bomb Jack (OCS)[en]
 Bomb Jack Beer Edition (OCS)[en]
+Bomb_Jack
 Bomb'X
 Bomb'X (OCS)[en]
-Bomb_Jack
 Bomber Bob
 Bomber Bob (OCS)[en]
 Bomber Bob (OCS)[it]
@@ -825,10 +831,13 @@ Borrowed_Time
 Bosse Des Maths 3eme, La (OCS)[fr]
 Bosse Des Maths 4Ã¨me, La (OCS)[fr]
 Bosse Des Maths 4ème, La (OCS)[fr]
+Bosse Des Maths 4�me, La (OCS)[fr]
 Bosse Des Maths 5Ã¨me, La (OCS)[fr]
 Bosse Des Maths 5ème, La (OCS)[fr]
+Bosse Des Maths 5�me, La (OCS)[fr]
 Bosse Des Maths 6Ã¨me, La (OCS)[fr]
 Bosse Des Maths 6ème, La (OCS)[fr]
+Bosse Des Maths 6�me, La (OCS)[fr]
 Boston Bomb Club
 Boston Bomb Club (OCS)[en]
 Boston_Bomb_Club
@@ -952,12 +961,6 @@ Butcher_Hill
 C64 Demo
 C64 Demo (Quadlite)(OCS)
 C64_Demo
-CCCP (Juliet & Case)(AGA)
-CJ In The USA
-CJ in the USA (OCS)[en]
-CJ's Elephant Antics (OCS)[en]
-CJ_In_The_USA
-COALA (AGA)[en]
 Cabal
 Cabal (OCS)
 Cabal (OCS)[en]
@@ -1023,7 +1026,6 @@ Captain_Fizz
 Captive
 Captive (OCS)[en]
 Captured Dreams (The Black Lotus)(AGA)
-CarVup (OCS)[en]
 Carcharodon (OCS)[en]
 Cardiaxx (OCS)[en]
 Cardinal Of The Kremlin
@@ -1044,16 +1046,17 @@ Cartoons
 Cartoons (OCS)[en]
 Carver
 Carver (OCS)[en]
+CarVup (OCS)[en]
 Castle Kingdoms (OCS)[en]
 Castle Master
 Castle Master (OCS)[en-de]
 Castle Master II
 Castle Master II (OCS)[en]
-Castle Warrior
-Castle Warrior (OCS)[en]
 Castle of Dr. Brain (MT-32) (OCS-MT-32)[en]
 Castle of Dr. Brain (OCS)[de]
 Castle of Dr. Brain (OCS)[en]
+Castle Warrior
+Castle Warrior (OCS)[en]
 Castle_Master
 Castle_Master_II
 Castle_Warrior
@@ -1065,6 +1068,7 @@ Castlevania (OCS)[en]
 Castlevania AGA (AGA)[en]
 Castors Juniors Dans La ForÃªt (OCS)[fr]
 Castors Juniors Dans La Forêt (OCS)[fr]
+Castors Juniors Dans La For�t (OCS)[fr]
 Catch 'Em
 Catch 'Em (OCS)[en]
 Catch_'Em
@@ -1074,11 +1078,12 @@ CaveMania
 CaveMania (OCS)[en]
 Cavitas
 Cavitas (OCS)[en]
+CCCP (Juliet & Case)(AGA)
 CeBIT Demo 90
 CeBIT Demo 90 (Red Sector Inc.)(OCS)
+CeBIT_Demo_90
 CeBIT'89
 CeBIT'89 (Exact)(OCS)
-CeBIT_Demo_90
 Cedric & The Lost Sceptre
 Cedric & the Lost Sceptre (CD32)[en-de]
 Cedric_&_The_Lost_Sceptre
@@ -1128,6 +1133,8 @@ Chaos Engine 2
 Chaos Engine 2 (AGA) (AGA)[en]
 Chaos Engine 2 (OCS)[en]
 Chaos In Andromeda
+Chaos in Andromeda (CDTV) (CDTV)[en]
+Chaos in Andromeda (OCS)[en]
 Chaos Land (Virtual Dreams)(OCS)
 Chaos Strikes Back (OCS)[de]
 Chaos Strikes Back (OCS)[en]
@@ -1135,8 +1142,6 @@ Chaos Strikes Back (OCS)[fr]
 Chaos Strikes Back (Util) (OCS)[de]
 Chaos Strikes Back (Util) (OCS)[en]
 Chaos Strikes Back (Util) (OCS)[fr]
-Chaos in Andromeda (CDTV) (CDTV)[en]
-Chaos in Andromeda (OCS)[en]
 Chaos_Engine_2
 Chaos_In_Andromeda
 Chariots Of Wrath
@@ -1171,6 +1176,7 @@ Chicago 90 (OCS)[en]
 Chicago_90
 ChichÃ©n ItzÃ¡ (OCS)[es]
 Chichén Itzá (OCS)[es]
+Chich�n Itz� (OCS)[es]
 Chinese Karate (OCS)[en]
 Chip's Challenge
 Chip's Challenge (OCS)[en]
@@ -1193,8 +1199,8 @@ Chubby Gristle (OCS)[en]
 Chubby_Gristle
 Chuck Rock (OCS)[en]
 Chuck Rock II (OCS)[en]
-Chuck Yeager's AFT 2 (OCS)[en]
 Chuck Yeager's Advanced Flight Trainer 2.0
+Chuck Yeager's AFT 2 (OCS)[en]
 Chuck_Yeager's_Advanced_Flight_Trainer_2.0
 Chuckie Egg
 Chuckie Egg (OCS)[en]
@@ -1219,6 +1225,10 @@ City_Defence
 Civilization
 Civilization (AGA)[de]
 Civilization (AGA)[en]
+CJ In The USA
+CJ in the USA (OCS)[en]
+CJ_In_The_USA
+CJ's Elephant Antics (OCS)[en]
 Classic Arcadia & Baby Arcadia
 Classic Arcadia & Baby Arcadia (OCS-Arcadia)[en]
 Classic Board Games
@@ -1240,6 +1250,7 @@ Clown-O-Mania
 Clown-O-Mania (OCS)[en]
 Clue! (AGA)[en]
 Cluedo Master Detective (OCS)[en]
+COALA (AGA)[en]
 Cobra
 Cobra (OCS)[en]
 Coca Cola
@@ -1393,16 +1404,17 @@ Crime_Does_Not_Pay
 Crime_Wave
 Croak 2
 Croak 2 (OCS)[en]
+Croak_2
 Croak!
 Croak! (OCS)[en]
-Croak_2
 CroisiÃ¨re Pour Un Cadavre (OCS)[fr]
 Croisière Pour Un Cadavre (OCS)[fr]
-CrossCheck
-CrossCheck (OCS)[en]
+Croisi�re Pour Un Cadavre (OCS)[fr]
 Crossbow The Legend Of William Tell
 Crossbow The Legend of William Tell (OCS)[en]
 Crossbow_The_Legend_Of_William_Tell
+CrossCheck
+CrossCheck (OCS)[en]
 Crown (OCS)[en]
 Cruise for a Corpse (OCS)[de]
 Cruise for a Corpse (OCS)[en]
@@ -1430,8 +1442,8 @@ Cult Megademo (Cult)(OCS)
 Cult_Megademo
 Curiosity
 Curiosity (PseudoDOS)(OCS)
-Curse Of RA
 Curse of Enchantia (OCS)[en]
+Curse Of RA
 Curse of RA (OCS)[en]
 Curse of Rabenstein (OCS)[en]
 Curse of the Azure Bonds (OCS)[en]
@@ -1481,8 +1493,6 @@ D.O.S
 D.O.S (Andromeda)(OCS)
 DÃ©but Planet Simulation (OCS)[en]
 DÃ©fenseur De La Couronne II (CD32)[fr]
-DMA Design (Rednex)(AGA)
-DO! Run Run (OCS)[en]
 Dal'X
 Dal'X (OCS)[fr]
 Dalek Attack (OCS)[en]
@@ -1508,8 +1518,6 @@ Dark Fusion
 Dark Fusion (OCS)[en]
 Dark Queen of Krynn (OCS)[en]
 Dark Side (OCS)[en]
-DarkSpyre
-DarkSpyre (OCS)[en]
 Dark_Castle
 Dark_Fusion
 Darkman
@@ -1528,6 +1536,8 @@ Darkseed (OCS)[en]
 Darkseed (OCS)[es]
 Darkseed (OCS)[fr]
 Darkside (The Black Lotus)(AGA)
+DarkSpyre
+DarkSpyre (OCS)[en]
 Das Boot
 Das Boot (OCS)[en]
 Das_Boot
@@ -1537,11 +1547,11 @@ Dawn
 Dawn (Artwork)(AGA)
 Dawn Patrol (OCS)[de]
 Dawn Patrol (OCS)[en]
-Day Of The Pharaoh
-Day Of The Viper
 Day of Reckoning (Digital)(OCS)
+Day Of The Pharaoh
 Day of the Pharaoh (OCS)[de]
 Day of the Pharaoh (OCS)[en]
+Day Of The Viper
 Day of the Viper (OCS)[en]
 Day_Of_The_Pharaoh
 Day_Of_The_Viper
@@ -1554,12 +1564,12 @@ Deadlock_Music_Selector
 Death Knights of Krynn (OCS)[de]
 Death Knights of Krynn (OCS)[en]
 Death Mask (AGA)[en]
-Death Trap (OCS)[en]
 Death or Glory (OCS)[de]
+Death Trap (OCS)[en]
+Deathbringer (OCS)[en]
 DeathBringer (Spotlight)
 DeathBringer (Spotlight) (OCS)[en]
 DeathBringer_(Spotlight)
-Deathbringer (OCS)[en]
 Deathstar Megademo (Deathstar)(OCS)
 Début Planet Simulation (OCS)[en]
 Decaying Paradise
@@ -1622,12 +1632,12 @@ Demon Blue
 Demon Blue (OCS)[en]
 Demon Download
 Demon Download (The Silents)(OCS)
+Demon_Blue
+Demon_Download
 Demon's Rage (Nerve Axis)(OCS)
 Demon's Tomb
 Demon's Tomb (OCS)[en]
 Demon's_Tomb
-Demon_Blue
-Demon_Download
 Demoniak (OCS)[en]
 Demons Are Forever
 Demons Are Forever (Doctor Mabuse Orgasm Crackings)(OCS)
@@ -1680,13 +1690,13 @@ Digger (OCS)[en]
 Diggers (AGA)[en]
 Digital Complexity
 Digital Complexity (Crass)(OCS)
-Digital Music Art
-Digital Music Art (Wildfire)(OCS)
 Digital innovation
 Digital innovation (Anarchy)(OCS)
+Digital Music Art
+Digital Music Art (Wildfire)(OCS)
 Digital_Complexity
-Digital_Music_Art
 Digital_innovation
+Digital_Music_Art
 Digitech Megademo
 Digitech Megademo (Digitech)(OCS)
 Digitech_Megademo
@@ -1727,16 +1737,18 @@ Dizzy Dice (OCS)[en]
 Dizzy Panic
 Dizzy Panic (OCS)[en]
 Dizzy Prince of the Yolkfolk (OCS)[en]
+Dizzy_Collection_(Disk_1)
+Dizzy_Collection_(Disk_2)
+Dizzy_Dice
+Dizzy_Panic
 Dizzy's Excellent Adv (D1)
 Dizzy's Excellent Adv (D1) (OCS)[en]
 Dizzy's Excellent Adv (D2)
 Dizzy's Excellent Adv (D2) (OCS)[en]
 Dizzy's_Excellent_Adv_(D1)
 Dizzy's_Excellent_Adv_(D2)
-Dizzy_Collection_(Disk_1)
-Dizzy_Collection_(Disk_2)
-Dizzy_Dice
-Dizzy_Panic
+DMA Design (Rednex)(AGA)
+DO! Run Run (OCS)[en]
 Dog Fight
 Dog Fight (OCS)[en-de-fr-it]
 Dog_Fight
@@ -1802,21 +1814,18 @@ Dragon Tiles II (OCS)[en]
 Dragon Wars
 Dragon Wars (OCS)[de]
 Dragon Wars (OCS)[en]
-Dragon's Kingdom (OCS)[en]
-Dragon's Lair
-Dragon's Lair (OCS)[en]
-Dragon's Lair II (OCS)[en]
-Dragon's Lair III (OCS)[en]
-Dragon's_Lair
-DragonScape
-DragonScape (OCS)[en]
-DragonStrike (OCS)[en]
 Dragon_Breed
 Dragon_Fighter
 Dragon_Spirit
 Dragon_Tiles
 Dragon_Tiles_II
 Dragon_Wars
+Dragon's Kingdom (OCS)[en]
+Dragon's Lair
+Dragon's Lair (OCS)[en]
+Dragon's Lair II (OCS)[en]
+Dragon's Lair III (OCS)[en]
+Dragon's_Lair
 Dragonflight
 Dragonflight (OCS)[de]
 Dragonflight (OCS)[en]
@@ -1829,8 +1838,11 @@ Dragons Megademo (Dragons)(OCS)
 Dragons Of Flame
 Dragons of Flame (OCS)[en]
 Dragons_Breath
+DragonScape
+DragonScape (OCS)[en]
 Dragonstone
 Dragonstone (OCS)[en-de-fr]
+DragonStrike (OCS)[en]
 Drakkhen
 Drakkhen (OCS)[de]
 Drakkhen (OCS)[en]
@@ -1839,10 +1851,10 @@ Drama Motion Beauty (3LE)(AGA)
 Dream Trippin' (Digital)(OCS)
 Dream Zone
 Dream Zone (OCS)[en]
+Dream_Zone
 DreamWeb
 DreamWeb (AGA)[de]
 DreamWeb (AGA)[en]
-Dream_Zone
 Driller
 Driller (OCS)[en]
 Drip (OCS)[en]
@@ -1886,11 +1898,12 @@ Dynasty_Wars
 Dynatech (AGA)[de]
 Dyspepsia (Analogy)(OCS)
 Dyter-07 (OCS)[en]
+D�but Planet Simulation (OCS)[en]
+D�fenseur De La Couronne II (CD32)[fr]
 E-Motion
 E-Motion (OCS)[en]
 E.T.'s Rugby League (OCS)[en]
 E255 (Bomb)(OCS)
-ESWAT Cyber Police (OCS)[en]
 Eagle's Rider
 Eagle's Rider (OCS)[en-de-fr]
 Eagle's_Rider
@@ -2020,6 +2033,8 @@ EspaÃ±a The Games '92 (OCS)[en-de-fr-it-es]
 Espaï¿½a The Games '92
 Espaï¿½a_The_Games_'92
 España The Games '92 (OCS)[en-de-fr-it-es]
+Espa�a The Games '92 (OCS)[en-de-fr-it-es]
+ESWAT Cyber Police (OCS)[en]
 Euro Soccer (OCS)[en]
 European Champions
 European Champions (OCS)[en]
@@ -2062,16 +2077,16 @@ Extrial (OCS)[en]
 Eye
 Eye (OCS)[en]
 Eye Of Horus
-Eye Of The Beholder II
-Eye Of The Beholder II (OCS)
-Eye Of The Storm
 Eye of Horus (OCS)[en]
 Eye of the Beholder (AGA) (AGA)[en]
 Eye of the Beholder (OCS)[de]
 Eye of the Beholder (OCS)[en]
+Eye Of The Beholder II
 Eye of the Beholder II (AGA) (AGA)[en]
+Eye Of The Beholder II (OCS)
 Eye of the Beholder II (OCS)[de]
 Eye of the Beholder II (OCS)[en]
+Eye Of The Storm
 Eye of the Storm (Intro) (OCS)[en]
 Eye of the Storm (OCS)[en-de-fr-es]
 Eye_Of_Horus
@@ -2092,10 +2107,10 @@ F1 (OCS)[en]
 F1 Tornado
 F1 Tornado (OCS)[en]
 F1 World Championship Edition (OCS)[en]
+F1_Tornado
 F17 Challenge
 F17 Challenge (OCS)[en]
 F17_Challenge
-F1_Tornado
 F29 Retaliator
 F29 Retaliator (OCS)[en]
 F29_Retaliator
@@ -2103,14 +2118,11 @@ F40 Pursuit Simulator (OCS)[en]
 FA-18 Interceptor
 FA-18 Interceptor (OCS)[en]
 FA-18_Interceptor
-FIFA International Soccer
-FIFA International Soccer (OCS)[en-de-fr]
-FIFA_International_Soccer
 Face Off
 Face Off (Anco) (OCS)[en]
+Face_Off
 Face-Off
 Face-Off (Krisalis) (OCS)[en-de-fr-it-es]
-Face_Off
 Faery Tale Adventure (OCS)[en]
 Faktory (Virtual Dreams)(AGA)
 Falcon
@@ -2175,6 +2187,9 @@ Feudal Lords
 Feudal Lords (OCS)[en]
 Feudal_Lords
 Fiendish Freddy (OCS)[en]
+FIFA International Soccer
+FIFA International Soccer (OCS)[en-de-fr]
+FIFA_International_Soccer
 Fighter Bomber
 Fighter Bomber (OCS)[en]
 Fighter Bomber Advanced (OCS)[en]
@@ -2218,12 +2233,12 @@ Fire & Ice Christmas Special (OCS)[en]
 Fire Force
 Fire Power
 Fire Power (OCS)[en]
-Fire!
-Fire! (OCS)[en]
 Fire_&_Brimstone
 Fire_&_Ice_Christmas_Special
 Fire_Force
 Fire_Power
+Fire!
+Fire! (OCS)[en]
 Fireblaster
 Fireblaster (OCS)[en]
 Fireforce (OCS)[en]
@@ -2252,13 +2267,13 @@ Flashback (OCS)[fr]
 Flashback (OCS)[it]
 Flashback (OCS)[pl]
 Flies Attack on Earth (OCS)[de]
+Flight of the Amazon Queen (OCS)[en]
 Flight Of The Intruder
+Flight of the Intruder (OCS)[en]
 Flight Path 737
 Flight Path 737 (OCS)[en]
 Flight Simulator II (OCS)[en]
 Flight Simulator II Hawaii (OCS)[en]
-Flight of the Amazon Queen (OCS)[en]
-Flight of the Intruder (OCS)[en]
 Flight_Of_The_Intruder
 Flight_Path_737
 Flimbo's Quest
@@ -2269,8 +2284,8 @@ Flintstones
 Flintstones (OCS)[en]
 Flip Flop
 Flip Flop (OCS)[en]
-Flip-it & Magnose (OCS)[en]
 Flip_Flop
+Flip-it & Magnose (OCS)[en]
 Flood
 Flood (OCS)[en-de-fr-it]
 Floor 13
@@ -2383,6 +2398,7 @@ Fury of the Furries (CD32) (CD32)[en-de-fr-it-es-fm]
 Fury of the Furries (OCS)[en-de-fr-it-es-fm]
 Fusion
 Fusion (OCS)[en]
+Fußball Total! (OCS)[de]
 Future Basketball
 Future Basketball (OCS)[en]
 Future Bike Sim (Paradox)(OCS)
@@ -2404,12 +2420,11 @@ Future_Bike_Simulator
 Future_Classics_Collection
 Future_Wars
 Fuzzball (OCS)[en]
-Fußball Total! (OCS)[de]
+Fu�ball Total! (OCS)[de]
 G-LOC R360
 G-LOC R360 (OCS)[en]
 G-LOC_R360
 G.Nius (OCS)[en]
-GBA Championship Basketball (OCS)[en]
 Gadget Lost in Time (OCS)[en]
 Gainforce
 Gainforce (OCS)[en]
@@ -2464,6 +2479,7 @@ Gauntlet_III
 Gazza II
 Gazza II (OCS)[en-de-fr-it]
 Gazza_II
+GBA Championship Basketball (OCS)[en]
 Gear Works
 Gear Works (OCS)[en]
 Gear_Works
@@ -2475,8 +2491,8 @@ Geisha (OCS)[es]
 Geisha (OCS)[fr]
 Gem Stone Legend
 Gem Stone Legend (OCS)[en]
-Gem'X (OCS)[en]
 Gem_Stone_Legend
+Gem'X (OCS)[en]
 Gemini Wing (OCS)[en]
 Gen4 Demo
 Gen4 Demo (Dragons)(OCS)
@@ -2548,8 +2564,8 @@ Gobliins 2 (OCS)[it]
 Goblins 3 (OCS)[en]
 Godfather (OCS)[en]
 Gods (OCS)[en]
-Gold Rush! (OCS)[en]
 Gold of the Aztecs (OCS)[en]
+Gold Rush! (OCS)[en]
 Golden Axe (OCS)[en]
 Golden Eagle
 Golden Eagle (OCS)[en]
@@ -2661,8 +2677,8 @@ Gunshoot (OCS)[en]
 Guru Meditation
 Guru Meditation (Melon Dezign)(OCS)
 Guru_Meditation
-Guy Spy & The Crystals Of Armageddon
 Guy Spy (OCS)[en]
+Guy Spy & The Crystals Of Armageddon
 Guy_Spy_&_The_Crystals_Of_Armageddon
 H.A.T.E. (OCS)[en]
 H.T.K.H. (Limbo)(OCS)
@@ -2694,6 +2710,7 @@ Happy Carva 74 (Da Jormas)(OCS)
 HäpyCarva 72 (Da Jormas)(OCS)
 Harald HÃ¥rdtand (OCS)[da]
 Harald Hårdtand (OCS)[da]
+Harald H�rdtand (OCS)[da]
 Hard 'n' Heavy
 Hard 'n' Heavy (OCS)[en]
 Hard Drivin'
@@ -2740,9 +2757,9 @@ Head Over Heels (OCS)[en]
 Head_Over_Heels
 Headcase
 Headcase (Axis)(AGA)
-Heart Of The Dragon
 Heart of China (OCS)[de]
 Heart of China (OCS)[en]
+Heart Of The Dragon
 Heart of the Dragon (OCS)[en]
 Heart_Of_The_Dragon
 Heat Wave (Paranoimia)(OCS)
@@ -2779,13 +2796,13 @@ Helter Skelter (OCS)[en]
 Here We Are
 Here We Are (Awake)(OCS)
 Here_We_Are
+Heroes Of The Lance
+Heroes of the Lance (OCS)[en]
+Heroes_Of_The_Lance
 HeroQuest & Return Of The Witch Lord
 HeroQuest & Witch Lord (OCS)[en-de-fr-it-es]
 HeroQuest II (OCS)[en-de-fr]
 HeroQuest_&_Return_Of_The_Witch_Lord
-Heroes Of The Lance
-Heroes of the Lance (OCS)[en]
-Heroes_Of_The_Lance
 Hex Junkie (Fnuque)(OCS)
 Hexadecimal Perfection
 Hexadecimal Perfection (Action Direct)(OCS)
@@ -2883,10 +2900,12 @@ Hugo (OCS)[de]
 Hugo (OCS)[fi]
 Hugo (OCS)[sv]
 Hugo Osa 2 (OCS)[fi]
-Hugo PÃ¥ Nye Eventyr (OCS)[da]
-Hugo PÃ¥ Nye Eventyr 2 (OCS)[da]
 Hugo På Nye Eventyr (OCS)[da]
 Hugo På Nye Eventyr 2 (OCS)[da]
+Hugo PÃ¥ Nye Eventyr (OCS)[da]
+Hugo PÃ¥ Nye Eventyr 2 (OCS)[da]
+Hugo P� Nye Eventyr (OCS)[da]
+Hugo P� Nye Eventyr 2 (OCS)[da]
 Human Killing Machine (OCS)[en]
 Human Target (Melon Dezign)(OCS)
 Humanoids Megademo
@@ -2902,8 +2921,8 @@ Humans 3 Evolution
 Humans 3 Evolution (AGA)[en]
 Humans_2
 Humans_3_Evolution
-Hunt For Red October
 Hunt for 7th October (Cryptoburners)(OCS)
+Hunt For Red October
 Hunt for Red October (OCS)[en]
 Hunt for Red October II (OCS)[en]
 Hunt_For_Red_October
@@ -2917,18 +2936,14 @@ Hyperdome (OCS)[en]
 Hyperforce
 Hyperforce (OCS)[en]
 Hyperion (OCS)[en]
+H�gar the Horrible (OCS)[de]
+H�gar the Horrible (OCS)[en]
+H�pyCarva 72 (Da Jormas)(OCS)
 I Ludicrus
 I Ludicrus (OCS)[en]
 I Play 3D Soccer (OCS)[en-de-fr-it]
-I've Got the Power (Alcatraz)(OCS)
-IK+
-IK+ (OCS)[en]
-ISO (Scoopex)(AGA)
-ISS Incredible Shrinking Sphere (OCS)[en]
-IT Megademo
-IT Megademo (IT)(OCS)
-IT_Megademo
 I_Ludicrus
+I've Got the Power (Alcatraz)(OCS)
 Ian Botham's Cricket
 Ian Botham's Cricket (OCS)[en]
 Ian_Botham's_Cricket
@@ -2936,6 +2951,8 @@ Ice (The Silents)(OCS)
 Ice Runner
 Ice Runner (OCS)[en]
 Ice_Runner
+IK+
+IK+ (OCS)[en]
 Ikari Warriors (OCS)[en]
 Ilex (Mystic)(AGA)
 Ilyad
@@ -3080,8 +3097,13 @@ Ishido (OCS)[en]
 Island Of Lost Hope
 Island of Lost Hope (OCS)[en]
 Island_Of_Lost_Hope
+ISO (Scoopex)(AGA)
+ISS Incredible Shrinking Sphere (OCS)[en]
 It Came From the Desert (OCS)[en]
 It Came From the Desert II (OCS)[en]
+IT Megademo
+IT Megademo (IT)(OCS)
+IT_Megademo
 Italy 1990 (Codemasters)
 Italy 1990 (Codemasters) (OCS)[en]
 Italy 1990 (U.S. Gold)
@@ -3111,6 +3133,7 @@ Jaws
 Jaws (OCS)[en]
 Je DÃ©couvre Les Couleurs (OCS)[fr]
 Je Découvre Les Couleurs (OCS)[fr]
+Je D�couvre Les Couleurs (OCS)[fr]
 Jehova Goes Hitech (Voice)(OCS)
 Jelly Othelly (OCS)[en]
 Jesus on E's (LSD)(OCS)
@@ -3132,15 +3155,16 @@ Jim_Power
 Jimmy White's 'Whirlwind' Snooker
 Jimmy White's Snooker (OCS)[en]
 Jimmy Willburne (OCS)[fr]
+Jimmy_White's_'Whirlwind'_Snooker
 Jimmy's Fantastic Journey
 Jimmy's Fantastic Journey (OCS)[en]
 Jimmy's_Fantastic_Journey
-Jimmy_White's_'Whirlwind'_Snooker
 Jinks
 Jinks (OCS)[en]
 Joakim Von Anka - Skattsï¿½karen
 Joakim Von Anka SkattsÃ¶karen (OCS)[sv]
 Joakim Von Anka Skattsökaren (OCS)[sv]
+Joakim Von Anka Skatts�karen (OCS)[sv]
 Joakim_Von_Anka_-_Skattsï¿½karen
 Joan Of Arc
 Joan of Arc (OCS)[en]
@@ -3200,9 +3224,6 @@ K240 (OCS)[en-de-fr]
 KÃ¤yrÃ¤ Soiro
 KÃ¤yrÃ¤ Soiro (Da Jormas)(OCS)
 KÃ¤yrÃ¤_Soiro
-KGB (OCS)[de]
-KGB (OCS)[en]
-KGB (OCS)[fr]
 Kaiser (OCS)[de]
 Kajko i Kokosz (OCS)[pl]
 Kalas Puffs Expressen (OCS)[sv]
@@ -3257,13 +3278,16 @@ Ketamuskolar (Koney)(OCS)
 Keys To Maramon
 Keys to Maramon (OCS)[en]
 Keys_To_Maramon
+KGB (OCS)[de]
+KGB (OCS)[en]
+KGB (OCS)[fr]
 Khalaan (OCS)[de]
 Khalaan (OCS)[en]
 Khalaan (OCS)[fr]
 Kick Off
+Kick Off (OCS)[en-de-fr-it-nl]
 Kick Off & Extra Time
 Kick Off & Extra Time (OCS)[en-de-fr-it-nl]
-Kick Off (OCS)[en-de-fr-it-nl]
 Kick Off 2
 Kick Off 2 (OCS)[de]
 Kick Off 2 (OCS)[en]
@@ -3313,10 +3337,11 @@ Killing_Cloud
 Kinderama (OCS)[en]
 Kinderama Five Early Learning Games
 Kinderama_Five_Early_Learning_Games
-King Song Boy
-King Song Boy (Melon Dezign)(OCS)
 King and Balloon (OCS)[en]
 King of Chicago (OCS)[en]
+King Song Boy
+King Song Boy (Melon Dezign)(OCS)
+King_Song_Boy
 King's Bounty (OCS)[en]
 King's Quest
 King's Quest (OCS)[en]
@@ -3340,7 +3365,6 @@ King's_Quest
 King's_Quest_I_(Enhanced)
 King's_Quest_I_(MT-32,_Enhanced)
 King's_Quest_VI
-King_Song_Boy
 Kingdoms of England (OCS)[en]
 Kingmaker
 Kingmaker (OCS)[en-de-fr]
@@ -3351,10 +3375,10 @@ Kings_Valley
 Kiro's Quest (OCS)[en]
 Kiwi Crap
 Kiwi Crap (Reality)(OCS)
+Kiwi_Crap
 Kiwi's Tale (OCS)[en]
 Kiwi's Tale, The
 Kiwi's_Tale,_The
-Kiwi_Crap
 Klax (OCS)[en]
 Knight Force
 Knight Force (OCS)[en]
@@ -3392,11 +3416,7 @@ Kwasimodo (OCS)[en]
 Kwik Snax
 Kwik Snax (OCS)[en]
 Kwik_Snax
-LCD Dreams (OCS)[en]
-LED Storm
-LED Storm (OCS)[en]
-LED_Storm
-LUMA (OCS)[en]
+K�yr� Soiro (Da Jormas)(OCS)
 Labyrinth (COMputer)
 Labyrinth (COMputer) (OCS)[da]
 Labyrinth_(COMputer)
@@ -3438,6 +3458,7 @@ Last_Sun
 Laterna Magica
 Laterna Magica (Surprise! Productions)(OCS)
 Laterna_Magica
+LCD Dreams (OCS)[en]
 Leader Board
 Leader Board (Arcadia) (OCS-Arcadia)[en]
 Leader Board (OCS)[en]
@@ -3452,21 +3473,24 @@ Leatherneck (OCS)[en]
 Leavin' Teramis
 Leavin' Teramis (OCS)[en]
 Leavin'_Teramis
+LED Storm
+LED Storm (OCS)[en]
+LED_Storm
 Legacy (OCS)[en]
 Legend (OCS)[en]
 Legend Of Djel
-Legend Of Faerghail
-Legend Of The Lost
-Legend Of The Sword
 Legend of Djel (OCS)[de]
 Legend of Djel (OCS)[en]
+Legend Of Faerghail
 Legend of Faerghail (OCS)[de]
 Legend of Faerghail (OCS)[en]
 Legend of Kyrandia (OCS)[de]
 Legend of Kyrandia (OCS)[en]
 Legend of Kyrandia (OCS)[fr]
 Legend of Kyrandia (OCS)[it]
+Legend Of The Lost
 Legend of the Lost (OCS)[en-de-fr-it-es]
+Legend Of The Sword
 Legend of the Sword (OCS)[en]
 Legend_Of_Djel
 Legend_Of_Faerghail
@@ -3489,7 +3513,6 @@ Leisure Suit Larry 5 (MT-32) (OCS-MT-32)[en]
 Leisure Suit Larry 5 (OCS)[de]
 Leisure Suit Larry 5 (OCS)[en]
 Leisure_Suit_Larry_2
-Lemmings (OCS)[en]
 Lemmings - Holiday 1993
 Lemmings - Holiday 1993 (OCS)[en]
 Lemmings - Holiday 1994
@@ -3500,6 +3523,7 @@ Lemmings - Xmas 1991
 Lemmings - Xmas 1991 (OCS)[en]
 Lemmings - Xmas 1992
 Lemmings - Xmas 1992 (OCS)[en]
+Lemmings (OCS)[en]
 Lemmings 2 (OCS)[en]
 Lemmings_-_Holiday_1993
 Lemmings_-_Holiday_1994
@@ -3585,21 +3609,21 @@ Loopz
 Loopz (OCS)[en]
 Lord of the Rings Vol. 1 (OCS)[en]
 Lords Of Chaos
-Lords Of Doom
-Lords Of The Boards
-Lords Of The Rising Sun
-Lords Of Time
-Lords Of War
 Lords of Chaos (OCS)[en-de-fr]
+Lords Of Doom
 Lords of Doom (OCS)[de]
 Lords of Doom (OCS)[en]
-Lords of Time (OCS)[en]
-Lords of War (OCS)[en]
+Lords Of The Boards
 Lords of the Boards (Oxyron)(OCS)
 Lords of the Realm (AGA)[de]
 Lords of the Realm (AGA)[en]
 Lords of the Realm (AGA)[fr]
+Lords Of The Rising Sun
 Lords of the Rising Sun (OCS)[en]
+Lords Of Time
+Lords of Time (OCS)[en]
+Lords Of War
+Lords of War (OCS)[en]
 Lords_Of_Chaos
 Lords_Of_Doom
 Lords_Of_The_Boards
@@ -3611,6 +3635,7 @@ Lorna (OCS)[en]
 Lost Dutchman Mine
 Lost Dutchman Mine (OCS)[en]
 Lost In Mine
+Lost in Mine (OCS)[pl]
 Lost Patrol
 Lost Patrol (OCS)[en]
 Lost Treasures Of Infocom
@@ -3619,7 +3644,6 @@ Lost Vikings (OCS)[de]
 Lost Vikings (OCS)[en]
 Lost Vikings (OCS)[fr]
 Lost World (Balance)(OCS)
-Lost in Mine (OCS)[pl]
 Lost_Dutchman_Mine
 Lost_In_Mine
 Lost_Patrol
@@ -3628,13 +3652,16 @@ Lothar MatthÃ¤us FuÃballsim (OCS)[en]
 Lothar MatthÃ¤us Super Soccer (OCS)[de]
 Lothar Matthäus Fußballsim (OCS)[en]
 Lothar Matthäus Super Soccer (OCS)[de]
+Lothar Matth�us Fu�ballsim (OCS)[en]
+Lothar Matth�us Super Soccer (OCS)[de]
 Lotus (OCS)[en]
 Lotus 2 (OCS)[en]
 Lotus 3 (OCS)[en]
+Love (Virtual Dreams)(AGA)
 Love & Anarchy
 Love & Anarchy (Carillon)(OCS)
-Love (Virtual Dreams)(AGA)
 Love_&_Anarchy
+LUMA (OCS)[en]
 Lumberjack Revision (OCS)[en]
 Lunar-C (CD32)[en]
 Lupo Alberto
@@ -3650,16 +3677,6 @@ M.U.D.S. (OCS)[en-de-fr]
 M1 Tank Platoon
 M1 Tank Platoon (OCS)[en]
 M1_Tank_Platoon
-MAX Rally
-MAX Rally (AGA)[en]
-MAX_Rally
-MF Tanks
-MF Tanks (OCS)[en]
-MF_Tanks
-MGF-TJC-JOY Megademo
-MGF-TJC-JOY Megademo (Magnificent Force)(OCS)
-MGF-TJC-JOY_Megademo
-MIG-29 Soviet Fighter (OCS)[en]
 Mach 3
 Mach 3 (OCS)[en]
 Mach_3
@@ -3784,6 +3801,9 @@ Maupiti Island (OCS)[en]
 Maupiti Island (OCS)[es]
 Maupiti Island (OCS)[fr]
 Maupiti_Island
+MAX Rally
+MAX Rally (AGA)[en]
+MAX_Rally
 Maximum Overdrive 2 (Rage)(AGA)
 Maximum Velocity
 Maximum Velocity (The Silents)(OCS)
@@ -3812,23 +3832,20 @@ Mega Lo Mania (OCS)[de]
 Mega Lo Mania (OCS)[en]
 Mega Lo Mania (OCS)[fr]
 Mega Lo Mania Crack Intro
+Mega lo Mania Winterland (OCS)[en]
 Mega Motion
 Mega Motion (OCS)[en]
 Mega Phoenix
 Mega Phoenix (OCS)[en]
 Mega Twins (OCS)[en]
 Mega Typhoon (OCS)[en]
-Mega lo Mania Winterland (OCS)[en]
+Mega_Lo_Mania_Crack_Intro
+Mega_Motion
+Mega_Phoenix
 MegaBall
 MegaBall (AGA)[en]
 MegaBall (OCS)[en]
 MegaBlast (OCS)[en]
-MegaTraveller 1
-MegaTraveller 1 (OCS)[en]
-MegaTraveller_1
-Mega_Lo_Mania_Crack_Intro
-Mega_Motion
-Mega_Phoenix
 Megaforce Megademo (Megaforce)(OCS)
 Megaforce Megademo 2
 Megaforce Megademo 2 (Megaforce)(OCS)
@@ -3838,6 +3855,9 @@ Megalo Demos
 Megalo Demos (TecSoft)(OCS)
 Megalo_Demos
 Megane Rellu (Da Jormas)(OCS)
+MegaTraveller 1
+MegaTraveller 1 (OCS)[en]
+MegaTraveller_1
 Menace (OCS)[en]
 Mental Hangover (Scoopex)(OCS)
 Mental Image Game Disk 1
@@ -3877,12 +3897,12 @@ Metro-Cross
 Metro-Cross (OCS)[en]
 Mewilo (OCS)[de]
 Mewilo (OCS)[fr]
-MiG-29 Fulcrum
-MiG-29 Fulcrum (OCS)[en]
-MiG-29M Super Fulcrum
-MiG-29M Super Fulcrum (OCS)[en]
-MiG-29M_Super_Fulcrum
-MiG-29_Fulcrum
+MF Tanks
+MF Tanks (OCS)[en]
+MF_Tanks
+MGF-TJC-JOY Megademo
+MGF-TJC-JOY Megademo (Magnificent Force)(OCS)
+MGF-TJC-JOY_Megademo
 Miami Chase
 Miami Chase (OCS)[en]
 Miami_Chase
@@ -3900,11 +3920,11 @@ Mickey's_ABC
 Mickey's_Memory_Challenge
 Micro Machines
 Micro Machines (OCS)[en]
-MicroProse Golf (OCS)[en-de-fr]
-MicroProse Soccer (OCS)[en]
 Micro_Machines
 Microbes
 Microbes (OCS)[en]
+MicroProse Golf (OCS)[en-de-fr]
+MicroProse Soccer (OCS)[en]
 Midnight Resistance
 Midnight Resistance (OCS)[en]
 Midnight_Resistance
@@ -3915,6 +3935,13 @@ Midwinter (OCS)[fr]
 Midwinter II (OCS)[de]
 Midwinter II (OCS)[en]
 Midwinter II (OCS)[fr]
+MiG-29 Fulcrum
+MiG-29 Fulcrum (OCS)[en]
+MIG-29 Soviet Fighter (OCS)[en]
+MiG-29_Fulcrum
+MiG-29M Super Fulcrum
+MiG-29M Super Fulcrum (OCS)[en]
+MiG-29M_Super_Fulcrum
 Might & Magic II
 Might & Magic II (OCS)[en]
 Might & Magic III
@@ -3996,8 +4023,8 @@ Monkey Island 2 (OCS)[es]
 Monkey Island 2 (OCS)[fr]
 Monkey Island 2 (OCS)[it]
 Monkey_Island_2
-MonoMeno 66 (Da Jormas)(OCS)
 Monomateria (Pacific)(OCS)
+MonoMeno 66 (Da Jormas)(OCS)
 Monoxide (Vanish)(OCS)
 Monster Business
 Monster Business (OCS)[en]
@@ -4042,6 +4069,7 @@ Motorbike Madness (OCS)[en]
 Motorbike_Madness
 Motörhead (OCS)[en]
 Motorola Invaders 2 (AGA)[en]
+Mot�rhead (OCS)[en]
 MouseQuest (OCS)[en]
 Mr. Blobby (OCS)[en]
 Mr. HELI
@@ -4097,15 +4125,14 @@ Myth (System 3) (OCS)[en]
 Myth Crack Intro
 Myth_(System_3)
 Myth_Crack_Intro
-NARC
-NARC (OCS)[en]
-NOP (Muffbusters)(AGA)
 Nam 1965-1975
 Nam 1965-1975 (OCS)[en]
 Nam_1965-1975
 Napoleon (Crystal)(OCS)
 Napoleon Crack Intro
 Napoleon_Crack_Intro
+NARC
+NARC (OCS)[en]
 Narco Police
 Narco Police (OCS)[en]
 Narco_Police
@@ -4141,10 +4168,10 @@ Neuronics (OCS)[en]
 Never Mind
 Never Mind (OCS)[en]
 Never Mind Crack Intro
-NeverMind (Vision Factory)(OCS)
 Never_Mind
 Never_Mind_Crack_Intro
 Neverending Story II (OCS)[en]
+NeverMind (Vision Factory)(OCS)
 New Demo
 New Demo (Mute 101)(OCS)
 New World Order (The Electronic Knights)(OCS)
@@ -4221,6 +4248,7 @@ Nobby_The_Aardvark
 Noisejesus (Spaceballs)(OCS)
 Nonterraqueous (Alarm)(OCS)
 Noodle Box (Y-Crew)(OCS)
+NOP (Muffbusters)(AGA)
 North & South
 North & South (OCS)[en]
 North Star Megademo
@@ -4286,20 +4314,20 @@ Omnicron Conspiracy (OCS)[en]
 Omnicron Conspiracy (OCS)[fr]
 Omnicron_Conspiracy
 On The Ball LE
-On The Ball WCE
 On the Ball LE (AGA)[en]
+On The Ball WCE
 On the Ball WCE (AGA)[en]
-OnEscapee (AGA-CD)[en]
 On_The_Ball_LE
 On_The_Ball_WCE
 One On One
+One on One (OCS)[en]
 One Step Beyond (OCS)[en]
 One Stone -Sport Aid-
 One Stone -Sport Aid- (Quest)(OCS)
-One on One (OCS)[en]
 One to One Match (OCS)[en]
 One_On_One
 One_Stone_-Sport_Aid-
+OnEscapee (AGA-CD)[en]
 Onslaught (OCS)[en]
 Ooops Up
 Ooops Up (OCS)[en]
@@ -4346,9 +4374,9 @@ Ork (OCS)[en]
 Ork Attack The Return
 Ork Attack The Return (OCS)[en]
 Ork_Attack_The_Return
+Oscar (AGA)[en]
 OsWALD (OCS)[da]
 OsWALD (OCS)[en]
-Oscar (AGA)[en]
 Otti Im Moni
 Otti Im Moni (Thrust)(OCS)
 Otti_Im_Moni
@@ -4386,8 +4414,6 @@ P.P._Hammer
 P47 Thunderbolt
 P47 Thunderbolt (OCS)[en]
 P47_Thunderbolt
-PGA European Tour (AGA)[en]
-PGA Tour Golf (OCS)[en]
 Pac-Land
 Pac-Land (OCS)[en]
 Pac-Man (OCS)[en]
@@ -4439,8 +4465,8 @@ Paris Dakar 1990
 Paris Dakar 1990 (OCS)[en]
 Paris_Dakar_1990
 Passengers On The Wind
-Passengers On The Wind II
 Passengers on the Wind (OCS)[en]
+Passengers On The Wind II
 Passengers on the Wind II (OCS)[en]
 Passing Shot
 Passing Shot (OCS)[en]
@@ -4473,6 +4499,8 @@ Peter Schmeichel Soccer
 Peter Schmeichel Soccer (OCS)[en]
 Peter_Beardsley's_International_Football
 Peter_Schmeichel_Soccer
+PGA European Tour (AGA)[en]
+PGA Tour Golf (OCS)[en]
 Phalanx (OCS)[en]
 Phalanx II (OCS)[en]
 Phantasie (OCS)[en]
@@ -4499,6 +4527,7 @@ Pick_'n_Pile
 Picsou - Chasseur De TrÃ©sor (OCS)[fr]
 Picsou - Chasseur De Trésor (OCS)[fr]
 Picsou - Chasseur De Trï¿½sor
+Picsou - Chasseur De Tr�sor (OCS)[fr]
 Picture Book
 Picture Book (Axis)(AGA)
 Picture_Book
@@ -4581,7 +4610,6 @@ Plutos (OCS)[en]
 Plutos (Red Sector Inc.)(OCS)
 Plutos Crack Intro
 Plutos_Crack_Intro
-PoNG4b (OCS)[en]
 Pod
 Pod (OCS)[en]
 Poing
@@ -4607,9 +4635,9 @@ Poing_6
 Poing_7
 Point Blank (Andromeda)(OCS)
 Poker Nights
+Poker Nights - Dream Girls
 Poker Nights (OCS)[de]
 Poker Nights (OCS)[en]
-Poker Nights - Dream Girls
 Poker Nights Dream Girls (OCS)[de]
 Poker Nights Dream Girls (OCS)[en]
 Poker Nights Tropical Heat (OCS)[de]
@@ -4627,6 +4655,7 @@ Police Quest III (OCS)[de]
 Police Quest III (OCS)[en]
 Pong
 Pong (OCS)[en]
+PoNG4b (OCS)[en]
 Pool (OCS)[en]
 Pool Of Radiance
 Pool of Radiance (OCS)[en]
@@ -4677,8 +4706,8 @@ Postman_Pat
 Postman_Pat_III
 Pot Panic
 Pot Panic (OCS)[en]
-Power & Agony (Trackers)(OCS)
 Power (OCS)[en]
+Power & Agony (Trackers)(OCS)
 Power Drift
 Power Drift (OCS)[en]
 Power Drive
@@ -4751,9 +4780,6 @@ Pro Tennis Tour
 Pro Tennis Tour (OCS)[en]
 Pro Tennis Tour 2
 Pro Tennis Tour 2 (OCS)[en]
-ProSoccer 2190
-ProSoccer 2190 (OCS)[en]
-ProSoccer_2190
 Pro_Tennis_Simulator
 Pro_Tennis_Tour
 Pro_Tennis_Tour_2
@@ -4762,13 +4788,16 @@ Project 1
 Project 1 (OCS)[en]
 Project X (Ministry)(OCS)
 Project X Crack Intro
-Project-X SE (OCS)[en]
-Project-X SE 2017 (OCS)[en]
 Project_1
 Project_X_Crack_Intro
+Project-X SE (OCS)[en]
+Project-X SE 2017 (OCS)[en]
 Projectyle
 Projectyle (OCS)[en]
 Prophecy I (OCS)[en]
+ProSoccer 2190
+ProSoccer 2190 (OCS)[en]
+ProSoccer_2190
 Prospector In The Mazes Of Xor
 Prospector in the Mazes of Xor (OCS)[en]
 Prospector_In_The_Mazes_Of_Xor
@@ -4828,11 +4857,11 @@ Quasar_Wars
 Quest Demo Disk
 Quest Demo Disk (Quest)(OCS)
 Quest For Glory
-Quest For Glory II
-Quest For The Time-Bird
 Quest for Glory (OCS)[en]
+Quest For Glory II
 Quest for Glory II (MT-32) (OCS-MT-32)[en]
 Quest for Glory II (OCS)[en]
+Quest For The Time-Bird
 Quest for the Time-Bird (OCS)[en-de]
 Quest of Agravain (OCS)[en]
 Quest_Demo_Disk
@@ -4850,18 +4879,13 @@ Quik_The_Thunder_Rabbit
 Quiksilver Pinball Simulator
 Quiksilver Pinball Simulator (OCS)[en]
 Quiksilver_Pinball_Simulator
+Qu�te De L'Oiseau Du Temps (OCS)[fr]
 Qwak (CD32)[en]
 R-Type (OCS)[en]
 R-Type II (OCS)[en]
 R.B.I. Baseball 2 (OCS)[en]
 R3 Art of Rocketry (OCS)[en]
 RÃ¼sselsheim (AGA)[de]
-RAF Megademo (Royal Amiga Force)(OCS)
-RISK
-RISK (OCS)[en]
-RVF Honda
-RVF Honda (OCS)[en]
-RVF_Honda
 Race Drivin' (Intro) (OCS)[en]
 Race Drivin' (OCS)[en]
 Rackney's Island
@@ -4869,6 +4893,7 @@ Rackney's Island (OCS)[en]
 Rackney's_Island
 Racter
 Racter (OCS)[en]
+RAF Megademo (Royal Amiga Force)(OCS)
 Raffles
 Raffles (OCS)[en]
 Rage
@@ -4981,12 +5006,12 @@ Reunion (AGA)[en]
 Revelation! (OCS)[en]
 Revenge (Fraxion)(OCS)
 Revenge Of Defender
-Revenge Of The Mutant Camels
-Revenge Of The Mutant Camels (1MB)
-Revenge Of The Mutant Camels II
 Revenge of Defender (OCS)[en]
 Revenge of Mutant Camels 1MB (OCS)[en]
+Revenge Of The Mutant Camels
+Revenge Of The Mutant Camels (1MB)
 Revenge of the Mutant Camels (OCS)[en]
+Revenge Of The Mutant Camels II
 Revenge of the Mutant Camels II (OCS)[en]
 Revenge_Of_Defender
 Revenge_Of_The_Mutant_Camels
@@ -5008,6 +5033,8 @@ Rise of the Dragon (OCS)[de]
 Rise of the Dragon (OCS)[en]
 Rise of the Robots (AGA)[en]
 Rise_Of_The_Dragon
+RISK
+RISK (OCS)[en]
 Risky Woods
 Risky Woods (OCS)[en]
 Risky_Woods
@@ -5048,11 +5075,11 @@ Rock Challenge (OCS)[en]
 Rock Da Boogie Town (RNO)(OCS)
 Rock Star (OCS)[fr]
 Rock Star Ate My Hamster (OCS)[en]
+Rock_'n_Roll
+Rock_Challenge
 Rock'n Roll (Paranoimia)(OCS)
 Rock'n Roll Crack Intro
 Rock'n_Roll_Crack_Intro
-Rock_'n_Roll
-Rock_Challenge
 Rocket Attack (OCS)[en]
 Rocket Ranger (OCS)[en]
 Rockford (OCS)[en]
@@ -5064,6 +5091,7 @@ Rody & Mastico II (OCS)[fr]
 Rody & Mastico III (OCS)[fr]
 Rody NoÃ«l (OCS)[fr]
 Rody Noël (OCS)[fr]
+Rody No�l (OCS)[fr]
 Rody V (OCS)[fr]
 Rody VI (OCS)[fr]
 Rogue
@@ -5112,12 +5140,12 @@ Royal_Palms
 Rubbish (Amega Industries)(OCS)
 Rubicon (OCS)[en]
 Rubzilla (Spaceballs)(OCS)
-Ruff & Reddy
-Ruff & Reddy (OCS)[en]
 Ruff 'n' Tumble
 Ruff 'n' Tumble (OCS)[en]
-Ruff_&_Reddy
+Ruff & Reddy
+Ruff & Reddy (OCS)[en]
 Ruff_'n'_Tumble
+Ruff_&_Reddy
 Ruffian
 Ruffian (OCS)[en]
 Rugby The World Cup (OCS)[en]
@@ -5128,22 +5156,17 @@ Run_The_Gauntlet
 Running Man (OCS)[en]
 Rush Hour (OCS)[en]
 Rüsselsheim (AGA)[de]
+RVF Honda
+RVF Honda (OCS)[en]
+RVF_Honda
 Rygar
 Rygar (AGA)[en]
+R�sselsheim (AGA)[de]
 S (Skarla)(AGA)
 S.D.I. (OCS)[en]
 S.O.F.T. Movie (Genocide)(OCS)
 S.O.S. (Melon Dezign)(OCS)
 S.T.U.N. Runner (OCS)[en]
-SAS Combat Simulator
-SAS Combat Simulator (OCS)[en]
-SAS_Combat_Simulator
-SOS Megademo
-SOS Megademo (Software of Sweden)(OCS)
-SOS_Megademo
-SWIV (OCS)[en]
-SWIV (Skid Row)(OCS)
-SWIV Crack Intro
 Sabre Team (AGA)[en-de-fr-it-es]
 Safari Guns
 Safari Guns (OCS)[en-de]
@@ -5171,6 +5194,9 @@ Sarcophaser (OCS)[en]
 Sargon Megademo
 Sargon Megademo (Sargon)(OCS)
 Sargon_Megademo
+SAS Combat Simulator
+SAS Combat Simulator (OCS)[en]
+SAS_Combat_Simulator
 Satan
 Satan (OCS)[en]
 Scapeghost
@@ -5268,16 +5294,16 @@ Seymour Goes to Hollywood (OCS)[en]
 Shadow Fighter (CD32)[en]
 Shadow Fighter (Up Rough)(OCS)
 Shadow Of The Beast
+Shadow of the Beast (OCS)[en]
+Shadow of the Beast II (OCS)[en]
 Shadow Of The Beast III
+Shadow of the Beast III (OCS)[en]
 Shadow Sorcerer (OCS)[de-fr-it]
 Shadow Sorcerer (OCS)[en]
 Shadow Warriors (OCS)[en]
-Shadow of the Beast (OCS)[en]
-Shadow of the Beast II (OCS)[en]
-Shadow of the Beast III (OCS)[en]
+Shadow_Of_The_Beast
 ShadowFire
 ShadowFire (Exact)(OCS)
-Shadow_Of_The_Beast
 Shadowgate
 Shadowgate (OCS)[en]
 Shadowlands
@@ -5313,12 +5339,12 @@ Shuttle
 Shuttle (OCS)[en-de-fr]
 Side Arms
 Side Arms (OCS)[en]
+Side_Arms
+Sideshow (OCS)[en]
 SideWinder (Arcadia) (OCS-Arcadia)[en]
 SideWinder (OCS)[en]
 SideWinder II
 SideWinder II (OCS)[en]
-Side_Arms
-Sideshow (OCS)[en]
 Siedler (OCS)[de]
 Sierra Soccer
 Sierra Soccer (OCS)[en-de-fr]
@@ -5388,9 +5414,9 @@ Skeleton Krew
 Skeleton Krew (AGA)[en]
 Skeleton_Krew
 Ski Or Die
-Ski Or Die Crack Intro
 Ski or Die (Classic)(OCS)
 Ski or Die (OCS)[en]
+Ski Or Die Crack Intro
 Ski_Or_Die
 Skidmarks
 Skidmarks (AGA)[en]
@@ -5404,11 +5430,11 @@ Skweek (OCS)[en]
 Sky Fighter
 Sky Fighter (OCS)[en]
 Sky High Stuntman (OCS)[en]
-SkyChase
-SkyChase (OCS)[en]
 Sky_Fighter
 Skyblaster
 Skyblaster (OCS)[en]
+SkyChase
+SkyChase (OCS)[en]
 Skyfox (OCS)[en]
 Skyfox II (OCS)[en]
 Slackskin & Flint
@@ -5491,6 +5517,9 @@ Sorcery+
 Sorcery+ (OCS)[en]
 Sorefist
 Sorefist (OCS)[en]
+SOS Megademo
+SOS Megademo (Software of Sweden)(OCS)
+SOS_Megademo
 Soul Crystal (OCS)[de]
 Soul Kitchen (The Silents)(AGA)
 Sound Vision (Reflect)(OCS)
@@ -5587,10 +5616,10 @@ SportTime Ten Pin Bowling (OCS-Arcadia)[en]
 Spot (Arcadia) (OCS-Arcadia)[en]
 Spot (OCS)[en]
 Spring Time (OCS)[en]
-Spy Who Loved Me (OCS)[en]
 Spy vs Spy (OCS)[en]
 Spy vs Spy II (OCS)[en]
 Spy vs Spy III (OCS)[en]
+Spy Who Loved Me (OCS)[en]
 Sqrxz
 Sqrxz (OCS)[en]
 Sqrxz 2 (OCS)[en]
@@ -5617,8 +5646,6 @@ Star Wars Return of the Jedi (OCS)[en]
 Star Wars The Empire Strikes Back
 Star Wars The Empire Strikes Back (OCS)[en]
 Star Ways (OCS)[en]
-StarRay (OCS)[en]
-StarTrash (OCS)[en]
 Star_Command
 Star_Control
 Star_Crusader
@@ -5645,6 +5672,8 @@ Starlord (OCS)[en]
 Starlord (OCS)[fr]
 Starquake
 Starquake (OCS)[en]
+StarRay (OCS)[en]
+StarTrash (OCS)[en]
 Starush (OCS)[en]
 State of the Art (Spaceballs)(OCS)
 Stateline
@@ -5809,9 +5838,6 @@ Super Tetris (OCS)[en]
 Super Tetris Crack Intro
 Super Twintris
 Super Twintris (OCS)[en]
-SuperSki
-SuperSki (OCS)[en]
-SuperSki (OCS)[fr]
 Super_Grand_Prix
 Super_Obliteration
 Super_Off-Road_Crack_Intro
@@ -5826,6 +5852,9 @@ Superhero (OCS)[en]
 Superman (Agents)(OCS)
 Superman (OCS)[en]
 Superman Crack Intro
+SuperSki
+SuperSki (OCS)[en]
+SuperSki (OCS)[fr]
 Superstar Ice Hockey (OCS)[en]
 Supremacy (OCS)[en]
 Surf Ninjas
@@ -5846,12 +5875,15 @@ Switchback (Rebels)(AGA)
 Switchblade
 Switchblade (OCS)[en]
 Switchblade II (OCS)[en]
+SWIV (OCS)[en]
+SWIV (Skid Row)(OCS)
+SWIV Crack Intro
 Swooper (OCS)[en]
-Sword & the Rose (OCS)[en]
 Sword (OCS)[en]
+Sword & the Rose (OCS)[en]
 Sword Of Aragon
-Sword Of Honour
 Sword of Aragon (OCS)[en]
+Sword Of Honour
 Sword of Honour (OCS)[en]
 Sword of Sodan (OCS)[en]
 Swords & Galleons
@@ -5876,17 +5908,11 @@ T-zer0 (AGA)[en]
 T2 The Arcade Game
 T2 The Arcade Game (OCS)[en]
 T2_The_Arcade_Game
-TAG (Jetset)(AGA)
-TFX
-TFX (AGA)[en]
-TV Sports Baseball (OCS)[en]
-TV Sports Basketball (OCS)[en]
-TV Sports Boxing (OCS)[en]
-TV Sports Football (OCS)[en]
 Table Tennis Simulation
 Table Tennis Simulation (OCS)[en]
 Table_Tennis_Simulation
 Taekwondo (OCS)[en]
+TAG (Jetset)(AGA)
 Take 'Em Out
 Take 'Em Out (OCS)[en]
 Take_'Em_Out
@@ -5917,7 +5943,6 @@ Team_Suzuki
 Tearaway Thomas (OCS)[en]
 Tech
 Tech (OCS)[en]
-TechTech (Sodan & Magician 42)(OCS)
 Technocop
 Technocop (OCS)[en]
 Technological Death (Mad Elks)(OCS)
@@ -5926,6 +5951,7 @@ Technology 2 (OCS)[en]
 Technology_2
 Technova
 Technova (Amigatari)(OCS)
+TechTech (Sodan & Magician 42)(OCS)
 Tecnoball
 Tecnoball (OCS)[en]
 Teenage Mutant Hero Turtles (OCS)[en]
@@ -5933,9 +5959,9 @@ Teenage Mutant Ninja Turtles (OCS)[en]
 Teenage Queen (OCS)[en]
 Teller (OCS)[fr]
 Temple Of Apshai Trilogy
-Temple Of The Enlightened Souls, The
 Temple of Apshai Trilogy (OCS)[en]
 Temple of the Enlightened Souls (OCS)[en]
+Temple Of The Enlightened Souls, The
 Temple_Of_Apshai_Trilogy
 Temple_Of_The_Enlightened_Souls,_The
 Templos Sagrados (OCS)[es]
@@ -5986,6 +6012,8 @@ Tetris_Crack_Intro
 Tetris_Pro
 Tetrix
 Tetrix (OCS)[en]
+TFX
+TFX (AGA)[en]
 The Cave
 The Cave (RMC)(OCS)
 The Cure (Retream)(AGA-030)
@@ -6022,19 +6050,19 @@ Thunder Boy (OCS)[en]
 Thunder Burner
 Thunder Burner (OCS)[en]
 Thunder Jaws (OCS)[en]
-ThunderCats
-ThunderCats (OCS)[en]
-ThunderStrike
-ThunderStrike (OCS)[en]
 Thunder_Blade
 Thunder_Burner
 Thunderbirds
 Thunderbirds (OCS)[en]
+ThunderCats
+ThunderCats (OCS)[en]
 Thunderhawk AH-73M
 Thunderhawk AH-73M (OCS)[de]
 Thunderhawk AH-73M (OCS)[en]
 Thunderhawk AH-73M (OCS)[fr]
 Thunderhawk_AH-73M
+ThunderStrike
+ThunderStrike (OCS)[en]
 Tie-Break
 Tie-Break (OCS)[en]
 Tiger Claw (OCS)[en]
@@ -6042,11 +6070,11 @@ Tiger Road
 Tiger Road (OCS)[en]
 Tiger_Road
 Time
-Time & Magik
-Time & Magik (OCS)[en]
 Time (OCS)[de]
 Time (OCS)[en]
 Time (OCS)[fr]
+Time & Magik
+Time & Magik (OCS)[en]
 Time Bandit (OCS)[en]
 Time Lock (OCS)[en]
 Time Machine
@@ -6077,8 +6105,8 @@ Tiny Invaders
 Tiny Invaders (OCS)[en]
 Tiny Skweeks (OCS)[en]
 Tiny Troops
-Tiny Troops (OCS)[en]
 Tiny Troops (OCS-CD)[de]
+Tiny Troops (OCS)[en]
 Tiny_Bobble
 Tiny_Galaga
 Tiny_Invaders
@@ -6142,8 +6170,8 @@ Tournament Golf (OCS)[en]
 Tournament_Golf
 Towards Darker Times (Offence)(OCS)
 Tower Of Babel
-Tower Of Souls
 Tower of Babel (OCS)[en]
+Tower Of Souls
 Tower of Souls (AGA)[de]
 Tower of Souls (AGA)[en]
 Tower_Of_Babel
@@ -6168,9 +6196,9 @@ Transplant
 Transplant (OCS)[en]
 Transworld (OCS)[de]
 Trap Runner
-Trap Runner (OCS)[en]
 Trap Runner - Black Strawberry Cake
 Trap Runner - Black Strawberry Cake (OCS)[en]
+Trap Runner (OCS)[en]
 Trap_Runner
 Trap_Runner_-_Black_Strawberry_Cake
 Traps 'n' Treasures (OCS)[de]
@@ -6227,12 +6255,12 @@ Turbo Out Run
 Turbo Out Run (OCS)[en]
 Turbo Sprint (AGA)[en]
 Turbo Trax (OCS)[en]
+Turbo_Cup
+Turbo_Out_Run
 TurboRaketti II
 TurboRaketti II (OCS)[en]
 TurboRaketti II (OCS)[fi]
 TurboRaketti_II
-Turbo_Cup
-Turbo_Out_Run
 Turicon (Paranoimia)(OCS)
 Turicon Crack Intro
 Turicon_Crack_Intro
@@ -6248,11 +6276,15 @@ Turrican II (AGA)
 Turrican II (AGA) (AGA)[en]
 Turrican II (OCS)[en]
 Turrican_II
+TV Sports Baseball (OCS)[en]
+TV Sports Basketball (OCS)[en]
+TV Sports Boxing (OCS)[en]
+TV Sports Football (OCS)[en]
 Twilight Zone (Shining 8)(OCS)
 Twin Turbos (OCS)[en]
+Twintris (OCS)[en]
 TwinWorld
 TwinWorld (OCS)[en]
-Twintris (OCS)[en]
 Twisted (Polka Brothers)(AGA)
 Twylyte
 Twylyte (OCS)[en]
@@ -6265,14 +6297,6 @@ U.N._Squadron
 UFO Enemy Unknown
 UFO Enemy Unknown (AGA)[en-de-fr]
 UFO_Enemy_Unknown
-UMS
-UMS (OCS)[en]
-UMS II (Endless Piracy)(OCS)
-UMS II Nations At War
-UMS II Nations at War (OCS)[en]
-USS John Young
-USS John Young (OCS)[en]
-USS_John_Young
 Ugh!
 Ugh! (OCS)[en]
 Ultima III
@@ -6288,14 +6312,19 @@ Ultima VI (OCS)[en]
 Ultima_III
 Ultima_IV
 Ultima_V
-Ultima_VI
 Ultima_V_Crack_Intro
+Ultima_VI
 Ultimate Body Blows (CD32)[en]
 Ultimate Pinball Quest (OCS)[en]
 Ultimate Ride (OCS)[en]
 Ultimate Soccer Manager
 Ultimate Soccer Manager (OCS)[en]
 Ultimate_Soccer_Manager
+UMS
+UMS (OCS)[en]
+UMS II (Endless Piracy)(OCS)
+UMS II Nations At War
+UMS II Nations at War (OCS)[en]
 Unbelievable (Atomic)(OCS)
 Uncle Tom Sonix (Scoopex)(OCS)
 Under Pressure
@@ -6337,6 +6366,9 @@ Up Scope (OCS)[en]
 Uridium 2
 Uridium 2 (OCS)[en]
 Uridium_2
+USS John Young
+USS John Young (OCS)[en]
+USS_John_Young
 Utopia
 Utopia (OCS)[en-de-fr-it]
 Utopia The New Worlds
@@ -6349,9 +6381,9 @@ Vader
 Vader (OCS)[en-de]
 Vaginal Massacre (UDO)(OCS)
 Valhalla
+Valhalla (OCS)[en]
 Valhalla & Lord of Infinity (OCS)[en]
 Valhalla & The Lord Of Infinity
-Valhalla (OCS)[en]
 Valhalla_&_The_Lord_Of_Infinity
 Vampire's Empire
 Vampire's Empire (OCS)[en]
@@ -6364,11 +6396,11 @@ Vector Dance
 Vector Dance (Cult)(OCS)
 Vector Dance 2 (Cult)(OCS)
 Vector Exterminator (Shining)(OCS)
+Vector_Balls
+Vector_Dance
 Vector-Balls Demo
 Vector-Balls Demo (TomSoft)(OCS)
 Vector-Balls_Demo
-Vector_Balls
-Vector_Dance
 Vectorball
 Vectorball (OCS)[en]
 Vectorballs
@@ -6442,10 +6474,6 @@ Vyper (OCS)[en]
 Vyrus
 Vyrus (OCS)[en]
 W Potrzasku (OCS)[pl]
-WWF European Rampage Tour (OCS)[en]
-WWF WrestleMania
-WWF WrestleMania (OCS)[en]
-WWF_WrestleMania
 Wacky Darts
 Wacky Darts (OCS)[en]
 Wacky Races (OCS)[en]
@@ -6460,14 +6488,14 @@ Wanderer 3D (OCS)[en]
 Wanderer_3D
 Wanted
 Wanted (OCS)[en]
+War in Middle Earth (OCS)[en]
+War in the Gulf (OCS)[en-de-fr-es]
 War Machine
 War Machine (OCS)[en]
 War Zone (Core)
 War Zone (Core) (OCS)[en]
 War Zone (Paradox)
 War Zone (Paradox) (OCS)[en]
-War in Middle Earth (OCS)[en]
-War in the Gulf (OCS)[en-de-fr-es]
 War_Machine
 War_Zone_(Core)
 War_Zone_(Paradox)
@@ -6475,10 +6503,10 @@ Warhead
 Warhead (OCS)[en]
 Warlock The Avenger
 Warlock the Avenger (OCS)[en]
+Warlock_The_Avenger
 Warlock's Quest
 Warlock's Quest (OCS)[en]
 Warlock's_Quest
-Warlock_The_Avenger
 Warlords
 Warlords (OCS)[en]
 Warm Up
@@ -6498,8 +6526,8 @@ Waterloo (OCS)[en]
 Waxworks (OCS)[de]
 Waxworks (OCS)[en]
 Waxworks (OCS)[fr]
-Way Too Rude (Logicoma)(OCS)
 Way of the Little Dragon (OCS)[en]
+Way Too Rude (Logicoma)(OCS)
 Wayfarer (Spaceballs)(OCS)
 Wayne Gretzky Hockey (OCS)[en]
 Wayne Gretzky Hockey II (OCS)[en]
@@ -6534,12 +6562,12 @@ Western_Games
 Wheels On Fire
 Wheels on Fire (AGA)[en]
 Wheels_On_Fire
-Where Is My Conscience (Melon Dezign)(OCS)
-Where Time Stood Still
-Where Time Stood Still (OCS)[en-de]
 Where in Europe Is Carmen Sandiego? (OCS)[en]
 Where in the USA Is Carmen Sandiego? (OCS)[en]
 Where in the World Is Carmen Sandiego? (OCS)[en]
+Where Is My Conscience (Melon Dezign)(OCS)
+Where Time Stood Still
+Where Time Stood Still (OCS)[en-de]
 Where_Time_Stood_Still
 Whirligig
 Whirligig (OCS)[en]
@@ -6575,10 +6603,10 @@ Wild_West_World
 Wild_Wheels
 Willy the Kid (OCS)[de]
 Wind In The Willows
+Wind in the Willows (OCS)[en]
 Wind It Up MegaMix 93 (Xymox Project)(OCS)
 Wind Surf Willy (OCS)[en]
 Wind Surf Willy (OCS)[fr]
-Wind in the Willows (OCS)[en]
 Wind_In_The_Willows
 Windwalker (OCS)[en]
 Wing Commander (OCS)[de]
@@ -6667,6 +6695,7 @@ World Cup USA 94 (OCS)[en-de-fr-it]
 World Darts (Arcadia) (OCS-Arcadia)[en]
 World Games
 World Games (OCS)[en]
+World of Commodore (Sanity)(OCS)
 World Rugby
 World Rugby (OCS)[en]
 World Soccer
@@ -6674,7 +6703,6 @@ World Soccer (OCS)[en]
 World Tour Golf
 World Tour Golf (OCS)[en]
 World Trophy Soccer (OCS-Arcadia)[en]
-World of Commodore (Sanity)(OCS)
 World_Championship_Boxing_Manager
 World_Championship_Soccer
 World_Class_Leader_Board
@@ -6702,17 +6730,14 @@ Wreckers
 Wreckers (OCS)[en]
 Wrong Way Driver
 Wrong Way Driver (OCS)[en]
+WWF European Rampage Tour (OCS)[en]
+WWF WrestleMania
+WWF WrestleMania (OCS)[en]
+WWF_WrestleMania
 X-It (OCS)[en]
 X-Out (OCS)[en]
 X-Out Crack Intro
 X-Out_Crack_Intro
-XP8
-XP8 (AGA)[en]
-XR-35 Fighter Mission
-XR-35 Fighter Mission (OCS)[en]
-XR-35_Fighter_Mission
-XS (Reflex)(OCS)
-XTreme Racing (AGA)[en]
 Xenex
 Xenex (OCS)[en]
 Xenomorph
@@ -6731,8 +6756,15 @@ Xevious (AGA)[en]
 Xiphos
 Xiphos (OCS)[en-de-fr]
 Xorron 2001 (OCS)[en]
+XP8
+XP8 (AGA)[en]
 Xpose
 Xpose (The Silents)(OCS)
+XR-35 Fighter Mission
+XR-35 Fighter Mission (OCS)[en]
+XR-35_Fighter_Mission
+XS (Reflex)(OCS)
+XTreme Racing (AGA)[en]
 Xybots
 Xybots (OCS)[en]
 Yo! Joe!
@@ -6741,19 +6773,18 @@ Yo!_Joe!
 Yogi Bear & Friends (OCS)[en]
 Yogi Bear & Friends In The Greed Monster
 Yogi Bear & Friends in the Greed Monster (OCS)[en]
+Yogi_Bear_&_Friends_In_The_Greed_Monster
 Yogi's Big Clean Up
 Yogi's Big Clean Up (OCS)[en]
 Yogi's Great Escape
 Yogi's Great Escape (OCS)[en]
 Yogi's_Big_Clean_Up
 Yogi's_Great_Escape
-Yogi_Bear_&_Friends_In_The_Greed_Monster
 Yolanda
 Yolanda (Fairlight)(OCS)
 Yolanda (OCS)[en]
 Z-Out
 Z-Out (OCS)[en]
-ZGR3D (OCS)[en]
 Zak McKracken (OCS)[de]
 Zak McKracken (OCS)[en]
 Zak McKracken (OCS)[fr]
@@ -6772,6 +6803,7 @@ Zerosphere (OCS)[en]
 Zeus Megademo
 Zeus Megademo (Zeus)(OCS)
 Zeus_Megademo
+ZGR3D (OCS)[en]
 Ziriax (OCS)[en]
 Zombi (OCS)[de]
 Zombi (OCS)[en]
