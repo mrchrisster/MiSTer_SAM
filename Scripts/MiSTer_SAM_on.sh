@@ -1329,9 +1329,10 @@ function loop_core() { # loop_core (core)
 					#Support zaparoo	
 					elif [[ "$(cat "$joy_activity_file")" == "zaparoo" ]]; then
 						echo "Zaparoo starting. SAM exiting"
-						# SAM will restart core if mute=core which is set by bgm
 						truncate -s 0 "$joy_activity_file"
+						# SAM will restart core if mute=core which is set by bgm
 						mute="yes"
+						playcurrentgame="yes"
 						play_or_exit &
 					else
 						truncate -s 0 "$joy_activity_file"
@@ -1613,20 +1614,129 @@ function check_gamelistupdate() {
 
 
 
-# -----------------------------------------------------------------------------
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Main core picker
-# -----------------------------------------------------------------------------
 # ──────────────────────────────────────────────────────────────────────────────
-# Globals & Cache for Core-Weight
+function pick_core() {
+    if [[ "$coreweight" == "yes" ]]; then
+        pick_core_weighted
+
+    elif [[ "$samvideo" == "yes" ]]; then
+        pick_core_samvideo "$1"
+
+    else
+        pick_core_standard
+    fi
+
+    # fallback
+    if [[ -z "$nextcore" ]]; then
+        samdebug "nextcore empty. Using arcade core as fallback."
+        nextcore="arcade"
+    fi
+}
+
 # ──────────────────────────────────────────────────────────────────────────────
+# 1) Uniform random selection
+# ──────────────────────────────────────────────────────────────────────────────
+function pick_core_standard() {
+    nextcore=$(printf "%s\n" "${corelisttmp[@]}" \
+               | shuf --random-source=/dev/urandom -n1)
+    samdebug "Picked core (standard): $nextcore"
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 2) SAM-video mode (Weighted by _tvc.txt)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+declare -A SAMVC        # tvc counts per core
+SAMVTOTAL=0             # sum of all counts
+SAMVIDEO_INIT_SENTINEL="/tmp/.SAM_tmp/samvideo_init"
+
+
+function init_core_samvideo() {
+    local arr_name=$1
+    local core cnt tvc
+    local -n arr_ref=$arr_name
+
+    # always (re)load counts into SAMVC & SAMVTOTAL
+    SAMVTOTAL=0
+    if [[ -f "$core_count_file" ]]; then
+        while IFS="=" read -r core cnt; do
+            if [[ "$core" == total_count ]]; then
+                SAMVTOTAL=$cnt
+            else
+                SAMVC["$core"]=$cnt
+            fi
+        done < "$core_count_file"
+    else
+        for core in "${arr_ref[@]}"; do
+            tvc="${gamelistpath}/${core}_tvc.txt"
+            cnt=0
+            [[ -f "$tvc" ]] && cnt=$(jq -r 'keys|length' "$tvc" 2>/dev/null || echo 0)
+            SAMVC["$core"]=$cnt
+            (( SAMVTOTAL += cnt ))
+        done
+
+        mkdir -p "$(dirname "$core_count_file")"
+        : > "$core_count_file"
+        for core in "${!SAMVC[@]}"; do
+            echo "$core=${SAMVC[$core]}" >> "$core_count_file"
+        done
+        echo "total_count=$SAMVTOTAL" >> "$core_count_file"
+    fi
+
+    # print table only once, guarded by sentinel
+    if [[ ! -f "$SAMVIDEO_INIT_SENTINEL" ]]; then
+        echo -e "\nCore      TVC-Entries   Percent"
+        printf '%.0s─' {1..34}; echo
+        for core in "${!SAMVC[@]}"; do
+            cnt=${SAMVC[$core]}
+            if (( SAMVTOTAL > 0 )); then
+                pct=$(awk "BEGIN{printf \"%.2f\", ($cnt*100)/$SAMVTOTAL}")
+            else
+                pct="0.00"
+            fi
+            printf "%-8s %10d   %6s%%\n" "$core" "$cnt" "$pct"
+        done | sort -k2 -nr
+        echo "─────────────────────────────────────────────────────────────────────────────"
+
+        # ensure sentinel directory exists and create sentinel
+        mkdir -p "$(dirname "$SAMVIDEO_INIT_SENTINEL")"
+        touch "$SAMVIDEO_INIT_SENTINEL"
+    fi
+}
+
+
+function pick_core_samvideo() {
+    local arr_name=$1
+    local -n array=$arr_name
+
+	init_core_samvideo "$arr_name" 
+
+    # now do the weighted pick
+    nextcore=$(pick_weighted_random SAMVC "$SAMVTOTAL")
+    [[ -z "$nextcore" ]] && nextcore="${array[0]}"
+
+    # debug likelihood
+    local w=${SAMVC[$nextcore]:-0}
+    local likelihood
+    likelihood=$(awk "BEGIN{printf \"%.2f\", ($w*100)/$SAMVTOTAL}")
+    samdebug "Picked core (samvideo): $nextcore (likelihood: ${likelihood}%)"
+}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 3) Core-weight mode (weighted by games per core)
+# ──────────────────────────────────────────────────────────────────────────────
+
 declare -A COREWC    # raw game counts per core
 declare -A COREP     # mirror of COREWC for pick_weighted_random
 TOTAL_GAME_COUNT=0
 COREWEIGHT_INITIALIZED=0
 
-# ──────────────────────────────────────────────────────────────────────────────
-# init_core_weighted: build & print weights one time
-# ──────────────────────────────────────────────────────────────────────────────
+
 function init_core_weighted() {
     # only run once
     (( COREWEIGHT_INITIALIZED )) && return
@@ -1675,74 +1785,8 @@ function init_core_weighted() {
     echo " Done."
 }
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Main core picker
-# ──────────────────────────────────────────────────────────────────────────────
-function pick_core() {
-    if [[ "$coreweight" == "yes" ]]; then
-        pick_core_weighted
 
-    elif [ -n "$1" ]; then
-        pick_core_samvideo "$1"
 
-    else
-        pick_core_standard
-    fi
-
-    # fallback
-    if [[ -z "$nextcore" ]]; then
-        samdebug "nextcore empty. Using arcade core as fallback."
-        nextcore="arcade"
-    fi
-}
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 1) Uniform random selection
-# ──────────────────────────────────────────────────────────────────────────────
-function pick_core_standard() {
-    nextcore=$(printf "%s\n" "${corelisttmp[@]}" \
-               | shuf --random-source=/dev/urandom -n1)
-    samdebug "Picked core (standard): $nextcore"
-}
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 2) Weighted by _tvc.txt  (SAM-video mode)
-# ──────────────────────────────────────────────────────────────────────────────
-function pick_core_samvideo() {
-    local -n array=$1
-    declare -A core_counts
-    local total_count=0
-
-    # load or build cache
-    if [[ -f "$core_count_file" ]]; then
-        while IFS="=" read -r core cnt; do
-            [[ "$core" == total_count ]] && total_count=$cnt || core_counts["$core"]=$cnt
-        done < "$core_count_file"
-    else
-        for core in "${array[@]}"; do
-            local tvc="${gamelistpath}/${core}_tvc.txt"
-            local cnt=0
-            [[ -f "$tvc" ]] && cnt=$(jq -r 'keys|length' "$tvc")
-            (( cnt>0 )) && { core_counts["$core"]=$cnt; (( total_count+=cnt )); }
-        done
-        mkdir -p "$(dirname "$core_count_file")"
-        > "$core_count_file"
-        for c in "${!core_counts[@]}"; do
-            echo "$c=${core_counts[$c]}" >> "$core_count_file"
-        done
-        echo "total_count=$total_count" >> "$core_count_file"
-    fi
-
-    # pick & debug likelihood
-    nextcore=$(pick_weighted_random core_counts "$total_count")
-    local w=${core_counts[$nextcore]:-0}
-    local likelihood=$(awk "BEGIN{printf \"%.2f\", ($w*100)/$total_count}")
-    samdebug "Picked core (samvideo): $nextcore (likelihood: ${likelihood}%)"
-}
-
-# ──────────────────────────────────────────────────────────────────────────────
-# 3) Core-weight mode (weighted by COREWC counts)
-# ──────────────────────────────────────────────────────────────────────────────
 function pick_core_weighted() {
     init_core_weighted
 
@@ -1756,9 +1800,7 @@ function pick_core_weighted() {
     samdebug "Picked core (coreweight): $nextcore (likelihood: ${likelihood}%)"
 }
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Helper: pick by weight
-# ──────────────────────────────────────────────────────────────────────────────
+
 function pick_weighted_random() {
     local -n weights=$1
     local total=$2
@@ -1776,6 +1818,10 @@ function pick_weighted_random() {
     echo ""
 }
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Load special cores like ao486, amiga, arcade or X68000 
+# ──────────────────────────────────────────────────────────────────────────────
 function load_special_core() {
 	# If $nextcore is ao486, amiga, arcade or X68000 
 	if [ "${nextcore}" == "arcade" ]; then
@@ -2805,8 +2851,10 @@ function play_or_exit() {
 		sleep 1
 		echo "Thanks for playing!"
 	fi
+	[ "${samvideo}" == "yes" ] && kill -9 "$(ps -o pid,args | grep '[m]player' | awk '{print $1}' | head -1)" 2>/dev/null
 	bgm_stop
 	tty_exit
+	
 	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
 }
 
@@ -5468,6 +5516,7 @@ function sam_svc() {
     fi
 
     # Additional configuration settings
+	sed -i '/corelist=/c\corelist="'"arcade,atarilynx,gb,gbc,genesis,gg,megacd,n64,nes,psx,saturn,s32x,sgb,sms,snes,tgfx16,tgfx16cd"'"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo=/c\samvideo="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo_source=/c\samvideo_source="Archive"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/samvideo_tvc=/c\samvideo_tvc="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
