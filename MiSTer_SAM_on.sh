@@ -1436,13 +1436,18 @@ function next_core() { # next_core (core)
 		return
 	fi
 	
-	# Check if new roms got added
-	check_gamelistupdate ${nextcore} &
-	
 	pick_rom
 	
-	check_rom "${nextcore}"
-	if [ $? -ne 0 ]; then return; fi
+    # if the file was bad, check_rom will have nuked & rebuilt your list
+    if ! check_rom "${nextcore}"; then
+        # now pick a brand-new ROM out of the rebuilt list
+        pick_rom
+        # if *this* still fails, bail out
+        check_rom "${nextcore}" || return
+    fi
+	
+	# Check if new roms got added
+	check_gamelistupdate ${nextcore} &
 	
 	delete_played_game
 	
