@@ -82,6 +82,7 @@ function init_vars() {
 	declare -gi gamelists_created=0
 	declare -gl playcurrentgame="No"
 	declare -gl kids_safe="No"
+	declare -gl rating="No"
 	declare -gl dupe_mode="normal"
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
@@ -969,8 +970,47 @@ function init_data() {
 		["psx"]="psx\|playstation"
 		["arcade"]="arcade"
 	)
-	
 
+	RATED_FILES=(
+	  n64_mature.txt
+	  saturn_mature.txt
+	  arcade_rated.txt
+	  amiga_rated.txt
+	  ao486_rated.txt
+	  fds_rated.txt
+	  gb_rated.txt
+	  gbc_rated.txt
+	  gba_rated.txt
+	  gg_rated.txt
+	  genesis_rated.txt
+	  megacd_rated.txt
+	  nes_rated.txt
+	  neogeo_rated.txt
+	  psx_rated.txt
+	  sms_rated.txt
+	  snes_rated.txt
+	  tgfx16_rated.txt
+	  tgfx16cd_rated.txt
+	)
+
+	# All blacklist files
+	BLACKLIST_FILES=(
+	  amiga_blacklist.txt
+	  arcade_blacklist.txt
+	  fds_blacklist.txt
+	  gba_blacklist.txt
+	  genesis_blacklist.txt
+	  megacd_blacklist.txt
+	  n64_blacklist.txt
+	  nes_blacklist.txt
+	  neogeo_blacklist.txt
+	  psx_blacklist.txt
+	  s32x_blacklist.txt
+	  sms_blacklist.txt
+	  snes_blacklist.txt
+	  tgfx16_blacklist.txt
+	  tgfx16cd_blacklist.txt
+	)
 
 }
 
@@ -1057,6 +1097,7 @@ function read_samini() {
 	fi
 	
 }
+
 
 function update_samini() {
 	[ ! -f /media/fat/Scripts/.config/downloader/downloader.log ] && return
@@ -3030,6 +3071,11 @@ function init_paths() {
 }
 
 function sam_prep() {
+	
+	# samvideo and ratings filter can't both be set
+	if [ "${rating}" == "yes" ]; then
+		samvideo=no
+	fi
 	[ ! -d "/tmp/.SAM_tmp/SAM_config" ] && mkdir -p "/tmp/.SAM_tmp/SAM_config"
 	[ ! -d "${misterpath}/video" ] && mkdir -p "${misterpath}/video"
 	[[ -f /tmp/SAM_game.previous.mgl ]] && rm /tmp/SAM_game.previous.mgl
@@ -3046,32 +3092,76 @@ function sam_prep() {
 			mount --bind "/tmp/.SAM_tmp/Amiga_shared" "${amigapath}/shared"
 		fi
 	fi
+	
+	#Downloads rating lists and sets the corelist to match only cores with rated lists
 	if [ "${kids_safe}" == "yes" ]; then
-		if [ ! -f "${mrsampath}"/SAM_Rated/amiga_rated.txt ]; then
-			echo "No kids safe rating lists found."
-			get_ratedlist
-			if [ $? -ne 0 ]; then 
-				echo "Kids Safe Filter failed downloading."
+		rating=kids
+	fi
+
+	if [ "${rating}" != "no" ]; then	
+	    local missing=()
+
+		# make sure the target dir exists
+		mkdir -p "${mrsampath}/SAM_Rated"
+		# check each expected file
+		for f in "${RATED_FILES[@]}"; do
+			if [[ ! -f "${mrsampath}/SAM_Rated/$f" ]]; then
+				missing+=( "$f" )
+			fi
+		done
+		if (( ${#missing[@]} )); then
+			echo "Missing rating lists: ${missing[*]}"
+			echo "Downloading..."
+			if ! get_ratedlist; then
+				echo "Ratings Filter failed downloading."
 				return 1
-			else
-				echo "Kids Safe Filter active."
 			fi
 		else
-			echo "Kids Safe Filter active."
+			echo "All rating lists present."
 		fi
+
 		#Set corelist to only include cores with rated lists
-		readarray -t glr <<< "$(find "${mrsampath}/SAM_Rated" -name "*_rated.txt" | awk -F'/' '{ print $NF }' | awk -F'_' '{print$1}')"
-		unset clr
-		for g in "${glr[@]}"; do 
-			for c in "${corelist[@]}"; do 
-				if [[ "$c" == "$g" ]]; then 
-					clr+=("$c")
-				fi
-			done 
+		# build glr from the files on disk
+		if [ "${rating}" == "kids" ]; then
+			readarray -t glr < <(
+			  find "${mrsampath}/SAM_Rated" -name "*_rated.txt" \
+				| awk -F'/' '{print $NF}' \
+				| awk -F'_'  '{print $1}'
+			)
+		else
+			readarray -t glr < <(
+			  find "${mrsampath}/SAM_Rated" -name "*_mature.txt" \
+				| awk -F'/' '{print $NF}' \
+				| awk -F'_'  '{print $1}'
+			)
+		fi
+
+		# intersect glr with corelist
+		clr=()
+		for g in "${glr[@]}"; do
+		  for c in "${corelist[@]}"; do
+			[[ "$c" == "$g" ]] && clr+=("$c")
+		  done
 		done
-		readarray -t nclr <<< "$(printf '%s\n'  "${clr[@]}" "${corelist[@]}"  | sort | uniq -iu )"		
-		echo "Kids Safe lists missing for cores: ${nclr[@]}"
+
+		# if no overlap, warn & use the full rated list
+		if (( ${#clr[@]} == 0 )); then
+		  echo "Warning: none of your enabled cores match the '${rating}' list."
+		  echo "→ Falling back to ALL rated cores."
+		  clr=( "${glr[@]}" )
+		else
+		  # otherwise show which cores have no rating file
+		  readarray -t nclr < <(
+			printf '%s\n' "${clr[@]}" "${corelist[@]}" \
+			  | sort \
+			  | uniq -iu
+		  )
+		  echo "Rating lists missing for cores: ${nclr[*]}"
+		fi
+
+		# finally, write out the new corelist
 		printf "%s\n" "${clr[@]}" > "${corelistfile}"
+
 	fi
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
@@ -3854,24 +3944,78 @@ function filter_list() { # args ${nextcore}
 		mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
 
-	
-	if [ "${kids_safe}" == "yes" ]; then
-		samdebug "Kids Safe Mode - Filtering Roms..."
-			if [ ${1} == amiga ]; then
-				fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
+	if [ "${rating}" != "no" ]; then
+		echo "Ratings Mode ${rating} active - Filtering Roms..."	
+		if [ "${rating}" == "kids" ]; then
+				if [ ${1} == amiga ]; then
+					fgrep -f "${mrsampath}/SAM_Rated/amiga_rated.txt" <(fgrep -v "Demo:" "${gamelistpath}/amiga_gamelist.txt") | awk -F'(' '!seen[$1]++ {print $0}' > "${tmpfilefilter}"
+				else
+					fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
+				fi
+				if [ -s "${tmpfilefilter}" ]; then 
+					samdebug "$(wc -l <"${tmpfilefilter}") games after kids safe filter applied."
+					cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+				else
+					delete_from_corelist "${1}"
+					delete_from_corelist "${1}" tmp
+					echo "${1} kids safe filter produced no results and will be disabled."
+					echo "List of cores is now: ${corelist[*]}"
+					return 1
+				fi
+		else
+			# $1 is the core name
+			rated_file="${mrsampath}/SAM_Rated/${1}_mature.txt"
+			if [[ ! -f "$rated_file" ]]; then
+			  samdebug "No ${1}_mature.txt found—skipping mature filter."
 			else
-				fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
-			fi
-			if [ -s "${tmpfilefilter}" ]; then 
-				samdebug "$(wc -l <"${tmpfilefilter}") games after kids safe filter applied."
-				cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
-			else
-				delete_from_corelist "${1}"
-				delete_from_corelist "${1}" tmp
-				echo "${1} kids safe filter produced no results and will be disabled."
+			  # load your mature names
+			  mapfile -t rated_list <"$rated_file"
+
+			  # prepare output file
+			  : >"$tmpfilefilter"
+
+			  # choose which gamelist to read (and strip Demos for amiga)
+			  if [[ "$1" == "amiga" ]]; then
+				gamelist_src="${gamelistpath}/amiga_gamelist.txt"
+				readarray -t games < <(grep -v '^Demo:' "$gamelist_src")
+			  else
+				gamelist_src="${gamelistpathtmp}/${1}_gamelist.txt"
+				readarray -t games < <(cat "$gamelist_src")
+			  fi
+
+			  declare -A seen
+			  for line in "${games[@]}"; do
+				# strip dir + extension
+				name="${line##*/}"
+				name="${name%.*}"
+				name_lc="${name,,}"
+
+				# loose substring match
+				for entry in "${rated_list[@]}"; do
+				  entry_lc="${entry,,}"
+				  if [[ "$name_lc" == *"$entry_lc"* ]]; then
+					if [[ -z "${seen[$name_lc]}" ]]; then
+					  seen[$name_lc]=1
+					  printf '%s\n' "$line" >>"$tmpfilefilter"
+					fi
+					break
+				  fi
+				done
+			  done
+
+			  if [[ -s "$tmpfilefilter" ]]; then
+				samdebug "$(wc -l <"$tmpfilefilter") games after mature filter applied."
+				cp -f "$tmpfilefilter" "${gamelistpathtmp}/${1}_gamelist.txt"
+			  else
+				delete_from_corelist "$1"
+				delete_from_corelist "$1" tmp
+				echo "${1} mature filter produced no results and will be disabled."
 				echo "List of cores is now: ${corelist[*]}"
 				return 1
+			  fi
 			fi
+
+		fi
 	fi
 	
 	#Check ini exclusion
@@ -4653,26 +4797,10 @@ function get_inputmap() {
 function get_blacklist() {
     echo "Downloading blacklist files - SAM can auto-detect games with static screens and filter them out..."
 
-    for blacklist_file in \
-        "amiga_blacklist.txt" \
-        "arcade_blacklist.txt" \
-        "fds_blacklist.txt" \
-        "gba_blacklist.txt" \
-        "genesis_blacklist.txt" \
-        "megacd_blacklist.txt" \
-        "n64_blacklist.txt" \
-        "nes_blacklist.txt" \
-        "neogeo_blacklist.txt" \
-        "psx_blacklist.txt" \
-        "s32x_blacklist.txt" \
-        "sms_blacklist.txt" \
-        "snes_blacklist.txt" \
-        "tgfx16_blacklist.txt" \
-        "tgfx16cd_blacklist.txt"; do
+    for blacklist_file in "${BLACKLIST_FILES[@]}"; do
         remote_url="${raw_base}/.MiSTer_SAM/SAM_Gamelists/$blacklist_file"
         tmp_file="/tmp/$blacklist_file"
         local_file="${mrsampath}/SAM_Gamelists/$blacklist_file"
-
         check_and_update "$remote_url" "$tmp_file" "$local_file" "$blacklist_file"
     done
     echo "Blacklist files updated."
@@ -4680,35 +4808,15 @@ function get_blacklist() {
 
 
 function get_ratedlist() {
-    if [ "${kids_safe}" == "yes" ]; then
-        echo "Downloading lists with kids-friendly games..."
+	echo "Downloading lists with kids-friendly games..."
 
-        for rated_file in \
-            "arcade_rated.txt" \
-            "amiga_rated.txt" \
-            "ao486_rated.txt" \
-            "fds_rated.txt" \
-            "gb_rated.txt" \
-            "gbc_rated.txt" \
-            "gba_rated.txt" \
-            "gg_rated.txt" \
-            "genesis_rated.txt" \
-            "megacd_rated.txt" \
-            "nes_rated.txt" \
-            "neogeo_rated.txt" \
-            "psx_rated.txt" \
-            "sms_rated.txt" \
-            "snes_rated.txt" \
-            "tgfx16_rated.txt" \
-            "tgfx16cd_rated.txt"; do
-            remote_url="${raw_base}/.MiSTer_SAM/SAM_Rated/$rated_file"
-            tmp_file="/tmp/$rated_file"
-            local_file="${mrsampath}/SAM_Rated/$rated_file"
-
-            check_and_update "$remote_url" "$tmp_file" "$local_file" "$rated_file"
-        done
-        echo "Rated lists updated."
-    fi
+	for rated_file in "${RATED_FILES[@]}"; do
+		remote_url="${raw_base}/.MiSTer_SAM/SAM_Rated/$rated_file"
+		tmp_file="/tmp/$rated_file"
+		local_file="${mrsampath}/SAM_Rated/$rated_file"
+		check_and_update "$remote_url" "$tmp_file" "$local_file" "$rated_file"
+	done
+	echo "Rated lists updated."
 }
 
 
