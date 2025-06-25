@@ -974,6 +974,7 @@ function init_data() {
 	RATED_FILES=(
 	  n64_mature.txt
 	  saturn_mature.txt
+	  tgfx16cd_mature.txt
 	  arcade_rated.txt
 	  amiga_rated.txt
 	  ao486_rated.txt
@@ -984,6 +985,7 @@ function init_data() {
 	  gg_rated.txt
 	  genesis_rated.txt
 	  megacd_rated.txt
+	  n64_rated.txt
 	  nes_rated.txt
 	  neogeo_rated.txt
 	  psx_rated.txt
@@ -3578,6 +3580,9 @@ function reset_ini() { # args ${nextcore}
     sed -i '/kids_safe=/c\kids_safe="no"' /media/fat/Scripts/MiSTer_SAM.ini
     sed -i '/coreweight=/c\coreweight="no"' /media/fat/Scripts/MiSTer_SAM.ini
 	sed -i '/sam_goat_list=/c\sam_goat_list="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
+	sed -i '/rating=/c\rating="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
+	sed -i '/disable_blacklist=/c\disable_blacklist="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	
 }
 
 function core_error_rom() { # core_error core /path/to/ROM
@@ -5616,9 +5621,11 @@ function sam_gamemodemenu() {
 		--backtitle "Super Attract Mode" --title "[ Main Menu ]" \
 		--menu "Use the arrow keys and enter \nor the d-pad and A button" 0 0 0 \
 		sam_standard "Default Setting - Play all cores muted" \
+		sam_svc "Play TV commercials and then show the advertised game. (experimental)" \
 		sam_goat_mode "Play the Greatest of All Time Attract modes." \
 		sam_80s "Play 80s Music, no Handhelds and only Horiz. games." \
-		sam_svc "Play TV commercials and then show the advertised game." \
+		sam_maturetgfx "Play Games rated mature for TurboGrafx-CD." \
+		sam_kids "Play Games rated for all ages (kids safe mode)." \
 		sam_m82_mode "Turn your MiSTer into a NES M82 unit." \
 		sam_roulettemenu "Game Roulette" 2>"${sam_menu_file}"	
 	
@@ -5633,6 +5640,33 @@ function sam_gamemodemenu() {
 		"${menuresponse}"
 	fi
 }
+
+
+sam_kids() {
+	reset_ini
+	if [ "${menuresponse}" == "sam_kids" ]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ MATURE TGFX ]" \
+			--msgbox "SAM uses ESRB rated games to only show games suitable for all ages.\n\nPlease feel free to contribute by editing the lists under .MiSTER_SAM/SAM_Rated folder." 0 0
+			sed -i '/rating=/c\rating="'"mature"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"tgfx16cd"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sam_start
+	fi	
+}
+
+sam_maturetgfx() {
+	reset_ini
+	sed -i '/disable_blacklist=/c\disable_blacklist="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	if [ "${menuresponse}" == "sam_maturetgfx" ]; then
+		dialog --clear --no-cancel --ascii-lines \
+			--backtitle "Super Attract Mode" --title "[ MATURE TGFX ]" \
+			--msgbox "The TurboGrafx-CD was notorious for it's (mostly unlicensed) mature rated games.\n\n" 0 0
+			sed -i '/rating=/c\rating="'"mature"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i '/corelist=/c\corelist="'"tgfx16cd"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			sam_start
+	fi	
+}
+
 
 # M82 mode
 sam_m82_mode() {
@@ -5662,6 +5696,11 @@ sam_standard() {
 
 # Function to process the GOAT list and create game list files
 sam_goat_mode() {
+	local goat_flag="/tmp/.SAM_tmp/goatmode.ready"
+	if [ -f "$goat_flag" ]; then
+		#samdebug "GOAT gamelists already initialized, skipping rebuild."
+		return
+	fi
 	reset_ini
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
 		dialog --clear --no-cancel --ascii-lines \
@@ -5696,11 +5735,23 @@ sam_goat_mode() {
 	done < "$goat_list_path"
 	readarray -t corelist <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)"
 	printf "%s\n" "${corelist[@]}" > "${corelistfile}"
-	sed -i '/sam_goat_list=/c\sam_goat_list="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	
+	new_corelist='corelist="'$(IFS=,; echo "${corelist[*]}")'"'
+	new_goatflag='sam_goat_list="Yes"'
+	
+	if ! grep -q "^$new_corelist" /media/fat/Scripts/MiSTer_SAM.ini; then
+		sed -i '/^corelist=/c\'"$new_corelist" /media/fat/Scripts/MiSTer_SAM.ini
+	fi
+
+	if ! grep -q "^$new_goatflag" /media/fat/Scripts/MiSTer_SAM.ini; then
+		sed -i '/^sam_goat_list=/c\'"$new_goatflag" /media/fat/Scripts/MiSTer_SAM.ini
+	fi
 
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
+		#sam_start
 		sam_menu
 	fi
+	touch "$goat_flag"
 }
 
 function sam_80s() {
@@ -5717,7 +5768,7 @@ function sam_svc() {
     # Display initial message
     dialog --clear --ascii-lines --no-cancel \
         --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
-        --msgbox "SAM can play video on your MiSTer. This mode will download commercials from archive.org and then play them.\n\nIt will try and find the game that was advertised afterwards." 0 0
+        --msgbox "SAM can play video on your MiSTer. This mode will download commercials from archive.org and then play them.\n\nIt will try and find the game that was advertised afterwards. This is experimental and might not work for everyone!" 0 0
 
     # Ask the user to choose between HDMI and CRT
     exec 3>&1
