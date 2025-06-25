@@ -1107,12 +1107,12 @@ function update_samini() {
 	if [[ "$(cat /media/fat/Scripts/.config/downloader/downloader.log | grep -c "MiSTer_SAM.default.ini")" != "0" ]] && [ "${samini_update_file}" -nt "${samini_file}" ]; then
 		echo "New MiSTer_SAM.ini version downloaded from update_all. Merging with new ini."
 		echo "Backing up MiSTer_SAM.ini to MiSTer_SAM.ini.bak"
-		cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak
+		cp "${samini_file}" "${samini_file}".bak
 		echo -n "Merging ini values.."
 		# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
-		sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
-		sed -i 's/-=/--/g' /media/fat/Scripts/MiSTer_SAM.ini
-		awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp /media/fat/Scripts/MiSTer_SAM.ini
+		sed -i 's/==/--/g' "${samini_file}"
+		sed -i 's/-=/--/g' "${samini_file}"
+		awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
 		echo "Done."
 	fi
 
@@ -3097,7 +3097,7 @@ function sam_prep() {
 	
 	#Downloads rating lists and sets the corelist to match only cores with rated lists
 	if [ "${kids_safe}" == "yes" ]; then
-		rating=kids
+		rating="kids"
 	fi
 
 	if [ "${rating}" != "no" ]; then	
@@ -3186,7 +3186,7 @@ function sam_prep() {
 		fi
 
 		if { [ "$samvideo_source" == "local" ] || [ "$samvideo_source" == "youtube" ]; } && [ "$samvideo_tvc" == "yes" ]; then
-			sed -i '/samvideo_tvc=/c\samvideo_tvc="no"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod samvideo_tvc no
 		fi
 	fi
 	# Mute Global Volume
@@ -3341,10 +3341,10 @@ function resetini() {
     if [ $# -eq 0 ]; then
         # No arguments provided, reset INI file to default
         if [ -f "${mrsampath}/MiSTer_SAM.default.ini" ]; then
-            cp "${mrsampath}/MiSTer_SAM.default.ini" /media/fat/Scripts/MiSTer_SAM.ini
+            cp "${mrsampath}/MiSTer_SAM.default.ini" "${samini_file}"
         else
             get_samstuff MiSTer_SAM.ini /tmp
-            cp /tmp/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini
+            cp /tmp/MiSTer_SAM.ini "${samini_file}"
         fi
     else
         # Iterate over each argument
@@ -3354,15 +3354,15 @@ function resetini() {
                 "bgm")
                     # Example: Reset background music setting
 					bgm_stop force
-                    sed -i '/bgm=/c\bgm="no"' /media/fat/Scripts/MiSTer_SAM.ini
+                    samini_mod bgm no
                     ;;
                 "samvideo")
                     # Example: Reset samvideo setting
-                    sed -i '/samvideo=/c\samvideo="no"' /media/fat/Scripts/MiSTer_SAM.ini
+                    samini_mod samvideo no
                     ;;
                 "m82")
                     # Example: Reset samvideo setting
-                    sed -i '/m82=/c\m82="no"' /media/fat/Scripts/MiSTer_SAM.ini
+                    samini_mod m82 no
                     ;;
                 *)
                     echo "Invalid option ($arg). No changes made."
@@ -3381,16 +3381,16 @@ function deleteall() {
 	
 	mkdir -p /media/fat/Scripts/.SAM_Backup
 	find "${mrsampath}/SAM_Gamelists" -name "*_excludelist.txt" -exec cp '{}' "/media/fat/Scripts/.SAM_Backup" \;
-	cp /media/fat/Scripts/MiSTer_SAM.ini "/media/fat/Scripts/.SAM_Backup" 2>/dev/null
+	cp "${samini_file}" "/media/fat/Scripts/.SAM_Backup" 2>/dev/null
 	
 	if [ -d "${mrsampath}" ]; then
 		echo "Deleting MiSTer_SAM folder"
 		rm -rf "${mrsampath}"
 	fi
-	if [ -f "/media/fat/Scripts/MiSTer_SAM.ini" ]; then
+	if [ -f "${samini_file}" ]; then
 		echo "Deleting MiSTer_SAM.ini"
-		cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak
-		rm /media/fat/Scripts/MiSTer_SAM.ini
+		cp "${samini_file}" "${samini_file}".bak
+		rm "${samini_file}"
 	fi
 	if [ -f "/media/fat/Scripts/MiSTer_SAM_off.sh" ]; then
 		echo "Deleting MiSTer_SAM_off.sh"
@@ -3574,14 +3574,14 @@ function reset_ini() { # args ${nextcore}
 	mkdir -p "${gamelistpathtmp}"
 	mkdir -p /tmp/.SAM_tmp
 
-	sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/samvideo=/c\samvideo="No"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/samvideo_tvc=/c\samvideo_tvc="No"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/kids_safe=/c\kids_safe="no"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/coreweight=/c\coreweight="no"' /media/fat/Scripts/MiSTer_SAM.ini
-	sed -i '/sam_goat_list=/c\sam_goat_list="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
-	sed -i '/rating=/c\rating="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
-	sed -i '/disable_blacklist=/c\disable_blacklist="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	samini_mod bgm No
+    samini_mod samvideo No
+    samini_mod samvideo_tvc No
+    samini_mod rating No
+    samini_mod coreweight no
+	samini_mod sam_goat_list No
+	samini_mod disable_blacklist No
+	samini_mod dupe_mode normal
 	
 }
 
@@ -4066,6 +4066,20 @@ function samdebug() {
         echo "[${ts}] ${msg}" >> /tmp/samdebug.log
     fi
 }
+
+samini_mod() {
+  local key="$1"
+  local value="$2"
+  local file="${3:-/media/fat/Scripts/MiSTer_SAM.ini}"
+  local formatted="${key}=\"${value}\""
+
+  if grep -q "^${key}=" "$file"; then
+    sed -i "/^${key}=/c\\${formatted}" "$file"
+  else
+    echo "$formatted" >> "$file"
+  fi
+}
+
 
 function sam_sshconfig() {
 	# Alias to be added
@@ -4935,16 +4949,16 @@ function sam_update() { # sam_update (next command)
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 		
 
-		if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+		if [ -f "${samini_file}" ]; then
 			echo " MiSTer SAM INI already exists... Merging with new ini."
 			get_samstuff MiSTer_SAM.ini /tmp
 			echo " Backing up MiSTer_SAM.ini to MiSTer_SAM.ini.bak"
-			cp /media/fat/Scripts/MiSTer_SAM.ini /media/fat/Scripts/MiSTer_SAM.ini.bak
+			cp "${samini_file}" "${samini_file}".bak
 			echo -n " Merging ini values.."
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
-			sed -i 's/==/--/g' /media/fat/Scripts/MiSTer_SAM.ini
-			sed -i 's/-=/--/g' /media/fat/Scripts/MiSTer_SAM.ini
-			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' /media/fat/Scripts/MiSTer_SAM.ini /tmp/MiSTer_SAM.ini >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp /media/fat/Scripts/MiSTer_SAM.ini
+			sed -i 's/==/--/g' "${samini_file}"
+			sed -i 's/-=/--/g' "${samini_file}"
+			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" /tmp/MiSTer_SAM.ini >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
 			echo "Done."
 
 		else
@@ -5102,13 +5116,13 @@ function sam_settings() {
 			--backtitle "Super Attract Mode" --title "[ KIDS SAFE FILTER ]" \
 			--msgbox "Good to use if you have young children. Limits rom selection to ESRB rated games with the 'All Ages' label\n\nOn first boot, SAM will download the ESRB game whitelists. \n\nAlso 'Alternative Core Selection Mode' will be enabled. " 0 0
 		fi
-		sed -i '/kids_safe=/c\kids_safe="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-		sed -i '/coreweight=/c\coreweight="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod rating kids
+		samini_mod coreweight Yes 
 		changes_saved
 		sam_settings
 	elif [[ "${menuresponse,,}" == "disablekidssafe" ]]; then
-		sed -i '/kids_safe=/c\kids_safe="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-		sed -i '/coreweight=/c\coreweight="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod rating No 
+		samini_mod coreweight No
 		changes_saved
 		sam_settings
 	else 
@@ -5133,12 +5147,12 @@ function sam_filters() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	elif [[ "${menuresponse,,}" == "arcadehoriz" ]]; then
-		#sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_Horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
-		sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod arcadepathfilter _Horizontal
+		samini_mod arcadeorient horizontal
 	elif [[ "${menuresponse,,}" == "arcadevert" ]]; then
-		sed -i '/arcadeorient=/c\arcadeorient="'"vertical"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod arcadeorient vertical
 	elif [[ "${menuresponse,,}" == "arcadedisable" ]]; then
-		sed -i '/arcadeorient=/c\arcadeorient="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod arcadeorient
 	else 
 		parse_cmd "${menuresponse}"
 	fi
@@ -5180,36 +5194,36 @@ function sam_misc() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	elif [[ "${menuresponse,,}" == "enablemenuonly" ]]; then
-		sed -i '/menuonly=/c\menuonly="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod menuonly Yes
 	elif [[ "${menuresponse,,}" == "-----" ]]; then
 		shown=1	
 		sam_misc
 	elif [[ "${menuresponse,,}" == "disablemenuonly" ]]; then
-		sed -i '/menuonly=/c\menuonly="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod menuonly No
 	elif [[ "${menuresponse,,}" == "enablealtcore" ]]; then
-		sed -i '/coreweight=/c\coreweight="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod coreweight Yes
 	elif [[ "${menuresponse,,}" == "disablealtcore" ]]; then
-		sed -i '/coreweight=/c\coreweight="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod coreweight No
 	elif [[ "${menuresponse,,}" == "enablelistenjoy" ]]; then
-		sed -i '/listenjoy=/c\listenjoy="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod listenjoy Yes
 	elif [[ "${menuresponse,,}" == "disablelistenjoy" ]]; then
-		sed -i '/listenjoy=/c\listenjoy="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod listenjoy No
 	elif [[ "${menuresponse,,}" == "enablelistenkey" ]]; then
-		sed -i '/listenkeyboard=/c\listenkeyboard="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod listenkeyboard Yes
 	elif [[ "${menuresponse,,}" == "disablelistenkey" ]]; then
-		sed -i '/listenkeyboard=/c\listenkeyboard="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod listenkeyboard No
 	elif [[ "${menuresponse,,}" == "enablelistenmouse" ]]; then
-		sed -i '/listenmouse=/c\listenmouse="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod listenmouse Yes
 	elif [[ "${menuresponse,,}" == "disablelistenmouse" ]]; then
-		sed -i '/listenmouse=/c\listenmouse="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod listenmouse No
 	elif [[ "${menuresponse,,}" == "enabledebug" ]]; then
-		sed -i '/samdebug=/c\samdebug="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod samdebug Yes
 	elif [[ "${menuresponse,,}" == "disabledebug" ]]; then
-		sed -i '/samdebug=/c\samdebug="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini	
+		samini_mod samdebug No
 	elif [[ "${menuresponse,,}" == "enabledebuglog" ]]; then
-		sed -i '/samdebuglog=/c\samdebuglog="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod samdebuglog Yes
 	elif [[ "${menuresponse,,}" == "disabledebuglog" ]]; then
-		sed -i '/samdebuglog=/c\samdebuglog="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod samdebuglog No
 	fi
 	dialog --clear --ascii-lines --no-cancel \
 	--backtitle "Super Attract Mode" --title "[ Settings ]" \
@@ -5237,9 +5251,9 @@ function sam_mute() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	elif [[ "${menuresponse,,}" == "disablemute" ]]; then
-		sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod mute No
 	elif [[ "${menuresponse,,}" == "globalmute" ]]; then
-		sed -i '/mute=/c\mute="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod mute Yes
 	fi
 	dialog --clear --ascii-lines --no-cancel \
 	--backtitle "Super Attract Mode" --title "[ Settings ]" \
@@ -5273,13 +5287,13 @@ function sam_exittask() {
 	if [ "$opt" != "0" ]; then
 		sam_menu
 	elif [[ "${menuresponse,,}" == "enableplaycurrent" ]]; then
-		sed -i '/playcurrentgame=/c\playcurrentgame="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod playcurrentgame Yes
 		changes_saved
 	elif [[ "${menuresponse,,}" == "disableplaycurrent" ]]; then
-		sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod playcurrentgame No
 		changes_saved
 	elif [[ "${menuresponse,,}" == "globalmute" ]]; then
-		sed -i '/mute=/c\mute="'"Global"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod mute Global
 	fi
 	dialog --clear --ascii-lines --no-cancel \
 	--backtitle "Super Attract Mode" --title "[ SAM EXIT ]" \
@@ -5288,58 +5302,122 @@ function sam_exittask() {
 }
 
 function sam_controller() {
-    dialog --clear --no-cancel --ascii-lines \
-        --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-        --msgbox "Configure your controller so that pushing the start button will play the current game.\nNext button will shuffle to next game.\n\nAny other button will exit SAM. " 0 0
-    dialog --clear --no-cancel --ascii-lines \
-        --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-        --msgbox "Connect one controller at a time.\n\nPress ok and push start button on blank screen" 0 0
+    # 1) Gather all joystick devices
+    mapfile -t devices < <(ls /dev/input/js* 2>/dev/null)
+    total=${#devices[@]}
+
+    # 2) Build a parallel array of friendly names
+    names=()
+    for dev in "${devices[@]}"; do
+        js=$(basename "$dev")
+        model=$(udevadm info --query=property --name="$dev" 2>/dev/null \
+                | awk -F= '/^ID_MODEL=/{print $2}')
+        if [[ -z "$model" ]]; then
+            sysfs="/sys/class/input/$js/device/name"
+            [[ -r "$sysfs" ]] && model=$(cat "$sysfs")
+        fi
+        names+=( "$model" )
+    done
+
+    # 3) No controllers?
+    if (( total == 0 )); then
+        dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+               --msgbox "No joysticks connected." 0 0
+        sam_exittask
+    fi
+
+    # 4) If more than one, prompt to pick by friendly name
+    if (( total > 1 )); then
+        menu=()
+        for i in "${!devices[@]}"; do
+            tag=$((i+1))
+            menu+=( "$tag" "${names[i]}" )
+        done
+
+        dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+               --menu "Multiple controllers detected.\nSelect one to configure:" \
+               0 0 0 "${menu[@]}" 2> /tmp/sam_choice
+
+        choice=$(< /tmp/sam_choice); rm /tmp/sam_choice
+        sel=$((choice-1))
+        device="${devices[sel]}"
+        name="${names[sel]}"
+    else
+        device="${devices[0]}"
+        name="${names[0]}"
+    fi
+
+    # 5) Prompt & wait for START button
+    dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+           --infobox "Using:\n  $name\n($device)\n\n⏳ Waiting for you to press the START button..." \
+           8 50
+
+    id="$(${mrsampath}/MiSTer_SAM_joy.py "$device" id)"
+    startbtn="$(${mrsampath}/MiSTer_SAM_joy.py "$device" button)"
+
+    dialog --clear
+    dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+           --msgbox "Got it! START = button $startbtn" 6 50
+
+    # 6) Prompt & wait for NEXT button
+    dialog --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
+           --infobox "Press the button you want to use for NEXT GAME...\n\n⏳ Waiting for NEXT button press..." \
+           6 50
+
+    nextbtn="$(${mrsampath}/MiSTer_SAM_joy.py "$device" button)"
+
+    dialog --clear
+    dialog --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
+           --msgbox "Great! NEXT = button $nextbtn" 6 50
+
+    # 7) Save into JSON
     c_json="${mrsampath}/sam_controllers.json"
     c_custom_json="${mrsampath}/sam_controllers.custom.json"
-    id="$(${mrsampath}/MiSTer_SAM_joy.py /dev/input/js0 id)"
-    name="$(grep -iwns "js0" /proc/bus/input/devices -B 4 | grep Name | awk -F'"' '{print $2}')"
-    startbutton="$(${mrsampath}/MiSTer_SAM_joy.py /dev/input/js0 button)"
-    echo start button: "$startbutton"
-    echo controller id: "$id"
 
-    # New dialog to capture the "next" button
-    dialog --clear --no-cancel --ascii-lines \
-        --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
-        --msgbox "Now, push the button you want to use for the 'next' action.\nThis button will be used to navigate to the next game in SAM." 0 0
-    nextbutton="$(${mrsampath}/MiSTer_SAM_joy.py /dev/input/js0 button)"
-    echo next button: "$nextbutton"
-
-    if [[ "$startbutton" == *"not exist"* ]]; then
-        dialog --clear --no-cancel --ascii-lines \
-        --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-        --msgbox "No joysticks connected. " 0 0
+    if [[ "$startbtn" == *not\ exist* || "$nextbtn" == *not\ exist* ]]; then
+        dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+               --msgbox "No joysticks connected." 0 0
         sam_exittask
-    else
-    	if [ -e "${c_custom_json}" ]; then
-        	jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" --argjson next "$nextbutton" \
-            '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' ${c_custom_json} > /tmp/temp.json && mv /tmp/temp.json "${c_custom_json}"
-        else 
-            jq --arg name "$name" --arg id "$id" --argjson start "$startbutton" --argjson next "$nextbutton" \
-            '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' ${c_json} > /tmp/temp.json && mv /tmp/temp.json "${c_custom_json}"
-        fi
-
-        dialog --clear --no-cancel --ascii-lines \
-        --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP COMPLETED ]" \
-        --msgbox "Added $name with Start and Next buttons configured." 0 0
-        # New Yes/No dialog to recommend setting playcurrentgame to no
-		dialog --clear --yesno "Since you now have a button to start a game,\nI recommend we set playcurrentgame variable to no. \nThis will quit SAM and exit to the menu except if start button is pushed." 0 0
-		response=$?
-		
-		if [ $response -eq 0 ]; then
-			sed -i '/playcurrentgame=/c\playcurrentgame="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			dialog --clear --msgbox "playcurrentgame has been set to no. Please reboot MiSTer or reconnect controller for changes to take effect." 0 0
-		else
-			dialog --clear --msgbox "Keeping current playcurrentgame setting. Please reboot MiSTer or reconnect controller for changes to take effect." 0 0
-		fi
-		sam_menu
-
     fi
+
+    # ensure custom file exists
+    if [[ ! -f "$c_custom_json" ]]; then
+        cp "$c_json" "$c_custom_json"
+    fi
+
+    # merge safely into custom
+    if jq --arg name  "$name" \
+          --arg id    "$id" \
+          --argjson start "$startbtn" \
+          --argjson next  "$nextbtn" \
+          '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' \
+          "$c_custom_json" > /tmp/temp.json
+    then
+        mv /tmp/temp.json "$c_custom_json"
+    else
+        dialog --backtitle "Super Attract Mode" --title "[ ERROR ]" \
+               --msgbox "Failed to update controller JSON:\n$c_custom_json" 0 0
+        return 1
+    fi
+
+	# only prompt if needed
+	if ! grep -qEi '^[[:space:]]*playcurrentgame[[:space:]]*=[[:space:]]*"?[Nn][Oo]"?[[:space:]]*$' "$samini_file"; then
+		dialog --backtitle "Super Attract Mode" --yesno \
+		"Since you now have a START button, set playcurrentgame to no?\
+		\n(This will quit SAM unless START is pressed.)" 0 0
+					…
+	fi
+	dialog --clear --ascii-lines --no-cancel \
+	--backtitle "Super Attract Mode" --title "[ GAME CONTROLLER ]" \
+	--msgbox "Changes saved " 0 0
+	sam_menu
 }
+
+
+
+
+
+
 
 function sam_timer() {
 	if [[ "$shown" == "0" ]]; then
@@ -5369,7 +5447,7 @@ function sam_timer() {
 		elif [[ "${menuresponse}" == *"samtimeout"* ]]; then
 			timemin=${menuresponse//samtimeout/}
 			samtimeout=$((timemin*60))
-			sed -i '/samtimeout=/c\samtimeout="'"$samtimeout"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod samtimeout $samtimeout
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
 			--msgbox "Changes saved. Wait now for $samtimeout seconds" 0 0
@@ -5378,7 +5456,7 @@ function sam_timer() {
 		elif [[ "${menuresponse}" == *"gametimer"* ]]; then
 			timemin=${menuresponse//gametimer/}
 			gametimer=$((timemin*60))
-			sed -i '/gametimer=/c\gametimer="'"$gametimer"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod gametimer $gametimer
 			dialog --clear --ascii-lines --no-cancel \
 			--backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
 			--msgbox "Changes saved. Show games now for $gametimer seconds" 0 0
@@ -5455,7 +5533,7 @@ function sam_corelist() {
 	if [[ "${corelistnew[*]}" ]]; then
 		unset corelist
 		corelistmod="$(echo "${corelistnew[@]}" | tr ' ' ',' | tr -s ' ')"
-		sed -i '/corelist=/c\corelist="'"$corelistmod"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod corelist "$corelistmod"
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ Settings ]" \
 		--msgbox "Changes saved. Core list is now: $corelistmod" 0 0
@@ -5481,41 +5559,46 @@ function sam_corelist_preset() {
 		if [ "$opt" != "0" ]; then
 			sam_menu
 		elif [[ "${menuresponse}" == "1" ]]; then
-			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod corelist "arcade,neogeo"
 		elif [[ "${menuresponse}" == "2" ]]; then
-			sed -i '/corelist=/c\corelist="'"arcade,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,stv,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod corelist "arcade,atari2600,atari5200,atari7800,fds,genesis,megacd,neogeo,nes,saturn,s32x,sms,snes,stv,tgfx16,tgfx16cd,psx"
 		elif [[ "${menuresponse}" == "3" ]]; then
-			sed -i '/corelist=/c\corelist="'"gb,gbc,gba,gg,atarilynx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod corelist "gb,gbc,gba,gg,atarilynx"
 		elif [[ "${menuresponse}" == "4" ]]; then
-			sed -i '/corelist=/c\corelist="'"amiga,c64,coco2"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod corelist "amiga,c64,coco2"
 		elif [ "${menuresponse}" -eq "5" ]; then
 			dialog --clear --ascii-lines --no-cancel \
-			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
-			--yesno "This will set Arcade Path Filter to 1990's\nYou can remove the filter later by clicking No here." 0 0
+			  --backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
+			  --yesno "This will set Arcade Path Filter to 1990's\nYou can remove the filter later by clicking No here." 0 0
 			response=$?
 			case $response in
-			   0) sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_The 1990s"'"' /media/fat/Scripts/MiSTer_SAM.ini	   
+			  0)  # Yes → set the filter
+				samini_mod arcadepathfilter "_The 1990s"
 				;;
-			   1) sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
+			  1)  # No → clear the filter
+				samini_mod arcadepathfilter ""
 				;;
-			   255) exit;;
+			  255) exit ;;
 			esac
-			sed -i '/corelist=/c\corelist="'"arcade,genesis,megacd,neogeo,saturn,s32x,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod corelist "arcade,genesis,megacd,neogeo,saturn,s32x,snes,tgfx16,tgfx16cd,psx"
+
 		elif [ "${menuresponse}" -eq "6" ]; then
 			dialog --clear --ascii-lines --no-cancel \
-			--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
-			--yesno "This will set Arcade Path Filter to 1990's\nYou can remove the filter later by clicking No here." 0 0
+			  --backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
+			  --yesno "This will set Arcade Path Filter to 1990's\nYou can remove the filter later by clicking No here." 0 0
 			response=$?
 			case $response in
-			   0) sed -i '/arcadepathfilter=/c\arcadepathfilter="'"_The 1990s"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			  0)
+				samini_mod arcadepathfilter "_The 1990s"
 				;;
-			   1) sed -i '/arcadepathfilter=/c\arcadepathfilter="'""'"' /media/fat/Scripts/MiSTer_SAM.ini
+			  1)
+				samini_mod arcadepathfilter ""
 				;;
-			   255) exit;;
+			  255) exit ;;
 			esac
-			sed -i '/corelist=/c\corelist="'"arcade,neogeo"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod corelist "arcade,neogeo"
 		elif [[ "${menuresponse}" == "7" ]]; then
-			sed -i '/corelist=/c\corelist="'"amiga,amigacd32,ao486,arcade,fds,genesis,megacd,neogeo,neogeocd,n64,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod corelist "amiga,amigacd32,ao486,arcade,fds,genesis,megacd,neogeo,neogeocd,n64,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 		fi
 		dialog --clear --ascii-lines --no-cancel \
 		--backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
@@ -5648,21 +5731,23 @@ sam_kids() {
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ MATURE TGFX ]" \
 			--msgbox "SAM uses ESRB rated games to only show games suitable for all ages.\n\nPlease feel free to contribute by editing the lists under .MiSTER_SAM/SAM_Rated folder." 0 0
-			sed -i '/rating=/c\rating="'"mature"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			sed -i '/corelist=/c\corelist="'"tgfx16cd"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod rating kids
+			corelist_value=$(printf "%s\n" "${RATED_FILES[@]}" | sed -E 's/_.+\.txt$//' | sort -u | paste -sd, -)
+			corelist_line="corelist=\"${corelist_value}\""
+			sed -i '/^corelist=/c\'"$corelist_line" $samini_file
 			sam_start
 	fi	
 }
 
 sam_maturetgfx() {
 	reset_ini
-	sed -i '/disable_blacklist=/c\disable_blacklist="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	samini_mod disable_blacklist Yes
 	if [ "${menuresponse}" == "sam_maturetgfx" ]; then
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ MATURE TGFX ]" \
 			--msgbox "The TurboGrafx-CD was notorious for it's (mostly unlicensed) mature rated games.\n\n" 0 0
-			sed -i '/rating=/c\rating="'"mature"'"' /media/fat/Scripts/MiSTer_SAM.ini
-			sed -i '/corelist=/c\corelist="'"tgfx16cd"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			samini_mod rating mature
+			samini_mod corelist tgfx16cd
 			sam_start
 	fi	
 }
@@ -5674,8 +5759,8 @@ sam_m82_mode() {
 	if [ "${menuresponse}" == "sam_m82_mode" ]; then
 		dialog --clear --no-cancel --ascii-lines \
 			--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
-			--msgbox "SAM will act as an M82 unit for NES. MiSter will restart now. To disable this, go to MiSTer_SAM.ini and find m82 option.\n\n" 0 0
-			sed -i '/m82=/c\m82="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+			--msgbox "SAM will act as an M82 unit for NES. To disable this, go to MiSTer_SAM.ini and find m82 option or change to another preset.\n\nPlease make sure you configure Gamepad in SAM's menu\n\nGame Timer is set to ${m82_game_timer}s per Game - Change m82_game_timer in SAM's ini\n\nMiSter will restart now. " 0 0
+			samini_mod m82 Yes
 			sam_start
 	fi	
 	
@@ -5687,9 +5772,9 @@ sam_standard() {
 		reset_ini
 		# Build corelistall dynamically from CORE_PRETTY keys
 		corelistall=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
-		sed -i '/mute=/c\mute="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
-		sed -i "/^corelist=/c\corelist=\"$corelistall\"" /media/fat/Scripts/MiSTer_SAM.ini		
-	    sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+		samini_mod mute Yes
+		samini_mod corelist "$corelistall"
+	    samini_mod arcadeorient horizontal
 	    sam_start
 	fi
 }
@@ -5736,16 +5821,17 @@ sam_goat_mode() {
 	readarray -t corelist <<< "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" -exec basename \{} \; | cut -d '_' -f 1)"
 	printf "%s\n" "${corelist[@]}" > "${corelistfile}"
 	
-	new_corelist='corelist="'$(IFS=,; echo "${corelist[*]}")'"'
-	new_goatflag='sam_goat_list="Yes"'
-	
-	if ! grep -q "^$new_corelist" /media/fat/Scripts/MiSTer_SAM.ini; then
-		sed -i '/^corelist=/c\'"$new_corelist" /media/fat/Scripts/MiSTer_SAM.ini
+	value=$(IFS=,; echo "${corelist[*]}")
+
+	# only update the ini if it doesn’t already have exactly that value:
+	if ! grep -q "^corelist=\"$value\"" "${samini_file}"; then
+		samini_mod corelist "$value"
 	fi
 
-	if ! grep -q "^$new_goatflag" /media/fat/Scripts/MiSTer_SAM.ini; then
-		sed -i '/^sam_goat_list=/c\'"$new_goatflag" /media/fat/Scripts/MiSTer_SAM.ini
-	fi
+	# same idea for the GOAT flag:
+	if ! grep -q '^sam_goat_list="yes"' "${samini_file}"; then
+		samini_mod sam_goat_list yes
+fi
 
 	if [ "${menuresponse}" == "sam_goat_mode" ]; then
 		#sam_start
@@ -5756,8 +5842,8 @@ sam_goat_mode() {
 
 function sam_80s() {
 	reset_ini
-	sed -i '/corelist=/c\corelist="'"amiga,arcade,fds,genesis,megacd,n64,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"'"' /media/fat/Scripts/MiSTer_SAM.ini
-	sed -i '/arcadeorient=/c\arcadeorient="'"horizontal"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	samini_mod corelist "amiga,arcade,fds,genesis,megacd,n64,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	samini_mod arcadeorient horizontal
 	enablebgm
 	sam_start
 }
@@ -5791,11 +5877,11 @@ function sam_svc() {
     case $selection in
         1) # HDMI selected
             echo "Setting up for HDMI output..."
-            sed -i '/samvideo_output=/c\samvideo_output="HDMI"' /media/fat/Scripts/MiSTer_SAM.ini
+            samini_mod samvideo_output HDMI
             ;;
         2) # CRT selected
             echo "Setting up for CRT output..."
-            sed -i '/samvideo_output=/c\samvideo_output="CRT"' /media/fat/Scripts/MiSTer_SAM.ini
+            samini_mod samvideo_output CRT
             ;;
     esac
 
@@ -5811,16 +5897,16 @@ function sam_svc() {
 
     # Set the keep_local_copy variable in the configuration file
     if [ "$keep_local_copy" == "1" ]; then
-        sed -i '/keep_local_copy=/c\keep_local_copy="yes"' /media/fat/Scripts/MiSTer_SAM.ini
+        samini_mod keep_local_copy yes
     else
-        sed -i '/keep_local_copy=/c\keep_local_copy="no"' /media/fat/Scripts/MiSTer_SAM.ini
+        samini_mod keep_local_copy no
     fi
 
     # Additional configuration settings
-	sed -i '/corelist=/c\corelist="'"arcade,atarilynx,gb,gbc,genesis,gg,megacd,n64,nes,psx,saturn,s32x,sgb,sms,snes,tgfx16,tgfx16cd"'"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/samvideo=/c\samvideo="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/samvideo_source=/c\samvideo_source="Archive"' /media/fat/Scripts/MiSTer_SAM.ini
-    sed -i '/samvideo_tvc=/c\samvideo_tvc="Yes"' /media/fat/Scripts/MiSTer_SAM.ini
+	samini_mod corelist "arcade,atarilynx,gb,gbc,genesis,gg,megacd,n64,nes,psx,saturn,s32x,sgb,sms,snes,tgfx16,tgfx16cd"
+    samini_mod samvideo Yes
+    samini_mod samvideo_source Archive
+    samini_mod samvideo_tvc Yes
 	
     # Check for specific game list for the chosen output device
     if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
@@ -6100,11 +6186,11 @@ function sam_bgmmenu() {
 		if [ "$opt" != "0" ]; then
 			sam_menu
 		else
-			if [ -f /media/fat/Scripts/MiSTer_SAM.ini ]; then
+			if [ -f "${samini_file}" ]; then
 				if [[ "${menuresponse,,}" == "enablebgm" ]]; then
 					enablebgm
 				elif [[ "${menuresponse,,}" == "disableplay" ]]; then
-					sed -i '/bgmplay=/c\bgmplay="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod bgmplay No
 
 				elif [[ "${menuresponse,,}" == "disablebgm" ]]; then
 					echo " Uninstalling BGM, please wait..."
@@ -6114,24 +6200,24 @@ function sam_bgmmenu() {
 					rm /tmp/bgm.sock 2>/dev/null
 					sed -i '/bgm.sh/d' ${userstartup}
 					sed -i '/Startup BGM/d' ${userstartup}
-					sed -i '/bgm=/c\bgm="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod bgm No
 					#echo " Done."
 				elif [[ "${menuresponse,,}" == "enabletty" ]]; then
-					sed -i '/ttyenable=/c\ttyenable="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod ttyenable Yes
 				elif [[ "${menuresponse,,}" == "disabletty" ]]; then
-					sed -i '/ttyenable=/c\ttyenable="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod ttyenable No
 				elif [[ "${menuresponse,,}" == "enablesv" ]]; then
-					sed -i '/samvideo=/c\samvideo="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod samvideo Yes
 				elif [[ "${menuresponse,,}" == "disablesv" ]]; then
-					sed -i '/samvideo=/c\samvideo="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod samvideo No
 				elif [[ "${menuresponse,,}" == "enableyt" ]]; then
-					sed -i '/samvideo_source=/c\samvideo_source="'"Youtube"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod samvideo_source Youtube
 				elif [[ "${menuresponse,,}" == "enablear" ]]; then
-					sed -i '/samvideo_source=/c\samvideo_source="'"Archive"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod samvideo_source Archive
 				elif [[ "${menuresponse,,}" == "enablehdmi" ]]; then
-					sed -i '/samvideo_output=/c\samvideo_output="'"HDMI"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod samvideo_output HDMI
 				elif [[ "${menuresponse,,}" == "enablecrt" ]]; then
-					sed -i '/samvideo_output=/c\samvideo_output="'"CRT"'"' /media/fat/Scripts/MiSTer_SAM.ini
+					samini_mod samvideo_output CRT
 				fi
 				dialog --clear --ascii-lines --no-cancel \
 				--backtitle "Super Attract Mode" --title "[ BACKGROUND MUSIC PLAYER ]" \
@@ -6161,12 +6247,12 @@ function enablebgm() {
 		echo " Resetting BGM now."
 	fi
 	#echo " Updating MiSTer_SAM.ini to use Mute=No"
-	#sed -i '/mute=/c\mute="'"No"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	samini_mod mute No
 	/media/fat/Scripts/bgm.sh &>/dev/null &
 	sync
 	get_samstuff Media/80s.pls /media/fat/music
-	[[ ! $(grep -i "bgm" /media/fat/Scripts/MiSTer_SAM.ini) ]] && echo "bgm=Yes" >> /media/fat/Scripts/MiSTer_SAM.ini
-	sed -i '/bgm=/c\bgm="'"Yes"'"' /media/fat/Scripts/MiSTer_SAM.ini
+	[[ ! $(grep -i "bgm" "${samini_file}") ]] && echo "bgm=Yes" >> "${samini_file}"
+	samini_mod bgm Yes
 	echo " Enabling BGM debug so SAM can see what's playing.."
 	sleep 5
 	if grep -q '^debug = no' /media/fat/music/bgm.ini; then
