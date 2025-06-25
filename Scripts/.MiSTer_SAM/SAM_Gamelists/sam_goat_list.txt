@@ -48,41 +48,42 @@ kotm2
 mslug
 ssideki2
 [ARCADE]
-Alien Syndrome (set 4, System 16B, unprotected)
-Alien vs. Predator (JP, 940520)
-Armored Warriors (Euro 941024)
-Battle Circuit (Euro 970319)
-Cadillacs and Dinosaurs (W, 930201)
-Captain Commando (World 911202)
-Cotton (W, Set 4
-Cyberbots Fullmetal Madness (Euro 950424)
-Darkstalkers The Night Warriors (Euro 940705)
-Dungeons & Dragons- Shadow over Mystara (EU, 960619)
-Dungeons & Dragons- Tower of Doom (EU, 940412)
-Final Fight (World, set 1)
-Hyper Street Fighter II- The Anniversary Edition (US, 040202)
-In The Hunt (World)
-Marvel Super Heroes (EU, 951024)
-Marvel Super Heroes Vs. Street Fighter (EU, 970625)
-Marvel Vs. Capcom- Clash of Super Heroes (EU, 980123)
-Mega Man 2- The Power Fighters (US, 960708)
-Mega Man- The Power Battle (US, 951006)
-Mighty! Pang (EU, 001010)
-Nemo (W, 901130)
-Night Warriors Darkstalkers' Revenge (Euro 950316)
-Progear (US, 010117)
-Saturday Night Slam Masters (World 930713)
-Street Fighter Alpha 3 (Euro 980904)
-Street Fighter II The World Warrior (World 910522)
-Teenage Mutant Ninja Turtles (World 4 Players, version X) 
-Teenage Mutant Ninja Turtles - Turtles in Time (4 Players ver UAA)
-The King of Dragons (World 910805)
-The Punisher (World 930422) 
-The Simpsons (4 Players World, set 1)
-Three Wonders (World 910520)
-Undercover Cops (World)
-Vampire Hunter 2 Darkstalkers Revenge (Japan 970929)
-Vampire Savior 2 The Lord of Vampire (Japan 970913)
-X-Men (4 Players ver EBA)
-X-Men Vs. Street Fighter (Euro 961004)
-X-Men Children of the Atom (Euro 950331)
+Alien Syndrome (
+Alien vs. Predator (
+Armored Warriors (
+Battle Circuit (
+Cadillacs and Dinosaurs (
+Captain Commando (
+Cotton (
+Cyberbots Fullmetal Madness (
+Darkstalkers The Night Warriors (
+Dungeons & Dragons Shadow over Mystara (
+Dungeons & Dragons Tower of Doom (
+Final Fight (
+Hyper Street Fighter II The Anniversary Edition (
+In The Hunt (
+Marvel Super Heroes (
+Marvel Super Heroes Vs. Street Fighter (
+Marvel Vs. Capcom Clash of Super Heroes (
+Mega Man 2 The Power Fighters (
+Mega Man The Power Battle (
+Mighty! Pang (
+Nemo (
+Night Warriors Darkstalkers' Revenge (
+Progear (
+Saturday Night Slam Masters (
+Street Fighter Alpha 3 (
+Street Fighter II The World Warrior (
+Teenage Mutant Ninja Turtles (
+Teenage Mutant Ninja Turtles - Turtles in Time (
+The King of Dragons (
+The Punisher (
+The Simpsons (
+Three Wonders (
+Undercover Cops (
+Vampire Hunter 2 Darkstalkers Revenge (
+Vampire Savior 2 The Lord of Vampire (
+Virtua Fighter Remix (
+X-Men (
+X-Men Vs. Street Fighter (
+X-Men Children of the Atom (
