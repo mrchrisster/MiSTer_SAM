@@ -5370,7 +5370,7 @@ function sam_controller() {
 
     # 6) Prompt & wait for NEXT button
     dialog --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
-           --infobox "Press the button you want to use for NEXT GAME (eg SELECT BUTTON)...\n\n⏳ Waiting for NEXT button press..." \
+           --infobox "Press the button you want to use for NEXT GAME (eg SELECT Button)...\n\n⏳ Waiting for NEXT button press..." \
            6 50
 
     nextbtn="$(${mrsampath}/MiSTer_SAM_joy.py "$device" button)"
@@ -5413,7 +5413,7 @@ function sam_controller() {
 	if ! grep -qEi '^[[:space:]]*playcurrentgame[[:space:]]*=[[:space:]]*"?[Nn][Oo]"?[[:space:]]*$' "$samini_file"; then
 		dialog --backtitle "Super Attract Mode" --yesno \
 		"Should we adjust settings so that only pushing START button will play the active game?\
-		\n(While SAM is running, push any button to return to Menu unless START or SELECT are pressed.)" 0 0
+		\n(While SAM is running, push any button to return to Menu unless START or NEXT button are pressed.)" 0 0
 					…
 	fi
 	dialog --clear --ascii-lines --no-cancel \
