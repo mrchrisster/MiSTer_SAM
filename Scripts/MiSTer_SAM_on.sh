@@ -3014,14 +3014,13 @@ function kill_all_sams() {
 
 function play_or_exit() {
 	sam_cleanup
-    if [[ "${playcurrentgame}" == "yes" ]]; then
-    	if [[ ${mute} == "core" ]]; then
+	if [[ "${playcurrentgame}" == "yes" ]]; then
+		if [[ ${mute} == "core" ]]; then
 			sleep 1
 			if [ "${nextcore}" == "arcade" ]; then
 				echo "load_core ${mra}" >/dev/MiSTer_cmd
 			elif [ "${nextcore}" == "amiga" ]; then
 				echo "${rompath}" > "${amigapath}"/shared/ags_boot
-				# Amigavision uses Amiga.mgl instead of minimig core
 				if [ -f "/media/fat/_Console/Amiga.mgl" ]; then
 					echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
 				else
@@ -3032,16 +3031,26 @@ function play_or_exit() {
 			fi
 		fi
 	else
-		echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-		sleep 1
+		# Retry up to 3 times until /tmp/CORENAME contains MENU
+		for i in {1..3}; do
+			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
+			sleep 2
+			if grep -q "MENU" /tmp/CORENAME 2>/dev/null; then
+				break
+			fi
+			echo "Attempt $i: Waiting for MENU..."
+			sleep 1
+		done
 		echo "Thanks for playing!"
 	fi
+
 	[ "${samvideo}" == "yes" ] && kill -9 "$(ps -o pid,args | grep '[m]player' | awk '{print $1}' | head -1)" 2>/dev/null
 	bgm_stop
 	tty_exit
-	
+
 	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
 }
+
 
 
 
@@ -5361,7 +5370,7 @@ function sam_controller() {
 
     # 6) Prompt & wait for NEXT button
     dialog --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
-           --infobox "Press the button you want to use for NEXT GAME...\n\n⏳ Waiting for NEXT button press..." \
+           --infobox "Press the button you want to use for NEXT GAME (eg SELECT BUTTON)...\n\n⏳ Waiting for NEXT button press..." \
            6 50
 
     nextbtn="$(${mrsampath}/MiSTer_SAM_joy.py "$device" button)"
@@ -5403,14 +5412,15 @@ function sam_controller() {
 	# only prompt if needed
 	if ! grep -qEi '^[[:space:]]*playcurrentgame[[:space:]]*=[[:space:]]*"?[Nn][Oo]"?[[:space:]]*$' "$samini_file"; then
 		dialog --backtitle "Super Attract Mode" --yesno \
-		"Since you now have a START button, set playcurrentgame to no?\
-		\n(This will quit SAM unless START is pressed.)" 0 0
+		"Should we adjust settings so that only pushing START button will play the active game?\
+		\n(While SAM is running, push any button to return to Menu unless START or SELECT are pressed.)" 0 0
 					…
 	fi
 	dialog --clear --ascii-lines --no-cancel \
 	--backtitle "Super Attract Mode" --title "[ GAME CONTROLLER ]" \
-	--msgbox "Changes saved " 0 0
+	--msgbox "Changes saved./n/nIf it doesn't work right away, you might have to restart your MiSTer. " 0 0
 	sam_menu
+	parse_cmd kill
 }
 
 
