@@ -1271,8 +1271,10 @@ function load_menu_if_needed() {
 
   # Check if the menu script actually exists before trying to source it
   if [[ ! -f "$menu_script" ]]; then
-    echo "Error: Menu script not found at: $menu_script" >&2
+    echo "Error: SAM is not fully installed."
+    echo "Menu script not found at: $menu_script" >&2
     # Optionally, exit or show a dialog error
+    env_check
     return 1
   fi
   
