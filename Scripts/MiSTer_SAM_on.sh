@@ -3260,7 +3260,7 @@ function sam_prep() {
 			  | sort \
 			  | uniq -iu
 		  )
-		  echo "Rating lists missing for cores: ${nclr[*]}"
+		  #echo "Rating lists missing for cores: ${nclr[*]}"
 		fi
 
 		# finally, write out the new corelist
