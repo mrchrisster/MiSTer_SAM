@@ -10,8 +10,7 @@ SAM_MENU_LOADED=1
 sam_menu_file="/tmp/.sam_menu_choice"
 
 # All cores
-#ource /tmp/.SAM_tmp/sam_core_pretty
-
+# source /tmp/.SAM_tmp/sam_core_pretty
 
 #-------------------------------------------------------------------------------
 # PRESETS MENU
@@ -50,14 +49,6 @@ function menu_presets() {
 function menu_preset_standard() {
   # Reset everything to defaults for this preset
   reset_ini
-
-  # Build a comma-separated list of every core
-  corelistall=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
-
-  # Mute cores, use every core, horizontal arcade by default
-  samini_mod mute Yes
-  samini_mod corelist "$corelistall"
-  samini_mod arcadeorient horizontal
 
   # Finally, start SAM
   exec "$0" start 
@@ -626,11 +617,11 @@ function menu_filters() {
            --backtitle "Super Attract Mode" --title "[ Filters ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Select a filter option:" 0 0 0 \
-             include        "Include single category/genre" \
-             exclude        "Exclude categories/genres" \
-             arcadehoriz    "Horizontal arcade only" \
-             arcadevert     "Vertical arcade only" \
-             arcadedisable  "Show all arcade games" \
+             menu_cat_include   "Include single category/genre" \
+             menu_cat_exclude   "Exclude categories/genres" \
+             arcadehoriz    	"Horizontal arcade only" \
+             arcadevert         "Vertical arcade only" \
+             arcadedisable      "Show all arcade games" \
       2> "${sam_menu_file}"
 
     rc=$? choice=$(<"${sam_menu_file}")
@@ -639,10 +630,10 @@ function menu_filters() {
     (( rc != 0 )) && return
 
     case "${choice,,}" in
-      include)
+      menu_cat_include)
         menu_cat_include    
         ;;
-      exclude)
+      menu_cat_exclude)
         menu_cat_exclude   
         ;;
       arcadehoriz)
@@ -667,12 +658,8 @@ function menu_filters() {
 
 function menu_cat_include() {
   reset_ini
-  local rc choice categ corelistfile corelistpath gamelistpathtmp tmpfile
+  local rc choice categ
 
-  corelistfile="${corelistfile}"        # assuming these globals are already set
-  corelistpath="${gamelistpath}"
-  gamelistpathtmp="${gamelistpathtmp}"
-  tmpfile="${tmpfile}"
 
   # 1) Intro
   dialog --clear --no-cancel --ascii-lines \
@@ -682,26 +669,26 @@ function menu_cat_include() {
 
   # 2) Pick a category
   while dialog --clear --ascii-lines --no-tags \
-               --backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-               --ok-label "Select" --cancel-label "Back" \
-               --menu "Only play games from the following categories:" 0 0 0 \
-                 usa         "Only USA Games" \
-                 japan       "Only Japanese Games" \
-                 europe      "Only European Games" \
-                 shoot-em    "Only Shoot ’Em Ups" \
-                 beat-em     "Only Beat ’Em Ups" \
-                 rpg         "Only Role-Playing Games" \
-                 pinball     "Only Pinball Games" \
-                 platformers "Only Platformers" \
-                 fighting    "Only Fighting Games" \
-                 trivia      "Only Trivia Games" \
-                 sports      "Only Sports Games" \
-                 racing      "Only Racing Games" \
-                 hacks       "Only Hacks" \
-                 kiosk       "Only Kiosk Mode Games" \
-                 translations "Only Translations" \
-                 homebrew    "Only Homebrew" \
-      2> "${sam_menu_file}"; do
+		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
+		--ok-label "Select" --cancel-label "Back" \
+		--menu "Only play games from the following categories:" 0 0 0 \
+		 usa         "Only USA Games" \
+		 japan       "Only Japanese Games" \
+		 europe      "Only European Games" \
+		 shoot-em    "Only Shoot ’Em Ups" \
+		 beat-em     "Only Beat ’Em Ups" \
+		 rpg         "Only Role-Playing Games" \
+		 pinball     "Only Pinball Games" \
+		 platformers "Only Platformers" \
+		 fighting    "Only Fighting Games" \
+		 trivia      "Only Trivia Games" \
+		 sports      "Only Sports Games" \
+		 racing      "Only Racing Games" \
+		 hacks       "Only Hacks" \
+		 kiosk       "Only Kiosk Mode Games" \
+		 translations "Only Translations" \
+		 homebrew    "Only Homebrew" \
+    2> "${sam_menu_file}"; do
 
     rc=$? choice=$(<"${sam_menu_file}")
     clear
@@ -721,7 +708,6 @@ function menu_cat_include() {
         > "${gamelistpathtmp}/${listfile}"
       # if there were no matches, remove the empty file so later logic skips it
       [[ ! -s "${gamelistpathtmp}/${listfile}" ]] && rm -f "${gamelistpathtmp}/${listfile}"
-
     done
 
     # collect which cores survived
@@ -732,7 +718,6 @@ function menu_cat_include() {
 
     # write out the corelist file for SAM
     printf "%s\n" "${corelist[@]}" > "${corelistfile}"
-    sync "${corelistfile}"
 
     dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
@@ -1431,16 +1416,24 @@ function menu_changes_saved() {
 }
 
 function reset_ini() { # args ${nextcore}
+	# Build a comma-separated list of every core
+	corelistall=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
+	
 	#Reset gamelists
 	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
 	mkdir -p "${gamelistpathtmp}"
 	mkdir -p /tmp/.SAM_tmp
-
+	
+	# Mute cores, use every core, horizontal arcade by default
+	samini_mod mute Yes
+	samini_mod corelist "$corelistall"
+	samini_mod arcadeorient horizontal
 	samini_mod bgm No
     samini_mod samvideo No
     samini_mod samvideo_tvc No
     samini_mod rating No
     samini_mod coreweight no
+    samini_mod m82 no
 	samini_mod sam_goat_list No
 	samini_mod disable_blacklist No
 	samini_mod dupe_mode normal
