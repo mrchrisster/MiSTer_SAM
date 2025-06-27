@@ -49,6 +49,7 @@ function init_vars() {
 	declare -g samini_file="/media/fat/Scripts/MiSTer_SAM.ini"
 	declare -g samini_update_file="${mrsampath}/MiSTer_SAM.default.ini"
 	declare -gi inmenu=0
+	declare -gi MENU_LOADED=0
 	declare -gi sam_bgmmenu=0					  
 	declare -gi shown=0
 	declare -gi coreretries=3
@@ -59,8 +60,7 @@ function init_vars() {
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
-	declare -g corelisttmpfile="/tmp/.SAM_List/corelisttmp.tmp"
-	declare -g corelistfile="/tmp/.SAM_List/corelist.tmp"
+	declare -g corelistfile="/tmp/.SAM_List/corelist"
 	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
@@ -1093,58 +1093,64 @@ function update_samini() {
 
 # ============== PARSE COMMANDS ===============
 
-# FLOWCHART
-# If core is supplied as first argument, we start SAM in single core mode - parse_cmd ${nextcore} start. In function next_core, corelist shuffle is ignored and nextcore always stays the same
-# If no argument is passed to SAM, we shuffle the corelist in next_core
-
-
 
 function parse_cmd() {
-  # 1) No args ⇒ drop into your pre‐menu
+  # 1) No args ⇒ show the pre-menu
   (( $# == 0 )) && { sam_premenu; return; }
 
-  # 2) Lowercase the first argument
+  # 2) Normalize
   local first="${1,,}"
+  shift
 
-  # 3) Single Core Mode
-  local core=""
+  # 3) Single core shorthand
   if [[ -n ${CORE_PRETTY[$first]} ]]; then
-    echo $first > "${corelistfile}"
-    sam_start
+    tmp_reset
+    echo $first > "${corelistfile}.single"
+    sam_start "$first"
     return
   fi
 
+  # 4) Built-in commands (now with explicit menu handling)
   case "$first" in
-	# ——— Playback controls ———
-	start|restart)           sam_start ;;
-	startmonitor|sm)         sam_start; sleep 1; sam_monitor ;;
-	skip|next)               echo "Skipping to next game…"; tmux send-keys -t SAM C-c ENTER ;;
-	stop|kill)               tmp_reset; parse_cmd juststop ;;
-	update)                  sam_update ;;
-	monitor)                 sam_monitor ;;
-	playcurrent)             playcurrentgame=yes; play_or_exit ;;
-	juststop)                kill_all_sams; playcurrentgame=no; play_or_exit ;;
-
-	# ——— Enable / Disable / Ignore ———
-	enable)                  env_check enable; sam_enable ;;
-	disable)                 sam_cleanup; sam_disable ;;
-	ignore)                  ignoregame ;;
-
-	# ——— Autoconfig & boot ———
-	default)                 sam_update autoconfig ;;
-	autoconfig|defaultb)     tmux kill-session -t MCP &>/dev/null; there_can_be_only_one; sam_update; mcp_start; sam_enable ;;
-	bootstart)               env_check bootstart; boot_sleep; mcp_start ;;	
-	loop_core)			 	 loop_core ;;
-
-	# ——— Jump into the Main Menu ———
-	menu|back)               sam_menu ;;
-	
-	# ——— Help & SSH ———
-	help)                    sam_help ;;
-	sshconfig)               sam_sshconfig ;;
-	
+    start|restart)      sam_start "$@" ;;
+    startmonitor|sm)    sam_start "$@"; sleep 1; sam_monitor ;;
+    skip|next)          echo "Skipping…"; tmux send-keys -t SAM C-c ENTER ;;
+    stop|kill)          tmp_reset; parse_cmd juststop ;;
+    update)             sam_update ;;
+    monitor)            sam_monitor ;;
+    playcurrent)        playcurrentgame=yes; play_or_exit ;;
+    juststop)           kill_all_sams; playcurrentgame=no; play_or_exit ;;
+    
+    enable)             env_check enable; sam_enable ;;
+    disable)            sam_cleanup; sam_disable ;;
+    ignore)             ignoregame ;;
+    
+    default)            sam_update autoconfig ;;
+    autoconfig|defaultb)
+                        tmux kill-session -t MCP &>/dev/null
+                        there_can_be_only_one
+                        sam_update; mcp_start; sam_enable
+                        ;;
+    bootstart)          env_check bootstart; boot_sleep; mcp_start ;;
+    loop_core)          loop_core ;;
+    
+    menu|back)          sam_menu ;;
+    help)               sam_help ;;
+    sshconfig)          sam_sshconfig ;;
+    
+    menu_*)
+		# Check if the function is actually defined before trying to run it
+		if declare -F "$first" > /dev/null; then
+		"$first" "$@"
+		else
+		echo "Error: Unknown menu function '$first'" >&2
+		sam_help
+		return 1
+		fi
+		;;   
     *)
-		echo "Unknown command: $cmd" >&2
+		# Otherwise unknown (the old catch-all is now just for errors)
+		echo "Unknown command: $first" >&2
 		sam_help
 		return 1
 		;;
@@ -1201,64 +1207,83 @@ function sam_premenu() {
     parse_cmd "${premenu}"
 }
 
-# at the top of your main script (once):
-MENU_LOADED=0
+
 
 function sam_menu() {
-  # ——— Load your entire menu file exactly once and export cores to menu script ———
-	if (( MENU_LOADED == 0 )); then
-		source "${mrsampath}/MiSTer_SAM_menu.sh"
-		local f="/tmp/.SAM_tmp/sam_core_pretty"
-		# start the declare
-		{
-		echo "declare -A CORE_PRETTY=("
-		for key in "${!CORE_PRETTY[@]}"; do
-		  # escape any double quotes in the values
-		  local val=${CORE_PRETTY[$key]//\"/\\\"}
-		  echo "  [$key]=\"$val\""
-		done
-		echo ")"
-		} > "$f"
-		MENU_LOADED=1
-  fi
+  # --- Ensure the menu system is available before showing the menu ---
+  load_menu_if_needed
 
-  # ——— Then show the main menu dialog ———
+  # If you were exporting CORE_PRETTY for the menu script, that logic can stay
+  # in your new load_menu_if_needed() function or here. Let's assume
+  # it's not needed for this example to keep it simple.
+
+  # --- Then show the main menu dialog ---
   while true; do
     dialog --clear --ascii-lines --no-tags \
            --ok-label "Select" --cancel-label "Exit" \
            --backtitle "Super Attract Mode" --title "[ Main Menu ]" \
            --menu "Use arrow keys or d-pad to navigate" 0 0 0 \
-             Start           	"Start SAM" \
-             Startmonitor    	"Start + Monitor (SSH)" \
-             Stop            	"Stop SAM" \
-             Skip            	"Skip Game" \
-             Update          	"Update to latest" \
-             Ignore          	"Ignore current game" \
-             -----           	"-----------------------------" \
-             menu_presets    	"Presets & Game Modes" \
-             menu_coreconfig 	"Configure Core List" \
-             menu_exitbehavior  "Configure Exit Behavior" \
-             menu_controller  	"Configure Gamepad" \
-             menu_filters    	"Filters" \
-             menu_addons       	"Add-ons" \
-             menu_inieditor    	"MiSTer_SAM.ini Editor" \
-             menu_settings   	"Settings" \
-             menu_reset         "Reset or Uninstall SAM" \
-      2> "${sam_menu_file}"
+              Start              "Start SAM" \
+              Startmonitor       "Start + Monitor (SSH)" \
+              Stop               "Stop SAM" \
+              Skip               "Skip Game" \
+              Update             "Update to latest" \
+              Ignore             "Ignore current game" \
+              separator          "-----------------------------" \
+              menu_presets       "Presets & Game Modes" \
+              menu_coreconfig    "Configure Core List" \
+              menu_exitbehavior  "Configure Exit Behavior" \
+              menu_controller    "Configure Gamepad" \
+              menu_filters       "Filters" \
+              menu_addons        "Add-ons" \
+              menu_inieditor     "MiSTer_SAM.ini Editor" \
+              menu_settings      "Settings" \
+              menu_reset         "Reset or Uninstall SAM" \
+              2> "${sam_menu_file}"
 
     local rc=$? choice=$(<"${sam_menu_file}")
     clear
     (( rc != 0 )) && break
-
-    # Everything dispatches through parse_cmd
+    
+    # First, handle UI-only elements like separators.
+    # If the user selected the separator, just restart the loop.
+    if [[ "${choice,,}" == "separator" ]]; then
+        continue
+    fi
+    
+    # Everything dispatches cleanly through parse_cmd
     parse_cmd "${choice,,}"
 
-    # If it was a “playback” command, parse_cmd will exit here
+    # If it was a “playback” command, exit the menu loop
     case "${choice,,}" in
       start|startmonitor|stop|kill|skip|next|update|ignore) break ;;
     esac
   done
 }
+
+function load_menu_if_needed() {
+  # If already loaded, do nothing.
+  if (( MENU_LOADED == 1 )); then
+    return 0
+  fi
+
+  local menu_script="${mrsampath}/MiSTer_SAM_menu.sh"
+
+  # Check if the menu script actually exists before trying to source it
+  if [[ ! -f "$menu_script" ]]; then
+    echo "Error: Menu script not found at: $menu_script" >&2
+    # Optionally, exit or show a dialog error
+    return 1
+  fi
+  
+  # Add a debug message to confirm the source is being attempted
+  # echo "Sourcing menu script..." >&2
+
+  # Source the script and set the flag
+  source "$menu_script"
+  MENU_LOADED=1
+}
+
 
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
@@ -1484,13 +1509,18 @@ function load_samvideo() {
 # Don't repeat same core twice
 function corelist_update() {
 	
-	# TODO avoid tmp file here
-	if [ -s "${corelistfile}" ]; then
-		unset corelist 
-		mapfile -t corelist <${corelistfile}
-		rm ${corelistfile}
+	#Single Core Mode
+	if [ -s "${corelistfile}.single" ]; then
+		unset corelist
+		mapfile -t corelist < "${corelistfile}.single"
+		rm "${corelistfile}.single" "${corelistfile}"
+		
+	elif [ -s "${corelistfile}" ]; then
+		unset corelist
+		mapfile -t corelist < "${corelistfile}"
+		rm "${corelistfile}"
 	fi
-	
+		
 	if [[ "${disablecoredel}" == "0" ]]; then
 		delete_from_corelist "$nextcore" tmp
 	fi
@@ -1513,6 +1543,7 @@ function corelist_update() {
 # Main core picker
 # ──────────────────────────────────────────────────────────────────────────────
 function pick_core() {
+
     if [[ "$coreweight" == "yes" ]]; then
         pick_core_weighted
 
@@ -2042,6 +2073,8 @@ function build_goat_lists() {
 	local goat_flag="/tmp/.SAM_tmp/goatmode.ready"
 	local goat_list_path="${gamelistpath}/sam_goat_list.txt"
 	
+	echo "SAM GOAT Mode active"
+	
 	# Already built this session?
 	[[ -f "$goat_flag" ]] && return
 	
@@ -2076,12 +2109,12 @@ function build_goat_lists() {
 	# Update INI corelist if changed
 	local newvalue; newvalue="$(IFS=,; echo "${corelist[*]}")"
 	if ! grep -q "^corelist=\"$newvalue\"" "$samini_file"; then
-	samini_mod corelist "$newvalue"
+		samini_mod corelist "$newvalue"
 	fi
 	
 	# Enable GOAT flag
 	if ! grep -q '^sam_goat_list="yes"' "$samini_file"; then
-	samini_mod sam_goat_list yes
+		samini_mod sam_goat_list yes
 	fi
 	
 	# Mark as built
@@ -3125,6 +3158,7 @@ function activity_reset() {
 								 
 function tmp_reset() {
 	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM* /tmp/SAM* /tmp/MiSTer_SAM*
+	mkdir -p /tmp/.SAM_List  /tmp/.SAM_tmp 
 }
 
 function init_paths() {
@@ -3231,6 +3265,7 @@ function sam_prep() {
 		printf "%s\n" "${clr[@]}" > "${corelistfile}"
 
 	fi
+	
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 	if [ "${samvideo}" == "yes" ]; then
@@ -3511,7 +3546,6 @@ function delete_from_corelist() { # delete_from_corelist core tmp
 				unset 'corelisttmp[i]'
 			fi
 		done
-		#printf "%s\n" ${corelisttmp[@]} > ${corelisttmpfile}
 	fi
 }
 
@@ -3522,22 +3556,6 @@ function reset_core_gl() { # args ${nextcore}
 	sync "${gamelistpath}"
 }
 
-function reset_ini() { # args ${nextcore}
-	#Reset gamelists
-	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
-	mkdir -p "${gamelistpathtmp}"
-	mkdir -p /tmp/.SAM_tmp
-
-	samini_mod bgm No
-    samini_mod samvideo No
-    samini_mod samvideo_tvc No
-    samini_mod rating No
-    samini_mod coreweight no
-	samini_mod sam_goat_list No
-	samini_mod disable_blacklist No
-	samini_mod dupe_mode normal
-	
-}
 
 function core_error_rom() { # core_error core /path/to/ROM
 	if [ ${romloadfails} -lt ${coreretries} ]; then
@@ -4908,6 +4926,7 @@ function sam_update() { # sam_update (next command)
 		#get_samstuff .MiSTer_SAM/MiSTer_SAM.default.ini
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
+		get_samstuff .MiSTer_SAM/MiSTer_SAM_menu.sh
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
 		if [ ! -f "${mrsampath}/sam_controllers.json" ]; then
