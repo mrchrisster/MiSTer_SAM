@@ -10,14 +10,8 @@ SAM_MENU_LOADED=1
 sam_menu_file="/tmp/.sam_menu_choice"
 
 # All cores
-source /tmp/.SAM_tmp/sam_core_pretty
+#ource /tmp/.SAM_tmp/sam_core_pretty
 
-# Display a simple “saved” confirmation
-function menu_changes_saved() {
-  dialog --clear --ascii-lines --no-cancel \
-         --backtitle "Super Attract Mode" --title "[ Settings ]" \
-         --msgbox "Changes saved!" 0 0
-}
 
 #-------------------------------------------------------------------------------
 # PRESETS MENU
@@ -29,7 +23,7 @@ function menu_presets() {
            --backtitle "Super Attract Mode" --title "[ Game Modes ]" \
            --menu "Use the arrow keys or d-pad+A to navigate" 0 0 0 \
              menu_preset_standard      "Default Setting - Play all cores muted" \
-             menu_preset_svc           "Play TV commercials and then show the advertised game. (experimental)" \
+             menu_preset_svc           "Play TV commercials and then show the advertised game." \
              menu_preset_goat_mode     "Play the Greatest of All Time Attract modes." \
              menu_preset_80s           "Play 80s Music, no Handhelds and only Horiz. games." \
              menu_preset_maturetgfx    "Play Games rated mature for TurboGrafx-CD." \
@@ -66,7 +60,7 @@ function menu_preset_standard() {
   samini_mod arcadeorient horizontal
 
   # Finally, start SAM
-  sam_start
+  exec "$0" start 
 }
 
 function menu_preset_svc() {
@@ -131,28 +125,23 @@ function menu_preset_svc() {
          0 0
 
   # 8) Launch it
-  sam_start
+  exec "$0" start 
 }
 
 # Function to process the GOAT list and create game list files
 function menu_preset_goat_mode() {
+  reset_ini
   # 1) Show info
   dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
          --msgbox "GOAT Attract Mode will only play games deemed to have the Greatest of All Time Attract Modes.\n\nPress OK to prepare the lists and return to the menu." \
          0 0
-
-  # 2) Build (if not already done)
-  build_goat_lists
-
-  # 3) Notify user
-  dialog --clear --ascii-lines --no-cancel \
-         --backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
-         --msgbox "GOAT gamelists are ready!\n\nReturn to the menu and select Start to begin." \
-         0 0
+		
+  samini_mod sam_goat_list yes
 
   # 4) Back to main menu
-  sam_menu
+  tmp_reset
+  exec "$0" start 
 }
 
 function menu_preset_80s() {
@@ -160,7 +149,7 @@ function menu_preset_80s() {
 	samini_mod corelist "amiga,arcade,fds,genesis,megacd,n64,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	samini_mod arcadeorient horizontal
 	enablebgm
-	sam_start
+	exec "$0" start 
 }
 
 function menu_preset_maturetgfx() {
@@ -179,35 +168,31 @@ function menu_preset_maturetgfx() {
   samini_mod corelist tgfx16cd
 
   # 4) Launch SAM
-  sam_start
+  exec "$0" start 
 }
 
 
 menu_preset_kids() {
 	reset_ini
-	if [ "${menuresponse}" == "sam_kids" ]; then
-		dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ MATURE TGFX ]" \
-			--msgbox "SAM uses ESRB rated games to only show games suitable for all ages.\n\nPlease feel free to contribute by editing the lists under .MiSTER_SAM/SAM_Rated folder." 0 0
-			samini_mod rating kids
-			corelist_value=$(printf "%s\n" "${RATED_FILES[@]}" | sed -E 's/_.+\.txt$//' | sort -u | paste -sd, -)
-			corelist_line="corelist=\"${corelist_value}\""
-			sed -i '/^corelist=/c\'"$corelist_line" $samini_file
-			sam_start
-	fi	
+	dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ MATURE TGFX ]" \
+		--msgbox "SAM uses ESRB rated games to only show games suitable for all ages.\n\nPlease feel free to contribute by editing the lists under .MiSTER_SAM/SAM_Rated folder." 0 0
+	samini_mod rating kids
+	corelist_value=$(printf "%s\n" "${RATED_FILES[@]}" | sed -E 's/_.+\.txt$//' | sort -u | paste -sd, -)
+	corelist_line="corelist=\"${corelist_value}\""
+	sed -i '/^corelist=/c\'"$corelist_line" $samini_file
+	exec "$0" start 
 }
 
 
 # M82 mode
 menu_preset_m82_mode() {
 	reset_ini
-	if [ "${menuresponse}" == "sam_m82_mode" ]; then
-		dialog --clear --no-cancel --ascii-lines \
-			--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
-			--msgbox "SAM will act as an M82 unit for NES. To disable this, go to MiSTer_SAM.ini and find m82 option or change to another preset.\n\nPlease make sure you configure Gamepad in SAM's menu\n\nGame Timer is set to ${m82_game_timer}s per Game - Change m82_game_timer in SAM's ini\n\nMiSter will restart now. " 0 0
-			samini_mod m82 Yes
-			sam_start
-	fi	
+	dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
+		--msgbox "SAM will act as an M82 unit for NES. To disable this, go to MiSTer_SAM.ini and find m82 option or change to another preset.\n\nPlease make sure you configure Gamepad in SAM's menu\n\nGame Timer is set to ${m82_game_timer}s per Game - Change m82_game_timer in SAM's ini\n\nMiSter will restart now. " 0 0
+		samini_mod m82 Yes
+		exec "$0" start 
 	
 
 }
@@ -268,7 +253,7 @@ function menu_preset_roulette_mode() {
     } >> /tmp/.SAM_tmp/gameroulette.ini
 
     # Launch SAM with the roulette INI
-    sam_start
+    exec "$0" start 
     return
   done
 }
@@ -490,7 +475,7 @@ function menu_exitbehavior() {
 #-------------------------------------------------------------------------------
 # CONTROLLER CONFIGURATOR
 #-------------------------------------------------------------------------------
-function sam_controller() {
+function menu_controller() {
     # 1) Gather all joystick devices
     mapfile -t devices < <(ls /dev/input/js* 2>/dev/null)
     total=${#devices[@]}
@@ -600,7 +585,7 @@ function sam_controller() {
 	--backtitle "Super Attract Mode" --title "[ GAME CONTROLLER ]" \
 	--msgbox "Changes saved./n/nIf it doesn't work right away, you might have to restart your MiSTer. " 0 0
 	sam_menu
-	parse_cmd kill
+	tmp_reset
 }
 
 #-------------------------------------------------------------------------------
@@ -662,7 +647,7 @@ function menu_filters() {
 function menu_addons() {
   local rc choice
 
-  # Show intro only once
+  # Show intro only once (no change here)
   if [[ -z $shown_bgmmenu ]]; then
     dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ SAMVIDEO, BGM & TTY2OLED ]" \
@@ -675,35 +660,37 @@ function menu_addons() {
            --backtitle "Super Attract Mode" --title "[ SAMVIDEO, BGM & TTY2OLED ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Pick an option:" 0 0 0 \
-             enablesv   "Enable Video Playback" \
-             disablesv  "Disable Video Playback" \
-             enablecrt  "Force CRT Output" \
-             enablehdmi "Force HDMI Output" \
-             enableyt   "YouTube Playback" \
-             enablear   "Archive.org Playback" \
-             enablebgm  "Enable BGM" \
-             disablebgm "Disable BGM" \
-             enabletty  "Enable TTY2OLED" \
-             disabletty "Disable TTY2OLED" \
+             sv_header   "--- SAMVIDEO Settings ---" \
+             enablesv    "  Enable Video Playback" \
+             disablesv   "  Disable Video Playback" \
+             enablecrt   "  Force CRT Output" \
+             enablehdmi  "  Force HDMI Output" \
+             enableyt    "  Enable YouTube Playback" \
+             enablear    "  Enable Archive.org Playback" \
+             bgm_header  "--- BGM Settings ---" \
+             enablebgm   "  Enable BGM" \
+             disablebgm  "  Disable BGM" \
+             tty_header  "--- TTY2OLED Settings ---" \
+             enabletty   "  Enable TTY2OLED" \
+             disabletty  "  Disable TTY2OLED" \
       2> "${sam_menu_file}"
 
     rc=$? choice=$(<"${sam_menu_file}")
     clear
-    # Back → return to Main Menu
     (( rc != 0 )) && return
 
     case "${choice,,}" in
+      # Add this to ignore header selections
+      sv_header|bgm_header|tty_header) continue ;;
+
       enablesv)   samini_mod samvideo Yes         ;;
       disablesv)  samini_mod samvideo No          ;;
       enablecrt)  samini_mod samvideo_output CRT   ;;
       enablehdmi) samini_mod samvideo_output HDMI  ;;
       enableyt)   samini_mod samvideo_source Youtube ;;
       enablear)   samini_mod samvideo_source Archive ;;
-      enablebgm)
-        enablebgm       # your existing enablebgm() helper
-        ;;
+      enablebgm)  enablebgm ;;
       disablebgm)
-        # uninstall BGM helper (from your original logic)
         bgm_stop
         rm -f /media/fat/Scripts/bgm.sh /media/fat/music/bgm.ini
         sed -i '/bgm.sh/d;/Startup BGM/d' "${userstartup}"
@@ -722,6 +709,39 @@ function menu_addons() {
            --msgbox "Changes saved!" 0 0
   done
 }
+
+function enablebgm() {
+	if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
+		echo " Installing BGM to Scripts folder"
+		repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
+		curl_download "/tmp/bgm.sh" "https://raw.githubusercontent.com/wizzomafizzo/MiSTer_BGM/main/bgm.sh"
+		mv --force /tmp/bgm.sh /media/fat/Scripts/
+	else
+		echo " BGM script is installed already. Updating just in case..."
+		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+		kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
+		rm /tmp/bgm.sock 2>/dev/null
+		curl_download "/tmp/bgm.sh" "https://raw.githubusercontent.com/wizzomafizzo/MiSTer_BGM/main/bgm.sh"
+		mv --force /tmp/bgm.sh /media/fat/Scripts/
+		echo " Resetting BGM now."
+	fi
+	#echo " Updating MiSTer_SAM.ini to use Mute=No"
+	samini_mod mute No
+	/media/fat/Scripts/bgm.sh &>/dev/null &
+	sync
+	get_samstuff Media/80s.pls /media/fat/music
+	[[ ! $(grep -i "bgm" "${samini_file}") ]] && echo "bgm=Yes" >> "${samini_file}"
+	samini_mod bgm Yes
+	echo " Enabling BGM debug so SAM can see what's playing.."
+	sleep 5
+	if grep -q '^debug = no' /media/fat/music/bgm.ini; then
+		sed -i 's/^debug = no/debug = yes/' /media/fat/music/bgm.ini
+		sleep 1
+	fi
+	#echo " All Done. Starting SAM now."
+	exec "$0" start
+}
+
 
 #-------------------------------------------------------------------------------
 # INI Editor
@@ -1217,4 +1237,34 @@ function menu_deleteall() {
     sleep 1
     parse_cmd stop
   fi
+}
+
+
+#-------------------------------------------------------------------------------
+# MISC FUNCTIONS
+#-------------------------------------------------------------------------------
+
+
+# Display a simple “saved” confirmation
+function menu_changes_saved() {
+  dialog --clear --ascii-lines --no-cancel \
+         --backtitle "Super Attract Mode" --title "[ Settings ]" \
+         --msgbox "Changes saved!" 0 0
+}
+
+function reset_ini() { # args ${nextcore}
+	#Reset gamelists
+	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
+	mkdir -p "${gamelistpathtmp}"
+	mkdir -p /tmp/.SAM_tmp
+
+	samini_mod bgm No
+    samini_mod samvideo No
+    samini_mod samvideo_tvc No
+    samini_mod rating No
+    samini_mod coreweight no
+	samini_mod sam_goat_list No
+	samini_mod disable_blacklist No
+	samini_mod dupe_mode normal
+	
 }
