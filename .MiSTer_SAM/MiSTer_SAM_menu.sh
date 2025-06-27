@@ -418,7 +418,7 @@ function menu_singlecore() {
     (( rc != 0 )) && return
 
     # Launch just that core
-    loop_core "${choice,,}"
+    exec "$0" "${choice,,}"
     return
   done
 }
@@ -500,27 +500,53 @@ function menu_controller() {
         sam_exittask
     fi
 
-    # 4) If more than one, prompt to pick by friendly name
-    if (( total > 1 )); then
-        menu=()
-        for i in "${!devices[@]}"; do
-            tag=$((i+1))
-            menu+=( "$tag" "${names[i]}" )
-        done
-
-        dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-               --menu "Multiple controllers detected.\nSelect one to configure:" \
-               0 0 0 "${menu[@]}" 2> /tmp/sam_choice
-
-        choice=$(< /tmp/sam_choice); rm /tmp/sam_choice
-        sel=$((choice-1))
-        device="${devices[sel]}"
-        name="${names[sel]}"
-    else
-        device="${devices[0]}"
-        name="${names[0]}"
-    fi
-
+	# 4) If more than one, prompt to pick by friendly name
+	if (( total > 1 )); then
+		menu=()
+		for i in "${!devices[@]}"; do
+			tag=$((i+1))
+			menu+=( "$tag" "${names[i]}" )
+		done
+	
+		# --- START: MODIFIED BLOCK ---
+	
+		# Create a temporary file to store the choice from the menu
+		CHOICE_TMP=$(mktemp)
+	
+		dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
+			   --menu "Multiple controllers detected.\nSelect one to configure:" \
+			   0 0 0 "${menu[@]}" 2> "$CHOICE_TMP"
+	
+		# Capture the dialog exit status
+		exit_status=$?
+	
+		# Check the exit status
+		if [[ $exit_status -ne 0 ]]; then
+			# If status is not 0, the user pressed Cancel or ESC.
+			rm -f "$CHOICE_TMP" # Clean up temp file
+			sam_exittask         # Call the exit function
+			return               # Exit the current function
+		fi
+	
+		# If we are here, the user pressed OK. Proceed to get the choice.
+		choice=$(< "$CHOICE_TMP")
+		rm -f "$CHOICE_TMP" # Clean up temp file
+	
+		# --- END: MODIFIED BLOCK ---
+	
+		sel=$((choice-1))
+		# Add a check to ensure the selection is valid
+		if [[ -z "$choice" || $sel -lt 0 || $sel -ge ${#devices[@]} ]]; then
+			dialog --msgbox "Invalid selection." 0 0
+			sam_exittask
+			return
+		fi
+		device="${devices[sel]}"
+		name="${names[sel]}"
+	else
+		device="${devices[0]}"
+		name="${names[0]}"
+	fi
     # 5) Prompt & wait for START button
     dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
            --infobox "Using:\n  $name\n($device)\n\n⏳ Waiting for you to press the START button..." \
@@ -614,10 +640,10 @@ function menu_filters() {
 
     case "${choice,,}" in
       include)
-        menu_edit_include    # your existing include submenu
+        menu_cat_include    
         ;;
       exclude)
-        menu_edit_excltags   # your existing exclude submenu
+        menu_cat_exclude   
         ;;
       arcadehoriz)
         samini_mod arcadepathfilter _Horizontal
@@ -638,6 +664,158 @@ function menu_filters() {
     esac
   done
 }
+
+function menu_cat_include() {
+  reset_ini
+  local rc choice categ corelistfile corelistpath gamelistpathtmp tmpfile
+
+  corelistfile="${corelistfile}"        # assuming these globals are already set
+  corelistpath="${gamelistpath}"
+  gamelistpathtmp="${gamelistpathtmp}"
+  tmpfile="${tmpfile}"
+
+  # 1) Intro
+  dialog --clear --no-cancel --ascii-lines \
+         --backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
+         --msgbox $'Play games from only one category.\n\nUse Everdrive packs for this mode.\nMake sure you have built game lists first.' \
+         0 0
+
+  # 2) Pick a category
+  while dialog --clear --ascii-lines --no-tags \
+               --backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
+               --ok-label "Select" --cancel-label "Back" \
+               --menu "Only play games from the following categories:" 0 0 0 \
+                 usa         "Only USA Games" \
+                 japan       "Only Japanese Games" \
+                 europe      "Only European Games" \
+                 shoot-em    "Only Shoot ’Em Ups" \
+                 beat-em     "Only Beat ’Em Ups" \
+                 rpg         "Only Role-Playing Games" \
+                 pinball     "Only Pinball Games" \
+                 platformers "Only Platformers" \
+                 fighting    "Only Fighting Games" \
+                 trivia      "Only Trivia Games" \
+                 sports      "Only Sports Games" \
+                 racing      "Only Racing Games" \
+                 hacks       "Only Hacks" \
+                 kiosk       "Only Kiosk Mode Games" \
+                 translations "Only Translations" \
+                 homebrew    "Only Homebrew" \
+      2> "${sam_menu_file}"; do
+
+    rc=$? choice=$(<"${sam_menu_file}")
+    clear
+    (( rc != 0 )) && return
+
+    categ="$choice"
+    echo "Please wait… filtering lists for '$categ'"
+
+    # clear out the temp folder
+    rm -f "${gamelistpathtmp}"/*_gamelist.txt
+
+    # for each existing gamelist, grep the category
+    find "${gamelistpath}" -name "*_gamelist.txt" | while read -r list; do
+      listfile=$(basename "$list")
+      # directly grep+dedupe into the temp gamelist file
+      grep -i -- "$categ" "$list" | awk -F'/' '!seen[$NF]++' \
+        > "${gamelistpathtmp}/${listfile}"
+      # if there were no matches, remove the empty file so later logic skips it
+      [[ ! -s "${gamelistpathtmp}/${listfile}" ]] && rm -f "${gamelistpathtmp}/${listfile}"
+
+    done
+
+    # collect which cores survived
+    readarray -t corelist <<< \
+      "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" \
+             -exec basename {} \; | cut -d _ -f1)"
+    corelistmod=$(IFS=,; echo "${corelist[*]}")
+
+    # write out the corelist file for SAM
+    printf "%s\n" "${corelist[@]}" > "${corelistfile}"
+    sync "${corelistfile}"
+
+    dialog --clear --no-cancel --ascii-lines \
+           --backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
+           --msgbox "Now playing *only* '${categ^^}' games.\nReboot will reset to all games." \
+           0 0
+
+    exec "$0" start
+  done
+}
+
+function menu_cat_exclude() {
+  local rc choice categ excludetags
+
+  excludetags="${gamelistpath}/.excludetags"
+
+  # show current exclusions (once)
+  if [[ -f $excludetags ]]; then
+    dialog --clear --no-cancel --ascii-lines \
+           --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
+           --msgbox "Currently excluded tags:\n\n$(<"$excludetags")" \
+           0 0
+  else
+    dialog --clear --no-cancel --ascii-lines \
+           --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
+           --msgbox "Exclude certain categories (e.g. hacks, homebrew) so SAM never shows those games." \
+           0 0
+  fi
+
+  while dialog --clear --ascii-lines --no-tags \
+               --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
+               --ok-label "Select" --cancel-label "Done" \
+               --menu "Which tag would you like to toggle?" 0 0 0 \
+                 Beta         "Beta Games" \
+                 Hack         "Hacks" \
+                 Homebrew     "Homebrew" \
+                 Prototype    "Prototypes" \
+                 Unlicensed   "Unlicensed Games" \
+                 Translations "Translated Games" \
+                 USA          "USA Games" \
+                 Japan        "Japanese Games" \
+                 Europe       "European Games" \
+                 Reset        "Clear all exclusions" \
+        2> "${sam_menu_file}"; do
+
+    rc=$? choice=$(<"${sam_menu_file}")
+    clear
+    (( rc != 0 )) && return
+
+    # Clear all
+    if [[ "$choice" == Reset ]]; then
+      rm -f "$excludetags" "${gamelistpath}"/*_gamelist_exclude.txt
+      sync
+      dialog --msgbox "All exclusion filters removed." 0 0
+      continue
+    fi
+
+    # Toggle this tag in the excludetags file
+    if grep -qi "^${choice}$" "$excludetags" 2>/dev/null; then
+      # already excluded → remove it
+      grep -v -i "^${choice}$" "$excludetags" >"${excludetags}.tmp"
+      mv "${excludetags}.tmp" "$excludetags"
+      sync "$excludetags"
+      dialog --msgbox "'$choice' un‐excluded." 0 0
+    else
+      # add it
+      echo "$choice" >> "$excludetags"
+      sync "$excludetags"
+      dialog --msgbox "'$choice' will now be excluded." 0 0
+    fi
+
+    # rebuild per-core exclusion lists
+    while read -r core; do
+      # remove any old tmp file
+      rm -f "${gamelistpathtmp}/${core}_gamelist.txt"
+      # filter out excluded tags
+      grep -viv -f "$excludetags" "${gamelistpath}/${core}_gamelist.txt" \
+        > "${gamelistpath}/${core}_gamelist_exclude.txt"
+      sync "${gamelistpath}/${core}_gamelist_exclude.txt"
+    done < <(printf "%s\n" "${corelist[@]}")
+
+  done
+}
+
 
 #-------------------------------------------------------------------------------
 # ADD-ONS
