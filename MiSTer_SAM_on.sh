@@ -1098,81 +1098,59 @@ function update_samini() {
 # If no argument is passed to SAM, we shuffle the corelist in next_core
 
 
+
 function parse_cmd() {
-  # Build list of valid cores
-  VALID_CORES=("${!CORE_PRETTY[@]}")
+  # 1) No args ⇒ drop into your pre‐menu
+  (( $# == 0 )) && { sam_premenu; return; }
 
-  # 1) No args → pre-menu
-  if [ $# -eq 0 ]; then
-    sam_premenu
+  # 2) Lowercase the first argument
+  local first="${1,,}"
+
+  # 3) Single Core Mode
+  local core=""
+  if [[ -n ${CORE_PRETTY[$first]} ]]; then
+    echo $first > "${corelistfile}"
+    sam_start
     return
   fi
 
-  # 2) Separate any core name from other commands
-  local nextcore="" recognized_core="no" commands=()
-  for a in "$@"; do
-    local lower=${a,,}
-    if [[ " ${VALID_CORES[*]} " =~ " ${lower} " ]]; then
-      nextcore=$lower
-      recognized_core=yes
-    else
-      commands+=("$lower")
-    fi
-  done
+  case "$first" in
+	# ——— Playback controls ———
+	start|restart)           sam_start ;;
+	startmonitor|sm)         sam_start; sleep 1; sam_monitor ;;
+	skip|next)               echo "Skipping to next game…"; tmux send-keys -t SAM C-c ENTER ;;
+	stop|kill)               tmp_reset; parse_cmd juststop ;;
+	update)                  sam_update ;;
+	monitor)                 sam_monitor ;;
+	playcurrent)             playcurrentgame=yes; play_or_exit ;;
+	juststop)                kill_all_sams; playcurrentgame=no; play_or_exit ;;
 
-  # 3) Only a core was given → re-invoke with “start”
-  if [[ $recognized_core == yes && ${#commands[@]} -eq 0 ]]; then
-    echo -n -e "\033[A"   # (optional) remove that “selected!” echo
-    parse_cmd "$nextcore" start
-    return
-  fi
+	# ——— Enable / Disable / Ignore ———
+	enable)                  env_check enable; sam_enable ;;
+	disable)                 sam_cleanup; sam_disable ;;
+	ignore)                  ignoregame ;;
 
-  # 4) Dispatch the first non-core token
-  local cmd=${commands[0]}
+	# ——— Autoconfig & boot ———
+	default)                 sam_update autoconfig ;;
+	autoconfig|defaultb)     tmux kill-session -t MCP &>/dev/null; there_can_be_only_one; sam_update; mcp_start; sam_enable ;;
+	bootstart)               env_check bootstart; boot_sleep; mcp_start ;;	
+	loop_core)			 	 loop_core ;;
 
-
-  case "$cmd" in
-    # ——— Playback controls ———
-    start|restart)           sam_start ;;
-    startmonitor|sm)         sam_start; sleep 1; sam_monitor ;;
-    skip|next)               echo "Skipping to next game…"; tmux send-keys -t SAM C-c ENTER ;;
-    stop|kill)               tmp_reset; parse_cmd juststop ;;
-    update)                  sam_update ;;
-    monitor)                 sam_monitor ;;
-    playcurrent)             playcurrentgame=yes; play_or_exit ;;
-    juststop)                kill_all_sams; playcurrentgame=no; play_or_exit ;;
-
-    # ——— Enable / Disable / Ignore ———
-    enable)                  env_check enable; sam_enable ;;
-    disable)                 sam_cleanup; sam_disable ;;
-    ignore)                  ignoregame ;;
-
-    # ——— Autoconfig & boot ———
-    default)                 sam_update autoconfig ;;
-    autoconfig|defaultb)     tmux kill-session -t MCP &>/dev/null; there_can_be_only_one; sam_update; mcp_start; sam_enable ;;
-    bootstart)               env_check bootstart; boot_sleep; mcp_start ;;			 
-
-    # ——— Jump into the Main Menu ———
-    menu|back)               sam_menu ;;
-    
-    # ——— Help & SSH ———
-    help)                    sam_help ;;
-    sshconfig)               sam_sshconfig ;;
-
-    # ——— Fallback: sub-menu or core ———
+	# ——— Jump into the Main Menu ———
+	menu|back)               sam_menu ;;
+	
+	# ——— Help & SSH ———
+	help)                    sam_help ;;
+	sshconfig)               sam_sshconfig ;;
+	
     *)
-      if declare -F "$cmd" >/dev/null; then
-        "$cmd"           # any menu_… or sam_… function you’ve defined
-      elif [[ " ${VALID_CORES[*]} " =~ " ${cmd} " ]]; then
-        loop_core "$cmd"
-      else
-        echo "Unknown command: $cmd" >&2
-        sam_help
-        return 1
-      fi
-      ;;
+		echo "Unknown command: $cmd" >&2
+		sam_help
+		return 1
+		;;
   esac
 }
+
 
 
 
@@ -2699,7 +2677,8 @@ function load_core_amigacd32() {
 	
 	# Check if new roms got added
 	check_gamelistupdate ${nextcore} &
-	
+
+	filter_list ${nextcore}
 	pick_rom
 	
 	check_rom "${nextcore}"
@@ -2935,7 +2914,7 @@ function load_core_x68k() {
 	fi
 	if [ ! -s "${gamelistpathtmp}/${nextcore}_gamelist.txt" ]; then
 		cp "${gamelistpath}/${nextcore}_gamelist.txt" "${gamelistpathtmp}/${nextcore}_gamelist.txt" &>/dev/null
-		#filter_list x68k
+		filter_list x68k
 		if [ $? -eq 1 ]; then
 			next_core
 			return
@@ -3005,6 +2984,7 @@ function load_core_x68k() {
 # ========= SAM START AND STOP =========
 
 function sam_start() {
+	local core="$1"
 	env_check
 	# Terminate any other running SAM processes
 	there_can_be_only_one
@@ -3031,7 +3011,7 @@ function sam_start() {
          -x 180 -y 40 \
          -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
          -s SAM \
-         "${misterpath}/Scripts/MiSTer_SAM_on.sh" loop_core "$nextcore"
+         "${misterpath}/Scripts/MiSTer_SAM_on.sh loop_core"
     ) &
 
 }
@@ -3049,25 +3029,36 @@ function boot_sleep() { #Wait for rtc sync
 	done
 }
 
-function there_can_be_only_one() { # there_can_be_only_one
-	# If another attract process is running kill it
-	# This can happen if the script is started multiple times
-	
-	echo "Stopping other running instances of ${samprocess}..."
+function there_can_be_only_one() {
+  echo "Stopping other running instances of ${samprocess}…"
 
-	kill_1=$(ps -o pid,args | grep '[M]iSTer_SAM_init start' | awk '{print $1}' | head -1)
-	kill_2=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh loop_core' | awk '{print $1}')
-	kill_3=$(ps -o pid,args | grep '[M]iSTer_SAM_on.sh bootstart' | awk '{print $1}' | head -1)
+  # 1) kill any tmux “SAM” session
+  tmux kill-session -t SAM 2>/dev/null || true
 
-	[[ -n ${kill_1} ]] && kill -9 "${kill_1}" >/dev/null
-	for kill in ${kill_2}; do
-		[[ -n ${kill_2} ]] && kill -9 "${kill}" >/dev/null
-	done
-	[[ -n ${kill_3} ]] && kill -9 "${kill_3}" >/dev/null
+  # 2) patterns to match in the ps output
+  local patterns=(
+    "MiSTer_SAM_on.sh initial_start"
+    "MiSTer_SAM_on.sh loop_core"
+    "MiSTer_SAM_on.sh bootstart"
+    "MiSTer_SAM_init start"
+  )
 
-	sleep 1
+  # 3) for each pattern, find and kill all matching PIDs
+  local pat pid
+  for pat in "${patterns[@]}"; do
+    ps -o pid,args \
+      | grep "$pat" \
+      | grep -v grep \
+      | awk '{print $1}' \
+      | while read -r pid; do
+          [[ -n "$pid" ]] && kill -9 "$pid" 2>/dev/null
+        done
+  done
 
+  # give it a moment
+  sleep 1
 }
+
 
 function kill_all_sams() {
 	# Kill all SAM processes except for currently running
@@ -3893,14 +3884,39 @@ function filter_list() { # args ${nextcore}
 		awk 'FNR==NR{a[$0];next} !($0 in a)' "${gamelistpath}/${1}_gamelist_exclude.txt" "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}" 
 		mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
+	
+	
+	#Check for exclude list in Game List dir
 	if [ -f "${gamelistpath}/${1}_excludelist.txt" ]; then
-		echo "Found excludelist for core ${1}. Stripping out unwanted games now."
-		# Process file names without extensions from excludelist
-		awk "BEGIN { while (getline < \"${gamelistpath}/${1}_excludelist.txt\") { a[\$0] = 1 } close(\"${gamelistpath}/${1}_excludelist.txt\"); } \
-		{ gamelistfile = \$0; sub(/\\.[^.]*\$/, \"\", gamelistfile); sub(/^.*\\//, \"\", gamelistfile); if (!(gamelistfile in a)) print }" \
-		"${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
-		mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+	  echo "Found excludelist for core ${1}. Stripping out unwanted games now."
+	  awk -v EXCL="${gamelistpath}/${1}_excludelist.txt" '
+		BEGIN {
+		  # Read every line of the excludelist
+		  while (getline line < EXCL) {
+			raw[line] = 1
+			# also index by bare name (no path, no extension)
+			name = line
+			sub(/\.[^.]*$/, "", name)
+			sub(/^.*\//, "", name)
+			names[name] = 1
+		  }
+		  close(EXCL)
+		}
+		{
+		  file = $0
+		  # strip to bare name
+		  base = file
+		  sub(/\.[^.]*$/, "", base)
+		  sub(/^.*\//, "", base)
+		  # skip if full path matches, or bare name matches
+		  if (file in raw || base in names)
+			next
+		  print
+		}
+	  ' "${gamelistpathtmp}/${1}_gamelist.txt" > "${tmpfilefilter}"
+	  mv "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
 	fi
+
 
 	if [ "${rating}" != "no" ]; then
 		echo "Ratings Mode ${rating} active - Filtering Roms..."	
