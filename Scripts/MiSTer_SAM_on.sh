@@ -1515,7 +1515,7 @@ function corelist_update() {
 	if [ -s "${corelistfile}.single" ]; then
 		unset corelist
 		mapfile -t corelist < "${corelistfile}.single"
-		rm "${corelistfile}.single" "${corelistfile}"
+		rm "${corelistfile}.single" "${corelistfile}" > /dev/null
 		
 	elif [ -s "${corelistfile}" ]; then
 		unset corelist
@@ -2148,6 +2148,9 @@ function build_m82_list() {
 	printf "%s\n" nes > "${corelistfile}"
 	if [[ "$m82_muted" == "yes" ]]; then
 		mute="global"
+	else
+		mute="no"
+		only_unmute_if_needed
 	fi
 	gametimer="21"
 	listenjoy=no
