@@ -1443,11 +1443,11 @@ function reset_ini() { # args ${nextcore}
 	samini_mod corelist "$corelistall"
 	samini_mod arcadeorient horizontal
 	samini_mod bgm No
-    samini_mod samvideo No
-    samini_mod samvideo_tvc No
-    samini_mod rating No
-    samini_mod coreweight no
-    samini_mod m82 no
+	samini_mod samvideo No
+	samini_mod samvideo_tvc No
+	samini_mod rating No
+	samini_mod coreweight no
+	samini_mod m82 no
 	samini_mod sam_goat_list No
 	samini_mod disable_blacklist No
 	samini_mod dupe_mode normal
