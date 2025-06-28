@@ -345,45 +345,59 @@ function menu_corelist_preset() {
 }
 
 function menu_choose_cores() {
-  # Show warning only once
-  if [[ -z $shown_choose_cores ]]; then
-    dialog --clear --no-cancel --ascii-lines \
-           --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
-           --msgbox "Joystick isn’t supported for core toggling—use a keyboard (space to toggle).\n\nHit Back if you’re on a joystick." \
-           0 0
-    shown_choose_cores=1
-  fi
+    # Show warning only once
+    if [[ -z $shown_choose_cores ]]; then
+        dialog --clear --no-cancel --ascii-lines \
+            --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
+            --msgbox "Joystick isn’t supported for core toggling—use a keyboard (space to toggle).\n\nHit Back if you’re on a joystick." \
+            0 0
+        shown_choose_cores=1
+    fi
 
-  # Build the checklist entries once
-  local opts=()
-  for core in "${corelistall[@]}"; do
-    local state=OFF
-    [[ " ${corelist[*]} " == *" $core "* ]] && state=ON
-    opts+=( "$core" "Show ${CORE_PRETTY[$core]} games" "$state" )
-  done
+    # Loop until the user hits “Back” (or cancels)
+    while true; do
+        # --- FIX: Rebuild the options array on EVERY loop iteration ---
+        # This ensures the ON/OFF state is always current.
+        local opts=()
+        for core in "${corelistall[@]}"; do
+            local state=OFF
+            # Check if the core exists in our current corelist array
+            [[ " ${corelist[*]} " == *" $core "* ]] && state=ON
+            opts+=( "$core" "Show ${CORE_PRETTY[$core]} games" "$state" )
+        done
 
-  # Loop until the user hits “Back”
-  while dialog --clear --ascii-lines --no-tags \
-                --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
-                --ok-label "Save" --cancel-label "Back" \
-                --separate-output --checklist "Toggle cores on/off:" 0 0 0 \
-                "${opts[@]}" 2>"${sam_menu_file}"; do
+        # Show the dialog. If the user hits "Back" (Cancel), break the loop.
+        if ! dialog --clear --ascii-lines --no-tags \
+            --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
+            --ok-label "Save" --cancel-label "Back" \
+            --separate-output --checklist "Toggle cores on/off:" 0 0 0 \
+            "${opts[@]}" 2>"${sam_menu_file}"; then
+            break # Exit the while loop
+        fi
 
-    clear
-    local choices=( $(<"${sam_menu_file}") )
-    # If nothing selected, just loop again
-    (( ${#choices[@]} == 0 )) && continue
+        # --- Process the saved changes ---
+        # Read the user's choices into a new array
+        local choices
+        mapfile -t choices < "${sam_menu_file}"
+        
+        # If nothing was selected, we don't need to save or show a message.
+        # The loop will simply redraw the menu.
+        (( ${#choices[@]} == 0 )) && continue
 
-    # Apply the new corelist
-    local corelistmod
-    corelistmod=$(IFS=,; echo "${choices[*]}")
-    samini_mod corelist "$corelistmod"
+        # Apply the new corelist to the INI file
+        local corelistmod
+        corelistmod=$(IFS=,; echo "${choices[*]}")
+        samini_mod corelist "$corelistmod"
+        
+        # --- FIX: Update the in-memory corelist array ---
+        # This is crucial so the *next* loop iteration builds the menu correctly.
+        corelist=( "${choices[@]}" )
 
-    dialog --clear --ascii-lines --no-cancel \
-           --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
-           --msgbox "Changes saved! Corelist is now: $corelistmod" \
-           0 0
-  done
+        dialog --clear --ascii-lines --no-cancel \
+            --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
+            --msgbox "Changes saved! Your new list has ${#corelist[@]} cores." \
+            0 0
+    done
 }
 
 function menu_singlecore() {
