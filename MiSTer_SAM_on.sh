@@ -1291,128 +1291,119 @@ function load_menu_if_needed() {
 # ======== SAM OPERATIONAL FUNCTIONS ========
 
 
-function loop_core() { # loop_core (core)
+function loop_core() { # loop_core (optional_core_name)
 	echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
 	# Reset game log for this session
 	echo "" >/tmp/SAM_Games.log
-	samdebug "corelist: ${corelist[*]}"
+	samdebug "Initial corelist: ${corelist[*]}"
+
+	# This is the main script loop that runs forever.
 	while :; do
-
-		while [ ${counter} -gt 0 ]; do
-			trap 'counter=0' INT #Break out of loop for skip & next command
-			
-			#Only show game counter when samvideo is not active
-			if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
-				if [ -f "$sv_gametimer_file" ]; then
-					counter=$(cat "$sv_gametimer_file")	
-					rm "$sv_gametimer_file" 2>/dev/null
-				fi
-			else
-				echo -ne " Next game in ${counter}...\033[0K\r"
-			fi
-			
-
-
-			sleep 1
-			((counter--))
-
-			if [ -s "$mouse_activity_file" ]; then
-				if [ "${listenmouse}" == "yes" ]; then
-					echo "Mouse activity detected!"
-						truncate -s 0 "$mouse_activity_file"
-						play_or_exit &
-				else
-					#echo " Mouse activity ignored!"
-					truncate -s 0 "$mouse_activity_file"
-				fi
-			fi
-
-			if [ -s "$key_activity_file" ]; then
-				if [ "${listenkeyboard}" == "yes" ]; then
-					echo "Keyboard activity detected!"
-						truncate -s 0 "$mouse_activity_file"
-						play_or_exit &
-
-				else
-					echo " Keyboard activity ignored!"
-					truncate -s 0 "$key_activity_file"
-				fi
-			fi
-
-			if [ -s "$joy_activity_file" ]; then
-				
-				if [ "${listenjoy}" == "yes" ]; then
-					echo "Controller activity detected"
-					if [[ "$(cat "$joy_activity_file")" == "Start" ]]; then
-						#Play game
-						samdebug "Start button pushed. Exiting SAM."
-						playcurrentgame="yes"
-						truncate -s 0 "$joy_activity_file"
-						play_or_exit &
-					elif [[ "$(cat "$joy_activity_file")" == "Next" ]]; then
-						echo "Starting next Game"
-						if [[ "$ignore_when_skip" == "yes" ]]; then
-							ignoregame
-						fi
-						counter=0
-						truncate -s 0 "$joy_activity_file"
-					#Support zaparoo	
-					elif [[ "$(cat "$joy_activity_file")" == "zaparoo" ]]; then
-						echo "Zaparoo starting. SAM exiting"
-						truncate -s 0 "$joy_activity_file"
-						# SAM will restart core if mute=core which is set by bgm
-						mute="yes"
-						playcurrentgame="yes"
-						play_or_exit &
-					else
-						truncate -s 0 "$joy_activity_file"
-						play_or_exit &
-					fi
-				else # ignore gamepad input
-					#special case for m82
-					if [ "$m82" == "yes" ]; then
-						romname="${romname,,}"
-						local m82bios_active="$romname"
-						if [[ "$(cat "$joy_activity_file")" == "Next" ]]; then
-							#Next game is M82 bios, so skip
-							if [[ "$romname" != *"m82"* ]]; then 
-								samdebug "romname: $romname"
-								samdebug "Skipping M82 and jump to next game"
-								sed -i '1d' "$gamelistpathtmp"/nes_gamelist.txt
-								sync
-							else
-								echo "Starting next Game"
-							fi
-							update_done=1
-							counter=0
-							truncate -s 0 "$joy_activity_file"
-						fi
-						#Next game is not M82 bios. Let's play some NES!
-						if [[ "$romname" != *"m82"* ]] && [ "$update_done" -eq 0 ]; then 
-							# Unmute game
-							if [[ "$m82_muted" == "yes" ]]; then
-								only_unmute_if_needed
-								#echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
-							fi
-							counter=$m82_game_timer
-							update_done=1
-							truncate -s 0 "$joy_activity_file"
-						fi
-
-					fi
-					#echo " Controller activity ignored!"
-					truncate -s 0 "$joy_activity_file"			
-				fi
-			fi
-
-		done
-
-		counter=${gametimer}
-		next_core "${1}"
-
+		# ----------------------------------------------------
+		# Call next_core to attempt a game launch.
+		# We pass along any argument that might have been given to loop_core.
+		next_core "${1-}" 
+		
+		# Check the exit code of the next_core function.
+		if [ $? -eq 0 ]; then
+			# SUCCESS (Exit code 0): A game was launched successfully.
+			# Now, we start the countdown timer before the next game.
+			run_countdown_timer
+		else
+			# FAILURE (Exit code non-zero): next_core failed, likely blacklisting a core.
+			# We immediately loop again to try the next core without waiting.
+			echo "Core launch failed. Trying the next available core immediately."
+			# The 'continue' command jumps back to the top of the 'while :;' loop.
+			continue
+		fi
+		# ----------------------------------------------------
 	done
-	trap - INT
-	sleep 1
+}
+
+function run_countdown_timer() {
+    local counter=${gametimer}
+    
+    # Set a local trap to handle Ctrl+C during the countdown, allowing a graceful skip.
+    trap 'echo; return' INT
+
+    while [ ${counter} -gt 0 ]; do
+        # Only show game counter when samvideo is not active
+        if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
+            if [ -f "$sv_gametimer_file" ]; then
+                counter=$(cat "$sv_gametimer_file")	
+                rm "$sv_gametimer_file" 2>/dev/null
+            fi
+        else
+            echo -ne " Next game in ${counter}...\033[0K\r"
+        fi
+
+        sleep 1
+        ((counter--))
+        
+        # --- Activity Checks ---
+        # NOTE: This section could also be refactored into a helper function
+        # to make the countdown loop even cleaner.
+        if [ -s "$mouse_activity_file" ] && [ "${listenmouse}" == "yes" ]; then
+            echo "Mouse activity detected!"
+            truncate -s 0 "$mouse_activity_file"
+            play_or_exit &
+            return # Exit the countdown
+        fi
+
+        if [ -s "$key_activity_file" ] && [ "${listenkeyboard}" == "yes" ]; then
+            echo "Keyboard activity detected!"
+            truncate -s 0 "$key_activity_file"
+            play_or_exit &
+            return # Exit the countdown
+        fi
+
+        if [ -s "$joy_activity_file" ] && [ "${listenjoy}" == "yes" ]; then
+            handle_joy_activity # Call a new helper for joystick logic
+            if [ $? -eq 1 ]; then # Check if handle_joy_activity wants to break the loop
+                return
+            fi
+        fi
+    done
+
+    # Restore the default INT trap once the countdown is over.
+    trap - INT
+}
+
+# This new helper function cleans up the joystick logic.
+function handle_joy_activity() {
+    local joy_action
+    joy_action=$(cat "$joy_activity_file")
+    truncate -s 0 "$joy_activity_file"
+
+    case "${joy_action}" in
+        "Start")
+            samdebug "Start button pushed. Exiting SAM."
+            playcurrentgame="yes"
+            play_or_exit &
+            return 1 # Signal to exit countdown
+            ;;
+        "Next")
+            echo "Starting next Game"
+            if [[ "$ignore_when_skip" == "yes" ]]; then
+                ignoregame
+            fi
+            # Returning 1 will break the countdown loop and let the main loop call next_core
+            return 1
+            ;;
+        "zaparoo")
+            echo "Zaparoo starting. SAM exiting"
+            mute="yes"
+            playcurrentgame="yes"
+            play_or_exit &
+            return 1 # Signal to exit countdown
+            ;;
+        *)
+            # Default case for other joy activity
+            play_or_exit &
+            return 1 # Signal to exit countdown
+            ;;
+    esac
+    return 0
 }
 
 # Pick a random core
@@ -1450,21 +1441,45 @@ function next_core() { # next_core (core)
 		
 	check_list "${nextcore}"
 	if [ $? -ne 0 ]; then 
-		next_core
 		samdebug "check_list function returned an error."
-		return
+		return 1
 	fi
 	
 	pick_rom
 	
-    # if the file was bad, check_rom will have nuked & rebuilt your list
-    if ! check_rom "${nextcore}"; then
-        # now pick a brand-new ROM out of the rebuilt list
-        pick_rom
-        # if *this* still fails, bail out
-        check_rom "${nextcore}" || return
+    declare -g romloadfails=0
+    local rom_is_valid=false
+
+    while [ ${romloadfails} -lt ${coreretries} ]; do
+        # Call check_rom. It returns 0 on success.
+        if check_rom "${nextcore}"; then
+            # The ROM is valid! Mark as successful and break out of the loop.
+            rom_is_valid=true
+            break
+        fi
+
+        # If we are here, the ROM was invalid. Increment the failure counter.
+        romloadfails=$((romloadfails + 1))
+
+        # If we still have retries left, pick a new ROM to test on the next loop iteration.
+        # The check_rom function may have rebuilt the list, so we need to pick again.
+        if [ ${romloadfails} -lt ${coreretries} ]; then
+            samdebug "ROM check failed. Picking a new ROM to try again (${romloadfails}/${coreretries})..."
+            pick_rom
+        fi
+    done
+
+    # After the loop, check if we ever found a valid ROM.
+    if [ "$rom_is_valid" = "false" ]; then
+        # All retries have been exhausted. No valid ROM was found.
+        # Blacklist the core and bail out of this launch attempt.
+        echo "ERROR: Failed ${romloadfails} times. No valid game found for core: ${nextcore}"
+        echo "ERROR: Core ${nextcore} is blacklisted!"
+        delete_from_corelist "${nextcore}"
+        echo "List of cores is now: ${corelist[*]}"
+        return 1
     fi
-	
+    
 	# Check if new roms got added
 	check_gamelistupdate ${nextcore} &
 	
@@ -1744,7 +1759,6 @@ function pick_weighted_random() {
 function special_core_processor() {
     # This function checks prerequisites for special cores (Amiga, ao486, etc.)
     # and then calls the unified load_core function.
-    # It returns 2 if a special core was handled, preserving original script flow.
 
     case "${nextcore}" in
         "arcade"|"stv")
@@ -1849,7 +1863,7 @@ function pick_rom() {
 
 function check_rom(){
 	if [ -z "${rompath}" ]; then
-		core_error_rom "${nextcore}" "${rompath}"
+    	echo "ERROR: rompath is empty for core '${nextcore}'. Cannot check ROM." >&2
 		return 1
 	fi
 	
@@ -1876,28 +1890,19 @@ function check_rom(){
 	romname=$(basename "${rompath}")
 
 	# Make sure we have a valid extension as well
-	extension="${rompath##*.}"
-	extlist="${CORE_EXT[${nextcore}]//,/ }" 
+	local extension="${rompath##*.}"
+	local extlist="${CORE_EXT[${nextcore}]//,/ }" 
 				
 	if [[ "$extlist" != *"$extension"* ]]; then
-		create_gamelist "${nextcore}" &
-		if [ ${romloadfails} -lt ${coreretries} ]; then
-			declare -g romloadfails=$((romloadfails + 1))
-			samdebug "Wrong extension found: '${extension^^}' for core: ${nextcore} rom: ${rompath}"
-			samdebug "Picking new rom.."
-			next_core "${nextcore}"
-		else
-			echo "ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-			echo "ERROR: Core ${nextcore} is blacklisted!"
-			delete_from_corelist "${nextcore}"
-			echo "List of cores is now: ${corelist[*]}"
-			declare -g romloadfails=0
-			# Load a different core
-			next_core	
-		fi
+		samdebug "Wrong extension found: '${extension^^}' for core: ${nextcore} rom: ${rompath}"
+		# The function now simply reports failure. It does NOT call next_core.
+		# The calling function will be responsible for retrying or skipping the core.
+		create_gamelist "${nextcore}" & # Rebuilding the list in the background is ok
 		return 1
 	fi
-
+	
+	# If all checks pass, return 0 for success
+	return 0
 }
 
 function delete_played_game() {
@@ -1923,7 +1928,7 @@ function delete_played_game() {
 # ──────────────────────────────────────────────────────────────────────────────
 
 #Build Gamelists for Arcade and ST-V
-function build_mralist() {
+function build_mra_list() {
     local core_type=${1}
     local mra_path
     local list_file="${gamelistpath}/${core_type}_gamelist.txt"
@@ -2025,7 +2030,7 @@ function build_amiga_list() {
 }
 
 
-# Romfinder
+# General Romfinder
 function create_gamelist() {
     local core="$1"
     local mode="$2"   # empty = initial build, non-empty = comp build
@@ -2355,8 +2360,8 @@ function build_m82_list() {
 # ──────────────────────────────────────────────────────────────────────────────
 # Core Loader
 # ──────────────────────────────────────────────────────────────────────────────
-# Helper function to consolidate the logic for picking a random game from a list.
-# It handles list building, filtering, cleaning, random selection, and the 'norepeat' feature.
+
+# This handles list building, filtering, cleaning, random selection, and the 'norepeat' feature.
 function _pick_random_game() {
     local core_type=${1}
     local list_path="${gamelistpathtmp}/${core_type}_gamelist.txt"
@@ -2364,7 +2369,7 @@ function _pick_random_game() {
 
     # Determine which list-builder function to use based on the core type
     case "${core_type}" in
-        "arcade"|"stv") build_func="build_mralist" ;;
+        "arcade"|"stv") build_func="build_mra_list" ;;
         "ao486"|"x68k") build_func="build_mgl_list" ;;
         "amiga")         build_func="build_amiga_list" ;;
         *) samdebug "Error: _pick_random_game called with invalid core ${core_type}"; return 1 ;;
@@ -2506,7 +2511,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             
             launch_cmd="load_core /tmp/SAM_Game.mgl"
             
-            if [[ "${core}" == "fds" ]] || [[ "${core}" == "megacd" ]]; then skipmessage & fi
+            skipmessage "${core}" &
             ;;
     esac
 
@@ -3023,14 +3028,22 @@ function creategl() {
 }
 
 function skipmessage() {
-	if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${nextcore}]}" == "yes" ]; then
-		sleep "$skiptime"
-		samdebug "Button push sent to skip BIOS"
-		"${mrsampath}/mbc" raw_seq :31
-		sleep 1
-		"${mrsampath}/mbc" raw_seq :31
-		
-	fi
+    local core=${1}
+
+    # Exit immediately if the core argument is missing, for safety.
+    if [ -z "${core}" ]; then
+        return
+    fi
+
+    # Check the global 'skipmessage' setting AND the core-specific setting from the CORE_SKIP array.
+    if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
+        # If both are 'yes', wait for the configured time and send the button presses.
+        sleep "$skiptime"
+        samdebug "Button push sent for '${core}' to skip BIOS"
+        "${mrsampath}/mbc" raw_seq :31
+        sleep 1
+        "${mrsampath}/mbc" raw_seq :31
+    fi
 }
 
 function skipmessage_ao486() {
@@ -3103,22 +3116,6 @@ function reset_core_gl() { # args ${nextcore}
 }
 
 
-function core_error_rom() { # core_error core /path/to/ROM
-	if [ ${romloadfails} -lt ${coreretries} ]; then
-		declare -g romloadfails=$((romloadfails + 1))
-		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-		echo " Trying to find another rom..."
-		next_core "${1}"
-	else
-		echo " ERROR: Failed ${romloadfails} times. No valid game found for core: ${1} rom: ${2}"
-		echo " ERROR: Core ${1} is blacklisted!"
-		delete_from_corelist "${1}"
-		echo " List of cores is now: ${corelist[*]}"
-		declare -g romloadfails=0
-		# Load a different core
-		next_core
-	fi
-}
 
 function core_error_checklist() { # core_error core /path/to/ROM
 		delete_from_corelist "${1}"
@@ -3194,34 +3191,34 @@ function write_byte() {
 # Sets the “mute” bit in Volume.dat without altering your current volume level.
 # Then issues a live “volume mute” command to the running MiSTer core.
 function global_mute() {
-  local f="${configpath}/Volume.dat"
-  local cur m hex
-
-  # read the single-byte value, e.g. "05"
-  cur=$(xxd -p -c1 "$f")
-
-  # OR in the mute-flag (0x10)
-  m=$(( 0x$cur | 0x10 ))
-
-  # format back to two-digit hex, then write that single byte
-  hex=$(printf '%02x' "$m")
-  write_byte "$f" "$hex"
-
-  # immediately mute the live core
-  echo "volume mute" > /dev/MiSTer_cmd
-  samdebug "Global mute → Volume.dat=0x${hex}"
+	local f="${configpath}/Volume.dat"
+	local cur m hex
+	
+	# read the single-byte value, e.g. "05"
+	cur=$(xxd -p -c1 "$f")
+	
+	# OR in the mute-flag (0x10)
+	m=$(( 0x$cur | 0x10 ))
+	
+	# format back to two-digit hex, then write that single byte
+	hex=$(printf '%02x' "$m")
+	write_byte "$f" "$hex"
+	
+	# immediately mute the live core
+	echo "volume mute" > /dev/MiSTer_cmd
+	samdebug "Global mute → Volume.dat=0x${hex}"
 }
 
 function global_unmute() {
-  local f="${configpath}/Volume.dat"
-  local cur hex u
-  cur=$(xxd -p -c1 "$f")
-  u=$((0x$cur & 0x0F))
-  hex=$(printf '%02x' "$u")
-  write_byte "$f" "$hex"
-  # sent unmute for interactive unmute
-  echo "volume unmute" > /dev/MiSTer_cmd
-  echo "Restored Volume.dat to 0x$hex"
+	local f="${configpath}/Volume.dat"
+	local cur hex u
+	cur=$(xxd -p -c1 "$f")
+	u=$((0x$cur & 0x0F))
+	hex=$(printf '%02x' "$u")
+	write_byte "$f" "$hex"
+	# sent unmute for interactive unmute
+	echo "volume unmute" > /dev/MiSTer_cmd
+	echo "Restored Volume.dat to 0x$hex"
 }
 
 
@@ -3859,8 +3856,6 @@ inside_menu && /=/ { print }
         echo "MiSTer.ini updated successfully."
     fi
 }
-
-
 
 function dl_video() {
     rm -f "$tmpvideo"
