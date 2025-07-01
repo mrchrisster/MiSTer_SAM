@@ -1535,7 +1535,7 @@ function corelist_update() {
 	if [ -s "${corelistfile}.single" ]; then
 		unset corelist
 		mapfile -t corelist < "${corelistfile}.single"
-		rm "${corelistfile}.single" "${corelistfile}" > /dev/null
+		rm "${corelistfile}.single" "${corelistfile}" > /dev/null 2>&1
 		
 	elif [ -s "${corelistfile}" ]; then
 		unset corelist
