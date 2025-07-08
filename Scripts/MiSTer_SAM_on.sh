@@ -2267,17 +2267,6 @@ function create_all_gamelists() {
             fi
         done
 
-        # --- Step 3: Update the temporary core list for the current session ---
-        if [ "$core_has_games" = "true" ]; then
-            # Overwrite the temporary list with our new, validated list of launchable cores.
-            corelisttmp=( "${launchable_cores[@]}" )
-            samdebug "Session core list updated. Launchable cores: ${corelisttmp[*]}"
-        else
-            echo "FATAL ERROR: No games found for ANY core. Super Attract Mode cannot start." >&2
-            # In this fatal case, we might want to prevent the main loop from running,
-            # but for now, we'll leave corelisttmp empty.
-            corelisttmp=()
-        fi
     ) &
 }
 
