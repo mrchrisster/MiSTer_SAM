@@ -1443,10 +1443,24 @@ function next_core() { # next_core (core)
 	fi	
 	
 	special_core_processor
-	if [ $? -ne 0 ]; then return; fi
-		
+	local scp_status=$?
+
+	case $scp_status in
+		1) # Special core was loaded successfully. We are done.
+			samdebug "Loading complete of special core $nextcore"
+			return 0
+			;;
+		2) # Special core prerequisite failed. We need to pick a new core and try again.
+			samdebug "Loading failed of special core $nextcore"
+			next_core
+			return $? # Pass the exit code from the new call up the chain
+			;;
+	esac
+	# If we get here, special_core_processor returned 0 → NOT handled, so we continue.
+	
+	
 	check_list "${nextcore}"
-	if [ $? -ne 0 ]; then 
+	if [ $? -ne 0 ]; then
 		samdebug "check_list function returned an error."
 		return 1
 	fi
@@ -1760,78 +1774,118 @@ function pick_weighted_random() {
 }
 
 # Process special cores like ao486, amiga, arcade or X68000 
-
 function special_core_processor() {
-    # This function checks prerequisites for special cores (Amiga, ao486, etc.)
-    # and then calls the unified load_core function.
+    # This function checks prerequisites for special cores.
+    # Returns:
+    # 0 - Not a special core. The caller should continue standard processing.
+    # 1 - Special core was loaded successfully. The caller's job is done.
+    # 2 - Special core prerequisite failed. The caller should handle the error (e.g., retry).
 
     case "${nextcore}" in
         "arcade"|"stv")
-            # For arcade cores, set the config path and call the loader.
             if [[ -n "$cfgarcade_configpath" ]]; then
                 configpath="$cfgarcade_configpath"
             fi
             load_core "${nextcore}"
-            return 2
+            return 1 
             ;;
 
         "amiga")
-            # Check for MegaAGS or AmigaVision files before attempting to load.
+            # This check is fast, so we can leave it as is.
             if [ -f "${amigapath}/MegaAGS.hdf" ] || [ -f "${amigapath}/AmigaVision.hdf" ]; then
                 load_core "amiga"
+                return 1 
             else
                 echo "ERROR - MegaAGS/AmigaVision pack not found in Amiga folder. Skipping core..."
                 delete_from_corelist amiga
-                next_core
+                return 2 
             fi
-            return 2
             ;;
 
         "amigacd32")
-            # Check that the core's MGL file exists.
+            # This check is also fast.
             if [ -f "/media/fat/_Console/Amiga CD32.mgl" ]; then
                 load_core "amigacd32"
+                return 1
             else
                 echo "ERROR - /media/fat/_Console/Amiga CD32.mgl not found. Skipping core..."
-                delete_from_corelist amigacd32 # Corrected from 'amiga' in original
-                next_core
+                delete_from_corelist amigacd32
+                return 2
             fi
-            return 2
             ;;
 
-        "ao486"|"x68k")
-            # Generic handler for cores that load random MGLs from specific folders.
-            local dir1 dir2 collection_name
-            if [ "${nextcore}" = "ao486" ]; then
-                dir1="/media/fat/_DOS Games"
-                dir2="/media/fat/_Computer/_DOS Games"
-                collection_name="0Mhz collection"
-            else # x68k
-                dir1="/media/fat/_X68000 Games"
-                dir2="/media/fat/_Computer/_X68000 Games"
-                collection_name="neon68k collection"
+		"ao486")
+            if [[ -z "$mgl_check_status_ao486" ]]; then
+                samdebug "Performing one-time setup for ao486..."
+                
+                # Check the gamelist for invalid entries once.
+                if [[ -z "$mgl_gamelist_check_status_ao486" && -f "${gamelistpath}/ao486_gamelist.txt" ]]; then
+                    local invalid_lines=$(grep -v -c "\.mgl$" "${gamelistpath}/ao486_gamelist.txt")
+                    if [ "$invalid_lines" -gt 0 ]; then
+                        samdebug "Invalid entries found in ao486_gamelist.txt. Rebuilding list..."
+                        build_mgl_list ao486
+                    fi
+                    # Mark this specific check as done.
+                    mgl_gamelist_check_status_ao486="done"
+                fi
+
+                # 2. Count the MGL files.
+                local dir1="/media/fat/_DOS Games"
+                local dir2="/media/fat/_Computer/_DOS Games"
+                local count1=$(find "$dir1" -type f -iname '*.mgl' 2>/dev/null | wc -l)
+                local count2=$(find "$dir2" -type f -iname '*.mgl' 2>/dev/null | wc -l)
+
+                if [ "$count1" -gt 0 ] || [ "$count2" -gt 0 ]; then
+                    mgl_check_status_ao486="pass"
+                else
+                    mgl_check_status_ao486="fail"
+                    echo "ERROR - No ao486 MGL files found in:"
+                    echo "  $dir1"
+                    echo "  $dir2"
+                    echo "Please install the 0Mhz collection."
+                fi
             fi
 
-            # Count MGLs in the target directories.
-            local count1=$(find "$dir1" -type f -iname '*.mgl' 2>/dev/null | wc -l)
-            local count2=$(find "$dir2" -type f -iname '*.mgl' 2>/dev/null | wc -l)
-
-            if [ "$count1" -gt 0 ] || [ "$count2" -gt 0 ]; then
-                load_core "${nextcore}"
+            # 3. Act based on the stored status.
+            if [[ "$mgl_check_status_ao486" == "pass" ]]; then
+                load_core "ao486"
+                return 1
             else
-                echo "ERROR - No ${nextcore} MGL files found in:"
-                echo "  $dir1"
-                echo "  $dir2"
-                echo "Please install the ${collection_name}."
-                delete_from_corelist "${nextcore}"
-                next_core
+                delete_from_corelist "ao486"
+                return 2
             fi
-            return 2
+            ;;
+
+        "x68k")
+            if [[ -z "$mgl_check_status_x68k" ]]; then
+                samdebug "Performing one-time check for x68k MGL files..."
+                local dir1="/media/fat/_X68000 Games"
+                local dir2="/media/fat/_Computer/_X68000 Games"
+                local count1=$(find "$dir1" -type f -iname '*.mgl' 2>/dev/null | wc -l)
+                local count2=$(find "$dir2" -type f -iname '*.mgl' 2>/dev/null | wc -l)
+
+                if [ "$count1" -gt 0 ] || [ "$count2" -gt 0 ]; then
+                    mgl_check_status_x68k="pass"
+                else
+                    mgl_check_status_x68k="fail"
+                    echo "ERROR - No x68k MGL files found in:"
+                    echo "  $dir1"
+                    echo "  $dir2"
+                    echo "Please install the neon68k collection."
+                fi
+            fi
+
+            if [[ "$mgl_check_status_x68k" == "pass" ]]; then
+                load_core "x68k"
+                return 1
+            else
+                delete_from_corelist "x68k"
+                return 2
+            fi
             ;;
     esac
 
-    # If the core is not a special one, the function simply exits,
-    # and the main script continues to the standard core loader.
+    # If the core is not a special one, return 0.
     return 0
 }
 
@@ -2359,7 +2413,7 @@ function build_m82_list() {
 # ──────────────────────────────────────────────────────────────────────────────
 
 # This handles list building, filtering, cleaning, random selection, and the 'norepeat' feature.
-function _pick_random_game() {
+function pick_random_game() {
     local core_type=${1}
     local master_list="${gamelistpath}/${core_type}_gamelist.txt"
     local session_list="${gamelistpathtmp}/${core_type}_gamelist.txt"
@@ -2369,8 +2423,8 @@ function _pick_random_game() {
     case "${core_type}" in
         "arcade"|"stv") build_func="build_mra_list" ;;
         "ao486"|"x68k") build_func="build_mgl_list" ;;
-        "amiga")         build_func="build_amiga_list" ;;
-        *) samdebug "Error: _pick_random_game called with invalid core ${core_type}"; return 1 ;;
+        "amiga")        build_func="build_amiga_list" ;;
+        *) samdebug "Error: pick_random_game called with invalid core ${core_type}"; return 1 ;;
     esac
 
 
@@ -2387,21 +2441,19 @@ function _pick_random_game() {
         return 1 # Signal failure
     fi
     
-    # 3. Create our temporary "session" list by copying the master.
-    #    This ensures we start with a full, unfiltered list for this session.
-    cp -f "${master_list}" "${session_list}"
-
-    # 4. Apply all filters (orientation, excludes, ratings, etc.) to the session list.
-    filter_list "${core_type}"
-    
-    # If filtering resulted in an empty list, we must exit.
-    if [ ! -s "${session_list}" ]; then
-        samdebug "Warning: Filters for '${core_type}' produced an empty list. No games to play." >&2
-        return 1
-    fi
-
-    # Remove any blank lines from the session list
-    sed -i '/^$/d' "${session_list}"
+    # 3. Apply filter
+	if [ ! -s "${session_list}" ]; then
+    	cp -f "${master_list}" "${session_list}"
+	
+		filter_list "${core_type}"
+		# If filtering resulted in an empty list, we must exit.
+		if [ ! -s "${session_list}" ]; then
+			samdebug "Warning: Filters for '${core_type}' produced an empty list. No games to play." >&2
+			return 1
+		fi	
+	    # Remove any blank lines from the session list
+		sed -i '/^$/d' "${session_list}"
+	fi
 
     # Pick a random line from the now-filtered session list
     local chosen_path
@@ -2441,7 +2493,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
     case "${core}" in
         "arcade"|"stv")
             ### MRA Core Loader (Arcade, ST-V) ###
-            rompath=$(_pick_random_game "${core}")
+            rompath=$(pick_random_game "${core}")
             # Sanitize the variable to remove any hidden control characters
             rompath=$(echo "$rompath" | tr -d '[:cntrl:]')
             
@@ -2458,7 +2510,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
         "ao486"|"x68k")
             ### Random MGL Loader (ao486, x68k) ###
-            rompath=$(_pick_random_game "${core}")
+            rompath=$(pick_random_game "${core}")
             romname=$(basename "${rompath}")
             gamename="$(echo "${romname%.*}" | tr '_' ' ')"
             tty_corename="${core}"
@@ -2478,7 +2530,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             fi
 
             local amiga_title_raw
-            amiga_title_raw=$(_pick_random_game "amiga")
+            amiga_title_raw=$(pick_random_game "amiga")
 
             if [ -z "${amiga_title_raw}" ]; then
                 echo "ERROR: Failed to pick an Amiga game from the list." >&2
