@@ -739,20 +739,26 @@ function menu_cat_include() {
            0 0
 
     exec "$0" start
-  done
+  done 
 }
 
+
 function menu_cat_exclude() {
-  local rc choice categ excludetags
+  local rc choice
+  local excludetags="$gamelistpath/.excludetags"
+  local failures  # will accumulate failed cores
 
-  excludetags="${gamelistpath}/.excludetags"
+  # 1) Ensure the directory & tags file exist
+  mkdir -p "$gamelistpath" \
+    || { echo "ERROR: cannot create '$gamelistpath'" >&2; return 1; }
+  touch "$excludetags" \
+    || { echo "ERROR: cannot touch '$excludetags'" >&2; return 1; }
 
-  # show current exclusions (once)
-  if [[ -f $excludetags ]]; then
+  # 2) Show current exclusions
+  if [[ -s $excludetags ]]; then
     dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
-           --msgbox "Currently excluded tags:\n\n$(<"$excludetags")" \
-           0 0
+           --msgbox "Currently excluded tags:\n\n$(<"$excludetags")" 0 0
   else
     dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
@@ -760,6 +766,7 @@ function menu_cat_exclude() {
            0 0
   fi
 
+  # 3) Main toggle loop
   while dialog --clear --ascii-lines --no-tags \
                --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
                --ok-label "Select" --cancel-label "Done" \
@@ -780,40 +787,53 @@ function menu_cat_exclude() {
     clear
     (( rc != 0 )) && return
 
-    # Clear all
+    # Reset
     if [[ "$choice" == Reset ]]; then
       rm -f "$excludetags" "${gamelistpath}"/*_gamelist_exclude.txt
       sync
       dialog --msgbox "All exclusion filters removed." 0 0
+      touch "$excludetags"
       continue
     fi
 
-    # Toggle this tag in the excludetags file
-    if grep -qi "^${choice}$" "$excludetags" 2>/dev/null; then
-      # already excluded → remove it
-      grep -v -i "^${choice}$" "$excludetags" >"${excludetags}.tmp"
+    # Toggle tag in .excludetags
+    if grep -qiFx "$choice" "$excludetags"; then
+      grep -ivFx "$choice" "$excludetags" > "${excludetags}.tmp"
       mv "${excludetags}.tmp" "$excludetags"
-      sync "$excludetags"
-      dialog --msgbox "'$choice' un‐excluded." 0 0
+      dialog --msgbox "'$choice' un-excluded." 0 0
     else
-      # add it
       echo "$choice" >> "$excludetags"
-      sync "$excludetags"
       dialog --msgbox "'$choice' will now be excluded." 0 0
     fi
+    sync
 
-    # rebuild per-core exclusion lists
-    while read -r core; do
-      # remove any old tmp file
-      rm -f "${gamelistpathtmp}/${core}_gamelist.txt"
-      # filter out excluded tags
-      grep -viv -f "$excludetags" "${gamelistpath}/${core}_gamelist.txt" \
-        > "${gamelistpath}/${core}_gamelist_exclude.txt"
-      sync "${gamelistpath}/${core}_gamelist_exclude.txt"
-    done < <(printf "%s\n" "${corelist[@]}")
+    # 4) Rebuild each core’s exclude-list, collecting failures
+    failures=""
+    for core in "${corelist[@]}"; do
+      local src="$gamelistpath/${core}_gamelist.txt"
+      local dst="$gamelistpath/${core}_gamelist_exclude.txt"
+
+      if [[ ! -f "$src" ]]; then
+        # skip missing source
+        continue
+      fi
+
+      if ! grep -iF -f "$excludetags" "$src" > "$dst"; then
+        failures+="$core\n"
+      fi
+    done
+
+    # 5) If any failures, show them
+    if [[ -n "$failures" ]]; then
+      dialog --clear --ascii-lines --no-cancel \
+             --backtitle "Super Attract Mode" --title "[ EXCLUDE LIST ERRORS ]" \
+             --msgbox "Failed to build exclude lists for these cores:\n\n${failures}" \
+             0 0
+    fi
 
   done
 }
+
 
 
 #-------------------------------------------------------------------------------
