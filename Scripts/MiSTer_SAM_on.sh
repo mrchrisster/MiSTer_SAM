@@ -1985,8 +1985,6 @@ function delete_played_game() {
 # ──────────────────────────────────────────────────────────────────────────────
 # Gamelist Builder
 # ──────────────────────────────────────────────────────────────────────────────
-
-#Build Gamelists for Arcade and ST-V
 function build_mra_list() {
     local core_type=${1}
     local mra_path
@@ -1994,32 +1992,38 @@ function build_mra_list() {
 
     if [[ "${core_type}" == "stv" ]]; then
         mra_path="/media/fat/_Arcade/_ST-V"
-        # If no MRAs found for ST-V, exit gracefully
+
+        # Check if the directory exists first
+        if [ ! -d "${mra_path}" ]; then
+            echo "The path ${mra_path} does not exist!"
+            : > "${list_file}"  # Create empty list file to prevent re-running
+            return 0
+        fi
+
+        # Then check if it contains MRA files
         if ! find "${mra_path}" -type f -iname "*.mra" -print -quit | grep -q .; then
             echo "The path ${mra_path} contains no MRA files!"
-            loop_core
-            return 1
+            : > "${list_file}"  # Also create empty list file
+            return 0
         fi
+
         find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" > "${list_file}"
     else
         # Assumes 'arcade' or other MRA-based cores indexed by samindex
         mra_path="/media/fat/_Arcade"
         ${mrsampath}/samindex -s arcade -o "${gamelistpath}"
-        # The above command creates the list, so we just ensure it's named correctly
-        # If samindex outputs a different name, a mv or cp might be needed here.
-        # Assuming samindex creates a file like arcade_gamelist.txt
     fi
 
     # Copy the newly created list to the temp directory for use
     cp "${list_file}" "${gamelistpathtmp}/${core_type}_gamelist.txt" 2>/dev/null
 }
 
-
 function build_mgl_list() {
     local core_type=${1}
     local search_paths
     local list_file="${gamelistpath}/${core_type}_gamelist.txt"
     local game_count
+    local existing_paths=()
 
     case "${core_type}" in
         "ao486")
@@ -2040,8 +2044,19 @@ function build_mgl_list() {
             ;;
     esac
 
-    # Find all .mgl files in the specified paths (silence errors for missing dirs)
-    find "${search_paths[@]}" -type f -iname '*.mgl' 2>/dev/null > "${list_file}"
+    # Collect only existing directories
+    for path in "${search_paths[@]}"; do
+        [ -d "$path" ] && existing_paths+=("$path")
+    done
+
+    if [ ${#existing_paths[@]} -eq 0 ]; then
+        samdebug "No valid MGL search directories found for ${core_type}."
+        : > "${list_file}"  # Create empty list to prevent retry loops
+        return 0
+    fi
+
+    # Now search only existing paths
+    find "${existing_paths[@]}" -type f -iname '*.mgl' 2>/dev/null > "${list_file}"
 
     if [ ! -s "${list_file}" ]; then
         samdebug "No .mgl files found for ${core_type}—disabling core."
@@ -2052,7 +2067,6 @@ function build_mgl_list() {
 
     game_count=$(wc -l < "${list_file}")
     samdebug "Created ${core_type} gamelist with ${game_count} entries."
-    # Copy the new list to the temp directory for use
     cp "${list_file}" "${gamelistpathtmp}/${core_type}_gamelist.txt" 2>/dev/null
 }
 
@@ -2060,20 +2074,21 @@ function build_amiga_list() {
     local demos_file="${amigapath}/listings/demos.txt"
     local games_file="${amigapath}/listings/games.txt"
     local tmp_list="${gamelistpathtmp}/amiga_gamelist.txt"
+    local list_file="${gamelistpath}/amiga_gamelist.txt"
 
-    # Check for the existence of the primary games list
     if [ ! -f "${games_file}" ]; then
         echo "ERROR: Can't find Amiga games.txt file at '${games_file}'"
-        # The main function will handle the legacy fallback
+        : > "${tmp_list}"  # Empty list to prevent rebuild attempts
         return 1
     fi
-    
-    # Clear the temp list to start fresh
-    > "${tmp_list}"
+
+    > "${tmp_list}"  # Clear temp list
 
     if [[ "${amigaselect}" == "demos" ]] || [[ "${amigaselect}" == "all" ]]; then
         if [ -f "${demos_file}" ]; then
             sed 's/^/Demo: /' "${demos_file}" >> "${tmp_list}"
+        else
+            samdebug "Demos list not found at ${demos_file}"
         fi
     fi
 
@@ -2081,9 +2096,13 @@ function build_amiga_list() {
         cat "${games_file}" >> "${tmp_list}"
     fi
 
-    # Persist the generated list for future runs
-    cp "${tmp_list}" "${gamelistpath}/amiga_gamelist.txt"
+    if [ ! -s "${tmp_list}" ]; then
+        samdebug "No Amiga games or demos matched current selection (${amigaselect})."
+        : > "${list_file}"  # Empty file to avoid retries
+        return 0
+    fi
 
+    cp "${tmp_list}" "${list_file}"
     total_games="$(wc -l < "${tmp_list}")"
     samdebug "${total_games} Amiga Games and/or Demos found."
 }
@@ -2264,6 +2283,7 @@ function create_all_gamelists() {
             else
                 # The list is missing or empty. This core cannot be launched.
                 samdebug "Excluding core '${c}' from this session: Gamelist is missing or empty."
+				delete_from_corelist "${c}"
             fi
         done
 
@@ -2400,7 +2420,6 @@ function build_m82_list() {
 # ──────────────────────────────────────────────────────────────────────────────
 # Core Loader
 # ──────────────────────────────────────────────────────────────────────────────
-
 # This handles list building, filtering, cleaning, random selection, and the 'norepeat' feature.
 function pick_random_game() {
     local core_type=${1}
@@ -2416,10 +2435,8 @@ function pick_random_game() {
         *) samdebug "Error: pick_random_game called with invalid core ${core_type}"; return 1 ;;
     esac
 
-
     # 1. Check if the master gamelist exists and has content.
     if [ ! -s "${master_list}" ]; then
-        # The master list is missing or empty. We must build it.
         samdebug "Master gamelist for '${core_type}' not found. Building it now..."
         ${build_func} "${core_type}"
     fi
@@ -2427,46 +2444,50 @@ function pick_random_game() {
     # 2. After attempting to build, check one last time. If it's still empty, the core has no games.
     if [ ! -s "${master_list}" ]; then
         samdebug "ERROR: Failed to create or find games for core '${core_type}'." >&2
-        return 1 # Signal failure
-    fi
-    
-    # 3. Apply filter
-	if [ ! -s "${session_list}" ]; then
-    	cp -f "${master_list}" "${session_list}"
-	
-		filter_list "${core_type}"
-		# If filtering resulted in an empty list, we must exit.
-		if [ ! -s "${session_list}" ]; then
-			samdebug "Warning: Filters for '${core_type}' produced an empty list. No games to play." >&2
-			return 1
-		fi	
-	    # Remove any blank lines from the session list
-		sed -i '/^$/d' "${session_list}"
-	fi
-
-    # Pick a random line from the now-filtered session list
-    local chosen_path
-    chosen_path="$(shuf --random-source=/dev/urandom --head-count=1 "${session_list}")"
-    
-    # Sanitize the path to remove any hidden characters
-    chosen_path=$(echo "$chosen_path" | tr -d '[:cntrl:]')
-
-    # Verify the chosen file exists on disk
-    if [[ "${core_type}" != "amiga" ]] && [ ! -f "${chosen_path}" ]; then
-        samdebug "File not found after pick: ${chosen_path}. Something is wrong with the gamelist entries."
-        # We don't retry here anymore, as that could cause loops.
-        # We will fail gracefully and let the main loop handle it.
         return 1
     fi
 
-    # If 'norepeat' is enabled, remove the chosen game from the session list
+    # 3. Apply filter
+    if [ ! -s "${session_list}" ]; then
+        cp -f "${master_list}" "${session_list}"
+
+        filter_list "${core_type}"
+        # Remove any blank or whitespace-only lines
+        sed -i '/^[[:space:]]*$/d' "${session_list}"
+
+        # If filtering resulted in an empty list, we must exit.
+        if [ ! -s "${session_list}" ]; then
+            samdebug "Warning: Filters for '${core_type}' produced an empty list. No games to play." >&2
+            return 1
+        fi
+    fi
+
+    # 4. Extra validation before selection
+    if ! grep -q '[^[:space:]]' "${session_list}"; then
+        samdebug "Session list for '${core_type}' contains no valid entries."
+        return 1
+    fi
+
+    # 5. Pick a random line from the now-filtered session list
+    local chosen_path
+    chosen_path="$(shuf --random-source=/dev/urandom --head-count=1 "${session_list}")"
+    
+    # Sanitize the path to remove any control characters
+    chosen_path=$(echo "$chosen_path" | tr -d '[:cntrl:]')
+
+    # 6. Final check: the chosen path must be a real file (unless it's Amiga)
+    if [[ "${core_type}" != "amiga" ]] && [ ! -f "${chosen_path}" ]; then
+        samdebug "ERROR: MRA file not found after pick and sanitize: '${chosen_path}'"
+        return 1
+    fi
+
+    # 7. If 'norepeat' is enabled, remove the chosen game from the session list
     if [[ "${norepeat}" == "yes" ]]; then
         samdebug "(${core_type}) Removing from list for norepeat: ${chosen_path}"
-        # Use a temporary file to safely modify the session list
         awk -vLine="$chosen_path" '!index($0,Line)' "${session_list}" > "${tmpfile}" && mv -f "${tmpfile}" "${session_list}"
     fi
 
-    # Output the chosen path/name so the caller can capture it
+    # Output the chosen path so the caller can capture it
     echo "${chosen_path}"
 }
 
@@ -3473,12 +3494,12 @@ function filter_list() { # args: core
     else
         awk -F'/' '!seen[$NF]++' "${tmpfile}" > "${tmpfile}.filtered" && mv -f "${tmpfile}.filtered" "${tmpfile}"
     fi
-
-    if [ -f "${gamelistpath}/${core}_gamelist_exclude.txt" ]; then
-        echo "Applying category excludelist for '${core}'..." >&2
-        awk 'FNR==NR{a[$0];next} !($0 in a)' "${gamelistpath}/${core}_gamelist_exclude.txt" "${tmpfile}" > "${tmpfile}.filtered" && mv -f "${tmpfile}.filtered" "${tmpfile}"
-    fi
-
+	if [ -s "${gamelistpath}/${core}_gamelist_exclude.txt" ]; then
+		echo "Applying category excludelist for '${core}'..." >&2
+		awk 'FNR==NR{a[$0];next} !($0 in a)' "${gamelistpath}/${core}_gamelist_exclude.txt" "${tmpfile}" > "${tmpfile}.filtered" && mv -f "${tmpfile}.filtered" "${tmpfile}"
+	else
+		echo "Excludelist for '${core}' is empty, skipping filter." >&2
+	fi
     if [ -f "${gamelistpath}/${core}_excludelist.txt" ]; then
         echo "Applying standard excludelist for '${core}'..." >&2
         awk -v EXCL="${gamelistpath}/${core}_excludelist.txt" 'BEGIN{while(getline line<EXCL){raw[line]=1;name=line;sub(/\.[^.]*$/,"",name);sub(/^.*\//,"",name);names[name]=1}close(EXCL)}{file=$0;base=file;sub(/\.[^.]*$/,"",base);sub(/^.*\//,"",base);if(file in raw||base in names)next;print}' \
