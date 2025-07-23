@@ -139,6 +139,7 @@ function init_vars() {
 	declare -gl download_manager="yes"
 	declare -gl sv_aspectfix_vmode
 	declare -gl sv_inimod="yes"
+	declare -gl sv_inibackup="yes" 
 	declare -g sv_inibackup_file="/media/fat/MiSTer.ini.sam_backup"
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
@@ -3752,7 +3753,6 @@ function misterini_mod() {
             video_mode="8"
         fi
     elif [ "$samvideo_output" == "crt" ]; then
-        local samvideo_crtmode # Assuming this is set elsewhere
         if [ "$samvideo_source" == "youtube" ]; then
             samvideo_crtmode="${samvideo_crtmode320}"
         elif [ "$samvideo_source" == "archive" ]; then
