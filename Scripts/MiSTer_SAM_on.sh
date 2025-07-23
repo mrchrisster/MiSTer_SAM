@@ -139,6 +139,7 @@ function init_vars() {
 	declare -gl download_manager="yes"
 	declare -gl sv_aspectfix_vmode
 	declare -gl sv_inimod="yes"
+	declare -g sv_inibackup_file="/media/fat/MiSTer.ini.sam_backup"
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
@@ -2974,6 +2975,7 @@ function sam_cleanup() {
 		echo '' > /dev/tty1 
 		echo 'Login:' > /dev/tty1 
 		[ -f /tmp/.SAM_tmp/sv_corecount ] && rm /tmp/.SAM_tmp/sv_corecount
+		misterini_restore
 	fi
 	samdebug "Cleanup done."
 }
@@ -3706,7 +3708,8 @@ function write_to_TTY_cmd_pipe() {
 	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
 }
 
-# ======== SAM VIDEO PLAYER FUNCTIONS ========
+# --- Function to modify MiSTer.ini for SAM Video ---
+# Backs up the entire MiSTer.ini before applying new settings, if enabled.
 function misterini_mod() {
     # Check if sv_inimod is set to "no"
     if [ "$sv_inimod" == "no" ]; then
@@ -3714,24 +3717,42 @@ function misterini_mod() {
         return 0
     fi
 
-    echo "Checking and updating /media/fat/MiSTer.ini for samvideo playback."
+    # Exit if MiSTer.ini doesn't exist
+    if [ ! -f "$ini_file" ]; then
+        echo "Error: $ini_file not found."
+        return 1
+    fi
 
-    # Desired settings
-    fb_terminal="1"
-    vga_scaler="1"
+    echo "Checking and updating $ini_file for samvideo playback."
+
+    # --- Backup Logic ---
+    # Only perform backup if sv_inibackup is set to "yes"
+    if [ "$sv_inibackup" == "yes" ]; then
+        # If a backup doesn't already exist, create one.
+        if [ ! -f "$sv_inibackup_file" ]; then
+            echo "Backing up original $ini_file to $sv_inibackup_file..."
+            cp "$ini_file" "$sv_inibackup_file"
+        else
+            echo "MiSTer.ini backup already exists. Skipping backup."
+        fi
+    else
+        echo "MiSTer.ini backup is disabled (sv_inibackup is not 'yes')."
+    fi
+
+
+    # --- Desired settings logic (your existing logic) ---
+    local fb_terminal="1"
+    local vga_scaler="1"
+    local video_mode
 
     if [ "$samvideo_output" == "hdmi" ]; then
-        if [ "$samvideo_source" == "youtube" ]; then
-            ini_res="640x360"
-        else
-            ini_res="640x480"
-        fi
         if [ "${sv_aspectfix_vmode}" == "yes" ]; then
             video_mode="6"
         else
             video_mode="8"
         fi
     elif [ "$samvideo_output" == "crt" ]; then
+        local samvideo_crtmode # Assuming this is set elsewhere
         if [ "$samvideo_source" == "youtube" ]; then
             samvideo_crtmode="${samvideo_crtmode320}"
         elif [ "$samvideo_source" == "archive" ]; then
@@ -3743,84 +3764,62 @@ function misterini_mod() {
         return 1
     fi
 
-    # Desired `[Menu]` values
-    declare -A desired_menu
-    desired_menu["video_mode"]="$video_mode"
-    desired_menu["fb_terminal"]="$fb_terminal"
-    desired_menu["vga_scaler"]="$vga_scaler"
-
-    ini_file="/media/fat/MiSTer.ini"
+    # --- INI Modification Logic ---
+    local temp_file
     temp_file=$(mktemp)
 
-    # Extract all existing `[Menu]` values and comments
-    declare -A existing_menu
-    declare -A comments
-    while IFS="=" read -r key value; do
-        key=$(echo "$key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')   # Trim spaces
-        if [[ "$value" == *";"* ]]; then
-            comments["$key"]="${value#*;}"  # Extract comment, preserving its formatting
-            value="${value%;*}"            # Remove comment from value
-        fi
-        value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//') # Trim spaces
-        existing_menu["$key"]="$value"
-    done < <(awk '
-    BEGIN { inside_menu = 0 }
-/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 1; next }
-/^[[]/ && !/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 0 }
-inside_menu && /=/ { print }
-' "$ini_file")
-
-    # Merge desired values into existing `[Menu]` values
-    for key in "${!desired_menu[@]}"; do
-        if [[ -n "${existing_menu[$key]}" && "${existing_menu[$key]}" != "${desired_menu[$key]}" ]]; then
-            # Preserve existing `Previous:` comment if it exists
-            if [[ "${comments[$key]}" != *"Previous"* ]]; then
-                comments["$key"]=" Previous: ${existing_menu[$key]}"
-            fi
-            existing_menu["$key"]="${desired_menu[$key]}"
-        else
-            # If no change, retain the existing comment
-            existing_menu["$key"]="${desired_menu[$key]}"
-        fi
-    done
-
-    # Construct the new `[Menu]` section
-    new_menu="[Menu]"
-    new_menu+=$'\n'"; Modified by SAM Video. Please set video_mode in MiSTer_SAM.ini or disable SAM's ini mod by setting sv_inimod to no"
-    for key in "${!existing_menu[@]}"; do
-        if [[ -n "${comments[$key]}" ]]; then
-            # Include comments with exactly one space after the value
-            new_menu+=$'\n'"$key=${existing_menu[$key]} ;${comments[$key]}"
-        else
-            # Add key-value pair without comments
-            new_menu+=$'\n'"$key=${existing_menu[$key]}"
-        fi
-    done
-
-    # Remove all existing `[Menu]` sections and write the rest of the file to a temp file
+    # Use awk to replace the existing [Menu] section with the new settings.
+    # It deletes the old section and appends the new one at the end.
     awk '
     BEGIN { inside_menu = 0 }
-/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 1; next }
-/^[[]/ && !/^[[][Mm][Ee][Nn][Uu][]]/ { inside_menu = 0 }
-!inside_menu { print }
-' "$ini_file" > "$temp_file"
+    /^\[[Mm][Ee][Nn][Uu]\]/ { inside_menu = 1; next }
+    /\[.*\]/ && !/^\[[Mm][Ee][Nn][Uu]\]/ { inside_menu = 0 }
+    !inside_menu { print }
+    ' "$ini_file" > "$temp_file"
 
-    # Append the new `[Menu]` section without extra blank lines
-    echo "$new_menu" >> "$temp_file"
+    # Append the new [Menu] section
+    {
+        echo ""
+        echo "[Menu]"
+        echo "; Modified by SAM Video. Original settings are backed up."
+        echo "video_mode=$video_mode"
+        echo "vga_scaler=$vga_scaler"
+        echo "fb_terminal=$fb_terminal"
+    } >> "$temp_file"
 
-    # Compare checksums to decide if a write operation is needed
-    original_checksum=$(md5sum "$ini_file" | awk '{print $1}')
-    new_checksum=$(md5sum "$temp_file" | awk '{print $1}')
-
-    if [ "$original_checksum" == "$new_checksum" ]; then
-        rm "$temp_file"
-        echo "MiSTer.ini update not needed."
-    else
-        # Replace the original file with the updated version
-        cp "$ini_file" "${ini_file}.bak"
+    # Replace the original file if changes were made
+    if ! cmp -s "$ini_file" "$temp_file"; then
+        echo "Updating MiSTer.ini."
+        # We no longer need to create a .bak file since we have the .sam_backup
         mv "$temp_file" "$ini_file"
         echo "MiSTer.ini updated successfully."
+    else
+        echo "MiSTer.ini already has the correct settings. No update needed."
+        rm "$temp_file"
     fi
+}
+
+# --- Function to restore MiSTer.ini from backup ---
+# Reverts the entire MiSTer.ini file from the backup, if enabled.
+function misterini_restore() {
+    # Only perform restore if sv_inibackup is set to "yes"
+    if [ "$sv_inibackup" != "yes" ]; then
+        echo "MiSTer.ini restore is disabled (sv_inibackup is not 'yes'). No changes made."
+        return 0
+    fi
+
+    echo "Attempting to restore MiSTer.ini from backup..."
+
+    if [ ! -f "$sv_inibackup_file" ]; then
+        echo "No backup file found at $sv_inibackup_file. Nothing to restore."
+        return 1
+    fi
+
+    echo "Restoring $ini_file from $sv_inibackup_file..."
+    # Move the backup file to restore it, which is an atomic operation.
+    mv "$sv_inibackup_file" "$ini_file"
+
+    echo "MiSTer.ini has been restored successfully."
 }
 
 function dl_video() {
