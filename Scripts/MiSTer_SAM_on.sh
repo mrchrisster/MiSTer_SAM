@@ -1995,7 +1995,7 @@ function delete_played_game() {
 function build_mra_list() {
     # Accept core and destination directory arguments
     local core_type="$1"
-    local dest_dir="$2"
+	local dest_dir="${2:-$gamelistpath}"
 
     # Define paths, making the output file dynamic based on dest_dir
     local mra_path
@@ -2036,7 +2036,7 @@ function build_mra_list() {
 function build_mgl_list() {
     # Accept core and destination directory arguments
     local core_type="$1"
-    local dest_dir="$2"
+	local dest_dir="${2:-$gamelistpath}"
 
     # Define paths, making the output file dynamic
     local search_paths
@@ -2094,8 +2094,8 @@ function build_mgl_list() {
 function build_amiga_list() {
     # Accept core and destination directory arguments for consistency
     local core_type="$1"
-    local dest_dir="$2"
-
+	local dest_dir="${2:-$gamelistpath}"
+	
     # Define paths; the output file is now dynamic based on dest_dir
     local demos_file="${amigapath}/listings/demos.txt"
     local games_file="${amigapath}/listings/games.txt"
@@ -2140,7 +2140,7 @@ function build_amiga_list() {
 # General Romfinder
 function build_gamelist() {
     local core="$1"
-    local outdir="$2"  # Explicitly pass the destination directory
+	local outdir="${2:-$gamelistpath}"
     local file rc
     local is_initial_build=0
 
@@ -2200,7 +2200,7 @@ function build_gamelist() {
 # Arg 2: Destination directory (e.g., "/path/to/gamelists")
 function ensure_list() {
     local core_type="$1"
-    local dest_dir="$2"
+	local dest_dir="${2:-$gamelistpath}"
     local list_file="${dest_dir}/${core_type}_gamelist.txt"
     local build_func
 
