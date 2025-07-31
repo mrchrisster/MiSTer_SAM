@@ -2172,7 +2172,7 @@ function create_gamelist() {
 function check_list() { # args ${nextcore} 
 	
 	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
-		echo "Creating game list at ${gamelistpath}/${1}_gamelist.txt"
+		samdebug "Creating game list at ${gamelistpath}/${1}_gamelist.txt"
 		create_gamelist "${1}"
 		if [ $? -ne 0 ]; then 
 			samdebug "check_list function returned error code"
@@ -3501,7 +3501,7 @@ function filter_list() { # args: core
 		echo "Applying category excludelist for '${core}'..." >&2
 		awk 'FNR==NR{a[$0];next} !($0 in a)' "${gamelistpath}/${core}_gamelist_exclude.txt" "${tmpfile}" > "${tmpfile}.filtered" && mv -f "${tmpfile}.filtered" "${tmpfile}"
 	else
-		echo "Excludelist for '${core}' is empty, skipping filter." >&2
+		samdebug "Excludelist for '${core}' is empty, skipping filter." >&2
 	fi
     if [ -f "${gamelistpath}/${core}_excludelist.txt" ]; then
         echo "Applying standard excludelist for '${core}'..." >&2
@@ -3520,7 +3520,7 @@ function filter_list() { # args: core
     fi
 
     if [ "${disable_blacklist}" == "no" ] && [ -f "${gamelistpath}/${core}_blacklist.txt" ]; then
-        echo -n "Applying static screen blacklist for '${core}'..." >&2
+        echo -n "Applying static screen blacklist for '${core}'... " >&2
         awk "BEGIN{while(getline<\"${gamelistpath}/${core}_blacklist.txt\"){a[\$0]=1}} {gamelistfile=\$0;sub(/\\.[^.]*\$/,\"\",gamelistfile);sub(/^.*\\//,\"\",gamelistfile);if(!(gamelistfile in a))print}" \
         "${tmpfile}" > "${tmpfile}.filtered"
         if [ -s "${tmpfile}.filtered" ]; then
@@ -3529,7 +3529,7 @@ function filter_list() { # args: core
     fi
 
     cp -f "${tmpfile}" "${session_list}"
-    echo " $(wc -l <"${session_list}") games are now in the active shuffle list." >&2
+    echo "$(wc -l <"${session_list}") games are now in the active shuffle list." >&2
 
     if [ ! -s "${session_list}" ]; then
         echo "Error: All filters combined produced an empty list for '${core}'." >&2
