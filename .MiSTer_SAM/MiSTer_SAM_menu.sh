@@ -1140,13 +1140,13 @@ function menu_autoplay() {
 
     case "${choice,,}" in
       enable)
-        samini_mod autoplay Yes
+        sam_enable
         dialog --clear --ascii-lines --no-cancel \
                --backtitle "Super Attract Mode" --title "[ Autoplay Configuration ]" \
                --msgbox "Autoplay enabled." 0 0
         ;;
       disable)
-        samini_mod autoplay No
+        sam_disable
         dialog --clear --ascii-lines --no-cancel \
                --backtitle "Super Attract Mode" --title "[ Autoplay Configuration ]" \
                --msgbox "Autoplay disabled." 0 0
