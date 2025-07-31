@@ -1444,6 +1444,22 @@ function next_core() { # next_core (core)
 		fi
 	fi	
 	
+	check_list "${nextcore}"
+	if [ $? -ne 0 ]; then
+		samdebug "check_list function returned an error."
+		return 1
+	fi
+
+	filter_list "${nextcore}"
+	if [ $? -ne 0 ]; then 
+		samdebug "filter_list encountered an error"
+	fi	
+	
+	# Check if new roms got added
+	check_list_update ${nextcore} &
+	
+	pick_rom
+	
 	special_core_processor
 	local scp_status=$?
 
@@ -1460,14 +1476,6 @@ function next_core() { # next_core (core)
 	esac
 	# If we get here, special_core_processor returned 0 → NOT handled, so we continue.
 	
-	
-	check_list "${nextcore}"
-	if [ $? -ne 0 ]; then
-		samdebug "check_list function returned an error."
-		return 1
-	fi
-	
-	pick_rom
 	
     declare -g romloadfails=0
     local rom_is_valid=false
@@ -1496,9 +1504,6 @@ function next_core() { # next_core (core)
         # All retries have been exhausted. No valid ROM was found.
         return 1
     fi
-    
-	# Check if new roms got added
-	check_gamelistupdate ${nextcore} &
 	
 	delete_played_game
 	
@@ -1934,7 +1939,7 @@ function check_rom(){
 			echo "ERROR: File not found - ${rompath}"
 			echo "Creating new game list now..."
 			rm "${gamelistpath}/${1}_gamelist.txt"
-			create_gamelist "${1}"
+			build_gamelist "${1}"
 			return 1
 		fi
 	else
@@ -1943,7 +1948,7 @@ function check_rom(){
 			echo "ERROR: File not found - ${zipfile}"
 			echo "Creating new game list now..."
 			rm "${gamelistpath}/${1}_gamelist.txt"
-			create_gamelist "${1}"
+			build_gamelist "${1}"
 			return 1
 		fi
 	fi
@@ -1958,7 +1963,7 @@ function check_rom(){
 		samdebug "Wrong extension found: '${extension^^}' for core: ${nextcore} rom: ${rompath}"
 		# The function now simply reports failure. It does NOT call next_core.
 		# The calling function will be responsible for retrying or skipping the core.
-		create_gamelist "${nextcore}" & # Rebuilding the list in the background is ok
+		build_gamelist "${nextcore}" & # Rebuilding the list in the background is ok
 		return 1
 	fi
 	
@@ -1988,45 +1993,58 @@ function delete_played_game() {
 # Gamelist Builder
 # ──────────────────────────────────────────────────────────────────────────────
 function build_mra_list() {
-    local core_type=${1}
-    local mra_path
-    local list_file="${gamelistpath}/${core_type}_gamelist.txt"
+    # Accept core and destination directory arguments
+    local core_type="$1"
+    local dest_dir="$2"
 
+    # Define paths, making the output file dynamic based on dest_dir
+    local mra_path
+    local output_file="${dest_dir}/${core_type}_gamelist.txt"
+
+    # Handle the 'stv' core as a special case
     if [[ "${core_type}" == "stv" ]]; then
         mra_path="/media/fat/_Arcade/_ST-V"
 
-        # Check if the directory exists first
+        # Check if the search directory exists
         if [ ! -d "${mra_path}" ]; then
             echo "The path ${mra_path} does not exist!"
-            : > "${list_file}"  # Create empty list file to prevent re-running
+            # Create an empty list at the destination to prevent re-running
+            : > "${output_file}"
             return 0
         fi
 
-        # Then check if it contains MRA files
+        # Check if the directory contains any MRA files before running a full find
         if ! find "${mra_path}" -type f -iname "*.mra" -print -quit | grep -q .; then
             echo "The path ${mra_path} contains no MRA files!"
-            : > "${list_file}"  # Also create empty list file
+            # Create an empty list at the destination
+            : > "${output_file}"
             return 0
         fi
 
-        find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" > "${list_file}"
-    else
-        # Assumes 'arcade' or other MRA-based cores indexed by samindex
-        mra_path="/media/fat/_Arcade"
-        ${mrsampath}/samindex -s arcade -o "${gamelistpath}"
-    fi
+        # Build the list directly into the destination file
+        find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" > "${output_file}"
 
-    # Copy the newly created list to the temp directory for use
-    cp "${list_file}" "${gamelistpathtmp}/${core_type}_gamelist.txt" 2>/dev/null
+    else
+        # Handle 'arcade' or other MRA cores using samindex
+        # Pass the destination directory directly to the indexer
+        ${mrsampath}/samindex -s arcade -o "${dest_dir}"
+    fi
+    
+    samdebug "Created ${core_type} MRA gamelist in '${dest_dir}'."
 }
 
 function build_mgl_list() {
-    local core_type=${1}
+    # Accept core and destination directory arguments
+    local core_type="$1"
+    local dest_dir="$2"
+
+    # Define paths, making the output file dynamic
     local search_paths
-    local list_file="${gamelistpath}/${core_type}_gamelist.txt"
+    local output_file="${dest_dir}/${core_type}_gamelist.txt"
     local game_count
     local existing_paths=()
 
+    # Determine which directories to search based on the core
     case "${core_type}" in
         "ao486")
             search_paths=(
@@ -2046,121 +2064,130 @@ function build_mgl_list() {
             ;;
     esac
 
-    # Collect only existing directories
+    # Collect only the search paths that actually exist
     for path in "${search_paths[@]}"; do
         [ -d "$path" ] && existing_paths+=("$path")
     done
 
+    # If no valid search directories were found, create an empty list and exit
     if [ ${#existing_paths[@]} -eq 0 ]; then
         samdebug "No valid MGL search directories found for ${core_type}."
-        : > "${list_file}"  # Create empty list to prevent retry loops
+        : > "${output_file}" # Create empty list to prevent retry loops
         return 0
     fi
 
-    # Now search only existing paths
-    find "${existing_paths[@]}" -type f -iname '*.mgl' 2>/dev/null > "${list_file}"
+    # Run find on existing paths and write directly to the destination file
+    find "${existing_paths[@]}" -type f -iname '*.mgl' 2>/dev/null > "${output_file}"
 
-    if [ ! -s "${list_file}" ]; then
+    # If the resulting list is empty, disable the core
+    if [ ! -s "${output_file}" ]; then
         samdebug "No .mgl files found for ${core_type}—disabling core."
         delete_from_corelist "${core_type}"
         delete_from_corelist "${core_type}" tmp
         return 1
     fi
 
-    game_count=$(wc -l < "${list_file}")
-    samdebug "Created ${core_type} gamelist with ${game_count} entries."
-    cp "${list_file}" "${gamelistpathtmp}/${core_type}_gamelist.txt" 2>/dev/null
+    game_count=$(wc -l < "${output_file}")
+    samdebug "Created ${core_type} gamelist in '${dest_dir}' with ${game_count} entries."
 }
 
 function build_amiga_list() {
+    # Accept core and destination directory arguments for consistency
+    local core_type="$1"
+    local dest_dir="$2"
+
+    # Define paths; the output file is now dynamic based on dest_dir
     local demos_file="${amigapath}/listings/demos.txt"
     local games_file="${amigapath}/listings/games.txt"
-    local tmp_list="${gamelistpathtmp}/amiga_gamelist.txt"
-    local list_file="${gamelistpath}/amiga_gamelist.txt"
+    local output_file="${dest_dir}/${core_type}_gamelist.txt"
 
+    # Check if the source 'games.txt' exists
     if [ ! -f "${games_file}" ]; then
         echo "ERROR: Can't find Amiga games.txt file at '${games_file}'"
-        : > "${tmp_list}"  # Empty list to prevent rebuild attempts
+        # Create an empty file at the destination to prevent rebuild attempts
+        : > "${output_file}"
         return 1
     fi
 
-    > "${tmp_list}"  # Clear temp list
+    # Start with a fresh, empty list directly at the final destination
+    > "${output_file}"
 
+    # Append demos to the output file if selected
     if [[ "${amigaselect}" == "demos" ]] || [[ "${amigaselect}" == "all" ]]; then
         if [ -f "${demos_file}" ]; then
-            sed 's/^/Demo: /' "${demos_file}" >> "${tmp_list}"
+            sed 's/^/Demo: /' "${demos_file}" >> "${output_file}"
         else
             samdebug "Demos list not found at ${demos_file}"
         fi
     fi
 
+    # Append games to the output file if selected
     if [[ "${amigaselect}" == "games" ]] || [[ "${amigaselect}" == "all" ]]; then
-        cat "${games_file}" >> "${tmp_list}"
+        cat "${games_file}" >> "${output_file}"
     fi
 
-    if [ ! -s "${tmp_list}" ]; then
+    # Verify that the final list is not empty
+    if [ ! -s "${output_file}" ]; then
         samdebug "No Amiga games or demos matched current selection (${amigaselect})."
-        : > "${list_file}"  # Empty file to avoid retries
+        return 1
+    fi
+
+    local total_entries
+    total_entries="$(wc -l < "${output_file}")"
+    samdebug "${total_entries} Amiga Games and/or Demos found for list in '${dest_dir}'."
+}
+
+# General Romfinder
+function build_gamelist() {
+    local core="$1"
+    local outdir="$2"  # Explicitly pass the destination directory
+    local file rc
+    local is_initial_build=0
+
+    # Determine if this is an "initial" build by checking the output path.
+    # This makes the function's behavior dependent on its direct inputs.
+    if [[ "$outdir" == "$gamelistpath" ]]; then
+        is_initial_build=1
+    fi
+
+    # 1. PRE-FLIGHT CHECK: Only for initial builds, skip if another indexer is running.
+    if (( is_initial_build )) && ps | grep -q '[s]amindex'; then
+        samdebug "samindex already in flight; skipping full build for ${core}"
         return 0
     fi
 
-    cp "${tmp_list}" "${list_file}"
-    total_games="$(wc -l < "${tmp_list}")"
-    samdebug "${total_games} Amiga Games and/or Demos found."
-}
+    samdebug "Building gamelist for ${core} in ${outdir}"
 
-
-# General Romfinder
-function create_gamelist() {
-    local core="$1"
-    local mode="$2"   # empty = initial build, non-empty = comp build
-    local outdir file rc
-
-    if [[ -z "$mode" ]]; then
-        # ── INITIAL build into $gamelistpath ────────────────────
-
-        # if samindex is already running, skip
-        if ps | grep -q '[s]amindex'; then
-            samdebug "samindex already in flight; skipping full build for ${core}"
-            return 0
-        fi
-
-        samdebug "Creating full gamelist for ${core}"
-        outdir="$gamelistpath"
-
-    else
-        # ── COMPARISON build into tmp/comp ─────────────────────
-        samdebug "Creating comparison gamelist for ${core}"
-        outdir="${gamelistpathtmp}/comp"
-    fi
-
-    # ensure output dir exists, then sync/fs-settle
+    # 2. SETUP: Ensure output directory exists and let the filesystem settle.
     mkdir -p "$outdir"
     sync "$outdir"
     sleep 1
 
-    # run the indexer twice due to the indexer not finding all files on first run for some reason
+    # 3. EXECUTION: Run the indexer to generate the list.
+    # The tool is run twice to work around a potential issue where it misses files on the first pass.
     "${mrsampath}/samindex" -q -s "$core" -o "$outdir"
-	"${mrsampath}/samindex" -q -s "$core" -o "$outdir"
+    "${mrsampath}/samindex" -q -s "$core" -o "$outdir"
     rc=$?
 
-    if [[ -z "$mode" ]]; then
-        # on initial build, error>1 means “no games”
+    # 4. POST-PROCESSING: Handle results and cleanup.
+    file="${outdir}/${core}_gamelist.txt"
+
+    # Only perform special error handling and seeding for initial builds.
+    if (( is_initial_build )); then
+        # On initial build, an exit code > 1 means "no games found".
         if (( rc > 1 )); then
             delete_from_corelist "$core"
             echo "Can't find games for ${CORE_PRETTY[$core]}"
-            samdebug "create_gamelist returned code $rc for $core"
-            return 1
+            samdebug "build_gamelist returned code $rc for $core"
+            return 1 # Return an error
         fi
 
-        # seed the tmp copy for diffs
+        # Seed the temporary copy for later comparisons.
         mkdir -p "${gamelistpathtmp}"
-        cp "${outdir}/${core}_gamelist.txt" \
-           "${gamelistpathtmp}/${core}_gamelist.txt" 2>/dev/null
+        cp "${file}" "${gamelistpathtmp}/${core}_gamelist.txt" 2>/dev/null
     fi
 
-    # always sort & dedupe the output file
-    file="${outdir}/${core}_gamelist.txt"
+    # Always sort and de-duplicate the final output file, regardless of build type.
     if [[ -f "$file" ]]; then
         sort -u "$file" -o "$file"
     fi
@@ -2168,69 +2195,117 @@ function create_gamelist() {
     return 0
 }
 
+# Helper to build a gamelist for a core at a specific destination.
+# Arg 1: Core type (e.g., "nes")
+# Arg 2: Destination directory (e.g., "/path/to/gamelists")
+function ensure_list() {
+    local core_type="$1"
+    local dest_dir="$2"
+    local list_file="${dest_dir}/${core_type}_gamelist.txt"
+    local build_func
 
-function check_list() { # args ${nextcore} 
-	
-	if [ ! -f "${gamelistpath}/${1}_gamelist.txt" ]; then
-		samdebug "Creating game list at ${gamelistpath}/${1}_gamelist.txt"
-		create_gamelist "${1}"
-		if [ $? -ne 0 ]; then 
-			samdebug "check_list function returned error code"
-			return 1
-		fi
-	fi
-	
-	
-	if [ "${sam_goat_list}" == "yes" ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-		build_goat_lists
-		return
-	fi
-	
-	# m82 populate lists
-	if [ "${m82}" == "yes" ]; then
-		if [[ -z "$m82_bios_path" ]]; then 
-			# process m82_list
-			echo -n "M82 mode active. Finding M82 bios..."
-			declare -g m82_bios_path="$(fgrep -i "m82 game" "$gamelistpath/nes_gamelist.txt" | head -n 1)"
-			echo "Success."
-			samdebug "m82 bios found at: "$m82_bios_path""
-		fi
-		if [[ -z "$m82_bios_path" ]]; then 
-			echo "Error: No suitable m82 bios could be found in your nes folder. The file should be called 'M82 Game[..].nes'"
-			exit
-		fi
-		if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-			samdebug "Creating m82 game list"
-			while IFS= read -r line; do 
-				echo "$m82_bios_path" 
-				fgrep "$line" "${gamelistpath}"/nes_gamelist.txt | head -n 1
-			done < "${mrsampath}/SAM_Gamelists/m82_list.txt" > "${gamelistpathtmp}/nes_gamelist.txt"
-			samdebug "Found the following games: \n$(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82)"
-			samdebug "Found $(cat "${gamelistpathtmp}/nes_gamelist.txt" | grep -iv m82 | wc -l) games"
-			# If button was pushed to skip game
-			if [ "$update_done" -eq 1 ]; then
-				sed -i '1d' "$gamelistpathtmp"/nes_gamelist.txt
-			fi
+    # If the list already exists with content, we're done.
+    if [ -s "${list_file}" ]; then
+        return 0
+    fi
 
-		fi
-		gametimer="21"
-		update_done=0
-		return
-	fi
-	
-	# Copy gamelist to tmp
-	if [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
-		cp "${gamelistpath}/${1}_gamelist.txt" "${gamelistpathtmp}/${1}_gamelist.txt" 2>/dev/null
-	
-		filter_list "${1}"
-		if [ $? -ne 0 ]; then 
-			return 1
-			samdebug "filter_list encountered an error"
-		fi		
-	fi
-	return 0
+    samdebug "Gamelist for '${core_type}' not found in '${dest_dir}'. Building..."
+
+    # Determine which builder to use
+    case "${core_type}" in
+        "arcade"|"stv") build_func="build_mra_list" ;;
+        "ao486"|"x68k") build_func="build_mgl_list" ;;
+        "amiga")        build_func="build_amiga_list" ;;
+        *)              build_func="build_gamelist" ;;
+    esac
+
+    # IMPORTANT: Assumes your build functions accept the destination path as an argument.
+    # e.g., build_gamelist "nes" "/path/to/gamelists/comp"
+    ${build_func} "${core_type}" "${dest_dir}"
+
+    # Final check
+    if [ ! -s "${list_file}" ]; then
+        samdebug "ERROR: Failed to create or find games for '${core_type}' in '${dest_dir}'." >&2
+        return 1
+    fi
+    return 0
 }
 
+# Checks and prepares gamelists for a core.
+# Arg 1: Core type (e.g., "nes")
+# Arg 2: [mode] - Optional, e.g., "comp" to build a competitive list.
+function check_list() {
+    local core_type="$1"
+    local mode="$2"
+    local session_list="${gamelistpathtmp}/${core_type}_gamelist.txt"
+
+    # 1. Ensure we have Master game list if it doesn't exist. Exit if it fails.
+    ensure_list "${core_type}" "${gamelistpath}" || return 1
+
+    # 2. Create "comparison" game lists if requested.
+    if [[ "${mode}" == "comp" ]]; then
+        local comp_dir="${gamelistpath}/comp"
+        mkdir -p "${comp_dir}" # Ensure the 'comp' subdirectory exists
+        ensure_list "${core_type}" "${comp_dir}"
+    fi
+
+    # 3. Handle special session lists (GOAT, M82, etc.)
+    if [ "${sam_goat_list}" == "yes" ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
+        build_goat_lists
+        return
+    fi
+
+    # m82 populate lists 
+    if [ "${m82}" == "yes" ]; then
+        # --- Find M82 BIOS (once per session) ---
+        if [[ -z "$m82_bios_path" ]]; then 
+            echo -n "M82 mode active. Finding M82 bios..."
+            # Search the master NES list for the BIOS file and store its path globally
+            declare -g m82_bios_path
+            m82_bios_path="$(fgrep -i "m82 game" "$gamelistpath/nes_gamelist.txt" | head -n 1)"
+            echo "Success."
+            samdebug "m82 bios found at: $m82_bios_path"
+        fi
+
+        # --- Validate BIOS was found ---
+        if [[ -z "$m82_bios_path" ]]; then 
+            echo "Error: No suitable M82 BIOS found in your nes folder. The file should be named 'M82 Game[...].nes'"
+            exit 1
+        fi
+
+        # --- Create the special M82 session list if it doesn't exist ---
+        if [ ! -s "${session_list}" ]; then
+            samdebug "Creating M82 game list from m82_list.txt"
+            # Read a predefined list of game titles and build a new gamelist
+            while IFS= read -r line; do 
+                echo "$m82_bios_path" 
+                fgrep "$line" "${gamelistpath}/nes_gamelist.txt" | head -n 1
+            done < "${mrsampath}/SAM_Gamelists/m82_list.txt" > "${session_list}"
+
+            samdebug "Found the following games: \n$(cat "${session_list}" | grep -iv m82)"
+            samdebug "Found $(cat "${session_list}" | grep -iv m82 | wc -l) games"
+        fi
+        
+        # --- Handle game skipping ---
+        # If a button was pushed to skip the current game, remove it from the list
+        if [ "${update_done}" -eq 1 ]; then
+            sed -i '1d' "${session_list}"
+        fi
+        
+        # --- Finalize M82 state for this cycle ---
+        gametimer="21"
+        update_done=0
+        return
+    fi
+
+    # 4. Default action: Copy the master list to the temp session directory if no
+    #    special session list (like M82) was created.
+    if [ ! -s "${session_list}" ]; then
+        cp "${gamelistpath}/${core_type}_gamelist.txt" "${session_list}" 2>/dev/null
+    fi
+
+    return 0
+}
 
 
 
@@ -2260,9 +2335,9 @@ function create_all_gamelists() {
                 samdebug "Gamelist for '${c}' is missing, creating it now..."
                 
                 # Check if it's a special core with its own builder function
-                if [[ " ${special_cores[*]} " =~ " ${c} " ]] && type -t create_"${c}"list > /dev/null; then
+                if [[ " ${special_cores[*]} " =~ " ${c} " ]] && type -t build_"${c}"_list > /dev/null; then
                     # It's a special core, call its dedicated builder
-                    create_"${c}"list
+                    build_"${c}"_list
                 else
                     # It's a standard core, use samindex
                     "${mrsampath}/samindex" -q -s "$c" -o "$gamelistpath"
@@ -2291,43 +2366,44 @@ function create_all_gamelists() {
 
     ) &
 }
-
-function check_gamelistupdate() {
+function check_list_update() {
 	local core="$1"
 	local orig="${gamelistpath}/${core}_gamelist.txt"
 	local compdir="${gamelistpathtmp}/comp"
 	local comp="${compdir}/${core}_gamelist.txt"
 	
-	# ── only run once per core ──────────────────
+	# ── only run this check once per core, per session ──
 	local flag_dir="${gamelistpathtmp}/.checked"
 	mkdir -p "$flag_dir"
 	local flag_file="$flag_dir/$core"
-	[[ -e "$flag_file" ]] && return
+	if [ -e "$flag_file" ]; then
+	    return
+	fi
 	touch "$flag_file"
 	
-	#sleep 15
+	# Skip for special modes like M82 that have their own list logic
+	if [[ "$m82" == "yes" ]]; then
+		return 0
+	fi
 	
-	if [[ "$m82" == "no" ]]; then
 	mkdir -p "$compdir"
 	
-	# Create the comp gamelist
-	create_gamelist "$core" comp
+	ensure_list "$core" "$compdir"
 	
-	# now compare sorted originals
+	# Now, compare the sorted original list with the new sorted comparison list
 	if ! diff -q <(sort "$orig") <(sort "$comp") &>/dev/null; then
-	  samdebug "[${core}] difference detected, updating gamelist…"
+	    samdebug "[${core}] Gamelist has changed, updating master list…"
 	
-	  # show up to 10 unique lines
-	  samdebug "[${core}] DIFF:"
-	  comm -3 <(sort "$orig") <(sort "$comp") | head -n10 | \
-		while read -r ln; do samdebug "   $ln"; done
+	    # Log up to 10 lines of differences for debugging
+	    samdebug "[${core}] DIFF:"
+	    comm -3 <(sort "$orig") <(sort "$comp") | head -n10 | \
+	        while read -r ln; do samdebug "    $ln"; done
 	
-	  # copy back the *sorted* new list
-	  sort "$comp" -o "$orig"
-	  samdebug "[${core}] Gamelist updated."
+	    # Overwrite the original list with the sorted new one
+	    sort "$comp" -o "$orig"
+	    samdebug "[${core}] Gamelist updated."
 	else
-	  samdebug "[${core}] No changes detected in ${core} gamelist."
-	fi
+	    samdebug "[${core}] No changes detected in ${core} gamelist."
 	fi
 }
 
@@ -2356,7 +2432,7 @@ function build_goat_lists() {
 	while IFS= read -r line; do
 	if [[ "$line" =~ ^\[(.+)\]$ ]]; then
 	  current_core="${BASH_REMATCH[1],,}"
-	  [[ ! -f "${gamelistpath}/${current_core}_gamelist.txt" ]] && create_gamelist "$current_core"
+	  [[ ! -f "${gamelistpath}/${current_core}_gamelist.txt" ]] && build_gamelist "$current_core"
 	elif [[ -n "$current_core" ]]; then
 	  fgrep -i -m1 "$line" "${gamelistpath}/${current_core}_gamelist.txt" \
 		>> "${gamelistpathtmp}/${current_core}_gamelist.txt"
@@ -2427,27 +2503,6 @@ function pick_random_game() {
     local core_type=${1}
     local master_list="${gamelistpath}/${core_type}_gamelist.txt"
     local session_list="${gamelistpathtmp}/${core_type}_gamelist.txt"
-    local build_func
-
-    # Determine which list-builder function to use
-    case "${core_type}" in
-        "arcade"|"stv") build_func="build_mra_list" ;;
-        "ao486"|"x68k") build_func="build_mgl_list" ;;
-        "amiga")        build_func="build_amiga_list" ;;
-        *) samdebug "Error: pick_random_game called with invalid core ${core_type}"; return 1 ;;
-    esac
-
-    # 1. Check if the master gamelist exists and has content.
-    if [ ! -s "${master_list}" ]; then
-        samdebug "Master gamelist for '${core_type}' not found. Building it now..."
-        ${build_func} "${core_type}"
-    fi
-
-    # 2. After attempting to build, check one last time. If it's still empty, the core has no games.
-    if [ ! -s "${master_list}" ]; then
-        samdebug "ERROR: Failed to create or find games for core '${core_type}'." >&2
-        return 1
-    fi
 
     # 3. Apply filter
     if [ ! -s "${session_list}" ]; then
@@ -2567,7 +2622,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
         "amigacd32")
             ### Amiga CD32 Loader ###
             check_list "${core}"; if [ $? -ne 0 ]; then next_core; return 1; fi
-            check_gamelistupdate "${core}" &
+            check_list_update "${core}" &
             filter_list "${core}"; pick_rom; check_rom "${core}"; if [ $? -ne 0 ]; then return 1; fi
             
             gamename="${romname%.*}"
@@ -3109,20 +3164,10 @@ function deletegl() {
 
 
 function creategl() {
-	init_vars 
-	read_samini 
-	init_paths 
-	init_data
-	${mrsampath}/samindex -o "${gamelistpath}"
-	
-	if [ ${inmenu} -eq 1 ]; then
-		sleep 1
-		sam_menu
-	else
-		echo -e "\nGamelist creation successful. Please start SAM now.\n"
-		sleep 1
-		parse_cmd stop
-	fi
+	create_all_gamelists
+	echo -e "\nGamelist creation successful. Please start SAM now.\n"
+	sleep 1
+	parse_cmd stop
 }
 
 function skipmessage() {
@@ -3304,7 +3349,7 @@ function global_mute() {
 	
 	# immediately mute the live core
 	echo "volume mute" > /dev/MiSTer_cmd
-	samdebug "Global mute → Volume.dat=0x${hex}"
+	samdebug "WRITE TO SD: Global mute → Volume.dat"
 }
 
 function global_unmute() {
@@ -3316,7 +3361,7 @@ function global_unmute() {
 	write_byte "$f" "$hex"
 	# sent unmute for interactive unmute
 	echo "volume unmute" > /dev/MiSTer_cmd
-	echo "Restored Volume.dat to 0x$hex"
+	samdebug "WRITE TO SD: Restored Volume.dat"
 }
 
 
@@ -3368,7 +3413,7 @@ function check_zips() { # check_zips core
 		for zips in "${zipsinfile[@]}"; do
 			if [ ! -f "${zips}" ]; then
 				samdebug "Creating new game list because zip file[s] seems to have changed."
-				create_gamelist "${1}"
+				build_gamelist "${1}"
 				unset zipsinfile
 				mapfile -t zipsinfile < <(fgrep ".zip" "${gamelistpath}/${1}_gamelist.txt" | awk -F".zip" '!seen[$1]++' | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')
 				break
@@ -3399,7 +3444,7 @@ function check_zips() { # check_zips core
 				result="$(printf '%s\n' "${zipsondisk[@]}")"
 				if [[ "${result}" ]]; then
 					samdebug "Found new zip file[s]: ${result##*/}"
-					create_gamelist "${1}"
+					build_gamelist "${1}"
 					return
 				fi
 			fi
@@ -3408,52 +3453,6 @@ function check_zips() { # check_zips core
 	#samdebug "Done."
 }
 	
-	
-function check_gamelists() {
-    # --- build the list of cores that need a gamelist ---
-    unset glcreate
-    readarray -t glexistcl <<< "$(
-        printf '%s\n' "${corelist[@]}" "${glondisk[@]}" |
-        sort | uniq -iu
-    )"
-
-    for g in "${glexistcl[@]}"; do
-        for c in "${corelist[@]}"; do
-            [[ "$c" == "$g" ]] && glcreate+=( "$c" )
-        done
-    done
-
-    # --- filter out all the special cores completely ---
-    local filtered=()
-    for c in "${glcreate[@]}"; do
-        # only keep if c is NOT in special_cores
-        if [[ ! " ${special_cores[*]} " =~ " $c " ]]; then
-            filtered+=( "$c" )
-        fi
-    done
-    glcreate=( "${filtered[@]}" )
-
-    # --- if anything left to create, and no samindex already running ---
-    if (( ${#glcreate[@]} )) && ! pgrep -f samindex &>/dev/null; then
-        nogames=()
-        for c in "${glcreate[@]}"; do
-            samdebug "Creating $c gamelist"
-            "${mrsampath}/samindex" -q -s "$c" -o "$gamelistpath"
-            (( $? > 1 )) && nogames+=( "$c" )
-        done
-
-        # handle cores for which no games were found
-        if (( ${#nogames[@]} )); then
-            for f in "${nogames[@],,}"; do
-                samdebug "Deleting ${f}"
-                delete_from_corelist "$f"
-                delete_from_corelist "$f" tmp
-            done
-            echo "SAM now has the following cores disabled: ${nogames[*]}"
-            echo "No games were found for these cores."
-        fi
-    fi
-}
 
 function filter_list() { # args: core
     local core=${1}
@@ -3526,6 +3525,8 @@ function filter_list() { # args: core
         if [ -s "${tmpfile}.filtered" ]; then
             mv -f "${tmpfile}.filtered" "${tmpfile}"
         fi
+	else 
+		 echo -n "No blacklist filter found for '${core}'... " >&2
     fi
 
     cp -f "${tmpfile}" "${session_list}"
