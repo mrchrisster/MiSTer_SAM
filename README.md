@@ -211,6 +211,81 @@ Original concept and implementation: mrchrisster
 Script layout & watchdog functionality: Mellified   
 tty2oled submodule: Paradox  
 Indexing tool & input detection: wizzomafizzo  
+
+## Development
+
+Here is the flow chart of how SAM operates:
+[Start]
+
+Initialize global variables (first_core_launched=0, etc.)
+
+Call loop_core.
+
+[Loop: Main Application] (Runs forever)
+
+[Process: next_core] (Prepare and Launch a Core)
+
+[Decision: Is a core name passed as an argument?]
+
+Yes: Use that core name.
+
+No: Call pick_core to select a core.
+
+[Process: check_list] (JIT build of master list if missing).
+
+[Process: filter_list] (JIT creation of session list if missing).
+
+[Process: check_list_update] (Launched in background &).
+
+[Process: pick_rom] (Selects a specific game).
+
+[Loop: ROM Validation] (Retries up to 3 times)
+
+[Process: check_rom] (Validates the selected game).
+
+[Decision: Is ROM valid?]
+
+Yes: Break loop.
+
+No: Call pick_rom again, continue loop.
+
+[Decision: Was a valid ROM ever found?]
+
+Yes: Call load_core to launch the game. Return Success (0).
+
+No: Return Failure (1).
+
+[Decision: Did next_core Succeed?]
+
+Yes (Game Launched):`
+
+[Decision: Is this the first launch?]
+
+Yes: Launch create_all_gamelists & in the background, set flag.
+
+No: Continue.
+
+Call [Process: run_countdown_timer].
+
+Delay for a few seconds.
+
+Launch "Prepare-Ahead" task in background &.
+
+[Loop: Countdown]
+
+[Decision: User Input Detected?]
+
+Yes: Call handle_joy_activity, break countdown loop.
+
+No: sleep 1, decrement timer.
+
+Return to start of Main Application Loop.
+
+No (Launch Failed):`
+
+[Process: delete_from_corelist] (Blacklist the failed core).
+
+Return to start of Main Application Loop immediately.
    
 ## Release History
 - 4 Feb 2025 - Added amigacd32, neogeocd and various bugfixes
