@@ -1303,13 +1303,27 @@ function loop_core() { # loop_core (optional_core_name)
 	# This is the main script loop that runs forever.
 	while :; do
 		# ----------------------------------------------------
-		# Call next_core to attempt a game launch.
-		# We pass along any argument that might have been given to loop_core.
-		next_core "${1-}" 
+		# Check if we are running SAM Video Player
+		if [ "${samvideo}" == "yes" ]; then		
+			load_samvideo
+			if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
+		else
+			# Call next_core to attempt a game launch.
+			# We pass along any argument that might have been given to loop_core.		
+			next_core "${1-}" 
+		fi
+	
 		
 		# Check the exit code of the next_core function.
 		if [ $? -eq 0 ]; then
 			# SUCCESS (Exit code 0): A game was launched successfully.
+			
+			if (( ! first_core_launched )); then
+				samdebug "First core launched. Starting delayed background gamelist creation..."
+				create_all_gamelists       # This function backgrounds itself.
+				first_core_launched=1      # Set the flag so this only runs once.
+			fi
+			
 			# Now, we start the countdown timer before the next game.
 			run_countdown_timer
 		else
@@ -1437,9 +1451,6 @@ function next_core() { # next_core (core)
 		configpath="/media/fat/config/"
 	fi
 	
-	load_samvideo
-	if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
-	
 	if [[ ! ${corelist[*]} ]]; then
 		echo "ERROR: FATAL - List of cores is empty."
 		echo "Using default corelist"
@@ -1464,7 +1475,7 @@ function next_core() { # next_core (core)
 	fi
 	
 	# Check if new roms got added
-	check_list_update ${nextcore} &
+	check_list_update ${nextcore}
 	
 	pick_rom
 	
@@ -1513,34 +1524,33 @@ function next_core() { # next_core (core)
 function load_samvideo() {
 	sv_loadcounter=$((sv_loadcounter + 1))
 	#Load the actual rom (or play a video)
-	if [ "${samvideo}" == "yes" ]; then		
-		if [ "${samvideo_freq}" == "only" ]; then
+
+	if [ "${samvideo_freq}" == "only" ]; then
+		activity_reset
+		samvideo_play &
+		return 1
+	elif [ "${samvideo_freq}" == "core" ]; then
+		echo "samvideo load core counter is now $sv_loadcounter"
+		if ((sv_loadcounter % ${#corelist[@]} == 0)); then
+			activity_reset
+			samvideo_play &
+			sv_loadcounter=0
+			return 1
+		fi
+		sv_nextcore=""
+		return 0
+
+	elif [ "${samvideo_freq}" == "alternate" ]; then
+		if ((sv_loadcounter % 2 == 1)); then
 			activity_reset
 			samvideo_play &
 			return 1
-		elif [ "${samvideo_freq}" == "core" ]; then
-		  	echo "samvideo load core counter is now $sv_loadcounter"
-		  	if ((sv_loadcounter % ${#corelist[@]} == 0)); then
-				activity_reset
-				samvideo_play &
-				sv_loadcounter=0
-				return 1
-		  	fi
-		  	sv_nextcore=""
-		  	return 0
-
-		elif [ "${samvideo_freq}" == "alternate" ]; then
-			if ((sv_loadcounter % 2 == 1)); then
-				activity_reset
-				samvideo_play &
-				return 1
-		  	else
-		  		sv_nextcore=""
-				return 0
-			fi
+		else
+			sv_nextcore=""
+			return 0
 		fi
-		
 	fi
+
 
 }
 
@@ -1591,6 +1601,7 @@ function pick_core() {
         if [[ " ${corelistall[*]} " =~ " arcade " ]]; then
             nextcore="arcade"
             samdebug "Selected initial core: arcade"
+			create_all_gamelists
             return # Exit the function immediately
         else
             samdebug "Arcade core not available. Falling back to normal selection."
@@ -1843,7 +1854,7 @@ function check_rom(){
 		if [ ! -f "${rompath}" ]; then
 			echo "ERROR: File not found - ${rompath}"
 			rm -f "${gamelistpath}/${core}_gamelist.txt"
-			ensure_gamelist "${core}" "${gamelistpath}"
+			ensure_list "${core}" "${gamelistpath}"
 			return 1
 		fi
 	else
@@ -1851,7 +1862,7 @@ function check_rom(){
 		if [ ! -f "${zipfile}" ]; then
 			echo "ERROR: File not found - ${zipfile}"
 			rm -f "${gamelistpath}/${core}_gamelist.txt"
-			ensure_gamelist "${core}" "${gamelistpath}"
+			ensure_list "${core}" "${gamelistpath}"
 			return 1
 		fi
 	fi
@@ -1868,7 +1879,7 @@ function check_rom(){
 
         if [[ "$extlist" != *"$extension"* ]]; then
             samdebug "Wrong extension found: '${extension^^}' for core: ${core} rom: ${rompath}"
-            ensure_gamelist "${core}" "${gamelistpath}" & # Rebuild in background
+            ensure_list "${core}" "${gamelistpath}" & # Rebuild in background
             return 1
         fi
     fi
@@ -1901,42 +1912,43 @@ function delete_played_game() {
 function build_mra_list() {
     # Accept core and destination directory arguments
     local core_type="$1"
-	local dest_dir="${2:-$gamelistpath}"
-
-    # Define paths, making the output file dynamic based on dest_dir
-    local mra_path
+    local dest_dir="${2:-$gamelistpath}"
     local output_file="${dest_dir}/${core_type}_gamelist.txt"
+    local mra_path
 
-    # Handle the 'stv' core as a special case
-    if [[ "${core_type}" == "stv" ]]; then
-        mra_path="/media/fat/_Arcade/_ST-V"
+    # 1. Determine the correct search path based on the core.
+    case "${core_type}" in
+        "stv")
+            mra_path="/media/fat/_Arcade/_ST-V"
+            ;;
+        "arcade")
+            mra_path="/media/fat/_Arcade"
+            ;;
+        *)
+            samdebug "ERROR: build_mra_list called with unsupported core '${core_type}'"
+            return 1
+            ;;
+    esac
 
-        # Check if the search directory exists
-        if [ ! -d "${mra_path}" ]; then
-            echo "The path ${mra_path} does not exist!"
-            # Create an empty list at the destination to prevent re-running
-            : > "${output_file}"
-            return 0
-        fi
-
-        # Check if the directory contains any MRA files before running a full find
-        if ! find "${mra_path}" -type f -iname "*.mra" -print -quit | grep -q .; then
-            echo "The path ${mra_path} contains no MRA files!"
-            # Create an empty list at the destination
-            : > "${output_file}"
-            return 0
-        fi
-
-        # Build the list directly into the destination file
-        find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" > "${output_file}"
-
-    else
-        # Handle 'arcade' or other MRA cores using samindex
-        # Pass the destination directory directly to the indexer
-        ${mrsampath}/samindex -q -s arcade -o "${dest_dir}"
+    # 2. Check if the search directory exists.
+    if [ ! -d "${mra_path}" ]; then
+        echo "The path ${mra_path} does not exist!"
+        : > "${output_file}" # Create empty list to prevent re-running
+        return 0
     fi
+
+    # Check if the directory contains any MRA files before running a full find.
+    if ! find "${mra_path}" -type f -iname "*.mra" -print -quit | grep -q .; then
+        echo "The path ${mra_path} contains no MRA files!"
+        : > "${output_file}" # Create empty list
+        return 0
+    fi
+
+    # 3. Build the list directly into the destination file using find.
+    find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" > "${output_file}"
     
     samdebug "Created ${core_type} MRA gamelist in '${dest_dir}'."
+    sync "${output_file}"
 }
 
 function build_mgl_list() {
@@ -2088,7 +2100,6 @@ function build_gamelist() {
             return 1 # Return an error
         fi
 
-        # Seed the temporary copy for later comparisons.
         mkdir -p "${gamelistpathtmp}"
         cp "${file}" "${gamelistpathtmp}/${core}_gamelist.txt" 2>/dev/null
     fi
@@ -2230,47 +2241,21 @@ function create_all_gamelists() {
 
     # Run the entire process in a subshell in the background (&)
     (
-        local c # loop variable
+        # Wait a moment before starting the background build to keep resources free.
+        sleep 15
 
-        echo "Verifying and building standard gamelists in the background..."
-
-        # --- Step 1: Build any missing STANDARD gamelists ---
-        for c in "${corelist[@]}"; do
-            # Only process non-special cores
-            if [[ ! " ${special_cores[*]} " =~ " ${c} " ]]; then
-                local gamelist_file="${gamelistpath}/${c}_gamelist.txt"
-                
-                if [ ! -f "${gamelist_file}" ]; then
-                    samdebug "Gamelist for standard core '${c}' is missing, creating it now..."
-                    # Since we've excluded special cores, we only need the standard builder.
-                    "${mrsampath}/samindex" -q -s "$c" -o "$gamelistpath"
-                fi
-            fi
-        done
-        
-        sync
-
-        # --- Step 2: Validate all STANDARD lists ---
-        local launchable_cores=() # Start with an empty array
-        samdebug "Validating standard gamelists to find launchable cores..."
+        samdebug "Starting background build of standard gamelists..."
 
         for c in "${corelist[@]}"; do
             # Only process non-special cores
             if [[ ! " ${special_cores[*]} " =~ " ${c} " ]]; then
-                local gamelist_file="${gamelistpath}/${c}_gamelist.txt"
-                
-                if [ -s "${gamelist_file}" ]; then
-                    launchable_cores+=( "$c" )
-                else
-                    samdebug "Excluding standard core '${c}': Gamelist is missing or empty."
-                    delete_from_corelist "${c}"
-                fi
+                # Use the dispatcher to handle the check and call the correct builder.
+                # This is cleaner and respects your modular design.
+                ensure_list "${c}" "${gamelistpath}"
             fi
         done
         
-        # NOTE: You may want to update a final corelist variable with the
-        # contents of 'launchable_cores' plus 'special_cores' here.
-
+        samdebug "Background build process complete."
     ) &
 }
 
@@ -2294,26 +2279,31 @@ function check_list_update() {
 	if [[ "$m82" == "yes" ]]; then
 		return 0
 	fi
-	
-	mkdir -p "$compdir"
-	
-	ensure_list "$core" "$compdir"
-	
-	# Now, compare the sorted original list with the new sorted comparison list
-	if ! diff -q <(sort "$orig") <(sort "$comp") &>/dev/null; then
-	    samdebug "[${core}] Gamelist has changed, updating master list…"
-	
-	    # Log up to 10 lines of differences for debugging
-	    samdebug "[${core}] DIFF:"
-	    comm -3 <(sort "$orig") <(sort "$comp") | head -n10 | \
-	        while read -r ln; do samdebug "    $ln"; done
-	
-	    # Overwrite the original list with the sorted new one
-	    sort "$comp" -o "$orig"
-	    samdebug "[${core}] Gamelist updated."
-	else
-	    samdebug "[${core}] No changes detected in ${core} gamelist."
-	fi
+
+    (
+		mkdir -p "$compdir"
+		
+		#wait before building comparison lists
+		sleep 10
+		
+		ensure_list "$core" "$compdir"
+		
+		# Now, compare the sorted original list with the new sorted comparison list
+		if ! diff -q <(sort "$orig") <(sort "$comp") &>/dev/null; then
+			samdebug "[${core}] Gamelist has changed, updating master list…"
+		
+			# Log up to 10 lines of differences for debugging
+			samdebug "[${core}] DIFF:"
+			comm -3 <(sort "$orig") <(sort "$comp") | head -n10 | \
+				while read -r ln; do samdebug "    $ln"; done
+		
+			# Overwrite the original list with the sorted new one
+			sort "$comp" -o "$orig"
+			samdebug "[${core}] Gamelist updated."
+		else
+			samdebug "[${core}] No changes detected in ${core} gamelist."
+		fi
+    ) &
 }
 
 
@@ -2596,11 +2586,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
                 return 1
             fi
             # --- End Prerequisite Check ---
-
-            check_list "${core}"; if [ $? -ne 0 ]; then next_core; return 1; fi
-            check_list_update "${core}" &
-            filter_list "${core}"; pick_rom; check_rom "${core}"; if [ $? -ne 0 ]; then return 1; fi
-            
+          
             gamename="${romname%.*}"
             mute_target="amigacd32"
 
