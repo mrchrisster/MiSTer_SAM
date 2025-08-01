@@ -1365,7 +1365,7 @@ function run_countdown_timer() {
         fi
 
         if [ -s "$joy_activity_file" ] && [ "${listenjoy}" == "yes" ]; then
-            handle_joy_activity # Call a new helper for joystick logic
+            handle_joy_activity 
             if [ $? -eq 1 ]; then # Check if handle_joy_activity wants to break the loop
                 return
             fi
@@ -1376,41 +1376,56 @@ function run_countdown_timer() {
     trap - INT
 }
 
-# This new helper function cleans up the joystick logic.
 function handle_joy_activity() {
     local joy_action
     joy_action=$(cat "$joy_activity_file")
     truncate -s 0 "$joy_activity_file"
 
+    # The case statement is now the primary structure for all joystick actions.
     case "${joy_action}" in
-        "Start")
-            samdebug "Start button pushed. Exiting SAM."
+        "Start" | "zaparoo")
+            # These actions are the same for both standard and M82 mode.
+            samdebug "'${joy_action}' button pushed. Exiting SAM."
+            [[ "$joy_action" == "zaparoo" ]] && mute="yes"
             playcurrentgame="yes"
             play_or_exit &
             return 1 # Signal to exit countdown
             ;;
+
         "Next")
-            echo "Starting next Game"
-            if [[ "$ignore_when_skip" == "yes" ]]; then
-                ignoregame
+            # Handle M82 as a specific override for the "Next" action.
+            if [[ "$m82" == "yes" ]]; then
+                local romname_lower="${romname,,}"
+                if [[ "$romname_lower" != *"m82"* ]]; then
+                    sed -i '1d' "${gamelistpathtmp}/nes_gamelist.txt"
+                fi
+                update_done=1
+            else
+                echo "Starting next Game"
+                if [[ "$ignore_when_skip" == "yes" ]]; then
+                    ignoregame
+                fi
             fi
-            # Returning 1 will break the countdown loop and let the main loop call next_core
-            return 1
+            return 1 # In both modes, "Next" breaks the countdown
             ;;
-        "zaparoo")
-            echo "Zaparoo starting. SAM exiting"
-            mute="yes"
-            playcurrentgame="yes"
-            play_or_exit &
-            return 1 # Signal to exit countdown
-            ;;
-        *)
-            # Default case for other joy activity
-            play_or_exit &
-            return 1 # Signal to exit countdown
+
+        *) # Default case for any other joystick activity
+            # Handle M82 as a specific override for other button presses.
+            if [[ "$m82" == "yes" ]]; then
+                local romname_lower="${romname,,}"
+                if [[ "$romname_lower" != *"m82"* ]] && (( ! update_done )); then
+                    if [[ "$m82_muted" == "yes" ]]; then unmute; fi
+                    counter=$m82_game_timer
+                    update_done=1
+                fi
+                return 0 # In M82 mode, other presses CONTINUE the countdown
+            else
+                # In standard mode, other presses start the game.
+                play_or_exit &
+                return 1 # Signal to exit countdown
+            fi
             ;;
     esac
-    return 0
 }
 
 # Pick a random core
@@ -1448,11 +1463,6 @@ function next_core() { # next_core (core)
 		samdebug "check_list function returned an error."
 		return 1
 	fi
-
-	filter_list "${nextcore}"
-	if [ $? -ne 0 ]; then 
-		samdebug "filter_list encountered an error"
-	fi	
 	
 	# Check if new roms got added
 	check_list_update ${nextcore} &
@@ -1806,26 +1816,29 @@ function check_rom(){
         return 1
     fi
     
+	# Skip file check for Amiga
+    if [[ "$core" == "amiga" ]]; then
+		return
+	fi
+	
     # Make sure file exists since we're reading from a static list
-    if [[ "$core" != "amiga" ]]; then
-        if [[ "${rompath,,}" != *.zip* ]]; then
-            if [ ! -f "${rompath}" ]; then
-                echo "ERROR: File not found - ${rompath}"
-                rm -f "${gamelistpath}/${core}_gamelist.txt"
-                ensure_gamelist "${core}" "${gamelistpath}"
-                return 1
-            fi
-        else
-            local zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
-            if [ ! -f "${zipfile}" ]; then
-                echo "ERROR: File not found - ${zipfile}"
-                rm -f "${gamelistpath}/${core}_gamelist.txt"
-                ensure_gamelist "${core}" "${gamelistpath}"
-                return 1
-            fi
-        fi
-    fi
-    
+	if [[ "${rompath,,}" != *.zip* ]]; then
+		if [ ! -f "${rompath}" ]; then
+			echo "ERROR: File not found - ${rompath}"
+			rm -f "${gamelistpath}/${core}_gamelist.txt"
+			ensure_gamelist "${core}" "${gamelistpath}"
+			return 1
+		fi
+	else
+		local zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}' | sed -e 's/$/.zip/')"
+		if [ ! -f "${zipfile}" ]; then
+			echo "ERROR: File not found - ${zipfile}"
+			rm -f "${gamelistpath}/${core}_gamelist.txt"
+			ensure_gamelist "${core}" "${gamelistpath}"
+			return 1
+		fi
+	fi
+   
     romname=$(basename "${rompath}")
 
     # Make sure we have a valid extension as well
@@ -2118,7 +2131,7 @@ function check_list() {
     # 1. Ensure we have Master game list if it doesn't exist. Exit if it fails.
     ensure_list "${core_type}" "${gamelistpath}" || return 1
 
-    # 2. Create "comparison" game lists if requested.
+    # 2. Create "comparison" game lists to /tmp to check if we have new games
     if [[ "${mode}" == "comp" ]]; then
         local comp_dir="${gamelistpath}/comp"
         mkdir -p "${comp_dir}" # Ensure the 'comp' subdirectory exists
@@ -2168,6 +2181,8 @@ function check_list() {
             sed -i '1d' "${session_list}"
         fi
         
+		sync
+		
         # --- Finalize M82 state for this cycle ---
         gametimer="21"
         update_done=0
@@ -2179,6 +2194,11 @@ function check_list() {
     if [ ! -s "${session_list}" ]; then
         cp "${gamelistpath}/${core_type}_gamelist.txt" "${session_list}" 2>/dev/null
     fi
+	
+	filter_list "${nextcore}"
+	if [ $? -ne 0 ]; then 
+		samdebug "filter_list encountered an error"
+	fi	
 
     return 0
 }
@@ -4108,7 +4128,7 @@ function check_and_update() {
         echo "$description is up-to-date. No update required."
         return 0  # File is up-to-date
     else
-        echo "Sizes differ. Updating $description..."
+        echo "Updating $description..."
         curl_download "$tmp_file" "$url" || return 1  # Download failed
         mv "$tmp_file" "$local_file" || { echo "Error: Unable to move $tmp_file to $local_file" >&2; return 1; }
         echo "$description updated successfully."
