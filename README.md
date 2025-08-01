@@ -214,80 +214,43 @@ Indexing tool & input detection: wizzomafizzo
 
 ## Development
 
-Here is the flow chart of how SAM operates:
-[Start]
+graph TD
+    subgraph Initialization
+        A((Start)) --> B[Initialize Global Variables];
+    end
 
-Initialize global variables (first_core_launched=0, etc.)
+    B --> C{Main Loop};
 
-Call loop_core.
+    subgraph "Launch Attempt (next_core)"
+        C --> D["<b>1. Prepare Core</b><br/>- pick_core (if no arg passed)<br/>- check_list (JIT build)<br/>- filter_list (JIT filter)<br/>- check_list_update &"];
+        D --> E["<b>2. Select & Validate Game</b><br/>- pick_rom is called<br/>- Enters a retry loop for check_rom"];
+        E --> F{Valid ROM Found?};
+        F -->|Yes| G[<b>3. Launch Game</b><br/>load_core is called];
+        F -->|No| H[Return Failure];
+    end
 
-[Loop: Main Application] (Runs forever)
+    G --> I{Launch Succeeded?};
+    H --> I;
+    
+    subgraph "Failure Path"
+        I -->|No| J[Blacklist Failed Core];
+        J --> C;
+    end
 
-[Process: next_core] (Prepare and Launch a Core)
+    subgraph "Success Path"
+        I -->|Yes| K{First Launch?};
+        K -->|Yes| L[Launch create_all_gamelists &];
+        L --> M;
+        K -->|No| M;
+        M["<b>Process: run_countdown_timer</b><br/>- Delay a few seconds<br/>- Launch 'Prepare-Ahead' Task &<br/>- Begin countdown loop"];
+        M --> N{User Interrupt?};
+        N -->|Exit| P((End));
+        N -->|Skip / Timer Finishes| C;
+    end
 
-[Decision: Is a core name passed as an argument?]
-
-Yes: Use that core name.
-
-No: Call pick_core to select a core.
-
-[Process: check_list] (JIT build of master list if missing).
-
-[Process: filter_list] (JIT creation of session list if missing).
-
-[Process: check_list_update] (Launched in background &).
-
-[Process: pick_rom] (Selects a specific game).
-
-[Loop: ROM Validation] (Retries up to 3 times)
-
-[Process: check_rom] (Validates the selected game).
-
-[Decision: Is ROM valid?]
-
-Yes: Break loop.
-
-No: Call pick_rom again, continue loop.
-
-[Decision: Was a valid ROM ever found?]
-
-Yes: Call load_core to launch the game. Return Success (0).
-
-No: Return Failure (1).
-
-[Decision: Did next_core Succeed?]
-
-Yes (Game Launched):`
-
-[Decision: Is this the first launch?]
-
-Yes: Launch create_all_gamelists & in the background, set flag.
-
-No: Continue.
-
-Call [Process: run_countdown_timer].
-
-Delay for a few seconds.
-
-Launch "Prepare-Ahead" task in background &.
-
-[Loop: Countdown]
-
-[Decision: User Input Detected?]
-
-Yes: Call handle_joy_activity, break countdown loop.
-
-No: sleep 1, decrement timer.
-
-Return to start of Main Application Loop.
-
-No (Launch Failed):`
-
-[Process: delete_from_corelist] (Blacklist the failed core).
-
-Return to start of Main Application Loop immediately.
    
 ## Release History
+- 1 Aug 2025 - Refactored and cleaned up a lot fo the code.
 - 4 Feb 2025 - Added amigacd32, neogeocd and various bugfixes
 - 26 Feb 2024 - Saturn, N64 and video mode implemented. Watch game commercials from back in the day and then play those games.
 - 02 Feb 2023 - ao486 integration, Kids Safe Mode, Dynamically finding new roms, Adjust global volume for BGM
