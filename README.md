@@ -214,6 +214,7 @@ Indexing tool & input detection: wizzomafizzo
 
 ## Development
 
+```mermaid
 graph TD
     subgraph Initialization
         A((Start)) --> B[Initialize Global Variables];
@@ -247,7 +248,7 @@ graph TD
         N -->|Exit| P((End));
         N -->|Skip / Timer Finishes| C;
     end
-
+```
    
 ## Release History
 - 1 Aug 2025 - Refactored and cleaned up a lot fo the code.
