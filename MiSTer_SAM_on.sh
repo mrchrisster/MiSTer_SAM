@@ -1450,7 +1450,6 @@ function next_core() { # next_core (core)
 	# Pick a core if no corename was supplied as argument (eg "MiSTer_SAM_on.sh psx")
 	if [ -z "${1}" ]; then
 		corelist_update	
-		create_all_gamelists
 		if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ]; then
 			nextcore=$(cat /tmp/.SAM_tmp/sv_core)
 		else
@@ -1500,6 +1499,10 @@ function next_core() { # next_core (core)
 	delete_played_game
 	
 	load_core "${nextcore}" "${rompath}" "${romname%.*}"
+	
+	# Create all missing lists in the background
+	# create_all_gamelists
+
 
 	# Capture the exit code from load_core and return it.
 	# This passes the success/failure signal up to the main loop.
@@ -1578,18 +1581,32 @@ function corelist_update() {
 # Main core picker
 # ──────────────────────────────────────────────────────────────────────────────
 function pick_core() {
+    # Check if this is a first run by seeing if any gamelists exist.
+    local gamelist_count
+    gamelist_count=$(find "$gamelistpath" -maxdepth 1 -type f -name '*_gamelist.txt' | wc -l)
 
+    if [ "$gamelist_count" -eq 0 ]; then
+        samdebug "First run detected (no gamelists). Prioritizing Arcade core."
+        # As a safety check, ensure 'arcade' is an available core.
+        if [[ " ${corelistall[*]} " =~ " arcade " ]]; then
+            nextcore="arcade"
+            samdebug "Selected initial core: arcade"
+            return # Exit the function immediately
+        else
+            samdebug "Arcade core not available. Falling back to normal selection."
+        fi
+    fi
+
+    # If it's not a first run, proceed with the standard mode selection.
     if [[ "$coreweight" == "yes" ]]; then
         pick_core_weighted
-
     elif [[ "$samvideo" == "yes" ]]; then
         pick_core_samvideo "$1"
-
     else
         pick_core_standard
     fi
 
-    # fallback
+    # Fallback in case a selection function failed
     if [[ -z "$nextcore" ]]; then
         samdebug "nextcore empty. Using arcade core as fallback."
         nextcore="arcade"
@@ -2203,10 +2220,7 @@ function check_list() {
     return 0
 }
 
-
-
 # Create all gamelists in the background
-
 function create_all_gamelists() {
     # This function now only runs once per script invocation.
     if (( gamelists_created )); then
@@ -2215,52 +2229,47 @@ function create_all_gamelists() {
     gamelists_created=1
 
     # Run the entire process in a subshell in the background (&)
-    # to avoid blocking the main script's startup.
     (
         local c # loop variable
-        local core_has_games=false
 
-        echo "Verifying and building gamelists in the background..."
+        echo "Verifying and building standard gamelists in the background..."
 
-        # --- Step 1: Build any missing gamelists ---
+        # --- Step 1: Build any missing STANDARD gamelists ---
         for c in "${corelist[@]}"; do
-            local gamelist_file="${gamelistpath}/${c}_gamelist.txt"
-            
-            # If the gamelist for a core in our list doesn't exist, create it.
-            if [ ! -f "${gamelist_file}" ]; then
-                samdebug "Gamelist for '${c}' is missing, creating it now..."
+            # Only process non-special cores
+            if [[ ! " ${special_cores[*]} " =~ " ${c} " ]]; then
+                local gamelist_file="${gamelistpath}/${c}_gamelist.txt"
                 
-                # Check if it's a special core with its own builder function
-                if [[ " ${special_cores[*]} " =~ " ${c} " ]] && type -t build_"${c}"_list > /dev/null; then
-                    # It's a special core, call its dedicated builder
-                    build_"${c}"_list
-                else
-                    # It's a standard core, use samindex
+                if [ ! -f "${gamelist_file}" ]; then
+                    samdebug "Gamelist for standard core '${c}' is missing, creating it now..."
+                    # Since we've excluded special cores, we only need the standard builder.
                     "${mrsampath}/samindex" -q -s "$c" -o "$gamelistpath"
                 fi
             fi
         done
-		
-		sync
+        
+        sync
 
-        # --- Step 2: Validate all lists and create the final, active core list ---
+        # --- Step 2: Validate all STANDARD lists ---
         local launchable_cores=() # Start with an empty array
-        samdebug "Validating all gamelists to find launchable cores..."
+        samdebug "Validating standard gamelists to find launchable cores..."
 
         for c in "${corelist[@]}"; do
-            local gamelist_file="${gamelistpath}/${c}_gamelist.txt"
-            
-            # A core is considered "launchable" if its gamelist exists AND is not empty.
-            if [ -s "${gamelist_file}" ]; then
-                # The list exists and has games. Add it to our active list.
-                launchable_cores+=( "$c" )
-                core_has_games=true
-            else
-                # The list is missing or empty. This core cannot be launched.
-                samdebug "Excluding core '${c}' from this session: Gamelist is missing or empty."
-				delete_from_corelist "${c}"
+            # Only process non-special cores
+            if [[ ! " ${special_cores[*]} " =~ " ${c} " ]]; then
+                local gamelist_file="${gamelistpath}/${c}_gamelist.txt"
+                
+                if [ -s "${gamelist_file}" ]; then
+                    launchable_cores+=( "$c" )
+                else
+                    samdebug "Excluding standard core '${c}': Gamelist is missing or empty."
+                    delete_from_corelist "${c}"
+                fi
             fi
         done
+        
+        # NOTE: You may want to update a final corelist variable with the
+        # contents of 'launchable_cores' plus 'special_cores' here.
 
     ) &
 }
