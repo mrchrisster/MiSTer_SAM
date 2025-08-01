@@ -220,7 +220,7 @@ graph TD
         A((Start)) --> B[Initialize Global Variables];
     end
 
-    B --> C{Main Loop loop_core};
+    B --> C{loop_core launches next_core};
 
     subgraph "Launch Attempt (next_core)"
         C --> D["<b>1. Prepare Core</b><br/>- pick_core (if no arg passed)<br/>- check_list (JIT build)<br/>- filter_list (JIT filter)<br/>- check_list_update &"];
