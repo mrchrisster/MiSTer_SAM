@@ -1,0 +1,34 @@
+{
+  "054c_0ce6": {
+    "name": "Wireless Controller",
+    "button": {
+      "start": 10,
+      "next": 9
+    },
+    "axis": {}
+  },
+  "054c_05c4": {
+    "name": "Sony DualShock 4",
+    "button": {
+      "start": 9,
+      "next": 8
+    },
+    "axis": {}
+  },
+  "default": {
+    "name": "Generic Controller",
+    "button": {
+      "start": 9,
+      "next": 8
+    },
+    "axis": {}
+  },
+  "054c_0268": {
+    "name": "PLAYSTATION(R)3 Controller",
+    "button": {
+      "start": 9,
+      "next": 8
+    },
+    "axis": {}
+  }
+}
