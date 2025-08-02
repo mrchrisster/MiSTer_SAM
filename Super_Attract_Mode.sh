@@ -8,11 +8,11 @@
 trap '' SIGHUP
 
 # Define base paths used by the libraries
-declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+declare -g mrsampath="/media/fat/Scripts/.Super_Attract"
 declare -g misterpath="/media/fat"
-declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
-declare -g gamelistpathtmp="/tmp/.SAM_List"
-declare -g mrsamtmp="/tmp/.SAM_tmp"
+declare -g gamelistpath="${mrsampath}/game_lists"
+declare -g gamelistpathtmp="/tmp/.sam_list"
+declare -g mrsamtmp="/tmp/.sam_tmp"
 
 # --- Library Loader ---
 # Source all the component parts of the script.
