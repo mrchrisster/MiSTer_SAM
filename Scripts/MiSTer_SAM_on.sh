@@ -2586,8 +2586,8 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
                 return 1
             fi
             # --- End Prerequisite Check ---
-          
-            gamename="${romname%.*}"
+
+            gamename="${romname_arg%.*}"
             mute_target="amigacd32"
 
             local CONFIG_FILE="/media/fat/config/AmigaCD32.cfg"
