@@ -16,10 +16,10 @@ declare -g mrsamtmp="/tmp/.sam_tmp"
 
 # --- Library Loader ---
 # Source all the component parts of the script.
-source "${mrsampath}/lib/utils.sh"
-source "${mrsampath}/lib/config.sh"
-source "${mrsampath}/lib/gamelists.sh"
-source "${mrsampath}/lib/launchers.sh"
+source "${mrsampath}/sam_utils.sh"
+source "${mrsampath}/sam_config.sh"
+source "${mrsampath}/sam_gamelists.sh"
+source "${mrsampath}/sam_launchers.sh"
 
 # --- Main Application Loop ---
 function loop_core() { # loop_core (optional_core_name)
