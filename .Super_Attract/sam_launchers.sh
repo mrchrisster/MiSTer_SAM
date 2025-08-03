@@ -102,7 +102,7 @@ function pick_core_standard() {
 
 declare -A SAMVC        # tvc counts per core
 SAMVTOTAL=0             # sum of all counts
-SAMVIDEO_INIT_SENTINEL="/tmp/.SAM_tmp/samvideo_init"
+SAMVIDEO_INIT_SENTINEL="/tmp/.sam_tmp/samvideo_init"
 
 
 function init_core_samvideo() {
@@ -278,9 +278,9 @@ function pick_rom() {
         rompath="$(head -n 1 "${gamelistpathtmp}/nes_gamelist.txt")"
         return
     fi
-    if [[ "$samvideo" == "yes" ]] && [[ "$samvideo_tvc" == "yes" ]] && [[ -f /tmp/.SAM_tmp/sv_gamename ]]; then
+    if [[ "$samvideo" == "yes" ]] && [[ "$samvideo_tvc" == "yes" ]] && [[ -f /tmp/.sam_tmp/sv_gamename ]]; then
         local specific_game
-        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "${gamelistpath}/${nextcore}_gamelist.txt" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
+        specific_game="$(grep -if /tmp/.sam_tmp/sv_gamename "${gamelistpath}/${nextcore}_gamelist.txt" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
         if [[ -n "${specific_game}" ]]; then
             rompath="${specific_game}"
             return
@@ -320,9 +320,11 @@ function pick_random_game() {
 
 # --- Validator ---
 
-# Validates a chosen game using data from the core's config module.
+# This function validates a given ROM file ('rompath') against the configuration for a specific core.
+# It checks for file existence and ensures the file extension is one of the valid types for that core.
 function check_rom() {
     local core="$1"
+
     if [ -z "${rompath}" ]; then
         echo "ERROR: rompath is empty for core '${core}'." >&2
         return 1
@@ -330,13 +332,16 @@ function check_rom() {
 
     local core_config_name=${CORES[$core]}
     declare -n core_config=${core_config_name}
+
     local extlist="${core_config[valid_exts]}"
 
+    # If 'valid_exts' is empty, no extension check is needed.
     if [[ -z "$extlist" ]]; then
         romname=$(basename "${rompath}")
         return 0
     fi
 
+    # Verify that the ROM file (or the .zip it's inside) actually exists.
     if [[ "${rompath,,}" != *.zip* ]]; then
         if [ ! -f "${rompath}" ]; then
             echo "ERROR: File not found - ${rompath}"
@@ -344,7 +349,8 @@ function check_rom() {
             return 1
         fi
     else
-        local zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}').zip"
+        local zipfile
+        zipfile="$(echo "$rompath" | awk -F".zip" '{print $1}').zip"
         if [ ! -f "${zipfile}" ]; then
             echo "ERROR: Zip file not found - ${zipfile}"
             rm -f "${gamelistpath}/${core}_gamelist.txt"; ensure_list "${core}" "${gamelistpath}"
@@ -353,18 +359,38 @@ function check_rom() {
     fi
     
     romname=$(basename "${rompath}")
-    local extension="${rompath##*.}"
+    
+    # --- Start of Fix ---
+
+    # 1. Extract the file extension and convert it to lowercase immediately.
+    # This handles incoming extensions like 'PCE', 'pce', or 'Pce'.
+    local extension="${romname##*.}"
     extension="${extension,,}"
     
-    if [[ ! " $extlist " =~ " $extension " ]]; then
+    # 2. Convert the comma-separated list into a space-separated list for looping.
+    local exts_to_loop
+    exts_to_loop=$(echo "$extlist" | tr ',' ' ')
+
+    # 3. Loop through each valid extension and perform a direct string comparison.
+    local is_valid_ext=false
+    for valid_ext in $exts_to_loop; do
+        if [[ "$extension" == "$valid_ext" ]]; then
+            is_valid_ext=true
+            break # Found a match, no need to check further.
+        fi
+    done
+
+    # 4. Check the result of the loop.
+    if ! $is_valid_ext; then
         samdebug "Wrong extension found: '${extension^^}' for core: ${core} rom: ${rompath}"
         ensure_list "${core}" "${gamelistpath}" &
         return 1
     fi
     
+    # --- End of Fix ---
+
     return 0
 }
-
 # --- Core Loaders ---
 
 # Main dispatcher that calls the correct loader function based on the core's config.
