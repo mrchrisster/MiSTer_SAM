@@ -6,35 +6,34 @@
 
 # Sets all default global variables for the script.
 function init_vars() {
-	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
+	declare -g mrsampath="/media/fat/Scripts/.Super_Attract"
 	declare -g misterpath="/media/fat"
-	declare -g mrsamtmp="/tmp/.SAM_tmp"
+	declare -g mrsamtmp="/tmp/.sam_tmp"
 	# Save our PID and process
 	declare -g sampid="${$}"
 	declare -g samprocess
 	samprocess="$(basename -- "${0}")"
 	declare -g menuonly="Yes"
-	declare -g key_activity_file="/tmp/.SAM_tmp/SAM_Keyboard_Activity"
-	declare -g joy_activity_file="/tmp/.SAM_tmp/SAM_Joy_Activity"
-	declare -g mouse_activity_file="/tmp/.SAM_tmp/SAM_Mouse_Activity"
-	declare -g sam_menu_file="/tmp/.SAMmenu"
-	declare -g brfake="/tmp/.SAM_tmp/brfake"
-	declare -g samini_file="/media/fat/Scripts/MiSTer_SAM.ini"
-	declare -g samini_update_file="${mrsampath}/MiSTer_SAM.default.ini"
+	declare -g key_activity_file="/tmp/.sam_tmp/SAM_Keyboard_Activity"
+	declare -g joy_activity_file="/tmp/.sam_tmp/SAM_Joy_Activity"
+	declare -g mouse_activity_file="/tmp/.sam_tmp/SAM_Mouse_Activity"
+	declare -g sam_menu_file="/tmp/.sammenu"
+	declare -g brfake="/tmp/.sam_tmp/brfake"
+	declare -g samini_file="/media/fat/Scripts/Super_Attract_Mode.ini"
+	declare -g samini_update_file="${mrsampath}/Super_Attract_Mode.default.ini"
 	declare -gi inmenu=0
 	declare -gi MENU_LOADED=0
 	declare -gi sam_bgmmenu=0					  
 	declare -gi shown=0
 	declare -gi coreretries=3
 	declare -gi romloadfails=0
-	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
-	declare -g gamelistpathtmp="/tmp/.SAM_List"
-	declare -g gamelistpathtmp="/tmp/.SAM_List"
-	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
-	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
-	declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
-	declare -g corelistfile="/tmp/.SAM_List/corelist"
-	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
+	declare -g gamelistpath="${mrsampath}/lists/games"
+	declare -g gamelistpathtmp="/tmp/.sam_list"
+	declare -g tmpfile="/tmp/.sam_list/tmpfile"
+	declare -g tmpfile2="/tmp/.sam_list/tmpfile2"
+	declare -g tmpfilefilter="/tmp/.sam_list/tmpfilefilter"
+	declare -g corelistfile="/tmp/.sam_list/corelist"
+	declare -g core_count_file="/tmp/.sam_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
 	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,psx,x68k"
@@ -60,9 +59,9 @@ function init_vars() {
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
 	declare -gl listenjoy="Yes"
-	declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
+	declare -g repository_url="https://github.com/mrchrisster/Super_Attract_Mode"
 	declare -g branch="main"
-	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"
+	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/Super_Attract_Mode/${branch}"
 	declare -gi counter=0
 	declare -gA corewc
 	declare -gA corep
@@ -118,8 +117,8 @@ function init_vars() {
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
 	declare -g ini_file="/media/fat/MiSTer.ini"
 	declare -g ini_contents=$(cat "$ini_file")
-	declare -g sv_core="/tmp/.SAM_tmp/sv_core"
-	declare -g sv_gametimer_file="/tmp/.SAM_tmp/sv_gametimer"
+	declare -g sv_core="/tmp/.sam_tmp/sv_core"
+	declare -g sv_gametimer_file="/tmp/.sam_tmp/sv_gametimer"
 	declare -g sv_loadcounter=0
 	declare -g samvideo_path="/media/fat/video"
 	declare -g sv_archive_hdmilist="https://archive.org/download/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
@@ -180,7 +179,7 @@ function init_vars() {
 # Reads the user's INI file and applies the settings.
 function read_samini() {
 	if [ ! -f "${samini_file}" ]; then
-		echo "Error: MiSTer_SAM.ini not found."
+		echo "Error: Super_Attract_Mode.ini not found."
 		return 1
 	fi
 	source "${samini_file}"
@@ -204,9 +203,9 @@ function read_samini() {
 
 # Creates all necessary temporary directories.
 function init_paths() {
-	mkdir -p "${mrsampath}/SAM_Gamelists"
-	mkdir -p /tmp/.SAM_List
-	mkdir -p /tmp/.SAM_tmp
+	mkdir -p "${mrsampath}/lists/games"
+	mkdir -p /tmp/.sam_list
+	mkdir -p /tmp/.sam_tmp
 	touch "${tmpfile}"
 }
 
@@ -318,7 +317,7 @@ function play_or_exit() {
 	bgm_stop
 	tty_exit
 	# Kills all SAM-related processes.
-	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
+	ps -ef | grep -i '[S]upser_Attract_Mode.sh' | xargs --no-run-if-empty kill &>/dev/null
 }
 
 # --- Command Parsing and Menus ---
@@ -377,7 +376,7 @@ function sam_menu() {
                  menu_controller    "Configure Gamepad" \
                  menu_filters       "Filters" \
                  menu_addons        "Add-ons" \
-                 menu_inieditor     "MiSTer_SAM.ini Editor" \
+                 menu_inieditor     "Super_Attract_Mode.ini Editor" \
                  menu_settings      "Settings" \
                  menu_reset         "Reset or Uninstall SAM" \
                  2> "${sam_menu_file}"
@@ -434,8 +433,8 @@ function sam_premenu() {
 
 function sam_sshconfig() {
 	# Alias to be added
-	alias_m='alias m="/media/fat/Scripts/MiSTer_SAM_on.sh"'
-	alias_ms='alias ms="source /media/fat/Scripts/MiSTer_SAM_on.sh --source-only"'
+	alias_m='alias m="/media/fat/Scripts/Super_Attract_Mode.sh"'
+	alias_ms='alias ms="source /media/fat/Scripts/Super_Attract_Mode.sh --source-only"'
 	alias_u='alias u="/media/fat/Scripts/update_all.sh"'
 
 	# Path to the .bash_profile
@@ -452,7 +451,7 @@ function sam_sshconfig() {
         echo "$alias_m" >> "$bash_profile"
 		echo "$alias_ms" >> "$bash_profile"
 		echo "$alias_u" >> "$bash_profile"
-        echo "Alias added to $bash_profile. Please relaunch terminal. Type 'm' to start MiSTer_SAM_on.sh"
+        echo "Alias added to $bash_profile. Please relaunch terminal. Type 'm' to start Super_Attract_Mode.sh"
     fi
 	source ~/.bash_profile
 }
@@ -505,7 +504,7 @@ function sam_start() {
 		 -x 180 -y 40 \
 		 -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
 		 -s SAM \
-		 "${misterpath}/Scripts/MiSTer_SAM_on.sh" loop_core "$core"
+		 "${misterpath}/Scripts/Super_Attract_Mode.sh" loop_core "$core"
 	) &
 }
 
@@ -539,7 +538,7 @@ function sam_monitor() {
 }
 
 function env_check() {
-	if [ ! -f "${mrsampath}/samindex" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
+	if [ ! -f "${mrsampath}/tools/samindex" ] || [ ! -f "${mrsampath}/input/sam_mcp.sh" ]; then
 		echo " SAM required files not found. Installing now."
 		sam_update autoconfig
 		echo " Setup complete."
@@ -550,10 +549,10 @@ function there_can_be_only_one() {
     echo "Stopping other running instances of ${samprocess}…"
     tmux kill-session -t SAM 2>/dev/null || true
     local patterns=(
-        "MiSTer_SAM_on.sh initial_start"
-        "MiSTer_SAM_on.sh loop_core"
-        "MiSTer_SAM_on.sh bootstart"
-        "MiSTer_SAM_init start"
+        "Super_Attract_Mode.sh initial_start"
+        "Super_Attract_Mode.sh loop_core"
+        "Super_Attract_Mode.sh bootstart"
+        "sam_init start"
     )
     local pat pid
     for pat in "${patterns[@]}"; do
@@ -567,34 +566,193 @@ function there_can_be_only_one() {
 function update_samini() {
 	[ ! -f /media/fat/Scripts/.config/downloader/downloader.log ] && return
 	[ ! -f ${samini_file} ] && return
-	if [[ "$(cat /media/fat/Scripts/.config/downloader/downloader.log | grep -c "MiSTer_SAM.default.ini")" != "0" ]] && [ "${samini_update_file}" -nt "${samini_file}" ]; then
-		echo "New MiSTer_SAM.ini version downloaded. Merging with new ini."
+	if [[ "$(cat /media/fat/Scripts/.config/downloader/downloader.log | grep -c "Super_Attract_Mode.default.ini")" != "0" ]] && [ "${samini_update_file}" -nt "${samini_file}" ]; then
+		echo "New Super_Attract_Mode.ini version downloaded. Merging with new ini."
 		cp "${samini_file}" "${samini_file}".bak
 		sed -i 's/==/--/g' "${samini_file}"
 		sed -i 's/-=/--/g' "${samini_file}"
-		awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
+		awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/Super_Attract_Mode.tmp && cp -f --force /tmp/Super_Attract_Mode.tmp "${samini_file}"
 		echo "Done."
 	fi
 }
 
 function mcp_start() {
-	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP"
+	if [ -z "$(pidof sam_mcp.sh)" ]; then
+		tmux new-session -s MCP -d "${mrsampath}/input/sam_mcp.sh"
 	fi
 }
 
 function sam_prep() {
+	
+	# samvideo and ratings filter can't both be set
 	if [ "${rating}" == "yes" ]; then
 		samvideo=no
 	fi
-	# ... (rest of sam_prep logic from original script) ...
+	[ ! -d "/tmp/.sam_tmp/SAM_config" ] && mkdir -p "/tmp/.sam_tmp/SAM_config"
+	[ ! -d "${misterpath}/video" ] && mkdir -p "${misterpath}/video"
+	[[ -f /tmp/SAM_game.previous.mgl ]] && rm /tmp/SAM_game.previous.mgl
+	[[ ! -d "${mrsampath}" ]] && mkdir -p "${mrsampath}"
+	[[ ! -d "${mrsamtmp}" ]] && mkdir -p "${mrsamtmp}"
+	mkdir -p /media/fat/Games/SAM &>/dev/null
+	[ ! -d "/tmp/.sam_tmp/Amiga_shared" ] && mkdir -p "/tmp/.sam_tmp/Amiga_shared"
+	if [ -d "${amigapath}/shared" ] && [ "$(mount | grep -ic "${amigapath}"/shared)" == "0" ]; then
+		if [ "$(du -m "${amigapath}/shared" | cut -f1)" -lt 30 ]; then
+			cp -r --force "${amigapath}"/shared/* /tmp/.sam_tmp/Amiga_shared &>/dev/null
+			mount --bind "/tmp/.sam_tmp/Amiga_shared" "${amigapath}/shared"
+		else
+			echo "WARNING: ${amigapath}/shared folder is bigger than 30 MB. Items in shared folder won't be accessible while SAM is running."
+			mount --bind "/tmp/.sam_tmp/Amiga_shared" "${amigapath}/shared"
+		fi
+	fi
+	
+	#Downloads rating lists and sets the corelist to match only cores with rated lists
+	if [ "${kids_safe}" == "yes" ]; then
+		rating="kids"
+	fi
+
+	if [ "${rating}" != "no" ]; then	
+	    local missing=()
+
+		# make sure the target dir exists
+		mkdir -p "${mrsampath}/SAM_Rated"
+		# check each expected file
+		for f in "${RATED_FILES[@]}"; do
+			if [[ ! -f "${mrsampath}/SAM_Rated/$f" ]]; then
+				missing+=( "$f" )
+			fi
+		done
+		if (( ${#missing[@]} )); then
+			echo "Missing rating lists: ${missing[*]}"
+			echo "Downloading..."
+			if ! get_ratedlist; then
+				echo "Ratings Filter failed downloading."
+				return 1
+			fi
+		else
+			echo "All rating lists present."
+		fi
+
+		#Set corelist to only include cores with rated lists
+		# build glr from the files on disk
+		if [ "${rating}" == "kids" ]; then
+			readarray -t glr < <(
+			  find "${mrsampath}/SAM_Rated" -name "*_rated.txt" \
+				| awk -F'/' '{print $NF}' \
+				| awk -F'_'  '{print $1}'
+			)
+		else
+			readarray -t glr < <(
+			  find "${mrsampath}/SAM_Rated" -name "*_mature.txt" \
+				| awk -F'/' '{print $NF}' \
+				| awk -F'_'  '{print $1}'
+			)
+		fi
+
+		# intersect glr with corelist
+		clr=()
+		for g in "${glr[@]}"; do
+		  for c in "${corelist[@]}"; do
+			[[ "$c" == "$g" ]] && clr+=("$c")
+		  done
+		done
+
+		# if no overlap, warn & use the full rated list
+		if (( ${#clr[@]} == 0 )); then
+		  echo "Warning: none of your enabled cores match the '${rating}' list."
+		  echo "→ Falling back to ALL rated cores."
+		  clr=( "${glr[@]}" )
+		else
+		  # otherwise show which cores have no rating file
+		  readarray -t nclr < <(
+			printf '%s\n' "${clr[@]}" "${corelist[@]}" \
+			  | sort \
+			  | uniq -iu
+		  )
+		  #echo "Rating lists missing for cores: ${nclr[*]}"
+		fi
+
+		# finally, write out the new corelist
+		printf "%s\n" "${clr[@]}" > "${corelistfile}"
+
+	fi
+	
+	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
+	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
+	if [ "${samvideo}" == "yes" ]; then
+		# Hide login prompt
+		echo -e '\033[2J' > /dev/tty1
+		# Hide blinking cursor
+		echo 0 > /sys/class/graphics/fbcon/cursor_blink
+		echo -e '\033[?17;0;0c' > /dev/tty1 
+		
+		misterini_mod
+		get_dlmanager
+		if [ ! -f "${mrsampath}"/mplayer ] || [ ! -f "${mrsampath}"/ytdl ]; then
+			if [ -f "${mrsampath}"/mplayer.zip ]; then
+				unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}"
+				curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
+			else
+				get_samvideo
+			fi
+		fi
+
+		if { [ "$samvideo_source" == "local" ] || [ "$samvideo_source" == "youtube" ]; } && [ "$samvideo_tvc" == "yes" ]; then
+			samini_mod samvideo_tvc no
+		fi
+	fi
+	# Mute Global Volume
+	# if Volume.dat exists, try to mute only if needed
+	if [ "${mute}" != "no" ]; then
+		if [ -f "${configpath}/Volume.dat" ]; then
+		  only_mute_if_needed
+	
+		# if Volume.dat doesn’t exist yet, create it *and* mute
+		else
+		  # create a “level=0 + mute” byte = 0x10
+		  write_byte "${configpath}/Volume.dat" "10"
+		  echo "volume mute" > /dev/MiSTer_cmd
+		  samdebug "Volume.dat created (0x10) and muted."
+		fi
+	fi
 }
+
+function sam_cleanup() {
+	# Clean up by umounting any mount binds
+	#[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
+	only_unmute_if_needed
+	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
+	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
+	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
+	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
+	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	if [ "${mute}" != "no" ]; then
+		readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')"
+		if [ "${#volmount[@]}" -gt 0 ]; then
+			umount -l "${volmount[@]}" >/dev/null 2>&1
+		fi
+	fi
+	if [ "${samvideo}" == "yes" ]; then
+		echo 1 > /sys/class/graphics/fbcon/cursor_blink
+		echo 'Super Attract Mode Video was used.' > /dev/tty1 
+		echo 'Please reboot for proper MiSTer Terminal' > /dev/tty1 
+		echo '' > /dev/tty1 
+		echo 'Login:' > /dev/tty1 
+		[ -f /tmp/.sam_tmp/sv_corecount ] && rm /tmp/.sam_tmp/sv_corecount
+		misterini_restore
+	fi
+	samdebug "Cleanup done."
+}
+
 
 function disable_bootrom() {
 	if [ "${disablebootrom}" == "yes" ]; then
-		mkdir -p /tmp/.SAM_List/Bootrom
-		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /tmp/.SAM_List/Bootrom "${misterpath}/Bootrom"
-		# ... (rest of disable_bootrom logic from original script) ...
+		# Make Bootrom folder inaccessible until restart
+		mkdir -p /tmp/.sam_list/Bootrom
+		[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "0" ] && mount --bind /tmp/.sam_list/Bootrom "${misterpath}/Bootrom"
+		# Disable Nes bootroms except for FDS Bios (boot0.rom)
+		[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "0" ] && touch "$brfake" && mount --bind "$brfake" "${misterpath}/Games/NES/boot1.rom"
+		[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "0" ] && touch "$brfake" && mount --bind "$brfake" "${misterpath}/Games/NES/boot2.rom"
+		[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "0" ] && touch "$brfake" && mount --bind "$brfake" "${misterpath}/Games/NES/boot3.rom"
 	fi
 }
 
@@ -607,14 +765,19 @@ function mute() {
 		
 		local mute_target="$1"
 		[ ! -f "${configpath}/${mute_target}_volume.cfg" ] && touch "${configpath}/${mute_target}_volume.cfg"
-		[ ! -f "/tmp/.SAM_tmp/SAM_config/${mute_target}_volume.cfg" ] && touch "/tmp/.SAM_tmp/SAM_config/${mute_target}_volume.cfg"		
+		[ ! -f "/tmp/.sam_tmp/SAM_config/${mute_target}_volume.cfg" ] && touch "/tmp/.sam_tmp/SAM_config/${mute_target}_volume.cfg"		
 		
-		mount --bind "/tmp/.SAM_tmp/SAM_config/${mute_target}_volume.cfg" "${configpath}/${mute_target}_volume.cfg"
+		mount --bind "/tmp/.sam_tmp/SAM_config/${mute_target}_volume.cfg" "${configpath}/${mute_target}_volume.cfg"
 		
 		if [[ "$(mount | grep -ic "${mute_target}"_volume.cfg)" != "0" ]]; then
-			echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${mute_target}_volume.cfg"
+			echo -e "\0006\c" > "/tmp/.sam_tmp/SAM_config/${mute_target}_volume.cfg"
 		fi
 	fi
+}
+
+function write_byte() {
+  local f="$1"; local hex="$2"
+  printf '%b' "\\x$hex" > "$f" && sync
 }
 
 function global_mute() {
@@ -628,13 +791,77 @@ function global_mute() {
     samdebug "WRITE TO SD: Global mute → Volume.dat"
 }
 
+function global_unmute() {
+	local f="${configpath}/Volume.dat"
+	local cur hex u
+	cur=$(xxd -p -c1 "$f")
+	u=$((0x$cur & 0x0F))
+	hex=$(printf '%02x' "$u")
+	write_byte "$f" "$hex"
+	# sent unmute for interactive unmute
+	echo "volume unmute" > /dev/MiSTer_cmd
+	samdebug "WRITE TO SD: Restored Volume.dat"
+}
+
+
+
+function only_mute_if_needed() {
+  local f="${configpath}/Volume.dat"
+  local cur
+
+  # 1) read the single byte as two hex digits, e.g. "05" or "15"
+  cur=$(xxd -p -c1 "$f")
+
+  # 2) test bit 4 (0x10).  If (cur & 0x10) == 0 then we’re not muted yet.
+  if (( (0x$cur & 0x10) == 0 )); then
+    samdebug "Volume not yet muted (Volume.dat=0x$cur) → muting now"
+    global_mute
+  else
+    samdebug "Already muted (Volume.dat=0x$cur) → skipping write"
+  fi
+}
+
+
+function only_unmute_if_needed() {
+  local f="${configpath}/Volume.dat"
+  local cur
+
+  # 1) Read the single-byte value, e.g. "15" if muted at level5, or "05" if unmuted
+  cur=$(xxd -p -c1 "$f")
+
+  # 2) If bit4 (0x10) *is* set, we’re currently muted → clear it
+  if (( (0x$cur & 0x10) != 0 )); then
+    samdebug "Volume is muted (Volume.dat=0x$cur) → unmuting now"
+    global_unmute
+    return 0    # indicate we did an unmute
+  else
+    samdebug "Volume already unmuted (Volume.dat=0x$cur) → skipping write"
+    return 1    # indicate no action taken
+  fi
+}
+
+
+
 function tty_start() {
     if [ "${ttyenable}" == "yes" ]; then
         touch "${mrsamtmp}/tty_sleep"
         echo -n "Starting tty2oled... "
-        tmux new -s OLED -d "${mrsampath}/MiSTer_SAM_tty2oled" &>/dev/null
+        tmux new -s OLED -d "${mrsampath}/sam_tty2oled" &>/dev/null
         echo "Done."
     fi
+}
+
+function tty_exit() {
+	if [ "${ttyenable}" == "yes" ]; then
+		echo -n "Stopping tty2oled... "
+		[[ -p ${TTY_cmd_pipe} ]] && echo "stop" >${TTY_cmd_pipe} &
+		tmux kill-session -t OLED &>/dev/null
+		rm "${tty_sleepfile}" &>/dev/null
+		#/media/fat/tty2oled/S60tty2oled restart 
+		#sleep 5
+
+		echo "Done."
+	fi
 }
 
 function bgm_start() {
@@ -648,6 +875,33 @@ function bgm_start() {
         echo -n "play" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
     fi
 }
+
+function bgm_stop() {
+
+	if [ "${bgm}" == "yes" ] || [ "$1" == "force" ]; then
+		echo -n "Stopping Background Music Player... "
+		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+		sleep 0.2
+		if [ "${bgmstop}" == "yes" ]; then
+			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+			sleep 0.2
+			echo -n "set playback disabled" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+			kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
+			kill -9 "$(ps -o pid,args | grep 'mpg123' | awk '{print $1}' | head -1)" 2>/dev/null
+			rm /tmp/bgm.sock 2>/dev/null
+			if [ "${gvoladjust}" -ne 0 ]; then
+				#local oldvol=$((7 - $currentvol + $gvoladjust))
+				#samdebug "Changing global volume back to $oldvol"
+				#echo "volume ${oldvol}" > /dev/MiSTer_cmd &
+				echo -e "\00$currentvol\c" >"${configpath}/Volume.dat"
+			fi
+		fi
+		echo "Done."
+	fi
+
+}
+
 
 # --- Updating ---
 
@@ -676,65 +930,65 @@ function sam_update() { # sam_update (next command)
 			echo ""
 		fi
 
-		# Download the newest MiSTer_SAM_on.sh to /tmp
-		get_samstuff MiSTer_SAM_on.sh /tmp
-		if [ -f /tmp/MiSTer_SAM_on.sh ]; then
+		# Download the newest Super_Attract_Mode.sh to /tmp
+		get_samstuff Super_Attract_Mode.sh /tmp
+		if [ -f /tmp/Super_Attract_Mode.sh ]; then
 			if [ "${1}" ]; then
-				echo " Continuing setup with latest MiSTer_SAM_on.sh..."
-				/tmp/MiSTer_SAM_on.sh "${1}"
+				echo " Continuing setup with latest Super_Attract_Mode.sh..."
+				/tmp/Super_Attract_Mode.sh "${1}"
 				exit 0
 			else
 				echo " Launching latest"
-				echo " MiSTer_SAM_on.sh..."
-				/tmp/MiSTer_SAM_on.sh update
+				echo " Super_Attract_Mode.sh..."
+				/tmp/Super_Attract_Mode.sh update
 				exit 0
 			fi
 		else
-			# /tmp/MiSTer_SAM_on.sh isn't there!
+			# /tmp/Super_Attract_Mode.sh isn't there!
 			echo " SAM update FAILED"
 			echo " No Internet?"
 			exit 1
 		fi
 	else # We're running from /tmp - download dependencies and proceed
-		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
+		cp --force "/tmp/Super_Attract_Mode.sh" "/media/fat/Scripts/Super_Attract_Mode.sh"
 
 		get_partun
 		get_samindex
 		get_mbc
-		#get_samstuff .MiSTer_SAM/MiSTer_SAM.default.ini
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_init
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_menu.sh
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
+		#get_samstuff .Super_Attract_Mode/Super_Attract_Mode.default.ini
+		get_samstuff .Super_Attract_Mode/Super_Attract_Mode_init
+		get_samstuff .Super_Attract_Mode/Super_Attract_Mode_MCP
+		get_samstuff .Super_Attract_Mode/Super_Attract_Mode_menu.sh
+		get_samstuff .Super_Attract_Mode/Super_Attract_Mode_tty2oled
+		get_samstuff .Super_Attract_Mode/Super_Attract_Mode_joy.py
 		if [ ! -f "${mrsampath}/sam_controllers.json" ]; then
-			get_samstuff .MiSTer_SAM/sam_controllers.json
+			get_samstuff .Super_Attract_Mode/sam_controllers.json
 		fi
 		if [ "${samvideo}" == "yes" ]; then
 			get_samvideo
 		fi
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
+		get_samstuff .Super_Attract_Mode/Super_Attract_Mode_keyboard.py
+		get_samstuff .Super_Attract_Mode/Super_Attract_Mode_mouse.py
 		get_inputmap
 		get_blacklist
 		get_ratedlist
-		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
+		get_samstuff Super_Attract_Mode_off.sh /media/fat/Scripts
 		
 
 		if [ -f "${samini_file}" ]; then
 			echo " MiSTer SAM INI already exists... Merging with new ini."
-			get_samstuff MiSTer_SAM.ini /tmp
-			echo " Backing up MiSTer_SAM.ini to MiSTer_SAM.ini.bak"
+			get_samstuff Super_Attract_Mode.ini /tmp
+			echo " Backing up Super_Attract_Mode.ini to Super_Attract_Mode.ini.bak"
 			cp "${samini_file}" "${samini_file}".bak
 			echo -n " Merging ini values.."
 			# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 			sed -i 's/==/--/g' "${samini_file}"
 			sed -i 's/-=/--/g' "${samini_file}"
-			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" /tmp/MiSTer_SAM.ini >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
+			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" /tmp/Super_Attract_Mode.ini >/tmp/Super_Attract_Mode.tmp && cp -f --force /tmp/Super_Attract_Mode.tmp "${samini_file}"
 			echo "Done."
 
 		else
-			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
+			get_samstuff Super_Attract_Mode.ini /media/fat/Scripts
 		fi
 		
 	fi
@@ -829,15 +1083,21 @@ function skipmessage() {
     fi
 }
 
-function sam_cleanup() {
-    only_unmute_if_needed
-    # ... (and all other cleanup logic like umounting) ...
+function kill_all_sams() {
+	# Kill all SAM processes except for currently running
+	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
 }
+
 
 function activity_reset() {
     truncate -s 0 "$joy_activity_file"
     truncate -s 0 "$mouse_activity_file"
     truncate -s 0 "$key_activity_file"
+}
+
+function tmp_reset() {
+	[[ -d /tmp/.sam_list ]] && rm -rf /tmp/.sam* /tmp/sam* 
+	mkdir -p /tmp/.sam_list  /tmp/.sam_tmp 
 }
 
 function samini_mod() {
