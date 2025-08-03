@@ -40,9 +40,9 @@ function build_gamelist_standard() {
     local file="${outdir}/${core}_gamelist.txt"
     local rc
 
-    if pgrep -f samindex &>/dev/null; then
+    if ps -ef | grep -i '[s]amindex' &>/dev/null; then
         samdebug "JIT build for '${core}' taking priority. Stopping background samindex."
-        pkill -f samindex
+        ps -ef | grep -i '[s]amindex' | xargs --no-run-if-empty kill &>/dev/null
         sleep 0.5
     fi
 
@@ -51,13 +51,18 @@ function build_gamelist_standard() {
     sync "$outdir"
     sleep 1
 
-    "${mrsampath}/samindex" -q -s "$core" -o "$outdir"
+    "${mrsampath}/tools/samindex" -q -s "$core" -o "$outdir"
     rc=$?
 
+	# Check if the build process failed during the initial run.
     if [[ "$outdir" == "$gamelistpath" ]] && (( rc > 1 )); then
         # On initial build, an exit code > 1 means "no games found".
         delete_from_corelist "$core"
-        echo "Can't find games for ${CORE_PRETTY[$core]}"
+                
+        local core_config_name=${CORES[$core]}       
+        local pretty_name_ref="${core_config_name}[pretty_name]"
+        echo "Can't find games for ${!pretty_name_ref}"
+                
         samdebug "build_gamelist_standard returned code $rc for $core"
         return 1 # Return an error
     fi
@@ -392,7 +397,7 @@ function build_goat_lists() {
 	# Download master list if missing
 	if [[ ! -f "$goat_list_path" ]]; then
 	samdebug "Downloading GOAT master list..."
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/sam_goat_list.txt "$gamelistpath"
+	get_samstuff .Super_Attract/lists/filter_special_modes/sam_goat_list.txt "$gamelistpath"
 	fi
 	
 	# Parse master list into per-core tmp files
@@ -430,7 +435,7 @@ function build_goat_lists() {
 }
 
 function build_m82_list() {
-	[ ! -d "/tmp/.SAM_List" ] && mkdir /tmp/.SAM_List/ 
+	[ ! -d "/tmp/.sam_list" ] && mkdir /tmp/.sam_list/ 
 	[ ! -d "/tmp/.SAM_tmp" ] && mkdir /tmp/.SAM_tmp/
 
 	if [ ! -f "${gamelistpath}"/nes_gamelist.txt ]; then
@@ -448,7 +453,7 @@ function build_m82_list() {
 	if [ ! -f "$m82_list_path" ]; then
 		echo "Error: The M82 list file ($m82_list_path) does not exist. Updating SAM now. Please try again."
 		repository_url="https://github.com/mrchrisster/MiSTer_SAM"
-		get_samstuff .MiSTer_SAM/SAM_Gamelists/m82_list.txt "${gamelistpath}"
+		get_samstuff .Super_Attract/lists/filter_special_modes/m82_list.txt "${gamelistpath}"
 	fi
 
 	printf "%s\n" nes > "${corelistfile}"
