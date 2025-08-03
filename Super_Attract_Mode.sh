@@ -10,14 +10,14 @@ trap '' SIGHUP
 # Define base paths used by the libraries
 declare -g mrsampath="/media/fat/Scripts/.Super_Attract"
 declare -g misterpath="/media/fat"
-declare -g gamelistpath="${mrsampath}/game_lists"
+declare -g gamelistpath="${mrsampath}/lists/games"
 declare -g gamelistpathtmp="/tmp/.sam_list"
 declare -g mrsamtmp="/tmp/.sam_tmp"
 
 # --- Library Loader ---
 # Source all the component parts of the script.
 source "${mrsampath}/sam_utils.sh"
-source "${mrsampath}/sam_config.sh"
+source "${mrsampath}/sam_cores.sh"
 source "${mrsampath}/sam_gamelists.sh"
 source "${mrsampath}/sam_launchers.sh"
 
