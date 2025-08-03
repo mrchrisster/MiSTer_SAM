@@ -9,7 +9,7 @@ declare -g sampid="${$}"
 declare -g samprocess=$(basename -- ${0})
 declare -g misterpath="/media/fat"
 declare -g misterscripts="${misterpath}/Scripts"
-declare -g mrsampath="${misterscripts}/.MiSTer_SAM"
+declare -g mrsampath="${misterscripts}/.Super_Attract"
 declare -g mrsamtmp="/tmp/.SAM_tmp"
 
 declare -gl ttyenable="Yes"
@@ -47,7 +47,7 @@ trap 'rc=$?;[ ${rc} = 0 ] && exit;tty_exit' EXIT TERM INT
 
 
 # ======== Source ini files ========
-source "${misterpath}/Scripts/MiSTer_SAM.ini"
+source "${misterpath}/Scripts/Super_Attract_Mode.ini"
 #Roulette Mode
 if [ -f /tmp/.SAM_tmp/gameroulette.ini ]; then
 	source /tmp/.SAM_tmp/gameroulette.ini
