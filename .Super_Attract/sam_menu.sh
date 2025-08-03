@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# MiSTer_SAM_menu.sh — Dialog-based menu layout for Super Attract Mode (SAM)
-# Source this on demand from MiSTer_SAM_on.sh to expose only UI functions.
+# sam_menu.sh — Dialog-based menu layout for Super Attract Mode (SAM)
+# Source this on demand from Super_Attract_Mode.sh to expose only UI functions.
 
 # Guard against double-sourcing
 [[ -n "${SAM_MENU_LOADED:-}" ]] && return
@@ -10,7 +10,7 @@ SAM_MENU_LOADED=1
 sam_menu_file="/tmp/.sam_menu_choice"
 
 # All cores
-# source /tmp/.SAM_tmp/sam_core_pretty
+# source /tmp/.sam_tmp/sam_core_pretty
 
 #-------------------------------------------------------------------------------
 # PRESETS MENU
@@ -181,7 +181,7 @@ menu_preset_m82_mode() {
 	reset_ini
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
-		--msgbox "SAM will act as an M82 unit for NES. To disable this, go to MiSTer_SAM.ini and find m82 option or change to another preset.\n\nPlease make sure you configure Gamepad in SAM's menu\n\nGame Timer is set to ${m82_game_timer}s per Game - Change m82_game_timer in SAM's ini\n\nMiSter will restart now. " 0 0
+		--msgbox "SAM will act as an M82 unit for NES. To disable this, go to Super_Attract_Mode.ini and find m82 option or change to another preset.\n\nPlease make sure you configure Gamepad in SAM's menu\n\nGame Timer is set to ${m82_game_timer}s per Game - Change m82_game_timer in SAM's ini\n\nMiSter will restart now. " 0 0
 		samini_mod m82 Yes
 		exec "$0" start 
 	
@@ -220,14 +220,14 @@ function menu_preset_roulette_mode() {
     (( rc != 0 )) && return
 
     # Build a temporary INI for this roulette session
-    mkdir -p /tmp/.SAM_tmp
+    mkdir -p /tmp/.sam_tmp
     case "$choice" in
       Roulettetimer)
-        echo "gametimer=${roulettetimer}" > /tmp/.SAM_tmp/gameroulette.ini
+        echo "gametimer=${roulettetimer}" > /tmp/.sam_tmp/gameroulette.ini
         ;;
       Roulette*)
         local mins=${choice//Roulette/}
-        echo "gametimer=$((mins*60))" > /tmp/.SAM_tmp/gameroulette.ini
+        echo "gametimer=$((mins*60))" > /tmp/.sam_tmp/gameroulette.ini
         ;;
       *)
         dialog --msgbox "Unknown selection: $choice" 0 0
@@ -241,7 +241,7 @@ function menu_preset_roulette_mode() {
       echo "listenmouse=No"
       echo "listenkeyboard=No"
       echo "listenjoy=No"
-    } >> /tmp/.SAM_tmp/gameroulette.ini
+    } >> /tmp/.sam_tmp/gameroulette.ini
 
     # Launch SAM with the roulette INI
     exec "$0" start 
@@ -557,8 +557,8 @@ function menu_controller() {
            --infobox "Using:\n  $name\n($device)\n\n⏳ Waiting for you to press the START button..." \
            8 50
 
-    id="$(${mrsampath}/MiSTer_SAM_joy.py "$device" id)"
-    startbtn="$(${mrsampath}/MiSTer_SAM_joy.py "$device" button)"
+    id="$(${mrsampath}/input/sam_joy.py "$device" id)"
+    startbtn="$(${mrsampath}/input/sam_joy.py "$device" button)"
 
     dialog --clear
     dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
@@ -569,7 +569,7 @@ function menu_controller() {
            --infobox "Press the button you want to use for NEXT GAME (eg SELECT Button)...\n\n⏳ Waiting for NEXT button press..." \
            6 50
 
-    nextbtn="$(${mrsampath}/MiSTer_SAM_joy.py "$device" button)"
+    nextbtn="$(${mrsampath}/input/sam_joy.py "$device" button)"
 
     dialog --clear
     dialog --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
@@ -839,7 +839,7 @@ function menu_cat_exclude() {
 #-------------------------------------------------------------------------------
 # ADD-ONS
 #-------------------------------------------------------------------------------
-# $mrsampath/MiSTer_SAM_menu.sh
+# $mrsampath/sam_menu.sh
 
 function menu_addons() {
   local rc choice
@@ -922,7 +922,7 @@ function enablebgm() {
 		mv --force /tmp/bgm.sh /media/fat/Scripts/
 		echo " Resetting BGM now."
 	fi
-	#echo " Updating MiSTer_SAM.ini to use Mute=No"
+	#echo " Updating Super_Attract_Mode.ini to use Mute=No"
 	samini_mod mute No
 	/media/fat/Scripts/bgm.sh &>/dev/null &
 	sync
@@ -950,7 +950,7 @@ function menu_inieditor() {
   # Intro message
   dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
-         --msgbox "Edit MiSTer_SAM.ini directly.\n\nUse TAB to switch between file, OK and Cancel." 0 0
+         --msgbox "Edit Super_Attract_Mode.ini directly.\n\nUse TAB to switch between file, OK and Cancel." 0 0
 
   # Loop: allow multiple edits until user cancels
   while true; do
@@ -1235,7 +1235,7 @@ Please configure your controller in the main menu instead of using Play Current 
 # RESET SAM
 #-------------------------------------------------------------------------------
 
-# in MiSTer_SAM_menu.sh
+# in sam_menu.sh
 
 function menu_reset() {
   local rc choice
@@ -1246,7 +1246,7 @@ function menu_reset() {
            --ok-label "Select" --cancel-label "Back" \
            --menu "Choose an action:" 0 0 0 \
              menu_reset_gamelists "Reset all Game Lists" \
-             menu_resetini       "Reset MiSTer_SAM.ini to defaults" \
+             menu_resetini       "Reset Super_Attract_Mode.ini to defaults" \
              menu_deleteall      "Completely uninstall SAM" \
              menu_reinstall      "Reinstall SAM from scratch" \
       2> "${sam_menu_file}"
@@ -1318,12 +1318,12 @@ function menu_reset_gamelists() {
 
 			there_can_be_only_one
 			if [ -d "${mrsampath}/SAM_Gamelists" ]; then
-				echo "Deleting MiSTer_SAM Gamelist folder"
+				echo "Deleting Gamelist folder"
 				rm  "${mrsampath}"/SAM_Gamelists/*_gamelist.txt
 			fi
 		
-			if [ -d /tmp/.SAM_List ]; then
-				rm -rf /tmp/.SAM_List
+			if [ -d /tmp/.sam_List ]; then
+				rm -rf /tmp/.sam_List
 			fi
 		
 			if [ ${inmenu} -eq 1 ]; then
@@ -1348,16 +1348,16 @@ function menu_reset_gamelists() {
 
 function menu_resetini() {
   # 1) Clean up any running SAM state
-  rm -rf "/tmp/.SAM_List" "/tmp/.SAM_tmp"
+  rm -rf "/tmp/.sam_List" "/tmp/.sam_tmp"
   sam_cleanup
 
   # 2) No args → full INI reset
   if (( $# == 0 )); then
-    if [[ -f "${mrsampath}/MiSTer_SAM.default.ini" ]]; then
-      cp "${mrsampath}/MiSTer_SAM.default.ini" "${samini_file}"
+    if [[ -f "${mrsampath}/Super_Attract_Mode.default.ini" ]]; then
+      cp "${mrsampath}/Super_Attract_Mode.default.ini" "${samini_file}"
     else
-      get_samstuff MiSTer_SAM.ini /tmp
-      cp /tmp/MiSTer_SAM.ini "${samini_file}"
+      get_samstuff Super_Attract_Mode.ini /tmp
+      cp /tmp/Super_Attract_Mode.ini "${samini_file}"
     fi
     return
   fi
@@ -1385,7 +1385,7 @@ function menu_resetini() {
 
 function menu_deleteall() {
   local timestamp=$(date +%Y%m%d-%H%M%S)
-  local backup_dir="/media/fat/Scripts/.SAM_Backup/${timestamp}"
+  local backup_dir="/media/fat/Scripts/.sam_Backup/${timestamp}"
 
   echo "→ Stopping any running SAM instances…"
   there_can_be_only_one
@@ -1403,17 +1403,17 @@ function menu_deleteall() {
     $ro_root && mount / -o remount,ro
   }
 
-  echo "→ Deleting MiSTer_SAM directory…"
+  echo "→ Deleting Super_Attract directory…"
   [[ -d "${mrsampath}" ]] && rm -rf "${mrsampath}"
 
   echo "→ Removing INI file…"
   [[ -f "${samini_file}" ]] && { cp "${samini_file}" "${samini_file}".bak; rm "${samini_file}"; }
 
-  echo "→ Removing MiSTer_SAM_off.sh…"
-  [[ -f "/media/fat/Scripts/MiSTer_SAM_off.sh" ]] && rm /media/fat/Scripts/MiSTer_SAM_off.sh
+  echo "→ Removing Super_Attract_Mode_off.sh…"
+  [[ -f "/media/fat/Scripts/Super_Attract_Mode_off.sh" ]] && rm /media/fat/Scripts/Super_Attract_Mode_off.sh
 
   echo "→ Cleaning up temporary lists…"
-  rm -rf "/tmp/.SAM_List" "/tmp/.SAM_tmp"
+  rm -rf "/tmp/.sam_List" "/tmp/.sam_tmp"
 
   echo "→ Removing keyboard mapping files…"
   ls "${configpath}/inputs"*"_input_1234_5678_v3.map" &>/dev/null && rm "${configpath}/inputs"*"_input_1234_5678_v3.map"
@@ -1422,7 +1422,7 @@ function menu_deleteall() {
   with_rw_root rm -f /etc/init.d/S93mistersam /etc/init.d/_S93mistersam
 
   echo "→ Cleaning up startup entries…"
-  sed -i '/MiSTer_SAM/d;/Super Attract/d' "${userstartup}"
+  sed -i '/Super_Attract/d;/Super Attract/d' "${userstartup}"
 
   echo
   echo "All SAM files removed. Backups are in ${backup_dir}."
@@ -1454,9 +1454,9 @@ function reset_ini() { # args ${nextcore}
 	corelistall=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
 	
 	#Reset gamelists
-	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
+	[[ -d /tmp/.sam_List ]] && rm -rf /tmp/.sam_List
 	mkdir -p "${gamelistpathtmp}"
-	mkdir -p /tmp/.SAM_tmp
+	mkdir -p /tmp/.sam_tmp
 	
 	# Mute cores, use every core, horizontal arcade by default
 	samini_mod mute Yes
