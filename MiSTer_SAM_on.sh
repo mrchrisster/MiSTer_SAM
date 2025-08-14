@@ -1444,8 +1444,10 @@ function next_core() { # next_core (core)
 		configpath="/media/fat/config/"
 	fi
 	
-	load_samvideo
-	if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
+	if [ "${samvideo}" == "yes" ]; then		
+		load_samvideo
+		if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
+	fi
 	
 	if [[ ! ${corelist[*]} ]]; then
 		echo "ERROR: FATAL - List of cores is empty."
