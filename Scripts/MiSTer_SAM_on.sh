@@ -1303,17 +1303,10 @@ function loop_core() { # loop_core (optional_core_name)
 	# This is the main script loop that runs forever.
 	while :; do
 		# ----------------------------------------------------
-		# Check if we are running SAM Video Player
-		if [ "${samvideo}" == "yes" ]; then		
-			load_samvideo
-			if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
-		else
-			# Call next_core to attempt a game launch.
-			# We pass along any argument that might have been given to loop_core.		
-			next_core "${1-}" 
-		fi
-	
-		
+		# Call next_core to attempt a game launch.
+		# We pass along any argument that might have been given to loop_core.		
+		next_core "${1-}" 
+
 		# Check the exit code of the next_core function.
 		if [ $? -eq 0 ]; then
 			# SUCCESS (Exit code 0): A game was launched successfully.
@@ -1450,6 +1443,9 @@ function next_core() { # next_core (core)
 	else
 		configpath="/media/fat/config/"
 	fi
+	
+	load_samvideo
+	if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
 	
 	if [[ ! ${corelist[*]} ]]; then
 		echo "ERROR: FATAL - List of cores is empty."
