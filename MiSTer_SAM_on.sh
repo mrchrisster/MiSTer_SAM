@@ -1437,6 +1437,7 @@ function handle_joy_activity() {
 
 # Pick a random core
 function next_core() { # next_core (core)
+
 	
 	if [[ -n "$cfgcore_configpath" ]]; then
 		configpath="$cfgcore_configpath"
@@ -1459,6 +1460,8 @@ function next_core() { # next_core (core)
 	# Pick a core if no corename was supplied as argument (eg "MiSTer_SAM_on.sh psx")
 	if [ -z "${1}" ]; then
 		corelist_update	
+		#samdebug "corelist: ${corelist[@]}"
+
 		if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ]; then
 			nextcore=$(cat /tmp/.SAM_tmp/sv_core)
 		else
@@ -1508,9 +1511,6 @@ function next_core() { # next_core (core)
 	delete_played_game
 	
 	load_core "${nextcore}" "${rompath}" "${romname%.*}"
-	
-	# Create all missing lists in the background
-	# create_all_gamelists
 
 
 	# Capture the exit code from load_core and return it.
@@ -2465,7 +2465,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             fi
             # --- End Prerequisite Check ---
 
-            rompath=$(pick_random_game "${core}")
+            rompath="${rompath_arg}"
             rompath=$(echo "$rompath" | tr -d '[:cntrl:]')
             
             if [ ! -f "${rompath}" ]; then
@@ -2502,7 +2502,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             fi
             # --- End Prerequisite Check ---
             
-            rompath=$(pick_random_game "${core}")
+            rompath="${rompath_arg}"
             romname=$(basename "${rompath}")
             gamename="$(echo "${romname%.*}" | tr '_' ' ')"
             tty_corename="${core}"
@@ -2534,7 +2534,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             fi
             # --- End Prerequisite Check ---
 
-            rompath=$(pick_random_game "${core}")
+            rompath="${rompath_arg}"
             romname=$(basename "${rompath}")
             gamename="$(echo "${romname%.*}" | tr '_' ' ')"
             tty_corename="${core}"
@@ -2662,6 +2662,8 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
         SECONDS=$((EPOCHSECONDS - tty_currentinfo[date]))
     fi
 
+
+	# Time to launch this puppy
     echo "${launch_cmd}" >/dev/MiSTer_cmd
     
     if [ -n "${post_launch_hook}" ]; then
@@ -2803,7 +2805,9 @@ function play_or_exit() {
 # ======== UTILITY FUNCTIONS ========
 
 function mcp_start() {
-	# MCP monitors when SAM should be launched. "menuonly" and "samtimeout" determine when MCP launches SAM
+	# MCP monitors when SAM should be launched. 
+	# "menuonly" and "samtimeout" determine when MCP launches SAM
+	
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
 		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP"
 	fi
@@ -2834,6 +2838,7 @@ function init_paths() {
 function sam_prep() {
 	
 	# samvideo and ratings filter can't both be set
+	# TODO make this smarter
 	if [ "${rating}" == "yes" ]; then
 		samvideo=no
 	fi
