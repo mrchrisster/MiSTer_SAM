@@ -66,7 +66,7 @@ vga_scaler=1
   
 - **Curated Blacklists** - The SAM Team is currently recording every game's attract mode to short videos that we capture through HDMi so we can detect if a game is worthy to be shown or should be blacklisted (like Disc 2 for MegaCD, load error FDS games or games with a static screen)
 
-- **Deferred gamelist maintenance** - To minimize disk access during gameplay, SAM skips gamelist diffing and zip scanning by default. Enable `update_gamelists_during_play` or `checkzipsondisk` in `MiSTer_SAM.ini` to run these checks when needed.
+- **Deferred gamelist maintenance** - SAM rescans each core's game folder once to update its gamelist. Set `check_for_new_games` to `No` to skip this step, or enable `update_gamelists_during_play` or `checkzipsondisk` in `MiSTer_SAM.ini` for more frequent checks.
   
 ## Reset to Defaults
 This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.  
