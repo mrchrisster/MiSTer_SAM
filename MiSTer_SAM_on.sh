@@ -99,6 +99,7 @@ function init_vars() {
 	declare -gl arcadeorient
 	declare -gl checkzipsondisk="No"
  	declare -gl force_zip_scan="No"
+  	declare -gl check_for_new_games="Yes"
     declare -gl update_gamelists_during_play="No"
 	declare -gi bootsleep="60"
 	declare -gi totalgamecount		
@@ -1520,8 +1521,10 @@ function next_core() { # next_core (core)
 		return 1
 	fi
 	
-	# Check if new roms got added
-	check_list_update ${nextcore}
+    # Check if new roms got added
+    if [[ "$check_for_new_games" == "Yes" ]]; then
+            check_list_update ${nextcore}
+    fi
 	
 	pick_rom
 	
@@ -2324,16 +2327,18 @@ function create_all_gamelists() {
 
 function schedule_gamelist_updates() {
         local core
+		[[ "$check_for_new_games" != "Yes" ]] && return
         for core in ${corelist//,/ }; do
                 check_list_update "$core"
         done
 }
 
 function check_list_update() {
-	local core="$1"
-	local orig="${gamelistpath}/${core}_gamelist.txt"
-	local compdir="${gamelistpathtmp}/comp"
-	local comp="${compdir}/${core}_gamelist.txt"
+    [[ "$check_for_new_games" != "Yes" ]] && return
+    local core="$1"
+    local orig="${gamelistpath}/${core}_gamelist.txt"
+    local compdir="${gamelistpathtmp}/comp"
+    local comp="${compdir}/${core}_gamelist.txt"
 	
 	# ── only run this check once per core, per session ──
 	local flag_dir="${gamelistpathtmp}/.checked"
