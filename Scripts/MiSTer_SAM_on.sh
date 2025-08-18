@@ -1567,6 +1567,21 @@ function corelist_update() {
 		rm "${corelistfile}"
 	fi
 		
+	# Resynchronize corelisttmp with the potentially updated corelist
+	declare -A valid_cores_map
+	for core in "${corelist[@]}"; do
+		valid_cores_map["$core"]=1
+	done
+
+	local updated_corelisttmp=()
+	for tmp_core in "${corelisttmp[@]}"; do
+		if [[ -v valid_cores_map["$tmp_core"] ]]; then
+			updated_corelisttmp+=("$tmp_core")
+		fi
+	done
+	corelisttmp=("${updated_corelisttmp[@]}")
+
+
 	if [[ "${disablecoredel}" == "0" ]]; then
 		delete_from_corelist "$nextcore" tmp
 	fi
