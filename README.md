@@ -97,6 +97,7 @@ Currently supported MiSTer cores:
 * Atari Lynx (.lnx)
 * C64 (.prg .crt)
 * Colecovision (.col)
+* Intellivision (.int)
 * Famicom Disk System (.fds)
 * Game Boy/ Game Boy Color (.gb .gbc)
 * Game Boy Advance (.gba)
