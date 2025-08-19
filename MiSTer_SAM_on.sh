@@ -306,7 +306,7 @@ function init_data() {
 		["cdi"]="chd,cue"	
 		["coco2"]="ccc"
   		["colecovision"]="col"
-		["intellivision"]="int"
+		["intellivision"]="int,bin,rom"
 		["fds"]="fds"
 		["gb"]="gb"			 		
 		["gbc"]="gbc"		 		
