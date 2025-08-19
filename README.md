@@ -96,6 +96,7 @@ Currently supported MiSTer cores:
 * Atari Jaguar (.j64 .rom .bin .jag)
 * Atari Lynx (.lnx)
 * C64 (.prg .crt)
+* Colecovision (.col)
 * Famicom Disk System (.fds)
 * Game Boy/ Game Boy Color (.gb .gbc)
 * Game Boy Advance (.gba)
