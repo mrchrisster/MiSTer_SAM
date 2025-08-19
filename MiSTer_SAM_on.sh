@@ -64,7 +64,7 @@ function init_vars() {
 	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,colecovision,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,vectrex,wonderswan,wonderswancolor,psx,x68k,mgls"
+	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,colecovision,intellivision,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,vectrex,wonderswan,wonderswancolor,psx,x68k,mgls"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
@@ -171,6 +171,7 @@ function init_vars() {
 	declare -g cdipathrbf="_Console"	
 	declare -g coco2pathrbf="_Computer"
 	declare -g colecovisionpathrbf="_Console"
+ 	declare -g intellivisionpathrbf="_Console"
 	declare -g fdspathrbf="_Console"
 	declare -g gbpathrbf="_Console"
 	declare -g gbcpathrbf="_Console"
@@ -263,6 +264,7 @@ function init_data() {
 		["cdi"]="Philips CD-i"
 		["coco2"]="TRS-80 Color Computer 2"
   		["colecovision"]="ColecoVision"
+		["intellivision"]="Mattel Intellivision"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
 		["gbc"]="Nintendo Game Boy Color"
@@ -304,6 +306,7 @@ function init_data() {
 		["cdi"]="chd,cue"	
 		["coco2"]="ccc"
   		["colecovision"]="col"
+		["intellivision"]="int"
 		["fds"]="fds"
 		["gb"]="gb"			 		
 		["gbc"]="gbc"		 		
@@ -345,6 +348,7 @@ function init_data() {
 		["cdi"]="${cdipathfilter}"
 		["coco2"]="${coco2pathfilter}"
   		["colecovision"]="${colecovisionpathfilter}"
+		["intellivision"]="${intellivisionpathfilter}"
 		["fds"]="${fdspathfilter}"
 		["gb"]="${gbpathfilter}"
 		["gbc"]="${gbcpathfilter}"
@@ -389,6 +393,7 @@ function init_data() {
 		["cdi"]="${cdipathrbf}"
 		["coco2"]="${coco2pathrbf}"
   		["colecovision"]="${colecovisionpathrbf}"
+		["intellivision"]="${intellivisionpathrbf}"
 		["fds"]="${fdspathrbf}"
 		["gb"]="${gbpathrbf}"
 		["gbc"]="${gbcpathrbf}"
@@ -430,6 +435,7 @@ function init_data() {
 		["cdi"]="No"
 		["coco2"]="No"
   		["colecovision"]="No"
+		["intellivision"]="Yes"
 		["fds"]="Yes"
 		["gb"]="No"
 		["gbc"]="No"
@@ -473,6 +479,7 @@ function init_data() {
 		["cdi"]="CDi"
 		["coco2"]="CoCo2"
   		["colecovision"]="ColecoVision"
+		["intellivision"]="Intellivision"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -515,6 +522,7 @@ function init_data() {
 		["cdi"]="CD-i"
 		["coco2"]="CoCo2"
   		["colecovision"]="ColecoVision"
+		["intellivision"]="Intellivision"
 		["fds"]="fds"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -557,6 +565,7 @@ function init_data() {
 		["cdi"]="CDi"
 		["coco2"]="CoCo2"
   		["colecovision"]="ColecoVision"
+		["intellivision"]="Intellivision"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -606,6 +615,7 @@ function init_data() {
 		["cdi"]="1"
 		["coco2"]="1"
   		["colecovision"]="1"
+		["intellivision"]="1"
 		["fds"]="2"
 		["gb"]="2"
 		["gbc"]="2"
@@ -648,6 +658,7 @@ function init_data() {
 		["cdi"]="1"
 		["coco2"]="1"
   		["colecovision"]="1"
+		["intellivision"]="0"
 		["fds"]="0"
 		["gb"]="0"
 		["gbc"]="0"
@@ -689,6 +700,7 @@ function init_data() {
 		["cdi"]="s"
 		["coco2"]="f"
   		["colecovision"]="f"
+		["intellivision"]="f"
 		["fds"]="f"
 		["gb"]="f"
 		["gbc"]="f"
@@ -1021,6 +1033,7 @@ function init_data() {
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
   		["colecovision"]="coleco\|colecovision"
+		["intellivision"]="intellivision"
 		["saturn"]="sega saturn"
 		["s32x"]="sega 32x"
 		["sgb"]="super game boy\|gb-super game boy\|snes-super game boy"
@@ -1048,6 +1061,7 @@ function init_data() {
           cdi_rated.txt
           coco2_rated.txt
           colecovision_rated.txt
+		  intellivision_rated.txt
           fds_rated.txt
           gb_rated.txt
           gbc_rated.txt
@@ -1090,6 +1104,7 @@ function init_data() {
           cdi_blacklist.txt
           coco2_blacklist.txt
           colecovision_blacklist.txt
+		  intellivision_blacklist.txt
           fds_blacklist.txt
           gb_blacklist.txt
           gbc_blacklist.txt
@@ -3297,9 +3312,13 @@ function skipmessage() {
         # If both are 'yes', wait for the configured time and send the button presses.
         sleep "$skiptime"
         samdebug "Button push sent for '${core}' to skip BIOS"
-        "${mrsampath}/mbc" raw_seq :31
-        sleep 1
-        "${mrsampath}/mbc" raw_seq :31
+        if [ "${core}" == "intellivision" ]; then
+            "${mrsampath}/mbc" raw_seq :1C
+        else
+            "${mrsampath}/mbc" raw_seq :31
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :31
+        fi
     fi
 }
 
