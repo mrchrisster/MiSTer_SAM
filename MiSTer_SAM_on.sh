@@ -64,7 +64,7 @@ function init_vars() {
 	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,vectrex,wonderswan,wonderswancolor,psx,x68k,mgls"
+	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,colecovision,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,vectrex,wonderswan,wonderswancolor,psx,x68k,mgls"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
@@ -170,6 +170,7 @@ function init_vars() {
 	declare -g c64pathrbf="_Computer"
 	declare -g cdipathrbf="_Console"	
 	declare -g coco2pathrbf="_Computer"
+	declare -g colecovisionpathrbf="_Console"
 	declare -g fdspathrbf="_Console"
 	declare -g gbpathrbf="_Console"
 	declare -g gbcpathrbf="_Console"
@@ -261,6 +262,7 @@ function init_data() {
 		["c64"]="Commodore 64"
 		["cdi"]="Philips CD-i"
 		["coco2"]="TRS-80 Color Computer 2"
+  		["colecovision"]="ColecoVision"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
 		["gbc"]="Nintendo Game Boy Color"
@@ -301,6 +303,7 @@ function init_data() {
 		["c64"]="crt,prg" 		# need to be tested "reu,tap,flt,rom,c1581"
 		["cdi"]="chd,cue"	
 		["coco2"]="ccc"
+  		["colecovision"]="col"
 		["fds"]="fds"
 		["gb"]="gb"			 		
 		["gbc"]="gbc"		 		
@@ -341,6 +344,7 @@ function init_data() {
 		["c64"]="${c64pathfilter}"
 		["cdi"]="${cdipathfilter}"
 		["coco2"]="${coco2pathfilter}"
+  		["colecovision"]="${colecovisionpathfilter}"
 		["fds"]="${fdspathfilter}"
 		["gb"]="${gbpathfilter}"
 		["gbc"]="${gbcpathfilter}"
@@ -384,6 +388,7 @@ function init_data() {
 		["c64"]="${c64pathrbf}"
 		["cdi"]="${cdipathrbf}"
 		["coco2"]="${coco2pathrbf}"
+  		["colecovision"]="${colecovisionpathrbf}"
 		["fds"]="${fdspathrbf}"
 		["gb"]="${gbpathrbf}"
 		["gbc"]="${gbcpathrbf}"
@@ -424,6 +429,7 @@ function init_data() {
 		["c64"]="No"
 		["cdi"]="No"
 		["coco2"]="No"
+  		["colecovision"]="No"
 		["fds"]="Yes"
 		["gb"]="No"
 		["gbc"]="No"
@@ -466,6 +472,7 @@ function init_data() {
 		["c64"]="C64"
 		["cdi"]="CDi"
 		["coco2"]="CoCo2"
+  		["colecovision"]="ColecoVision"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -507,6 +514,7 @@ function init_data() {
 		["c64"]="C64"
 		["cdi"]="CD-i"
 		["coco2"]="CoCo2"
+  		["colecovision"]="ColecoVision"
 		["fds"]="fds"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -548,6 +556,7 @@ function init_data() {
 		["c64"]="C64"
 		["cdi"]="CDi"
 		["coco2"]="CoCo2"
+  		["colecovision"]="ColecoVision"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -596,6 +605,7 @@ function init_data() {
 		["c64"]="1"
 		["cdi"]="1"
 		["coco2"]="1"
+  		["colecovision"]="1"
 		["fds"]="2"
 		["gb"]="2"
 		["gbc"]="2"
@@ -637,6 +647,7 @@ function init_data() {
 		["c64"]="1"
 		["cdi"]="1"
 		["coco2"]="1"
+  		["colecovision"]="1"
 		["fds"]="0"
 		["gb"]="0"
 		["gbc"]="0"
@@ -677,6 +688,7 @@ function init_data() {
 		["c64"]="f"
 		["cdi"]="s"
 		["coco2"]="f"
+  		["colecovision"]="f"
 		["fds"]="f"
 		["gb"]="f"
 		["gbc"]="f"
@@ -1008,6 +1020,7 @@ function init_data() {
 		["atari5200"]="atari 5200"
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
+  		["colecovision"]="coleco\|colecovision"
 		["saturn"]="sega saturn"
 		["s32x"]="sega 32x"
 		["sgb"]="super game boy\|gb-super game boy\|snes-super game boy"
@@ -1020,46 +1033,89 @@ function init_data() {
 	)
 
 	RATED_FILES=(
-	  n64_mature.txt
-	  saturn_mature.txt
-	  tgfx16cd_mature.txt
-	  arcade_rated.txt
-	  amiga_rated.txt
-	  ao486_rated.txt
-	  fds_rated.txt
-	  gb_rated.txt
-	  gbc_rated.txt
-	  gba_rated.txt
-	  gg_rated.txt
-	  genesis_rated.txt
-	  megacd_rated.txt
-	  n64_rated.txt
-	  nes_rated.txt
-	  neogeo_rated.txt
-	  psx_rated.txt
-	  sms_rated.txt
-	  snes_rated.txt
-	  tgfx16_rated.txt
-	  tgfx16cd_rated.txt
+          n64_mature.txt
+          saturn_mature.txt
+          tgfx16cd_mature.txt
+          amiga_rated.txt
+          amigacd32_rated.txt
+          ao486_rated.txt
+          arcade_rated.txt
+          atari2600_rated.txt
+          atari5200_rated.txt
+          atari7800_rated.txt
+          atarilynx_rated.txt
+          c64_rated.txt
+          cdi_rated.txt
+          coco2_rated.txt
+          colecovision_rated.txt
+          fds_rated.txt
+          gb_rated.txt
+          gbc_rated.txt
+          gba_rated.txt
+          genesis_rated.txt
+          gg_rated.txt
+          jaguar_rated.txt
+          megacd_rated.txt
+          n64_rated.txt
+          neogeo_rated.txt
+          neogeocd_rated.txt
+          nes_rated.txt
+          psx_rated.txt
+          s32x_rated.txt
+          saturn_rated.txt
+          sgb_rated.txt
+          sms_rated.txt
+          snes_rated.txt
+          stv_rated.txt
+          tgfx16_rated.txt
+          tgfx16cd_rated.txt
+          vectrex_rated.txt
+          wonderswan_rated.txt
+          wonderswancolor_rated.txt
+          x68k_rated.txt
+          mgls_rated.txt
 	)
 
 	# All blacklist files
-	BLACKLIST_FILES=(
-	  amiga_blacklist.txt
-	  arcade_blacklist.txt
-	  fds_blacklist.txt
-	  gba_blacklist.txt
-	  genesis_blacklist.txt
-	  megacd_blacklist.txt
-	  n64_blacklist.txt
-	  nes_blacklist.txt
-	  neogeo_blacklist.txt
-	  psx_blacklist.txt
-	  s32x_blacklist.txt
-	  sms_blacklist.txt
-	  snes_blacklist.txt
-	  tgfx16_blacklist.txt
-	  tgfx16cd_blacklist.txt
+        BLACKLIST_FILES=(
+          amiga_blacklist.txt
+          amigacd32_blacklist.txt
+          ao486_blacklist.txt
+          arcade_blacklist.txt
+          atari2600_blacklist.txt
+          atari5200_blacklist.txt
+          atari7800_blacklist.txt
+          atarilynx_blacklist.txt
+          c64_blacklist.txt
+          cdi_blacklist.txt
+          coco2_blacklist.txt
+          colecovision_blacklist.txt
+          fds_blacklist.txt
+          gb_blacklist.txt
+          gbc_blacklist.txt
+          gba_blacklist.txt
+          genesis_blacklist.txt
+          gg_blacklist.txt
+          jaguar_blacklist.txt
+          megacd_blacklist.txt
+          n64_blacklist.txt
+          neogeo_blacklist.txt
+          neogeocd_blacklist.txt
+          nes_blacklist.txt
+          psx_blacklist.txt
+          s32x_blacklist.txt
+          saturn_blacklist.txt
+          sgb_blacklist.txt
+          sms_blacklist.txt
+          snes_blacklist.txt
+          stv_blacklist.txt
+          tgfx16_blacklist.txt
+          tgfx16cd_blacklist.txt
+          vectrex_blacklist.txt
+          wonderswan_blacklist.txt
+          wonderswancolor_blacklist.txt
+          x68k_blacklist.txt
+          mgls_blacklist.txt
 	)
 
 }
