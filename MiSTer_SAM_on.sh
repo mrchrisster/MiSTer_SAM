@@ -658,7 +658,7 @@ function init_data() {
 		["cdi"]="1"
 		["coco2"]="1"
   		["colecovision"]="1"
-		["intellivision"]="0"
+		["intellivision"]="1"
 		["fds"]="0"
 		["gb"]="0"
 		["gbc"]="0"
