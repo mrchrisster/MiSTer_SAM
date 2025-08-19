@@ -3314,7 +3314,14 @@ function skipmessage() {
         samdebug "Button push sent for '${core}' to skip BIOS"
         if [ "${core}" == "intellivision" ]; then
             "${mrsampath}/mbc" raw_seq :1C
-            truncate -s 0 "$key_activity_file"
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :31
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :1C
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :31
+            sleep 1
+			"${mrsampath}/mbc" raw_seq :1C
         else
             "${mrsampath}/mbc" raw_seq :31
             sleep 1
