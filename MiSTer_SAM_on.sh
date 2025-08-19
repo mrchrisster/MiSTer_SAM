@@ -3315,13 +3315,17 @@ function skipmessage() {
         if [ "${core}" == "intellivision" ]; then
             "${mrsampath}/mbc" raw_seq :1C
             sleep 1
-            "${mrsampath}/mbc" raw_seq :31
+            "${mrsampath}/mbc" raw_seq :02
             sleep 1
             "${mrsampath}/mbc" raw_seq :1C
             sleep 1
-            "${mrsampath}/mbc" raw_seq :31
+            "${mrsampath}/mbc" raw_seq :02
             sleep 1
-			"${mrsampath}/mbc" raw_seq :1C
+            "${mrsampath}/mbc" raw_seq :1C
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :03
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :1C
         else
             "${mrsampath}/mbc" raw_seq :31
             sleep 1
