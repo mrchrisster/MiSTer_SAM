@@ -2156,6 +2156,12 @@ function build_gamelist() {
     # 4. POST-PROCESSING: Handle results and cleanup.
     file="${outdir}/${core}_gamelist.txt"
 
+     # Filter CoCo2 lists to include only cartridge images. Temp fix until SAMINDEX is updated. 
+    if [[ "${core}" == "coco2" && -f "${file}" ]]; then
+        grep -iE '\.ccc\b' "${file}" > "${file}.tmp"
+        mv "${file}.tmp" "${file}"
+    fi
+
     # Only perform special error handling and seeding for initial builds.
     if (( is_initial_build )); then
         # On initial build, an exit code > 1 means "no games found".
