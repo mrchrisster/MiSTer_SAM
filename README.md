@@ -65,6 +65,8 @@ vga_scaler=1
 - **Auto Folder Detection** - No matter if your games are on SD or USB, SAM will find your default game folders.
   
 - **Curated Blacklists** - The SAM Team is currently recording every game's attract mode to short videos that we capture through HDMi so we can detect if a game is worthy to be shown or should be blacklisted (like Disc 2 for MegaCD, load error FDS games or games with a static screen)
+
+- **Deferred gamelist maintenance** - SAM rescans each core's game folder once to update its gamelist. Set `check_for_new_games` to `No` to skip this step, or enable `update_gamelists_during_play` or `checkzipsondisk` in `MiSTer_SAM.ini` for more frequent checks.
   
 ## Reset to Defaults
 This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.  
@@ -82,33 +84,46 @@ This process can be used if you want to return MiSTer SAM to default settings or
 
 ## Configuration
 The script is highly customizable through the included ini file `MiSTer_SAM.ini` (details below).
+Specify directories for the MGLs with the `mgls_dirs` setting.
 
 ## Supported Systems
 Currently supported MiSTer cores:
 * Amiga (MegaAGS.hdf)
+* Amiga CD32 (.chd, .cue)
 * AO486 (Drop screensaver vhd's in /media/fat/games/AO486/screensaver - created by flynnsbit)
 * Arcade (all .MRA files)
 * Atari2600/5200/7800 (.a26 .a52 .car .a78)
+* Atari Jaguar (.j64 .rom .bin .jag)
 * Atari Lynx (.lnx)
-* C64 (.prg and .crt)
+* C64 (.prg .crt)
+* Colecovision (.col)
+* Intellivision (.int)
 * Famicom Disk System (.fds)
-* Game Boy/ Game Boy Color (.gb and .gbc)   
+* Game Boy/ Game Boy Color (.gb .gbc)
 * Game Boy Advance (.gba)
 * Genesis (.md .gen)
 * Game Gear (.gg)
 * MegaCD AKA SegaCD (.chd .cue) - Highly recommend `JP Mega-CD 2 (Region Free) 921222 l_oliveira.bin` for best compatibility. Find it in MegaCD folder, google `htgdb-gamepacks`
 * NeoGeo (.neo)
+* NeoGeo CD (.cue, .chd)
 * NES (.nes)
-* Nintendo N64 (.z64)
-* Genesis 32X (.32x)
-* Sega 32x (.s32)
+* Nintendo N64 (.z64 .n64)
+* Philips CD-i (.chd .cue)
+* Sega 32x (.s32 .32x)
 * Sega Saturn (.chd .cue)
+* Sega Titan Video (ST-V) (.mra)
 * Sega Master System (.sms .sg)
 * Super GameBoy (.gb .gbc)
 * SNES (.sfc .smc)
 * PSX (.chd .cue .exe)
+* TRS‑80 Color Computer 2 (CoCo2) (.ccc)
 * TurboGrafx-16 AKA PC Engine (.pce .sgx)
 * TurboGrafx-16 CD AKA PC Engine CD (.chd .cue) - No autoboot bios required since SAM will autostart games for you.
+* WonderSwan (.ws)
+* WonderSwan Color (.wsc)
+* Vectrex (.bin)
+* Sharp X68000 (.mgl)
+* MGLs (custom .mgl files)
 
 ## MiSTer Setup
 The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
@@ -187,7 +202,7 @@ BASE_PATH="/media/fat/Games"
 For technical users here are a few handy tricks to observe and debug SAM.
 
 - To enable more console messages: `samdebug="Yes"`
-- Check the generated MGL file under `/tmp/SAM_game.mgl`. 
+- Check the generated MGL file under `/tmp/SAM_Game.mgl`. 
 
 ## SSH features  
 
@@ -251,7 +266,7 @@ graph TD
 ```
    
 ## Release History
-- 1 Aug 2025 - Refactored and cleaned up a lot fo the code.
+- 1 Aug 2025 - Refactored and cleaned up a lot for the code.
 - 4 Feb 2025 - Added amigacd32, neogeocd and various bugfixes
 - 26 Feb 2024 - Saturn, N64 and video mode implemented. Watch game commercials from back in the day and then play those games.
 - 02 Feb 2023 - ao486 integration, Kids Safe Mode, Dynamically finding new roms, Adjust global volume for BGM

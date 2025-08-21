@@ -57,7 +57,6 @@ function init_vars() {
 	declare -gi romloadfails=0
 	declare -g gamelistpath="${mrsampath}/SAM_Gamelists"
 	declare -g gamelistpathtmp="/tmp/.SAM_List"
-	declare -g gamelistpathtmp="/tmp/.SAM_List"
 	declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
@@ -65,14 +64,13 @@ function init_vars() {
 	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,psx,x68k"
+	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,colecovision,intellivision,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,vectrex,wonderswan,wonderswancolor,psx,x68k,mgls"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
 	declare -gl skiptime="10"
 	declare -gl norepeat="Yes"
 	declare -gl disable_blacklist="No"
-	declare -gl disablebootrom="Yes"
 	declare -gl amigaselect="All"
 	declare -gl m82="no"
 	declare -gl sam_goat_list="no"
@@ -88,6 +86,7 @@ function init_vars() {
 	declare -gl listenmouse="Yes"
 	declare -gl listenkeyboard="Yes"
 	declare -gl listenjoy="Yes"
+ 	declare -gl mgls_dirs=""
 	declare -g repository_url="https://github.com/mrchrisster/MiSTer_SAM"
 	declare -g branch="main"
 	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"
@@ -98,7 +97,10 @@ function init_vars() {
 	declare -g userstartuptpl="/media/fat/linux/_user-startup.sh"
 	declare -gl useneogeotitles="Yes"
 	declare -gl arcadeorient
-	declare -gl checkzipsondisk="Yes"
+	declare -gl checkzipsondisk="No"
+ 	declare -gl force_zip_scan="No"
+  	declare -gl check_for_new_games="Yes"
+    declare -gl update_gamelists_during_play="No"
 	declare -gi bootsleep="60"
 	declare -gi totalgamecount		
 	# ======== DEBUG VARIABLES ========
@@ -168,6 +170,8 @@ function init_vars() {
 	declare -g c64pathrbf="_Computer"
 	declare -g cdipathrbf="_Console"	
 	declare -g coco2pathrbf="_Computer"
+	declare -g colecovisionpathrbf="_Console"
+ 	declare -g intellivisionpathrbf="_Console"
 	declare -g fdspathrbf="_Console"
 	declare -g gbpathrbf="_Console"
 	declare -g gbcpathrbf="_Console"
@@ -188,8 +192,11 @@ function init_vars() {
 	declare -g stvpathrbf="_Arcade"
 	declare -g tgfx16pathrbf="_Console"
 	declare -g tgfx16cdpathrbf="_Console"
-	declare -g psxpathrbf="_Console"
-	declare -g x68kpathrbf="_Computer"
+    declare -g psxpathrbf="_Console"
+    declare -g vectrexpathrbf="_Console"
+    declare -g wonderswanpathrbf="_Console"
+    declare -g wonderswancolorpathrbf="_Console"
+    declare -g x68kpathrbf="_Computer"
 	
 	
 	# SPECIAL CORES
@@ -256,6 +263,8 @@ function init_data() {
 		["c64"]="Commodore 64"
 		["cdi"]="Philips CD-i"
 		["coco2"]="TRS-80 Color Computer 2"
+  		["colecovision"]="ColecoVision"
+		["intellivision"]="Mattel Intellivision"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
 		["gbc"]="Nintendo Game Boy Color"
@@ -275,9 +284,13 @@ function init_data() {
 		["snes"]="Super Nintendo"
 		["stv"]="Sega Titan Video"
 		["tgfx16"]="NEC TurboGrafx-16 "
-		["tgfx16cd"]="NEC TurboGrafx-16 CD"
-		["psx"]="Sony Playstation"
-		["x68k"]="Sharp X68000"
+        ["tgfx16cd"]="NEC TurboGrafx-16 CD"
+        ["psx"]="Sony Playstation"
+        ["vectrex"]="GCE Vectrex"
+        ["wonderswan"]="Bandai WonderSwan"
+        ["wonderswancolor"]="Bandai WonderSwan Color"
+        ["x68k"]="Sharp X68000"
+        ["mgls"]="Custom MGL"
 	)
 
 	# Core to file extension mappings
@@ -292,6 +305,8 @@ function init_data() {
 		["c64"]="crt,prg" 		# need to be tested "reu,tap,flt,rom,c1581"
 		["cdi"]="chd,cue"	
 		["coco2"]="ccc"
+  		["colecovision"]="col"
+		["intellivision"]="int,bin,rom"
 		["fds"]="fds"
 		["gb"]="gb"			 		
 		["gbc"]="gbc"		 		
@@ -310,9 +325,13 @@ function init_data() {
 		["sms"]="sms,sg"
 		["snes"]="sfc,smc" 	 	# Should we include? "bin,bs"
 		["tgfx16"]="pce,sgx"		
-		["tgfx16cd"]="chd,cue"
-		["psx"]="chd,cue,exe"
-		["x68k"]="mgl"
+        ["tgfx16cd"]="chd,cue"
+        ["psx"]="chd,cue,exe"
+        ["vectrex"]="bin"
+        ["wonderswan"]="ws"
+        ["wonderswancolor"]="wsc"
+        ["x68k"]="mgl"
+        ["mgls"]="mgl"
 	)
 	
 	# Core to path mappings
@@ -328,6 +347,8 @@ function init_data() {
 		["c64"]="${c64pathfilter}"
 		["cdi"]="${cdipathfilter}"
 		["coco2"]="${coco2pathfilter}"
+  		["colecovision"]="${colecovisionpathfilter}"
+		["intellivision"]="${intellivisionpathfilter}"
 		["fds"]="${fdspathfilter}"
 		["gb"]="${gbpathfilter}"
 		["gbc"]="${gbcpathfilter}"
@@ -347,9 +368,14 @@ function init_data() {
 		["snes"]="${snespathfilter}"
 		["stv"]="${stvpathfilter}"
 		["tgfx16"]="${tgfx16pathfilter}"
-		["tgfx16cd"]="${tgfx16cdpathfilter}"
-		["psx"]="${psxpathfilter}"
-		["x68k"]="${x68kpathfilter}"
+        ["tgfx16"]="${tgfx16pathfilter}"
+        ["tgfx16cd"]="${tgfx16cdpathfilter}"
+        ["psx"]="${psxpathfilter}"
+        ["vectrex"]="${vectrexpathfilter}"
+        ["wonderswan"]="${wonderswanpathfilter}"
+        ["wonderswancolor"]="${wonderswancolorpathfilter}"
+        ["x68k"]="${x68kpathfilter}"
+        ["mgls"]="${mglspathfilter}"
 	)
 
 
@@ -366,6 +392,8 @@ function init_data() {
 		["c64"]="${c64pathrbf}"
 		["cdi"]="${cdipathrbf}"
 		["coco2"]="${coco2pathrbf}"
+  		["colecovision"]="${colecovisionpathrbf}"
+		["intellivision"]="${intellivisionpathrbf}"
 		["fds"]="${fdspathrbf}"
 		["gb"]="${gbpathrbf}"
 		["gbc"]="${gbcpathrbf}"
@@ -383,11 +411,14 @@ function init_data() {
 		["sgb"]="${sgbpathrbf}"
 		["sms"]="${smspathrbf}"
 		["snes"]="${snespathrbf}"
-		["stv"]="${stvpathrbf}"
-		["tgfx16"]="${tgfx16pathrbf}"
-		["tgfx16cd"]="${tgfx16cdpathrbf}"
-		["psx"]="${psxpathrbf}"
-		["x68k"]="${x68kpathrbf}"
+        ["stv"]="${stvpathrbf}"
+        ["tgfx16"]="${tgfx16pathrbf}"
+        ["tgfx16cd"]="${tgfx16cdpathrbf}"
+        ["psx"]="${psxpathrbf}"
+        ["vectrex"]="${vectrexpathrbf}"
+        ["wonderswan"]="${wonderswanpathrbf}"
+        ["wonderswancolor"]="${wonderswancolorpathrbf}"
+        ["x68k"]="${x68kpathrbf}"
 	)
 
 	# Can this core skip Bios/Safety warning messages
@@ -403,6 +434,8 @@ function init_data() {
 		["c64"]="No"
 		["cdi"]="No"
 		["coco2"]="No"
+  		["colecovision"]="No"
+		["intellivision"]="Yes"
 		["fds"]="Yes"
 		["gb"]="No"
 		["gbc"]="No"
@@ -419,12 +452,16 @@ function init_data() {
 		["saturn"]="Yes"
 		["sgb"]="No"
 		["sms"]="No"
-		["snes"]="No"
-		["stv"]="No"
-		["tgfx16"]="No"
-		["tgfx16cd"]="Yes"
-		["psx"]="No"
-		["x68k"]="No"
+        ["snes"]="No"
+        ["stv"]="No"
+        ["tgfx16"]="No"
+        ["tgfx16cd"]="Yes"
+        ["psx"]="No"
+        ["vectrex"]="No"
+        ["wonderswan"]="No"
+        ["wonderswancolor"]="No"
+        ["x68k"]="No"
+        ["mgls"]="No"
 	)
 	
 
@@ -441,6 +478,8 @@ function init_data() {
 		["c64"]="C64"
 		["cdi"]="CDi"
 		["coco2"]="CoCo2"
+  		["colecovision"]="ColecoVision"
+		["intellivision"]="Intellivision"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -460,9 +499,13 @@ function init_data() {
 		["snes"]="SNES"
 		["stv"]="S-TV"
 		["tgfx16"]="TGFX16"
-		["tgfx16cd"]="TGFX16"
-		["psx"]="PSX"
-		["x68k"]="X68000"
+        ["tgfx16cd"]="TGFX16"
+        ["psx"]="PSX"
+        ["vectrex"]="Vectrex"
+        ["wonderswan"]="WonderSwan"
+        ["wonderswancolor"]="WonderSwan"
+        ["x68k"]="X68000"
+        ["mgls"]="MGL"
 	)
 	
 	# TTY2OLED Core Pic mappings
@@ -478,11 +521,13 @@ function init_data() {
 		["c64"]="C64"
 		["cdi"]="CD-i"
 		["coco2"]="CoCo2"
+  		["colecovision"]="ColecoVision"
+		["intellivision"]="Intellivision"
 		["fds"]="fds"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
 		["gba"]="GBA"
-		["genesis"]="Genesis"
+		["genesis"]="MegaDrive"
 		["gg"]="gamegear"
 		["jaguar"]="Jaguar"
 		["megacd"]="MegaCD"
@@ -496,10 +541,14 @@ function init_data() {
 		["sms"]="SMS"
 		["snes"]="SNES"
 		["stv"]="S-TV"
-		["tgfx16"]="TGFX16"
-		["tgfx16cd"]="TGFX16"
-		["psx"]="PSX"
-		["x68k"]="X68000"
+        ["tgfx16"]="TGFX16"
+        ["tgfx16cd"]="TGFX16"
+        ["psx"]="PSX"
+        ["vectrex"]="Vectrex"
+        ["wonderswan"]="WonderSwan"
+        ["wonderswancolor"]="WonderSwan"
+        ["x68k"]="X68000"
+        ["mgls"]="MGL"
 	)
 
 	# MGL core name settings
@@ -515,6 +564,8 @@ function init_data() {
 		["c64"]="C64"
 		["cdi"]="CDi"
 		["coco2"]="CoCo2"
+  		["colecovision"]="ColecoVision"
+		["intellivision"]="Intellivision"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -534,9 +585,12 @@ function init_data() {
 		["snes"]="SNES"
 		["stv"]="S-TV"
 		["tgfx16"]="TurboGrafx16"
-		["tgfx16cd"]="TurboGrafx16"
-		["psx"]="PSX"
-		["x68k"]="X68000"
+        ["tgfx16cd"]="TurboGrafx16"
+        ["psx"]="PSX"
+        ["vectrex"]="Vectrex"
+        ["wonderswan"]="WonderSwan"
+        ["wonderswancolor"]="WonderSwan"
+        ["x68k"]="X68000"
 	)
 
 	# MGL setname settings
@@ -544,6 +598,7 @@ function init_data() {
 		["amigacd32"]="AmigaCD32"
 		["gbc"]="GBC"
 		["gg"]="GameGear"
+		["wonderswancolor"]="WonderSwanColor"
 	)
 
 	# MGL delay settings
@@ -559,6 +614,8 @@ function init_data() {
 		["c64"]="1"
 		["cdi"]="1"
 		["coco2"]="1"
+  		["colecovision"]="1"
+		["intellivision"]="1"
 		["fds"]="2"
 		["gb"]="2"
 		["gbc"]="2"
@@ -577,10 +634,13 @@ function init_data() {
 		["sms"]="1"
 		["snes"]="2"
 		["stv"]="2"
-		["tgfx16"]="1"
-		["tgfx16cd"]="1"
-		["psx"]="1"
-		["x68k"]="1"
+        ["tgfx16"]="1"
+        ["tgfx16cd"]="1"
+        ["psx"]="1"
+        ["vectrex"]="1"
+        ["wonderswan"]="1"
+        ["wonderswancolor"]="1"
+        ["x68k"]="1"
 
 	)
 
@@ -597,6 +657,8 @@ function init_data() {
 		["c64"]="1"
 		["cdi"]="1"
 		["coco2"]="1"
+  		["colecovision"]="1"
+		["intellivision"]="1"
 		["fds"]="0"
 		["gb"]="0"
 		["gbc"]="0"
@@ -615,10 +677,13 @@ function init_data() {
 		["sms"]="1"
 		["snes"]="0"
 		["stv"]="0"
-		["tgfx16"]="1"
-		["tgfx16cd"]="0"
-		["psx"]="1"
-		["x68k"]="2"
+        ["tgfx16"]="1"
+        ["tgfx16cd"]="0"
+        ["psx"]="1"
+        ["vectrex"]="1"
+        ["wonderswan"]="1"
+        ["wonderswancolor"]="1"
+        ["x68k"]="2"
 	)
 
 	# MGL type settings
@@ -634,6 +699,8 @@ function init_data() {
 		["c64"]="f"
 		["cdi"]="s"
 		["coco2"]="f"
+  		["colecovision"]="f"
+		["intellivision"]="f"
 		["fds"]="f"
 		["gb"]="f"
 		["gbc"]="f"
@@ -653,9 +720,12 @@ function init_data() {
 		["snes"]="f"
 		["stv"]="f"
 		["tgfx16"]="f"
-		["tgfx16cd"]="s"
-		["psx"]="s"
-		["x68k"]="s"
+        ["tgfx16cd"]="s"
+        ["psx"]="s"
+        ["vectrex"]="f"
+        ["wonderswan"]="f"
+        ["wonderswancolor"]="f"
+        ["x68k"]="s"
 	)
 	
 
@@ -962,6 +1032,8 @@ function init_data() {
 		["atari5200"]="atari 5200"
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
+  		["colecovision"]="coleco\|colecovision"
+		["intellivision"]="intellivision"
 		["saturn"]="sega saturn"
 		["s32x"]="sega 32x"
 		["sgb"]="super game boy\|gb-super game boy\|snes-super game boy"
@@ -974,46 +1046,91 @@ function init_data() {
 	)
 
 	RATED_FILES=(
-	  n64_mature.txt
-	  saturn_mature.txt
-	  tgfx16cd_mature.txt
-	  arcade_rated.txt
-	  amiga_rated.txt
-	  ao486_rated.txt
-	  fds_rated.txt
-	  gb_rated.txt
-	  gbc_rated.txt
-	  gba_rated.txt
-	  gg_rated.txt
-	  genesis_rated.txt
-	  megacd_rated.txt
-	  n64_rated.txt
-	  nes_rated.txt
-	  neogeo_rated.txt
-	  psx_rated.txt
-	  sms_rated.txt
-	  snes_rated.txt
-	  tgfx16_rated.txt
-	  tgfx16cd_rated.txt
+          n64_mature.txt
+          saturn_mature.txt
+          tgfx16cd_mature.txt
+          amiga_rated.txt
+          amigacd32_rated.txt
+          ao486_rated.txt
+          arcade_rated.txt
+          atari2600_rated.txt
+          atari5200_rated.txt
+          atari7800_rated.txt
+          atarilynx_rated.txt
+          c64_rated.txt
+          cdi_rated.txt
+          coco2_rated.txt
+          colecovision_rated.txt
+		  intellivision_rated.txt
+          fds_rated.txt
+          gb_rated.txt
+          gbc_rated.txt
+          gba_rated.txt
+          genesis_rated.txt
+          gg_rated.txt
+          jaguar_rated.txt
+          megacd_rated.txt
+          n64_rated.txt
+          neogeo_rated.txt
+          neogeocd_rated.txt
+          nes_rated.txt
+          psx_rated.txt
+          s32x_rated.txt
+          saturn_rated.txt
+          sgb_rated.txt
+          sms_rated.txt
+          snes_rated.txt
+          stv_rated.txt
+          tgfx16_rated.txt
+          tgfx16cd_rated.txt
+          vectrex_rated.txt
+          wonderswan_rated.txt
+          wonderswancolor_rated.txt
+          x68k_rated.txt
+          mgls_rated.txt
 	)
 
 	# All blacklist files
-	BLACKLIST_FILES=(
-	  amiga_blacklist.txt
-	  arcade_blacklist.txt
-	  fds_blacklist.txt
-	  gba_blacklist.txt
-	  genesis_blacklist.txt
-	  megacd_blacklist.txt
-	  n64_blacklist.txt
-	  nes_blacklist.txt
-	  neogeo_blacklist.txt
-	  psx_blacklist.txt
-	  s32x_blacklist.txt
-	  sms_blacklist.txt
-	  snes_blacklist.txt
-	  tgfx16_blacklist.txt
-	  tgfx16cd_blacklist.txt
+        BLACKLIST_FILES=(
+          amiga_blacklist.txt
+          amigacd32_blacklist.txt
+          ao486_blacklist.txt
+          arcade_blacklist.txt
+          atari2600_blacklist.txt
+          atari5200_blacklist.txt
+          atari7800_blacklist.txt
+          atarilynx_blacklist.txt
+          c64_blacklist.txt
+          cdi_blacklist.txt
+          coco2_blacklist.txt
+          colecovision_blacklist.txt
+		  intellivision_blacklist.txt
+          fds_blacklist.txt
+          gb_blacklist.txt
+          gbc_blacklist.txt
+          gba_blacklist.txt
+          genesis_blacklist.txt
+          gg_blacklist.txt
+          jaguar_blacklist.txt
+          megacd_blacklist.txt
+          n64_blacklist.txt
+          neogeo_blacklist.txt
+          neogeocd_blacklist.txt
+          nes_blacklist.txt
+          psx_blacklist.txt
+          s32x_blacklist.txt
+          saturn_blacklist.txt
+          sgb_blacklist.txt
+          sms_blacklist.txt
+          snes_blacklist.txt
+          stv_blacklist.txt
+          tgfx16_blacklist.txt
+          tgfx16cd_blacklist.txt
+          vectrex_blacklist.txt
+          wonderswan_blacklist.txt
+          wonderswancolor_blacklist.txt
+          x68k_blacklist.txt
+          mgls_blacklist.txt
 	)
 
 }
@@ -1475,8 +1592,10 @@ function next_core() { # next_core (core)
 		return 1
 	fi
 	
-	# Check if new roms got added
-	check_list_update ${nextcore}
+    # Check if new roms got added
+    if [[ "$check_for_new_games" == "Yes" ]]; then
+            check_list_update ${nextcore}
+    fi
 	
 	pick_rom
 	
@@ -1977,22 +2096,27 @@ function build_mgl_list() {
 
     # Determine which directories to search based on the core
     case "${core_type}" in
-        "ao486")
-            search_paths=(
-                "/media/fat/_DOS Games"
-                "/media/fat/_Computer/_DOS Games"
-            )
-            ;;
-        "x68k")
-            search_paths=(
-                "/media/fat/_X68000 Games"
-                "/media/fat/_Computer/_X68000 Games"
-            )
-            ;;
-        *)
-            samdebug "No MGL search path defined for ${core_type}."
-            return 1
-            ;;
+       "ao486")
+           search_paths=(
+               "/media/fat/_DOS Games"
+               "/media/fat/_Computer/_DOS Games"
+               "/media/fat/games/ao486/_DOS"
+               "/media/usb0/games/ao486/_DOS"
+           )
+           ;;
+       "x68k")
+           search_paths=(
+               "/media/fat/_X68000 Games"
+               "/media/fat/_Computer/_X68000 Games"
+           )
+           ;;
+       "mgls")
+           IFS=',' read -ra search_paths <<< "${mgls_dirs}"
+           ;;
+       *)
+           samdebug "No MGL search path defined for ${core_type}."
+           return 1
+           ;;
     esac
 
     # Collect only the search paths that actually exist
@@ -2103,6 +2227,12 @@ function build_gamelist() {
     # 4. POST-PROCESSING: Handle results and cleanup.
     file="${outdir}/${core}_gamelist.txt"
 
+     # Filter CoCo2 lists to include only cartridge images. Temp fix until SAMINDEX is updated. 
+    if [[ "${core}" == "coco2" && -f "${file}" ]]; then
+        grep -iE '\.ccc\b' "${file}" > "${file}.tmp"
+        mv "${file}.tmp" "${file}"
+    fi
+
     # Only perform special error handling and seeding for initial builds.
     if (( is_initial_build )); then
         # On initial build, an exit code > 1 means "no games found".
@@ -2144,7 +2274,7 @@ function ensure_list() {
     # Determine which builder to use
     case "${core_type}" in
         "arcade"|"stv") build_func="build_mra_list" ;;
-        "ao486"|"x68k") build_func="build_mgl_list" ;;
+        "ao486"|"x68k"|"mgls") build_func="build_mgl_list" ;;
         "amiga")        build_func="build_amiga_list" ;;
         *)              build_func="build_gamelist" ;;
     esac
@@ -2272,12 +2402,20 @@ function create_all_gamelists() {
     ) &
 }
 
+function schedule_gamelist_updates() {
+        local core
+		[[ "$check_for_new_games" != "Yes" ]] && return
+        for core in ${corelist//,/ }; do
+                check_list_update "$core"
+        done
+}
 
 function check_list_update() {
-	local core="$1"
-	local orig="${gamelistpath}/${core}_gamelist.txt"
-	local compdir="${gamelistpathtmp}/comp"
-	local comp="${compdir}/${core}_gamelist.txt"
+    [[ "$check_for_new_games" != "Yes" ]] && return
+    local core="$1"
+    local orig="${gamelistpath}/${core}_gamelist.txt"
+    local compdir="${gamelistpathtmp}/comp"
+    local comp="${compdir}/${core}_gamelist.txt"
 	
 	# ── only run this check once per core, per session ──
 	local flag_dir="${gamelistpathtmp}/.checked"
@@ -2497,25 +2635,29 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
         "ao486")
             ### ao486 MGL Loader ###
             # --- Prerequisite Check ---
-            if [[ -z "$mgl_check_status_ao486" ]]; then
-                samdebug "Performing one-time check for ao486 MGL files..."
-                local dir1="/media/fat/_DOS Games"
-                local dir2="/media/fat/_Computer/_DOS Games"
-                if [ -d "$dir1" ] || [ -d "$dir2" ]; then
-                    local count1=$(find "$dir1" -type f -iname '*.mgl' 2>/dev/null | wc -l)
-                    local count2=$(find "$dir2" -type f -iname '*.mgl' 2>/dev/null | wc -l)
-                    [ "$((count1 + count2))" -gt 0 ] && mgl_check_status_ao486="pass" || mgl_check_status_ao486="fail"
-                else
-                    mgl_check_status_ao486="fail"
-                fi
-            fi
+           if [[ -z "$mgl_check_status_ao486" ]]; then
+               samdebug "Performing one-time check for ao486 MGL files..."
+               local dir1="/media/fat/_DOS Games"
+               local dir2="/media/fat/_Computer/_DOS Games"
+               local dir3="/media/fat/games/ao486/_DOS"
+               local dir4="/media/usb0/games/ao486/_DOS"
+               if [ -d "$dir1" ] || [ -d "$dir2" ] || [ -d "$dir3" ] || [ -d "$dir4" ]; then
+                   local count1=$(find "$dir1" -type f -iname '*.mgl' 2>/dev/null | wc -l)
+                   local count2=$(find "$dir2" -type f -iname '*.mgl' 2>/dev/null | wc -l)
+                   local count3=$(find "$dir3" -type f -iname '*.mgl' 2>/dev/null | wc -l)
+                   local count4=$(find "$dir4" -type f -iname '*.mgl' 2>/dev/null | wc -l)
+                   [ "$((count1 + count2 + count3 + count4))" -gt 0 ] && mgl_check_status_ao486="pass" || mgl_check_status_ao486="fail"
+               else
+                   mgl_check_status_ao486="fail"
+               fi
+           fi
 
-            if [[ "$mgl_check_status_ao486" != "pass" ]]; then
-                echo "ERROR - No ao486 MGL files found. Please install the 0Mhz collection." >&2
-                delete_from_corelist "ao486"
-                return 1
-            fi
-            # --- End Prerequisite Check ---
+           if [[ "$mgl_check_status_ao486" != "pass" ]]; then
+               echo "ERROR - No ao486 MGL files found. Please install the 0Mhz collection." >&2
+               delete_from_corelist "ao486"
+               return 1
+           fi
+           # --- End Prerequisite Check ---
             
             rompath="${rompath_arg}"
             romname=$(basename "${rompath}")
@@ -2556,6 +2698,17 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             mute_target="${core}"
             launch_cmd="load_core ${rompath}"
             ;;
+
+        "mgls")
+           rompath="${rompath_arg}"
+           romname=$(basename "${rompath}")
+           gamename="${romname%.*}"
+           tty_corename=$(grep -oP '(?<=<rbf>)[^<]+' "${rompath}" 2>/dev/null | xargs -r basename | cut -d. -f1)
+           mute_target="${tty_corename}"
+           [ -f "${rompath}" ] && cp "${rompath}" /tmp/SAM_Game.mgl
+           launch_cmd="load_core ${rompath}"
+           skipmessage "${core}" &
+           ;;
 
         "amiga")
             ### Amiga (MegaAGS) Loader ###
@@ -2651,7 +2804,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
         delete_played_game
     fi
 
-    mute "${mute_target}"
+    [ -n "${mute_target}" ] && mute "${mute_target}"
     if [ "${bgm}" == "yes" ]; then
         streamtitle=$(awk -F"'" '/StreamTitle=/{title=$2} END{print title}' /tmp/bgm.log 2>/dev/null)
     fi
@@ -3128,7 +3281,7 @@ function deletegl() {
 		rm -rf /tmp/.SAM_List
 	fi
 
-	if [ ${inmenu} -eq 1 ]; then
+	if [ "${inmenu}" -eq 1 ]; then
 		sleep 1
 		sam_menu
 	else
@@ -3159,9 +3312,25 @@ function skipmessage() {
         # If both are 'yes', wait for the configured time and send the button presses.
         sleep "$skiptime"
         samdebug "Button push sent for '${core}' to skip BIOS"
-        "${mrsampath}/mbc" raw_seq :31
-        sleep 1
-        "${mrsampath}/mbc" raw_seq :31
+        if [ "${core}" == "intellivision" ]; then
+            "${mrsampath}/mbc" raw_seq :1C
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :02
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :1C
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :02
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :1C
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :03
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :1C
+        else
+            "${mrsampath}/mbc" raw_seq :31
+            sleep 1
+            "${mrsampath}/mbc" raw_seq :31
+        fi
     fi
 }
 
@@ -3397,34 +3566,36 @@ function check_zips() { # check_zips core
 			fi
 		done
 		#samdebug "Done."
-		#samdebug -n "Checking zips on disk..."
-		if [ "${checkzipsondisk}" == "yes" ]; then 
-			# Check for new zips
-			corepath="$("${mrsampath}"/samindex -q -s "${1}" -d |awk -F':' '{print $2}')"
-			readarray -t files <<< "$(find "${corepath}" -maxdepth 2 -type f -name "*.zip")"
-			extgrep=$(echo ".${CORE_EXT[${1}]}" | sed -e "s/,/\\\|/g"| sed 's/,/,./g')
-			# Check which files have valid roms
-			readarray -t newfiles <<< "$(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )"
-			if [[ "${newfiles[*]}" ]]; then
-				for f in "${newfiles[@]}"; do
-					if [ -f "${f}" ]; then
-						if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}"; then
-							zipsondisk+=( "${f}" )
-						fi
-					else
-						samdebug "Zip file ${f} not found"
-					fi
-				done
-			fi
-			if [[ "${zipsondisk[*]}" ]]; then
-				result="$(printf '%s\n' "${zipsondisk[@]}")"
-				if [[ "${result}" ]]; then
-					samdebug "Found new zip file[s]: ${result##*/}"
-					build_gamelist "${1}"
-					return
-				fi
-			fi
-		fi
+        #samdebug -n "Checking zips on disk..."
+        if [ "${checkzipsondisk}" == "yes" ] || [ "${force_zip_scan}" == "yes" ]; then
+                # Check for new zips
+                corepath="$("${mrsampath}"/samindex -q -s "${1}" -d |awk -F':' '{print $2}')"
+                readarray -t files <<< "$(find "${corepath}" -maxdepth 2 -type f -name "*.zip")"
+                extgrep=$(echo ".${CORE_EXT[${1}]}" | sed -e "s/,/\\\|/g"| sed 's/,/,./g')
+                # Check which files have valid roms
+                readarray -t newfiles <<< "$(printf '%s\n'  "${zipsinfile[@]}" "${files[@]}"  | sort | uniq -iu )"
+                if [[ "${newfiles[*]}" ]]; then
+                        for f in "${newfiles[@]}"; do
+                                if [ -f "${f}" ]; then
+                                        if "${mrsampath}"/partun -l "${f}" --ext "${extgrep}" | grep -q "${extgrep}"; then
+                                                zipsondisk+=( "${f}" )
+                                        fi
+                                else
+                                        samdebug "Zip file ${f} not found"
+                                fi
+                        done
+                fi
+                if [[ "${zipsondisk[*]}" ]]; then
+                        result="$(printf '%s\n' "${zipsondisk[@]}")"
+                        if [[ "${result}" ]]; then
+                                samdebug "Found new zip file[s]: ${result##*/}"
+                                build_gamelist "${1}"
+                                force_zip_scan="No"
+                                return
+                        fi
+                fi
+                force_zip_scan="No"
+        fi
 	fi
 	#samdebug "Done."
 }
@@ -4528,7 +4699,7 @@ function sam_update() { # sam_update (next command)
 	
 	mcp_start
 
-	if [ ${inmenu} -eq 1 ]; then
+	if [ "${inmenu}" -eq 1 ]; then
 		sleep 1
 		sam_menu
 	fi
@@ -4545,6 +4716,10 @@ read_samini
 init_paths
 
 init_data
+
+if [[ "$update_gamelists_during_play" == "Yes" ]]; then
+        schedule_gamelist_updates
+fi
 
 if [ "${1,,}" != "--source-only" ]; then
 	parse_cmd "${@}" # Parse command line parameters for input
