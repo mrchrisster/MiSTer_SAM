@@ -1021,83 +1021,116 @@ function init_data() {
 	)
 	
 	declare -glA SV_TVC=(
-		["arcade"]="arcade"
+		["gb"]="gb\|game boy"
+		["gbc"]="gb\|game boy"
+		["genesis"]="genesis"
+		["megacd"]="megacd"
+		["nes"]="^nes-\| nes"
+		["snes"]="snes"
+		["n64"]="n64-\|n64"
 		["atari2600"]="atari vcs"
 		["atari5200"]="atari 5200"
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
-		["fds"]="fds"
-		["gb"]="gb\|game boy"
-		["gbc"]="gb\|game boy"
-		["gba"]="gba"
-		["genesis"]="genesis"
-		["gg"]="sega game"
-		["megacd"]="megacd"
-		["n64"]="n64-\|n64"
-		["neogeo"]="neogeo"
-		["nes"]="^nes-\| nes"
-		["psx"]="psx\|playstation"
-		["s32x"]="sega 32x"
+  		["colecovision"]="coleco\|colecovision"
+		["intellivision"]="intellivision"
 		["saturn"]="sega saturn"
+		["s32x"]="sega 32x"
 		["sgb"]="super game boy\|gb-super game boy\|snes-super game boy"
-		["sms"]="sega master"
-		["snes"]="snes"
-		["tgfx16"]="turboduo\|turbografx-16"
 		["tgfx16cd"]="turboduo"
+		["tgfx16"]="turboduo\|turbografx-16"
+		["gg"]="sega game"
+		["sms"]="sega master"
+		["psx"]="psx\|playstation"
+		["arcade"]="arcade"
 	)
 
 	RATED_FILES=(
-		amiga_rated.txt
-		arcade_rated.txt
-		atari2600_rated.txt
-		atari5200_rated.txt
-		atari7800_rated.txt
-		atarilynx_rated.txt
-		fds_rated.txt
-		gb_rated.txt
-		gba_rated.txt
-		gbc_rated.txt
-		genesis_rated.txt
-		gg_rated.txt
-		megacd_rated.txt
-		n64_rated.txt
-		neogeo_rated.txt
-		nes_rated.txt
-		psx_rated.txt
-		s32x_rated.txt
-		saturn_rated.txt
-		sgb_rated.txt
-		sms_rated.txt
-		snes_rated.txt
-		tgfx16_rated.txt
-		tgfx16cd_rated.txt
+          n64_mature.txt
+          saturn_mature.txt
+          tgfx16cd_mature.txt
+          amiga_rated.txt
+          amigacd32_rated.txt
+          ao486_rated.txt
+          arcade_rated.txt
+          atari2600_rated.txt
+          atari5200_rated.txt
+          atari7800_rated.txt
+          atarilynx_rated.txt
+          c64_rated.txt
+          cdi_rated.txt
+          coco2_rated.txt
+          colecovision_rated.txt
+		  intellivision_rated.txt
+          fds_rated.txt
+          gb_rated.txt
+          gbc_rated.txt
+          gba_rated.txt
+          genesis_rated.txt
+          gg_rated.txt
+          jaguar_rated.txt
+          megacd_rated.txt
+          n64_rated.txt
+          neogeo_rated.txt
+          neogeocd_rated.txt
+          nes_rated.txt
+          psx_rated.txt
+          s32x_rated.txt
+          saturn_rated.txt
+          sgb_rated.txt
+          sms_rated.txt
+          snes_rated.txt
+          stv_rated.txt
+          tgfx16_rated.txt
+          tgfx16cd_rated.txt
+          vectrex_rated.txt
+          wonderswan_rated.txt
+          wonderswancolor_rated.txt
+          x68k_rated.txt
+          mgls_rated.txt
 	)
 
-	BLACKLIST_FILES=(
-		amiga_blacklist.txt
-		arcade_blacklist.txt
-		atari2600_blacklist.txt
-		atari5200_blacklist.txt
-		atari7800_blacklist.txt
-		atarilynx_blacklist.txt
-		fds_blacklist.txt
-		gb_blacklist.txt
-		gba_blacklist.txt
-		gbc_blacklist.txt
-		genesis_blacklist.txt
-		gg_blacklist.txt
-		megacd_blacklist.txt
-		n64_blacklist.txt
-		neogeo_blacklist.txt
-		nes_blacklist.txt
-		psx_blacklist.txt
-		s32x_blacklist.txt
-		saturn_blacklist.txt
-		sgb_blacklist.txt
-		sms_blacklist.txt
-		snes_blacklist.txt
-		tgfx16_blacklist.txt
-		tgfx16cd_blacklist.txt
+	# All blacklist files
+        BLACKLIST_FILES=(
+          amiga_blacklist.txt
+          amigacd32_blacklist.txt
+          ao486_blacklist.txt
+          arcade_blacklist.txt
+          atari2600_blacklist.txt
+          atari5200_blacklist.txt
+          atari7800_blacklist.txt
+          atarilynx_blacklist.txt
+          c64_blacklist.txt
+          cdi_blacklist.txt
+          coco2_blacklist.txt
+          colecovision_blacklist.txt
+		  intellivision_blacklist.txt
+          fds_blacklist.txt
+          gb_blacklist.txt
+          gbc_blacklist.txt
+          gba_blacklist.txt
+          genesis_blacklist.txt
+          gg_blacklist.txt
+          jaguar_blacklist.txt
+          megacd_blacklist.txt
+          n64_blacklist.txt
+          neogeo_blacklist.txt
+          neogeocd_blacklist.txt
+          nes_blacklist.txt
+          psx_blacklist.txt
+          s32x_blacklist.txt
+          saturn_blacklist.txt
+          sgb_blacklist.txt
+          sms_blacklist.txt
+          snes_blacklist.txt
+          stv_blacklist.txt
+          tgfx16_blacklist.txt
+          tgfx16cd_blacklist.txt
+          vectrex_blacklist.txt
+          wonderswan_blacklist.txt
+          wonderswancolor_blacklist.txt
+          x68k_blacklist.txt
+          mgls_blacklist.txt
 	)
 
 }
@@ -2193,6 +2226,12 @@ function build_gamelist() {
 
     # 4. POST-PROCESSING: Handle results and cleanup.
     file="${outdir}/${core}_gamelist.txt"
+
+     # Filter CoCo2 lists to include only cartridge images. Temp fix until SAMINDEX is updated. 
+    if [[ "${core}" == "coco2" && -f "${file}" ]]; then
+        grep -iE '\.ccc\b' "${file}" > "${file}.tmp"
+        mv "${file}.tmp" "${file}"
+    fi
 
     # Only perform special error handling and seeding for initial builds.
     if (( is_initial_build )); then
