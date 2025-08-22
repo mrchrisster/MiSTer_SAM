@@ -1026,10 +1026,8 @@ function init_data() {
 		["atari5200"]="atari 5200"
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
-		["fds"]="fds"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
-		["gba"]="gba"
 		["genesis"]="genesis"
 		["gg"]="sega game"
 		["megacd"]="megacd"
@@ -1048,11 +1046,8 @@ function init_data() {
 
 	RATED_FILES=(
 		amiga_rated.txt
+		ao486_rated.txt
 		arcade_rated.txt
-		atari2600_rated.txt
-		atari5200_rated.txt
-		atari7800_rated.txt
-		atarilynx_rated.txt
 		fds_rated.txt
 		gb_rated.txt
 		gba_rated.txt
@@ -1060,40 +1055,32 @@ function init_data() {
 		genesis_rated.txt
 		gg_rated.txt
 		megacd_rated.txt
+		n64_mature.txt
 		n64_rated.txt
 		neogeo_rated.txt
 		nes_rated.txt
 		psx_rated.txt
-		s32x_rated.txt
+		saturn_mature.txt
 		saturn_rated.txt
-		sgb_rated.txt
 		sms_rated.txt
 		snes_rated.txt
 		tgfx16_rated.txt
+		tgfx16cd_mature.txt
 		tgfx16cd_rated.txt
 	)
 
 	BLACKLIST_FILES=(
 		amiga_blacklist.txt
 		arcade_blacklist.txt
-		atari2600_blacklist.txt
-		atari5200_blacklist.txt
-		atari7800_blacklist.txt
-		atarilynx_blacklist.txt
 		fds_blacklist.txt
-		gb_blacklist.txt
 		gba_blacklist.txt
-		gbc_blacklist.txt
 		genesis_blacklist.txt
-		gg_blacklist.txt
 		megacd_blacklist.txt
 		n64_blacklist.txt
 		neogeo_blacklist.txt
 		nes_blacklist.txt
 		psx_blacklist.txt
 		s32x_blacklist.txt
-		saturn_blacklist.txt
-		sgb_blacklist.txt
 		sms_blacklist.txt
 		snes_blacklist.txt
 		tgfx16_blacklist.txt
