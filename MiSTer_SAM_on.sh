@@ -24,7 +24,7 @@
 # Indexing tool: wizzomafizzo
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, Sigismond, theypsilon
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, syntax_x, Sigismond, theypsilon
 # tty2oled improvements by venice
 
 # TODO implement playcurrentgame for amiga
