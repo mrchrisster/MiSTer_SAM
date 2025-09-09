@@ -2669,7 +2669,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             # --- End Prerequisite Check ---
 
             local amiga_title_raw
-            amiga_title_raw=$(pick_random_game "amiga")
+            amiga_title_raw="${rompath_arg}"
 
             if [ -z "${amiga_title_raw}" ]; then
                 echo "ERROR: Failed to pick an Amiga game from the list." >&2
