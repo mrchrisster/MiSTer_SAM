@@ -1509,7 +1509,6 @@ function handle_joy_activity() {
 # Pick a random core
 function next_core() { # next_core (core)
 
-	
 	if [[ -n "$cfgcore_configpath" ]]; then
 		configpath="$cfgcore_configpath"
 	else
@@ -1580,9 +1579,7 @@ function next_core() { # next_core (core)
         # All retries have been exhausted. No valid ROM was found.
         return 1
     fi
-	
-	delete_played_game
-	
+		
 	load_core "${nextcore}" "${rompath}" "${romname%.*}"
 
 
@@ -1974,23 +1971,6 @@ function check_rom(){
     return 0
 }
 
-function delete_played_game() {
-	# Delete played game from list
-	samdebug "Selected file: ${rompath}"
-	if [ "${norepeat}" == "yes" ]; then
-		#Deletes all occurences: awk -vLine="$rompath" '!index($0,Line)' "${gamelistpathtmp}/${nextcore}_gamelist.txt" >${tmpfile} && cp -f ${tmpfile} "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-		awk -v Line="$rompath" '
-			$0 == Line {
-				if (!found) {
-					found = 1
-					next
-				}
-			}
-			{ print }
-		' "${gamelistpathtmp}/${nextcore}_gamelist.txt" > "${tmpfile}" && mv "${tmpfile}" "${gamelistpathtmp}/${nextcore}_gamelist.txt"
-
-	fi
-}
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Gamelist Builder
@@ -2706,10 +2686,10 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
             local CONFIG_FILE="/media/fat/config/AmigaCD32.cfg"
             if [ ! -f "$CONFIG_FILE" ]; then
-                echo "ERROR - AmigaCD32.cfg not found. Skipping core." >&2
+                echo "ERROR - /media/fat/config/AmigaCD32.cfg not found. Skipping core." >&2
                 delete_from_corelist amigacd32; return 1
             fi
-            local new_path=$(echo "$rompath" | sed -e 's|^/media||' -e 's|^/||')
+            local new_path=$(echo "$rompath_arg" | sed -e 's|^/media||' -e 's|^/||')
             if [[ "$new_path" != ../* ]]; then new_path="../$new_path"; fi
             dd if=/dev/zero bs=1 count=108 seek=3100 of="$CONFIG_FILE" conv=notrunc &>/dev/null
             echo -n "$new_path" | dd of="$CONFIG_FILE" bs=1 seek=3100 conv=notrunc &>/dev/null
@@ -2748,9 +2728,6 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
     esac
 
     # --- Common Execution Block ---
-    if [[ "${norepeat}" == "yes" ]] && [[ "${core}" == "amigacd32" ]]; then
-        delete_played_game
-    fi
 
     [ -n "${mute_target}" ] && mute "${mute_target}"
     if [ "${bgm}" == "yes" ]; then
