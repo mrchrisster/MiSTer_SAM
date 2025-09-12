@@ -1915,8 +1915,6 @@ function pick_rom() {
     # 3. Final validation.
     if [[ -z "$rompath" ]]; then
         echo "Could not pick a game for ${nextcore}. Check for empty gamelists or overly restrictive filters."
-        # You could add a "last-ditch" effort here if needed, but it's often
-        # better to fail clearly than to pick from an unfiltered master list.
     fi
 }
 
