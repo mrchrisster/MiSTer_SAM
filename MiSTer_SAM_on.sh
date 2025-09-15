@@ -1927,7 +1927,10 @@ function check_rom(){
     
 	# Skip file check for Amiga
     if [[ "$core" == "amiga" ]]; then
-		return
+		gamelist_src="${gamelistpath}/amiga_gamelist.txt"
+		# Make sure samindex didn't build a faulty amiga list
+		grep -q "WheelDriverAkiko.adf" "$gamelist_src" && build_amiga_list
+		return 0
 	fi
 	
     # Make sure file exists since we're reading from a static list
@@ -2080,13 +2083,12 @@ function build_mgl_list() {
 
 function build_amiga_list() {
     # Accept core and destination directory arguments for consistency
-    local core_type="$1"
 	local dest_dir="${2:-$gamelistpath}"
 	
     # Define paths; the output file is now dynamic based on dest_dir
     local demos_file="${amigapath}/listings/demos.txt"
     local games_file="${amigapath}/listings/games.txt"
-    local output_file="${dest_dir}/${core_type}_gamelist.txt"
+    local output_file="${dest_dir}/amiga_gamelist.txt"
 
     # Check if the source 'games.txt' exists
     if [ ! -f "${games_file}" ]; then
@@ -2646,18 +2648,18 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             fi
             # --- End Prerequisite Check ---
 
-            local amiga_title_raw
-            amiga_title_raw="${rompath_arg}"
+            gamename="${rompath_arg}"
 
-            if [ -z "${amiga_title_raw}" ]; then
+            if [ -z "${gamename}" ]; then
                 echo "ERROR: Failed to pick an Amiga game from the list." >&2
                 return 1
             fi
+			
+			# Create the directory if it doesn't exist
+			mkdir -p "${amigapath}/shared"
 
-            gamename="$(echo "${amiga_title_raw}" | sed 's/Demo: //' | tr '_' ' ')"
-            local ags_boot_title="${amiga_title_raw//Demo: /}"
+            local ags_boot_title="${gamename//Demo: /}"
             echo "${ags_boot_title}" > "${amigapath}/shared/ags_boot"
-            rompath="${gamename}"
 
             tty_corename="Minimig"
             mute_target="Minimig"
