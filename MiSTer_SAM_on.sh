@@ -4549,6 +4549,7 @@ get_dlmanager() {
 
 
 function sam_update() { # sam_update (next command)
+	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"
 
 	if ping -4 -q -w 1 -c 1 github.com > /dev/null; then 
 		echo " Connection established"
