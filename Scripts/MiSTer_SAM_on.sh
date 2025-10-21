@@ -148,6 +148,7 @@ function init_vars() {
 	declare -g tmpvideo="/tmp/SAMvideo.mp4"
 	declare -g ini_file="/media/fat/MiSTer.ini"
 	declare -g ini_contents=$(cat "$ini_file")
+	declare -g sv_ini_temp_file="/tmp/MiSTer.ini.samvideo"
 	declare -g sv_core="/tmp/.SAM_tmp/sv_core"
 	declare -g sv_gametimer_file="/tmp/.SAM_tmp/sv_gametimer"
 	declare -g sv_loadcounter=0
@@ -1906,7 +1907,7 @@ function pick_rom() {
             samdebug "Filtered list not found for samvideo, generating..."
 			filter_list "${nextcore}"
 			# The filter didn't produce results
-			if [ $? -ne 0 ]; then 
+			if [ $? -ne 0 ]; then 
 				samdebug "filter_list failed. Falling back to master list for samvideo."
 				sv_gamelist="${master_list}"
             else
@@ -1919,15 +1920,15 @@ function pick_rom() {
 		fi
 
 		# samvideo mode tries to find a specific game matching a commercial.
-        local specific_game
-        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | head -n 1)"
-        
-        if [[ -n "${specific_game}" ]]; then
-            rompath="${specific_game}"
-            return # Exit successfully if we found the specific game.
-        fi
-        samdebug "Could not find matching game for commercial. Picking a random game instead."
-    fi
+        local specific_game
+        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | head -n 1)"
+        
+        if [[ -n "${specific_game}" ]]; then
+            rompath="${specific_game}"
+            return # Exit successfully if we found the specific game.
+        fi
+        samdebug "Could not find matching game for commercial. Picking a random game instead."
+    fi
 
     # 2. Default Action: If no special game modes applied, use the random picker.
     rompath=$(pick_random_game "${nextcore}") || true
@@ -3046,13 +3047,14 @@ function sam_prep() {
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
 	if [ "${samvideo}" == "yes" ]; then
+	
 		# Hide login prompt
 		echo -e '\033[2J' > /dev/tty1
 		# Hide blinking cursor
 		echo 0 > /sys/class/graphics/fbcon/cursor_blink
 		echo -e '\033[?17;0;0c' > /dev/tty1 
 		
-		misterini_mod
+		misterini_apply_temp
 		get_dlmanager
 		if [ ! -f "${mrsampath}"/mplayer ] || [ ! -f "${mrsampath}"/ytdl ]; then
 			if [ -f "${mrsampath}"/mplayer.zip ]; then
@@ -3882,8 +3884,7 @@ function write_to_TTY_cmd_pipe() {
 }
 
 # --- Function to modify MiSTer.ini for SAM Video ---
-# Backs up the entire MiSTer.ini before applying new settings, if enabled.
-function misterini_mod() {
+function misterini_apply_temp() {
     # Check if sv_inimod is set to "no"
     if [ "$sv_inimod" == "no" ]; then
         echo "sv_inimod is set to 'no'. Skipping MiSTer.ini modification."
@@ -3896,24 +3897,15 @@ function misterini_mod() {
         return 1
     fi
 
-    echo "Checking and updating $ini_file for samvideo playback."
-
-    # --- Backup Logic ---
-    # Only perform backup if sv_inibackup is set to "yes"
-    if [ "$sv_inibackup" == "yes" ]; then
-        # If a backup doesn't already exist, create one.
-        if [ ! -f "$sv_inibackup_file" ]; then
-            echo "Backing up original $ini_file to $sv_inibackup_file..."
-            cp "$ini_file" "$sv_inibackup_file"
-        else
-            echo "MiSTer.ini backup already exists. Skipping backup."
-        fi
-    else
-        echo "MiSTer.ini backup is disabled (sv_inibackup is not 'yes')."
+    # Check if it's *already* mounted by us
+    if mountpoint -q "$ini_file"; then
+        echo "MiSTer.ini is already temporarily mounted. Skipping."
+        return 0
     fi
 
+    echo "Checking and applying temporary settings to $ini_file."
 
-    # --- Desired settings logic (your existing logic) ---
+    # --- Desired settings logic (Copied from your function) ---
     local fb_terminal="1"
     local vga_scaler="1"
     local video_mode
@@ -3937,61 +3929,66 @@ function misterini_mod() {
     fi
 
     # --- INI Modification Logic ---
-    local temp_file
-    temp_file=$(mktemp)
-
-    # Use awk to replace the existing [Menu] section with the new settings.
-    # It deletes the old section and appends the new one at the end.
+    # We now write to our *temporary file*, not the original.
+    
+    # Use awk to read the *original* file and write to the *temp* file.
     awk '
     BEGIN { inside_menu = 0 }
     /^\[[Mm][Ee][Nn][Uu]\]/ { inside_menu = 1; next }
     /\[.*\]/ && !/^\[[Mm][Ee][Nn][Uu]\]/ { inside_menu = 0 }
     !inside_menu { print }
-    ' "$ini_file" > "$temp_file"
+    ' "$ini_file" > "$sv_ini_temp_file"
 
-    # Append the new [Menu] section
+    # Append the new [Menu] section to the temp file
     {
         echo ""
         echo "[Menu]"
-        echo "; Modified by SAM Video. Original settings are backed up."
+        echo "; Settings temporarily overridden by SAM Video via bind mount."
         echo "video_mode=$video_mode"
         echo "vga_scaler=$vga_scaler"
         echo "fb_terminal=$fb_terminal"
-    } >> "$temp_file"
+    } >> "$sv_ini_temp_file"
 
-    # Replace the original file if changes were made
-    if ! cmp -s "$ini_file" "$temp_file"; then
-        echo "Updating MiSTer.ini."
-        # We no longer need to create a .bak file since we have the .sam_backup
-        mv "$temp_file" "$ini_file"
-        echo "MiSTer.ini updated successfully."
-    else
-        echo "MiSTer.ini already has the correct settings. No update needed."
-        rm "$temp_file"
+    # --- Bind Mount Logic ---
+    # This is the new part. It requires sudo.
+    echo "Applying temporary settings via bind mount..."
+    if ! sudo mount --bind "$sv_ini_temp_file" "$ini_file"; then
+        echo "Error: SAM failed to bind mount."
+        rm -f "$sv_ini_temp_file" # Clean up
+        return 1
     fi
+
+    echo "MiSTer.ini is now temporarily modified."
+    return 0
 }
 
 # --- Function to restore MiSTer.ini from backup ---
 # Reverts the entire MiSTer.ini file from the backup, if enabled.
 function misterini_restore() {
-    # Only perform restore if sv_inibackup is set to "yes"
-    if [ "$sv_inibackup" != "yes" ]; then
-        echo "MiSTer.ini restore is disabled (sv_inibackup is not 'yes'). No changes made."
+    # If we never planned to modify, there's nothing to restore.
+    if [ "$sv_inimod" == "no" ]; then
         return 0
     fi
 
-    echo "Attempting to restore MiSTer.ini from backup..."
+    echo "Restoring original MiSTer.ini..."
 
-    if [ ! -f "$sv_inibackup_file" ]; then
-        echo "No backup file found at $sv_inibackup_file. Nothing to restore."
-        return 1
+    # Check if our file is currently a mount point
+    if mountpoint -q "$ini_file"; then
+        echo "Unmounting temporary MiSTer.ini..."
+        if ! sudo umount "$ini_file"; then
+            echo "Error: Failed to unmount $ini_file."
+            echo "You may need to unmount it manually: sudo umount $ini_fsile"
+            return 1
+        fi
+        echo "Original MiSTer.ini restored."
+    else
+        echo "MiSTer.ini was not mounted. No restore needed."
     fi
 
-    echo "Restoring $ini_file from $sv_inibackup_file..."
-    # Move the backup file to restore it, which is an atomic operation.
-    mv "$sv_inibackup_file" "$ini_file"
-
-    echo "MiSTer.ini has been restored successfully."
+    # Clean up our temporary file
+    rm -f "$sv_ini_temp_file"
+    
+    return 0
 }
 
 function dl_video() {
