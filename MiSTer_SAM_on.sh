@@ -673,7 +673,7 @@ function init_data() {
 		["neogeocd"]="1"
 		["nes"]="0"
 		["s32x"]="0"
-		["saturn"]="1"
+		["saturn"]="0"
 		["sgb"]="1"
 		["sms"]="1"
 		["snes"]="0"
