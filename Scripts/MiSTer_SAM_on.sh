@@ -1897,17 +1897,37 @@ function pick_rom() {
         return
     fi
 
-    if [[ "$samvideo" == "yes" ]] && [[ "$samvideo_tvc" == "yes" ]] && [[ -f /tmp/.SAM_tmp/sv_gamename ]]; then
-        # samvideo mode tries to find a specific game matching a commercial.
-        local specific_game
-        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "${gamelistpath}/${nextcore}_gamelist.txt" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
-        
-        if [[ -n "${specific_game}" ]]; then
-            rompath="${specific_game}"
-            return # Exit successfully if we found the specific game.
-        fi
-        samdebug "Could not find matching game for commercial. Picking a random game instead."
-    fi
+	if [[ "$samvideo" == "yes" ]] && [[ "$samvideo_tvc" == "yes" ]] && [[ -f /tmp/.SAM_tmp/sv_gamename ]]; then
+        local sv_gamelist # Declare variable
+        local filtered_list="${gamelistpathtmp}/${nextcore}_gamelist.txt"
+        local master_list="${gamelistpath}/${nextcore}_gamelist.txt"
+
+		if [ ! -f "${filtered_list}" ]; then
+            samdebug "Filtered list not found for samvideo, generating..."
+			filter_list "${nextcore}"
+			# The filter didn't produce results
+			if [ $? -ne 0 ]; then 
+				samdebug "filter_list failed. Falling back to master list for samvideo."
+				sv_gamelist="${master_list}"
+            else
+                samdebug "filter_list succeeded."
+                sv_gamelist="${filtered_list}"
+			fi
+		else
+            samdebug "Filtered list already exists."
+			sv_gamelist="${filtered_list}"
+		fi
+
+		# samvideo mode tries to find a specific game matching a commercial.
+        local specific_game
+        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | head -n 1)"
+        
+        if [[ -n "${specific_game}" ]]; then
+            rompath="${specific_game}"
+            return # Exit successfully if we found the specific game.
+        fi
+        samdebug "Could not find matching game for commercial. Picking a random game instead."
+    fi
 
     # 2. Default Action: If no special game modes applied, use the random picker.
     rompath=$(pick_random_game "${nextcore}") || true
