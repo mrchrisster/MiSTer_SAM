@@ -4366,29 +4366,6 @@ function get_samstuff() { #get_samstuff file (path)
 	echo " Done."
 }
 
-function get_partun() {
-    REPOSITORY_URL="https://github.com/woelper/partun"
-    echo "Downloading partun - needed for unzipping roms from big archives..."
-    echo "Created for MiSTer by woelper - Talk to him at this year's PartunCon"
-    echo "${REPOSITORY_URL}"
-
-    # Fetch the latest download URL for partun
-    latest=$(curl -s -L --insecure https://api.github.com/repos/woelper/partun/releases/latest | jq -r ".assets[] | select(.name | contains(\"armv7\")) | .browser_download_url")
-    if [ -z "$latest" ]; then
-        echo "Error: Unable to fetch the latest release URL for partun" >&2
-        return 1
-    fi
-
-    # Define paths
-    tmp_file="/tmp/partun"
-    local_file="${mrsampath}/partun"
-
-    # Check and update partun
-    check_and_update "$latest" "$tmp_file" "$local_file" "partun"
-    result=$?
-
-}
-
 
 
 
@@ -4600,7 +4577,6 @@ function sam_update() { # sam_update (next command)
 	else # We're running from /tmp - download dependencies and proceed
 		cp --force "/tmp/MiSTer_SAM_on.sh" "/media/fat/Scripts/MiSTer_SAM_on.sh"
 
-		get_partun
 		get_samindex
 		get_mbc
 		#get_samstuff .MiSTer_SAM/MiSTer_SAM.default.ini
