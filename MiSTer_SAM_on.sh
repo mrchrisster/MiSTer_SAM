@@ -4608,15 +4608,12 @@ function sam_update() { # sam_update (next command)
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_MCP.py
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_menu.sh
 		get_samstuff .MiSTer_SAM/MiSTer_SAM_tty2oled
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_joy.py
 		if [ ! -f "${mrsampath}/sam_controllers.json" ]; then
 			get_samstuff .MiSTer_SAM/sam_controllers.json
 		fi
 		if [ "${samvideo}" == "yes" ]; then
 			get_samvideo
 		fi
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_keyboard.py
-		get_samstuff .MiSTer_SAM/MiSTer_SAM_mouse.py
 		get_inputmap
 		get_blacklist
 		get_ratedlist
