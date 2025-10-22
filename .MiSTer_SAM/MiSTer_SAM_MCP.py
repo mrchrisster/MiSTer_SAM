@@ -93,30 +93,22 @@ def unmute_volume():
     """Calls the main shell script to ensure volume is unmuted on exit."""
     # This function is simple enough to be a single command.
     subprocess.run([SAM_ON_SCRIPT, "unmute"])
-
+    
 async def stop_sam(play_current=False):
     """Stops SAM and all related services directly from Python."""
     print("User activity detected. Stopping SAM...")
-    await asyncio.gather(
-        asyncio.to_thread(kill_sam_session),
-        asyncio.to_thread(bgm_stop),
-        asyncio.to_thread(tty_exit),
-        asyncio.to_thread(unmute_volume)
-    )
     if play_current:
         print("User pressed 'Start'. Exiting to play current game...")
+        # The shell script will handle all cleanup (BGM, TTY, unmute, etc.)
+        await asyncio.to_thread(subprocess.run, [SAM_ON_SCRIPT, "exit_to_game"])
     else:
         print("Returning to menu...")
-        await asyncio.to_thread(load_menu_core)
+        await asyncio.to_thread(subprocess.run, [SAM_ON_SCRIPT, "exit_to_menu"])
 
 def skip_game():
     """Sends a skip command to the running SAM session."""
     print("User pressed 'Next'. Skipping to next game...")
     subprocess.Popen(["tmux", "send-keys", "-t", SAM_SESSION_NAME, "C-c", "ENTER"])
-
-def bgm_stop():
-    """Stops the background music player if it's running."""
-    subprocess.run(["/media/fat/Scripts/bgm.sh", "stop"])
 
 def tty_exit():
     """Stops the tty2oled service if it's running."""
@@ -173,6 +165,7 @@ def handle_action(action, state, loop):
         return
 
     state.update_activity()
+    print(f"MCP-JS: Action '{action}' detected.")
 
     # This function is called from a thread, so we need to run async code
     # via the loop's call_soon_threadsafe method.
