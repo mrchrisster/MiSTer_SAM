@@ -1376,20 +1376,34 @@ function loop_core() { # loop_core (optional_core_name)
 	# This is the main script loop that runs forever.
 	while :; do
 		# ----------------------------------------------------
-		next_core "${1-}"
-		run_countdown_timer
+		# next_core will return 0 on success (game launched) and 1 on failure.
+		if next_core "${1-}"; then
+			# On success, run the countdown timer.
+			run_countdown_timer
+		else
+			# On failure (e.g., no games for core), loop immediately to try again.
+			samdebug "next_core failed. Looping to pick another core."
+			continue
+		fi
 	done
 }
 
 function run_countdown_timer() {
     local countdown=${gametimer}
+
+    # Set a local trap to handle Ctrl+C. This will echo a newline to clear
+    # the countdown line and then return from this function, effectively skipping the game.
+    trap 'echo; return' INT
+
     # This loop provides a visible, second-by-second countdown.
-    # It can be interrupted by Ctrl+C in the tmux session to skip to the next game.
     while (( countdown > 0 )); do
         echo -ne "Next game in ${countdown} seconds...\033[0K\r"
         sleep 1
         ((countdown--))
     done
+
+    # Reset the trap to its default behavior after the countdown finishes normally.
+    trap - INT
 }
 
 # Pick a random core
@@ -1828,14 +1842,20 @@ function check_rom(){
         return 1
     fi
     
-	# Skip file check for Amiga
+	# Special core checks to ensure gamelists weren't built by samindex
     if [[ "$core" == "amiga" ]]; then
 		gamelist_src="${gamelistpath}/amiga_gamelist.txt"
 		# Make sure samindex didn't build a faulty amiga list
 		grep -q "WheelDriverAkiko.adf" "$gamelist_src" && build_amiga_list
 		return 0
 	fi
-	
+
+    if [[ "$core" == "ao486" || "$core" == "x68k" ]]; then
+        # If the gamelist contains anything other than .mgl files, it's corrupt.
+        grep -qv "\.mgl$" "${gamelistpath}/${core}_gamelist.txt" && build_mgl_list "${core}"
+        return 0
+    fi
+
     # Make sure file exists since we're reading from a static list
 	if [[ "${rompath,,}" != *.zip* ]]; then
 		if [ ! -f "${rompath}" ]; then
@@ -2695,13 +2715,11 @@ function sam_start() {
 	fi
 	
 	# Launch tmux and background it
-	(
-	   tmux new-session -d \
-		 -x 180 -y 40 \
-		 -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
-		 -s SAM \
-		 "${misterpath}/Scripts/MiSTer_SAM_on.sh loop_core"
-	) &
+	tmux new-session -d \
+	  -x 180 -y 40 \
+	  -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
+	  -s SAM \
+	  "${misterpath}/Scripts/MiSTer_SAM_on.sh loop_core" &
 
 }
 
@@ -2756,22 +2774,19 @@ function kill_all_sams() {
 
 function exit_sam() { # exit_sam [menu|game]
 	local exit_mode=${1:-menu} # Default to menu if no argument
+	
+	# 1. Immediately kill the main game-looping session. This is non-blocking.
+	tmux kill-session -t SAM &>/dev/null
 
-	# Common cleanup steps
-	ps -ef | grep -i '[M]iSTer_SAM' \
-		| grep -v 'MiSTer_SAM_MCP.py' \
-		| awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+	# 2. Perform all other cleanup tasks.
 	sam_cleanup
 	bgm_stop
 	tty_exit
 
+	# 3. If requested, load the MiSTer menu core.
 	if [[ "$exit_mode" == "menu" ]]; then
-		echo "All SAM processes killed. Returning to menu..."
+		echo "SAM stopped. Returning to menu..."
 		echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
-	else # "game" mode
-		# The game is already running. We just need to clean up SAM's processes.
-		# This extra kill is likely redundant but kept for safety.
-		ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
 	fi
 }
 
