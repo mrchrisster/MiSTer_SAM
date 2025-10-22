@@ -1190,12 +1190,12 @@ function parse_cmd() {
     start|restart)      sam_start "$@" ;;
     startmonitor|sm)    sam_start "$@"; sleep 1; sam_monitor ;;
     skip|next)          echo "Skipping…"; tmux send-keys -t SAM C-c ENTER ;;
-    stop|kill)          tmp_reset; kill_all_sams ;;
+    stop|kill)          tmp_reset; kill_all_sams; exit_sam menu ;;
     update)             sam_update ;;
     monitor)            sam_monitor ;;
     mcp_monitor)        mcp_monitor ;;
-	exit_to_menu)       exit_to_menu ;;
-    exit_to_game)       exit_to_game ;;
+	exit_to_menu)       exit_sam menu ;;
+    exit_to_game)       exit_sam game ;;
     
     enable)             env_check enable; sam_enable ;;
     disable)            sam_cleanup; sam_disable ;;
@@ -1501,13 +1501,11 @@ function load_samvideo() {
 	#Load the actual rom (or play a video)
 
 	if [ "${samvideo_freq}" == "only" ]; then
-		activity_reset
 		samvideo_play &
 		return 1
 	elif [ "${samvideo_freq}" == "core" ]; then
 		echo "samvideo load core counter is now $sv_loadcounter"
 		if ((sv_loadcounter % ${#corelist[@]} == 0)); then
-			activity_reset
 			samvideo_play &
 			sv_loadcounter=0
 			return 1
@@ -1517,7 +1515,6 @@ function load_samvideo() {
 
 	elif [ "${samvideo_freq}" == "alternate" ]; then
 		if ((sv_loadcounter % 2 == 1)); then
-			activity_reset
 			samvideo_play &
 			return 1
 		else
@@ -2691,7 +2688,6 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
     fi
 
     sleep 1
-    activity_reset
     return 0
 }
 
@@ -2776,28 +2772,28 @@ function there_can_be_only_one() {
 
 function kill_all_sams() {
 	# Kill all SAM processes except for currently running
+	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+}
+
+function exit_sam() { # exit_sam [menu|game]
+	local exit_mode=${1:-menu} # Default to menu if no argument
+
+	# Common cleanup steps
 	ps -ef | grep -i '[M]iSTer_SAM' \
 		| grep -v 'MiSTer_SAM_MCP.py' \
 		| awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
-}
-
-function exit_to_menu() {
-	# Kill all SAM processes except for currently running
-	kill_all_sams
 	sam_cleanup
 	bgm_stop
 	tty_exit
-	echo "All SAM processes killed. Returning to menu..."
-	echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
-}
 
-function exit_to_game() {
-	# The game is already running. We just need to clean up SAM's processes.
-	kill_all_sams
-	sam_cleanup
-	bgm_stop
-	tty_exit
-	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
+	if [[ "$exit_mode" == "menu" ]]; then
+		echo "All SAM processes killed. Returning to menu..."
+		echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+	else # "game" mode
+		# The game is already running. We just need to clean up SAM's processes.
+		# This extra kill is likely redundant but kept for safety.
+		ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
+	fi
 }
 
 
