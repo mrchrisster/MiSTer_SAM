@@ -1945,14 +1945,20 @@ function check_rom(){
         echo "ERROR: rompath is empty for core '${core}'. Cannot check ROM." >&2
         return 1
     fi
-    
-	# Skip file check for Amiga
+
+	#Special core file list correction
     if [[ "$core" == "amiga" ]]; then
 		gamelist_src="${gamelistpath}/amiga_gamelist.txt"
 		# Make sure samindex didn't build a faulty amiga list
 		grep -q "WheelDriverAkiko.adf" "$gamelist_src" && build_amiga_list
 		return 0
 	fi
+
+    if [[ "$core" == "ao486" || "$core" == "x68k" ]]; then
+        # If the gamelist contains anything other than .mgl files, it's corrupt.
+        grep -qv "\.mgl$" "${gamelistpath}/${core}_gamelist.txt" && build_mgl_list "${core}"
+        return 0
+    fi
 	
     # Make sure file exists since we're reading from a static list
 	if [[ "${rompath,,}" != *.zip* ]]; then
