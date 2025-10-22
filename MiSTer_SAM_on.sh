@@ -1376,41 +1376,20 @@ function loop_core() { # loop_core (optional_core_name)
 	# This is the main script loop that runs forever.
 	while :; do
 		# ----------------------------------------------------
-		# Call next_core to attempt a game launch.
-		# We pass along any argument that might have been given to loop_core.		
-		next_core "${1-}" 
-
-		# Check the exit code of the next_core function.
-		if [ $? -eq 0 ]; then
-			# SUCCESS (Exit code 0): A game was launched successfully.
-			
-			if (( ! first_core_launched )); then
-				samdebug "First core launched. Starting delayed background gamelist creation..."
-				create_all_gamelists       # This function backgrounds itself.
-				first_core_launched=1      # Set the flag so this only runs once.
-			fi
-			
-			# Now, we start the countdown timer before the next game.
-			run_countdown_timer
-		else
-			# We immediately loop again to try the next core without waiting.
-			echo "Core launch failed."
-			# Blacklist the core and bail out of this launch attempt.
-			echo "ERROR: Failed ${romloadfails} times. No valid game found for core: ${nextcore}"
-			echo "ERROR: Core ${nextcore} is blacklisted!"
-			delete_from_corelist "${nextcore}"
-			echo "List of cores is now: ${corelist[*]}"
-			echo "Trying the next available core..."
-			continue
-		fi
-		# ----------------------------------------------------
+		next_core "${1-}"
+		run_countdown_timer
 	done
 }
 
 function run_countdown_timer() {
-    echo -ne "Next game in ${gametimer} seconds...\033[0K\r"
-    # A simple, interruptible sleep. Ctrl+C in tmux will break this and loop to the next game.
-    sleep ${gametimer}
+    local countdown=${gametimer}
+    # This loop provides a visible, second-by-second countdown.
+    # It can be interrupted by Ctrl+C in the tmux session to skip to the next game.
+    while (( countdown > 0 )); do
+        echo -ne "Next game in ${countdown} seconds...\033[0K\r"
+        sleep 1
+        ((countdown--))
+    done
 }
 
 # Pick a random core
