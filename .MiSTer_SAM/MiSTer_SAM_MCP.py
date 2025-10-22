@@ -81,16 +81,33 @@ def start_sam():
     # Let's use 'run' to be cleaner
     subprocess.run([SAM_ON_SCRIPT, "start"])
 
-def stop_sam(play_current=False):
-    """Calls the main shell script to stop SAM."""
+def kill_sam_session():
+    """Kills the SAM tmux session directly."""
+    subprocess.run(["tmux", "kill-session", "-t", SAM_SESSION_NAME], capture_output=True)
+
+def load_menu_core():
+    """Sends the command to load the MiSTer menu core."""
+    subprocess.run('echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd', shell=True)
+
+def unmute_volume():
+    """Calls the main shell script to ensure volume is unmuted on exit."""
+    # This function is simple enough to be a single command.
+    subprocess.run([SAM_ON_SCRIPT, "unmute"])
+
+async def stop_sam(play_current=False):
+    """Stops SAM and all related services directly from Python."""
+    print("User activity detected. Stopping SAM...")
+    await asyncio.gather(
+        asyncio.to_thread(kill_sam_session),
+        asyncio.to_thread(bgm_stop),
+        asyncio.to_thread(tty_exit),
+        asyncio.to_thread(unmute_volume)
+    )
     if play_current:
         print("User pressed 'Start'. Exiting to play current game...")
-        command = "exit_to_game"
     else:
-        print("User activity detected. Stopping SAM and returning to menu...")
-        command = "exit_to_menu"
-    # Use run for cleaner process management, though Popen is also fine.
-    subprocess.run([SAM_ON_SCRIPT, command])
+        print("Returning to menu...")
+        await asyncio.to_thread(load_menu_core)
 
 def skip_game():
     """Sends a skip command to the running SAM session."""
@@ -117,20 +134,20 @@ def is_in_menu():
 # --- Joystick Polling Logic (from Script 2, adapted) ---
 
 def get_js_activity(
-    prev: list[dict[str, int]], next: list[dict[str, int]], controller_config
+    prev: list[dict[str, int]], next_events: list[dict[str, int]], controller_config
 ) -> str:
     """
     Compares two js state lists (as per original joy script) 
     and returns an action string or None.
     """
-    if len(prev) != len(next):
+    if len(prev) != len(next_events):
         return None
 
     button_map = controller_config.get("button", {})
     axis_map = controller_config.get("axis", {})
 
     # This simplified logic just checks for any significant event change
-    for prev_event, next_event in zip(prev, next):
+    for prev_event, next_event in zip(prev, next_events):
         is_button = next_event["type"] & BUTTON_TYPE
         is_axis = next_event["type"] & AXIS_TYPE
 
@@ -161,11 +178,9 @@ def handle_action(action, state, loop):
     # via the loop's call_soon_threadsafe method.
     async def do_actions():
         if state.is_sam_running():
-            await asyncio.to_thread(bgm_stop)
-            await asyncio.to_thread(tty_exit)
-            if action == "start": stop_sam(play_current=True)
+            if action == "start": await stop_sam(play_current=True)
             elif action == "next": skip_game()
-            else: stop_sam(play_current=False)
+            else: await stop_sam(play_current=False)
     
     asyncio.run_coroutine_threadsafe(do_actions(), loop)
 
@@ -206,24 +221,23 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
         except (BlockingIOError, FileNotFoundError):
             pass # Expected behavior
         except Exception as e:
-            print(f"MCP-JS: Error in poller for {dev_path}: {e}")
+            # If the device was disconnected, this error is expected.
+            if not os.path.exists(dev_path):
+                print(f"MCP-JS: Device {dev_path} disconnected. Stopping poller.")
+            else:
+                print(f"MCP-JS: Error in poller for {dev_path}: {e}")
             break
         time.sleep(JOY_POLL_RATE)
     
     print(f"MCP-JS: Poller for {dev_path} stopped.")
 
 async def watch_joystick_device(device_info, state, controller_config, loop):
+    """Creates and registers a polling task for a single joystick device."""
     stop_event = threading.Event()
-    tasks[device_info['js_path']] = (asyncio.create_task(asyncio.to_thread(
+    task = asyncio.create_task(asyncio.to_thread(
         joystick_poller_thread, device_info, state, controller_config, loop, stop_event
-    )), stop_event)
-    
-    try:
-        task, _ = tasks[device_info['js_path']]
-        await task
-    except asyncio.CancelledError:
-        print(f"MCP-JS: Watcher for {device_info['js_path']} cancelled.")
-        stop_event.set()
+    ))
+    tasks[device_info['js_path']] = (task, stop_event)
 
 async def idle_and_status_checker(state):
     """Periodically checks idle time and SAM running status."""
@@ -247,6 +261,8 @@ async def idle_and_status_checker(state):
                     print(f"MCP: Starting SAM in {int(time_left)}...", end='\r')
                 
                 if can_start and idle_time > state.idle_timeout:
+                    # Clear the countdown line before printing the next message
+                    print(" " * 40, end='\r')
                     # Run blocking subprocess in a thread
                     await asyncio.to_thread(start_sam)
                     await asyncio.sleep(2) # Give it a moment to start
@@ -341,14 +357,16 @@ async def hotplug_monitor(state, controller_config, loop):
 
         await asyncio.sleep(10) # Scan for changes every 10 seconds
 
-async def shutdown(loop):
+def shutdown(loop):
     print("MCP: Shutting down...")
-    for task, stop_event in tasks.values():
-        task.cancel()
+    # This function can be called from a signal handler, so we use thread-safe calls.
+    for path, (task, stop_event) in tasks.items():
         if stop_event:
-            stop_event.set()
-    await asyncio.gather(*[t for t, e in tasks.values()], return_exceptions=True)
-    loop.stop()
+            # This is a joystick poller thread, signal it to stop
+            stop_event.set() 
+        if task:
+            loop.call_soon_threadsafe(task.cancel)
+    loop.call_soon_threadsafe(loop.stop)
 
 async def main():
     # 1. Read configuration (same as your script)
@@ -381,7 +399,7 @@ async def main():
     print(f"MCP started. Idle timeout: {state.idle_timeout}s, Menu-only: {state.menu_only}")
 
     # 3. Setup asyncio tasks
-    tasks['checker'] = asyncio.create_task(idle_and_status_checker(state))
+    tasks['checker'] = (asyncio.create_task(idle_and_status_checker(state)), None)
 
     loop = asyncio.get_running_loop()
 
@@ -392,16 +410,16 @@ async def main():
         await watch_joystick_device(device, state, controller_config, loop)
 
     # 5. Start the hot-plug monitor task
-    tasks['hotplug'] = asyncio.create_task(hotplug_monitor(state, controller_config, loop))
+    tasks['hotplug'] = (asyncio.create_task(hotplug_monitor(state, controller_config, loop)), None)
     print("MCP: Hot-plug monitor started (polling).")
 
     # 6. Setup signal handlers for graceful shutdown
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(loop)))
+        loop.add_signal_handler(sig, shutdown, loop)
 
     # 6. Run all tasks until completion
     try:
-        await asyncio.gather(*[t for t, e in tasks.values()])
+        await asyncio.gather(*[t for t, e in tasks.values()], return_exceptions=True)
     except asyncio.CancelledError:
         print("MCP: Main task group cancelled.")
 
