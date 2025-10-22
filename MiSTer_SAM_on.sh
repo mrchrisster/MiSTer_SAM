@@ -1190,12 +1190,12 @@ function parse_cmd() {
     start|restart)      sam_start "$@" ;;
     startmonitor|sm)    sam_start "$@"; sleep 1; sam_monitor ;;
     skip|next)          echo "Skipping…"; tmux send-keys -t SAM C-c ENTER ;;
-    stop|kill)          tmp_reset; parse_cmd juststop ;;
+    stop|kill)          tmp_reset; kill_all_sams ;;
     update)             sam_update ;;
     monitor)            sam_monitor ;;
     mcp_monitor)        mcp_monitor ;;
-    playcurrent)        playcurrentgame=yes; play_or_exit ;;
-    juststop)           kill_all_sams; playcurrentgame=no; play_or_exit ;;
+	exit_to_menu)       exit_to_menu ;;
+    exit_to_game)       exit_to_game ;;
     
     enable)             env_check enable; sam_enable ;;
     disable)            sam_cleanup; sam_disable ;;
@@ -1408,104 +1408,9 @@ function loop_core() { # loop_core (optional_core_name)
 }
 
 function run_countdown_timer() {
-    local counter=${gametimer}
-
-    # Set a local trap to handle Ctrl+C during the countdown, allowing a graceful skip.
-    trap 'echo; return' INT
-
-    while [ ${counter} -gt 0 ]; do
-        # Only show game counter when samvideo is not active
-        if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
-												
-            [ -f "$sv_gametimer_file" ] && counter=$(cat "$sv_gametimer_file") && rm "$sv_gametimer_file" 2>/dev/null
-												   
-			  
-        else
-            echo -ne " Next game in ${counter}...\033[0K\r"
-        fi
-
-        sleep 1
-        ((counter--))
-		
-								 
-																			
-												  
-																			   
-										   
-												
-						  
-									   
-		  
-
-																				
-											  
-											  
-						  
-									   
-		  
-
-																		   
-								
-																						
-					  
-			  
-		  
-    done
-
-    # Restore the default INT trap once the countdown is over.
-    trap - INT
-}
-
-function handle_joy_activity() {
-    local joy_action
-    joy_action=$(cat "$joy_activity_file")
-    truncate -s 0 "$joy_activity_file"
-
-    # The case statement is now the primary structure for all joystick actions.
-    case "${joy_action}" in
-        "Start" | "zaparoo")
-            # These actions are the same for both standard and M82 mode.
-            samdebug "'${joy_action}' button pushed. Exiting SAM."
-            [[ "$joy_action" == "zaparoo" ]] && mute="yes"
-            playcurrentgame="yes"
-            play_or_exit &
-            return 1 # Signal to exit countdown
-            ;;
-
-        "Next")
-            # Handle M82 as a specific override for the "Next" action.
-            if [[ "$m82" == "yes" ]]; then
-                local romname_lower="${romname,,}"
-                if [[ "$romname_lower" != *"m82"* ]]; then
-                    sed -i '1d' "${gamelistpathtmp}/nes_gamelist.txt"
-                fi
-                update_done=1
-            else
-                echo "Starting next Game"
-                if [[ "$ignore_when_skip" == "yes" ]]; then
-                    ignoregame
-                fi
-            fi
-            return 1 # In both modes, "Next" breaks the countdown
-            ;;
-
-        *) # Default case for any other joystick activity
-            # Handle M82 as a specific override for other button presses.
-            if [[ "$m82" == "yes" ]]; then
-                local romname_lower="${romname,,}"
-                if [[ "$romname_lower" != *"m82"* ]] && (( ! update_done )); then
-                    if [[ "$m82_muted" == "yes" ]]; then unmute; fi
-                    counter=$m82_game_timer
-                    update_done=1
-                fi
-                return 0 # In M82 mode, other presses CONTINUE the countdown
-            else
-                # In standard mode, other presses start the game.
-                play_or_exit &
-                return 1 # Signal to exit countdown
-            fi
-            ;;
-    esac
+    echo -ne "Next game in ${gametimer} seconds...\033[0K\r"
+    # A simple, interruptible sleep. Ctrl+C in tmux will break this and loop to the next game.
+    sleep ${gametimer}
 }
 
 # Pick a random core
@@ -2876,45 +2781,24 @@ function kill_all_sams() {
 		| awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
 }
 
-function play_or_exit() {
+function exit_to_menu() {
+	# Kill all SAM processes except for currently running
+	kill_all_sams
 	sam_cleanup
-	if [[ "${playcurrentgame}" == "yes" ]]; then
-		if [[ ${mute} == "core" ]]; then
-			sleep 1
-			if [ "${nextcore}" == "arcade" ]; then
-				echo "load_core ${mra}" >/dev/MiSTer_cmd
-			elif [ "${nextcore}" == "amiga" ]; then
-				echo "${rompath}" > "${amigapath}"/shared/ags_boot
-				if [ -f "/media/fat/_Console/Amiga.mgl" ]; then
-					echo "load_core /media/fat/_Computer/Amiga.mgl" >/dev/MiSTer_cmd
-				else
-					echo "load_core ${amigacore}" >/dev/MiSTer_cmd
-				fi
-			else
-				echo "load_core /tmp/SAM_Game.mgl" >/dev/MiSTer_cmd
-			fi
-		fi
-	else
-		# Retry up to 3 times until /tmp/CORENAME contains MENU
-		for i in {1..3}; do
-			echo "load_core /media/fat/menu.rbf" >/dev/MiSTer_cmd
-			sleep 2
-			if grep -q "MENU" /tmp/CORENAME 2>/dev/null; then
-				break
-			fi
-			echo "Attempt $i: Waiting for MENU..."
-			sleep 1
-		done
-		echo "Thanks for playing!"
-	fi
-
-	[ "${samvideo}" == "yes" ] && kill -9 "$(ps -o pid,args | grep '[m]player' | awk '{print $1}' | head -1)" 2>/dev/null
 	bgm_stop
 	tty_exit
-
-	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
+	echo "All SAM processes killed. Returning to menu..."
+	echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
 }
 
+function exit_to_game() {
+	# The game is already running. We just need to clean up SAM's processes.
+	kill_all_sams
+	sam_cleanup
+	bgm_stop
+	tty_exit
+	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs --no-run-if-empty kill &>/dev/null
+}
 
 
 
