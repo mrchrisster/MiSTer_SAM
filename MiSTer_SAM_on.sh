@@ -2871,7 +2871,9 @@ function there_can_be_only_one() {
 
 function kill_all_sams() {
 	# Kill all SAM processes except for currently running
-	ps -ef | grep -i '[M]iSTer_SAM' | awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
+	ps -ef | grep -i '[M]iSTer_SAM' \
+		| grep -v 'MiSTer_SAM_MCP.py' \
+		| awk -v me=${sampid} '$1 != me {print $1}' | xargs kill &>/dev/null
 }
 
 function play_or_exit() {
