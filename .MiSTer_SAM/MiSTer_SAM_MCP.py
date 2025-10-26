@@ -40,6 +40,7 @@ class SamState:
         self.idle_timeout = timeout
         self.menu_only = menu_only
         self._sam_is_running = False
+        self._sam_started_at = 0 # Time of the last SAM start command
         # Add a flag to suppress "Activity detected" logs when SAM is not running
         self._is_stopping = False
         self._stopping_since = 0
@@ -49,6 +50,7 @@ class SamState:
     def update_activity(self, log_event=True):
         """Call this to reset the idle timer. Thread-safe."""
         with self._lock:
+            print("MCP: update_activity() called.") # Add this line for debugging
             self.last_activity = time.monotonic()
             if self._log_activity and log_event:
                 print("MCP: Activity detected, idle timer reset.")
@@ -68,6 +70,16 @@ class SamState:
         """Get the running status. Thread-safe."""
         with self._lock:
             return self._sam_is_running
+
+    def set_sam_just_started(self):
+        """Records the timestamp when SAM is started."""
+        with self._lock:
+            self._sam_started_at = time.monotonic()
+
+    def was_sam_just_started(self, grace_period=10) -> bool:
+        """Check if SAM was started within the grace period."""
+        with self._lock:
+            return time.monotonic() - self._sam_started_at < grace_period
 
     def set_stopping(self, status: bool):
         """Set the stopping status. Thread-safe."""
@@ -430,39 +442,55 @@ async def idle_and_status_checker(state):
     """Periodically checks idle time and SAM running status."""
     while True:
         try:
-            # Run blocking I/O in a thread to not block the loop
-            running = await asyncio.to_thread(is_sam_running)
-            state.set_sam_running(running)
+            # Get state at the beginning of the loop
+            sam_is_running = await asyncio.to_thread(is_sam_running)
+            state.set_sam_running(sam_is_running)
+            in_menu = await asyncio.to_thread(is_in_menu)
 
-            if not state.is_sam_running():
-                idle_time = state.get_idle_time()
-                time_left = state.idle_timeout - idle_time
+            if in_menu:
+                if sam_is_running:
+                    # IN MENU and SAM IS RUNNING -> This is the failsafe condition.
+                    # We must avoid the startup race condition by using a grace period.
+                    if not state.was_sam_just_started(grace_period=15): # Increased grace period
+                        if not state.is_stopping():
+                            print("MCP: Failsafe: In menu while SAM is running. Stopping SAM...")
+                            try:
+                                state.set_stopping(True)
+                                await stop_sam(play_current=False)
+                            finally:
+                                state.set_stopping(False)
+                            await asyncio.sleep(5) # Give SAM time to stop
+                            continue # Re-evaluate state immediately
+                else:
+                    # IN MENU and SAM IS NOT RUNNING -> This is the idle state.
+                    # Wait for timeout to start SAM.
+                    idle_time = state.get_idle_time()
+                    time_left = state.idle_timeout - idle_time
+                    
+                    can_start = not state.menu_only or (state.menu_only and in_menu)
 
-                # Run blocking file I/O in a thread
-                in_menu = await asyncio.to_thread(is_in_menu)
-                
-                can_start = not state.menu_only or (state.menu_only and in_menu)
+                    if can_start and time_left > 0:
+                        line = f"MCP: Starting SAM in {int(time_left)} second(s)..."
+                        print(line.ljust(50), end='\r')
+                    
+                    if can_start and idle_time > state.idle_timeout:
+                        print(" " * 50, end='\r')
+                        await asyncio.to_thread(start_sam)
+                        state.set_sam_just_started() # Mark startup time
+                        # Reset idle timer so we don't immediately try to start again
+                        state.update_activity(log_event=False) 
+            else:
+                # NOT IN MENU -> A game should be running via SAM.
+                # The input pollers are responsible for stopping SAM when activity is detected.
+                # If SAM stops for another reason, the next loop iteration will have
+                # in_menu=True (since stop_sam returns to menu) and the logic will handle it.
+                pass
 
-                if can_start and time_left > 0:
-                    # Show the countdown for the entire duration.
-                    line = f"MCP: Starting SAM in {int(time_left)} second(s)..."
-                    print(line.ljust(50), end='\r') # Pad to clear previous line
-                
-                if can_start and idle_time > state.idle_timeout:
-                    # Clear the countdown line before printing the next message
-                    print(" " * 50, end='\r')
-                    # Run blocking subprocess in a thread
-                    await asyncio.to_thread(start_sam)
-                    await asyncio.sleep(2) # Give it a moment to start
-                    running_after_start = await asyncio.to_thread(is_sam_running)
-                    state.set_sam_running(running_after_start)
-                    state.update_activity(log_event=False) # Reset timer silently after starting
-
-            # Check every second for a responsive countdown
             await asyncio.sleep(1)
+
         except Exception as e:
             print(f"MCP: Error in idle checker: {e}")
-            await asyncio.sleep(5) # Wait a bit longer on error
+            await asyncio.sleep(5)
 
 def get_hidraw_for_keyboard(phys_addr):
     """
