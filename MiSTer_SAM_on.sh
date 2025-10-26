@@ -2766,36 +2766,6 @@ function there_can_be_only_one() {
   sleep 1
 }
 
-function unmute_with_retry() {
-    local max_wait=15
-    local volume_dat_path="/media/fat/config/Volume.dat"
-    local unmute_command="volume unmute"
-    local counter=0
-
-    samdebug "Attempting to unmute volume with a ${max_wait}-second timeout..."
-
-    while [ $counter -lt $max_wait ]; do
-        if [ -f "$volume_dat_path" ]; then
-            local cur_vol_hex
-            cur_vol_hex=$(xxd -p -l 1 "$volume_dat_path")
-            
-            # Check if the mute bit (0x10) is OFF
-            if (( (0x$cur_vol_hex & 0x10) == 0 )); then
-                samdebug "SUCCESS: Volume is unmuted."
-                return 0
-            fi
-        fi
-
-        # If still muted or file not found, send the command
-        samdebug "Attempt $(($counter + 1))/$max_wait: Volume still muted. Sending unmute command..."
-        timeout 1 sh -c "echo '$unmute_command' > /dev/MiSTer_cmd"
-        
-        sleep 1
-        counter=$(($counter + 1))
-    done
-
-    samdebug "FAILED: Timed out trying to unmute volume."
-}
 
 function kill_all_sams() {
 	# Kill all SAM processes except for currently running
@@ -2804,12 +2774,10 @@ function kill_all_sams() {
 
 function exit_sam() { # exit_sam [menu|game]
 	local exit_mode=${1:-menu} # Default to menu if no argument
-	
 	# 1. Immediately kill the main game-looping session. This is non-blocking.
 	tmux kill-session -t SAM &>/dev/null
 
-	# 2. Perform all other cleanup tasks (BGM, TTY, etc.)
-    # The unmute is now handled separately and robustly.
+	# 2. Perform all other cleanup tasks.
 	sam_cleanup
 	bgm_stop
 	tty_exit
@@ -2818,14 +2786,20 @@ function exit_sam() { # exit_sam [menu|game]
 	if [[ "$exit_mode" == "menu" ]]; then
 		echo "SAM stopped. Returning to menu..."
 		echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
-	else
-        # This is for 'exit_to_game'. We just need to robustly unmute.
-        unmute_with_retry
 	fi
+    local exit_mode=${1:-menu} # Default to menu if no argument
+    # 1. Immediately kill the main game-looping session. This is non-blocking.
+    tmux kill-session -t SAM &>/dev/null
+    # 2. Perform all other cleanup tasks.
+    sam_cleanup
+    bgm_stop
+    tty_exit
+    # 3. If requested, load the MiSTer menu core.
+    if [[ "$exit_mode" == "menu" ]]; then
+        echo "SAM stopped. Returning to menu..."
+        echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+    fi
 }
-
-
-
 
 # ======== UTILITY FUNCTIONS ========
 
@@ -2834,7 +2808,7 @@ function mcp_start() {
 	# "menuonly" and "samtimeout" determine when MCP launches SAM
 	
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
-		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP.py" &>/dev/null
+		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP.py"
 	fi
 }
 
@@ -3003,6 +2977,7 @@ function sam_prep() {
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	#[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
+	only_unmute_if_needed
 	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
 	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
 	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
