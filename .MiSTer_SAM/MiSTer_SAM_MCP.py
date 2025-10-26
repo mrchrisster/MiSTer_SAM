@@ -42,14 +42,15 @@ class SamState:
         self._sam_is_running = False
         # Add a flag to suppress "Activity detected" logs when SAM is not running
         self._is_stopping = False
+        self._stopping_since = 0
         self._log_activity = False 
         self._lock = threading.Lock() # A standard thread lock
 
-    def update_activity(self):
+    def update_activity(self, log_event=True):
         """Call this to reset the idle timer. Thread-safe."""
         with self._lock:
             self.last_activity = time.monotonic()
-            if self._log_activity:
+            if self._log_activity and log_event:
                 print("MCP: Activity detected, idle timer reset.")
 
     def get_idle_time(self):
@@ -73,12 +74,23 @@ class SamState:
         with self._lock:
             self._is_stopping = status
             if status:
+                self._stopping_since = time.monotonic()
                 print("MCP: State changed to 'stopping'. Ignoring new input.")
+            else:
+                print("MCP: State changed to 'idle'. Accepting new input.")
 
     def is_stopping(self) -> bool:
         """Check if we are in the process of stopping. Thread-safe."""
         with self._lock:
-            return self._is_stopping
+            if self._is_stopping:
+                STOPPING_TIMEOUT = 30 # seconds
+                if time.monotonic() - self._stopping_since > STOPPING_TIMEOUT:
+                    print(f"MCP: WARNING: Stuck in 'stopping' state for over {STOPPING_TIMEOUT}s. Resetting lock.")
+                    self._is_stopping = False
+                    return False
+                return True
+            return False
+
 # --- Core SAM Functions (from Script 1) ---
 # These are blocking and will be run in threads
 
@@ -103,34 +115,61 @@ async def exit_to_menu_with_retry(max_wait=15):
     This prevents failures when a core is still loading.
     """
     print(f"Attempting to return to menu with a {max_wait}-second timeout...")
+    
+    # 1. Kill all SAM processes right away.
+    print("MCP: Forcefully terminating SAM processes...")
+    await asyncio.to_thread(subprocess.run, ["tmux", "kill-session", "-t", SAM_SESSION_NAME], capture_output=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    # Terminate SAM helper processes by iterating through /proc
+    sam_proc_substrings = ['MiSTer_SAM_on.sh', 'MiSTer_SAM_tty2oled', 'bgm.sh']
+    mcp_pid = os.getpid()
+    try:
+        for pid_str in os.listdir('/proc'):
+            if not pid_str.isdigit():
+                continue
+            pid = int(pid_str)
+            if pid == mcp_pid:
+                continue
+            try:
+                with open(f'/proc/{pid}/cmdline', 'rb') as f:
+                    cmdline = f.read().decode(errors='ignore')
+                
+                if any(substr in cmdline for substr in sam_proc_substrings):
+                    print(f"MCP: Killing process {pid} ({cmdline.replace(chr(0), ' ')})")
+                    os.kill(pid, signal.SIGKILL)
+            except FileNotFoundError:
+                # Process disappeared before we could read it
+                continue
+    except Exception as e:
+        print(f"MCP: Error terminating processes via /proc: {e}")
 
-    # 1. Run the cleanup script ONCE. This stops BGM, tty2oled, etc.
-    # We use Popen for a "fire-and-forget" approach.
-    print("MCP: Running cleanup script (stops BGM, tty2oled)...")
-    cleanup_command = [SAM_ON_SCRIPT, "exit_to_menu"]
-    await asyncio.to_thread(subprocess.Popen, cleanup_command)
-    await asyncio.sleep(0.5) # Give the script a moment to start cleanup.
-
-    # 2. Now, repeatedly try to load the menu core. This is the part that can block.
+    # 2. Try to load the menu core, with retries.
     menu_rbf_path = "/media/fat/menu.rbf"
     load_menu_command = f"load_core {menu_rbf_path}"
-
     for attempt in range(max_wait):
-        # Check if the menu is already loaded.
         in_menu = await asyncio.to_thread(is_in_menu)
         if in_menu:
             print("✅ SUCCESS: Menu core is now loaded.")
+            
+            # 3. Unmute the audio, with a timeout.
+            print("MCP: Unmuting audio...")
+            try:
+                await asyncio.to_thread(subprocess.run, [SAM_ON_SCRIPT, "unmute"], timeout=10, check=True)
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
+                print(f"MCP: WARNING: 'unmute' script failed or timed out: {e}")
+
+            # 4. Run final exit cleanup, with a timeout.
+            print("MCP: Running final cleanup tasks...")
+            try:
+                await asyncio.to_thread(subprocess.run, [SAM_ON_SCRIPT, "exit_to_menu"], timeout=10, check=True)
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError) as e:
+                print(f"MCP: WARNING: 'exit_to_menu' script failed or timed out: {e}")
+
             return
 
-        # If not in menu, try to send the load_core command again.
         print(f"Attempt {attempt + 1}/{max_wait}: Menu not loaded. Sending 'load_core' command...")
-        
-        # Use 'timeout' to prevent the write from blocking indefinitely if MiSTer is busy.
-        # This is the "fire and forget" part for the command pipe.
         cmd = ['timeout', '1', 'sh', '-c', f"echo '{load_menu_command}' > /dev/MiSTer_cmd"]
-        await asyncio.to_thread(subprocess.run, cmd)
-
-        # Wait 1 second before the next check.
+        await asyncio.to_thread(subprocess.run, cmd, capture_output=False)
         await asyncio.sleep(1)
 
     print(f"❌ FAILED: Timed out after {max_wait} seconds. Menu core did not load.")
@@ -143,7 +182,7 @@ async def stop_sam(play_current=False):
         if play_current:
             print("User pressed 'Start'. Exiting to play current game...")
             # The shell script will handle all cleanup (BGM, TTY, unmute, etc.)
-            await asyncio.to_thread(subprocess.Popen, [SAM_ON_SCRIPT, "exit_to_game"])
+            await asyncio.to_thread(subprocess.run, [SAM_ON_SCRIPT, "exit_to_game"])
         else:
             # Use the new robust exit logic.
             await exit_to_menu_with_retry()
@@ -154,34 +193,47 @@ async def stop_sam(play_current=False):
         # We need to find the 'state' object. We can get it from the running loop's context
         # but a cleaner way is to pass it down. For now, let's assume we can get it.
         # A better refactor is needed, but this will work.
-        pass # The flag is now reset inside handle_action's do_actions
+        pass # The flag is reset inside handle_action's do_actions
+
+async def shutdown_mcp(loop):
+    """Gracefully shuts down the entire MCP script."""
+    print("MCP: Shutdown requested. Cleaning up all tasks...")
+    for path, (task, stop_event) in list(tasks.items()):
+        if stop_event:
+            stop_event.set()
+        if task and not task.done():
+            task.cancel()
+    # Give tasks a moment to cancel
+    await asyncio.sleep(0.1)
+    loop.stop()
+
 def skip_game():
     """Sends a skip command to the running SAM session."""
     print("User pressed 'Next'. Skipping to next game...")
-    subprocess.Popen(["tmux", "send-keys", "-t", SAM_SESSION_NAME, "C-c", "ENTER"])
+    subprocess.run(["tmux", "send-keys", "-t", SAM_SESSION_NAME, "C-c", "ENTER"])
 
 def is_in_menu():
     """
-    Check if the MiSTer process is currently running the menu.rbf core.
-    This is more reliable than /tmp/CORENAME during core transitions.
+    Check if the MiSTer process is currently running the menu.rbf core
+    by inspecting /proc.
     """
     try:
-        # The command to find the MiSTer process and check its arguments.
-        # The [M]iSTer trick prevents grep from matching its own process.
-        cmd = "ps aux | grep '/media/fat/[M]iSTer' | grep -q '/media/fat/menu.rbf'"
-        
-        # subprocess.run with shell=True is needed for the pipes.
-        # check=True will raise CalledProcessError if the command returns a non-zero exit code (i.e., no match).
-        subprocess.run(cmd, shell=True, check=True, capture_output=True)
-        
-        # If we get here, the command succeeded (exit code 0), so the menu is loaded.
-        return True
-    except subprocess.CalledProcessError:
-        # The command failed (non-zero exit code), meaning the menu core is not the running process.
+        for pid in os.listdir('/proc'):
+            if not pid.isdigit():
+                continue
+            try:
+                with open(f'/proc/{pid}/cmdline', 'rb') as f:
+                    cmdline_bytes = f.read()
+                # cmdline is null-byte separated
+                cmdline_args = [arg.decode() for arg in cmdline_bytes.split(b'\0') if arg]
+                if cmdline_args and 'MiSTer' in cmdline_args[0] and '/media/fat/menu.rbf' in cmdline_args:
+                    return True
+            except (FileNotFoundError, IndexError):
+                # Process may have disappeared, or cmdline is empty
+                continue
         return False
     except Exception as e:
-        # Catch any other potential errors.
-        print(f"MCP: Error checking for menu process: {e}")
+        print(f"MCP: Error checking for menu process via /proc: {e}")
         return False
 
 # --- Joystick Polling Logic (from Script 2, adapted) ---
@@ -208,6 +260,7 @@ def get_js_activity(
             button_num = next_event["number"]
             if button_num == button_map.get("start"): return "start"
             if button_num == button_map.get("select"): return "next"
+            if button_num == button_map.get("exit"): return "exit"
             return "default"
 
         if is_axis and abs(prev_event["value"] - next_event["value"]) > AXIS_DEADZONE:
@@ -225,34 +278,37 @@ def handle_action(action, state, loop):
     if not action:
         return
 
-    # If we are already in the process of stopping, ignore all new actions.
+    # Always update activity to reset the idle timer, even if an action is already in progress.
+    # This ensures the countdown always resets on input.
+    state.update_activity()
+
+    # If we are already in the process of stopping, ignore starting a new stop action.
     if state.is_stopping():
         return
 
-    state.update_activity()
+    # Only proceed to the async actions if SAM is actually running.
+    if state.is_sam_running():
+        # This function is called from a thread, so we need to run async code
+        # via the loop's call_soon_threadsafe method.
+        async def do_actions():
+            try:
+                # Double-check the stopping flag inside the async context
+                if state.is_stopping(): return
 
-    # This function is called from a thread, so we need to run async code
-    # via the loop's call_soon_threadsafe method.
-    async def do_actions():
-        # If we are already stopping, do nothing.
-        if state.is_stopping():
-            return
-
-        try:
-            if state.is_sam_running():
                 state.set_stopping(True) # Set the lock
-                print(f"MCP-JS: Action '{action}' detected.")
+                print(f"MCP-JS: Action '{action}' detected while SAM is running.")
                 if action == "start": await stop_sam(play_current=True)
                 elif action == "next": await asyncio.to_thread(skip_game)
+                elif action == "exit":
+                    print("MCP: Exit action received. Shutting down MCP.")
+                    await stop_sam(play_current=False)
+                    await shutdown_mcp(loop)
                 else: await stop_sam(play_current=False)
-            else:
-                # If SAM is not running, we just reset the idle timer.
-                pass
-        finally:
-            # IMPORTANT: Always release the lock when the action is complete.
-            state.set_stopping(False)
-    
-    asyncio.run_coroutine_threadsafe(do_actions(), loop)
+            finally:
+                # IMPORTANT: Always release the lock when the action is complete.
+                state.set_stopping(False)
+        
+        asyncio.run_coroutine_threadsafe(do_actions(), loop)
 
 def joystick_poller_thread(device_info, state, controller_config, loop, stop_event):
     """
@@ -266,8 +322,17 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
     print(f"MCP-JS: Starting poller for {device_info.get('name', 'Unknown')} ({dev_path})")
 
     previous_events = []
+    sam_was_running = state.is_sam_running() # Track SAM's state to detect transitions
 
     while not stop_event.is_set():
+        # Check if SAM has transitioned from running to stopped.
+        # If so, reset the joystick's internal state to prevent "stuck" inputs.
+        sam_is_running = state.is_sam_running()
+        if sam_was_running and not sam_is_running:
+            print(f"MCP-JS: SAM stopped. Resetting input state for {dev_path}.")
+            previous_events = []
+        sam_was_running = sam_is_running
+
         try:
             with open(dev_path, "rb") as f:
                 os.set_blocking(f.fileno(), False)
@@ -380,11 +445,12 @@ async def idle_and_status_checker(state):
 
                 if can_start and time_left > 0:
                     # Show the countdown for the entire duration.
-                    print(f"MCP: Starting SAM in {int(time_left)} second(s)...", end='\r')
+                    line = f"MCP: Starting SAM in {int(time_left)} second(s)..."
+                    print(line.ljust(50), end='\r') # Pad to clear previous line
                 
                 if can_start and idle_time > state.idle_timeout:
                     # Clear the countdown line before printing the next message
-                    print(" " * 40, end='\r')
+                    print(" " * 50, end='\r')
                     # Run blocking subprocess in a thread
                     await asyncio.to_thread(start_sam)
                     await asyncio.sleep(2) # Give it a moment to start
@@ -613,6 +679,10 @@ def shutdown(loop):
             stop_event.set() 
         if task:
             loop.call_soon_threadsafe(task.cancel)
+def signal_handler(loop):
+    """A thread-safe signal handler to stop the event loop."""
+    print("\nMCP: Signal received, initiating shutdown.")
+    asyncio.run_coroutine_threadsafe(shutdown_mcp(loop), loop)
     loop.call_soon_threadsafe(loop.stop)
 
 async def main():
@@ -660,6 +730,7 @@ async def main():
     # 6. Setup signal handlers for graceful shutdown
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, shutdown, loop)
+        loop.add_signal_handler(sig, signal_handler, loop)
 
     # 6. Run all tasks until completion
     try:
