@@ -2773,19 +2773,17 @@ function kill_all_sams() {
 }
 
 function exit_sam() { # exit_sam [menu|game]
-	local exit_mode=${1:-menu} # Default to menu if no argument
+    local exit_mode=${1:-menu} # Default to menu if no argument
+    
+    sam_cleanup
+    bgm_stop
+    tty_exit
 
-	# 2. Perform all other cleanup tasks.
-	sam_cleanup
-	bgm_stop
-	tty_exit
-
-	# 3. If requested, load the MiSTer menu core.
-	if [[ "$exit_mode" == "menu" ]]; then
-		echo "SAM stopped. Returning to menu..."
-		echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
-	fi
-
+    # 6. Load menu if requested
+    if [[ "$exit_mode" == "menu" ]]; then
+        echo "SAM stopped. Returning to menu..."
+        echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+    fi
 }
 
 # ======== UTILITY FUNCTIONS ========
@@ -3774,16 +3772,28 @@ function tty_start() {
 }
 
 function tty_exit() {
-	if [ "${ttyenable}" == "yes" ]; then
-		echo -n "Stopping tty2oled... "
-		[[ -p ${TTY_cmd_pipe} ]] && echo "stop" >${TTY_cmd_pipe} &
-		tmux kill-session -t OLED &>/dev/null
-		rm "${tty_sleepfile}" &>/dev/null
-		#/media/fat/tty2oled/S60tty2oled restart 
-		#sleep 5
+    if [ "${ttyenable}" == "yes" ]; then
+        echo -n "Stopping tty2oled... "
 
-		echo "Done."
-	fi
+        # 1. Timeout for the pipe
+        #    Try to write for 3s, then give up.
+        #    '2>/dev/null' hides the "timeout: sending signal" message.
+        #    The final '&' runs this whole timeout operation in the background.
+        if [[ -p ${TTY_cmd_pipe} ]]; then
+            timeout 3s echo "stop" >${TTY_cmd_pipe} 2>/dev/null &
+        fi
+
+        # 2. Timeout for tmux
+        #    Run in background (&) and redirect all output (&>/dev/null)
+        timeout 3s tmux kill-session -t OLED &>/dev/null &
+
+        # 3. Timeout for rm
+        #    Run in background (&) and redirect all output (&>/dev/null)
+        timeout 3s rm "${tty_sleepfile}" &>/dev/null &
+
+        # This will now print immediately
+        echo "Done."
+    fi
 }
 
 function write_to_TTY_cmd_pipe() {
