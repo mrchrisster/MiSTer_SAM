@@ -1105,6 +1105,9 @@ function read_samini() {
 		fi
 	fi
 	source "${samini_file}"
+
+	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"
+
 	
 	# Remove trailing slash from paths
 	grep "^[^#;]" < "${samini_file}" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
