@@ -1105,6 +1105,8 @@ function read_samini() {
 		fi
 	fi
 	source "${samini_file}"
+
+	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"
 	
 	# Remove trailing slash from paths
 	grep "^[^#;]" < "${samini_file}" | grep "pathfilter=" | cut -f1 -d"=" | while IFS= read -r var; do
@@ -1207,7 +1209,15 @@ function parse_cmd() {
                         there_can_be_only_one
                         sam_update; mcp_start; sam_enable
                         ;;
-    bootstart)          env_check bootstart; boot_sleep; mcp_start ;;
+    bootstart)          
+                        env_check bootstart
+                        boot_sleep
+                        mcp_start
+                        # Pre-run prep so the first idle trigger is instant
+                        echo "SAM: Performing boot-time prep..."
+                        sam_prep
+                        ;;
+	session_entry)      session_entry "$@" ;;
     loop_core)          loop_core ;;
     
     menu|back)          sam_menu ;;
@@ -1366,27 +1376,44 @@ function load_menu_if_needed() {
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
 
-
-function loop_core() { # loop_core (optional_core_name)
-	echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
-	# Reset game log for this session
-	echo "" >/tmp/SAM_Games.log
-	samdebug "Initial corelist: ${corelist[*]}"
-
-	# This is the main script loop that runs forever.
-	while :; do
-		# ----------------------------------------------------
-		# next_core will return 0 on success (game launched) and 1 on failure.
-		if next_core "${1-}"; then
-			# On success, run the countdown timer.
-			run_countdown_timer
-		else
-			# On failure (e.g., no games for core), loop immediately to try again.
-			samdebug "next_core failed. Looping to pick another core."
-			continue
-		fi
-	done
+function session_entry() {
+    # --- 1. Heavy Initialization (Runs once in background) ---
+    echo "SAM Session: Initializing..."
+    update_samini
+    read_samini
+    
+    # This is the heavy step (downloads/mounts) that was freezing Python
+    sam_prep 
+    
+    disable_bootrom
+    bgm_start
+    tty_start
+    
+    # --- 2. Hand off to the Main Loop ---
+    echo "SAM Session: Setup complete. Entering main loop."
+    loop_core "${1-}"
 }
+
+
+function loop_core() { 
+    # This function now ONLY handles the game loop logic
+    echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
+    
+    # Reset game log for this session
+    echo "" >/tmp/SAM_Games.log
+    samdebug "Initial corelist: ${corelist[*]}"
+
+    # The infinite loop
+    while :; do
+        if next_core "${1-}"; then
+            run_countdown_timer
+        else
+            samdebug "next_core failed. Looping to pick another core."
+            continue
+        fi
+    done
+}
+
 
 function run_countdown_timer() {
     local countdown=${gametimer}
@@ -2693,34 +2720,28 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 # ========= SAM START AND STOP =========
 
 function sam_start() {
-	local core="$1"
-	env_check
-	# Terminate any other running SAM processes
-	there_can_be_only_one
-	update_samini	
-	read_samini
-	mcp_start
-	sam_prep
-	disable_bootrom # Disable NES Bootrom until Reboot
-	bgm_start
-	tty_start
-	echo "Starting SAM in the background."
-	
-	[[ "$samvideo" == "yes" ]] && echo "Samvideo mode. Please wait for video to load"
-	
-	# avoid double‐launch
-	if tmux has-session -t SAM 2>/dev/null; then
-		samdebug "SAM session already exists—skipping."
-		return
-	fi
-	
-	# Launch tmux and background it
-	tmux new-session -d \
-	  -x 180 -y 40 \
-	  -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
-	  -s SAM \
-	  "${misterpath}/Scripts/MiSTer_SAM_on.sh loop_core" &
+    local core="$1"
+    
+    # 1. Fast, Non-Blocking Checks (Foreground)
+    env_check
+    there_can_be_only_one
+    read_samini
+    mcp_start
 
+    echo "Starting SAM session..."
+
+    if tmux has-session -t SAM 2>/dev/null; then
+        samdebug "SAM session already exists—skipping."
+        return
+    fi
+
+    # 2. Launch Tmux pointing to the Wrapper Function
+    # We pass 'session_entry' instead of 'loop_core'
+    tmux new-session -d \
+      -x 180 -y 40 \
+      -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
+      -s SAM \
+      "${misterpath}/Scripts/MiSTer_SAM_on.sh session_entry $core" &
 }
 
 
