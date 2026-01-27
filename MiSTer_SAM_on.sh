@@ -137,6 +137,7 @@ function init_vars() {
 	declare -gl samvideo_freq
 	declare -gl samvideo_output="hdmi"
 	declare -gl samvideo_source
+	declare -gl samvideo_tvc_cdi
 	declare -gl samvideo_tvc
 	declare -gl download_manager="yes"
 	declare -gl sv_aspectfix_vmode
@@ -153,6 +154,7 @@ function init_vars() {
 	declare -g sv_gametimer_file="/tmp/.SAM_tmp/sv_gametimer"
 	declare -g sv_loadcounter=0
 	declare -g samvideo_path="/media/fat/video"
+	declare -g sv_archive_cdi="https://archive.org/download/mister-sam-cdi-vcd-commercials/mister-sam-cdi-vcd-commercials_files.xml"
 	declare -g sv_archive_hdmilist="https://archive.org/download/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
 	declare -g sv_archive_crtlist="https://archive.org/download/640x240_videogame_commercials/640x240_videogame_commercials_files.xml"
 	declare -g sv_youtube_hdmilist="${mrsampath}/sv_yt360_list.txt"
@@ -1424,6 +1426,16 @@ function run_countdown_timer() {
 
     # This loop provides a visible, second-by-second countdown.
     while (( countdown > 0 )); do
+        if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
+            if [ -f "$sv_gametimer_file" ]; then
+                local video_time=$(cat "$sv_gametimer_file")
+                if [[ "$video_time" =~ ^[0-9]+$ ]]; then
+                    countdown=$video_time
+                    rm "$sv_gametimer_file" 2>/dev/null
+                    samdebug "Timer synced to video: $countdown seconds"
+                fi
+            fi
+        fi
         echo -ne "Next game in ${countdown} seconds...\033[0K\r"
         sleep 1
         ((countdown--))
@@ -2768,6 +2780,7 @@ function there_can_be_only_one() {
     "MiSTer_SAM_on.sh initial_start"
     "MiSTer_SAM_on.sh loop_core"
     "MiSTer_SAM_on.sh bootstart"
+    "MiSTer_SAM_on.sh session_entry"
     "MiSTer_SAM_init start"
   )
 
@@ -2941,7 +2954,7 @@ function sam_prep() {
 	
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
-	if [ "${samvideo}" == "yes" ]; then
+	if [ "${samvideo}" == "yes" ] && [ "${samvideo_tvc_cdi}}" == "no" ]; then
 	
 		# Hide login prompt
 		echo -e '\033[2J' > /dev/tty1
@@ -3929,10 +3942,132 @@ function misterini_restore() {
     return 0
 }
 
+function sv_ar_cdi_mode() {
+
+
+    samvideo_list="/tmp/.SAM_List/sv_archive_list.txt"
+    local http_archive="${sv_archive_cdi//https/http}"
+
+    # Populate the samvideo_list if it's empty
+    if [ ! -s "${samvideo_list}" ]; then
+        curl_download /tmp/SAMvideos.xml "${http_archive}"
+        grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
+            | sed 's/<file name="//;s/"$//' \
+            | sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
+            > "${samvideo_list}"
+    fi
+
+    # Select a video and check availability
+    while true; do
+        if [ "$samvideo_tvc" == "yes" ]; then
+            samvideo_tvc
+        else
+            sv_selected="$(shuf -n1 "${samvideo_list}")"
+        fi
+        sv_selected_url="${http_archive%/*}/${sv_selected}"
+
+        # Check if the URL is available using wget
+        samdebug "Checking availability of ${sv_selected_url}..."
+        if wget --spider --quiet "${sv_selected_url}"; then
+            samdebug "URL is available: ${sv_selected_url}"
+            break
+        else
+            samdebug "URL is not available: ${sv_selected_url}. Removing from list and selecting another."
+            awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+        fi
+    done
+
+    tmpvideo="/tmp/SAMvideo.chd"
+	local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
+	samdebug "Checking if file is available locally...$local_svfile"
+
+
+    if [ -f "$local_svfile" ]; then
+        echo "Local file exists: $local_svfile"
+        cp "$local_svfile" "$tmpvideo"
+    else
+        echo "Preloading ${sv_selected} from archive.org for smooth playback"
+        dl_video "${sv_selected_url}"
+    fi
+
+    # Update samvideo_list to remove the processed file 
+	if [ "$samvideo_tvc" == "no" ]; then
+		awk -vLine="$sv_selected" '!index($0,Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
+	fi
+
+	# Check CD-i autoplay
+	FILE="/media/fat/config/CD-i.cfg"
+
+	# 1. If file doesn't exist, create it (Autoplay Enabled by default)
+	if [ ! -f "$FILE" ]; then
+		echo "1000 0000 0000 0000 0000 0000 0000 0000" | xxd -r -p > "$FILE"
+		echo "File created with Autoplay ENABLED."
+
+	# 2. If file exists, check the Autoplay byte (Offset 1)
+	else
+		# Read exactly 1 byte at offset 1
+		BYTE=$(xxd -p -s 1 -l 1 "$FILE")
+		
+		# If it's not "00", fix it
+		if [ "$BYTE" != "00" ]; then
+			# Write \x00 to offset 1 without truncating the rest of the file
+			printf '\x00' | dd of="$FILE" bs=1 seek=1 count=1 conv=notrunc 2>/dev/null
+			echo "Autoplay was OFF ($BYTE). Patched to ON (00)."
+		fi
+	fi
+
+
+	if [ -z "${sv_selected}" ]; then
+		echo "Error while downloading"
+		echo "1" > "$sv_gametimer_file"
+		return
+	fi
+	
+	sv_gametimer=$(du -m "/tmp/SAMvideo.chd"| awk '{print int($1 * 7.5)}')
+	echo $(("$sv_gametimer" + 5)) > "$sv_gametimer_file"
+
+	sv_title=${sv_selected%.*}
+
+	#Show tty2oled splash
+	if [ "${ttyenable}" == "yes" ]; then
+		tty_currentinfo=(
+			[core_pretty]="SAM Video Player"
+			[name]="${sv_title}"
+			[core]=SAM_splash
+			[date]=$EPOCHSECONDS
+			[counter]=${sv_gametimer}
+			[name_scroll]="${sv_title:0:21}"
+			[name_scroll_position]=0
+			[name_scroll_direction]=1
+			[update_pause]=${ttyupdate_pause}
+		)
+	
+		declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+		tty_displayswitch=$(($gametimer / $ttycoresleep - 1))
+		write_to_TTY_cmd_pipe "display_info" &		
+		local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
+		SECONDS=${elapsed}
+	fi
+	
+
+	#Play file
+	if [ -s /tmp/SAM_Game.mgl ]; then mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl; fi
+	{
+		echo "<mistergamedescription>"
+		echo "<rbf>_Unstable/CDi_unstable</rbf>"
+		echo "<file delay="1" type="s" index="1" path=\"../../../../..${tmpvideo}\"/>"
+	} >/tmp/SAM_Game.mgl
+	
+	echo "load_core /tmp/SAM_Game.mgl" > /dev/MiSTer_cmd
+
+
+}
+
 function dl_video() {
     rm -f "$tmpvideo"
 
     if [ "$download_manager" = "yes" ]; then
+		get_dlmanager
         /media/fat/linux/aria2c \
             --dir="$(dirname "$tmpvideo")" \
             --file-allocation=none \
@@ -4136,6 +4271,10 @@ function samvideo_tvc() {
         echo "Couldn't find TVC list. Selecting random game from system"
         sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
     fi
+    if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+        sv_selected="${sv_selected%.avi}.chd"
+        sv_selected="${sv_selected// /_}"
+    fi
     samdebug "Picked $sv_selected"
 }
 
@@ -4143,6 +4282,12 @@ function samvideo_tvc() {
 
 ## Play video
 function samvideo_play() {
+
+	if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+		sv_ar_cdi_mode
+		return
+	fi
+	
 	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_yt_download 360 "${sv_youtube_hdmilist}"
 	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
@@ -4155,6 +4300,8 @@ function samvideo_play() {
 		sv_local
 	fi
 	
+	
+
 	if [ -z "${sv_selected}" ]; then
 		echo "Error while downloading"
 		echo "1" > "$sv_gametimer_file"
