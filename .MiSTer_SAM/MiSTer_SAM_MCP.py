@@ -286,6 +286,21 @@ def handle_action(action, state, loop):
                         
                     # 5. Safety: Ensure tmux is definitely dead after stopping
                     subprocess.run(["tmux", "kill-session", "-t", SAM_SESSION_NAME], stderr=subprocess.DEVNULL)
+                    # 6. Extra Safety: Explicitly kill the session entry script which might trap SIGHUP
+                    # pkill is not available on MiSTer, so we manually find and kill the process
+                    try:
+                        proc = subprocess.run(["ps", "-o", "pid,args"], capture_output=True, text=True)
+                        if proc.returncode == 0:
+                            for line in proc.stdout.splitlines():
+                                if "MiSTer_SAM_on.sh loop_core" in line:
+                                    parts = line.strip().split()
+                                    if parts and parts[0].isdigit():
+                                        try:
+                                            os.kill(int(parts[0]), signal.SIGKILL)
+                                        except OSError:
+                                            pass
+                    except Exception as e:
+                        print(f"MCP: Error cleaning up process: {e}")
 
             else:
                 # SAM is not running. We just reset the timer (already done above).
