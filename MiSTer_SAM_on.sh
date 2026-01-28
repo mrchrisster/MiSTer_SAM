@@ -3092,7 +3092,7 @@ function sam_disable() { # Disable autoplay
 
 function env_check() {
 	# Check if we've been installed
-	if [ ! -f "${mrsampath}/samindex" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
+	if [ ! -f "${mrsampath}/samindex" ]; then
 		echo " SAM required files not found."
 		echo " Installing now."
 		sam_update autoconfig
