@@ -3936,7 +3936,6 @@ function misterini_restore() {
 
 function sv_ar_cdi_mode() {
 
-
     samvideo_list="/tmp/.SAM_List/sv_archive_list.txt"
     local http_archive="${sv_archive_cdi//https/http}"
 
@@ -4469,10 +4468,6 @@ function get_samvideo() {
     tmp_mplayer="/tmp/mplayer.zip"
     local_mplayer="${mrsampath}/mplayer.zip"
 
-    latest_ytdl="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
-    tmp_ytdl="/tmp/yt-dlp"
-    local_ytdl="${mrsampath}/ytdl"
-
     # Check and update mplayer
     check_and_update "$latest_mplayer" "$tmp_mplayer" "$local_mplayer" "mplayer" 
 	result=$?
@@ -4480,7 +4475,6 @@ function get_samvideo() {
         echo "Extracting mplayer..."
         unzip -ojq "$local_mplayer" -d "${mrsampath}" || {
             echo "Error: Failed to extract mplayer.zip" >&2
-            return 1
         }
         echo "mplayer updated and extracted successfully."
     fi
@@ -4661,9 +4655,8 @@ function sam_update() { # sam_update (next command)
 		if [ ! -f "${mrsampath}/sam_controllers.json" ]; then
 			get_samstuff .MiSTer_SAM/sam_controllers.json
 		fi
-		if [ "${samvideo}" == "yes" ]; then
-			get_samvideo
-		fi
+		get_samvideo
+		get_dlmanager
 		get_inputmap
 		get_blacklist
 		get_ratedlist
