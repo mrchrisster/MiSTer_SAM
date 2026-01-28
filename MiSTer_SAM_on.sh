@@ -1163,7 +1163,8 @@ function update_samini() {
 		# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 		sed -i 's/==/--/g' "${samini_file}"
 		sed -i 's/-=/--/g' "${samini_file}"
-		awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
+		#awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
+		
 		echo "Done."
 	fi
 
@@ -3935,7 +3936,7 @@ function misterini_restore() {
 }
 
 function sv_ar_cdi_mode() {
-
+	
     samvideo_list="/tmp/.SAM_List/sv_archive_list.txt"
     local http_archive="${sv_archive_cdi//https/http}"
 
