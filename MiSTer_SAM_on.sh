@@ -4018,7 +4018,8 @@ function sv_ar_cdi_mode() {
 	sv_gametimer=$(du -m "/tmp/SAMvideo.chd"| awk '{print int($1 * 7.5)}')
 	echo $(("$sv_gametimer" + 10)) > "$sv_gametimer_file"
 
-	sv_title=${sv_selected%.*}
+	sv_title="${sv_selected%.*}"
+	sv_title="${sv_title//_/ }"
 
 	#Show tty2oled splash
 	if [ "${ttyenable}" == "yes" ]; then
@@ -4302,7 +4303,7 @@ function samvideo_play() {
 	fi
 	
 	sv_gametimer="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
-	sv_title=${sv_selected%.*}
+	sv_title="${sv_selected%.*}"
 
 	#Show tty2oled splash
 	if [ "${ttyenable}" == "yes" ]; then
