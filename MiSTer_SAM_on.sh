@@ -1219,8 +1219,7 @@ function parse_cmd() {
                         echo "SAM: Performing boot-time prep..."
                         sam_prep
                         ;;
-	session_entry)      session_entry "$@" ;;
-    loop_core)          loop_core ;;
+    loop_core)          loop_core "$@" ;;
     
     menu|back)          sam_menu ;;
     help)               sam_help ;;
@@ -1378,7 +1377,7 @@ function load_menu_if_needed() {
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
 
-function session_entry() {
+function loop_core() { 
     # --- 1. Heavy Initialization (Runs once in background) ---
     echo "SAM Session: Initializing..."
     update_samini
@@ -1390,15 +1389,9 @@ function session_entry() {
     disable_bootrom
     bgm_start
     tty_start
-    
-    # --- 2. Hand off to the Main Loop ---
+
+    # --- 2. Main Loop ---
     echo "SAM Session: Setup complete. Entering main loop."
-    loop_core "${1-}"
-}
-
-
-function loop_core() { 
-    # This function now ONLY handles the game loop logic
     echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
     
     # Reset game log for this session
@@ -2719,7 +2712,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
 
 	# Time to launch this puppy
-    echo "${launch_cmd}" >/dev/MiSTer_cmd
+    timeout 1s sh -c "echo \"${launch_cmd}\" >/dev/MiSTer_cmd"
     
     if [ -n "${post_launch_hook}" ]; then
         eval "${post_launch_hook}"
@@ -2753,7 +2746,7 @@ function sam_start() {
       -x 180 -y 40 \
       -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
       -s SAM \
-      "${misterpath}/Scripts/MiSTer_SAM_on.sh session_entry $core" &
+      "${misterpath}/Scripts/MiSTer_SAM_on.sh loop_core $core" &
 }
 
 
@@ -2780,7 +2773,6 @@ function there_can_be_only_one() {
     "MiSTer_SAM_on.sh initial_start"
     "MiSTer_SAM_on.sh loop_core"
     "MiSTer_SAM_on.sh bootstart"
-    "MiSTer_SAM_on.sh session_entry"
     "MiSTer_SAM_init start"
   )
 
@@ -2816,7 +2808,7 @@ function exit_sam() { # exit_sam [menu|game]
     # 6. Load menu if requested
     if [[ "$exit_mode" == "menu" ]]; then
         echo "SAM stopped. Returning to menu..."
-        echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+        timeout 1s sh -c "echo 'load_core /media/fat/menu.rbf' > /dev/MiSTer_cmd"
     fi
 }
 
@@ -2987,7 +2979,7 @@ function sam_prep() {
 		else
 		  # create a “level=0 + mute” byte = 0x10
 		  write_byte "${configpath}/Volume.dat" "10"
-		  echo "volume mute" > /dev/MiSTer_cmd
+		  timeout 1s sh -c "echo 'volume mute' > /dev/MiSTer_cmd"
 		  samdebug "Volume.dat created (0x10) and muted."
 		fi
 	fi
@@ -2997,11 +2989,11 @@ function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	#[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
 	only_unmute_if_needed
-	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
-	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
-	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
-	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
-	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && timeout 3s umount -l "${amigapath}/shared"
+	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && timeout 3s umount "${misterpath}/Bootrom"
+	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && timeout 3s umount "${misterpath}/Games/NES/boot1.rom"
+	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && timeout 3s umount "${misterpath}/Games/NES/boot2.rom"
+	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && timeout 3s umount "${misterpath}/Games/NES/boot3.rom"
 	if [ "${mute}" != "no" ]; then
 		readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')"
 		if [ "${#volmount[@]}" -gt 0 ]; then
@@ -3348,7 +3340,7 @@ function global_mute() {
 	write_byte "$f" "$hex"
 	
 	# immediately mute the live core
-	echo "volume mute" > /dev/MiSTer_cmd
+	timeout 1s sh -c "echo 'volume mute' > /dev/MiSTer_cmd"
 	samdebug "WRITE TO SD: Global mute → Volume.dat"
 }
 
@@ -3360,7 +3352,7 @@ function global_unmute() {
 	hex=$(printf '%02x' "$u")
 	write_byte "$f" "$hex"
 	# sent unmute for interactive unmute
-	echo "volume unmute" > /dev/MiSTer_cmd
+	timeout 1s sh -c "echo 'volume unmute' > /dev/MiSTer_cmd"
 	samdebug "WRITE TO SD: Restored Volume.dat"
 }
 
@@ -3770,13 +3762,13 @@ function bgm_stop() {
 
 	if [ "${bgm}" == "yes" ] || [ "$1" == "force" ]; then
 		echo -n "Stopping Background Music Player... "
-		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+		echo -n "set playincore no" | timeout 1s socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "stop" | timeout 1s socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 		sleep 0.2
 		if [ "${bgmstop}" == "yes" ]; then
-			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+			echo -n "stop" | timeout 1s socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 			sleep 0.2
-			echo -n "set playback disabled" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+			echo -n "set playback disabled" | timeout 1s socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 			kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
 			kill -9 "$(ps -o pid,args | grep 'mpg123' | awk '{print $1}' | head -1)" 2>/dev/null
 			rm /tmp/bgm.sock 2>/dev/null
@@ -3814,7 +3806,7 @@ function tty_exit() {
         #    '2>/dev/null' hides the "timeout: sending signal" message.
         #    The final '&' runs this whole timeout operation in the background.
         if [[ -p ${TTY_cmd_pipe} ]]; then
-            timeout 3s echo "stop" >${TTY_cmd_pipe} 2>/dev/null &
+            timeout 3s sh -c "echo 'stop' > ${TTY_cmd_pipe}" 2>/dev/null &
         fi
 
         # 2. Timeout for tmux
@@ -4024,7 +4016,7 @@ function sv_ar_cdi_mode() {
 	fi
 	
 	sv_gametimer=$(du -m "/tmp/SAMvideo.chd"| awk '{print int($1 * 7.5)}')
-	echo $(("$sv_gametimer" + 5)) > "$sv_gametimer_file"
+	echo $(("$sv_gametimer" + 10)) > "$sv_gametimer_file"
 
 	sv_title=${sv_selected%.*}
 
@@ -4059,6 +4051,7 @@ function sv_ar_cdi_mode() {
 	} >/tmp/SAM_Game.mgl
 	
 	echo "load_core /tmp/SAM_Game.mgl" > /dev/MiSTer_cmd
+	timeout 1s sh -c "echo 'load_core /tmp/SAM_Game.mgl' > /dev/MiSTer_cmd"
 
 
 }
@@ -4339,7 +4332,7 @@ function samvideo_play() {
 	
 	
 	if [ -s "$tmpvideo" ]; then
-		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
+		timeout 1s sh -c "echo 'load_core /media/fat/menu.rbf' > /dev/MiSTer_cmd"
 		sleep "${samvideo_displaywait}"
 		# TODO delete blinking cursor
 		#echo "\033[?25l" > /dev/tty1
