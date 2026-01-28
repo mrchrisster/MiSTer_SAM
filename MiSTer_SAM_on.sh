@@ -4674,6 +4674,8 @@ function sam_update() { # sam_update (next command)
 			sed -i 's/==/--/g' "${samini_file}"
 			sed -i 's/-=/--/g' "${samini_file}"
 			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" /tmp/MiSTer_SAM.ini >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
+			echo " Warning: Overwriting ini in test branch!"
+			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 			echo "Done."
 
 		else
