@@ -2541,7 +2541,9 @@ function pick_random_game() {
             # Rebuild the master list immediately so we can try again on the next pass
             ensure_list "${core_type}" "${gamelistpath}"
             
-			return 1
+            # RECURSIVE CALL: Try to pick again immediately from the fresh list
+            pick_random_game "${core_type}"
+			return $?
 		fi
 	fi
 
