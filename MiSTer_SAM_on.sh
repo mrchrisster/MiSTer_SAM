@@ -1589,7 +1589,7 @@ function corelist_update() {
 
 	local updated_corelisttmp=()
 	for tmp_core in "${corelisttmp[@]}"; do
-		if [[ -v valid_cores_map["$tmp_core"] ]]; then
+		if [[ -n "${valid_cores_map["$tmp_core"]}" ]]; then
 			updated_corelisttmp+=("$tmp_core")
 		fi
 	done
@@ -1934,7 +1934,7 @@ function check_rom(){
     local extension="${rompath##*.}"
     local extlist="${CORE_EXT[${core}]//,/ }"  # Use the passed argument
                 
-    if [[ -v CORE_EXT[$core] ]]; then
+    if [[ -n "${CORE_EXT[$core]}" ]]; then
         local extension="${rompath##*.}"
         local extlist="${CORE_EXT[${core}]//,/ }"
 
@@ -2844,6 +2844,10 @@ function mcp_start() {
 	# MCP monitors when SAM should be launched. 
 	# "menuonly" and "samtimeout" determine when MCP launches SAM
 	
+	if tmux has-session -t MCP 2>/dev/null; then
+		return
+	fi
+
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
 		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP.py"
 	fi
@@ -4043,7 +4047,7 @@ function sv_ar_cdi_mode() {
     if [ ! -f "$FILE" ]; then
         # Create file with Autoplay ENABLED
         echo "1000 0000 0000 0000 0000 0000 0000 0000" | xxd -r -p > "$FILE"
-        echo "File created with Autoplay ENABLED."
+        echo "CD-i.CFG created with Autoplay ENABLED."
     else
         # Fix Autoplay if disabled
         BYTE=$(xxd -p -s 1 -l 1 "$FILE")
@@ -4084,6 +4088,7 @@ function sv_ar_cdi_mode() {
     
 
     # 10. Play file
+	echo "Using CD-i core for playback of VCD"
     if [ -s /tmp/SAM_Game.mgl ]; then mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl; fi
     {
         echo "<mistergamedescription>"
