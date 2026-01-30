@@ -1970,6 +1970,14 @@ function check_rom(){
                  if [ -f "${session_list}" ]; then
                      grep -F -v "${rompath}" "${session_list}" > "${session_list}.tmp" && mv "${session_list}.tmp" "${session_list}"
                  fi
+
+                 # Also remove from the MASTER list so it doesn't come back next session.
+                 # Rebuilding the list wouldn't help here because the MRA file itself still exists.
+                 local master_list="${gamelistpath}/${core}_gamelist.txt"
+                 if [ -f "${master_list}" ]; then
+                     samdebug "Pruning '${rompath}' from master list due to missing RBF."
+                     grep -F -v "${rompath}" "${master_list}" > "${master_list}.tmp" && mv "${master_list}.tmp" "${master_list}"
+                 fi
                  return 1
              fi
         fi
