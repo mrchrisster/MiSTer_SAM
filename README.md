@@ -31,6 +31,9 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 - Additionally copy the entire `.MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
 - To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu under Settings.
 
+## update_all Settings
+Make sure you turn on Arcade Organizer in Update All (off by default) to get correct filtering of arcade roms in SAM.  
+  
 ## Update  
 - Running `MiSTer_SAM_on.sh` will update your existing version to the newest version.
   
