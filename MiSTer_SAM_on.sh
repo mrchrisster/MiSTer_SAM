@@ -2525,6 +2525,14 @@ function pick_random_game() {
 	if [[ "${core_type}" == "arcade" || "${core_type}" == "stv" ]]; then
 		if [ ! -f "${chosen_path}" ]; then
 			samdebug "ERROR: MRA file not found after pick and sanitize: '${chosen_path}'"
+            samdebug "The gamelist for '${core_type}' appears out of date. Triggering rebuild."
+            
+            # Delete the stale lists
+            rm -f "${master_list}" "${session_list}"
+            
+            # Rebuild the master list immediately so we can try again on the next pass
+            ensure_list "${core_type}" "${gamelistpath}"
+            
 			return 1
 		fi
 	fi
