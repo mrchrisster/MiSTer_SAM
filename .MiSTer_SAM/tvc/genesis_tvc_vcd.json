@@ -1,0 +1,426 @@
+{
+	"genesis_ecco.chd": {
+	    "title": "Ecco",
+        "duration": 46
+    },
+	"genesis_1993.chd": {
+	    "title": "Ecco",
+        "duration": 31
+    },
+    "Genesis-Animaniacs_I_Give_Four_Stars.chd": {
+        "title": "Animaniacs",
+        "duration": 33
+    },
+    "Genesis-ARCADE_VS_SEGA_Genesis.chd": {
+        "title": "Super Hang-On",
+        "duration": 61
+    },
+    "Genesis-Aura_Interactor_Feel_The_Action.chd": {
+        "title": "Mortal Kombat",
+        "duration": 30
+    },
+    "Genesis-Batman_Forever_The_Real_Game_Begins.chd": {
+        "title": "Batman Forever",
+        "duration": 32
+    },
+    "Genesis-BLOCKBUSTER_Video_Make_It_A_BLOCKBUSTER_Holiday.chd": {
+        "title": "Sonic the Hedgehog (",
+        "duration": 30
+    },
+    "Genesis-BLOCKBUSTER_VIDEO_Video_Games.chd": {
+        "title": "Sonic the Hedgehog (",
+        "duration": 31
+    },
+    "Genesis-Blockbuster_Video_Where_The_Challenge_Never_Ends.chd": {
+        "title": "Mega Man",
+        "duration": 96
+    },
+    "Genesis-Boogerman_A_Pick_and_Flick_Adventure.chd": {
+        "title": "Boogerman - A Pick",
+        "duration": 32
+    },
+    "Genesis-Bulls_vs_Blazers.chd": {
+        "title": "Bulls vs Blazers",
+        "duration": 32
+    },
+    "Genesis-Bully_-_I_Said_Chocolate_CHIP_Mortal_Kombat_.chd": {
+        "title": "Mortal Kombat",
+        "duration": 32
+    },
+    "Genesis-Bully_-_I_Said_Chocolate_CHIP_Streets_of_Rage_2.chd": {
+        "title": "Streets of Rage 2",
+        "duration": 32
+    },
+    "Genesis-Castlevania_Bloodlines.chd": {
+        "title": "Castlevania Bloodlines",
+        "duration": 15
+    },
+    "Genesis-College_Footballs_National_Championship_II_Deion_Sanders.chd": {
+        "title": "College Football's National Championship II",
+        "duration": 31
+    },
+    "Genesis-College_Football_USA_96.chd": {
+        "title": "College Football USA 96",
+        "duration": 17
+    },
+    "Genesis-Comix_Zone_-_Mutant_Family.chd": {
+        "title": "Comix Zone",
+        "duration": 32
+    },
+    "Genesis-Cool_Spot_-_Police_Breaking_News.chd": {
+        "title": "Cool Spot",
+        "duration": 32
+    },
+    "Genesis-Demolition_Man.chd": {
+        "title": "Demolition Man",
+        "duration": 15
+    },
+    "Genesis-Diagnosis_Streets_of_Rage_2.chd": {
+        "title": "Streets of Rage 2",
+        "duration": 17
+    },
+    "Genesis-Disneys_Aladdin_-_Power_of_Magic_Lamp.chd": {
+        "title": "Aladdin",
+        "duration": 32
+    },
+    "Disneys_Aladdin_for_SEGA_Genesis_1993_TV_Commercial.chd": {
+        "title": "Aladdin",
+        "duration": 31
+    },
+    "Genesis-EATONS_we_love_christmas_too.chd": {
+        "title": "Sonic the Hedgehog 2",
+        "duration": 18
+    },
+    "Genesis-Ecco_the_Dolphin_-_Jacques-Yves_Cousteau.chd": {
+        "title": "Ecco the Dolphin",
+        "duration": 32
+    },
+    "Genesis-Ecco_The_Tides_of_Time_-_Sweet_Dreams.chd": {
+        "title": "Ecco - The Tides",
+        "duration": 32
+    },
+    "Genesis-Eternal_Champions.chd": {
+        "title": "Eternal Champions",
+        "duration": 32
+    },
+    "Genesis-Eternal_Champions_Kick_Your_Butt.chd": {
+        "title": "Eternal Champions",
+        "duration": 31
+    },
+    "Genesis-FIFA_International_Soccer.chd": {
+        "title": "FIFA International Soccer",
+        "duration": 17
+    },
+    "Genesis-Fox_Kids_CREATE_A_SEGA_VIDEO_GAME_Sweepstakes.chd": {
+        "title": "Vectorman",
+        "duration": 33
+    },
+    "Genesis-Fox_Kids_SUPER_HERO_Sweepstakes.chd": {
+        "title": "Batman & Robin",
+        "duration": 32
+    },
+    "Genesis-Galoob_Game_Genie_Video_Game_Enhancer.chd": {
+        "title": "ToeJam & Earl ",
+        "duration": 31
+    },
+    "Genesis-Greendog_The_Beached_Surfer_Dude.chd": {
+        "title": "Greendog - The Beached",
+        "duration": 17
+    },
+    "Genesis-Honey_Nut_Cheerios_Sonic_the_Hedgehog.chd": {
+        "title": "Sonic the Hedgehog (",
+        "duration": 64
+    },
+    "Genesis-John_Madden_Football_93.chd": {
+        "title": "John Madden Football '93",
+        "duration": 32
+    },
+    "Genesis-Kelloggs_Frosties_Sonic_Spinners.chd": {
+        "title": "Sonic the Hedgehog (",
+        "duration": 21
+    },
+    "Genesis-Kid_Chameleon.chd": {
+        "title": "Kid Chameleon ",
+        "duration": 32
+    },
+    "Genesis-Madden_NFL_94_Lullaby.chd": {
+        "title": "Madden NFL '94",
+        "duration": 32
+    },
+    "Genesis-Madden_NFL_94_Train.chd": {
+        "title": "Madden NFL '94",
+        "duration": 32
+    },
+    "Genesis-Madden_NFL_95_John_Madden.chd": {
+        "title": "Madden NFL 95",
+        "duration": 32
+    },
+    "Genesis-Madden_NFL_95.chd": {
+        "title": "Madden NFL 95",
+        "duration": 35
+    },
+    "Genesis-Madden_NFL_96__1.chd": {
+        "title": "Madden NFL 96",
+        "duration": 17
+    },
+    "Genesis-Madden_NFL_96.chd": {
+        "title": "Madden NFL 96",
+        "duration": 32
+    },
+    "Genesis-Marvel__X-Men_Wolverine__1.chd": {
+        "title": "X-Men",
+        "duration": 17
+    },
+    "Genesis-Marvel__X-Men_Wolverine.chd": {
+        "title": "X-Men (",
+        "duration": 32
+    },
+    "Genesis-Mighty_Morphin_Power_Rangers.chd": {
+        "title": "Mighty Morphin",
+        "duration": 30
+    },
+    "Genesis-MTVs_Beavis_and_Butt-Head.chd": {
+        "title": "Butt-Head",
+        "duration": 32
+    },
+    "Genesis-NBA_Jam_JAM.chd": {
+        "title": "NBA Jam",
+        "duration": 46
+    },
+    "Genesis-NBA_Live_95__Bring_it_BACK.chd": {
+        "title": "NBA Live 95",
+        "duration": 32
+    },
+    "Genesis-NBA_Live_95.chd": {
+        "title": "NBA Live 95",
+        "duration": 36
+    },
+    "Genesis-NBA_Live_96__1.chd": {
+        "title": "NBA Live 96",
+        "duration": 17
+    },
+    "Genesis-NBA_Live_96.chd": {
+        "title": "NBA Live 96",
+        "duration": 32
+    },
+    "Genesis-NBA_Showdown_94.chd": {
+        "title": "NBA Showdown '94",
+        "duration": 17
+    },
+    "Genesis-NFL_Football_94_Starring_Joe_Montana.chd": {
+        "title": "NFL Football '94",
+        "duration": 46
+    },
+    "Genesis-NFL_Sports_Talk_Football.chd": {
+        "title": "NFL Sports Talk",
+        "duration": 32
+    },
+    "Genesis-NHL_94__1.chd": {
+        "title": "NHL '94",
+        "duration": 32
+    },
+    "Genesis-NHL_94.chd": {
+        "title": "NHL '94 ",
+        "duration": 32
+    },
+    "Genesis-NHL_95_Take_It.chd": {
+        "title": "NHL 95",
+        "duration": 32
+    },
+    "Genesis-NHL_96_Bang_Bang.chd": {
+        "title": "NHL 96",
+        "duration": 17
+    },
+    "Genesis-NHL_96.chd": {
+        "title": "NHL 96",
+        "duration": 32
+    },
+    "Genesis-NHL_Hockey_95.chd": {
+        "title": "NHL Hockey",
+        "duration": 36
+    },
+    "Genesis-NHLPA_Hockey_93.chd": {
+        "title": "NHLPA Hockey '93",
+        "duration": 32
+    },
+    "Genesis-November_23_1993_Sonic_Mania_Day.chd": {
+        "title": "Sonic Spinball",
+        "duration": 30
+    },
+    "Genesis-Pac-Man_2_The_New_Adventures_Special_Friend_.chd": {
+        "title": "Pac-Man 2",
+        "duration": 30
+    },
+    "Genesis-PGA_Tour_Golf_II.chd": {
+        "title": "PGA Tour Golf II",
+        "duration": 32
+    },
+    "Genesis-Pitfall_The_Mayan_Adventure.chd": {
+        "title": "The Mayan",
+        "duration": 17
+    },
+    "Genesis-Ren__Stimpy_Stimpys_Invention.chd": {
+        "title": "Ren & Stimpy",
+        "duration": 33
+    },
+    "Genesis-Rocket_Knight_Adventures_Bacon_In_The_Morning.chd": {
+        "title": "Rocket Knight Adventures",
+        "duration": 33
+    },
+    "Genesis-Sega_Channel_Thank_You_Mother.chd": {
+        "title": "Comix Zone",
+        "duration": 33
+    },
+    "Genesis-Sega_Genesis_Games_New_Neighbors.chd": {
+        "title": "Treasure Land Adventure",
+        "duration": 32
+    },
+    "Genesis-SEGA_Mosquito__1.chd": {
+        "title": "Mortal Kombat",
+        "duration": 17
+    },
+    "Genesis-Sega_Sports_Pack_Sega_Game_Gear__Sega_CD.chd": {
+        "title": "Madden NFL '94",
+        "duration": 31
+    },
+    "Genesis-Sega_Sports_World_Series_Baseball_Hey_Ricky.chd": {
+        "title": "World Series Baseball",
+        "duration": 47
+    },
+    "Genesis-Shaq_Fu.chd": {
+        "title": "Shaq-Fu",
+        "duration": 40
+    },
+    "Genesis-SNES_VS_Genesis_Brand-new_16_Bit.chd": {
+        "title": "Sonic the Hedgehog (",
+        "duration": 33
+    },
+    "Genesis-Soldiers_Of_Fortune_Game_Of_The_Year.chd": {
+        "title": "Soldiers Of Fortune",
+        "duration": 30
+    },
+    "Genesis-Sonic__Knuckles_Elfs_Mission.chd": {
+        "title": "Sonic & Knuckles",
+        "duration": 17
+    },
+    "Genesis-Sonic__Knuckles_Elfs_story__1.chd": {
+        "title": "Sonic & Knuckles",
+        "duration": 17
+    },
+    "Genesis-Sonic__Knuckles_Elfs_story__2.chd": {
+        "title": "Sonic & Knuckles",
+        "duration": 32
+    },
+    "Genesis-Sonic__Knuckles_Elfs_story.chd": {
+        "title": "Sonic & Knuckles",
+        "duration": 32
+    },
+    "Genesis-Sonic_Spinball_Sonic__Pinball__Spinball.chd": {
+        "title": "Sonic Spinball",
+        "duration": 31
+    },
+    "Genesis-Sonic_the_Hedgehog_2_FREE_Sonic_2.chd": {
+        "title": "Sonic the Hedgehog 2",
+        "duration": 32
+    },
+    "Genesis-Sonic_the_Hedgehog_3_Airplane.chd": {
+        "title": "Sonic the Hedgehog 3",
+        "duration": 17
+    },
+    "Genesis-Sonic_the_Hedgehog_3_Groundhog_Day.chd": {
+        "title": "Sonic the Hedgehog 3",
+        "duration": 17
+    },
+    "Genesis-Sonic_the_Hedgehog_3_Happy_Meal_Toys_Sweepstakes.chd": {
+        "title": "Sonic the Hedgehog 3",
+        "duration": 64
+    },
+    "Genesis-Sonic_the_Hedgehog_Music_Video.chd": {
+        "title": "Sonic the Hedgehog (",
+        "duration": 33
+    },
+    "Genesis-Sonic_the_Hedgehog_Pasta__Lunch_.chd": {
+        "title": "Sonic the Hedgehog (",
+        "duration": 33
+    },
+    "Genesis-Spider-Man_and_the_X-Men_in_Arcades_Revenge.chd": {
+        "title": "Spider-Man X-Men",
+        "duration": 17
+    },
+    "Genesis-Spider-Man_vs_The_Kingpin__Streets_of_Rage.chd": {
+        "title": "Spider-Man vs The Kingpin",
+        "duration": 32
+    },
+    "Genesis-Sports_Talk_Baseball_Sega_Sports.chd": {
+        "title": "Sports Talk Baseball",
+        "duration": 34
+    },
+    "Genesis-Streets_of_Rage.chd": {
+        "title": "Streets of Rage",
+        "duration": 32
+    },
+    "Genesis-Super_Street_Fighter_II.chd": {
+        "title": "Super Street Fighter",
+        "duration": 48
+    },
+    "Genesis-T2_The_Arcade_Game_Big_Kiss.chd": {
+        "title": "T2 - The Arcade",
+        "duration": 32
+    },
+    "Genesis-Taz_in_Escape_from_Mars_Sweepstakes.chd": {
+        "title": "Taz in Escape",
+        "duration": 31
+    },
+    "Genesis-The_Incredible_Hulk_Hes_BIG_Hes_GREEN.chd": {
+        "title": "Incredible Hulk",
+        "duration": 31
+    },
+    "Genesis-The_Lion_King.chd": {
+        "title": "Lion King",
+        "duration": 32
+    },
+    "Genesis-ToeJam__Earl_Panic_on_Funkotron_Rapping.chd": {
+        "title": "ToeJam & Earl in Panic",
+        "duration": 32
+    },
+    "Genesis-ToeJam__Earl_Rapping.chd": {
+        "title": "ToeJam & Earl",
+        "duration": 33
+    },
+    "Genesis-Toy_Story_Sids_Toys.chd": {
+        "title": "Toy Story",
+        "duration": 31
+    },
+    "Genesis-Troy_Aikman_NFL_Football.chd": {
+        "title": "Troy Aikman NFL",
+        "duration": 32
+    },
+    "Genesis-Vectorman.chd": {
+        "title": "Vectorman",
+        "duration": 17
+    },
+    "Genesis-Wayne_Gretzky_and_the_NHLPA_All-Stars_The_Great_One.chd": {
+        "title": "Wayne Gretzky and",
+        "duration": 30
+    },
+    "Genesis-Welcome_To_The_Next_Level_-_Punk.chd": {
+        "title": "Evander Holyfield",
+        "duration": 32
+    },
+    "Genesis-X-Men_2_Clone_Wars_Magneto.chd": {
+        "title": "X-Men 2",
+        "duration": 28
+    },
+    "Genesis-Zero_Tolerance_Dont_Forget_To_Ketchup.chd": {
+        "title": "Zero Tolerance",
+        "duration": 31
+    },
+    "Genesis-Zombies_Ate_My_Neighbors_Pizza_Guy.chd": {
+        "title": "Zombies Ate My",
+        "duration": 31
+    },
+    "Genesis-ZOOP_Killer_Of_Time.chd": {
+        "title": "ZOOP",
+        "duration": 31
+    }
+}
