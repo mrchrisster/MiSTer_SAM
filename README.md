@@ -9,6 +9,12 @@
 **Super Attract Mode puts all your games on display to enjoy whenever your MiSTer is idle.**  
 Like a screen saver, SAM comes on when your MiSTer is idle. Just wait a couple of minutes in the main menu and SAM will launch a random game from your library. Every few minutes it will randomly select and load a new game. If you like a game that's currently playing, just pick up your controller and push a button, press a key, or move the mouse. Back in the main menu, wait another two minutes and the gaming tour begins again!
 
+## Prerequisites
+- You need a MiSTer (d'oh)
+- Make sure you have `Arcade Organizer` enabled in Update All settings (off by default) to get correct filtering of arcade roms in SAM. 
+ 
+
+
 ## Installation
   
 - The easiest way to install SAM is launch `update_all.sh` menu, select "Tools & Scripts" and select "Mister Super Attract Mode". After running update_all, you will have a file called `MiSter_SAM_on.sh` in the Scripts folder. Run `MiSter_SAM_on.sh` and wait until SAM is fully installed/updated. You can configure SAM from the menu by running `MiSTer_SAM_on.sh` and pushing up.
@@ -31,9 +37,7 @@ If your MiSTer is not connected to the internet, click on "Code" -> "Download Zi
 - Additionally copy the entire `.MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
 - To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu under Settings.
 
-## update_all Settings
-Make sure you turn on Arcade Organizer in Update All (off by default) to get correct filtering of arcade roms in SAM.  
-  
+ 
 ## Update  
 - Running `MiSTer_SAM_on.sh` will update your existing version to the newest version.
   
