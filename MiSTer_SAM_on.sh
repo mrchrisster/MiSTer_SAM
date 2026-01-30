@@ -1945,6 +1945,36 @@ function check_rom(){
         fi
     fi
     
+    # Check for RBF existence for Arcade/STV MRAs
+    if [[ "${core}" == "arcade" || "${core}" == "stv" ]] && [[ "${rompath,,}" == *.mra ]]; then
+        local rbf_tag
+        # Extract content between <rbf> and </rbf>, removing whitespace
+        rbf_tag=$(grep -i "<rbf>" "${rompath}" | head -n 1 | sed -e 's/.*<rbf>\(.*\)<\/rbf>.*/\1/' | tr -d '[:space:]')
+        
+        if [[ -n "${rbf_tag}" ]]; then
+             local checks_dir="${misterpath}/${CORE_PATH_RBF[${core}]}"
+             local rbf_found=0
+             
+             # Check for RBF file (exact match or with timestamp suffix)
+             if ls "${checks_dir}/${rbf_tag}"*.rbf >/dev/null 2>&1; then
+                 rbf_found=1
+             elif ls "${checks_dir}/cores/${rbf_tag}"*.rbf >/dev/null 2>&1; then
+                 rbf_found=1
+             fi
+             
+             if [[ $rbf_found -eq 0 ]]; then
+                 samdebug "ERROR: RBF '${rbf_tag}' not found for MRA '${rompath}'. validation failed."
+                 
+                 # Remove from the current session list so we don't pick it again immediately
+                 local session_list="${gamelistpathtmp}/${core}_gamelist.txt"
+                 if [ -f "${session_list}" ]; then
+                     grep -F -v "${rompath}" "${session_list}" > "${session_list}.tmp" && mv "${session_list}.tmp" "${session_list}"
+                 fi
+                 return 1
+             fi
+        fi
+    fi
+
     # If all checks pass, return 0 for success
     return 0
 }
