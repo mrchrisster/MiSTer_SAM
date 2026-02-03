@@ -1873,6 +1873,8 @@ function pick_rom() {
 
 		# samvideo mode tries to find a specific game matching a commercial.
         local specific_game
+        local search_term=$(cat /tmp/.SAM_tmp/sv_gamename)
+        samdebug "Searching for game matching string: $search_term"
         specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | head -n 1)"
         
         if [[ -z "${specific_game}" ]]; then
