@@ -158,8 +158,6 @@ function init_vars() {
 	declare -g sv_archive_cdi="https://archive.org/download/mister-sam-cdi-vcd-commercials/mister-sam-cdi-vcd-commercials_files.xml"
 	declare -g sv_archive_hdmilist="https://archive.org/download/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
 	declare -g sv_archive_crtlist="https://archive.org/download/640x240_videogame_commercials/640x240_videogame_commercials_files.xml"
-	declare -g sv_youtube_hdmilist="${mrsampath}/sv_yt360_list.txt"
-	declare -g sv_youtube_crtlist="${mrsampath}/sv_yt240_list.txt"
 
 
 	# ======== CORE PATHS RBF ========
@@ -1666,7 +1664,7 @@ function pick_core_standard() {
     samdebug "Picked core (standard): $nextcore"
 }
 
-# 2) SAM-video mode (Weighted by _tvc.txt)
+# 2) SAM-video mode (Weighted by _tvc.json)
 
 declare -A SAMVC        # tvc counts per core
 SAMVTOTAL=0             # sum of all counts
@@ -1690,7 +1688,11 @@ function init_core_samvideo() {
         done < "$core_count_file"
     else
         for core in "${arr_ref[@]}"; do
-            tvc="${gamelistpath}/${core}_tvc.txt"
+            local tvc_suffix="_tvc.json"
+            if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+                tvc_suffix="_tvc_vcd.json"
+            fi
+            tvc="${mrsampath}/tvc/${core}${tvc_suffix}"
             cnt=0
             [[ -f "$tvc" ]] && cnt=$(jq -r 'keys|length' "$tvc" 2>/dev/null || echo 0)
             SAMVC["$core"]=$cnt
@@ -1873,11 +1875,16 @@ function pick_rom() {
         local specific_game
         specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | head -n 1)"
         
+        if [[ -z "${specific_game}" ]]; then
+            samdebug "Match not found in session list. Checking master list..." 
+            specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "${gamelistpath}/${nextcore}_gamelist.txt" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | head -n 1)"
+        fi
+
         if [[ -n "${specific_game}" ]]; then
             rompath="${specific_game}"
             return # Exit successfully if we found the specific game.
         fi
-        samdebug "Could not find matching game for commercial. Picking a random game instead."
+        echo "Could not find matching game for commercial. Picking a random game instead."
     fi
 
     # 2. Default Action: If no special game modes applied, use the random picker.
@@ -3034,10 +3041,9 @@ function sam_prep() {
 		
 		misterini_apply_temp
 		get_dlmanager
-		if [ ! -f "${mrsampath}"/mplayer ] || [ ! -f "${mrsampath}"/ytdl ]; then
+		if [ ! -f "${mrsampath}"/mplayer ]; then
 			if [ -f "${mrsampath}"/mplayer.zip ]; then
 				unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}"
-				curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
 			else
 				get_samvideo
 			fi
@@ -3630,11 +3636,15 @@ function filter_list() { # args: core
     fi
 
     if [ "${disable_blacklist}" == "no" ] && [ -f "${gamelistpath}/${core}_blacklist.txt" ]; then
-        echo -n "Applying static screen blacklist for '${core}'... " >&2
-        awk "BEGIN{while(getline<\"${gamelistpath}/${core}_blacklist.txt\"){a[\$0]=1}} {gamelistfile=\$0;sub(/\\.[^.]*\$/,\"\",gamelistfile);sub(/^.*\\//,\"\",gamelistfile);if(!(gamelistfile in a))print}" \
-        "${tmpfile}" > "${tmpfile}.filtered"
-        if [ -s "${tmpfile}.filtered" ]; then
-            mv -f "${tmpfile}.filtered" "${tmpfile}"
+        if [ ! -f "${tmpfile}" ]; then
+            echo -n "Applying static screen blacklist for '${core}'... " >&2
+            awk "BEGIN{while(getline<\"${gamelistpath}/${core}_blacklist.txt\"){a[\$0]=1}} {gamelistfile=\$0;sub(/\\.[^.]*\$/,\"\",gamelistfile);sub(/^.*\\//,\"\",gamelistfile);if(!(gamelistfile in a))print}" \
+            "${tmpfile}" > "${tmpfile}.filtered"
+            if [ -s "${tmpfile}.filtered" ]; then
+                mv -f "${tmpfile}.filtered" "${tmpfile}"
+            fi
+        else
+            samdebug "Warning: '${tmpfile}' missing before blacklist filter."
         fi
 	else 
 		 echo -n "No blacklist filter found for '${core}'... " >&2
@@ -4019,10 +4029,10 @@ function sv_ar_cdi_mode() {
     tmpvideo="/tmp/SAMvideo.chd"
     local http_archive="${sv_archive_cdi//https/http}"
 
-    # 2. Populate the samvideo_list if it's empty
+    # 2. Populate the samvideo_list if it's empty (only needed for non-TVC mode)
     if [ ! -s "${samvideo_list}" ]; then
         curl_download /tmp/SAMvideos.xml "${http_archive}"
-        grep -o '<file name="[^"]\+\.avi"' /tmp/SAMvideos.xml \
+        grep -o '<file name="[^"]\+\.chd"' /tmp/SAMvideos.xml \
             | sed 's/<file name="//;s/"$//' \
             | sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
             > "${samvideo_list}"
@@ -4044,9 +4054,16 @@ function sv_ar_cdi_mode() {
 
         sv_selected_url="${http_archive%/*}/${sv_selected}"
 
+        # 4. Check Local Availability First
+        local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
+        if [ -f "$local_svfile" ]; then
+            samdebug "Local file found: $local_svfile. Skipping remote check."
+            break
+        fi
+
         # Check if the URL is available using wget
         samdebug "Checking availability of ${sv_selected_url}..."
-        if wget --spider --quiet "${sv_selected_url}"; then
+        if wget --spider --quiet --timeout=3 --tries=1 "${sv_selected_url}"; then
             samdebug "URL is available: ${sv_selected_url}"
             break
         else
@@ -4055,10 +4072,7 @@ function sv_ar_cdi_mode() {
         fi
     done
 
-    # 4. Download / Cache Logic
-    local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
-    samdebug "Checking if file is available locally...$local_svfile"
-    
+    # 5. Download / Cache Logic
     # Flag to track if we just downloaded a new file
     local fresh_download="no"
 
@@ -4108,10 +4122,32 @@ function sv_ar_cdi_mode() {
     # 8. Calculate Game Timer (+10 second buffer)
     # Using awk to handle the float calc and integer addition in one step
     sv_gametimer=$(du -m "$tmpvideo" | awk '{print int($1 * 7.5) + 10}')
-    echo "$sv_gametimer" > "$sv_gametimer_file"
-
+    
     sv_title="${sv_selected%.*}"
+    sv_title="${sv_title/-/" - "}"
     sv_title="${sv_title//_/ }"
+
+    # Check for TVC VCD JSON and override duration/title if available
+    if [ -f "/tmp/.SAM_tmp/sv_core" ]; then
+        local current_core=$(cat "/tmp/.SAM_tmp/sv_core")
+        local vcd_json="${mrsampath}/tvc/${current_core}_tvc_vcd.json"
+
+        if [ -f "$vcd_json" ]; then
+             samdebug "Found VCD JSON: $vcd_json"
+             
+             local json_duration=$(jq -r --arg f "$sv_selected" '.[$f].duration // empty' "$vcd_json")
+             local json_title=$(jq -r --arg f "$sv_selected" '.[$f].title // empty' "$vcd_json")
+             
+             if [[ -n "$json_duration" ]] && [[ "$json_duration" != "null" ]]; then
+                 sv_gametimer=$((json_duration + 10))
+                 samdebug "Duration set to $sv_gametimer (from JSON: $json_duration)"
+             fi
+             
+
+        fi
+    fi
+
+    echo "$sv_gametimer" > "$sv_gametimer_file"
 
     # 9. Show tty2oled splash
     if [ "${ttyenable}" == "yes" ]; then
@@ -4173,50 +4209,6 @@ function dl_video() {
     fi
 }
 
-function sv_yt_download() {
-    local resolution="$1" # Resolution (360 or 240)
-    local list_file="$2"  
-
-    samvideo_list="/tmp/.SAM_List/sv_youtube_list.txt"
-    local format="best[height=${resolution}][ext=mp4]"
-
-    # Ensure the samvideo_list is populated
-    if [ ! -s "${samvideo_list}" ]; then
-        cp "${list_file}" "${samvideo_list}"
-    fi
-
-    echo "Please wait... downloading file"
-    local url=""
-    while [ -z "$url" ]; do
-        url=$(shuf -n1 ${samvideo_list})
-        "${mrsampath}/ytdl" --format "${format}" --no-continue -o "/tmp/%(title)s (YT).mp4" "$url"
-        exit_code=$?
-
-        if [ $exit_code -eq 0 ]; then
-            echo "Download successful!"
-            sv_selected=$(ls /tmp | grep "(YT)")
-            mv "/tmp/${sv_selected}" "${tmpvideo}"
-            break
-        else
-            echo "Invalid URL or download error. Retrying with another URL..."
-            awk -v Line="$url" '!index($0, Line)' "${list_file}" >${tmpfile} && cp -f ${tmpfile} "${list_file}"
-            cp "${list_file}" "${samvideo_list}"
-            url=""
-        fi
-    done
-
-    # Update samvideo_list to remove the processed URL
-    awk -v Line="$url" '!index($0, Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
-
-    # Set resolution-specific variables
-    if [ "$resolution" -eq 360 ]; then
-        res="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
-        res_space=$(echo "$res" | tr 'x' ' ')
-    else
-        res_space="640 240"
-    fi
-}
-
 function sv_ar_download() {
     local resolution="$1"   # Resolution, 480 or 240
     local list_file="$2"    # Associated list file, sv_archive_hdmilist or sv_archive_crtlist
@@ -4240,11 +4232,25 @@ function sv_ar_download() {
         else
             sv_selected="$(shuf -n1 "${samvideo_list}")"
         fi
+        
+        # Safety check
+        if [ -z "$sv_selected" ]; then
+             samdebug "Error: No video selected."
+             return
+        fi
+
         sv_selected_url="${http_archive%/*}/${sv_selected}"
+        
+        # Check Local Availability First
+        local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
+        if [ -f "$local_svfile" ]; then
+            samdebug "Local file found: $local_svfile. Skipping remote check."
+            break
+        fi
 
         # Check if the URL is available using wget
         samdebug "Checking availability of ${sv_selected_url}..."
-        if wget --spider --quiet "${sv_selected_url}"; then
+        if wget --spider --quiet --timeout=3 --tries=1 "${sv_selected_url}"; then
             samdebug "URL is available: ${sv_selected_url}"
             break
         else
@@ -4254,7 +4260,6 @@ function sv_ar_download() {
     done
 
     tmpvideo="/tmp/SAMvideo.avi"
-	local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
 	samdebug "Checking if file is available locally...$local_svfile"
 
 
@@ -4295,8 +4300,13 @@ function sv_local() {
 }
 
 function samvideo_tvc() {
-    if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
-        get_samvideo
+    local tvc_suffix="_tvc.json"
+    if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+        tvc_suffix="_tvc_vcd.json"
+    fi
+
+    if [ ! -f "${mrsampath}/tvc/nes${tvc_suffix}" ]; then
+        get_tvc_files
     fi
 
     # Setting corelist to available commercials
@@ -4322,8 +4332,8 @@ function samvideo_tvc() {
 
     # Initialize variables
     count=0
-    local gamelist_tmp="${gamelistpathtmp}/${nextcore}_tvc.txt"
-    local gamelist_original="${gamelistpath}/${nextcore}_tvc.txt"
+    local gamelist_tmp="${gamelistpathtmp}/${nextcore}${tvc_suffix}"
+    local gamelist_original="${mrsampath}/tvc/${nextcore}${tvc_suffix}"
 
     # Ensure a local temporary copy exists or reset it if empty
 	if [ ! -f "$gamelist_tmp" ] || [ ! -s "$gamelist_tmp" ] || [ "$(cat "$gamelist_tmp")" = "{}" ]; then
@@ -4343,12 +4353,16 @@ function samvideo_tvc() {
             samdebug "Removing $sv_selected from $gamelist_tmp"
             jq --arg key "$sv_selected" 'del(.[$key])' "$gamelist_tmp" > "${gamelist_tmp}.tmp" && mv "${gamelist_tmp}.tmp" "$gamelist_tmp"
             # Save the selected game information
-            echo "${tvc_selected}" > /tmp/.SAM_tmp/sv_gamename
+            if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+                 echo "${tvc_selected}" | jq -r '.title' > /tmp/.SAM_tmp/sv_gamename
+            else
+                 echo "${tvc_selected}" > /tmp/.SAM_tmp/sv_gamename
+            fi
             break
         else
             # If the file is not found, select a new core randomly
             pick_core SV_TVC_CL
-            samdebug "${nextcore}_tvc.txt not found, selecting new core."
+            samdebug "${nextcore}${tvc_suffix} not found, selecting new core."
         fi
 
         ((count++))
@@ -4359,10 +4373,6 @@ function samvideo_tvc() {
     if [ -z "${tvc_selected}" ]; then
         echo "Couldn't find TVC list. Selecting random game from system"
         sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
-    fi
-    if [ "${samvideo_tvc_cdi}" == "yes" ]; then
-        sv_selected="${sv_selected%.avi}.chd"
-        sv_selected="${sv_selected// /_}"
     fi
     samdebug "Picked $sv_selected"
 }
@@ -4377,11 +4387,7 @@ function samvideo_play() {
 		return
 	fi
 	
-	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
-		sv_yt_download 360 "${sv_youtube_hdmilist}"
-	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
-		sv_yt_download 240 "${sv_youtube_crtlist}"
-	elif [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "hdmi" ]; then
+	if [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_ar_download 480 "${sv_archive_hdmilist}"
 	elif [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "crt" ]; then
 		sv_ar_download 240 "${sv_archive_crtlist}"
@@ -4575,21 +4581,6 @@ function get_samvideo() {
         echo "mplayer updated and extracted successfully."
     fi
 
-    # Check and update yt-dlp
-    check_and_update "$latest_ytdl" "$tmp_ytdl" "$local_ytdl" "yt-dlp" 
-
-
-    # Check and update SAM gamelists
-	echo "Checking and updating SAM gamelists..."
-	for key in "${!SV_TVC[@]}"; do
-		local_file="${mrsampath}/SAM_Gamelists/${key}_tvc.txt"
-		tmp_file="/tmp/${key}_tvc.txt"
-		remote_url="${raw_base}/.MiSTer_SAM/SAM_Gamelists/${key}_tvc.txt"
-
-		check_and_update "$remote_url" "$tmp_file" "$local_file" "${key}_tvc gamelist"
-	done
-
-    echo "Done."
 }
 
 
@@ -4693,6 +4684,40 @@ get_dlmanager() {
 	fi
 }
 
+function get_tvc_files() {
+    local target_dir="${mrsampath}/tvc"
+    local api_url="https://api.github.com/repos/mrchrisster/MiSTer_SAM/contents/.MiSTer_SAM/tvc?ref=${branch}"
+    local tmp_json="/tmp/tvc_files.json"
+
+    mkdir -p "$target_dir"
+    samdebug "Checking for TVC VCD JSON updates..."
+
+    if curl -s -L --insecure -H "User-Agent: MiSTer_SAM" "$api_url" > "$tmp_json"; then
+        # Check if valid JSON array using jq
+        if jq -e '. | type == "array"' "$tmp_json" >/dev/null 2>&1; then
+             # Parse filename
+             jq -r '.[] | .name' "$tmp_json" | while read -r name; do
+                  if [ "$name" != "null" ]; then
+                      samdebug "Updating $name..."
+                      curl_download "${target_dir}/${name}" "${raw_base}/.MiSTer_SAM/tvc/${name}"
+                  fi
+             done
+             samdebug "TVC VCD JSON update complete."
+        else
+             samdebug "Error: Failed to fetch TVC file list from GitHub (Invalid JSON)."
+             local err_msg=$(jq -r '.message // empty' "$tmp_json" 2>/dev/null)
+             if [ -n "$err_msg" ]; then
+                samdebug "GitHub API Message: $err_msg"
+             else
+                samdebug "Response content: $(cat "$tmp_json")"
+             fi
+        fi
+    else
+        samdebug "Error: Could not connect to GitHub API for TVC updates."
+    fi
+    rm -f "$tmp_json"
+}
+
 
 function sam_update() { # sam_update (next command)
 
@@ -4756,6 +4781,7 @@ function sam_update() { # sam_update (next command)
 		get_inputmap
 		get_blacklist
 		get_ratedlist
+		get_tvc_files
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 		
 
