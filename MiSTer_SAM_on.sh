@@ -4202,7 +4202,8 @@ function sv_ar_cdi_mode() {
 
     # 8. Calculate Game Timer (+10 second buffer)
     # Using awk to handle the float calc and integer addition in one step
-    sv_gametimer=$(du -m "$tmpvideo" | awk '{print int($1 * 7.5) + 10}')
+    local timer_delay=13
+    sv_gametimer=$(du -m "$tmpvideo" | awk -v delay="$timer_delay" '{print int($1 * 7.5) + delay}')
     
     sv_title="${sv_selected%.*}"
 	sv_title="${sv_title#*-}"
@@ -4219,8 +4220,9 @@ function sv_ar_cdi_mode() {
              local json_duration=$(jq -r --arg f "$sv_selected" '.[$f].duration // empty' "$vcd_json")
              local json_title=$(jq -r --arg f "$sv_selected" '.[$f].title // empty' "$vcd_json")
              
+             
              if [[ -n "$json_duration" ]] && [[ "$json_duration" != "null" ]]; then
-                 sv_gametimer=$((json_duration + 10))
+                 sv_gametimer=$((json_duration + timer_delay))
                  samdebug "Duration set to $sv_gametimer (from JSON: $json_duration)"
              fi
              
