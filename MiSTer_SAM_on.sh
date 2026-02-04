@@ -1377,6 +1377,25 @@ function load_menu_if_needed() {
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
 
+function toggle_mute() {
+    local volfile="${configpath}/Volume.dat"
+    if [ ! -f "$volfile" ]; then echo -ne "\x00" > "$volfile"; fi
+    
+    local hexval=$(xxd -p -l 1 -s 0 "$volfile")
+    local val=$((16#$hexval))
+    
+    if (( (val & 16) == 16 )); then
+        val=$((val & ~16))
+        echo -e "\nUnmuting..."
+        timeout 1s sh -c "echo 'volume unmute' > /dev/MiSTer_cmd"
+    else
+        val=$((val | 16))
+        echo -e "\nMuting..."
+        timeout 1s sh -c "echo 'volume mute' > /dev/MiSTer_cmd"
+    fi
+    printf "\\x$(printf %02x $val)" | dd of="$volfile" bs=1 count=1 conv=notrunc 2>/dev/null
+}
+
 function loop_core() { 
     # args: [target_core]
     if [ -n "$1" ]; then
@@ -1388,6 +1407,10 @@ function loop_core() {
     fi
     export SAM_MODE
     export SAM_TARGET_CORE 
+    
+    # Global trap to detach monitor on Ctrl+C instead of killing SAM
+    trap 'tmux detach-client' INT
+
     # --- 1. Heavy Initialization (Runs once in background) ---
     echo "SAM Session: Initializing..."
     update_samini
@@ -1410,7 +1433,37 @@ function loop_core() {
 
     # The infinite loop
     while :; do
+        if [ "$SAM_ACTION" == "previous" ]; then
+             if [ -f /tmp/.SAM_tmp/prev_game_info ]; then
+                 source /tmp/.SAM_tmp/prev_game_info
+                 if [ "$core" == "cdi" ] && [ "${samvideo_tvc_cdi}" == "yes" ]; then
+                     samdebug "Replaying previous CDI video: $gamename"
+                     # Force the selection of the same video
+                     sv_selected="$gamename" 
+                     sv_ar_cdi_mode
+                 elif [ -f /tmp/SAM_game.previous.mgl ]; then
+                     samdebug "Replaying previous game"
+                     load_core "mgls" "/tmp/SAM_game.previous.mgl"
+                 else
+                     samdebug "Previous MGL not found."
+                 fi
+                 SAM_ACTION=""
+                 run_countdown_timer
+                 continue
+             else
+                 samdebug "No previous game info."
+                 SAM_ACTION=""
+             fi
+        fi
+
         if next_core "${1-}"; then
+            # Cache previous game details for replay
+            {
+                echo "gamename='${gamename}'"
+                echo "rompath='${rompath}'"
+                echo "core='${core}'"
+            } > /tmp/.SAM_tmp/prev_game_info
+            
             run_countdown_timer
         else
             samdebug "next_core failed. Looping to pick another core."
@@ -1422,30 +1475,52 @@ function loop_core() {
 
 function run_countdown_timer() {
     local countdown=${gametimer}
+    local start_time=$SECONDS
+    local end_time=$((start_time + countdown))
 
-    # Set a local trap to handle Ctrl+C. This will echo a newline to clear
-    # the countdown line and then return from this function, effectively skipping the game.
-    trap 'echo; return' INT
+    # Set a local trap to handle Ctrl+C.
+    # Inherit global trap (detach)
+    # trap 'echo; return' INT
 
-    # This loop provides a visible, second-by-second countdown.
-    while (( countdown > 0 )); do
+    # This loop provides a visible, second-by-second countdown with input handling
+    while (( SECONDS < end_time )); do
         if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
             if [ -f "$sv_gametimer_file" ]; then
                 local video_time=$(cat "$sv_gametimer_file")
                 if [[ "$video_time" =~ ^[0-9]+$ ]]; then
                     countdown=$video_time
+                    end_time=$((SECONDS + countdown))
                     rm "$sv_gametimer_file" 2>/dev/null
                     samdebug "Timer synced to video: $countdown seconds"
                 fi
             fi
         fi
-        echo -ne "Next game in ${countdown} seconds...\033[0K\r"
-        sleep 1
-        ((countdown--))
+        
+        local current_rem=$((end_time - SECONDS))
+        if (( current_rem < 0 )); then current_rem=0; fi
+
+        echo -ne "Next in ${current_rem} seconds...\033[0K\r"
+        
+        read -s -t 1 -n 1 key
+        if [[ $? -eq 0 ]]; then
+            case "$key" in
+                n|N) 
+                    echo; return 
+                    ;;
+                p|P)
+                    echo
+                    SAM_ACTION="previous"
+                    return
+                    ;;
+                m|M)
+                    toggle_mute
+                    ;;
+            esac
+        fi
     done
 
     # Reset the trap to its default behavior after the countdown finishes normally.
-    trap - INT
+    # trap - INT
 }
 
 # Pick a random core
@@ -2827,9 +2902,11 @@ function sam_start() {
     # We pass 'session_entry' instead of 'loop_core'
     tmux new-session -d \
       -x 180 -y 40 \
-      -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
+      -n "SAM Monitor: (n)ext (p)rev (m)ute (ctrl-c)lose" \
       -s SAM \
       "${misterpath}/Scripts/MiSTer_SAM_on.sh loop_core $core" &
+    
+
 }
 
 
@@ -4042,7 +4119,9 @@ function sv_ar_cdi_mode() {
 
     # 3. Select a video and check availability
     while true; do
-        if [ "$samvideo_tvc" == "yes" ]; then
+        if [ -n "$sv_selected" ]; then
+             samdebug "Video pre-selected: $sv_selected"
+        elif [ "$samvideo_tvc" == "yes" ]; then
             samvideo_tvc
         else
             sv_selected="$(shuf -n1 "${samvideo_list}")"
@@ -4188,6 +4267,7 @@ function sv_ar_cdi_mode() {
 	
 	done
     echo "$sv_gametimer" > "$sv_gametimer_file"
+    unset sv_selected
 }
 
 
