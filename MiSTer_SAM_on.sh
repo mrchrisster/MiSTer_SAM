@@ -3100,7 +3100,7 @@ function sam_cleanup() {
 
 function sam_monitor() {
 
-    tmux attach-session -t SAM
+    exec tmux attach-session -t SAM
 }
 
 function sam_enable() { # Enable autoplay
@@ -3638,7 +3638,7 @@ function filter_list() { # args: core
     fi
 
     if [ "${disable_blacklist}" == "no" ] && [ -f "${gamelistpath}/${core}_blacklist.txt" ]; then
-        if [ ! -f "${tmpfile}" ]; then
+        if [ -f "${tmpfile}" ]; then
             echo -n "Applying static screen blacklist for '${core}'... " >&2
             awk "BEGIN{while(getline<\"${gamelistpath}/${core}_blacklist.txt\"){a[\$0]=1}} {gamelistfile=\$0;sub(/\\.[^.]*\$/,\"\",gamelistfile);sub(/^.*\\//,\"\",gamelistfile);if(!(gamelistfile in a))print}" \
             "${tmpfile}" > "${tmpfile}.filtered"
@@ -4126,7 +4126,7 @@ function sv_ar_cdi_mode() {
     sv_gametimer=$(du -m "$tmpvideo" | awk '{print int($1 * 7.5) + 10}')
     
     sv_title="${sv_selected%.*}"
-    sv_title="${sv_title/-/" - "}"
+	sv_title="${sv_title#*-}"
     sv_title="${sv_title//_/ }"
 
     # Check for TVC VCD JSON and override duration/title if available
@@ -4149,27 +4149,20 @@ function sv_ar_cdi_mode() {
         fi
     fi
 
-    echo "$sv_gametimer" > "$sv_gametimer_file"
-
     # 9. Show tty2oled splash
-    if [ "${ttyenable}" == "yes" ]; then
+
+
+	if [ "${ttyenable}" == "yes" ]; then
+        local tty_gamename="${sv_title}"
+        
         tty_currentinfo=(
-            [core_pretty]="SAM Video Player"
-            [name]="${sv_title}"
-            [core]=SAM_splash
-            [date]=$EPOCHSECONDS
-            [counter]=${sv_gametimer}
-            [name_scroll]="${sv_title:0:21}"
-            [name_scroll_position]=0
-            [name_scroll_direction]=1
-            [update_pause]=${ttyupdate_pause}
+            [core_pretty]="${nextcore^} Commercial" [name]="${tty_gamename}" [core]=SAM_splash
+            [date]=$EPOCHSECONDS [counter]=${sv_gametimer} [name_scroll]="${tty_gamename:0:21}"
+            [name_scroll_position]=0 [name_scroll_direction]=1 [update_pause]=${ttyupdate_pause}
         )
-    
         declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
-        tty_displayswitch=$(($gametimer / $ttycoresleep - 1))
-        write_to_TTY_cmd_pipe "display_info" &      
-        local elapsed=$((EPOCHSECONDS - tty_currentinfo[date]))
-        SECONDS=${elapsed}
+        write_to_TTY_cmd_pipe "display_info" &
+        SECONDS=$((EPOCHSECONDS - tty_currentinfo[date]))
     fi
     
 
@@ -4184,6 +4177,17 @@ function sv_ar_cdi_mode() {
     
     echo "load_core /tmp/SAM_Game.mgl" > /dev/MiSTer_cmd
     timeout 1s sh -c "echo 'load_core /tmp/SAM_Game.mgl' > /dev/MiSTer_cmd"
+
+    # Wait for CD-i core to load before starting timer
+    for i in {1..20}; do
+        if grep -q "CD-i" /tmp/CORENAME 2>/dev/null; then
+			samdebug "CD-i core is loaded"
+            break
+        fi
+        sleep 1
+	
+	done
+    echo "$sv_gametimer" > "$sv_gametimer_file"
 }
 
 
