@@ -1193,7 +1193,7 @@ function parse_cmd() {
   case "$first" in
     start|restart)      sam_start "$@" ;;
     startmonitor|sm)    sam_start "$@"; sleep 1; sam_monitor ;;
-    skip|next)          echo "Skipping…"; tmux send-keys -t SAM C-c ENTER ;;
+    skip|next)          echo "Skipping…"; tmux send-keys -t SAM n ;;
     stop|kill)          tmp_reset; kill_all_sams; exit_sam menu ;;
     update)             sam_update ;;
     monitor)            sam_monitor ;;
@@ -1459,9 +1459,9 @@ function loop_core() {
         if next_core "${1-}"; then
             # Cache previous game details for replay
             {
-                echo "gamename='${gamename}'"
-                echo "rompath='${rompath}'"
-                echo "core='${core}'"
+                printf "gamename=%q\n" "${gamename}"
+                printf "rompath=%q\n" "${rompath}"
+                printf "core=%q\n" "${core}"
             } > /tmp/.SAM_tmp/prev_game_info
             
             run_countdown_timer
@@ -4246,7 +4246,9 @@ function sv_ar_cdi_mode() {
     
 
     # 10. Play file
-	echo "Using CD-i core for playback of VCD"
+    local core_prefix="${sv_selected%%-*}"
+    core_prefix="${core_prefix//_/ }"
+    echo -e "Now playing: \e[1m${core_prefix} Commercial - ${sv_title}\e[0m"
     if [ -s /tmp/SAM_Game.mgl ]; then mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl; fi
     {
         echo "<mistergamedescription>"
