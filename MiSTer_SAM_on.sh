@@ -1483,8 +1483,21 @@ function run_countdown_timer() {
     # trap 'echo; return' INT
 
     # This loop provides a visible, second-by-second countdown with input handling
+    local video_synced="yes"
+    if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
+        video_synced="no"
+        # Ensure we don't timeout while loading
+        if (( countdown < 60 )); then countdown=60; fi
+        end_time=$((start_time + countdown))
+    fi
+
     while (( SECONDS < end_time )); do
-        if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
+        if [ "$video_synced" == "no" ]; then
+            # extend timeout slightly to keep loop alive if loading is slow
+            if (( end_time - SECONDS < 5 )); then
+                end_time=$((SECONDS + 10))
+            fi
+
             if [ -f "$sv_gametimer_file" ]; then
                 local video_time=$(cat "$sv_gametimer_file")
                 if [[ "$video_time" =~ ^[0-9]+$ ]]; then
@@ -1492,6 +1505,7 @@ function run_countdown_timer() {
                     end_time=$((SECONDS + countdown))
                     rm "$sv_gametimer_file" 2>/dev/null
                     samdebug "Timer synced to video: $countdown seconds"
+                    video_synced="yes"
                 fi
             fi
         fi
@@ -1499,7 +1513,11 @@ function run_countdown_timer() {
         local current_rem=$((end_time - SECONDS))
         if (( current_rem < 0 )); then current_rem=0; fi
 
-        echo -ne "Next in ${current_rem} seconds...\033[0K\r"
+        if [ "$video_synced" == "no" ]; then
+             echo -ne "Loading video...\033[0K\r"
+        else
+             echo -ne "Next in ${current_rem} seconds...\033[0K\r"
+        fi
         
         read -s -t 1 -n 1 key
         if [[ $? -eq 0 ]]; then
@@ -4123,6 +4141,13 @@ function sv_ar_cdi_mode() {
              samdebug "Video pre-selected: $sv_selected"
         elif [ "$samvideo_tvc" == "yes" ]; then
             samvideo_tvc
+            # Check if selection was made
+            if [ -n "$sv_selected" ]; then
+                samdebug "Video selected via TVC: $sv_selected"
+            else
+                samdebug "TVC selection failed, falling back."
+                sv_selected="$(shuf -n1 "${samvideo_list}")"
+            fi
         else
             sv_selected="$(shuf -n1 "${samvideo_list}")"
         fi
