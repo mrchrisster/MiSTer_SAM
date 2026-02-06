@@ -13,14 +13,30 @@
     },
     "TurboDuo-Promotional_Video_-_Super_System_Card.chd": {
         "title": "(USA",
-        "duration": 73
+        "duration": 72
     },
     "TurboGrafx-16_1992_TV_Commercial.chd": {
         "title": "New Adventure Island",
-        "duration": 31
+        "duration": 30
     },
     "TurboGrafx-16_and_Keith_Courage_in_Alpha_Zones_1989_TV_Commercial.chd": {
         "title": "Keith Courage in Alpha Zones (USA",
+        "duration": 31
+    },
+    "PC_Gengin_2_for_PC_Engine_1990_TV_Commercial.chd": {
+        "title": "Revenge (USA",
+        "duration": 14
+    },
+    "PC_Genjin_for_PC_Engine_1989_TV_Commercial_1.chd": {
+        "title": "Revenge (USA",
+        "duration": 31
+    },
+    "PC_Genjin_for_PC_Engine_1989_TV_Commercial_2.chd": {
+        "title": "Revenge (USA",
+        "duration": 31
+    },
+    "TurboDuo_1992_TV_Commercial.chd": {
+        "title": "",
         "duration": 31
     }
 }

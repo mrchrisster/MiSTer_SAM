@@ -1,526 +1,786 @@
 {
-  "Bushido_Blade_for_SONY_PlayStation_1997_TV_Commercial_1997.chd": {
-    "title": "Bushido Blade (USA",
-    "duration": 31
-  },
-  "PSX-102_Dalmatians_Puppies_to_the_Rescue.chd": {
-    "title": "102 Dalmatians",
-    "duration": 32
-  },
-  "PSX-3Xtreme_-_Boyband.chd": {
-    "title": "3Xtreme",
-    "duration": 32
-  },
-  "PSX-40_Winks.chd": {
-    "title": "40 Winks",
-    "duration": 32
-  },
-  "PSX-Alien_Girl_Mental_Wealth.chd": {
-    "title": "",
-    "duration": 32
-  },
-  "PSX-Ape_Escape_Monkey_Driver.chd": {
-    "title": "Ape Escape",
-    "duration": 32
-  },
-  "PSX-Apocalypse.chd": {
-    "title": "Apocalypse",
-    "duration": 32
-  },
-  "PSX-Army_Men_3D_Ken__Barbie.chd": {
-    "title": "Army Men 3D",
-    "duration": 32
-  },
-  "PSX-BLOCKBUSTER_Whos_a_Baby_Brother_Now.chd": {
-    "title": "",
-    "duration": 33
-  },
-  "PSX-Barbie_Race__Ride.chd": {
-    "title": "Barbie - Race",
-    "duration": 32
-  },
-  "PSX-Blasto.chd": {
-    "title": "Blasto",
-    "duration": 87
-  },
-  "PSX-Bloody_Roar_2_-_Scream_Therapy.chd": {
-    "title": "Bloody Roar II",
-    "duration": 33
-  },
-  "PSX-Bloody_Roar.chd": {
-    "title": "Bloody Roar (",
-    "duration": 33
-  },
-  "PSX-BoomBots.chd": {
-    "title": "BoomBots",
-    "duration": 32
-  },
-  "PSX-Bugs_Bunny_Lost_in_Time_-_Duck_Season.chd": {
-    "title": "Bugs Bunny - Lost",
-    "duration": 17
-  },
-  "PSX-Bugs_Bunny_Lost_in_Time.chd": {
-    "title": "Bugs Bunny - Lost",
-    "duration": 32
-  },
-  "PSX-Bushido_Blade_2.chd": {
-    "title": "Bushido Blade 2",
-    "duration": 32
-  },
-  "PSX-Bushido_Blade.chd": {
-    "title": "Bushido Blade (",
-    "duration": 32
-  },
-  "PSX-CTR_Crash_Team_Racing_Crash_VS_Granny.chd": {
-    "title": "CTR - Crash Team",
-    "duration": 32
-  },
-  "PSX-Castlevania_Symphony_of_the_Night_FEAR.chd": {
-    "title": "Castlevania - Symphony of",
-    "duration": 18
-  },
-  "PSX-Contender.chd": {
-    "title": "Contender (",
-    "duration": 32
-  },
-  "PSX-Cool_Boarders_2.chd": {
-    "title": "Cool Boarders 2 (",
-    "duration": 32
-  },
-  "PSX-Cool_Boarders_3.chd": {
-    "title": "Cool Boarders 3",
-    "duration": 32
-  },
-  "PSX-Cool_Boarders_4_-_Trash.chd": {
-    "title": "Cool Boarders 4",
-    "duration": 32
-  },
-  "PSX-Crash_Bandicoot_Warped_-_Behind_The_Scenes.chd": {
-    "title": "Crash Bandicoot - Warped",
-    "duration": 122
-  },
-  "PSX-Crash_Bandicoot_Warped_-_Motorcycle_Daredevil.chd": {
-    "title": "Crash Bandicoot - Warped",
-    "duration": 32
-  },
-  "PSX-Crash_Bandicoot_Warped_-_Skydiving.chd": {
-    "title": "Crash Bandicoot - Warped",
-    "duration": 32
-  },
-  "PSX-Crash_Bandicoot_Warped_-_Swimming.chd": {
-    "title": "Crash Bandicoot - Warped",
-    "duration": 32
-  },
-  "PSX-Crash_Bash_Crash_Tank.chd": {
-    "title": "Crash Bash",
-    "duration": 32
-  },
-  "PSX-Croc_2_Back_In_Action.chd": {
-    "title": "Croc 2",
-    "duration": 32
-  },
-  "PSX-Croc_Legend_of_the_Gobbos.chd": {
-    "title": "Croc -",
-    "duration": 32
-  },
-  "PSX-Die_Hard_Trilogy_2_Viva_Las_Vegas_-_Casting.chd": {
-    "title": "Die Hard Trilogy 2",
-    "duration": 32
-  },
-  "PSX-Die_Hard_Trilogy.chd": {
-    "title": "Die Hard Trilogy (",
-    "duration": 61
-  },
-  "PSX-Dino_Crisis_2.chd": {
-    "title": "Dino Crisis 2",
-    "duration": 22
-  },
-  "PSX-Dino_Crisis.chd": {
-    "title": "Dino Crisis (",
-    "duration": 32
-  },
-  "PSX-Disneys_Dinosaur.chd": {
-    "title": "Disney's Dinosaur",
-    "duration": 24
-  },
-  "PSX-Duke_Nukem_Time_to_Kill.chd": {
-    "title": "Duke Nukem - Time",
-    "duration": 39
-  },
-  "PSX-EA_Sports_98_Radio_Broadcast.chd": {
-    "title": "NBA \\|NHL \\|NASCAR \\|FIFA\\|Madden NFL",
-    "duration": 62
-  },
-  "PSX-FIFA_98_Road_to_World_Cup.chd": {
-    "title": "Road to World Cup",
-    "duration": 33
-  },
-  "PSX-Fighting_Force_2.chd": {
-    "title": "Fighting Force 2",
-    "duration": 32
-  },
-  "PSX-Fighting_Force.chd": {
-    "title": "Fighting Force (",
-    "duration": 32
-  },
-  "PSX-Final_Fantasy_IX.chd": {
-    "title": "Final Fantasy IX",
-    "duration": 32
-  },
-  "PSX-G-Police.chd": {
-    "title": "G-Police (",
-    "duration": 32
-  },
-  "PSX-Gran_Turismo_True_Story.chd": {
-    "title": "Gran Turismo (",
-    "duration": 34
-  },
-  "PSX-Gran_Turismo.chd": {
-    "title": "Gran Turismo (",
-    "duration": 32
-  },
-  "PSX-Greatest_Hits_-_Lara_Croft.chd": {
-    "title": "Tomb Raider",
-    "duration": 32
-  },
-  "PSX-Grind_Session_Auto_Prank.chd": {
-    "title": "Grind Session",
-    "duration": 32
-  },
-  "PSX-Grind_Session_Swimming_Pool_CLOSED.chd": {
-    "title": "Grind Session",
-    "duration": 32
-  },
-  "PSX-Heart_of_Darkness.chd": {
-    "title": "Heart of Darkness",
-    "duration": 32
-  },
-  "PSX-Independence_Day.chd": {
-    "title": "Independence Day",
-    "duration": 21
-  },
-  "PSX-Intelligent_Qube.chd": {
-    "title": "Intelligent Qube",
-    "duration": 32
-  },
-  "PSX-Jarrett__Labonte_Stock_Car_Racing.chd": {
-    "title": "Jarrett & Labonte",
-    "duration": 32
-  },
-  "PSX-Jersey_Devil.chd": {
-    "title": "Jersey Devil",
-    "duration": 32
-  },
-  "PSX-Jet_Moto_2_Grandma.chd": {
-    "title": "Jet Moto 2",
-    "duration": 32
-  },
-  "PSX-Jet_Moto_3_-_Busted.chd": {
-    "title": "Jet Moto 3",
-    "duration": 32
-  },
-  "PSX-Madden_NFL_98_John_Madden_interview.chd": {
-    "title": "Madden NFL 98",
-    "duration": 67
-  },
-  "PSX-Madden_NFL_98_Radio_Broadcast.chd": {
-    "title": "Madden NFL 98",
-    "duration": 95
-  },
-  "PSX-Madden_NFL_98.chd": {
-    "title": "Madden NFL 98",
-    "duration": 18
-  },
-  "PSX-Mat_Hoffmans_Pro_BMX.chd": {
-    "title": "Mat Hoffman's Pro",
-    "duration": 32
-  },
-  "PSX-MediEvil.chd": {
-    "title": "MediEvil",
-    "duration": 32
-  },
-  "PSX-Metal_Gear_Solid_-_Suicide_mission.chd": {
-    "title": "Metal Gear Solid",
-    "duration": 48
-  },
-  "PSX-Mortal_Kombat_Mythologies_Sub-Zero.chd": {
-    "title": "Mortal Kombat Mythologies",
-    "duration": 32
-  },
-  "PSX-Ms_Pac-Man_Maze_Madness.chd": {
-    "title": "Pac-Man Maze Madness",
-    "duration": 32
-  },
-  "PSX-NASCAR_98_Radio_Broadcast.chd": {
-    "title": "NASCAR 98",
-    "duration": 64
-  },
-  "PSX-NBA_Live_98_Radio_Broadcast.chd": {
-    "title": "NBA Live 98",
-    "duration": 97
-  },
-  "PSX-NBA_Showtime_NBA_on_NBC_Shaq.chd": {
-    "title": "NBA Showtime - NBA",
-    "duration": 50
-  },
-  "PSX-NCAA_Football_98.chd": {
-    "title": "NCAA Football 98",
-    "duration": 18
-  },
-  "PSX-NFL_Xtreme_2_Little_Schoolgirl.chd": {
-    "title": "NFL Xtreme 2",
-    "duration": 32
-  },
-  "PSX-NFL_Xtreme.chd": {
-    "title": "NFL Xtreme",
-    "duration": 32
-  },
-  "PSX-NHL_98_Radio_Broadcast.chd": {
-    "title": "NHL 98",
-    "duration": 64
-  },
-  "PSX-Need_for_Speed_High_Stakes.chd": {
-    "title": "Need for Speed - High",
-    "duration": 32
-  },
-  "PSX-Need_for_Speed_II.chd": {
-    "title": "Need for Speed II",
-    "duration": 32
-  },
-  "PSX-Need_for_Speed_III_Hot_Pursuit.chd": {
-    "title": "Need for Speed III",
-    "duration": 32
-  },
-  "PSX-Ninja_Shadow_of_Darkness_Jeffrey.chd": {
-    "title": "Shadow of Darkness",
-    "duration": 33
-  },
-  "PSX-ONE.chd": {
-    "title": "/One (",
-    "duration": 32
-  },
-  "PSX-Oddworld_Abes_Oddysee_Guardian_Angel.chd": {
-    "title": "Oddworld - Abe's Oddysee",
-    "duration": 32
-  },
-  "PSX-Oddworld_Abes_Oddysee.chd": {
-    "title": "Oddworld - Abe's Oddysee",
-    "duration": 32
-  },
-  "PSX-Omega_Boost.chd": {
-    "title": "Omega Boost",
-    "duration": 32
-  },
-  "PSX-Pac-Man_World.chd": {
-    "title": "Pac-Man World",
-    "duration": 32
-  },
-  "PSX-Parasite_Eve.chd": {
-    "title": "Parasite Eve (",
-    "duration": 32
-  },
-  "PSX-PlayStation_Santa_Claus__Pepsi.chd": {
-    "title": "Jet Moto 2",
-    "duration": 32
-  },
-  "PSX-Point_Blank.chd": {
-    "title": "Point Blank",
-    "duration": 32
-  },
-  "PSX-Qbert.chd": {
-    "title": "Q-bert",
-    "duration": 32
-  },
-  "PSX-Rayman_2_The_Great_Escape.chd": {
-    "title": "Rayman 2",
-    "duration": 32
-  },
-  "PSX-Resident_Evil_2.chd": {
-    "title": "Resident Evil 2",
-    "duration": 32
-  },
-  "PSX-Resident_Evil_3_Nemesis.chd": {
-    "title": "Resident Evil 3",
-    "duration": 18
-  },
-  "PSX-Resident_Evil_Directors_Cut__Resident_Evil_2.chd": {
-    "title": "Resident Evil 2",
-    "duration": 32
-  },
-  "PSX-Rogue_Trip_Vacation_2012_Schiz_OManic.chd": {
-    "title": "Rogue Trip - Vacation",
-    "duration": 48
-  },
-  "PSX-San_Francisco_Rush_Extreme_Racing.chd": {
-    "title": "San Francisco Rush",
-    "duration": 32
-  },
-  "PSX-Shadow_Man.chd": {
-    "title": "Shadow Man",
-    "duration": 32
-  },
-  "PSX-Sony_PSone_LCD_Screen_MALL_SANTAS.chd": {
-    "title": "",
-    "duration": 33
-  },
-  "PSX-Spider-Man.chd": {
-    "title": "Spider-Man",
-    "duration": 32
-  },
-  "PSX-Spyro_2_Riptos_Rage_Happy_Holidays_Fatboy.chd": {
-    "title": "Spyro 2 - Ripto's",
-    "duration": 32
-  },
-  "PSX-Spyro_2_Riptos_Rage_Mikey.chd": {
-    "title": "Spyro 2 - Ripto's",
-    "duration": 32
-  },
-  "PSX-Spyro_2_Riptos_Rage_Spyro_Is_Back.chd": {
-    "title": "Spyro 2 - Ripto's",
-    "duration": 32
-  },
-  "PSX-Spyro_2_Riptos_Rage_The_Blair_Witch.chd": {
-    "title": "Spyro 2 - Ripto's",
-    "duration": 32
-  },
-  "PSX-Spyro_Year_of_the_Dragon.chd": {
-    "title": "Spyro - Year of",
-    "duration": 31
-  },
-  "PSX-Spyro_the_Dragon_-_The_Protest_1.chd": {
-    "title": "Spyro the Dragon",
-    "duration": 32
-  },
-  "PSX-Spyro_the_Dragon_-_The_Protest_2.chd": {
-    "title": "Spyro the Dragon",
-    "duration": 32
-  },
-  "PSX-Spyro_the_Dragon_-_The_Protest_3.chd": {
-    "title": "Spyro the Dragon",
-    "duration": 32
-  },
-  "PSX-Spyro_the_Dragon_-_The_Protest_4_V1.chd": {
-    "title": "Spyro the Dragon",
-    "duration": 33
-  },
-  "PSX-Spyro_the_Dragon_-_The_Protest_4_V2.chd": {
-    "title": "Spyro the Dragon",
-    "duration": 33
-  },
-  "PSX-Sweet_Tooth_I_Hate_Mall_Santa.chd": {
-    "title": "Syphon Filter\\|Jet Moto\\|Cool Boarders\\|Twisted Metal",
-    "duration": 32
-  },
-  "PSX-Syphon_Filter_2_Dont_Shoot.chd": {
-    "title": "Syphon Filter 2",
-    "duration": 32
-  },
-  "PSX-Syphon_Filter_It_Stays_With_You.chd": {
-    "title": "Syphon Filter (",
-    "duration": 33
-  },
-  "PSX-Tekken_3.chd": {
-    "title": "Tekken 3",
-    "duration": 32
-  },
-  "PSX-Tekken_Trials_of_Shaolin.chd": {
-    "title": "Tekken (",
-    "duration": 35
-  },
-  "PSX-The_Dukes_of_Hazzard_Racing_for_Home.chd": {
-    "title": "Dukes of",
-    "duration": 17
-  },
-  "PSX-Tiny_Tank.chd": {
-    "title": "Tiny Tank",
-    "duration": 32
-  },
-  "PSX-Tomb_Raider_III.chd": {
-    "title": "Tomb Raider III",
-    "duration": 32
-  },
-  "PSX-Tomb_Raider_The_Last_Revelation.chd": {
-    "title": "Tomb Raider - The",
-    "duration": 32
-  },
-  "PSX-Tomba_2_The_Evil_Swine_Return.chd": {
-    "title": "Tomba! 2 - The",
-    "duration": 32
-  },
-  "PSX-Tomba.chd": {
-    "title": "Tomba! (",
-    "duration": 32
-  },
-  "PSX-Toy_Story_2_Buzz_Lightyear_to_the_Rescue.chd": {
-    "title": "Toy Story 2",
-    "duration": 32
-  },
-  "PSX-Triple_Play_99_Virtual_Rodriguez.chd": {
-    "title": "Triple Play 99",
-    "duration": 32
-  },
-  "PSX-Twisted_Metal_2_Behind_The_Scenes.chd": {
-    "title": "Twisted Metal 2",
-    "duration": 163
-  },
-  "PSX-Twisted_Metal_2.chd": {
-    "title": "Twisted Metal 2",
-    "duration": 33
-  },
-  "PSX-Twisted_Metal_4_Pit_Stop.chd": {
-    "title": "Twisted Metal 4",
-    "duration": 32
-  },
-  "PSX-Twisted_Metal_III_Federal_Clown_Prison.chd": {
-    "title": "Twisted Metal III",
-    "duration": 32
-  },
-  "PSX-Twisted_Metal_Small_Brawl_Evil_Truck.chd": {
-    "title": "Twisted Metal - Small",
-    "duration": 32
-  },
-  "PSX-Um_Jammer_Lammy.chd": {
-    "title": "Um Jammer Lammy",
-    "duration": 32
-  },
-  "PSX-Vigilante_8_Blow_Sht_Up.chd": {
-    "title": "Vigilante 8",
-    "duration": 35
-  },
-  "PSX-Vigilante_8_School_Bus.chd": {
-    "title": "Vigilante 8",
-    "duration": 32
-  },
-  "PSX-WCW_Wo_Thunder.chd": {
-    "title": "Wo Thunder",
-    "duration": 17
-  },
-  "PSX-WWF_SmackDown_2_Know_Your_Role_1.chd": {
-    "title": "WWF SmackDown! 2",
-    "duration": 32
-  },
-  "PSX-WWF_SmackDown_2_Know_Your_Role.chd": {
-    "title": "WWF SmackDown! 2",
-    "duration": 332
-  },
-  "PSX-WWF_SmackDown.chd": {
-    "title": "WWF SmackDown! (",
-    "duration": 32
-  },
-  "PSX-WarGames_Defcon_1.chd": {
-    "title": "WarGames - Defcon 1",
-    "duration": 32
-  },
-  "PSX-Wild_9_Elite_Special_Forces.chd": {
-    "title": "Wild 9",
-    "duration": 41
-  },
-  "PSX-Wild_9_Intergalactic_Domination.chd": {
-    "title": "Wild 9",
-    "duration": 33
-  },
-  "PSX-Wipeout.chd": {
-    "title": "Wipeout",
-    "duration": 32
-  }
+    "Bushido_Blade_for_SONY_PlayStation_1997_TV_Commercial_1997.chd": {
+        "title": "Bushido Blade (USA",
+        "duration": 30
+    },
+    "PSX-102_Dalmatians_Puppies_to_the_Rescue.chd": {
+        "title": "102 Dalmatians",
+        "duration": 31
+    },
+    "PSX-3Xtreme_-_Boyband.chd": {
+        "title": "3Xtreme",
+        "duration": 31
+    },
+    "PSX-40_Winks.chd": {
+        "title": "40 Winks",
+        "duration": 31
+    },
+    "PSX-Alien_Girl_Mental_Wealth.chd": {
+        "title": "",
+        "duration": 31
+    },
+    "PSX-Ape_Escape_Monkey_Driver.chd": {
+        "title": "Ape Escape",
+        "duration": 31
+    },
+    "PSX-Apocalypse.chd": {
+        "title": "Apocalypse",
+        "duration": 31
+    },
+    "PSX-Army_Men_3D_Ken__Barbie.chd": {
+        "title": "Army Men 3D",
+        "duration": 31
+    },
+    "PSX-BLOCKBUSTER_Whos_a_Baby_Brother_Now.chd": {
+        "title": "",
+        "duration": 32
+    },
+    "PSX-Barbie_Race__Ride.chd": {
+        "title": "Barbie - Race",
+        "duration": 31
+    },
+    "PSX-Blasto.chd": {
+        "title": "Blasto",
+        "duration": 86
+    },
+    "PSX-Bloody_Roar_2_-_Scream_Therapy.chd": {
+        "title": "Bloody Roar II",
+        "duration": 32
+    },
+    "PSX-Bloody_Roar.chd": {
+        "title": "Bloody Roar (",
+        "duration": 32
+    },
+    "PSX-BoomBots.chd": {
+        "title": "BoomBots",
+        "duration": 31
+    },
+    "PSX-Bugs_Bunny_Lost_in_Time_-_Duck_Season.chd": {
+        "title": "Bugs Bunny - Lost",
+        "duration": 16
+    },
+    "PSX-Bugs_Bunny_Lost_in_Time.chd": {
+        "title": "Bugs Bunny - Lost",
+        "duration": 31
+    },
+    "PSX-Bushido_Blade_2.chd": {
+        "title": "Bushido Blade 2",
+        "duration": 31
+    },
+    "PSX-Bushido_Blade.chd": {
+        "title": "Bushido Blade (",
+        "duration": 31
+    },
+    "PSX-CTR_Crash_Team_Racing_Crash_VS_Granny.chd": {
+        "title": "CTR - Crash Team",
+        "duration": 31
+    },
+    "PSX-Castlevania_Symphony_of_the_Night_FEAR.chd": {
+        "title": "Castlevania - Symphony of",
+        "duration": 17
+    },
+    "PSX-Contender.chd": {
+        "title": "Contender (",
+        "duration": 31
+    },
+    "PSX-Cool_Boarders_2.chd": {
+        "title": "Cool Boarders 2 (",
+        "duration": 31
+    },
+    "PSX-Cool_Boarders_3.chd": {
+        "title": "Cool Boarders 3",
+        "duration": 31
+    },
+    "PSX-Cool_Boarders_4_-_Trash.chd": {
+        "title": "Cool Boarders 4",
+        "duration": 31
+    },
+    "PSX-Crash_Bandicoot_Warped_-_Behind_The_Scenes.chd": {
+        "title": "Crash Bandicoot - Warped",
+        "duration": 121
+    },
+    "PSX-Crash_Bandicoot_Warped_-_Motorcycle_Daredevil.chd": {
+        "title": "Crash Bandicoot - Warped",
+        "duration": 31
+    },
+    "PSX-Crash_Bandicoot_Warped_-_Skydiving.chd": {
+        "title": "Crash Bandicoot - Warped",
+        "duration": 31
+    },
+    "PSX-Crash_Bandicoot_Warped_-_Swimming.chd": {
+        "title": "Crash Bandicoot - Warped",
+        "duration": 31
+    },
+    "PSX-Crash_Bash_Crash_Tank.chd": {
+        "title": "Crash Bash",
+        "duration": 31
+    },
+    "PSX-Croc_2_Back_In_Action.chd": {
+        "title": "Croc 2",
+        "duration": 31
+    },
+    "PSX-Croc_Legend_of_the_Gobbos.chd": {
+        "title": "Croc -",
+        "duration": 31
+    },
+    "PSX-Die_Hard_Trilogy_2_Viva_Las_Vegas_-_Casting.chd": {
+        "title": "Die Hard Trilogy 2",
+        "duration": 31
+    },
+    "PSX-Die_Hard_Trilogy.chd": {
+        "title": "Die Hard Trilogy (",
+        "duration": 60
+    },
+    "PSX-Dino_Crisis_2.chd": {
+        "title": "Dino Crisis 2",
+        "duration": 21
+    },
+    "PSX-Dino_Crisis.chd": {
+        "title": "Dino Crisis (",
+        "duration": 31
+    },
+    "PSX-Disneys_Dinosaur.chd": {
+        "title": "Disney's Dinosaur",
+        "duration": 24
+    },
+    "PSX-Duke_Nukem_Time_to_Kill.chd": {
+        "title": "Duke Nukem - Time",
+        "duration": 38
+    },
+    "PSX-EA_Sports_98_Radio_Broadcast.chd": {
+        "title": "NBA \\|NHL \\|NASCAR \\|FIFA\\|Madden NFL",
+        "duration": 61
+    },
+    "PSX-FIFA_98_Road_to_World_Cup.chd": {
+        "title": "Road to World Cup",
+        "duration": 32
+    },
+    "PSX-Fighting_Force_2.chd": {
+        "title": "Fighting Force 2",
+        "duration": 31
+    },
+    "PSX-Fighting_Force.chd": {
+        "title": "Fighting Force (",
+        "duration": 31
+    },
+    "PSX-Final_Fantasy_IX.chd": {
+        "title": "Final Fantasy IX",
+        "duration": 31
+    },
+    "PSX-G-Police.chd": {
+        "title": "G-Police (",
+        "duration": 31
+    },
+    "PSX-Gran_Turismo_True_Story.chd": {
+        "title": "Gran Turismo (",
+        "duration": 33
+    },
+    "PSX-Gran_Turismo.chd": {
+        "title": "Gran Turismo (",
+        "duration": 31
+    },
+    "PSX-Greatest_Hits_-_Lara_Croft.chd": {
+        "title": "Tomb Raider",
+        "duration": 31
+    },
+    "PSX-Grind_Session_Auto_Prank.chd": {
+        "title": "Grind Session",
+        "duration": 31
+    },
+    "PSX-Grind_Session_Swimming_Pool_CLOSED.chd": {
+        "title": "Grind Session",
+        "duration": 31
+    },
+    "PSX-Heart_of_Darkness.chd": {
+        "title": "Heart of Darkness",
+        "duration": 31
+    },
+    "PSX-Independence_Day.chd": {
+        "title": "Independence Day",
+        "duration": 20
+    },
+    "PSX-Intelligent_Qube.chd": {
+        "title": "Intelligent Qube",
+        "duration": 31
+    },
+    "PSX-Jarrett__Labonte_Stock_Car_Racing.chd": {
+        "title": "Jarrett & Labonte",
+        "duration": 31
+    },
+    "PSX-Jersey_Devil.chd": {
+        "title": "Jersey Devil",
+        "duration": 31
+    },
+    "PSX-Jet_Moto_2_Grandma.chd": {
+        "title": "Jet Moto 2",
+        "duration": 31
+    },
+    "PSX-Jet_Moto_3_-_Busted.chd": {
+        "title": "Jet Moto 3",
+        "duration": 31
+    },
+    "PSX-Madden_NFL_98_John_Madden_interview.chd": {
+        "title": "Madden NFL 98",
+        "duration": 67
+    },
+    "PSX-Madden_NFL_98_Radio_Broadcast.chd": {
+        "title": "Madden NFL 98",
+        "duration": 94
+    },
+    "PSX-Madden_NFL_98.chd": {
+        "title": "Madden NFL 98",
+        "duration": 17
+    },
+    "PSX-Mat_Hoffmans_Pro_BMX.chd": {
+        "title": "Mat Hoffman's Pro",
+        "duration": 31
+    },
+    "PSX-MediEvil.chd": {
+        "title": "MediEvil",
+        "duration": 31
+    },
+    "PSX-Metal_Gear_Solid_-_Suicide_mission.chd": {
+        "title": "Metal Gear Solid",
+        "duration": 47
+    },
+    "PSX-Mortal_Kombat_Mythologies_Sub-Zero.chd": {
+        "title": "Mortal Kombat Mythologies",
+        "duration": 31
+    },
+    "PSX-Ms_Pac-Man_Maze_Madness.chd": {
+        "title": "Pac-Man Maze Madness",
+        "duration": 31
+    },
+    "PSX-NASCAR_98_Radio_Broadcast.chd": {
+        "title": "NASCAR 98",
+        "duration": 63
+    },
+    "PSX-NBA_Live_98_Radio_Broadcast.chd": {
+        "title": "NBA Live 98",
+        "duration": 96
+    },
+    "PSX-NBA_Showtime_NBA_on_NBC_Shaq.chd": {
+        "title": "NBA Showtime - NBA",
+        "duration": 49
+    },
+    "PSX-NCAA_Football_98.chd": {
+        "title": "NCAA Football 98",
+        "duration": 17
+    },
+    "PSX-NFL_Xtreme_2_Little_Schoolgirl.chd": {
+        "title": "NFL Xtreme 2",
+        "duration": 31
+    },
+    "PSX-NFL_Xtreme.chd": {
+        "title": "NFL Xtreme",
+        "duration": 31
+    },
+    "PSX-NHL_98_Radio_Broadcast.chd": {
+        "title": "NHL 98",
+        "duration": 63
+    },
+    "PSX-Need_for_Speed_High_Stakes.chd": {
+        "title": "Need for Speed - High",
+        "duration": 31
+    },
+    "PSX-Need_for_Speed_II.chd": {
+        "title": "Need for Speed II",
+        "duration": 31
+    },
+    "PSX-Need_for_Speed_III_Hot_Pursuit.chd": {
+        "title": "Need for Speed III",
+        "duration": 31
+    },
+    "PSX-Ninja_Shadow_of_Darkness_Jeffrey.chd": {
+        "title": "Shadow of Darkness",
+        "duration": 32
+    },
+    "PSX-ONE.chd": {
+        "title": "/One (",
+        "duration": 31
+    },
+    "PSX-Oddworld_Abes_Oddysee_Guardian_Angel.chd": {
+        "title": "Oddworld - Abe's Oddysee",
+        "duration": 31
+    },
+    "PSX-Oddworld_Abes_Oddysee.chd": {
+        "title": "Oddworld - Abe's Oddysee",
+        "duration": 31
+    },
+    "PSX-Omega_Boost.chd": {
+        "title": "Omega Boost",
+        "duration": 31
+    },
+    "PSX-Pac-Man_World.chd": {
+        "title": "Pac-Man World",
+        "duration": 31
+    },
+    "PSX-Parasite_Eve.chd": {
+        "title": "Parasite Eve (",
+        "duration": 31
+    },
+    "PSX-PlayStation_Santa_Claus__Pepsi.chd": {
+        "title": "Jet Moto 2",
+        "duration": 31
+    },
+    "PSX-Point_Blank.chd": {
+        "title": "Point Blank",
+        "duration": 31
+    },
+    "PSX-Qbert.chd": {
+        "title": "Q-bert",
+        "duration": 31
+    },
+    "PSX-Rayman_2_The_Great_Escape.chd": {
+        "title": "Rayman 2",
+        "duration": 31
+    },
+    "PSX-Resident_Evil_2.chd": {
+        "title": "Resident Evil 2",
+        "duration": 31
+    },
+    "PSX-Resident_Evil_3_Nemesis.chd": {
+        "title": "Resident Evil 3",
+        "duration": 17
+    },
+    "PSX-Resident_Evil_Directors_Cut__Resident_Evil_2.chd": {
+        "title": "Resident Evil 2",
+        "duration": 31
+    },
+    "PSX-Rogue_Trip_Vacation_2012_Schiz_OManic.chd": {
+        "title": "Rogue Trip - Vacation",
+        "duration": 47
+    },
+    "PSX-San_Francisco_Rush_Extreme_Racing.chd": {
+        "title": "San Francisco Rush",
+        "duration": 31
+    },
+    "PSX-Shadow_Man.chd": {
+        "title": "Shadow Man",
+        "duration": 31
+    },
+    "PSX-Sony_PSone_LCD_Screen_MALL_SANTAS.chd": {
+        "title": "",
+        "duration": 32
+    },
+    "PSX-Spider-Man.chd": {
+        "title": "Spider-Man",
+        "duration": 31
+    },
+    "PSX-Spyro_2_Riptos_Rage_Happy_Holidays_Fatboy.chd": {
+        "title": "Spyro 2 - Ripto's",
+        "duration": 31
+    },
+    "PSX-Spyro_2_Riptos_Rage_Mikey.chd": {
+        "title": "Spyro 2 - Ripto's",
+        "duration": 31
+    },
+    "PSX-Spyro_2_Riptos_Rage_Spyro_Is_Back.chd": {
+        "title": "Spyro 2 - Ripto's",
+        "duration": 31
+    },
+    "PSX-Spyro_2_Riptos_Rage_The_Blair_Witch.chd": {
+        "title": "Spyro 2 - Ripto's",
+        "duration": 31
+    },
+    "PSX-Spyro_Year_of_the_Dragon.chd": {
+        "title": "Spyro - Year of",
+        "duration": 31
+    },
+    "PSX-Spyro_the_Dragon_-_The_Protest_1.chd": {
+        "title": "Spyro the Dragon",
+        "duration": 31
+    },
+    "PSX-Spyro_the_Dragon_-_The_Protest_2.chd": {
+        "title": "Spyro the Dragon",
+        "duration": 31
+    },
+    "PSX-Spyro_the_Dragon_-_The_Protest_3.chd": {
+        "title": "Spyro the Dragon",
+        "duration": 31
+    },
+    "PSX-Spyro_the_Dragon_-_The_Protest_4_V1.chd": {
+        "title": "Spyro the Dragon",
+        "duration": 32
+    },
+    "PSX-Spyro_the_Dragon_-_The_Protest_4_V2.chd": {
+        "title": "Spyro the Dragon",
+        "duration": 32
+    },
+    "PSX-Sweet_Tooth_I_Hate_Mall_Santa.chd": {
+        "title": "Syphon Filter\\|Jet Moto\\|Cool Boarders\\|Twisted Metal",
+        "duration": 31
+    },
+    "PSX-Syphon_Filter_2_Dont_Shoot.chd": {
+        "title": "Syphon Filter 2",
+        "duration": 31
+    },
+    "PSX-Syphon_Filter_It_Stays_With_You.chd": {
+        "title": "Syphon Filter (",
+        "duration": 32
+    },
+    "PSX-Tekken_3.chd": {
+        "title": "Tekken 3",
+        "duration": 31
+    },
+    "PSX-Tekken_Trials_of_Shaolin.chd": {
+        "title": "Tekken (",
+        "duration": 34
+    },
+    "PSX-The_Dukes_of_Hazzard_Racing_for_Home.chd": {
+        "title": "Dukes of",
+        "duration": 16
+    },
+    "PSX-Tiny_Tank.chd": {
+        "title": "Tiny Tank",
+        "duration": 31
+    },
+    "PSX-Tomb_Raider_III.chd": {
+        "title": "Tomb Raider III",
+        "duration": 31
+    },
+    "PSX-Tomb_Raider_The_Last_Revelation.chd": {
+        "title": "Tomb Raider - The",
+        "duration": 31
+    },
+    "PSX-Tomba_2_The_Evil_Swine_Return.chd": {
+        "title": "Tomba! 2 - The",
+        "duration": 31
+    },
+    "PSX-Tomba.chd": {
+        "title": "Tomba! (",
+        "duration": 31
+    },
+    "PSX-Toy_Story_2_Buzz_Lightyear_to_the_Rescue.chd": {
+        "title": "Toy Story 2",
+        "duration": 31
+    },
+    "PSX-Triple_Play_99_Virtual_Rodriguez.chd": {
+        "title": "Triple Play 99",
+        "duration": 31
+    },
+    "PSX-Twisted_Metal_2_Behind_The_Scenes.chd": {
+        "title": "Twisted Metal 2",
+        "duration": 162
+    },
+    "PSX-Twisted_Metal_2.chd": {
+        "title": "Twisted Metal 2",
+        "duration": 32
+    },
+    "PSX-Twisted_Metal_4_Pit_Stop.chd": {
+        "title": "Twisted Metal 4",
+        "duration": 31
+    },
+    "PSX-Twisted_Metal_III_Federal_Clown_Prison.chd": {
+        "title": "Twisted Metal III",
+        "duration": 31
+    },
+    "PSX-Twisted_Metal_Small_Brawl_Evil_Truck.chd": {
+        "title": "Twisted Metal - Small",
+        "duration": 31
+    },
+    "PSX-Um_Jammer_Lammy.chd": {
+        "title": "Um Jammer Lammy",
+        "duration": 31
+    },
+    "PSX-Vigilante_8_Blow_Sht_Up.chd": {
+        "title": "Vigilante 8",
+        "duration": 34
+    },
+    "PSX-Vigilante_8_School_Bus.chd": {
+        "title": "Vigilante 8",
+        "duration": 31
+    },
+    "PSX-WCW_Wo_Thunder.chd": {
+        "title": "Wo Thunder",
+        "duration": 16
+    },
+    "PSX-WWF_SmackDown_2_Know_Your_Role_1.chd": {
+        "title": "WWF SmackDown! 2",
+        "duration": 31
+    },
+    "PSX-WWF_SmackDown_2_Know_Your_Role.chd": {
+        "title": "WWF SmackDown! 2",
+        "duration": 331
+    },
+    "PSX-WWF_SmackDown.chd": {
+        "title": "WWF SmackDown! (",
+        "duration": 31
+    },
+    "PSX-WarGames_Defcon_1.chd": {
+        "title": "WarGames - Defcon 1",
+        "duration": 31
+    },
+    "PSX-Wild_9_Elite_Special_Forces.chd": {
+        "title": "Wild 9",
+        "duration": 40
+    },
+    "PSX-Wild_9_Intergalactic_Domination.chd": {
+        "title": "Wild 9",
+        "duration": 32
+    },
+    "PSX-Wipeout.chd": {
+        "title": "Wipeout",
+        "duration": 31
+    },
+    "PSX-A_Bugs_Life_Dont_Be_Afraid.chd": {
+        "title": "A Bug's Life",
+        "duration": 30
+    },
+    "PSX-Atlantis_The_Lost_Empire.chd": {
+        "title": "Atlantis - The Lost",
+        "duration": 52
+    },
+    "PSX-Colin_McRae_Rally_Born_To_Race.chd": {
+        "title": "Colin McRae Rally",
+        "duration": 30
+    },
+    "PSX-Contender__1.chd": {
+        "title": "Contender (",
+        "duration": 16
+    },
+    "PSX-Cool_Boarders_2001_Live_To_Board.chd": {
+        "title": "Cool Boarders 2001",
+        "duration": 30
+    },
+    "PSX-Crash_Bandicoot_2_Cortex_Strikes_Back_Vacation.chd": {
+        "title": "Crash Bandicoot 2",
+        "duration": 30
+    },
+    "PSX-Crash_Bandicoot_Lara_Croft_and_Sweet_Tooth_Restaurant.chd": {
+        "title": "Crash Bandicoot\\|Tomb Raider\\|Twisted Metal",
+        "duration": 30
+    },
+    "PSX-Crash_Bandicoot_Lara_Croft_and_Sweet_Tooth_Theater.chd": {
+        "title": "Crash Bandicoot\\|Tomb Raider\\|Twisted Metal",
+        "duration": 30
+    },
+    "PSX-Crash_Bash_Tell_me_THE_PLAN.chd": {
+        "title": "Crash Bash",
+        "duration": 30
+    },
+    "PSX-Crash_Bash_Traffic_jam.chd": {
+        "title": "Crash Bash",
+        "duration": 30
+    },
+    "PSX-Croc_2_Croc_In_Real_Life.chd": {
+        "title": "Croc 2",
+        "duration": 55
+    },
+    "PSX-Dave_Mirra_Freestyle_BMX.chd": {
+        "title": "Dave Mirra Freestyle",
+        "duration": 45
+    },
+    "PSX-Detective_Barbie_The_Mystery_Cruise.chd": {
+        "title": "Detective Barbie",
+        "duration": 31
+    },
+    "PSX-Die_Hard_Trilogy_If_You_Only_Buy_One_Game_This_Year.chd": {
+        "title": "Die Hard Trilogy (",
+        "duration": 31
+    },
+    "PSX-Fear_Effect_Subway.chd": {
+        "title": "Fear Effect (USA) (Disc 1",
+        "duration": 31
+    },
+    "PSX-Final_Fantasy_VII_Only_on_PlayStation.chd": {
+        "title": "Final Fantasy VII",
+        "duration": 30
+    },
+    "PSX-G-Police_Peter_Chung.chd": {
+        "title": "G-Police (",
+        "duration": 48
+    },
+    "PSX-Gex_Enter_the_Gecko_Scream.chd": {
+        "title": "Gex - Enter the",
+        "duration": 48
+    },
+    "PSX-High_Heat_Baseball_2000.chd": {
+        "title": "High Heat Baseball",
+        "duration": 29
+    },
+    "PSX-Hot_Shots_Golf_2_No_Dress_Code.chd": {
+        "title": "Hot Shots Golf 2",
+        "duration": 30
+    },
+    "PSX-NBA_ShootOut_98_Vin_Baker.chd": {
+        "title": "NBA ShootOut 98",
+        "duration": 30
+    },
+    "PSX-NFL_GameDay_97_Good_Job.chd": {
+        "title": "NFL GameDay 97",
+        "duration": 30
+    },
+    "PSX-NFL_GameDay_98_Eddie_George.chd": {
+        "title": "NFL GameDay 98",
+        "duration": 30
+    },
+    "PSX-NFL_GameDay_99_Casting.chd": {
+        "title": "NFL GameDay 99",
+        "duration": 30
+    },
+    "PSX-Nuclear_Strike_Stop_The_WAR.chd": {
+        "title": "Nuclear Strike",
+        "duration": 29
+    },
+    "PSX-ONE_One_State_Of_Mind.chd": {
+        "title": "/One (",
+        "duration": 30
+    },
+    "PSX-Oddworld_Abes_Exoddus_Save_Your_WorldAgain.chd": {
+        "title": "Abe's Exoddus",
+        "duration": 48
+    },
+    "PSX-Pac-Man_World_Verne_Troyer__MrT.chd": {
+        "title": "Pac-Man World",
+        "duration": 66
+    },
+    "PSX-Pitfall_3D_Beyond_the_Jungle_Old_School_Video_Game.chd": {
+        "title": "Pitfall 3D - Beyond",
+        "duration": 30
+    },
+    "PSX-PlayStation_Piracy_Kills_Your_Heroes.chd": {
+        "title": "Crash Bandicoot\\|Tomb Raider",
+        "duration": 46
+    },
+    "PSX-Rapid_Racer_Submarine.chd": {
+        "title": "Turbo Prop Racing",
+        "duration": 30
+    },
+    "PSX-Resident_Evil_2_Everyones_Gonna_DIE.chd": {
+        "title": "Resident Evil 2",
+        "duration": 48
+    },
+    "PSX-Ridge_Racer_Revolution_Fastest_Racers_On_Earth.chd": {
+        "title": "Ridge Racer Revolution",
+        "duration": 44
+    },
+    "PSX-Rugrats_Search_for_Reptar_Childrens_Party.chd": {
+        "title": "Rugrats - Search for",
+        "duration": 30
+    },
+    "PSX-SAPS_The_Stick_Better_Than_PlayStation.chd": {
+        "title": "",
+        "duration": 40
+    },
+    "PSX-Sammy_Sosa_High_Heat_Baseball_2001_Its_so_REAL.chd": {
+        "title": "Sammy Sosa High",
+        "duration": 30
+    },
+    "PSX-Scooby-Doo_and_the_Cyber_Chase_Ghost.chd": {
+        "title": "Scooby-Doo and the",
+        "duration": 46
+    },
+    "PSX-South_Park_Chefs_Luv_Shack.chd": {
+        "title": "South Park - Ch",
+        "duration": 30
+    },
+    "PSX-South_Park_Rally_Shut_Up_Kids.chd": {
+        "title": "South Park Rally",
+        "duration": 30
+    },
+    "PSX-South_Park_You_Will_Believe.chd": {
+        "title": "South Park",
+        "duration": 30
+    },
+    "PSX-Soviet_Strike_Stop_The_WAR_Before_It_Begins.chd": {
+        "title": "Soviet Strike",
+        "duration": 29
+    },
+    "PSX-Space_Invaders_Are_You_Ready.chd": {
+        "title": "Space Invaders",
+        "duration": 30
+    },
+    "PSX-Stuart_Little_2_New_York.chd": {
+        "title": "Stuart Little 2",
+        "duration": 29
+    },
+    "PSX-Tekken_2_The_Greatest_Fighting_On_Earth.chd": {
+        "title": "Tekken 2",
+        "duration": 30
+    },
+    "PSX-Tenchu_Stealth_Assassins_Youre_Ninja.chd": {
+        "title": "Tenchu - Stealth Assassins",
+        "duration": 30
+    },
+    "PSX-Test_Drive_4_Dont_Slow_Down.chd": {
+        "title": "Test Drive 4",
+        "duration": 30
+    },
+    "PSX-The_Emperors_New_Groove_Play_With_A_Real_Llama.chd": {
+        "title": "Emperor's New Groove",
+        "duration": 30
+    },
+    "PSX-The_Game_of_LIFE_Your_LIFE_Your_WAY.chd": {
+        "title": "Game of Life",
+        "duration": 30
+    },
+    "PSX-The_Legend_of_Dragoon.chd": {
+        "title": "Legend of Dragoon",
+        "duration": 29
+    },
+    "PSX-The_Lost_World_Jurassic_Park_Can_You_Survive.chd": {
+        "title": "Lost World",
+        "duration": 29
+    },
+    "PSX-Tomb_Raider_3_Agent_Croft.chd": {
+        "title": "Tomb Raider III",
+        "duration": 30
+    },
+    "PSX-Tomb_Raider_Chronicles_The_legacy_Live_On.chd": {
+        "title": "Tomb Raider Chronicles",
+        "duration": 82
+    },
+    "PSX-Alien_Girl_Mental_Wealth__1.chd": {
+        "title": "",
+        "duration": 31
+    },
+    "PSX-Alien_Girl_Mental_Wealth__2.chd": {
+        "title": "",
+        "duration": 27
+    },
+    "PSX-Alien_Girl_Mental_Wealth__3.chd": {
+        "title": "",
+        "duration": 31
+    },
+    "PSX-Alien_Girl_Mental_Wealth__4.chd": {
+        "title": "",
+        "duration": 43
+    },
+    "PSX-Cool_Boarders_2___1.chd": {
+        "title": "Boarders 2 (U",
+        "duration": 35
+    },
+    "PSX-Duke_Nukem_Time_to_Kill__1.chd": {
+        "title": "Time to Kill (USA",
+        "duration": 17
+    },
+    "PSX-Duke_Nukem_Time_to_Kill__2.chd": {
+        "title": "Time to Kill (USA",
+        "duration": 25
+    },
+    "PSX-Fighting_Force__1.chd": {
+        "title": "Fighting Force (USA",
+        "duration": 31
+    },
+    "PSX-Jet_Moto_3_-_Busted__1.chd": {
+        "title": "Moto 3 (US",
+        "duration": 28
+    },
+    "PSX-Spyro_2_Riptos_Rage_Mikey__1.chd": {
+        "title": "Spyro 2 - Ripto",
+        "duration": 31
+    },
+    "PSX-Tekken_3__1.chd": {
+        "title": "Tekken 3 (US",
+        "duration": 16
+    },
+    "PSX-The_Making_Of_Boycott_Spyro_and_All_TV_Commercials.chd": {
+        "title": "Spyro the Dragon (US",
+        "duration": 266
+    },
+    "PSX-WWF_SmackDown_2_Know_Your_Role__1.chd": {
+        "title": "WWF SmackDo",
+        "duration": 16
+    }
 }
