@@ -4150,6 +4150,7 @@ function sv_ar_cdi_mode() {
         else
             samdebug "URL is not available: ${sv_selected_url}. Removing from list and selecting another."
             awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+            unset sv_selected
         fi
     done
 
@@ -4202,7 +4203,7 @@ function sv_ar_cdi_mode() {
 
     # 8. Calculate Game Timer (+10 second buffer)
     # Using awk to handle the float calc and integer addition in one step
-    local timer_delay=13
+    local timer_delay=16
     sv_gametimer=$(du -m "$tmpvideo" | awk -v delay="$timer_delay" '{print int($1 * 7.5) + delay}')
     
     sv_title="${sv_selected%.*}"
