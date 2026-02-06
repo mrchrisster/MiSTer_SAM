@@ -4144,7 +4144,7 @@ function sv_ar_cdi_mode() {
 
         # Check if the URL is available using wget
         samdebug "Checking availability of ${sv_selected_url}..."
-        if wget --spider --quiet --timeout=3 --tries=1 "${sv_selected_url}"; then
+        if wget --spider --quiet --timeout=10 --tries=1 "${sv_selected_url}"; then
             samdebug "URL is available: ${sv_selected_url}"
             break
         else
@@ -4341,7 +4341,7 @@ function sv_ar_download() {
 
         # Check if the URL is available using wget
         samdebug "Checking availability of ${sv_selected_url}..."
-        if wget --spider --quiet --timeout=3 --tries=1 "${sv_selected_url}"; then
+        if wget --spider --quiet --timeout=10 --tries=1 "${sv_selected_url}"; then
             samdebug "URL is available: ${sv_selected_url}"
             break
         else
