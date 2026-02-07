@@ -2054,15 +2054,13 @@ function check_rom(){
         rbf_tag=$(grep -i "<rbf>" "${rompath}" | head -n 1 | sed -e 's/.*<rbf>\(.*\)<\/rbf>.*/\1/' | tr -d '[:space:]')
         
         if [[ -n "${rbf_tag}" ]]; then
-             local checks_dir="${misterpath}/${CORE_PATH_RBF[${core}]}"
-             local rbf_found=0
+            local checks_dir="${misterpath}/${CORE_PATH_RBF[${core}]}"
+            local rbf_found=0
              
              # Check for RBF file (exact match or with timestamp suffix)
-             if ls "${checks_dir}/${rbf_tag}"*.rbf >/dev/null 2>&1; then
-                 rbf_found=1
-             elif ls "${checks_dir}/cores/${rbf_tag}"*.rbf >/dev/null 2>&1; then
-                 rbf_found=1
-             fi
+			if [ -n "$(find "${checks_dir}" -iname "${rbf_tag}*.rbf" -print -quit 2>/dev/null)" ]; then
+				rbf_found=1
+			fi
              
              if [[ $rbf_found -eq 0 ]]; then
                  samdebug "ERROR: RBF '${rbf_tag}' not found for MRA '${rompath}'. validation failed."
