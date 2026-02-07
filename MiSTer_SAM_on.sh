@@ -1202,7 +1202,7 @@ function parse_cmd() {
     exit_to_game)       exit_sam game ;;
     unmute)             unmute_with_retry ;;
     enable)             env_check enable; sam_enable ;;
-    disable)            sam_cleanup; sam_disable ;;
+    disable)            sam_cleanup; kill_all_sams; sam_disable ;;
     ignore)             ignoregame ;;
     
     default)            sam_update autoconfig ;;
