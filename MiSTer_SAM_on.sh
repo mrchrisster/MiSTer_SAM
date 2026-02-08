@@ -144,6 +144,9 @@ function init_vars() {
 	declare -gl sv_inimod="yes"
 	declare -gl sv_inibackup="yes" 
 	declare -gl keep_local_copy="yes"
+	declare -gl do_fast_chd_fill="no"
+	declare -gl new_only_chd="no"
+
 	declare -g sv_inibackup_file="/media/fat/MiSTer.ini.sam_backup"
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
@@ -1030,6 +1033,7 @@ function init_data() {
 		["atari5200"]="atari 5200"
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
+		["cdi"]="cdi"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
@@ -4044,15 +4048,54 @@ function sv_ar_cdi_mode() {
 
         sv_selected_url="${http_archive%/*}/${sv_selected}"
 
+		#Check first if available locally
+		local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
+		samdebug "Checking if file is available locally...$local_svfile"
+		if [ -f "$local_svfile" ]; then
+			if [[ "$new_only_chd" == "yes" || "$do_fast_chd_fill" == "yes" ]] && [ "$keep_local_copy" == "yes" ]; then
+				samdebug "Exists=>SKIP"
+				awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+		        unset sv_selected
+				continue
+			else
+				samdebug "Local file exists so using: $local_svfile"
+				break
+			fi
+		fi
+
         # Check if the URL is available using wget
         samdebug "Checking availability of ${sv_selected_url}..."
         if wget --spider --quiet "${sv_selected_url}"; then
             samdebug "URL is available: ${sv_selected_url}"
+			
+			if [ "$do_fast_chd_fill" == "yes" ] && [ "$keep_local_copy" == "yes" ]; then
+				samdebug "Preloading ${sv_selected} from archive.org for smooth playback"
+				dl_video "${sv_selected_url}"
+				
+				# Check if download succeeded AND file has size > 0
+				if [ -s "$tmpvideo" ]; then
+					samdebug "Download succeeded."
+				else
+					samdebug "Error: Download failed or file is empty. Moving to next video."
+					awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+			        unset sv_selected
+					continue
+				fi
+
+				# 5. Cache the file locally ONLY if it was a fresh download
+				cp "$tmpvideo" "$local_svfile"
+				samdebug "Saved local copy of video: $local_svfile"
+				samdebug "${sv_selected} preloaded successfully. Removing from list and selecting another."
+				awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+		        unset sv_selected
+				continue
+			fi
+
             break
         else
             samdebug "URL is not available: ${sv_selected_url}. Removing from list and selecting another."
             awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
-        fi
+        fi			
     done
 
     # 4. Download / Cache Logic
@@ -4360,11 +4403,16 @@ function samvideo_tvc() {
         echo "Couldn't find TVC list. Selecting random game from system"
         sv_selected="$(cat ${samvideo_list} | grep -i "${SV_TVC[$nextcore]}" | shuf --random-source=/dev/urandom | head -1)"
     fi
-    if [ "${samvideo_tvc_cdi}" == "yes" ]; then
-        sv_selected="${sv_selected%.avi}.chd"
-        sv_selected="${sv_selected// /_}"
-    fi
-    samdebug "Picked $sv_selected"
+	if [[ "$sv_selected" == *.avi ]]; then
+		if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+			sv_selected="${sv_selected// /_}"
+			sv_selected="${sv_selected//[^[:alnum:]_-]/}"
+			sv_selected="${sv_selected%avi}.chd"
+		fi
+		samdebug "Picked $sv_selected"
+	else
+		samdebug "No video for ${SV_TVC[$nextcore]}"
+	fi
 }
 
 
