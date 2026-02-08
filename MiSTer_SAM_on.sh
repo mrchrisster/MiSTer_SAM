@@ -4124,6 +4124,42 @@ function sv_ar_cdi_mode() {
     tmpvideo="/tmp/SAMvideo.chd"
     local http_archive="${sv_archive_cdi//https/http}"
 
+    # Check for CDi core availability
+    local cdi_check_path="/media/fat/_Unstable"
+    local cdi_core_file=""
+
+    # Find existing CDi core (case-insensitive)
+    if [ -d "$cdi_check_path" ]; then
+        cdi_core_file=$(find "$cdi_check_path" -maxdepth 1 -iname "cdi*.rbf" -print -quit)
+    fi
+
+    if [ -z "$cdi_core_file" ]; then
+        echo "CDi core not found. Attempting to retrieve..."
+        mkdir -p "$cdi_check_path"
+
+        # Retrieve URL from JSON
+        local cdi_url=$(curl -k -s "https://raw.githubusercontent.com/MiSTer-unstable-nightlies/Unstable_Folder_MiSTer/main/db_unstable_nightlies_folder.json" | \
+            jq -r '.files | to_entries[] | select(.key | contains("_Unstable/CDi")) | .value.url' | head -n 1)
+
+        if [ -n "$cdi_url" ]; then
+             echo "Downloading CDi core from: $cdi_url"
+             curl -k -L -o "${cdi_check_path}/CDi_unstable.rbf" "$cdi_url"
+             if [ $? -eq 0 ]; then
+                 echo "CDi core downloaded successfully."
+                 cdi_core_file="${cdi_check_path}/CDi_unstable.rbf"
+             else
+                 echo "Error downloading CDi core."
+             fi
+        else
+             echo "Failed to fetch CDi core URL."
+        fi
+    fi
+
+    if [ -z "$cdi_core_file" ]; then
+        echo "Error: CDi core missing and download failed. Skipping video playback."
+        return
+    fi
+
     # 2. Populate the samvideo_list if it's empty (only needed for non-TVC mode)
     if [ ! -s "${samvideo_list}" ]; then
         curl_download /tmp/SAMvideos.xml "${http_archive}"
