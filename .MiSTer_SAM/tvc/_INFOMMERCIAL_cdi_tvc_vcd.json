@@ -27,6 +27,14 @@
         "title": "Divil\\|Space.Ace\\|Golf\\|Cycle\\|Beren\\|Townsend\\|Tennis\\|Compton",
         "duration": 30
     },
+   "cdi_infomercial_Sid_Ed.chd": {
+        "title": "Tennis\\|Dragon\\|Mystic\\|Caesar\\|Voyeur\\|Townsend\\|Gogh\\|Zelda",
+        "duration": 120
+    },
+   "cdi_infomercial_The_Great_Wall.chd": {
+        "title": "Tennis\\|SpaceAce\\|Mystic\\|Caesar\\|Voyeur\\|Townsend\\|Gogh\\|Zelda",
+        "duration": 120
+    },
     "cdi_7th_guest_promo.chd": {
         "title": "Guest",
         "duration": 49
@@ -56,11 +64,11 @@
         "duration": 31
     },
     "cdi_dragons_lair_ii_promo.chd": {
-        "title": "Time.Warp",
+        "title": "Lair.II",
         "duration": 36
     },
     "cdi_dragons_lair_promo.chd": {
-        "title": ".Lair",
+        "title": "Lair.",
         "duration": 42
     },
     "cdi_earth_command_promo.chd": {

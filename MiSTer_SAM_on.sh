@@ -175,7 +175,7 @@ function init_vars() {
 	declare -g atari7800pathrbf="_Console"
 	declare -g atarilynxpathrbf="_Console"
 	declare -g c64pathrbf="_Computer"
-	declare -g cdipathrbf="_Console"	
+	declare -g cdipathrbf="_Unstable"	
 	declare -g coco2pathrbf="_Computer"
 	declare -g colecovisionpathrbf="_Console"
  	declare -g intellivisionpathrbf="_Console"
@@ -1875,10 +1875,11 @@ function pick_rom() {
 
 		# samvideo mode tries to find a specific game matching a commercial.
         local specific_game
-        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | head -n 1)"
+        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
         
         if [[ -n "${specific_game}" ]]; then
             rompath="${specific_game}"
+		    samdebug "Match found: $specific_game"
             return # Exit successfully if we found the specific game.
         fi
         samdebug "Could not find matching game for commercial. Picking a random game instead."

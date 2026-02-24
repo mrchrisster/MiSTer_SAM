@@ -1,18 +1,266 @@
 {
     "Arcade-_7UP_Pac-Man_Commercial_1982Cropped.chd": {
-        "title": "Pac-Man (Midway).mra\\|Ms. Pac-Man\\|Super Pac-Man.mra",
+        "title": "/Pac-Man.(Midway)\\.mra\\|Ms\\..Pac-Man\\.mra\\|Super.Pac-Man\\.mra",
         "duration": 63
     },
     "Arcade-_Gauntlet_Atari_commercial.chd": {
-        "title": "Gauntlet (Rev 14)\\|Gauntlet II.mra",
-        "duration": 32
+        "title": "Gauntlet.(Rev.14)\\|Gauntlet.II\\.mra",
+        "duration": 23
     },
     "Arcade-_Atari_game_commercial_-_Dig_Dug.chd": {
-        "title": "Dig Dug (Atari, rev 2)",
+        "title": "/Dig.Dug.(",
         "duration": 143
     },
-   "arcade_SuperZaxxon_starcade.chd": {
-        "title": "Super Zaxxon",
+   "arcade_AMIDAR_starcade.chd": {
+        "title": "/Amidar",
+        "duration": 26
+    },
+   "arcade_ANTEATER_starcade.chd": {
+        "title": "Anteater",
+        "duration": 30
+    },
+   "arcade_BAGMAN_starcade.chd": {
+        "title": "/Bagman",
+        "duration": 24
+    },
+   "arcade_BERZERK_starcade.chd": {
+        "title": "Berzerk",
+        "duration": 29
+    },
+   "arcade_BLACK_WIDOW_starcade.chd": {
+        "title": "Black.Widow",
+        "duration": 22
+    },
+   "arcade_BLUE_PRINT_starcade.chd": {
+        "title": "Blue.Print",
+        "duration": 25
+    },
+   "arcade_BUBBLES_starcade.chd": {
+        "title": "Bubbles",
+        "duration": 19
+    },
+   "arcade_BUMP_N_JUMP_starcade.chd": {
+        "title": "/Bump",
+        "duration": 23
+    },
+    "arcade_BURGER_TIME_starcade.chd": {
+        "title": "/Burger.Time",
+        "duration": 19
+    },
+   "arcade_BURNIN_RUBBER_starcade.chd": {
+        "title": "Burnin..Rubber",
+        "duration": 23
+    },
+   "arcade_CALIPSO_starcade.chd": {
+        "title": "Calipso",
+        "duration": 23
+    },
+   "arcade_CONGO_BONGO_starcade.chd": {
+        "title": "Congo.Bongo",
+        "duration": 27
+    },
+   "arcade_DIG_DUG_starcade.chd": {
+        "title": "Dig.Dug.(Atari..rev.2)",
+        "duration": 24
+    },
+   "arcade_DISCS_OF_TRON_starcade.chd": {
+        "title": "Discs.of.Tron",
+        "duration": 26
+    },
+   "arcade_DOMINO_MAN_starcade.chd": {
+        "title": "Domino.Man",
+        "duration": 14
+    },
+   "arcade_DONKEY_KONG_3_starcade.chd": {
+        "title": "Donkey.Kong.3",
+        "duration": 24
+    },
+   "arcade_DONKEY_KONG_Junior_starcade.chd": {
+        "title": "Donkey.Kong.Junior",
+        "duration": 20
+    },
+   "arcade_DONKEY_KONG_starcade.chd": {
+        "title": "Donkey.Kong.(US",
+        "duration": 27
+    },
+   "arcade_DORODON_starcade.chd": {
+        "title": "Dorodon",
+        "duration": 30
+    },
+   "arcade_ELEVATOR_ACTION_starcade.chd": {
+        "title": "Elevator.Action",
+        "duration": 34
+    },
+   "arcade_EYES_starcade.chd": {
+        "title": "/Eyes.(US",
+        "duration": 22
+    },
+   "arcade_FOOD_FIGHT_starcade.chd": {
+        "title": "Food.Fight",
+        "duration": 29
+    },
+   "arcade_FROGGER_starcade.chd": {
+        "title": "/Frogger\\.mra",
+        "duration": 29
+    },
+   "arcade_GALAGA_starcade.chd": {
+        "title": "Galaga.(Midway,.Set",
+        "duration": 27
+    },
+   "arcade_GALAXIAN_starcade.chd": {
+        "title": "/Galaxian.(M",
+        "duration": 17
+    },
+   "arcade_GRAVITAR_starcade.chd": {
+        "title": "Gravitar",
+        "duration": 23
+    },
+   "arcade_GYRUSS_starcade.chd": {
+        "title": "Gyruss\\.mra",
+        "duration": 26
+    },
+   "arcade_JOURNEY_the_Group_starcade.chd": {
+        "title": "/Journey\\.mra",
+        "duration": 22
+    },
+   "arcade_JOUST_starcade.chd": {
+        "title": "Joust\\.mra",
+        "duration": 22
+    },
+   "arcade_JUNGLE_HUNT_starcade.chd": {
+        "title": "Jungle.Hunt\\|Jungle.King\\.mra\\|Pirate.Pete",
+        "duration": 22
+    },
+   "arcade_JUNO_FIRST_starcade.chd": {
+        "title": "Juno.First",
+        "duration": 31
+    },
+   "arcade_LADY_BUG_starcade.chd": {
+        "title": "Lady.Bug\\.mra",
+        "duration": 17
+    },
+   "arcade_LOST_TOMB_starcade.chd": {
+        "title": "Lost.Tomb",
         "duration": 18
+    },
+   "arcade_MAPPY_starcade.chd": {
+        "title": "Mappy.(US",
+        "duration": 25
+    },
+   "arcade_MARIO_BROS_starcade.chd": {
+        "title": "/Mario.Bros\\.",
+        "duration": 27
+    },
+   "arcade_MILLIPEDE_starcade.chd": {
+        "title": "Millipede\\|Centipede (",
+        "duration": 25
+    },
+   "arcade_MOON_PATROL_starcade.chd": {
+        "title": "Moon.Patrol.(W",
+        "duration": 25
+    },
+   "arcade_MR_DO_starcade.chd": {
+        "title": "/Mr\\..Do!",
+        "duration": 26
+    },
+   "arcade_MS_PAC_MAN_starcade.chd": {
+        "title": "Ms\\..Pac-Man\\.mra",
+        "duration": 29
+    },
+   "arcade_PAC-MAN_PLUS_starcade.chd": {
+        "title": "/Pac-Man.Plus",
+        "duration": 18
+    },
+   "arcade_PAC-MAN_starcade.chd": {
+        "title": "/Pac-Man.(Midway)\\.mra",
+        "duration": 25
+    },
+   "arcade_PENGO_starcade.chd": {
+        "title": "Pengo.(S",
+        "duration": 22
+    },
+   "arcade_POOYAN_starcade.chd": {
+        "title": "Pooyan\\.mra",
+        "duration": 20
+    },
+   "arcade_POPEYE_starcade.chd": {
+        "title": "Popeye.(",
+        "duration": 27
+    },
+   "arcade_Q_BERT_starcade.chd": {
+        "title": "bert.(US",
+        "duration": 26
+    },
+   "arcade_RESCUE_starcade.chd": {
+        "title": "/Rescue\\.mra",
+        "duration": 18
+    },
+   "arcade_ROBOTRON_2084_starcade.chd": {
+        "title": "Robotron.2084",
+        "duration": 36
+    },
+   "arcade_ROC_N_ROPE_starcade.chd": {
+        "title": "n.Rope\\.mra",
+        "duration": 32
+    },
+   "arcade_SINISTAR_starcade.chd": {
+        "title": "Sinistar",
+        "duration": 23
+    },
+   "arcade_SOLAR_FOX_starcade.chd": {
+        "title": "Solar.Fox",
+        "duration": 17
+    },
+   "arcade_SPACE_INVADERS_starcade.chd": {
+        "title": "Space.Invaders\\.mra",
+        "duration": 25
+    },
+   "arcade_SPY_HUNTER_starcade.chd": {
+        "title": "Spy.Hunter\\.mra",
+        "duration": 30
+    },
+   "arcade_STARGATE_starcade.chd": {
+        "title": "Stargate\\.mra",
+        "duration": 22
+    },
+   "arcade_SUPER_COBRA_starcade.chd": {
+        "title": "Super.Cobra.(St",
+        "duration": 20
+    },
+   "arcade_SUPER_PAC_MAN_starcade.chd": {
+        "title": "Super.Pac-Man\\.mra",
+        "duration": 25
+    },
+   "arcade_SUPER_ZAXXON_starcade.chd": {
+        "title": "Super.Zaxxon",
+        "duration": 18
+    },
+   "arcade_TAZZ_MANIA_starcade.chd": {
+        "title": "Tazz-Mania",
+        "duration": 21
+    },
+   "arcade_TIME_PILOT_starcade.chd": {
+        "title": "Time.Pilot\\.mra",
+        "duration": 22
+    },
+   "arcade_TRON_starcade.chd": {
+        "title": "/Tron\\.mra",
+        "duration": 30
+    },
+    "arcade_TUTANKHAM_starcade.chd": {
+        "title": "/Tutankham",
+        "duration": 21
+    },
+   "arcade_WACKO_starcade.chd": {
+        "title": "Wacko",
+        "duration": 24
+    },   
+    "arcade_WILD_WESTERN_starcade.chd": {
+        "title": "Wild.Western",
+        "duration": 18
+    },
+   "arcade_XEVIOUS_starcade.chd": {
+        "title": "/Xevious\\.mra",
+        "duration": 28
     }
 }
