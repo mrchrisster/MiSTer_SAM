@@ -16,6 +16,7 @@ SAM_ON_SCRIPT = "/media/fat/Scripts/MiSTer_SAM_on.sh"
 INI_FILE = "/media/fat/Scripts/MiSTer_SAM.ini"
 CONTROLLER_CONFIG_FILE = os.path.join(SAM_BASE_PATH, "sam_controllers.json")
 SAM_SESSION_NAME = "SAM"
+SAM_STARTUP_GRACE = 15  # Seconds after SAM confirmed running before zombie detection kicks in
 
 # --- Constants for jsX Polling (from Script 2) ---
 JS_EVENT_FORMAT = "IhBB" # timestamp, value, type, number
@@ -45,6 +46,10 @@ class SamState:
         self._log_activity = False 
         self._lock = threading.Lock() # A standard thread lock
         self._boot_complete = False
+        self._sam_is_starting = False   # True from start_sam() until tmux confirmed
+        self._pending_action = None     # Buffered action during startup window
+        self._start_time = 0            # When start_sam() was triggered
+        self._sam_run_confirmed_at = 0  # When SAM was confirmed running (for grace period)
 
     def update_activity(self, log_event=True):
         """Call this to reset the idle timer. Thread-safe."""
@@ -63,6 +68,11 @@ class SamState:
         """Set the running status. Thread-safe."""
         with self._lock:
             self._log_activity = status # Log activity only when SAM is running
+            # Track when SAM was confirmed running for grace period
+            if status and not self._sam_is_running:
+                self._sam_run_confirmed_at = time.monotonic()
+            elif not status:
+                self._sam_run_confirmed_at = 0
             self._sam_is_running = status
     
     def is_sam_running(self) -> bool:
@@ -74,8 +84,6 @@ class SamState:
         """Set the stopping status. Thread-safe."""
         with self._lock:
             self._is_stopping = status
-            if status:
-                print("MCP: State changed to 'stopping'. Ignoring new input.")
 
     def is_stopping(self) -> bool:
         """Check if we are in the process of stopping. Thread-safe."""
@@ -91,6 +99,41 @@ class SamState:
         """Check if we have passed the initial boot phase."""
         with self._lock:
             return self._boot_complete
+
+    def set_sam_starting(self, status: bool):
+        """Mark SAM as starting up (between Popen and tmux confirmation). Thread-safe."""
+        with self._lock:
+            self._sam_is_starting = status
+            if status:
+                self._start_time = time.monotonic()
+                self._pending_action = None  # Clear any stale action
+            else:
+                self._start_time = 0
+
+    def is_sam_starting(self) -> bool:
+        """Check if SAM is currently in the startup window. Thread-safe."""
+        with self._lock:
+            return self._sam_is_starting
+
+    def set_pending_action(self, action: str):
+        """Buffer a user action during the startup window. Thread-safe."""
+        with self._lock:
+            self._pending_action = action
+            print(f"MCP: SAM is starting up. Buffered '{action}' action.")
+
+    def consume_pending_action(self):
+        """Atomically read and clear the pending action. Thread-safe."""
+        with self._lock:
+            action = self._pending_action
+            self._pending_action = None
+            return action
+
+    def seconds_since_confirmed(self) -> float:
+        """Seconds since SAM was confirmed running. Returns inf if never confirmed."""
+        with self._lock:
+            if self._sam_run_confirmed_at == 0:
+                return float('inf')
+            return time.monotonic() - self._sam_run_confirmed_at
 # --- Core SAM Functions (from Script 1) ---
 # These are blocking and will be run in threads
 
@@ -239,6 +282,25 @@ def get_js_activity(
 
     return None
 
+def kill_sam_processes():
+    """Kills the SAM tmux session and all orphan SAM processes."""
+    subprocess.run(["tmux", "kill-session", "-t", SAM_SESSION_NAME], stderr=subprocess.DEVNULL)
+    try:
+        proc = subprocess.run(["ps", "-o", "pid,args"], capture_output=True, text=True)
+        if proc.returncode == 0:
+            for line in proc.stdout.splitlines():
+                if "MiSTer_SAM_on.sh" in line and (
+                    "loop_core" in line or "start" in line
+                ):
+                    parts = line.strip().split()
+                    if parts and parts[0].isdigit():
+                        try:
+                            os.kill(int(parts[0]), signal.SIGKILL)
+                        except OSError:
+                            pass
+    except Exception as e:
+        print(f"MCP: Error cleaning up SAM processes: {e}")
+
 def handle_action(action, state, loop):
     """Processes a joystick action string."""
     if not action:
@@ -250,26 +312,30 @@ def handle_action(action, state, loop):
     if state.is_stopping():
         return
 
+    # CLAIM LOCK SYNCHRONOUSLY: Prevent concurrent events from spawning double actions
+    state.set_stopping(True)
+
     async def do_actions():
         try:
             # 2. Check: Does Python THINK SAM is running?
             if state.is_sam_running():
                 
                 # 3. REALITY CHECK: Are we actually already in the menu?
-                # This fixes your loop. If tmux exists but we are in the menu, it's a "Zombie".
                 in_menu = await asyncio.to_thread(is_in_menu, state)
                 
                 if in_menu:
-                    print(f"MCP: Mismatch detected - SAM session exists but Menu is loaded.")
-                    print(f"MCP: Killing Zombie session...")
-                    # Force kill the stuck session
-                    subprocess.run(["tmux", "kill-session", "-t", SAM_SESSION_NAME], stderr=subprocess.DEVNULL)
-                    # Force update state to False immediately
+                    grace = state.seconds_since_confirmed()
+                    if grace < SAM_STARTUP_GRACE:
+                        print(f"MCP: SAM is still loading (confirmed {grace:.0f}s ago). Stopping...")
+                    else:
+                        print(f"MCP: Zombie detected — SAM session exists but Menu is loaded. Cleaning up...")
+                    # Full cleanup: stop SAM services, kill tmux + orphan processes
                     state.set_sam_running(False)
-                    return # Exit. We don't need to "Stop" anything, we are already home.
+                    await stop_sam(state, play_current=False)
+                    await asyncio.to_thread(kill_sam_processes)
+                    return
 
                 # 4. If we are NOT in the menu, then it's a real game. Proceed to stop.
-                state.set_stopping(True)
                 
                 if action == "next":
                     print(f"MCP-JS: Action '{action}' detected. Skipping game...")
@@ -284,27 +350,14 @@ def handle_action(action, state, loop):
                     else: 
                         await stop_sam(state, play_current=False)
                         
-                    # 5. Safety: Ensure tmux is definitely dead after stopping
-                    subprocess.run(["tmux", "kill-session", "-t", SAM_SESSION_NAME], stderr=subprocess.DEVNULL)
-                    # 6. Extra Safety: Explicitly kill the session entry script which might trap SIGHUP
-                    # pkill is not available on MiSTer, so we manually find and kill the process
-                    try:
-                        proc = subprocess.run(["ps", "-o", "pid,args"], capture_output=True, text=True)
-                        if proc.returncode == 0:
-                            for line in proc.stdout.splitlines():
-                                if "MiSTer_SAM_on.sh loop_core" in line:
-                                    parts = line.strip().split()
-                                    if parts and parts[0].isdigit():
-                                        try:
-                                            os.kill(int(parts[0]), signal.SIGKILL)
-                                        except OSError:
-                                            pass
-                    except Exception as e:
-                        print(f"MCP: Error cleaning up process: {e}")
+                    # Safety: Kill tmux + all orphan SAM processes
+                    await asyncio.to_thread(kill_sam_processes)
 
             else:
-                # SAM is not running. We just reset the timer (already done above).
-                pass
+                # SAM is not running — but is it STARTING?
+                if state.is_sam_starting():
+                    state.set_pending_action(action)
+                # Otherwise, just reset the idle timer (already done above).
 
         except Exception as e:
             print(f"MCP: Error in handle_action: {e}")
@@ -425,38 +478,71 @@ async def idle_and_status_checker(state):
     """Periodically checks idle time and SAM running status."""
     while True:
         try:
-            # Run blocking I/O in a thread to not block the loop
-            running = await asyncio.to_thread(is_sam_running)
-            state.set_sam_running(running)
+            # Only sync tmux state when we're not mid-stop — prevents
+            # clobbering a set_sam_running(False) from handle_action.
+            if not state.is_stopping():
+                running = await asyncio.to_thread(is_sam_running)
+                state.set_sam_running(running)
 
             if not state.is_sam_running():
                 idle_time = state.get_idle_time()
                 time_left = state.idle_timeout - idle_time
 
-                # Run blocking file I/O in a thread
                 in_menu = await asyncio.to_thread(is_in_menu, state)
-                
                 can_start = not state.menu_only or (state.menu_only and in_menu)
 
-                if can_start and time_left > 0:
-                    # Show the countdown for the entire duration.
-                    print(f"MCP: Starting SAM in {int(time_left)} second(s)...", end='\r')
-                
                 if can_start and idle_time > state.idle_timeout:
-                    # Clear the countdown line before printing the next message
+                    # Idle threshold exceeded — launch SAM
                     print(" " * 40, end='\r')
-                    # Run blocking subprocess in a thread
+                    state.set_sam_starting(True)
                     await asyncio.to_thread(start_sam)
-                    await asyncio.sleep(2) # Give it a moment to start
-                    running_after_start = await asyncio.to_thread(is_sam_running)
-                    state.set_sam_running(running_after_start)
-                    state.update_activity(log_event=False) # Reset timer silently after starting
+
+                    # Poll for SAM to become running (up to 10s)
+                    sam_started = False
+                    try:
+                        for attempt in range(10):
+                            await asyncio.sleep(1)
+
+                            # Check for buffered user input first
+                            pending = state.consume_pending_action()
+                            running_now = await asyncio.to_thread(is_sam_running)
+
+                            if pending:
+                                if running_now:
+                                    # SAM is up — replay the buffered action to stop it
+                                    state.set_sam_running(True)
+                                    print(f"MCP: SAM started but user pressed '{pending}'. Replaying action...")
+                                    handle_action(pending, state, asyncio.get_running_loop())
+                                else:
+                                    # SAM isn't up yet — abort the launch entirely
+                                    print(f"MCP: User pressed '{pending}' during startup. Aborting SAM launch.")
+                                    subprocess.run(["tmux", "kill-session", "-t", SAM_SESSION_NAME], stderr=subprocess.DEVNULL)
+                                sam_started = running_now
+                                break
+
+                            if running_now:
+                                state.set_sam_running(True)
+                                sam_started = True
+                                break
+                        else:
+                            # for-loop exhausted without break — SAM never started
+                            print("MCP: ⚠ SAM startup timed out after 10 seconds. Resetting.")
+                    finally:
+                        # Single cleanup point — always clear the starting flag
+                        state.set_sam_starting(False)
+
+                    if not sam_started:
+                        state.update_activity(log_event=False)
+
+                elif can_start and time_left > 0:
+                    # Still counting down — show progress
+                    print(f"MCP: Starting SAM in {int(time_left)} second(s)...", end='\r')
 
             # Check every second for a responsive countdown
             await asyncio.sleep(1)
         except Exception as e:
             print(f"MCP: Error in idle checker: {e}")
-            await asyncio.sleep(5) # Wait a bit longer on error
+            await asyncio.sleep(5)
 
 def get_hidraw_for_keyboard(phys_addr):
     """
