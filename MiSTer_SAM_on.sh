@@ -4155,11 +4155,6 @@ function sv_ar_cdi_mode() {
         fi
     fi
 
-    if [ -z "$cdi_core_file" ]; then
-        echo "Error: CDi core missing and download failed. Skipping video playback."
-        return
-    fi
-
     # 2. Populate the samvideo_list if it's empty (only needed for non-TVC mode)
     if [ ! -s "${samvideo_list}" ]; then
         curl_download /tmp/SAMvideos.xml "${http_archive}"
@@ -4313,8 +4308,16 @@ function sv_ar_cdi_mode() {
     echo -e "Now playing: \e[1m${core_prefix} Commercial - ${sv_title}\e[0m"
     if [ -s /tmp/SAM_Game.mgl ]; then mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl; fi
     {
+        # Prepare RBF path for MGL
+        local mgl_rbf="_Unstable/CDi_unstable"
+        if [ -n "$cdi_core_file" ]; then
+             # Extract filename without path and extension
+             local cdi_basename=$(basename "$cdi_core_file" .rbf)
+             mgl_rbf="_Unstable/${cdi_basename}"
+        fi
+
         echo "<mistergamedescription>"
-        echo "<rbf>_Unstable/CDi_unstable</rbf>"
+        echo "<rbf>${mgl_rbf}</rbf>"
         echo "<file delay=\"1\" type=\"s\" index=\"1\" path=\"../../../../..${tmpvideo}\"/>"
     } >/tmp/SAM_Game.mgl
     
