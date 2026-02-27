@@ -4257,7 +4257,7 @@ function sv_ar_cdi_mode() {
 
     # 8. Calculate Game Timer (+10 second buffer)
     # Using awk to handle the float calc and integer addition in one step
-    local timer_delay=16
+    local timer_delay=9
     sv_gametimer=$(du -m "$tmpvideo" | awk -v delay="$timer_delay" '{print int($1 * 7.5) + delay}')
     
     sv_title="${sv_selected%.*}"
