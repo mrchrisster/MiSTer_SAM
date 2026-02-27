@@ -1036,6 +1036,7 @@ function init_data() {
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
 		["gg"]="sega game"
+		["intellivision"]="intellivision"
 		["megacd"]="megacd"
 		["n64"]="n64-\|n64"
 		["neogeo"]="neogeo"
