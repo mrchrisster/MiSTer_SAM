@@ -1,17 +1,17 @@
 {
     "Arcade-_7UP_Pac-Man_Commercial_1982Cropped.chd": {
         "title": "/Pac-Man.(Midway)\\.mra\\|Ms\\..Pac-Man\\.mra\\|Super.Pac-Man\\.mra",
-        "duration": 63
+        "duration": 62
+    },
+    "Arcade-_Atari_game_commercial_-_Dig_Dug.chd": {
+        "title": "/Dig.Dug.(",
+        "duration": 142
     },
     "Arcade-_Gauntlet_Atari_commercial.chd": {
         "title": "Gauntlet.(Rev.14)\\|Gauntlet.II\\.mra",
         "duration": 23
     },
-    "Arcade-_Atari_game_commercial_-_Dig_Dug.chd": {
-        "title": "/Dig.Dug.(",
-        "duration": 143
-    },
-   "arcade_AMIDAR_starcade.chd": {
+    "arcade_AMIDAR_starcade.chd": {
         "title": "/Amidar",
         "duration": 26
     },
@@ -53,7 +53,7 @@
     },
    "arcade_CALIPSO_starcade.chd": {
         "title": "Calipso",
-        "duration": 23
+        "duration": 22
     },
    "arcade_CONGO_BONGO_starcade.chd": {
         "title": "Congo.Bongo",
@@ -185,11 +185,11 @@
     },
    "arcade_POPEYE_starcade.chd": {
         "title": "Popeye.(",
-        "duration": 27
+        "duration": 26
     },
    "arcade_Q_BERT_starcade.chd": {
         "title": "bert.(US",
-        "duration": 26
+        "duration": 25
     },
    "arcade_RESCUE_starcade.chd": {
         "title": "/Rescue\\.mra",
@@ -205,7 +205,7 @@
     },
    "arcade_SINISTAR_starcade.chd": {
         "title": "Sinistar",
-        "duration": 23
+        "duration": 24
     },
    "arcade_SOLAR_FOX_starcade.chd": {
         "title": "Solar.Fox",
@@ -217,7 +217,7 @@
     },
    "arcade_SPY_HUNTER_starcade.chd": {
         "title": "Spy.Hunter\\.mra",
-        "duration": 30
+        "duration": 29
     },
    "arcade_STARGATE_starcade.chd": {
         "title": "Stargate\\.mra",

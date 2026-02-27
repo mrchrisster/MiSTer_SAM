@@ -1,7 +1,7 @@
 {
     "cdi_burn_cycle_1994.chd": {
         "title": "Cycle",
-        "duration": 30
+        "duration": 31
     },
     "cdi_Multimedia_System_1993.chd": {
         "title": "Golf\\|Tennis\\|Gogh\\|Compton\\|Guest\\|Zelda",
@@ -31,13 +31,9 @@
         "title": "Guest",
         "duration": 49
     },
-   "cdi_apprentice_promo.chd": {
-        "title": "Apprentice",
-        "duration": 33
-    },
     "cdi_burn_cycle_promo.chd": {
         "title": "Cycle",
-        "duration": 122
+        "duration": 120
     },
     "cdi_caesars_boxing_promo.chd": {
         "title": "boxing",
@@ -45,7 +41,7 @@
     },
     "cdi_chaos_control_promo.chd": {
         "title": "Chaos.Control",
-        "duration": 73
+        "duration": 72
     },
     "cdi_cluedo_promo.chd": {
         "title": "Clue",
@@ -53,7 +49,7 @@
     },
     "cdi_creature_shock_promo.chd": {
         "title": "Creature.Shock",
-        "duration": 31
+        "duration": 30
     },
     "cdi_dragons_lair_ii_promo.chd": {
         "title": "Time.Warp",
@@ -69,7 +65,7 @@
     },
     "cdi_great_games_promo.chd": {
         "title": "Shadoan\\|Reaches\\|Mystic\\|Divil\\|Space.Ace\\|Dragon\\|Cycle\\|Chaos.Control\\|Lemmings\\|Mad.Dog\\|Clue\\|Mutant\\|Thunder",
-        "duration": 194
+        "duration": 191
     },
     "cdi_lemmings_promo.chd": {
         "title": "Lemmings",
@@ -85,7 +81,7 @@
     },
     "cdi_mad_dog_mccree_promo.chd": {
         "title": "Mccree",
-        "duration": 58
+        "duration": 59
     },
     "cdi_mutant_rampage_promo.chd": {
         "title": "Mutant",
@@ -99,12 +95,12 @@
         "title": "Paradise",
         "duration": 206
     },
-     "cdi_who_shot_johnny_rock_promo.chd": {
-        "title": "Who.Shot",
-        "duration": 90
-    },
     "cdi_voyeur_promo.chd": {
         "title": "Voyeur",
         "duration": 41
+    },
+     "cdi_who_shot_johnny_rock_promo.chd": {
+        "title": "Who.Shot",
+        "duration": 89
     }
 }
