@@ -712,21 +712,29 @@ def get_input_devices():
 
     return {'joysticks': joysticks, 'keyboards': keyboards, 'has_mouse': has_mouse}
 
-async def rescan_devices(state, controller_config, loop):
+async def rescan_devices(state, controller_config, listen_config, loop):
     """Scans all devices and starts/stops monitors as needed."""
     # Use a lock to ensure only one rescan happens at a time.
     async with rescan_lock:
-        await _rescan_devices_impl(state, controller_config, loop)
+        await _rescan_devices_impl(state, controller_config, listen_config, loop)
 
-async def _rescan_devices_impl(state, controller_config, loop):
+async def _rescan_devices_impl(state, controller_config, listen_config, loop):
     print("MCP: Rescanning all input devices...")
     try:
         all_current_devices = await asyncio.to_thread(get_input_devices)
         
         # --- Build sets of current and monitored devices ---
-        current_js = {d['js_path'] for d in all_current_devices['joysticks']}
-        current_kbds = {d['hidraw_path'] for d in all_current_devices['keyboards']}
-        current_mouse = {"/dev/input/mice"} if os.path.exists("/dev/input/mice") else set()
+        current_js = set()
+        if listen_config.get("listenjoy", True):
+            current_js = {d['js_path'] for d in all_current_devices['joysticks']}
+            
+        current_kbds = set()
+        if listen_config.get("listenkeyboard", True):
+            current_kbds = {d['hidraw_path'] for d in all_current_devices['keyboards']}
+            
+        current_mouse = set()
+        if listen_config.get("listenmouse", True) and os.path.exists("/dev/input/mice"):
+            current_mouse = {"/dev/input/mice"}
         
         all_current_devs = current_js.union(current_kbds).union(current_mouse)
         all_monitored_devs = {path for path in tasks if path.startswith('/dev/input/')}
@@ -760,7 +768,7 @@ async def _rescan_devices_impl(state, controller_config, loop):
     except Exception as e:
         print(f"MCP: Error during device rescan: {e}")
 
-async def hotplug_monitor_native(state, controller_config, loop):
+async def hotplug_monitor_native(state, controller_config, listen_config, loop):
     """Monitors for device hotplug events using the 'inotifywait' utility."""
     print("MCP: Hot-plug monitor started (event-driven via inotifywait).")
     
@@ -792,7 +800,7 @@ async def hotplug_monitor_native(state, controller_config, loop):
                 if debounce_timer:
                     debounce_timer.cancel()
                 
-                debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_devices(state, controller_config, loop)))
+                debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_devices(state, controller_config, listen_config, loop)))
 
         except asyncio.CancelledError:
             print("MCP: Hot-plug monitor cancelled.")
@@ -817,6 +825,8 @@ def shutdown(loop):
 async def main():
     # 1. Read configuration (same as your script)
     config = configparser.ConfigParser(inline_comment_prefixes=('#', ';'))
+    listen_config = {"listenjoy": True, "listenkeyboard": True, "listenmouse": True}
+    
     try:
         with open(INI_FILE, 'r') as f:
             ini_content = f.read()
@@ -825,6 +835,12 @@ async def main():
         menu_only_raw = config.get("DEFAULT", "menuonly", fallback="yes")
         menu_only = menu_only_raw.strip('"\'').lower() in ['yes', 'true', '1', 'on']
         timeout = config.getint("DEFAULT", "samtimeout", fallback=60)
+        
+        # Load listen configs
+        listen_config["listenjoy"] = config.get("DEFAULT", "listenjoy", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        listen_config["listenkeyboard"] = config.get("DEFAULT", "listenkeyboard", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        listen_config["listenmouse"] = config.get("DEFAULT", "listenmouse", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        
     except Exception as e:
         print(f"MCP: Warning - Could not read or parse INI file: {e}")
         print("MCP: Using default values for timeout (60s) and menu_only (True).")
@@ -843,6 +859,7 @@ async def main():
     # 2. Initialize state
     state = SamState(timeout=timeout, menu_only=menu_only)
     print(f"MCP started. Idle timeout: {state.idle_timeout}s, Menu-only: {state.menu_only}")
+    print(f"MCP Listen Config: Joy={listen_config['listenjoy']}, Kbd={listen_config['listenkeyboard']}, Mouse={listen_config['listenmouse']}")
 
     # 3. Setup asyncio tasks
     tasks['checker'] = (asyncio.create_task(idle_and_status_checker(state)), None)
@@ -851,13 +868,14 @@ async def main():
 
     # 4. Initial scan for existing devices and start monitoring them
     # The new rescan function handles the initial scan perfectly.
-    await rescan_devices(state, controller_config, loop)
+    await rescan_devices(state, controller_config, listen_config, loop)
 
     # 4.5 Start the remote.log monitor for virtual network inputs
-    await watch_remote_log("/tmp/remote.log", state, loop)
+    if listen_config["listenkeyboard"]:
+        await watch_remote_log("/tmp/remote.log", state, loop)
 
     # 5. Start the hot-plug monitor task
-    tasks['hotplug'] = (asyncio.create_task(hotplug_monitor_native(state, controller_config, loop)), None)
+    tasks['hotplug'] = (asyncio.create_task(hotplug_monitor_native(state, controller_config, listen_config, loop)), None)
 
     # 6. Setup signal handlers for graceful shutdown
     for sig in (signal.SIGINT, signal.SIGTERM):
