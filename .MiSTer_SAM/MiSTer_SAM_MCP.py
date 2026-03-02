@@ -446,6 +446,51 @@ def mouse_poller_thread(device_path, state, loop, stop_event):
             break
     print(f"MCP-Mouse: Poller for {device_path} stopped.")
 
+def remote_log_poller_thread(log_path, state, loop, stop_event):
+    """
+    Tails the remote.log file and triggers activity on specific log entries.
+    Runs in a separate thread.
+    """
+    print(f"MCP-RemoteLog: Starting poller for {log_path}")
+    
+    while not stop_event.is_set():
+        # If the file doesn't exist yet, just wait for it.
+        if not os.path.exists(log_path):
+            time.sleep(1)
+            continue
+
+        try:
+            with open(log_path, "r") as f:
+                # Seek to the end immediately so we only react to NEW network inputs
+                f.seek(0, os.SEEK_END)
+                
+                while not stop_event.is_set():
+                    line = f.readline()
+                    if not line:
+                        # If EOF, check if the file was deleted/rotated
+                        if not os.path.exists(log_path):
+                            break # Break inner loop to wait for it to return
+                        time.sleep(0.5) # Wait briefly for new data
+                        continue
+                    
+                    # Check for our specific trigger phrase
+                    if "kbd" in line:
+                        # Send the "default" action to wake up SAM/reset idle timers
+                        loop.call_soon_threadsafe(handle_action, "default", state, loop)
+                        
+                        # Debounce for 1 second to prevent event floods from mashing
+                        time.sleep(1) 
+                        
+                        # After waking up, jump to the end of the file again 
+                        # to discard any queued inputs that piled up during sleep
+                        f.seek(0, os.SEEK_END) 
+                        
+        except Exception as e:
+            print(f"MCP-RemoteLog: Transient error tailing {log_path}: {e}")
+            time.sleep(1)
+            
+    print(f"MCP-RemoteLog: Poller for {log_path} stopped.")
+
 async def watch_joystick_device(device_info, state, controller_config, loop):
     """Creates and registers a polling task for a single joystick device."""
     stop_event = threading.Event()
@@ -473,6 +518,14 @@ async def watch_mouse_device(device_path, state, loop):
         mouse_poller_thread, device_path, state, loop, stop_event
     ))
     tasks[device_path] = (task, stop_event)
+
+async def watch_remote_log(log_path, state, loop):
+    """Creates and registers a polling task for a log file."""
+    stop_event = threading.Event()
+    task = asyncio.create_task(asyncio.to_thread(
+        remote_log_poller_thread, log_path, state, loop, stop_event
+    ))
+    tasks[log_path] = (task, stop_event)
 
 async def idle_and_status_checker(state):
     """Periodically checks idle time and SAM running status."""
@@ -799,6 +852,9 @@ async def main():
     # 4. Initial scan for existing devices and start monitoring them
     # The new rescan function handles the initial scan perfectly.
     await rescan_devices(state, controller_config, loop)
+
+    # 4.5 Start the remote.log monitor for virtual network inputs
+    await watch_remote_log("/tmp/remote.log", state, loop)
 
     # 5. Start the hot-plug monitor task
     tasks['hotplug'] = (asyncio.create_task(hotplug_monitor_native(state, controller_config, loop)), None)
