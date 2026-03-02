@@ -24,7 +24,7 @@
 # Indexing tool: wizzomafizzo
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, syntax_x, Sigismond, theypsilon, TBoneSF
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, syntax_x, Sigismond, theypsilon
 # tty2oled improvements by venice
 
 # TODO implement playcurrentgame for amiga
@@ -3148,6 +3148,16 @@ function sam_prep() {
 			samini_mod samvideo_tvc no
 		fi
 	fi
+
+	# Check CD-i autoplay for SAM commercials
+	if [ "${samvideo}" == "yes" ] && [ "${samvideo_tvc_cdi}" == "yes" ]; then
+		local cdi_cfg="/media/fat/config/cdi_sam.cfg"
+		if [ ! -f "$cdi_cfg" ]; then
+			# Create file with Autoplay ENABLED and user custom settings
+			echo "d008 0100 0000 0000 0000 0000 0000 0000" | xxd -r -p > "$cdi_cfg"
+			samdebug "cdi_sam.cfg created with custom settings and Autoplay ENABLED."
+		fi
+	fi
 	# Mute Global Volume
 	# if Volume.dat exists, try to mute only if needed
 	if [ "${mute}" != "no" ]; then
@@ -4240,20 +4250,7 @@ function sv_ar_cdi_mode() {
         awk -vLine="$sv_selected" '!index($0,Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
     fi
 
-    # 7. Check CD-i autoplay
-    FILE="/media/fat/config/CD-i.cfg"
-    if [ ! -f "$FILE" ]; then
-        # Create file with Autoplay ENABLED
-        echo "1000 0000 0000 0000 0000 0000 0000 0000" | xxd -r -p > "$FILE"
-        echo "CD-i.CFG created with Autoplay ENABLED."
-    else
-        # Fix Autoplay if disabled
-        BYTE=$(xxd -p -s 1 -l 1 "$FILE")
-        if [ "$BYTE" != "00" ]; then
-            printf '\x00' | dd of="$FILE" bs=1 seek=1 count=1 conv=notrunc 2>/dev/null
-            echo "Autoplay was OFF ($BYTE). Patched to ON (00)."
-        fi
-    fi
+
 
     # 8. Calculate Game Timer (+10 second buffer)
     # Using awk to handle the float calc and integer addition in one step
@@ -4318,6 +4315,7 @@ function sv_ar_cdi_mode() {
 
         echo "<mistergamedescription>"
         echo "<rbf>${mgl_rbf}</rbf>"
+        echo "<setname same_dir=\"1\">cdi_sam</setname>"
         echo "<file delay=\"1\" type=\"s\" index=\"1\" path=\"../../../../..${tmpvideo}\"/>"
     } >/tmp/SAM_Game.mgl
     
