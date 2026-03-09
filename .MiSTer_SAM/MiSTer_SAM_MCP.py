@@ -815,13 +815,23 @@ async def hotplug_monitor_native(state, controller_config, listen_config, loop):
                 break # Process has exited
             
             decoded_line = line.decode().strip()
-            
-            # Only react to events related to physical device symlinks.
-            if '/dev/input/by-path/' in decoded_line:
+
+            # Trigger a rescan on:
+            #   - by-path symlink events (USB devices)
+            #   - direct jsX node creation (Bluetooth / wireless controllers that skip by-path)
+            parts = decoded_line.split()
+            event_path = parts[0] if parts else ''
+            event_type = parts[1] if len(parts) > 1 else ''
+            is_relevant = (
+                '/dev/input/by-path/' in event_path
+                or (event_path.startswith('/dev/input/js') and 'CREATE' in event_type)
+            )
+
+            if is_relevant:
                 # A physical device change was detected. Trigger a debounced rescan.
                 if debounce_timer:
                     debounce_timer.cancel()
-                
+                print(f"MCP: Hot-plug event detected ({decoded_line}). Scheduling rescan...")
                 debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_devices(state, controller_config, listen_config, loop)))
 
         except asyncio.CancelledError:
