@@ -269,7 +269,8 @@ def get_js_activity(
         if is_button and prev_event["value"] != next_event["value"] and next_event["value"] == 1:
             button_num = next_event["number"]
             if button_num == button_map.get("start"): return "start"
-            if button_num == button_map.get("select"): return "next"
+            if button_num == button_map.get("next"): return "next"
+            if button_num == button_map.get("exit"): return "exit"
             return "default"
 
         if is_axis and abs(prev_event["value"] - next_event["value"]) > AXIS_DEADZONE:
@@ -379,15 +380,24 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
     print(f"MCP-JS: Starting poller for {device_info.get('name', 'Unknown')} ({dev_path})")
 
     previous_events = []
+    sam_was_running = state.is_sam_running()
 
     while not stop_event.is_set():
+        # When SAM transitions from running → stopped, reset joystick state.
+        # This prevents a button held across the stop boundary from re-firing.
+        sam_is_running = state.is_sam_running()
+        if sam_was_running and not sam_is_running:
+            print(f"MCP-JS: SAM stopped. Resetting input state for {dev_path}.")
+            previous_events = []
+        sam_was_running = sam_is_running
+
         try:
             with open(dev_path, "rb") as f:
                 os.set_blocking(f.fileno(), False)
                 data = f.read(512)
             if data:
                 current_events = [dict(zip(("timestamp", "value", "type", "number"), struct.unpack(JS_EVENT_FORMAT, data[i:i+JS_EVENT_SIZE]))) for i in range(0, len(data), JS_EVENT_SIZE) if len(data[i:i+JS_EVENT_SIZE]) == JS_EVENT_SIZE]
-                
+
                 if not previous_events:
                     previous_events = current_events
                     print(f"MCP-JS: Initial state captured for {dev_path}. Listening for changes...")
@@ -395,15 +405,16 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
                     action = get_js_activity(previous_events, current_events, device_config)
                     if action:
                         loop.call_soon_threadsafe(handle_action, action, state, loop)
-                
+
                 previous_events = current_events
         except (BlockingIOError, FileNotFoundError):
             pass # This is expected on a non-blocking read with no data.
         except Exception as e:
             print(f"MCP-JS: Transient error in poller for {dev_path}: {e}")
-            time.sleep(1)
-        time.sleep(JOY_POLL_RATE)
-    
+            stop_event.wait(1)
+            continue
+        stop_event.wait(JOY_POLL_RATE)
+
     print(f"MCP-JS: Poller for {dev_path} stopped.")
 
 def keyboard_poller_thread(device_path, state, loop, stop_event):
@@ -693,10 +704,21 @@ def get_input_devices():
     ]
     
     # --- Find keyboards and their corresponding hidraw devices ---
+    # USB HID gamepads enumerate with a 'kbd' handler alongside their joystick interface.
+    # Their hidraw device sends continuous HID reports, which would constantly reset the
+    # idle timer. Exclude any keyboard device that shares the same USB parent as a joystick.
+    # Both interfaces share the same P: Phys prefix, e.g. "usb-xxx/input0" vs "usb-xxx/input2".
+    def _usb_parent(phys: str) -> str:
+        return phys.rsplit('/', 1)[0] if phys and '/' in phys else phys
+
+    joystick_usb_parents = {_usb_parent(d.get('proc_phys', '')) for d in joysticks}
+
     keyboards = []
     for d in all_devices:
-        # A real keyboard has the 'is_keyboard' flag AND is not virtual
-        if d.get('is_keyboard') and 'virtual' not in d.get('sysfs', ''):
+        # A real keyboard: has 'is_keyboard', is not virtual, and is not from the same
+        # USB device as any detected joystick.
+        if d.get('is_keyboard') and 'virtual' not in d.get('sysfs', '') \
+                and _usb_parent(d.get('proc_phys', '')) not in joystick_usb_parents:
             
             # Get the physical address from 'P: Phys='
             phys_addr = d.get('proc_phys')
