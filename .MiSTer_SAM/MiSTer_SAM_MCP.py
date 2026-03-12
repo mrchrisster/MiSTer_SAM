@@ -269,7 +269,8 @@ def get_js_activity(
         if is_button and prev_event["value"] != next_event["value"] and next_event["value"] == 1:
             button_num = next_event["number"]
             if button_num == button_map.get("start"): return "start"
-            if button_num == button_map.get("select"): return "next"
+            if button_num == button_map.get("next"): return "next"
+            if button_num == button_map.get("exit"): return "exit"
             return "default"
 
         if is_axis and abs(prev_event["value"] - next_event["value"]) > AXIS_DEADZONE:
@@ -379,15 +380,24 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
     print(f"MCP-JS: Starting poller for {device_info.get('name', 'Unknown')} ({dev_path})")
 
     previous_events = []
+    sam_was_running = state.is_sam_running()
 
     while not stop_event.is_set():
+        # When SAM transitions from running → stopped, reset joystick state.
+        # This prevents a button held across the stop boundary from re-firing.
+        sam_is_running = state.is_sam_running()
+        if sam_was_running and not sam_is_running:
+            print(f"MCP-JS: SAM stopped. Resetting input state for {dev_path}.")
+            previous_events = []
+        sam_was_running = sam_is_running
+
         try:
             with open(dev_path, "rb") as f:
                 os.set_blocking(f.fileno(), False)
                 data = f.read(512)
             if data:
                 current_events = [dict(zip(("timestamp", "value", "type", "number"), struct.unpack(JS_EVENT_FORMAT, data[i:i+JS_EVENT_SIZE]))) for i in range(0, len(data), JS_EVENT_SIZE) if len(data[i:i+JS_EVENT_SIZE]) == JS_EVENT_SIZE]
-                
+
                 if not previous_events:
                     previous_events = current_events
                     print(f"MCP-JS: Initial state captured for {dev_path}. Listening for changes...")
@@ -395,15 +405,16 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
                     action = get_js_activity(previous_events, current_events, device_config)
                     if action:
                         loop.call_soon_threadsafe(handle_action, action, state, loop)
-                
+
                 previous_events = current_events
         except (BlockingIOError, FileNotFoundError):
             pass # This is expected on a non-blocking read with no data.
         except Exception as e:
             print(f"MCP-JS: Transient error in poller for {dev_path}: {e}")
-            time.sleep(1)
-        time.sleep(JOY_POLL_RATE)
-    
+            stop_event.wait(1)
+            continue
+        stop_event.wait(JOY_POLL_RATE)
+
     print(f"MCP-JS: Poller for {dev_path} stopped.")
 
 def keyboard_poller_thread(device_path, state, loop, stop_event):
@@ -446,6 +457,51 @@ def mouse_poller_thread(device_path, state, loop, stop_event):
             break
     print(f"MCP-Mouse: Poller for {device_path} stopped.")
 
+def remote_log_poller_thread(log_path, state, loop, stop_event):
+    """
+    Tails the remote.log file and triggers activity on specific log entries.
+    Runs in a separate thread.
+    """
+    print(f"MCP-RemoteLog: Starting poller for {log_path}")
+    
+    while not stop_event.is_set():
+        # If the file doesn't exist yet, just wait for it.
+        if not os.path.exists(log_path):
+            time.sleep(1)
+            continue
+
+        try:
+            with open(log_path, "r") as f:
+                # Seek to the end immediately so we only react to NEW network inputs
+                f.seek(0, os.SEEK_END)
+                
+                while not stop_event.is_set():
+                    line = f.readline()
+                    if not line:
+                        # If EOF, check if the file was deleted/rotated
+                        if not os.path.exists(log_path):
+                            break # Break inner loop to wait for it to return
+                        time.sleep(0.5) # Wait briefly for new data
+                        continue
+                    
+                    # Check for our specific trigger phrase
+                    if "kbd" in line:
+                        # Send the "default" action to wake up SAM/reset idle timers
+                        loop.call_soon_threadsafe(handle_action, "default", state, loop)
+                        
+                        # Debounce for 1 second to prevent event floods from mashing
+                        time.sleep(1) 
+                        
+                        # After waking up, jump to the end of the file again 
+                        # to discard any queued inputs that piled up during sleep
+                        f.seek(0, os.SEEK_END) 
+                        
+        except Exception as e:
+            print(f"MCP-RemoteLog: Transient error tailing {log_path}: {e}")
+            time.sleep(1)
+            
+    print(f"MCP-RemoteLog: Poller for {log_path} stopped.")
+
 async def watch_joystick_device(device_info, state, controller_config, loop):
     """Creates and registers a polling task for a single joystick device."""
     stop_event = threading.Event()
@@ -473,6 +529,14 @@ async def watch_mouse_device(device_path, state, loop):
         mouse_poller_thread, device_path, state, loop, stop_event
     ))
     tasks[device_path] = (task, stop_event)
+
+async def watch_remote_log(log_path, state, loop):
+    """Creates and registers a polling task for a log file."""
+    stop_event = threading.Event()
+    task = asyncio.create_task(asyncio.to_thread(
+        remote_log_poller_thread, log_path, state, loop, stop_event
+    ))
+    tasks[log_path] = (task, stop_event)
 
 async def idle_and_status_checker(state):
     """Periodically checks idle time and SAM running status."""
@@ -640,10 +704,21 @@ def get_input_devices():
     ]
     
     # --- Find keyboards and their corresponding hidraw devices ---
+    # USB HID gamepads enumerate with a 'kbd' handler alongside their joystick interface.
+    # Their hidraw device sends continuous HID reports, which would constantly reset the
+    # idle timer. Exclude any keyboard device that shares the same USB parent as a joystick.
+    # Both interfaces share the same P: Phys prefix, e.g. "usb-xxx/input0" vs "usb-xxx/input2".
+    def _usb_parent(phys: str) -> str:
+        return phys.rsplit('/', 1)[0] if phys and '/' in phys else phys
+
+    joystick_usb_parents = {_usb_parent(d.get('proc_phys', '')) for d in joysticks}
+
     keyboards = []
     for d in all_devices:
-        # A real keyboard has the 'is_keyboard' flag AND is not virtual
-        if d.get('is_keyboard') and 'virtual' not in d.get('sysfs', ''):
+        # A real keyboard: has 'is_keyboard', is not virtual, and is not from the same
+        # USB device as any detected joystick.
+        if d.get('is_keyboard') and 'virtual' not in d.get('sysfs', '') \
+                and _usb_parent(d.get('proc_phys', '')) not in joystick_usb_parents:
             
             # Get the physical address from 'P: Phys='
             phys_addr = d.get('proc_phys')
@@ -659,21 +734,29 @@ def get_input_devices():
 
     return {'joysticks': joysticks, 'keyboards': keyboards, 'has_mouse': has_mouse}
 
-async def rescan_devices(state, controller_config, loop):
+async def rescan_devices(state, controller_config, listen_config, loop):
     """Scans all devices and starts/stops monitors as needed."""
     # Use a lock to ensure only one rescan happens at a time.
     async with rescan_lock:
-        await _rescan_devices_impl(state, controller_config, loop)
+        await _rescan_devices_impl(state, controller_config, listen_config, loop)
 
-async def _rescan_devices_impl(state, controller_config, loop):
+async def _rescan_devices_impl(state, controller_config, listen_config, loop):
     print("MCP: Rescanning all input devices...")
     try:
         all_current_devices = await asyncio.to_thread(get_input_devices)
         
         # --- Build sets of current and monitored devices ---
-        current_js = {d['js_path'] for d in all_current_devices['joysticks']}
-        current_kbds = {d['hidraw_path'] for d in all_current_devices['keyboards']}
-        current_mouse = {"/dev/input/mice"} if os.path.exists("/dev/input/mice") else set()
+        current_js = set()
+        if listen_config.get("listenjoy", True):
+            current_js = {d['js_path'] for d in all_current_devices['joysticks']}
+            
+        current_kbds = set()
+        if listen_config.get("listenkeyboard", True):
+            current_kbds = {d['hidraw_path'] for d in all_current_devices['keyboards']}
+            
+        current_mouse = set()
+        if listen_config.get("listenmouse", True) and os.path.exists("/dev/input/mice"):
+            current_mouse = {"/dev/input/mice"}
         
         all_current_devs = current_js.union(current_kbds).union(current_mouse)
         all_monitored_devs = {path for path in tasks if path.startswith('/dev/input/')}
@@ -707,7 +790,7 @@ async def _rescan_devices_impl(state, controller_config, loop):
     except Exception as e:
         print(f"MCP: Error during device rescan: {e}")
 
-async def hotplug_monitor_native(state, controller_config, loop):
+async def hotplug_monitor_native(state, controller_config, listen_config, loop):
     """Monitors for device hotplug events using the 'inotifywait' utility."""
     print("MCP: Hot-plug monitor started (event-driven via inotifywait).")
     
@@ -732,14 +815,24 @@ async def hotplug_monitor_native(state, controller_config, loop):
                 break # Process has exited
             
             decoded_line = line.decode().strip()
-            
-            # Only react to events related to physical device symlinks.
-            if '/dev/input/by-path/' in decoded_line:
+
+            # Trigger a rescan on:
+            #   - by-path symlink events (USB devices)
+            #   - direct jsX node creation (Bluetooth / wireless controllers that skip by-path)
+            parts = decoded_line.split()
+            event_path = parts[0] if parts else ''
+            event_type = parts[1] if len(parts) > 1 else ''
+            is_relevant = (
+                '/dev/input/by-path/' in event_path
+                or (event_path.startswith('/dev/input/js') and 'CREATE' in event_type)
+            )
+
+            if is_relevant:
                 # A physical device change was detected. Trigger a debounced rescan.
                 if debounce_timer:
                     debounce_timer.cancel()
-                
-                debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_devices(state, controller_config, loop)))
+                print(f"MCP: Hot-plug event detected ({decoded_line}). Scheduling rescan...")
+                debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_devices(state, controller_config, listen_config, loop)))
 
         except asyncio.CancelledError:
             print("MCP: Hot-plug monitor cancelled.")
@@ -764,6 +857,8 @@ def shutdown(loop):
 async def main():
     # 1. Read configuration (same as your script)
     config = configparser.ConfigParser(inline_comment_prefixes=('#', ';'))
+    listen_config = {"listenjoy": True, "listenkeyboard": True, "listenmouse": True}
+    
     try:
         with open(INI_FILE, 'r') as f:
             ini_content = f.read()
@@ -772,6 +867,12 @@ async def main():
         menu_only_raw = config.get("DEFAULT", "menuonly", fallback="yes")
         menu_only = menu_only_raw.strip('"\'').lower() in ['yes', 'true', '1', 'on']
         timeout = config.getint("DEFAULT", "samtimeout", fallback=60)
+        
+        # Load listen configs
+        listen_config["listenjoy"] = config.get("DEFAULT", "listenjoy", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        listen_config["listenkeyboard"] = config.get("DEFAULT", "listenkeyboard", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        listen_config["listenmouse"] = config.get("DEFAULT", "listenmouse", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        
     except Exception as e:
         print(f"MCP: Warning - Could not read or parse INI file: {e}")
         print("MCP: Using default values for timeout (60s) and menu_only (True).")
@@ -790,6 +891,7 @@ async def main():
     # 2. Initialize state
     state = SamState(timeout=timeout, menu_only=menu_only)
     print(f"MCP started. Idle timeout: {state.idle_timeout}s, Menu-only: {state.menu_only}")
+    print(f"MCP Listen Config: Joy={listen_config['listenjoy']}, Kbd={listen_config['listenkeyboard']}, Mouse={listen_config['listenmouse']}")
 
     # 3. Setup asyncio tasks
     tasks['checker'] = (asyncio.create_task(idle_and_status_checker(state)), None)
@@ -798,10 +900,14 @@ async def main():
 
     # 4. Initial scan for existing devices and start monitoring them
     # The new rescan function handles the initial scan perfectly.
-    await rescan_devices(state, controller_config, loop)
+    await rescan_devices(state, controller_config, listen_config, loop)
+
+    # 4.5 Start the remote.log monitor for virtual network inputs
+    if listen_config["listenkeyboard"]:
+        await watch_remote_log("/tmp/remote.log", state, loop)
 
     # 5. Start the hot-plug monitor task
-    tasks['hotplug'] = (asyncio.create_task(hotplug_monitor_native(state, controller_config, loop)), None)
+    tasks['hotplug'] = (asyncio.create_task(hotplug_monitor_native(state, controller_config, listen_config, loop)), None)
 
     # 6. Setup signal handlers for graceful shutdown
     for sig in (signal.SIGINT, signal.SIGTERM):
