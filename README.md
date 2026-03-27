@@ -180,7 +180,7 @@ The great work began with MrChrisster building a MiSTer Attract feature for the 
 
 **- My Joystick does not trigger SAM's exit**  
 Not all joysticks are supported unfortunately. SNAC does not communicate with linux for example so we can't monitor it.  
-To see if your joystick works with SAM, you can run thsi command from command line and start pushing buttons:  
+To see if your joystick works with SAM, you can run this command (assuming your joystick is js0) from ssh and start pushing buttons:  
 `while true; do if [[ $(xxd -l 128 -c 8 /dev/input/js0 | awk '{ print $4 }' | grep 0100) == "0100" ]]; then echo "Button pushed"; fi; sleep 0.2; done`
   
 **- When I try to launch the script, it fails and says something about Document Type**  
