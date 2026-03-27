@@ -2011,23 +2011,9 @@ function build_mra_list() {
     local core_type="$1"
     local dest_dir="${2:-$gamelistpath}"
     local output_file="${dest_dir}/${core_type}_gamelist.txt"
-    local mra_path
+    local mra_path="/media/fat/_Arcade"
 
-    # 1. Determine the correct search path based on the core.
-    case "${core_type}" in
-        "stv")
-            mra_path="/media/fat/_Arcade/_ST-V"
-            ;;
-        "arcade")
-            mra_path="/media/fat/_Arcade"
-            ;;
-        *)
-            samdebug "ERROR: build_mra_list called with unsupported core '${core_type}'"
-            return 1
-            ;;
-    esac
-
-    # 2. Check if the search directory exists.
+    # 1. Check if the search directory exists.
     if [ ! -d "${mra_path}" ]; then
         echo "The path ${mra_path} does not exist!"
         : > "${output_file}" # Create empty list to prevent re-running
@@ -2041,9 +2027,18 @@ function build_mra_list() {
         return 0
     fi
 
-    # 3. Build the list directly into the destination file using find.
-    find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" > "${output_file}"
-    
+    # 2. Build the list based on core type.
+    case "${core_type}" in
+        "stv")
+            # Find all MRA files that contain "stvbios.zip"
+            find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" -exec grep -l "stvbios.zip" {} + > "${output_file}" 2>/dev/null
+            ;;
+        "arcade")
+            # Find all MRA files in the Arcade path.
+            find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" > "${output_file}"
+            ;;
+    esac
+
     samdebug "Created ${core_type} MRA gamelist in '${dest_dir}'."
     sync "${output_file}"
 }
