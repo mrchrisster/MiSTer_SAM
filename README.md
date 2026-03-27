@@ -177,6 +177,12 @@ If you would like to know what game is currently playing, you can check the file
 The great work began with MrChrisster building a MiSTer Attract feature for the NES core. This begat Attract_Arcade after Mellified ~~kept opening issues~~ started helping. Once MrChrisster worked with mbc it unlocked the power to load ROMs for more MiSTer cores, resulting in Attract_Mode. We wanted to bring the project to the next level by automating the process. From this collaboration and passion was born SAM - Super Attract Mode! Since MiSTer SAM does everything the old projects did - and lots more! - we wanted to create a new name appropriate for its new superpowers.
  
 ## Troubleshooting
+
+**- My Joystick does nt trigger SAM's exit**
+Not all joysticks are supported unfortunately. SNAC does not communicate with linux for example so we can't monitor it.
+To see if your joystick works with SAM, you can run thsi command from command line and start pushing buttons:
+`while true; do if [[ $(xxd -l 128 -c 8 /dev/input/js0 | awk '{ print $4 }' | grep 0100) == "0100" ]]; then echo "Button pushed"; fi; sleep 0.2; done`
+  
 **- When I try to launch the script, it fails and says something about Document Type**  
 You most likely didn't download the "raw" file.  
 When downloading a file from github, click on the file, then click on "raw".  
