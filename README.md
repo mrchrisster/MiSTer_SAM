@@ -46,7 +46,7 @@ Simply wait at the main MiSTer menu for 2 minutes (default setting) without touc
 
 Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` script in your MiSTer's Scripts folder! 
 
-## SAM GOAT List - The Greatest Attract Screens of all time
+## The Greatest Attract Screens of all Time
 If you want an easy setup and just have some great attract screens showing, use SAM goat list.  
 Activate it by going to the menu (either through SSH/HDMI or custom modeline for menu core on CRT) and go to Presets. Find the Greatest of all time mode.  
 If you want you own list instead of the custom curated one, do the following:  
