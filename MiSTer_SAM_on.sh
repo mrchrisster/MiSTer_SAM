@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # https://github.com/mrchrisster/MiSTer_SAM/
-# Copyright (c) 2023 by mrchrisster and Mellified
+# Copyright (c) 2026 by mrchrisster and Mellified
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 # Indexing tool: wizzomafizzo
 #
 # Thanks for the contributions and support:
-# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, syntax_x, Sigismond, theypsilon
+# pocomane, kaloun34, redsteakraw, RetroDriven, woelper, LamerDeluxe, InquisitiveCoder, syntax_x, Sigismond, theypsilon, TBoneSF
 # tty2oled improvements by venice
 
 # TODO implement playcurrentgame for amiga
@@ -137,11 +137,16 @@ function init_vars() {
 	declare -gl samvideo_freq
 	declare -gl samvideo_output="hdmi"
 	declare -gl samvideo_source
+	declare -gl samvideo_tvc_cdi
 	declare -gl samvideo_tvc
 	declare -gl download_manager="yes"
 	declare -gl sv_aspectfix_vmode
 	declare -gl sv_inimod="yes"
 	declare -gl sv_inibackup="yes" 
+	declare -gl keep_local_copy="yes"
+	declare -gl do_fast_chd_fill="no"
+	declare -gl new_only_chd="no"
+
 	declare -g sv_inibackup_file="/media/fat/MiSTer.ini.sam_backup"
 	declare -g samvideo_crtmode="video_mode=640,16,64,80,240,1,3,14,12380"
 	declare -g samvideo_displaywait="2"
@@ -153,10 +158,9 @@ function init_vars() {
 	declare -g sv_gametimer_file="/tmp/.SAM_tmp/sv_gametimer"
 	declare -g sv_loadcounter=0
 	declare -g samvideo_path="/media/fat/video"
+	declare -g sv_archive_cdi="https://archive.org/download/mister-sam-cdi-vcd-commercials/mister-sam-cdi-vcd-commercials_files.xml"
 	declare -g sv_archive_hdmilist="https://archive.org/download/640x480_videogame_commercials/640x480_videogame_commercials_files.xml"
 	declare -g sv_archive_crtlist="https://archive.org/download/640x240_videogame_commercials/640x240_videogame_commercials_files.xml"
-	declare -g sv_youtube_hdmilist="${mrsampath}/sv_yt360_list.txt"
-	declare -g sv_youtube_crtlist="${mrsampath}/sv_yt240_list.txt"
 
 
 	# ======== CORE PATHS RBF ========
@@ -169,7 +173,7 @@ function init_vars() {
 	declare -g atari7800pathrbf="_Console"
 	declare -g atarilynxpathrbf="_Console"
 	declare -g c64pathrbf="_Computer"
-	declare -g cdipathrbf="_Console"	
+	declare -g cdipathrbf="_Unstable"	
 	declare -g coco2pathrbf="_Computer"
 	declare -g colecovisionpathrbf="_Console"
  	declare -g intellivisionpathrbf="_Console"
@@ -1027,10 +1031,12 @@ function init_data() {
 		["atari5200"]="atari 5200"
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
+		["cdi"]="cdi"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
 		["gg"]="sega game"
+		["intellivision"]="intellivision"
 		["megacd"]="megacd"
 		["n64"]="n64-\|n64"
 		["neogeo"]="neogeo"
@@ -1161,7 +1167,8 @@ function update_samini() {
 		# In order for the following awk script to replace variable values, we need to change our ASCII art from "=" to "-"
 		sed -i 's/==/--/g' "${samini_file}"
 		sed -i 's/-=/--/g' "${samini_file}"
-		awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
+		#awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" "${samini_update_file}" >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
+		
 		echo "Done."
 	fi
 
@@ -1191,7 +1198,7 @@ function parse_cmd() {
   case "$first" in
     start|restart)      sam_start "$@" ;;
     startmonitor|sm)    sam_start "$@"; sleep 1; sam_monitor ;;
-    skip|next)          echo "Skipping…"; tmux send-keys -t SAM C-c ENTER ;;
+    skip|next)          echo "Skipping…"; tmux send-keys -t SAM n ;;
     stop|kill)          tmp_reset; kill_all_sams; exit_sam menu ;;
     update)             sam_update ;;
     monitor)            sam_monitor ;;
@@ -1200,7 +1207,7 @@ function parse_cmd() {
     exit_to_game)       exit_sam game ;;
     unmute)             unmute_with_retry ;;
     enable)             env_check enable; sam_enable ;;
-    disable)            sam_cleanup; sam_disable ;;
+    disable)            sam_cleanup; kill_all_sams; sam_disable ;;
     ignore)             ignoregame ;;
     
     default)            sam_update autoconfig ;;
@@ -1217,8 +1224,7 @@ function parse_cmd() {
                         echo "SAM: Performing boot-time prep..."
                         sam_prep
                         ;;
-	session_entry)      session_entry "$@" ;;
-    loop_core)          loop_core ;;
+    loop_core)          loop_core "$@" ;;
     
     menu|back)          sam_menu ;;
     help)               sam_help ;;
@@ -1340,7 +1346,7 @@ function sam_menu() {
     # Everything dispatches cleanly through parse_cmd
     parse_cmd "${choice,,}"
 
-    # If it was a “playback” command, exit the menu loop
+    # If it was a "playback" command, exit the menu loop
     case "${choice,,}" in
       start|startmonitor|stop|kill|skip|next|update|ignore) break ;;
     esac
@@ -1376,7 +1382,40 @@ function load_menu_if_needed() {
 
 # ======== SAM OPERATIONAL FUNCTIONS ========
 
-function session_entry() {
+function toggle_mute() {
+    local volfile="${configpath}/Volume.dat"
+    if [ ! -f "$volfile" ]; then echo -ne "\x00" > "$volfile"; fi
+    
+    local hexval=$(xxd -p -l 1 -s 0 "$volfile")
+    local val=$((16#$hexval))
+    
+    if (( (val & 16) == 16 )); then
+        val=$((val & ~16))
+        echo -e "\nUnmuting..."
+        timeout 1s sh -c "echo 'volume unmute' > /dev/MiSTer_cmd"
+    else
+        val=$((val | 16))
+        echo -e "\nMuting..."
+        timeout 1s sh -c "echo 'volume mute' > /dev/MiSTer_cmd"
+    fi
+    printf "\\x$(printf %02x $val)" | dd of="$volfile" bs=1 count=1 conv=notrunc 2>/dev/null
+}
+
+function loop_core() { 
+    # args: [target_core]
+    if [ -n "$1" ]; then
+        SAM_MODE="SINGLE"
+        SAM_TARGET_CORE="$1"
+    else
+        SAM_MODE="ALL"
+        SAM_TARGET_CORE=""
+    fi
+    export SAM_MODE
+    export SAM_TARGET_CORE 
+    
+    # Global trap to detach monitor on Ctrl+C instead of killing SAM
+    trap 'tmux detach-client' INT
+
     # --- 1. Heavy Initialization (Runs once in background) ---
     echo "SAM Session: Initializing..."
     update_samini
@@ -1388,15 +1427,9 @@ function session_entry() {
     disable_bootrom
     bgm_start
     tty_start
-    
-    # --- 2. Hand off to the Main Loop ---
+
+    # --- 2. Main Loop ---
     echo "SAM Session: Setup complete. Entering main loop."
-    loop_core "${1-}"
-}
-
-
-function loop_core() { 
-    # This function now ONLY handles the game loop logic
     echo -e "Starting Super Attract Mode...\nLet Mortal Kombat begin!\n"
     
     # Reset game log for this session
@@ -1405,7 +1438,37 @@ function loop_core() {
 
     # The infinite loop
     while :; do
+        if [ "$SAM_ACTION" == "previous" ]; then
+             if [ -f /tmp/.SAM_tmp/prev_game_info ]; then
+                 source /tmp/.SAM_tmp/prev_game_info
+                 if [ "$core" == "cdi" ] && [ "${samvideo_tvc_cdi}" == "yes" ]; then
+                     samdebug "Replaying previous CDI video: $gamename"
+                     # Force the selection of the same video
+                     sv_selected="$gamename" 
+                     sv_ar_cdi_mode
+                 elif [ -f /tmp/SAM_game.previous.mgl ]; then
+                     samdebug "Replaying previous game"
+                     load_core "mgls" "/tmp/SAM_game.previous.mgl"
+                 else
+                     samdebug "Previous MGL not found."
+                 fi
+                 SAM_ACTION=""
+                 run_countdown_timer
+                 continue
+             else
+                 samdebug "No previous game info."
+                 SAM_ACTION=""
+             fi
+        fi
+
         if next_core "${1-}"; then
+            # Cache previous game details for replay
+            {
+                printf "gamename=%q\n" "${gamename}"
+                printf "rompath=%q\n" "${rompath}"
+                printf "core=%q\n" "${core}"
+            } > /tmp/.SAM_tmp/prev_game_info
+            
             run_countdown_timer
         else
             samdebug "next_core failed. Looping to pick another core."
@@ -1417,20 +1480,70 @@ function loop_core() {
 
 function run_countdown_timer() {
     local countdown=${gametimer}
+    local start_time=$SECONDS
+    local end_time=$((start_time + countdown))
 
-    # Set a local trap to handle Ctrl+C. This will echo a newline to clear
-    # the countdown line and then return from this function, effectively skipping the game.
-    trap 'echo; return' INT
+    # Set a local trap to handle Ctrl+C.
+    # Inherit global trap (detach)
+    # trap 'echo; return' INT
 
-    # This loop provides a visible, second-by-second countdown.
-    while (( countdown > 0 )); do
-        echo -ne "Next game in ${countdown} seconds...\033[0K\r"
-        sleep 1
-        ((countdown--))
+    # This loop provides a visible, second-by-second countdown with input handling
+    local video_synced="yes"
+    if [ "${samvideo}" == "yes" ] && [ "$sv_nextcore" == "samvideo" ]; then
+        video_synced="no"
+        # Ensure we don't timeout while loading
+        if (( countdown < 60 )); then countdown=60; fi
+        end_time=$((start_time + countdown))
+    fi
+
+    while (( SECONDS < end_time )); do
+        if [ "$video_synced" == "no" ]; then
+            # extend timeout slightly to keep loop alive if loading is slow
+            if (( end_time - SECONDS < 5 )); then
+                end_time=$((SECONDS + 10))
+            fi
+
+            if [ -f "$sv_gametimer_file" ]; then
+                local video_time=$(cat "$sv_gametimer_file")
+                if [[ "$video_time" =~ ^[0-9]+$ ]]; then
+                    countdown=$video_time
+                    end_time=$((SECONDS + countdown))
+                    rm "$sv_gametimer_file" 2>/dev/null
+                    samdebug "Timer synced to video: $countdown seconds"
+                    video_synced="yes"
+                fi
+            fi
+        fi
+        
+        local current_rem=$((end_time - SECONDS))
+        if (( current_rem < 0 )); then current_rem=0; fi
+
+        if [ "$video_synced" == "no" ]; then
+             echo -ne "Loading video...\033[0K\r"
+        else
+             echo -ne "Next in ${current_rem} seconds...\033[0K\r"
+        fi
+        
+        read -s -t 1 -n 1 key
+        if [[ $? -eq 0 ]]; then
+            case "$key" in
+                n|N) 
+                    echo; return 
+                    ;;
+                p|P)
+                    echo
+                    SAM_ACTION="previous"
+                    return
+                    ;;
+                m|M)
+                    toggle_mute
+                    ;;
+            esac
+        fi
     done
 
     # Reset the trap to its default behavior after the countdown finishes normally.
-    trap - INT
+    # trap - INT
 }
 
 # Pick a random core
@@ -1464,6 +1577,9 @@ function next_core() { # next_core (core)
 		else
 			pick_core			
 		fi
+	else
+		# Single Mode: Use the provided argument
+		nextcore="${1}"
 	fi	
 	
 	check_list "${nextcore}"
@@ -1524,7 +1640,7 @@ function load_samvideo() {
 		samvideo_play &
 		return 1
 	elif [ "${samvideo_freq}" == "core" ]; then
-		echo "samvideo load core counter is now $sv_loadcounter"
+		samdebug "samvideo load core counter is now $sv_loadcounter"
 		if ((sv_loadcounter % ${#corelist[@]} == 0)); then
 			samvideo_play &
 			sv_loadcounter=0
@@ -1569,7 +1685,7 @@ function corelist_update() {
 
 	local updated_corelisttmp=()
 	for tmp_core in "${corelisttmp[@]}"; do
-		if [[ -v valid_cores_map["$tmp_core"] ]]; then
+		if [[ -n "${valid_cores_map["$tmp_core"]}" ]]; then
 			updated_corelisttmp+=("$tmp_core")
 		fi
 	done
@@ -1598,6 +1714,13 @@ function corelist_update() {
 # Main core picker
 # ──────────────────────────────────────────────────────────────────────────────
 function pick_core() {
+    # SAFETY: If in SINGLE mode, Force Target Core
+    if [ "$SAM_MODE" == "SINGLE" ] && [ -n "$SAM_TARGET_CORE" ]; then
+        nextcore="$SAM_TARGET_CORE"
+        samdebug "pick_core: Single mode active. Forcing core: $nextcore"
+        return
+    fi
+
     # Check if this is a first run by seeing if any gamelists exist.
     local gamelist_count
     gamelist_count=$(find "$gamelistpath" -maxdepth 1 -type f -name '*_gamelist.txt' | wc -l)
@@ -1639,7 +1762,7 @@ function pick_core_standard() {
     samdebug "Picked core (standard): $nextcore"
 }
 
-# 2) SAM-video mode (Weighted by _tvc.txt)
+# 2) SAM-video mode (Weighted by _tvc.json)
 
 declare -A SAMVC        # tvc counts per core
 SAMVTOTAL=0             # sum of all counts
@@ -1663,7 +1786,11 @@ function init_core_samvideo() {
         done < "$core_count_file"
     else
         for core in "${arr_ref[@]}"; do
-            tvc="${gamelistpath}/${core}_tvc.txt"
+            local tvc_suffix="_tvc.json"
+            if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+                tvc_suffix="_tvc_vcd.json"
+            fi
+            tvc="${mrsampath}/tvc/${core}${tvc_suffix}"
             cnt=0
             [[ -f "$tvc" ]] && cnt=$(jq -r 'keys|length' "$tvc" 2>/dev/null || echo 0)
             SAMVC["$core"]=$cnt
@@ -1757,7 +1884,7 @@ function init_core_weighted() {
         TOTAL_GAME_COUNT=${#corelist[@]}
     fi
 
-    # d) mirror COREWC → COREP for picking
+    # d) mirror COREWC -> COREP for picking
     for c in "${!COREWC[@]}"; do
         COREP["$c"]=${COREWC["$c"]}
     done
@@ -1844,13 +1971,21 @@ function pick_rom() {
 
 		# samvideo mode tries to find a specific game matching a commercial.
         local specific_game
-        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | head -n 1)"
+        local search_term=$(cat /tmp/.SAM_tmp/sv_gamename)
+        samdebug "Searching for game matching string: $search_term"
+        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
         
+        if [[ -z "${specific_game}" ]]; then
+            samdebug "Match not found in session list. Checking master list..." 
+            specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "${gamelistpath}/${nextcore}_gamelist.txt" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
+        fi
+
         if [[ -n "${specific_game}" ]]; then
             rompath="${specific_game}"
+		    samdebug "Match found: $specific_game"
             return # Exit successfully if we found the specific game.
         fi
-        samdebug "Could not find matching game for commercial. Picking a random game instead."
+        echo "Could not find matching game for commercial. Picking a random game instead."
     fi
 
     # 2. Default Action: If no special game modes applied, use the random picker.
@@ -1907,7 +2042,7 @@ function check_rom(){
     local extension="${rompath##*.}"
     local extlist="${CORE_EXT[${core}]//,/ }"  # Use the passed argument
                 
-    if [[ -v CORE_EXT[$core] ]]; then
+    if [[ -n "${CORE_EXT[$core]}" ]]; then
         local extension="${rompath##*.}"
         local extlist="${CORE_EXT[${core}]//,/ }"
 
@@ -1918,6 +2053,42 @@ function check_rom(){
         fi
     fi
     
+    # Check for RBF existence for Arcade/STV MRAs
+    if [[ "${core}" == "arcade" || "${core}" == "stv" ]] && [[ "${rompath,,}" == *.mra ]]; then
+        local rbf_tag
+        # Extract content between <rbf> and </rbf>, removing whitespace
+        rbf_tag=$(grep -i "<rbf>" "${rompath}" | head -n 1 | sed -e 's/.*<rbf>\(.*\)<\/rbf>.*/\1/' | tr -d '[:space:]')
+        
+        if [[ -n "${rbf_tag}" ]]; then
+            local checks_dir="${misterpath}/${CORE_PATH_RBF[${core}]}"
+            local rbf_found=0
+             
+             # Check for RBF file (exact match or with timestamp suffix)
+			if [ -n "$(find "${checks_dir}" -iname "${rbf_tag}*.rbf" -print -quit 2>/dev/null)" ]; then
+				rbf_found=1
+			fi
+             
+             if [[ $rbf_found -eq 0 ]]; then
+                 samdebug "ERROR: RBF '${rbf_tag}' not found for MRA '${rompath}'. validation failed."
+                 
+                 # Remove from the current session list so we don't pick it again immediately
+                 local session_list="${gamelistpathtmp}/${core}_gamelist.txt"
+                 if [ -f "${session_list}" ]; then
+                     grep -F -v "${rompath}" "${session_list}" > "${session_list}.tmp" && mv "${session_list}.tmp" "${session_list}"
+                 fi
+
+                 # Also remove from the MASTER list so it doesn't come back next session.
+                 # Rebuilding the list wouldn't help here because the MRA file itself still exists.
+                 local master_list="${gamelistpath}/${core}_gamelist.txt"
+                 if [ -f "${master_list}" ]; then
+                     samdebug "Pruning '${rompath}' from master list due to missing RBF."
+                     grep -F -v "${rompath}" "${master_list}" > "${master_list}.tmp" && mv "${master_list}.tmp" "${master_list}"
+                 fi
+                 return 1
+             fi
+        fi
+    fi
+
     # If all checks pass, return 0 for success
     return 0
 }
@@ -2021,7 +2192,7 @@ function build_mgl_list() {
 
     # If the resulting list is empty, disable the core
     if [ ! -s "${output_file}" ]; then
-        samdebug "No .mgl files found for ${core_type}—disabling core."
+        samdebug "No .mgl files found for ${core_type}-disabling core."
         delete_from_corelist "${core_type}"
         delete_from_corelist "${core_type}" tmp
         return 1
@@ -2116,7 +2287,11 @@ function build_gamelist() {
         # On initial build, an exit code > 1 means "no games found".
         if (( rc > 1 )); then
             delete_from_corelist "$core"
-            echo "Can't find games for ${CORE_PRETTY[$core]}"
+            if [ -n "$core" ]; then
+                echo "Can't find games for ${CORE_PRETTY[$core]}"
+            else
+                echo "Can't find games for (unknown core)"
+            fi
             samdebug "build_gamelist returned code $rc for $core"
             return 1 # Return an error
         fi
@@ -2340,13 +2515,14 @@ function check_list_update() {
 function build_goat_lists() {
 	local goat_flag="/tmp/.SAM_tmp/goatmode.ready"
 	local goat_list_path="${gamelistpath}/sam_goat_list.txt"
-	
-	echo "SAM GOAT Mode active"
-	
+
 	# Already built this session?
 	[[ -f "$goat_flag" ]] && return
-	
+
+	echo "SAM GOAT Mode active"
+
 	# Ensure working dir
+	rm -rf "${gamelistpathtmp}"/*
 	mkdir -p "${gamelistpathtmp}" /tmp/.SAM_tmp
 	
 	# Download master list if missing
@@ -2360,10 +2536,30 @@ function build_goat_lists() {
 	while IFS= read -r line; do
 	if [[ "$line" =~ ^\[(.+)\]$ ]]; then
 	  current_core="${BASH_REMATCH[1],,}"
-	  [[ ! -f "${gamelistpath}/${current_core}_gamelist.txt" ]] && build_gamelist "$current_core"
+	  if [[ ! -f "${gamelistpath}/${current_core}_gamelist.txt" ]]; then
+	    build_gamelist "$current_core"
+	    rm -f "${gamelistpathtmp}/${current_core}_gamelist.txt"
+	  fi
 	elif [[ -n "$current_core" ]]; then
-	  fgrep -i -m1 "$line" "${gamelistpath}/${current_core}_gamelist.txt" \
-		>> "${gamelistpathtmp}/${current_core}_gamelist.txt"
+	  local all_matches
+	  all_matches=$(fgrep -i "$line" "${gamelistpath}/${current_core}_gamelist.txt")
+	  if [[ -n "$all_matches" ]]; then
+	    local picked=""
+	    # For arcade: prefer the canonical non-alternatives path first
+	    if [[ "$current_core" == "arcade" ]]; then
+	      picked=$(echo "$all_matches" | grep -v -i "_alternatives" | head -1)
+	    fi
+	    # Then try region preference: USA > Japan > World
+	    if [[ -z "$picked" ]]; then
+	      for region in "USA" "Japan" "World"; do
+	        picked=$(echo "$all_matches" | grep -i "(${region}" | head -1)
+	        [[ -n "$picked" ]] && break
+	      done
+	    fi
+	    # Fall back to first match
+	    [[ -z "$picked" ]] && picked=$(echo "$all_matches" | head -1)
+	    echo "$picked" >> "${gamelistpathtmp}/${current_core}_gamelist.txt"
+	  fi
 	fi
 	done < "$goat_list_path"
 	
@@ -2464,7 +2660,17 @@ function pick_random_game() {
 	if [[ "${core_type}" == "arcade" || "${core_type}" == "stv" ]]; then
 		if [ ! -f "${chosen_path}" ]; then
 			samdebug "ERROR: MRA file not found after pick and sanitize: '${chosen_path}'"
-			return 1
+            samdebug "The gamelist for '${core_type}' appears out of date. Triggering rebuild."
+            
+            # Delete the stale lists
+            rm -f "${master_list}" "${session_list}"
+            
+            # Rebuild the master list immediately so we can try again on the next pass
+            ensure_list "${core_type}" "${gamelistpath}"
+            
+            # RECURSIVE CALL: Try to pick again immediately from the fresh list
+            pick_random_game "${core_type}"
+			return $?
 		fi
 	fi
 
@@ -2707,7 +2913,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
 
 	# Time to launch this puppy
-    echo "${launch_cmd}" >/dev/MiSTer_cmd
+    timeout 1s sh -c "echo \"${launch_cmd}\" >/dev/MiSTer_cmd"
     
     if [ -n "${post_launch_hook}" ]; then
         eval "${post_launch_hook}"
@@ -2731,7 +2937,7 @@ function sam_start() {
     echo "Starting SAM session..."
 
     if tmux has-session -t SAM 2>/dev/null; then
-        samdebug "SAM session already exists—skipping."
+        samdebug "SAM session already exists-skipping."
         return
     fi
 
@@ -2739,9 +2945,11 @@ function sam_start() {
     # We pass 'session_entry' instead of 'loop_core'
     tmux new-session -d \
       -x 180 -y 40 \
-      -n "-= SAM Monitor -- Detach with ctrl-b, then push d =-" \
+      -n "SAM Monitor: (n)ext (p)rev (m)ute (ctrl-c)lose" \
       -s SAM \
-      "${misterpath}/Scripts/MiSTer_SAM_on.sh session_entry $core" &
+      "${misterpath}/Scripts/MiSTer_SAM_on.sh loop_core $core" &
+    
+
 }
 
 
@@ -2760,7 +2968,7 @@ function boot_sleep() { #Wait for rtc sync
 function there_can_be_only_one() {
   echo "Stopping other running instances of ${samprocess}…"
 
-  # 1) kill any tmux “SAM” session
+  # 1) kill any tmux "SAM" session
   tmux kill-session -t SAM 2>/dev/null || true
 
   # 2) patterns to match in the ps output
@@ -2803,7 +3011,7 @@ function exit_sam() { # exit_sam [menu|game]
     # 6. Load menu if requested
     if [[ "$exit_mode" == "menu" ]]; then
         echo "SAM stopped. Returning to menu..."
-        echo "load_core /media/fat/menu.rbf" > /dev/MiSTer_cmd
+        timeout 1s sh -c "echo 'load_core /media/fat/menu.rbf' > /dev/MiSTer_cmd"
     fi
 }
 
@@ -2813,6 +3021,10 @@ function mcp_start() {
 	# MCP monitors when SAM should be launched. 
 	# "menuonly" and "samtimeout" determine when MCP launches SAM
 	
+	if tmux has-session -t MCP 2>/dev/null; then
+		return
+	fi
+
 	if [ -z "$(pidof MiSTer_SAM_MCP)" ]; then
 		tmux new-session -s MCP -d "${mrsampath}/MiSTer_SAM_MCP.py"
 	fi
@@ -2922,7 +3134,7 @@ function sam_prep() {
 		# if no overlap, warn & use the full rated list
 		if (( ${#clr[@]} == 0 )); then
 		  echo "Warning: none of your enabled cores match the '${rating}' list."
-		  echo "→ Falling back to ALL rated cores."
+		  echo "-> Falling back to ALL rated cores."
 		  clr=( "${glr[@]}" )
 		else
 		  # otherwise show which cores have no rating file
@@ -2941,7 +3153,7 @@ function sam_prep() {
 	
 	[ "${coreweight}" == "yes" ] && echo "Weighted core mode active."
 	[ "${samdebuglog}" == "yes" ] && rm /tmp/samdebug.log 2>/dev/null
-	if [ "${samvideo}" == "yes" ]; then
+	if [ "${samvideo}" == "yes" ] && [ "${samvideo_tvc_cdi}}" == "no" ]; then
 	
 		# Hide login prompt
 		echo -e '\033[2J' > /dev/tty1
@@ -2951,10 +3163,9 @@ function sam_prep() {
 		
 		misterini_apply_temp
 		get_dlmanager
-		if [ ! -f "${mrsampath}"/mplayer ] || [ ! -f "${mrsampath}"/ytdl ]; then
+		if [ ! -f "${mrsampath}"/mplayer ]; then
 			if [ -f "${mrsampath}"/mplayer.zip ]; then
 				unzip -ojq "${mrsampath}"/mplayer.zip -d "${mrsampath}"
-				curl_download "${mrsampath}"/ytdl "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
 			else
 				get_samvideo
 			fi
@@ -2964,38 +3175,38 @@ function sam_prep() {
 			samini_mod samvideo_tvc no
 		fi
 	fi
-	# Mute Global Volume
-	# if Volume.dat exists, try to mute only if needed
-	if [ "${mute}" != "no" ]; then
-		if [ -f "${configpath}/Volume.dat" ]; then
-		  only_mute_if_needed
-	
-		# if Volume.dat doesn’t exist yet, create it *and* mute
-		else
-		  # create a “level=0 + mute” byte = 0x10
-		  write_byte "${configpath}/Volume.dat" "10"
-		  echo "volume mute" > /dev/MiSTer_cmd
-		  samdebug "Volume.dat created (0x10) and muted."
+
+	# Check CD-i autoplay for SAM commercials
+	if [ "${samvideo}" == "yes" ] && [ "${samvideo_tvc_cdi}" == "yes" ]; then
+		local cdi_cfg="/media/fat/config/cdi_sam.cfg"
+		if [ ! -f "$cdi_cfg" ]; then
+			# Create file with Autoplay ENABLED and user custom settings
+			echo "d008 0100 0000 0000 0000 0000 0000 0000" | xxd -r -p > "$cdi_cfg"
+			samdebug "cdi_sam.cfg created with custom settings and Autoplay ENABLED."
 		fi
+	fi
+	# Mute Global Volume via bind mount (no SD card write)
+	if [ "${mute}" != "no" ]; then
+		only_mute_if_needed
 	fi
 }
 
 function sam_cleanup() {
 	# Clean up by umounting any mount binds
 	#[ -f "${configpath}/Volume.dat" ] && [ ${mute} == "yes" ] && rm "${configpath}/Volume.dat"
-	only_unmute_if_needed
-	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && umount -l "${amigapath}/shared"
-	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && umount "${misterpath}/Bootrom"
-	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot1.rom"
-	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot2.rom"
-	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && umount "${misterpath}/Games/NES/boot3.rom"
+	[ "${mute}" != "no" ] && only_unmute_if_needed
+	[ "$(mount | grep -ic "${amigapath}"/shared)" == "1" ] && timeout 3s umount -l "${amigapath}/shared"
+	[ -d "${misterpath}/Bootrom" ] && [ "$(mount | grep -ic 'bootrom')" == "1" ] && timeout 3s umount "${misterpath}/Bootrom"
+	[ -f "${misterpath}/Games/NES/boot1.rom" ] && [ "$(mount | grep -ic 'nes/boot1.rom')" == "1" ] && timeout 3s umount "${misterpath}/Games/NES/boot1.rom"
+	[ -f "${misterpath}/Games/NES/boot2.rom" ] && [ "$(mount | grep -ic 'nes/boot2.rom')" == "1" ] && timeout 3s umount "${misterpath}/Games/NES/boot2.rom"
+	[ -f "${misterpath}/Games/NES/boot3.rom" ] && [ "$(mount | grep -ic 'nes/boot3.rom')" == "1" ] && timeout 3s umount "${misterpath}/Games/NES/boot3.rom"
 	if [ "${mute}" != "no" ]; then
 		readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')"
 		if [ "${#volmount[@]}" -gt 0 ]; then
 			umount -l "${volmount[@]}" >/dev/null 2>&1
 		fi
 	fi
-	if [ "${samvideo}" == "yes" ]; then
+	if [ "${samvideo}" == "yes" ] && [ "${samvideo_tvc_cdi}}" == "no" ]; then
 		echo 1 > /sys/class/graphics/fbcon/cursor_blink
 		echo 'Super Attract Mode Video was used.' > /dev/tty1 
 		echo 'Please reboot for proper MiSTer Terminal' > /dev/tty1 
@@ -3009,7 +3220,7 @@ function sam_cleanup() {
 
 function sam_monitor() {
 
-    tmux attach-session -t SAM
+    exec tmux attach-session -t SAM
 }
 
 function sam_enable() { # Enable autoplay
@@ -3087,7 +3298,7 @@ function sam_disable() { # Disable autoplay
 
 function env_check() {
 	# Check if we've been installed
-	if [ ! -f "${mrsampath}/samindex" ] || [ ! -f "${mrsampath}/MiSTer_SAM_MCP" ]; then
+	if [ ! -f "${mrsampath}/samindex" ]; then
 		echo " SAM required files not found."
 		echo " Installing now."
 		sam_update autoconfig
@@ -3270,7 +3481,9 @@ function disable_bootrom() {
 }
 
 function mute() {
-	if [ "${mute}" == "core" ]; then
+	if [[ "${mute}" == "yes" || "${mute}" == "global" ]]; then
+		only_mute_if_needed
+	elif [ "${mute}" == "core" ]; then
 		samdebug "mute=core"
 		only_unmute_if_needed
 		# Create empty volume files. Only SD card write operation necessary for mute to work.
@@ -3318,99 +3531,100 @@ function write_byte() {
   printf '%b' "\\x$hex" > "$f" && sync
 }
 
-# Sets the “mute” bit in Volume.dat without altering your current volume level.
-# Then issues a live “volume mute” command to the running MiSTer core.
+# Mutes global volume by bind-mounting a tmpfs copy of Volume.dat with the
+# mute bit set.  The real SD card file is never written.  On reboot or unmount
+# the bind disappears and MiSTer reads the original file automatically.
 function global_mute() {
-	local f="${configpath}/Volume.dat"
+	local real="${configpath%/}/Volume.dat"
+	local tmp="/tmp/.SAM_tmp/Volume.dat"
+
+	# Nothing to do if already bind-mounted
+	if mount | grep -q "${real}"; then
+		samdebug "Volume.dat already bind-mounted, skipping"
+		return
+	fi
+
+	# If Volume.dat doesn't exist yet create a silent (level 0) real file so
+	# there is something to bind-mount over.
+	if [ ! -f "${real}" ]; then
+		printf '%b' "\\x00" > "${real}" && sync
+		samdebug "Volume.dat created (0x00) as placeholder"
+	fi
+
+	# Read the real byte and set the mute bit in the tmpfs copy
 	local cur m hex
-	
-	# read the single-byte value, e.g. "05"
-	cur=$(xxd -p -c1 "$f")
-	
-	# OR in the mute-flag (0x10)
+	cur=$(xxd -p -c1 "${real}")
 	m=$(( 0x$cur | 0x10 ))
-	
-	# format back to two-digit hex, then write that single byte
 	hex=$(printf '%02x' "$m")
-	write_byte "$f" "$hex"
-	
-	# immediately mute the live core
-	echo "volume mute" > /dev/MiSTer_cmd
-	samdebug "WRITE TO SD: Global mute → Volume.dat"
+	mkdir -p /tmp/.SAM_tmp
+	printf '%b' "\\x$hex" > "${tmp}"
+
+	mount --bind "${tmp}" "${real}"
+	timeout 1s sh -c "echo 'volume mute' > /dev/MiSTer_cmd"
+	samdebug "Global mute: bind-mounted tmpfs Volume.dat (0x$hex), SD card untouched"
 }
 
+# Unmutes by removing the bind mount.  MiSTer immediately reads the real
+# Volume.dat from SD card - no write needed.
 function global_unmute() {
-	local f="${configpath}/Volume.dat"
-	local cur hex u
-	cur=$(xxd -p -c1 "$f")
-	u=$((0x$cur & 0x0F))
-	hex=$(printf '%02x' "$u")
-	write_byte "$f" "$hex"
-	# sent unmute for interactive unmute
-	echo "volume unmute" > /dev/MiSTer_cmd
-	samdebug "WRITE TO SD: Restored Volume.dat"
+	local real="${configpath%/}/Volume.dat"
+
+	if mount | grep -q "${real}"; then
+		umount -l "${real}" 2>/dev/null || umount "${real}" 2>/dev/null
+		samdebug "Global unmute: bind mount removed, SD card Volume.dat restored"
+	else
+		samdebug "Global unmute: no bind mount active, nothing to do"
+	fi
+	timeout 1s sh -c "echo 'volume unmute' > /dev/MiSTer_cmd"
 }
 
 
 function only_mute_if_needed() {
-  local f="${configpath}/Volume.dat"
-  local cur
+	local real="${configpath%/}/Volume.dat"
 
-  # 1) read the single byte as two hex digits, e.g. "05" or "15"
-  cur=$(xxd -p -c1 "$f")
+	# If bind mount already active we're already muted
+	if mount | grep -q "${real}"; then
+		samdebug "Volume.dat already bind-mounted (muted) -> skipping"
+		return
+	fi
 
-  # 2) test bit 4 (0x10).  If (cur & 0x10) == 0 then we’re not muted yet.
-  if (( (0x$cur & 0x10) == 0 )); then
-    samdebug "Volume not yet muted (Volume.dat=0x$cur) → muting now"
-    global_mute
-  else
-    samdebug "Already muted (Volume.dat=0x$cur) → skipping write"
-  fi
+	samdebug "Volume not yet muted -> muting via bind mount"
+	global_mute
 }
 
 
 function only_unmute_if_needed() {
-  local f="${configpath}/Volume.dat"
-  local cur
+	local real="${configpath%/}/Volume.dat"
 
-  # 1) Read the single-byte value, e.g. "15" if muted at level5, or "05" if unmuted
-  cur=$(xxd -p -c1 "$f")
-
-  # 2) If bit4 (0x10) *is* set, we’re currently muted → clear it
-  if (( (0x$cur & 0x10) != 0 )); then
-    samdebug "Volume is muted (Volume.dat=0x$cur) → unmuting now"
-    global_unmute
-    return 0    # indicate we did an unmute
-  else
-    samdebug "Volume already unmuted (Volume.dat=0x$cur) → skipping write"
-    return 1    # indicate no action taken
-  fi
+	if mount | grep -q "${real}"; then
+		samdebug "Volume.dat bind-mounted -> unmuting"
+		global_unmute
+		return 0
+	else
+		samdebug "Volume.dat not bind-mounted -> already unmuted, skipping"
+		return 1
+	fi
 }
 
 function unmute_with_retry() {
     local max_wait=15
-    local volume_dat_path="/media/fat/config/Volume.dat"
-    local unmute_command="volume unmute"
+    local real="${configpath%/}/Volume.dat"
     local counter=0
 
-    samdebug "Attempting to unmute volume with a ${max_wait}-second timeout..."
+    samdebug "Attempting to unmute volume..."
 
+    # First ensure the bind mount is gone
+    only_unmute_if_needed
+
+    # Then confirm MiSTer's live audio state is unmuted
     while [ $counter -lt $max_wait ]; do
-        if [ -f "$volume_dat_path" ]; then
-            local cur_vol_hex
-            cur_vol_hex=$(xxd -p -l 1 "$volume_dat_path")
-            
-            # Check if the mute bit (0x10) is OFF
-            if (( (0x$cur_vol_hex & 0x10) == 0 )); then
-                samdebug "SUCCESS: Volume is unmuted."
-                return 0
-            fi
+        if ! mount | grep -q "${real}"; then
+            samdebug "SUCCESS: Volume.dat bind mount gone, volume restored."
+            return 0
         fi
-
-        # If still muted or file not found, send the command
-        samdebug "Attempt $(($counter + 1))/$max_wait: Volume still muted. Sending unmute command..."
-        timeout 1 sh -c "echo '$unmute_command' > /dev/MiSTer_cmd"
-        
+        samdebug "Attempt $(($counter + 1))/$max_wait: bind mount still present, retrying umount..."
+        umount -l "${real}" 2>/dev/null
+        timeout 1s sh -c "echo 'volume unmute' > /dev/MiSTer_cmd"
         sleep 1
         counter=$(($counter + 1))
     done
@@ -3487,8 +3701,14 @@ function filter_list() { # args: core
         samdebug "Filters for '${core}' already applied this session. Skipping."
         return 0
     fi
-    # Always start with a fresh copy of the master list in our working file.
-    cp -f "${master_list}" "${tmpfile}"
+    # If a curated session list already exists (built by GOAT, M82, or any other
+    # special mode), start from it so filters refine rather than replace it.
+    # Otherwise fall back to the full master list.
+    if [[ -s "${session_list}" ]]; then
+        cp -f "${session_list}" "${tmpfile}"
+    else
+        cp -f "${master_list}" "${tmpfile}"
+    fi
 
     # --- Each filter now reads from $tmpfile and writes its output back to $tmpfile ---
     # --- ALL informational 'echo' commands are redirected to stderr (>&2) ---
@@ -3547,11 +3767,15 @@ function filter_list() { # args: core
     fi
 
     if [ "${disable_blacklist}" == "no" ] && [ -f "${gamelistpath}/${core}_blacklist.txt" ]; then
-        echo -n "Applying static screen blacklist for '${core}'... " >&2
-        awk "BEGIN{while(getline<\"${gamelistpath}/${core}_blacklist.txt\"){a[\$0]=1}} {gamelistfile=\$0;sub(/\\.[^.]*\$/,\"\",gamelistfile);sub(/^.*\\//,\"\",gamelistfile);if(!(gamelistfile in a))print}" \
-        "${tmpfile}" > "${tmpfile}.filtered"
-        if [ -s "${tmpfile}.filtered" ]; then
-            mv -f "${tmpfile}.filtered" "${tmpfile}"
+        if [ -f "${tmpfile}" ]; then
+            echo -n "Applying static screen blacklist for '${core}'... " >&2
+            awk "BEGIN{while(getline<\"${gamelistpath}/${core}_blacklist.txt\"){a[\$0]=1}} {gamelistfile=\$0;sub(/\\.[^.]*\$/,\"\",gamelistfile);sub(/^.*\\//,\"\",gamelistfile);if(!(gamelistfile in a))print}" \
+            "${tmpfile}" > "${tmpfile}.filtered"
+            if [ -s "${tmpfile}.filtered" ]; then
+                mv -f "${tmpfile}.filtered" "${tmpfile}"
+            fi
+        else
+            samdebug "Warning: '${tmpfile}' missing before blacklist filter."
         fi
 	else 
 		 echo -n "No blacklist filter found for '${core}'... " >&2
@@ -3596,7 +3820,7 @@ function apply_ratings_filter() {
 			# $1 is the core name
 			rated_file="${mrsampath}/SAM_Rated/${1}_mature.txt"
 			if [[ ! -f "$rated_file" ]]; then
-			  samdebug "No ${1}_mature.txt found—skipping mature filter."
+			  samdebug "No ${1}_mature.txt found-skipping mature filter."
 			else
 			  # load your mature names
 			  mapfile -t rated_list <"$rated_file"
@@ -3757,13 +3981,13 @@ function bgm_stop() {
 
 	if [ "${bgm}" == "yes" ] || [ "$1" == "force" ]; then
 		echo -n "Stopping Background Music Player... "
-		echo -n "set playincore no" | socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
-		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+		echo -n "set playincore no" | timeout 1s socat - UNIX-CONNECT:/tmp/bgm.sock &>/dev/null
+		echo -n "stop" | timeout 1s socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 		sleep 0.2
 		if [ "${bgmstop}" == "yes" ]; then
-			echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+			echo -n "stop" | timeout 1s socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 			sleep 0.2
-			echo -n "set playback disabled" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
+			echo -n "set playback disabled" | timeout 1s socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
 			kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
 			kill -9 "$(ps -o pid,args | grep 'mpg123' | awk '{print $1}' | head -1)" 2>/dev/null
 			rm /tmp/bgm.sock 2>/dev/null
@@ -3801,7 +4025,7 @@ function tty_exit() {
         #    '2>/dev/null' hides the "timeout: sending signal" message.
         #    The final '&' runs this whole timeout operation in the background.
         if [[ -p ${TTY_cmd_pipe} ]]; then
-            timeout 3s echo "stop" >${TTY_cmd_pipe} 2>/dev/null &
+            timeout 3s sh -c "echo 'stop' > ${TTY_cmd_pipe}" 2>/dev/null &
         fi
 
         # 2. Timeout for tmux
@@ -3929,10 +4153,253 @@ function misterini_restore() {
     return 0
 }
 
+function sv_ar_cdi_mode() {
+    
+    # 1. Setup Variables
+    samvideo_list="/tmp/.SAM_List/sv_archive_list.txt"
+    tmpvideo="/tmp/SAMvideo.chd"
+    local http_archive="${sv_archive_cdi//https/http}"
+
+    # Check for CDi core availability
+    local cdi_check_path="/media/fat/_Unstable"
+    local cdi_core_file=""
+
+    # Find existing CDi core (case-insensitive)
+    if [ -d "$cdi_check_path" ]; then
+        cdi_core_file=$(find "$cdi_check_path" -maxdepth 1 -iname "cdi*.rbf" -print -quit)
+    fi
+
+    if [ -z "$cdi_core_file" ]; then
+        echo "CDi core not found. Attempting to retrieve..."
+        mkdir -p "$cdi_check_path"
+
+        # Retrieve URL from JSON
+        local cdi_url=$(curl -k -s "https://raw.githubusercontent.com/MiSTer-unstable-nightlies/Unstable_Folder_MiSTer/main/db_unstable_nightlies_folder.json" | \
+            jq -r '.files | to_entries[] | select(.key | contains("_Unstable/CDi")) | .value.url' | head -n 1)
+
+        if [ -n "$cdi_url" ]; then
+             echo "Downloading CDi core from: $cdi_url"
+             curl -k -L -o "${cdi_check_path}/CDi_unstable.rbf" "$cdi_url"
+             if [ $? -eq 0 ]; then
+                 echo "CDi core downloaded successfully."
+                 cdi_core_file="${cdi_check_path}/CDi_unstable.rbf"
+             else
+                 echo "Error downloading CDi core."
+             fi
+        else
+             echo "Failed to fetch CDi core URL."
+        fi
+    fi
+
+    # 2. Populate the samvideo_list if it's empty (only needed for non-TVC mode)
+    if [ ! -s "${samvideo_list}" ]; then
+        curl_download /tmp/SAMvideos.xml "${http_archive}"
+        grep -o '<file name="[^"]\+\.chd"' /tmp/SAMvideos.xml \
+            | sed 's/<file name="//;s/"$//' \
+            | sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g;' \
+            > "${samvideo_list}"
+    fi
+
+    # 3. Select a video and check availability
+    while true; do
+        if [ -n "$sv_selected" ]; then
+             samdebug "Video pre-selected: $sv_selected"
+        elif [ "$samvideo_tvc" == "yes" ]; then
+            samvideo_tvc
+            # Check if selection was made
+            if [ -n "$sv_selected" ]; then
+                samdebug "Video selected via TVC: $sv_selected"
+            else
+                samdebug "TVC selection failed, falling back."
+                sv_selected="$(shuf -n1 "${samvideo_list}")"
+            fi
+        else
+            sv_selected="$(shuf -n1 "${samvideo_list}")"
+        fi
+        
+        # Safety check: if list is empty or shuf failed
+        if [ -z "$sv_selected" ]; then
+             samdebug "Error: No video selected."
+             return
+        fi
+
+        sv_selected_url="${http_archive%/*}/${sv_selected}"
+
+        # 4. Check Local Availability First
+		local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
+		samdebug "Checking if file is available locally...$local_svfile"
+		if [ -f "$local_svfile" ]; then
+			if [[ "$new_only_chd" == "yes" || "$do_fast_chd_fill" == "yes" ]] && [ "$keep_local_copy" == "yes" ]; then
+				samdebug "Exists=>SKIP"
+				awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+		        unset sv_selected
+				continue
+			else
+				samdebug "Local file exists so using: $local_svfile"
+				break
+			fi
+		fi
+
+        # Check if the URL is available using wget
+        samdebug "Checking availability of ${sv_selected_url}..."
+        if wget --spider --quiet --timeout=10 --tries=1 "${sv_selected_url}"; then
+            samdebug "URL is available: ${sv_selected_url}"
+			
+			if [ "$do_fast_chd_fill" == "yes" ] && [ "$keep_local_copy" == "yes" ]; then
+				samdebug "Preloading ${sv_selected} from archive.org for smooth playback"
+				dl_video "${sv_selected_url}"
+				
+				# Check if download succeeded AND file has size > 0
+				if [ -s "$tmpvideo" ]; then
+					samdebug "Download succeeded."
+				else
+					samdebug "Error: Download failed or file is empty. Moving to next video."
+					awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+			        unset sv_selected
+					continue
+				fi
+
+				# 5. Cache the file locally ONLY if it was a fresh download
+				cp "$tmpvideo" "$local_svfile"
+				samdebug "Saved local copy of video: $local_svfile"
+				samdebug "${sv_selected} preloaded successfully. Removing from list and selecting another."
+				awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+		        unset sv_selected
+				continue
+			fi
+
+            break
+        else
+            samdebug "URL is not available: ${sv_selected_url}. Removing from list and selecting another."
+            awk -v Line="$sv_selected" '!index($0, Line)' "${samvideo_list}" >"${tmpfile}" && cp -f "${tmpfile}" "${samvideo_list}"
+            unset sv_selected
+        fi
+    done
+
+    # 5. Download / Cache Logic
+    # Flag to track if we just downloaded a new file
+    local fresh_download="no"
+
+    if [ -f "$local_svfile" ]; then
+        echo "Local file exists: $local_svfile"
+        cp "$local_svfile" "$tmpvideo"
+    else
+        echo "Preloading ${sv_selected} from archive.org for smooth playback"
+        dl_video "${sv_selected_url}"
+        
+        # Check if download succeeded AND file has size > 0
+        if [ -s "$tmpvideo" ]; then
+            fresh_download="yes"
+        else
+            echo "Error: Download failed or file is empty."
+            echo "1" > "$sv_gametimer_file"
+            return
+        fi
+    fi
+
+    # 5. Cache the file locally ONLY if it was a fresh download
+    if [ "$fresh_download" == "yes" ] && [ "$keep_local_copy" == "yes" ]; then
+        cp "$tmpvideo" "$local_svfile"
+        samdebug "Saved local copy of video: $local_svfile"
+    fi
+
+    # 6. Update samvideo_list to remove the processed file 
+    if [ "$samvideo_tvc" == "no" ]; then
+        awk -vLine="$sv_selected" '!index($0,Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
+    fi
+
+
+
+    # 8. Calculate Game Timer 
+    # BACKUP FALLBACK - Using awk to estimate duration based on file size if JSON duration missing.
+    local timer_delay=6
+    sv_gametimer=$(du -m "$tmpvideo" | awk -v delay="$timer_delay" '{print int($1 * 7.5) + delay}')
+    
+    sv_title="${sv_selected%.*}"
+	sv_title="${sv_title#*-}"
+    sv_title="${sv_title//_/ }"
+
+    # Check for TVC VCD JSON and override duration/title if available
+    if [ -f "/tmp/.SAM_tmp/sv_core" ]; then
+        local current_core=$(cat "/tmp/.SAM_tmp/sv_core")
+        local vcd_json="${mrsampath}/tvc/${current_core}_tvc_vcd.json"
+
+        if [ -f "$vcd_json" ]; then
+             samdebug "Found VCD JSON: $vcd_json"
+             
+             local json_duration=$(jq -r --arg f "$sv_selected" '.[$f].duration // empty' "$vcd_json")
+             local json_title=$(jq -r --arg f "$sv_selected" '.[$f].title // empty' "$vcd_json")
+             
+             
+             if [[ -n "$json_duration" ]] && [[ "$json_duration" != "null" ]]; then
+                 sv_gametimer=$((json_duration + timer_delay))
+                 samdebug "Duration set to $sv_gametimer (from JSON: $json_duration)"
+             fi
+             
+
+        fi
+    fi
+
+    # 9. Show tty2oled splash
+
+
+	if [ "${ttyenable}" == "yes" ]; then
+        local tty_gamename="${sv_title}"
+        
+        tty_currentinfo=(
+            [core_pretty]="${nextcore^} Commercial" [name]="${tty_gamename}" [core]=SAM_splash
+            [date]=$EPOCHSECONDS [counter]=${sv_gametimer} [name_scroll]="${tty_gamename:0:21}"
+            [name_scroll_position]=0 [name_scroll_direction]=1 [update_pause]=${ttyupdate_pause}
+        )
+        declare -p tty_currentinfo | sed 's/declare -A/declare -gA/' >"${tty_currentinfo_file}"
+        write_to_TTY_cmd_pipe "display_info" &
+        SECONDS=$((EPOCHSECONDS - tty_currentinfo[date]))
+    fi
+    
+
+    # 10. Play file
+    local core_prefix="${sv_selected%%-*}"
+    core_prefix="${core_prefix//_/ }"
+    echo -e "Now playing: \e[1m${core_prefix} Commercial - ${sv_title}\e[0m"
+    if [ -s /tmp/SAM_Game.mgl ]; then mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl; fi
+    {
+        # Prepare RBF path for MGL
+        local mgl_rbf="_Unstable/CDi_unstable"
+        if [ -n "$cdi_core_file" ]; then
+             # Extract filename without path and extension
+             local cdi_basename=$(basename "$cdi_core_file" .rbf)
+             mgl_rbf="_Unstable/${cdi_basename}"
+        fi
+
+        echo "<mistergamedescription>"
+        echo "<rbf>${mgl_rbf}</rbf>"
+        echo "<setname same_dir=\"1\">cdi_sam</setname>"
+        echo "<file delay=\"1\" type=\"s\" index=\"1\" path=\"../../../../..${tmpvideo}\"/>"
+    } >/tmp/SAM_Game.mgl
+    
+    echo "load_core /tmp/SAM_Game.mgl" > /dev/MiSTer_cmd
+    timeout 1s sh -c "echo 'load_core /tmp/SAM_Game.mgl' > /dev/MiSTer_cmd"
+
+    # Wait for CD-i core to load before starting timer
+    for i in {1..20}; do
+        if grep -iqE "cd.?i" /tmp/CORENAME 2>/dev/null; then
+			samdebug "CD-i core is loaded"
+            break
+        fi
+        sleep 1
+	
+	done
+    echo "$sv_gametimer" > "$sv_gametimer_file"
+    unset sv_selected
+}
+
+
 function dl_video() {
     rm -f "$tmpvideo"
 
     if [ "$download_manager" = "yes" ]; then
+        get_dlmanager
+        # aria2c logic
         /media/fat/linux/aria2c \
             --dir="$(dirname "$tmpvideo")" \
             --file-allocation=none \
@@ -3946,57 +4413,8 @@ function dl_video() {
             --ca-certificate=/etc/ssl/certs/cacert.pem \
             "${1}"
     else
+        # wget logic
         wget -q --show-progress -O "$tmpvideo" "${1}"
-    fi
-
-    # Check if the download was successful
-    if [ $? -eq 0 ] && [ "$keep_local_copy" == "yes" ]; then
-        # Reuse `local_svfile` for saving the local copy
-        cp "$tmpvideo" "$local_svfile"
-    fi
-}
-
-function sv_yt_download() {
-    local resolution="$1" # Resolution (360 or 240)
-    local list_file="$2"  
-
-    samvideo_list="/tmp/.SAM_List/sv_youtube_list.txt"
-    local format="best[height=${resolution}][ext=mp4]"
-
-    # Ensure the samvideo_list is populated
-    if [ ! -s "${samvideo_list}" ]; then
-        cp "${list_file}" "${samvideo_list}"
-    fi
-
-    echo "Please wait... downloading file"
-    local url=""
-    while [ -z "$url" ]; do
-        url=$(shuf -n1 ${samvideo_list})
-        "${mrsampath}/ytdl" --format "${format}" --no-continue -o "/tmp/%(title)s (YT).mp4" "$url"
-        exit_code=$?
-
-        if [ $exit_code -eq 0 ]; then
-            echo "Download successful!"
-            sv_selected=$(ls /tmp | grep "(YT)")
-            mv "/tmp/${sv_selected}" "${tmpvideo}"
-            break
-        else
-            echo "Invalid URL or download error. Retrying with another URL..."
-            awk -v Line="$url" '!index($0, Line)' "${list_file}" >${tmpfile} && cp -f ${tmpfile} "${list_file}"
-            cp "${list_file}" "${samvideo_list}"
-            url=""
-        fi
-    done
-
-    # Update samvideo_list to remove the processed URL
-    awk -v Line="$url" '!index($0, Line)' "${samvideo_list}" >${tmpfile} && cp -f ${tmpfile} "${samvideo_list}"
-
-    # Set resolution-specific variables
-    if [ "$resolution" -eq 360 ]; then
-        res="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "VIDEO:" | awk '{print $3}')"
-        res_space=$(echo "$res" | tr 'x' ' ')
-    else
-        res_space="640 240"
     fi
 }
 
@@ -4023,11 +4441,25 @@ function sv_ar_download() {
         else
             sv_selected="$(shuf -n1 "${samvideo_list}")"
         fi
+        
+        # Safety check
+        if [ -z "$sv_selected" ]; then
+             samdebug "Error: No video selected."
+             return
+        fi
+
         sv_selected_url="${http_archive%/*}/${sv_selected}"
+        
+        # Check Local Availability First
+        local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
+        if [ -f "$local_svfile" ]; then
+            samdebug "Local file found: $local_svfile. Skipping remote check."
+            break
+        fi
 
         # Check if the URL is available using wget
         samdebug "Checking availability of ${sv_selected_url}..."
-        if wget --spider --quiet "${sv_selected_url}"; then
+        if wget --spider --quiet --timeout=10 --tries=1 "${sv_selected_url}"; then
             samdebug "URL is available: ${sv_selected_url}"
             break
         else
@@ -4037,7 +4469,6 @@ function sv_ar_download() {
     done
 
     tmpvideo="/tmp/SAMvideo.avi"
-	local local_svfile="${samvideo_path}/$(echo "$sv_selected" | sed "s/[\":?]//g")"
 	samdebug "Checking if file is available locally...$local_svfile"
 
 
@@ -4078,8 +4509,13 @@ function sv_local() {
 }
 
 function samvideo_tvc() {
-    if [ ! -f "${gamelistpath}/nes_tvc.txt" ]; then
-        get_samvideo
+    local tvc_suffix="_tvc.json"
+    if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+        tvc_suffix="_tvc_vcd.json"
+    fi
+
+    if [ ! -f "${mrsampath}/tvc/nes${tvc_suffix}" ]; then
+        get_tvc_files
     fi
 
     # Setting corelist to available commercials
@@ -4093,13 +4529,20 @@ function samvideo_tvc() {
         done 
     done
     samdebug "samvideo corelist: ${SV_TVC_CL[@]}"
-    pick_core SV_TVC_CL
+    
+    # NEW: Respect Single Core Mode
+    if [ "$SAM_MODE" == "SINGLE" ] && [ -n "$SAM_TARGET_CORE" ]; then
+         nextcore="$SAM_TARGET_CORE"
+         samdebug "Single mode active. Forcing samvideo target: $nextcore"
+    else
+         pick_core SV_TVC_CL
+    fi
     samdebug "nextcore = $nextcore"
 
     # Initialize variables
     count=0
-    local gamelist_tmp="${gamelistpathtmp}/${nextcore}_tvc.txt"
-    local gamelist_original="${gamelistpath}/${nextcore}_tvc.txt"
+    local gamelist_tmp="${gamelistpathtmp}/${nextcore}${tvc_suffix}"
+    local gamelist_original="${mrsampath}/tvc/${nextcore}${tvc_suffix}"
 
     # Ensure a local temporary copy exists or reset it if empty
 	if [ ! -f "$gamelist_tmp" ] || [ ! -s "$gamelist_tmp" ] || [ "$(cat "$gamelist_tmp")" = "{}" ]; then
@@ -4119,12 +4562,16 @@ function samvideo_tvc() {
             samdebug "Removing $sv_selected from $gamelist_tmp"
             jq --arg key "$sv_selected" 'del(.[$key])' "$gamelist_tmp" > "${gamelist_tmp}.tmp" && mv "${gamelist_tmp}.tmp" "$gamelist_tmp"
             # Save the selected game information
-            echo "${tvc_selected}" > /tmp/.SAM_tmp/sv_gamename
+            if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+                 echo "${tvc_selected}" | jq -r '.title' > /tmp/.SAM_tmp/sv_gamename
+            else
+                 echo "${tvc_selected}" > /tmp/.SAM_tmp/sv_gamename
+            fi
             break
         else
             # If the file is not found, select a new core randomly
             pick_core SV_TVC_CL
-            samdebug "${nextcore}_tvc.txt not found, selecting new core."
+            samdebug "${nextcore}${tvc_suffix} not found, selecting new core."
         fi
 
         ((count++))
@@ -4143,11 +4590,13 @@ function samvideo_tvc() {
 
 ## Play video
 function samvideo_play() {
-	if [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "hdmi" ]; then
-		sv_yt_download 360 "${sv_youtube_hdmilist}"
-	elif [ "${samvideo_source}" == "youtube" ] && [ "$samvideo_output" == "crt" ]; then
-		sv_yt_download 240 "${sv_youtube_crtlist}"
-	elif [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "hdmi" ]; then
+
+	if [ "${samvideo_tvc_cdi}" == "yes" ]; then
+		sv_ar_cdi_mode
+		return
+	fi
+	
+	if [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "hdmi" ]; then
 		sv_ar_download 480 "${sv_archive_hdmilist}"
 	elif [ "${samvideo_source}" == "archive" ] && [ "$samvideo_output" == "crt" ]; then
 		sv_ar_download 240 "${sv_archive_crtlist}"
@@ -4155,6 +4604,8 @@ function samvideo_play() {
 		sv_local
 	fi
 	
+	
+
 	if [ -z "${sv_selected}" ]; then
 		echo "Error while downloading"
 		echo "1" > "$sv_gametimer_file"
@@ -4162,7 +4613,7 @@ function samvideo_play() {
 	fi
 	
 	sv_gametimer="$(LD_LIBRARY_PATH=${mrsampath} ${mrsampath}/mplayer -vo null -ao null -identify -frames 0 "$tmpvideo" 2>/dev/null | grep "ID_LENGTH" | sed 's/[^0-9.]//g' | awk -F '.' '{print $1}')"
-	sv_title=${sv_selected%.*}
+	sv_title="${sv_selected%.*}"
 
 	#Show tty2oled splash
 	if [ "${ttyenable}" == "yes" ]; then
@@ -4192,7 +4643,7 @@ function samvideo_play() {
 	
 	
 	if [ -s "$tmpvideo" ]; then
-		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
+		timeout 1s sh -c "echo 'load_core /media/fat/menu.rbf' > /dev/MiSTer_cmd"
 		sleep "${samvideo_displaywait}"
 		# TODO delete blinking cursor
 		#echo "\033[?25l" > /dev/tty1
@@ -4328,10 +4779,6 @@ function get_samvideo() {
     tmp_mplayer="/tmp/mplayer.zip"
     local_mplayer="${mrsampath}/mplayer.zip"
 
-    latest_ytdl="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_armv7l"
-    tmp_ytdl="/tmp/yt-dlp"
-    local_ytdl="${mrsampath}/ytdl"
-
     # Check and update mplayer
     check_and_update "$latest_mplayer" "$tmp_mplayer" "$local_mplayer" "mplayer" 
 	result=$?
@@ -4339,26 +4786,10 @@ function get_samvideo() {
         echo "Extracting mplayer..."
         unzip -ojq "$local_mplayer" -d "${mrsampath}" || {
             echo "Error: Failed to extract mplayer.zip" >&2
-            return 1
         }
         echo "mplayer updated and extracted successfully."
     fi
 
-    # Check and update yt-dlp
-    check_and_update "$latest_ytdl" "$tmp_ytdl" "$local_ytdl" "yt-dlp" 
-
-
-    # Check and update SAM gamelists
-	echo "Checking and updating SAM gamelists..."
-	for key in "${!SV_TVC[@]}"; do
-		local_file="${mrsampath}/SAM_Gamelists/${key}_tvc.txt"
-		tmp_file="/tmp/${key}_tvc.txt"
-		remote_url="${raw_base}/.MiSTer_SAM/SAM_Gamelists/${key}_tvc.txt"
-
-		check_and_update "$remote_url" "$tmp_file" "$local_file" "${key}_tvc gamelist"
-	done
-
-    echo "Done."
 }
 
 
@@ -4462,6 +4893,40 @@ get_dlmanager() {
 	fi
 }
 
+function get_tvc_files() {
+    local target_dir="${mrsampath}/tvc"
+    local api_url="https://api.github.com/repos/mrchrisster/MiSTer_SAM/contents/.MiSTer_SAM/tvc?ref=${branch}"
+    local tmp_json="/tmp/tvc_files.json"
+
+    mkdir -p "$target_dir"
+    samdebug "Checking for TVC VCD JSON updates..."
+
+    if curl -s -L --insecure -H "User-Agent: MiSTer_SAM" "$api_url" > "$tmp_json"; then
+        # Check if valid JSON array using jq
+        if jq -e '. | type == "array"' "$tmp_json" >/dev/null 2>&1; then
+             # Parse filename
+             jq -r '.[] | .name' "$tmp_json" | while read -r name; do
+                  if [ "$name" != "null" ]; then
+                      samdebug "Updating $name..."
+                      curl_download "${target_dir}/${name}" "${raw_base}/.MiSTer_SAM/tvc/${name}"
+                  fi
+             done
+             samdebug "TVC VCD JSON update complete."
+        else
+             samdebug "Error: Failed to fetch TVC file list from GitHub (Invalid JSON)."
+             local err_msg=$(jq -r '.message // empty' "$tmp_json" 2>/dev/null)
+             if [ -n "$err_msg" ]; then
+                samdebug "GitHub API Message: $err_msg"
+             else
+                samdebug "Response content: $(cat "$tmp_json")"
+             fi
+        fi
+    else
+        samdebug "Error: Could not connect to GitHub API for TVC updates."
+    fi
+    rm -f "$tmp_json"
+}
+
 
 function sam_update() { # sam_update (next command)
 
@@ -4520,12 +4985,12 @@ function sam_update() { # sam_update (next command)
 		if [ ! -f "${mrsampath}/sam_controllers.json" ]; then
 			get_samstuff .MiSTer_SAM/sam_controllers.json
 		fi
-		if [ "${samvideo}" == "yes" ]; then
-			get_samvideo
-		fi
+		get_samvideo
+		get_dlmanager
 		get_inputmap
 		get_blacklist
 		get_ratedlist
+		get_tvc_files
 		get_samstuff MiSTer_SAM_off.sh /media/fat/Scripts
 		
 
@@ -4539,6 +5004,8 @@ function sam_update() { # sam_update (next command)
 			sed -i 's/==/--/g' "${samini_file}"
 			sed -i 's/-=/--/g' "${samini_file}"
 			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" /tmp/MiSTer_SAM.ini >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
+			echo " Warning: Overwriting ini in test branch!"
+			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 			echo "Done."
 
 		else

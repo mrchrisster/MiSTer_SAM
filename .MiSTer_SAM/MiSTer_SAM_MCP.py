@@ -16,6 +16,7 @@ SAM_ON_SCRIPT = "/media/fat/Scripts/MiSTer_SAM_on.sh"
 INI_FILE = "/media/fat/Scripts/MiSTer_SAM.ini"
 CONTROLLER_CONFIG_FILE = os.path.join(SAM_BASE_PATH, "sam_controllers.json")
 SAM_SESSION_NAME = "SAM"
+SAM_STARTUP_GRACE = 15  # Seconds after SAM confirmed running before zombie detection kicks in
 
 # --- Constants for jsX Polling (from Script 2) ---
 JS_EVENT_FORMAT = "IhBB" # timestamp, value, type, number
@@ -44,12 +45,18 @@ class SamState:
         self._is_stopping = False
         self._log_activity = False 
         self._lock = threading.Lock() # A standard thread lock
+        self._boot_complete = False
+        self._sam_is_starting = False   # True from start_sam() until tmux confirmed
+        self._pending_action = None     # Buffered action during startup window
+        self._start_time = 0            # When start_sam() was triggered
+        self._sam_run_confirmed_at = 0  # When SAM was confirmed running (for grace period)
 
-    def update_activity(self):
+    def update_activity(self, log_event=True):
         """Call this to reset the idle timer. Thread-safe."""
         with self._lock:
             self.last_activity = time.monotonic()
-            if self._log_activity:
+            # Only log if the global log flag is on AND this specific event requests it
+            if self._log_activity and log_event:
                 print("MCP: Activity detected, idle timer reset.")
 
     def get_idle_time(self):
@@ -61,6 +68,11 @@ class SamState:
         """Set the running status. Thread-safe."""
         with self._lock:
             self._log_activity = status # Log activity only when SAM is running
+            # Track when SAM was confirmed running for grace period
+            if status and not self._sam_is_running:
+                self._sam_run_confirmed_at = time.monotonic()
+            elif not status:
+                self._sam_run_confirmed_at = 0
             self._sam_is_running = status
     
     def is_sam_running(self) -> bool:
@@ -72,13 +84,56 @@ class SamState:
         """Set the stopping status. Thread-safe."""
         with self._lock:
             self._is_stopping = status
-            if status:
-                print("MCP: State changed to 'stopping'. Ignoring new input.")
 
     def is_stopping(self) -> bool:
         """Check if we are in the process of stopping. Thread-safe."""
         with self._lock:
             return self._is_stopping
+
+    def set_boot_complete(self):
+        """Mark the initial boot sequence as finished."""
+        with self._lock:
+            self._boot_complete = True
+
+    def is_boot_complete(self) -> bool:
+        """Check if we have passed the initial boot phase."""
+        with self._lock:
+            return self._boot_complete
+
+    def set_sam_starting(self, status: bool):
+        """Mark SAM as starting up (between Popen and tmux confirmation). Thread-safe."""
+        with self._lock:
+            self._sam_is_starting = status
+            if status:
+                self._start_time = time.monotonic()
+                self._pending_action = None  # Clear any stale action
+            else:
+                self._start_time = 0
+
+    def is_sam_starting(self) -> bool:
+        """Check if SAM is currently in the startup window. Thread-safe."""
+        with self._lock:
+            return self._sam_is_starting
+
+    def set_pending_action(self, action: str):
+        """Buffer a user action during the startup window. Thread-safe."""
+        with self._lock:
+            self._pending_action = action
+            print(f"MCP: SAM is starting up. Buffered '{action}' action.")
+
+    def consume_pending_action(self):
+        """Atomically read and clear the pending action. Thread-safe."""
+        with self._lock:
+            action = self._pending_action
+            self._pending_action = None
+            return action
+
+    def seconds_since_confirmed(self) -> float:
+        """Seconds since SAM was confirmed running. Returns inf if never confirmed."""
+        with self._lock:
+            if self._sam_run_confirmed_at == 0:
+                return float('inf')
+            return time.monotonic() - self._sam_run_confirmed_at
 # --- Core SAM Functions (from Script 1) ---
 # These are blocking and will be run in threads
 
@@ -93,115 +148,103 @@ def is_sam_running():
 def start_sam():
     """Calls the main shell script to start SAM."""
     print("Idle timeout reached. Starting SAM...")
-    # Popen is non-blocking, but the script it calls may run
-    # Let's use 'run' to be cleaner
-    subprocess.run([SAM_ON_SCRIPT, "start"])
+    # Use Popen for non-blocking execution so the input watcher (MCP) 
+    # stays responsive while SAM initializes in the background.
+    subprocess.Popen([SAM_ON_SCRIPT, "start"])
 
-async def exit_to_menu_with_retry(max_wait=15):
+async def exit_to_menu_with_retry(state, max_wait=15):
     """
     Attempts to load the menu core, retrying if MiSTer is busy.
-    This prevents failures when a core is still loading.
     """
     print(f"Attempting to return to menu with a {max_wait}-second timeout...")
 
-    # 1. Run the cleanup script ONCE. This stops BGM, tty2oled, etc.
-    # We use Popen for a "fire-and-forget" approach.
+    # Run cleanup and wait for it to finish before loading the menu core.
+    # Using Popen (non-blocking) here caused a race where load_core fired
+    # before sam_cleanup could unmount Volume.dat, leaving audio muted.
     print("MCP: Running cleanup script (stops BGM, tty2oled)...")
     cleanup_command = [SAM_ON_SCRIPT, "exit_to_menu"]
-    await asyncio.to_thread(subprocess.Popen, cleanup_command)
-    await asyncio.sleep(0.5) # Give the script a moment to start cleanup.
-    
-    # The shell script now handles the robust unmute. We just need to handle loading the menu.
+    await asyncio.to_thread(subprocess.run, cleanup_command)
+
     menu_rbf_path = "/media/fat/menu.rbf"
     load_menu_command = f"load_core {menu_rbf_path}"
 
     for attempt in range(max_wait):
-        # Check if the menu is already loaded.
-        in_menu = await asyncio.to_thread(is_in_menu)
+        # PASS STATE HERE
+        in_menu = await asyncio.to_thread(is_in_menu, state)
         if in_menu:
             print("✅ SUCCESS: Menu core is now loaded.")
             return
 
-        # If not in menu, try to send the load_core command again.
+        # ... (rest of loop remains the same) ...
         print(f"Attempt {attempt + 1}/{max_wait}: Menu not loaded. Sending 'load_core' command...")
-        
-        # Use 'timeout' to prevent the write from blocking indefinitely if MiSTer is busy.
-        # This is the "fire and forget" part for the command pipe.
         cmd = ['timeout', '1', 'sh', '-c', f"echo '{load_menu_command}' > /dev/MiSTer_cmd"]
         await asyncio.to_thread(subprocess.run, cmd)
-
-        # Wait 1 second before the next check.
         await asyncio.sleep(1)
 
     print(f"❌ FAILED: Timed out after {max_wait} seconds. Menu core did not load.")
 
-async def stop_sam(play_current=False):
+async def stop_sam(state, play_current=False):
     """Stops SAM and all related services directly from Python."""
-    # This function is now a wrapper that manages the 'stopping' state.
     try:
         print("User activity detected. Stopping SAM...")
         if play_current:
             print("User pressed 'Start'. Exiting to play current game...")
-            # The shell script will handle all cleanup (BGM, TTY, unmute, etc.)
             await asyncio.to_thread(subprocess.Popen, [SAM_ON_SCRIPT, "exit_to_game"])
         else:
-            # Use the new robust exit logic.
-            await exit_to_menu_with_retry()
+            # PASS STATE HERE
+            await exit_to_menu_with_retry(state)
     except Exception as e:
         print(f"MCP: Error during stop_sam: {e}")
     finally:
-        # IMPORTANT: Always reset the stopping flag, even if an error occurs.
-        # We need to find the 'state' object. We can get it from the running loop's context
-        # but a cleaner way is to pass it down. For now, let's assume we can get it.
-        # A better refactor is needed, but this will work.
-        pass # The flag is now reset inside handle_action's do_actions
+        pass
 def skip_game():
     """Sends a skip command to the running SAM session."""
     print("User pressed 'Next'. Skipping to next game...")
     subprocess.Popen(["tmux", "send-keys", "-t", SAM_SESSION_NAME, "C-c", "ENTER"])
 
-def is_in_menu():
+def is_in_menu(state):
     """
     Check if the MiSTer process is currently running the menu.rbf core.
-    This uses a two-stage check for robustness.
     """
     
-    # --- Check 1: Check the running process list (more reliable during transitions) ---
+    # --- PHASE 1: INITIAL BOOT (Trust /tmp/CORENAME) ---
+    if not state.is_boot_complete():
+        try:
+            if os.path.exists('/tmp/CORENAME'):
+                with open('/tmp/CORENAME', 'r') as f:
+                    corename = f.read().strip()
+                
+                # If we see MENU, we are definitely up.
+                if corename == 'MENU':
+                    print("MCP: Boot Detection - Menu found via CORENAME.")
+                    state.set_boot_complete()
+                    return True
+                
+                # If we see ANY core name, we are also up (user booted to game).
+                elif corename:
+                    print(f"MCP: Boot Detection - Found active core '{corename}'.")
+                    state.set_boot_complete()
+                    return False
+        except Exception:
+            pass
+        return False
+
+    # --- PHASE 2: NORMAL OPERATION (Prioritize PS, Fallback to CORENAME) ---
+    
+    # 1. Try the Process Check (Preferred for avoiding "Sticky" status)
     try:
-        # Use the simplified grep check we discussed (no full path)
         cmd = "ps aux | grep '/media/fat/[M]iSTer' | grep -q 'menu.rbf'"
-        
-        # subprocess.run with shell=True is needed for the pipes.
-        # check=True will raise CalledProcessError if the command returns a non-zero exit code (i.e., no match).
         subprocess.run(cmd, shell=True, check=True, capture_output=True)
-        
-        # If we get here, the command succeeded (exit code 0), so the menu is loaded.
         return True
     except subprocess.CalledProcessError:
-        # The command failed (non-zero exit code), meaning the process isn't running menu.rbf.
-        # We will now try the fallback check.
-        pass
-    except Exception as e:
-        # Catch any other potential errors from the 'ps' command.
-        print(f"MCP: Error checking for menu process: {e}")
-        # Fall through to the /tmp/CORENAME check
-        pass
+        # 2. Fallback: If PS fails, check CORENAME (Restores functionality on your setup)
+        try:
+            if os.path.exists('/tmp/CORENAME'):
+                with open('/tmp/CORENAME', 'r') as f:
+                    return f.read().strip() == 'MENU'
+        except Exception:
+            pass
 
-    # --- Check 2: Fallback to checking /tmp/CORENAME (good for stable state) ---
-    try:
-        with open('/tmp/CORENAME', 'r') as f:
-            corename = f.read().strip()
-            if corename == 'MENU':
-                # The file says we are in the menu.
-                return True
-    except FileNotFoundError:
-        # /tmp/CORENAME doesn't exist yet. Definitely not in menu.
-        pass
-    except Exception as e:
-        # Catch any other potential errors.
-        print(f"MCP: Error reading /tmp/CORENAME: {e}")
-
-    # If both checks have failed, we are definitely not in the menu.
     return False
 
 # --- Joystick Polling Logic (from Script 2, adapted) ---
@@ -227,7 +270,8 @@ def get_js_activity(
         if is_button and prev_event["value"] != next_event["value"] and next_event["value"] == 1:
             button_num = next_event["number"]
             if button_num == button_map.get("start"): return "start"
-            if button_num == button_map.get("select"): return "next"
+            if button_num == button_map.get("next"): return "next"
+            if button_num == button_map.get("exit"): return "exit"
             return "default"
 
         if is_axis and abs(prev_event["value"] - next_event["value"]) > AXIS_DEADZONE:
@@ -240,39 +284,90 @@ def get_js_activity(
 
     return None
 
+def kill_sam_processes():
+    """Kills the SAM tmux session and all orphan SAM processes."""
+    subprocess.run(["tmux", "kill-session", "-t", SAM_SESSION_NAME], stderr=subprocess.DEVNULL)
+    try:
+        proc = subprocess.run(["ps", "-o", "pid,args"], capture_output=True, text=True)
+        if proc.returncode == 0:
+            for line in proc.stdout.splitlines():
+                if "MiSTer_SAM_on.sh" in line and (
+                    "loop_core" in line or "start" in line
+                ):
+                    parts = line.strip().split()
+                    if parts and parts[0].isdigit():
+                        try:
+                            os.kill(int(parts[0]), signal.SIGKILL)
+                        except OSError:
+                            pass
+    except Exception as e:
+        print(f"MCP: Error cleaning up SAM processes: {e}")
+
 def handle_action(action, state, loop):
     """Processes a joystick action string."""
     if not action:
         return
 
-    # If we are already in the process of stopping, ignore all new actions.
+    # 1. Always reset the idle timer on ANY valid input
+    state.update_activity()
+
     if state.is_stopping():
         return
 
-    state.update_activity()
+    # CLAIM LOCK SYNCHRONOUSLY: Prevent concurrent events from spawning double actions
+    state.set_stopping(True)
 
-    # This function is called from a thread, so we need to run async code
-    # via the loop's call_soon_threadsafe method.
     async def do_actions():
-        # If we are already stopping, do nothing.
-        if state.is_stopping():
-            return
-
         try:
+            # 2. Check: Does Python THINK SAM is running?
             if state.is_sam_running():
-                state.set_stopping(True) # Set the lock
-                print(f"MCP-JS: Action '{action}' detected.")
-                if action == "start": await stop_sam(play_current=True)
-                elif action == "next": await asyncio.to_thread(skip_game)
-                else: await stop_sam(play_current=False)
+                
+                # 3. REALITY CHECK: Are we actually already in the menu?
+                in_menu = await asyncio.to_thread(is_in_menu, state)
+                
+                if in_menu:
+                    grace = state.seconds_since_confirmed()
+                    if grace < SAM_STARTUP_GRACE:
+                        print(f"MCP: SAM is still loading (confirmed {grace:.0f}s ago). Stopping...")
+                    else:
+                        print(f"MCP: Zombie detected — SAM session exists but Menu is loaded. Cleaning up...")
+                    # Full cleanup: stop SAM services, kill tmux + orphan processes
+                    state.set_sam_running(False)
+                    await stop_sam(state, play_current=False)
+                    await asyncio.to_thread(kill_sam_processes)
+                    return
+
+                # 4. If we are NOT in the menu, then it's a real game. Proceed to stop.
+                
+                if action == "next":
+                    print(f"MCP-JS: Action '{action}' detected. Skipping game...")
+                    await asyncio.to_thread(skip_game)
+                else:
+                    print(f"MCP-JS: Action '{action}' detected. Stopping SAM...")
+                    # Update state immediately to prevent double-press issues
+                    state.set_sam_running(False)
+                    
+                    if action == "start": 
+                        await stop_sam(state, play_current=True)
+                    else: 
+                        await stop_sam(state, play_current=False)
+                        
+                    # Safety: Kill tmux + all orphan SAM processes
+                    await asyncio.to_thread(kill_sam_processes)
+
             else:
-                # If SAM is not running, we just reset the idle timer.
-                pass
+                # SAM is not running — but is it STARTING?
+                if state.is_sam_starting():
+                    state.set_pending_action(action)
+                # Otherwise, just reset the idle timer (already done above).
+
+        except Exception as e:
+            print(f"MCP: Error in handle_action: {e}")
         finally:
-            # IMPORTANT: Always release the lock when the action is complete.
             state.set_stopping(False)
     
     asyncio.run_coroutine_threadsafe(do_actions(), loop)
+    
 
 def joystick_poller_thread(device_info, state, controller_config, loop, stop_event):
     """
@@ -286,15 +381,24 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
     print(f"MCP-JS: Starting poller for {device_info.get('name', 'Unknown')} ({dev_path})")
 
     previous_events = []
+    sam_was_running = state.is_sam_running()
 
     while not stop_event.is_set():
+        # When SAM transitions from running → stopped, reset joystick state.
+        # This prevents a button held across the stop boundary from re-firing.
+        sam_is_running = state.is_sam_running()
+        if sam_was_running and not sam_is_running:
+            print(f"MCP-JS: SAM stopped. Resetting input state for {dev_path}.")
+            previous_events = []
+        sam_was_running = sam_is_running
+
         try:
             with open(dev_path, "rb") as f:
                 os.set_blocking(f.fileno(), False)
                 data = f.read(512)
             if data:
                 current_events = [dict(zip(("timestamp", "value", "type", "number"), struct.unpack(JS_EVENT_FORMAT, data[i:i+JS_EVENT_SIZE]))) for i in range(0, len(data), JS_EVENT_SIZE) if len(data[i:i+JS_EVENT_SIZE]) == JS_EVENT_SIZE]
-                
+
                 if not previous_events:
                     previous_events = current_events
                     print(f"MCP-JS: Initial state captured for {dev_path}. Listening for changes...")
@@ -302,15 +406,16 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
                     action = get_js_activity(previous_events, current_events, device_config)
                     if action:
                         loop.call_soon_threadsafe(handle_action, action, state, loop)
-                
+
                 previous_events = current_events
         except (BlockingIOError, FileNotFoundError):
             pass # This is expected on a non-blocking read with no data.
         except Exception as e:
             print(f"MCP-JS: Transient error in poller for {dev_path}: {e}")
-            time.sleep(1)
-        time.sleep(JOY_POLL_RATE)
-    
+            stop_event.wait(1)
+            continue
+        stop_event.wait(JOY_POLL_RATE)
+
     print(f"MCP-JS: Poller for {dev_path} stopped.")
 
 def keyboard_poller_thread(device_path, state, loop, stop_event):
@@ -353,6 +458,51 @@ def mouse_poller_thread(device_path, state, loop, stop_event):
             break
     print(f"MCP-Mouse: Poller for {device_path} stopped.")
 
+def remote_log_poller_thread(log_path, state, loop, stop_event):
+    """
+    Tails the remote.log file and triggers activity on specific log entries.
+    Runs in a separate thread.
+    """
+    print(f"MCP-RemoteLog: Starting poller for {log_path}")
+    
+    while not stop_event.is_set():
+        # If the file doesn't exist yet, just wait for it.
+        if not os.path.exists(log_path):
+            time.sleep(1)
+            continue
+
+        try:
+            with open(log_path, "r") as f:
+                # Seek to the end immediately so we only react to NEW network inputs
+                f.seek(0, os.SEEK_END)
+                
+                while not stop_event.is_set():
+                    line = f.readline()
+                    if not line:
+                        # If EOF, check if the file was deleted/rotated
+                        if not os.path.exists(log_path):
+                            break # Break inner loop to wait for it to return
+                        time.sleep(0.5) # Wait briefly for new data
+                        continue
+                    
+                    # Check for our specific trigger phrase
+                    if "kbd" in line:
+                        # Send the "default" action to wake up SAM/reset idle timers
+                        loop.call_soon_threadsafe(handle_action, "default", state, loop)
+                        
+                        # Debounce for 1 second to prevent event floods from mashing
+                        time.sleep(1) 
+                        
+                        # After waking up, jump to the end of the file again 
+                        # to discard any queued inputs that piled up during sleep
+                        f.seek(0, os.SEEK_END) 
+                        
+        except Exception as e:
+            print(f"MCP-RemoteLog: Transient error tailing {log_path}: {e}")
+            time.sleep(1)
+            
+    print(f"MCP-RemoteLog: Poller for {log_path} stopped.")
+
 async def watch_joystick_device(device_info, state, controller_config, loop):
     """Creates and registers a polling task for a single joystick device."""
     stop_event = threading.Event()
@@ -381,42 +531,83 @@ async def watch_mouse_device(device_path, state, loop):
     ))
     tasks[device_path] = (task, stop_event)
 
+async def watch_remote_log(log_path, state, loop):
+    """Creates and registers a polling task for a log file."""
+    stop_event = threading.Event()
+    task = asyncio.create_task(asyncio.to_thread(
+        remote_log_poller_thread, log_path, state, loop, stop_event
+    ))
+    tasks[log_path] = (task, stop_event)
+
 async def idle_and_status_checker(state):
     """Periodically checks idle time and SAM running status."""
     while True:
         try:
-            # Run blocking I/O in a thread to not block the loop
-            running = await asyncio.to_thread(is_sam_running)
-            state.set_sam_running(running)
+            # Only sync tmux state when we're not mid-stop — prevents
+            # clobbering a set_sam_running(False) from handle_action.
+            if not state.is_stopping():
+                running = await asyncio.to_thread(is_sam_running)
+                state.set_sam_running(running)
 
             if not state.is_sam_running():
                 idle_time = state.get_idle_time()
                 time_left = state.idle_timeout - idle_time
 
-                # Run blocking file I/O in a thread
-                in_menu = await asyncio.to_thread(is_in_menu)
-                
+                in_menu = await asyncio.to_thread(is_in_menu, state)
                 can_start = not state.menu_only or (state.menu_only and in_menu)
 
-                if can_start and time_left > 0:
-                    # Show the countdown for the entire duration.
-                    print(f"MCP: Starting SAM in {int(time_left)} second(s)...", end='\r')
-                
                 if can_start and idle_time > state.idle_timeout:
-                    # Clear the countdown line before printing the next message
+                    # Idle threshold exceeded — launch SAM
                     print(" " * 40, end='\r')
-                    # Run blocking subprocess in a thread
+                    state.set_sam_starting(True)
                     await asyncio.to_thread(start_sam)
-                    await asyncio.sleep(2) # Give it a moment to start
-                    running_after_start = await asyncio.to_thread(is_sam_running)
-                    state.set_sam_running(running_after_start)
-                    state.update_activity(log_event=False) # Reset timer silently after starting
+
+                    # Poll for SAM to become running (up to 10s)
+                    sam_started = False
+                    try:
+                        for attempt in range(10):
+                            await asyncio.sleep(1)
+
+                            # Check for buffered user input first
+                            pending = state.consume_pending_action()
+                            running_now = await asyncio.to_thread(is_sam_running)
+
+                            if pending:
+                                if running_now:
+                                    # SAM is up — replay the buffered action to stop it
+                                    state.set_sam_running(True)
+                                    print(f"MCP: SAM started but user pressed '{pending}'. Replaying action...")
+                                    handle_action(pending, state, asyncio.get_running_loop())
+                                else:
+                                    # SAM isn't up yet — abort the launch entirely
+                                    print(f"MCP: User pressed '{pending}' during startup. Aborting SAM launch.")
+                                    subprocess.run(["tmux", "kill-session", "-t", SAM_SESSION_NAME], stderr=subprocess.DEVNULL)
+                                sam_started = running_now
+                                break
+
+                            if running_now:
+                                state.set_sam_running(True)
+                                sam_started = True
+                                break
+                        else:
+                            # for-loop exhausted without break — SAM never started
+                            print("MCP: ⚠ SAM startup timed out after 10 seconds. Resetting.")
+                    finally:
+                        # Single cleanup point — always clear the starting flag
+                        state.set_sam_starting(False)
+
+                    if not sam_started:
+                        state.update_activity(log_event=False)
+
+                elif can_start and time_left > 0:
+                    # Still counting down — show progress
+                    print(f"MCP: Starting SAM in {int(time_left)} second(s)...", end='\r')
 
             # Check every second for a responsive countdown
             await asyncio.sleep(1)
         except Exception as e:
             print(f"MCP: Error in idle checker: {e}")
-            await asyncio.sleep(5) # Wait a bit longer on error
+            await asyncio.sleep(5)
 
 def get_hidraw_for_keyboard(phys_addr):
     """
@@ -514,10 +705,21 @@ def get_input_devices():
     ]
     
     # --- Find keyboards and their corresponding hidraw devices ---
+    # USB HID gamepads enumerate with a 'kbd' handler alongside their joystick interface.
+    # Their hidraw device sends continuous HID reports, which would constantly reset the
+    # idle timer. Exclude any keyboard device that shares the same USB parent as a joystick.
+    # Both interfaces share the same P: Phys prefix, e.g. "usb-xxx/input0" vs "usb-xxx/input2".
+    def _usb_parent(phys: str) -> str:
+        return phys.rsplit('/', 1)[0] if phys and '/' in phys else phys
+
+    joystick_usb_parents = {_usb_parent(d.get('proc_phys', '')) for d in joysticks}
+
     keyboards = []
     for d in all_devices:
-        # A real keyboard has the 'is_keyboard' flag AND is not virtual
-        if d.get('is_keyboard') and 'virtual' not in d.get('sysfs', ''):
+        # A real keyboard: has 'is_keyboard', is not virtual, and is not from the same
+        # USB device as any detected joystick.
+        if d.get('is_keyboard') and 'virtual' not in d.get('sysfs', '') \
+                and _usb_parent(d.get('proc_phys', '')) not in joystick_usb_parents:
             
             # Get the physical address from 'P: Phys='
             phys_addr = d.get('proc_phys')
@@ -533,21 +735,29 @@ def get_input_devices():
 
     return {'joysticks': joysticks, 'keyboards': keyboards, 'has_mouse': has_mouse}
 
-async def rescan_devices(state, controller_config, loop):
+async def rescan_devices(state, controller_config, listen_config, loop):
     """Scans all devices and starts/stops monitors as needed."""
     # Use a lock to ensure only one rescan happens at a time.
     async with rescan_lock:
-        await _rescan_devices_impl(state, controller_config, loop)
+        await _rescan_devices_impl(state, controller_config, listen_config, loop)
 
-async def _rescan_devices_impl(state, controller_config, loop):
+async def _rescan_devices_impl(state, controller_config, listen_config, loop):
     print("MCP: Rescanning all input devices...")
     try:
         all_current_devices = await asyncio.to_thread(get_input_devices)
         
         # --- Build sets of current and monitored devices ---
-        current_js = {d['js_path'] for d in all_current_devices['joysticks']}
-        current_kbds = {d['hidraw_path'] for d in all_current_devices['keyboards']}
-        current_mouse = {"/dev/input/mice"} if os.path.exists("/dev/input/mice") else set()
+        current_js = set()
+        if listen_config.get("listenjoy", True):
+            current_js = {d['js_path'] for d in all_current_devices['joysticks']}
+            
+        current_kbds = set()
+        if listen_config.get("listenkeyboard", True):
+            current_kbds = {d['hidraw_path'] for d in all_current_devices['keyboards']}
+            
+        current_mouse = set()
+        if listen_config.get("listenmouse", True) and os.path.exists("/dev/input/mice"):
+            current_mouse = {"/dev/input/mice"}
         
         all_current_devs = current_js.union(current_kbds).union(current_mouse)
         all_monitored_devs = {path for path in tasks if path.startswith('/dev/input/')}
@@ -581,7 +791,7 @@ async def _rescan_devices_impl(state, controller_config, loop):
     except Exception as e:
         print(f"MCP: Error during device rescan: {e}")
 
-async def hotplug_monitor_native(state, controller_config, loop):
+async def hotplug_monitor_native(state, controller_config, listen_config, loop):
     """Monitors for device hotplug events using the 'inotifywait' utility."""
     print("MCP: Hot-plug monitor started (event-driven via inotifywait).")
     
@@ -606,14 +816,24 @@ async def hotplug_monitor_native(state, controller_config, loop):
                 break # Process has exited
             
             decoded_line = line.decode().strip()
-            
-            # Only react to events related to physical device symlinks.
-            if '/dev/input/by-path/' in decoded_line:
+
+            # Trigger a rescan on:
+            #   - by-path symlink events (USB devices)
+            #   - direct jsX node creation (Bluetooth / wireless controllers that skip by-path)
+            parts = decoded_line.split()
+            event_path = parts[0] if parts else ''
+            event_type = parts[1] if len(parts) > 1 else ''
+            is_relevant = (
+                '/dev/input/by-path/' in event_path
+                or (event_path.startswith('/dev/input/js') and 'CREATE' in event_type)
+            )
+
+            if is_relevant:
                 # A physical device change was detected. Trigger a debounced rescan.
                 if debounce_timer:
                     debounce_timer.cancel()
-                
-                debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_devices(state, controller_config, loop)))
+                print(f"MCP: Hot-plug event detected ({decoded_line}). Scheduling rescan...")
+                debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_devices(state, controller_config, listen_config, loop)))
 
         except asyncio.CancelledError:
             print("MCP: Hot-plug monitor cancelled.")
@@ -638,6 +858,8 @@ def shutdown(loop):
 async def main():
     # 1. Read configuration (same as your script)
     config = configparser.ConfigParser(inline_comment_prefixes=('#', ';'))
+    listen_config = {"listenjoy": True, "listenkeyboard": True, "listenmouse": True}
+    
     try:
         with open(INI_FILE, 'r') as f:
             ini_content = f.read()
@@ -646,6 +868,12 @@ async def main():
         menu_only_raw = config.get("DEFAULT", "menuonly", fallback="yes")
         menu_only = menu_only_raw.strip('"\'').lower() in ['yes', 'true', '1', 'on']
         timeout = config.getint("DEFAULT", "samtimeout", fallback=60)
+        
+        # Load listen configs
+        listen_config["listenjoy"] = config.get("DEFAULT", "listenjoy", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        listen_config["listenkeyboard"] = config.get("DEFAULT", "listenkeyboard", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        listen_config["listenmouse"] = config.get("DEFAULT", "listenmouse", fallback="yes").strip('"\'').lower() in ['yes', 'true', '1', 'on']
+        
     except Exception as e:
         print(f"MCP: Warning - Could not read or parse INI file: {e}")
         print("MCP: Using default values for timeout (60s) and menu_only (True).")
@@ -664,6 +892,7 @@ async def main():
     # 2. Initialize state
     state = SamState(timeout=timeout, menu_only=menu_only)
     print(f"MCP started. Idle timeout: {state.idle_timeout}s, Menu-only: {state.menu_only}")
+    print(f"MCP Listen Config: Joy={listen_config['listenjoy']}, Kbd={listen_config['listenkeyboard']}, Mouse={listen_config['listenmouse']}")
 
     # 3. Setup asyncio tasks
     tasks['checker'] = (asyncio.create_task(idle_and_status_checker(state)), None)
@@ -672,10 +901,14 @@ async def main():
 
     # 4. Initial scan for existing devices and start monitoring them
     # The new rescan function handles the initial scan perfectly.
-    await rescan_devices(state, controller_config, loop)
+    await rescan_devices(state, controller_config, listen_config, loop)
+
+    # 4.5 Start the remote.log monitor for virtual network inputs
+    if listen_config["listenkeyboard"]:
+        await watch_remote_log("/tmp/remote.log", state, loop)
 
     # 5. Start the hot-plug monitor task
-    tasks['hotplug'] = (asyncio.create_task(hotplug_monitor_native(state, controller_config, loop)), None)
+    tasks['hotplug'] = (asyncio.create_task(hotplug_monitor_native(state, controller_config, listen_config, loop)), None)
 
     # 6. Setup signal handlers for graceful shutdown
     for sig in (signal.SIGINT, signal.SIGTERM):
