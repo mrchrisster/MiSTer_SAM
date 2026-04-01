@@ -46,6 +46,13 @@ Simply wait at the main MiSTer menu for 2 minutes (default setting) without touc
 
 Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` script in your MiSTer's Scripts folder! 
 
+## SAM GOAT List - The Greatest Attract Screens of all time
+If you want an easy setup and just have some great attract screens showing, use SAM goat list.  
+Activate it by going to the menu (either through SSH/HDMI or custom modeline for menu core on CRT) and go to Presets. Find the Greatest of all time mode.  
+If you want you own list instead of the custom curated one, do the following:  
+- Rename `/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/sam_goat_list.txt` to `/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/sam_goat_list_custom.txt`
+- Start editing the new file
+
 ## Features
 - **Autoplay** - MiSTer SAM autostarts by default when your MiSTer is idle in the main menu. If you want SAM to always autostart, no matter if in the main menu or not, you can do that by changing "menuonly" setting in `MiSTer_SAM.ini` .
 
