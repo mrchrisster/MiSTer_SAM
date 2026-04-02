@@ -1,0 +1,106 @@
+{
+    "cdi_burn_cycle_1994.chd": {
+        "title": "Cycle",
+        "duration": 31
+    },
+    "cdi_Multimedia_System_1993.chd": {
+        "title": "Golf\\|Tennis\\|Gogh\\|Compton\\|Guest\\|Zelda",
+        "duration": 60
+    },
+    "cdi_Multimedia_System_1994.chd": {
+       "title": "Divil\\|Chaos.Control\\|Beren\\|Compton\\|Cycle",
+        "duration": 60
+    },
+    "cdi_Rhonda_Shear_Up_All_Night_Sweepstakes_1994.chd": {
+        "title": "Tennis\\|Dragon\\|Mystic\\|Caesar\\|Voyeur\\|Townsend\\|Gogh\\|Zelda",
+        "duration": 60
+    },
+    "cdi_Phil_Hartman_1_1994.chd": {
+        "title": "Divil\\|Space.Ace\\|Golf\\|Cycle\\|Beren\\|Townsend\\|Tennis\\|Compton",
+        "duration": 30
+    },
+     "cdi_Phil_Hartman_2_1994.chd": {
+        "title": "Divil\\|Space.Ace\\|Golf\\|Cycle\\|Beren\\|Townsend\\|Tennis\\|Compton",
+        "duration": 30
+    },
+     "cdi_Phil_Hartman_3_1994.chd": {
+        "title": "Divil\\|Space.Ace\\|Golf\\|Cycle\\|Beren\\|Townsend\\|Tennis\\|Compton",
+        "duration": 30
+    },
+    "cdi_7th_guest_promo.chd": {
+        "title": "Guest",
+        "duration": 49
+    },
+    "cdi_burn_cycle_promo.chd": {
+        "title": "Cycle",
+        "duration": 120
+    },
+    "cdi_caesars_boxing_promo.chd": {
+        "title": "boxing",
+        "duration": 29
+    },
+    "cdi_chaos_control_promo.chd": {
+        "title": "Chaos.Control",
+        "duration": 72
+    },
+    "cdi_cluedo_promo.chd": {
+        "title": "Clue",
+        "duration": 36
+    },
+    "cdi_creature_shock_promo.chd": {
+        "title": "Creature.Shock",
+        "duration": 30
+    },
+    "cdi_dragons_lair_ii_promo.chd": {
+        "title": "Time.Warp",
+        "duration": 36
+    },
+    "cdi_dragons_lair_promo.chd": {
+        "title": ".Lair",
+        "duration": 42
+    },
+    "cdi_earth_command_promo.chd": {
+        "title": "Earth.Command",
+        "duration": 60
+    },
+    "cdi_great_games_promo.chd": {
+        "title": "Shadoan\\|Reaches\\|Mystic\\|Divil\\|Space.Ace\\|Dragon\\|Cycle\\|Chaos.Control\\|Lemmings\\|Mad.Dog\\|Clue\\|Mutant\\|Thunder",
+        "duration": 191
+    },
+    "cdi_lemmings_promo.chd": {
+        "title": "Lemmings",
+        "duration": 24
+    },
+    "cdi_litil_divil_promo.chd": {
+        "title": "Divil",
+        "duration": 61
+    },
+    "cdi_lost_eden_promo.chd": {
+        "title": "Lost.Eden",
+        "duration": 134
+    },
+    "cdi_mad_dog_mccree_promo.chd": {
+        "title": "Mccree",
+        "duration": 59
+    },
+    "cdi_mutant_rampage_promo.chd": {
+        "title": "Mutant",
+        "duration": 112
+    },
+    "cdi_space_ace_promo.chd": {
+        "title": "Space.Ace",
+        "duration": 41
+    },
+    "cdi_thunder_in_paradise_promo.chd": {
+        "title": "Paradise",
+        "duration": 206
+    },
+    "cdi_voyeur_promo.chd": {
+        "title": "Voyeur",
+        "duration": 41
+    },
+     "cdi_who_shot_johnny_rock_promo.chd": {
+        "title": "Who.Shot",
+        "duration": 89
+    }
+}
