@@ -28,7 +28,7 @@ function menu_presets() {
              menu_preset_maturetgfx    "Play Games rated mature for TurboGrafx-CD." \
              menu_preset_kids          "All-Ages ESRB games only (Kids Safe)" \
              menu_preset_m82_mode      "Turn your MiSTer into a NES M82 unit." \
-             menu_preset_roulette      "Game Roulette (timed random games)" \
+             menu_preset_roulette_mode "Game Roulette (timed random games)" \
       2> "${sam_menu_file}"
 
     local rc=$? choice=$(<"${sam_menu_file}")
@@ -64,21 +64,21 @@ function menu_preset_svc() {
          --msgbox "This mode will download commercials from archive.org, play them on your MiSTer,\nand then attempt to launch the advertised game.\n\nExperimental: results may vary!" \
          0 0
 
-  # 3) Choose video output
+  # 3) Choose CD-i or mplayer
   exec 3>&1
   selection=$(dialog --clear --ascii-lines --no-cancel --backtitle "Super Attract Mode" \
-            --title "[ Video Output ]" \
-            --menu "Select your display device:" 0 0 0 \
-              1 "HDMI" \
-              2 "CRT" \
+            --title "[ Video Mode ]" \
+            --menu "Select how we want to play videos" 0 0 0 \
+              1 "CD-i (best compatibility)" \
+              2 "mPlayer" \
             2>&1 1>&3)
   exec 3>&-
   (( $? != 0 )) && return  # cancelled
 
   if [[ "$selection" == "1" ]]; then
-    samini_mod samvideo_output HDMI
+    samini_mod samvideo_tvc_cdi Yes
   else
-    samini_mod samvideo_output CRT
+    samini_mod samvideo_tvc_cdi No
   fi
 
   # 4) Ask about keeping local copies
