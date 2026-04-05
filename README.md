@@ -64,14 +64,8 @@ If you want you own list instead of the custom curated one, do the following:
 **NOTE** The menu does not work out of the box on CRT's . Please try adding the following settings to your `/media/fat/MiSTer.ini` and see if it will make the menu work for your CRT setup:  
 ```
 [Menu]
-video_mode=640,16,64,80,240,1,3,14,12380
-vga_scaler=1
-```
-or 
-```
-[Menu]
-video_mode=640,-16,56,56,240,1,3,13,11350
-vga_scaler=1
+direct_video=1
+video_mode=640,30,60,70,240,4,4,14,12587
 ```
   
 - **Exclusion Lists** - You can exclude any amount of games that you don't want to have displayed by adding a file called for example `snes_excludelist.txt` in /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists folder. One line per game, can be full file path or just the game name. Or just launch the game you want to exclude and type `/media/fat/Scripts/MiSTer_SAM_on.sh ignore` in SSH. SAM will create the exclude list for you.
