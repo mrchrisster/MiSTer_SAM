@@ -14,8 +14,6 @@ declare -g tmpfilefilter="/tmp/.SAM_List/tmpfilefilter"
 declare -g tmpfile="/tmp/.SAM_List/tmpfile"
 declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 declare -g saminit_log="/tmp/saminit.log"
-declare -gl kids_safe
-declare -gl unmute_on_boot
 
 #========= PARSE INI =========
 # Read INI, Check for mount point presence
@@ -60,10 +58,6 @@ echo " Done!"
 
 #========= PREP =========
 mkdir -p "${gamelistpathtmp}"
-#Unmute MiSTer
-if [ "${unmute_on_boot}" == "yes" ]; then
-	echo "volume unmute" > /dev/MiSTer_cmd
-fi
 
 #======== Local Functions Unique to the Init Script ========
 function start() {
