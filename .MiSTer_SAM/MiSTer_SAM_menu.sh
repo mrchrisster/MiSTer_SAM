@@ -995,7 +995,7 @@ function menu_settings() {
            --backtitle "Super Attract Mode" --title "[ Settings ]" \
            --menu "Configure SAM behavior" 0 0 0 \
              menu_sam_timer             "Select Timers: delay & duration" \
-             menu_mute              	"Mute cores while SAM is on" \
+             menu_mute              	"Mute global volume while SAM is on" \
              menu_autoplay              "Autoplay configuration" \
              menu_enablekidssafe        "Enable Kids Safe Filter" \
              menu_disablekidssafe       "Disable Kids Safe Filter" \
@@ -1087,7 +1087,7 @@ function menu_mute() {
   # Intro
   dialog --clear --no-cancel --ascii-lines \
          --backtitle "Super Attract Mode" --title "[ MUTE INFO ]" \
-         --msgbox $'SAM uses each core’s built-in mute (low volume alert still possible).\n\nGlobal mute works system-wide but is less tested.' \
+         --msgbox $'SAM can mute the system volume globally while games are shown in Attract Mode.' \
          0 0
 
   while true; do
@@ -1095,8 +1095,8 @@ function menu_mute() {
            --backtitle "Super Attract Mode" --title "[ MUTE OPTIONS ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Choose mute mode:" 0 0 0 \
-             globalmute   "Global volume mute" \
-             disablemute  "Core-level unmute" \
+             enablemute   "Enable global mute" \
+             disablemute  "Disable global mute" \
       2> "${sam_menu_file}"
 
     rc=$? choice=$(<"${sam_menu_file}")
@@ -1105,13 +1105,13 @@ function menu_mute() {
     (( rc != 0 )) && return
 
     case "${choice,,}" in
-      globalmute)
+      enablemute)
         samini_mod mute Yes
         dialog --msgbox "Global mute enabled." 0 0
         ;;
       disablemute)
         samini_mod mute No
-        dialog --msgbox "Core mute disabled." 0 0
+        dialog --msgbox "Global mute disabled." 0 0
         ;;
       *)
         dialog --msgbox "Unknown selection: $choice" 0 0
