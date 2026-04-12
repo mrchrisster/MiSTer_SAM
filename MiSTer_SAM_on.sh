@@ -64,7 +64,7 @@ function init_vars() {
 	declare -g core_count_file="/tmp/.SAM_tmp/sv_corecount"	
 	declare -gi disablecoredel="0"	
 	declare -gi gametimer=120
-	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,colecovision,intellivision,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,vectrex,wonderswan,wonderswancolor,psx,x68k,mgls"
+	declare -gl corelist="amiga,amigacd32,ao486,arcade,atari2600,atari5200,atari7800,atarilynx,c64,cdi,coco2,colecovision,intellivision,fds,gb,gbc,gba,genesis,gg,jaguar,megacd,n64,neogeo,neogeocd,nes,s32x,saturn,sgb,sms,snes,stv,tgfx16,tgfx16cd,3do,vectrex,wonderswan,wonderswancolor,psx,x68k,mgls"
 	declare -gl corelistall="${corelist}"
 	declare -gl skipmessage="Yes"
 	declare -gl disablebootrom="no"
@@ -73,6 +73,9 @@ function init_vars() {
 	declare -gl disable_blacklist="No"
 	declare -gl amigaselect="All"
 	declare -gl m82="no"
+	declare -gi m82_game_timer=180      # How long (secs) user can play in M82 play mode
+	declare -gl m82_muted="no"          # Whether to mute audio during M82 demo/bios
+	declare -g  m82_phase_file="/tmp/.SAM_tmp/m82_phase"  # "bios" or "game"
 	declare -gl sam_goat_list="no"
 	declare -gl mute="No"
 	declare -gi update_done=0
@@ -184,6 +187,7 @@ function init_vars() {
 	declare -g genesispathrbf="_Console"
 	declare -g ggpathrbf="_Console"
 	declare -g jaguarpathrbf="_Console"
+	declare -g threedopathrbf="_Console"
 	declare -g megacdpathrbf="_Console"
 	declare -g n64pathrbf="_Console"
 	declare -g neogeopathrbf="_Console"
@@ -277,6 +281,7 @@ function init_data() {
 		["genesis"]="Sega Genesis / Megadrive"
 		["gg"]="Sega Game Gear"
 		["jaguar"]="Atari Jaguar"
+		["3do"]="Panasonic 3DO"
 		["megacd"]="Sega CD / Mega CD"
 		["n64"]="Nintendo N64"
 		["neogeo"]="SNK NeoGeo"
@@ -319,6 +324,7 @@ function init_data() {
 		["genesis"]="md,gen" 		
 		["gg"]="gg"
 		["jaguar"]="j64,rom,bin,jag"
+		["3do"]="iso,chd"
 		["megacd"]="chd,cue"
 		["n64"]="n64,z64"
 		["neogeo"]="neo"
@@ -361,6 +367,7 @@ function init_data() {
 		["genesis"]="${genesispathfilter}"
 		["gg"]="${ggpathfilter}"
 		["jaguar"]="${jaguarpathfilter}"
+		["3do"]="${threedopathfilter}"
 		["megacd"]="${megacdpathfilter}"
 		["n64"]="${n64pathfilter}"
 		["neogeo"]="${neogeopathfilter}"
@@ -406,6 +413,7 @@ function init_data() {
 		["genesis"]="${genesispathrbf}"
 		["gg"]="${ggpathrbf}"
 		["jaguar"]="${jaguarpathrbf}"
+		["3do"]="${threedopathrbf}"
 		["megacd"]="${megacdpathrbf}"
 		["n64"]="${n64pathrbf}"
 		["neogeo"]="${neogeopathrbf}"
@@ -448,6 +456,7 @@ function init_data() {
 		["genesis"]="No"
 		["gg"]="No"
 		["jaguar"]="No"
+		["3do"]="Yes"
 		["megacd"]="Yes"
 		["n64"]="No"
 		["neogeo"]="No"
@@ -492,6 +501,7 @@ function init_data() {
 		["genesis"]="MEGADRIVE"
 		["gg"]="SMS"
 		["jaguar"]="Jaguar"
+		["3do"]="3DO"
 		["megacd"]="MegaCD"
 		["n64"]="N64"
 		["neogeo"]="NEOGEO"
@@ -535,6 +545,7 @@ function init_data() {
 		["genesis"]="MegaDrive"
 		["gg"]="gamegear"
 		["jaguar"]="Jaguar"
+		["3do"]="3DO"
 		["megacd"]="MegaCD"
 		["n64"]="N64"
 		["neogeo"]="NEOGEO"
@@ -578,6 +589,7 @@ function init_data() {
 		["genesis"]="MegaDrive"
 		["gg"]="SMS"
 		["jaguar"]="Jaguar"
+		["3do"]="3DO"
 		["megacd"]="MegaCD"
 		["n64"]="N64"
 		["neogeo"]="NEOGEO"
@@ -628,6 +640,7 @@ function init_data() {
 		["genesis"]="1"
 		["gg"]="1"
 		["jaguar"]="1"
+		["3do"]="1"
 		["megacd"]="1"
 		["n64"]="1"
 		["neogeo"]="1"
@@ -671,6 +684,7 @@ function init_data() {
 		["genesis"]="0"
 		["gg"]="2"
 		["jaguar"]="1"
+		["3do"]="1"
 		["megacd"]="0"
 		["n64"]="1"
 		["neogeo"]="1"
@@ -713,6 +727,7 @@ function init_data() {
 		["genesis"]="f"
 		["gg"]="f"
 		["jaguar"]="f"
+		["3do"]="s"
 		["megacd"]="s"
 		["n64"]="f"
 		["neogeo"]="f"
@@ -1125,16 +1140,6 @@ function read_samini() {
 	
 	#BGM mode
 	if [ "${bgm}" == "yes" ]; then
-		# delete n64 and psx
-		# echo "Deleting N64 and PSX from corelist"
-		new_corelist=()
-		for core in "${corelist[@]}"; do
-			if [[ "$core" != "n64" && "$core" != "psx" ]]; then
-				new_corelist+=("$core")
-			fi
-		done
-
-		corelist=("${new_corelist[@]}")
 		mute="core"
 	fi
 	
@@ -1204,6 +1209,7 @@ function parse_cmd() {
     monitor)            sam_monitor ;;
     mcp_monitor)        mcp_monitor ;;
 	exit_to_menu)       exit_sam menu ;;
+	exit_to_menu_fast)  exit_sam_fast ;;
     exit_to_game)       exit_sam game ;;
     unmute)             unmute_with_retry ;;
     enable)             env_check enable; sam_enable ;;
@@ -1482,6 +1488,8 @@ function run_countdown_timer() {
     local countdown=${gametimer}
     local start_time=$SECONDS
     local end_time=$((start_time + countdown))
+    local m82_play_triggered=0
+    local m82_is_infinite=0
 
     # Set a local trap to handle Ctrl+C.
     # Inherit global trap (detach)
@@ -1520,6 +1528,8 @@ function run_countdown_timer() {
 
         if [ "$video_synced" == "no" ]; then
              echo -ne "Loading video...\033[0K\r"
+        elif [[ "$m82_is_infinite" == "1" ]]; then
+             echo -ne "Play Time: Infinite\033[0K\r"
         else
              echo -ne "Next in ${current_rem} seconds...\033[0K\r"
         fi
@@ -1527,8 +1537,10 @@ function run_countdown_timer() {
         read -s -t 1 -n 1 key
         if [[ $? -eq 0 ]]; then
             case "$key" in
-                n|N) 
-                    echo; return 
+                n|N)
+                    echo
+                    SAM_ACTION="next"
+                    return
                     ;;
                 p|P)
                     echo
@@ -1537,6 +1549,26 @@ function run_countdown_timer() {
                     ;;
                 m|M)
                     toggle_mute
+                    ;;
+                y|Y)
+                    # M82 play mode: user pressed a button during a game.
+                    # Extend the countdown to m82_game_timer and restore audio ONCE per game.
+                    if [[ "$m82" == "yes" ]] || [[ "$m82" == *"yes"* ]]; then
+                        if [[ "$m82_play_triggered" == "0" ]]; then
+                            local mg_timer="${m82_game_timer:-180}"
+                            mg_timer="${mg_timer//$'\r'/}"
+                            
+                            if [[ "$mg_timer" == "0" ]]; then
+                                mg_timer=86400
+                                m82_is_infinite=1
+                            fi
+                            
+                            end_time=$((SECONDS + mg_timer))
+                            m82_play_triggered=1
+                            samdebug "M82 play mode triggered. Extended timer by $mg_timer seconds."
+                            only_unmute_if_needed
+                        fi
+                    fi
                     ;;
             esac
         fi
@@ -1664,19 +1696,29 @@ function load_samvideo() {
 
 # Don't repeat same core twice
 function corelist_update() {
-	
+
 	#Single Core Mode
 	if [ -s "${corelistfile}.single" ]; then
 		unset corelist
 		mapfile -t corelist < "${corelistfile}.single"
 		rm "${corelistfile}.single" "${corelistfile}" > /dev/null 2>&1
-		
+
 	elif [ -s "${corelistfile}" ]; then
 		unset corelist
 		mapfile -t corelist < "${corelistfile}"
 		rm "${corelistfile}"
 	fi
-		
+
+	# BGM mode: n64, saturn and psx are incompatible with BGM (no per-core volume control).
+	# Filter them out here so the rule is enforced regardless of how corelist was set.
+	if [[ "${bgm}" == "yes" ]]; then
+		local bgm_filtered=()
+		for core in "${corelist[@]}"; do
+			[[ "$core" != "n64" && "$core" != "psx" && "$core" != "saturn" ]] && bgm_filtered+=("$core")
+		done
+		corelist=("${bgm_filtered[@]}")
+	fi
+
 	# Resynchronize corelisttmp with the potentially updated corelist
 	declare -A valid_cores_map
 	for core in "${corelist[@]}"; do
@@ -1943,8 +1985,16 @@ function pick_weighted_random() {
 function pick_rom() {
     # 1. Handle special, non-random cases first.
     if [[ "$m82" == "yes" ]]; then
-        # M82 mode is deterministic; it always takes the first line.
+        # M82 mode is deterministic; it always takes the first line of the session list.
         rompath="$(head -n 1 "${gamelistpathtmp}/nes_gamelist.txt")"
+        # Write current phase so MCP can apply correct button rules.
+        if [[ "$rompath" == "$m82_bios_path" ]]; then
+            echo "bios" > "${m82_phase_file}"
+            samdebug "M82 phase: bios"
+        else
+            echo "game" > "${m82_phase_file}"
+            samdebug "M82 phase: game ($rompath)"
+        fi
         return
     fi
 
@@ -2386,30 +2436,54 @@ function check_list() {
             exit 1
         fi
 
+        # --- Advance the list (runs when a game has just been played) ---
+        # The session list is trimmed here, at the start of the NEXT cycle, so
+        # pick_rom (head -1) always reads the entry that was already played and
+        # we move past it before the new pick happens.
+        if [ -s "${session_list}" ]; then
+            sed -i '1d' "${session_list}"
+        fi
+
         # --- Create the special M82 session list if it doesn't exist ---
         if [ ! -s "${session_list}" ]; then
             samdebug "Creating M82 game list from m82_list.txt"
-            # Read a predefined list of game titles and build a new gamelist
-            while IFS= read -r line; do 
-                echo "$m82_bios_path" 
+            # Each game is preceded by a BIOS entry: BIOS, game1, BIOS, game2, ...
+            while IFS= read -r line; do
+                echo "$m82_bios_path"
                 fgrep "$line" "${gamelistpath}/nes_gamelist.txt" | head -n 1
             done < "${mrsampath}/SAM_Gamelists/m82_list.txt" > "${session_list}"
 
             samdebug "Found the following games: \n$(cat "${session_list}" | grep -iv m82)"
             samdebug "Found $(cat "${session_list}" | grep -iv m82 | wc -l) games"
         fi
-        
-        # --- Handle game skipping ---
-        # If a button was pushed to skip the current game, remove it from the list
-        if [ "${update_done}" -eq 1 ]; then
-            sed -i '1d' "${session_list}"
+
+        # --- "Next" button skip: user pressed next, so skip any BIOS at the top ---
+        # On timer expiry the cycle is: game → BIOS → next_game (correct).
+        # When "next" is pressed we go directly game → next_game (no BIOS interlude).
+        # This also handles the wrap: last_game → [rebuild] → BIOS1 → skip → game1.
+        if [[ "$SAM_ACTION" == "next" ]] && [ -s "${session_list}" ]; then
+            local _next_entry
+            _next_entry="$(head -n 1 "${session_list}")"
+            if [[ "$_next_entry" == "$m82_bios_path" ]]; then
+                samdebug "M82: 'next' pressed — skipping BIOS entry, jumping to game"
+                sed -i '1d' "${session_list}"
+                # If skipping BIOS emptied the list, rebuild and skip the first BIOS again
+                if [ ! -s "${session_list}" ]; then
+                    samdebug "M82: list empty after BIOS skip — rebuilding and skipping first BIOS"
+                    while IFS= read -r line; do
+                        echo "$m82_bios_path"
+                        fgrep "$line" "${gamelistpath}/nes_gamelist.txt" | head -n 1
+                    done < "${mrsampath}/SAM_Gamelists/m82_list.txt" > "${session_list}"
+                    sed -i '1d' "${session_list}"  # skip the leading BIOS of the new cycle
+                fi
+            fi
         fi
-        
+        SAM_ACTION=""  # consumed; clear so it doesn't bleed into the next cycle
+
 		sync
-		
+
         # --- Finalize M82 state for this cycle ---
         gametimer="21"
-        update_done=0
         return
     fi
 
@@ -2514,6 +2588,7 @@ function check_list_update() {
 
 function build_goat_lists() {
 	local goat_flag="/tmp/.SAM_tmp/goatmode.ready"
+	local goat_custom_path="${gamelistpath}/sam_goat_list_custom.txt"
 	local goat_list_path="${gamelistpath}/sam_goat_list.txt"
 
 	# Already built this session?
@@ -2524,11 +2599,17 @@ function build_goat_lists() {
 	# Ensure working dir
 	rm -rf "${gamelistpathtmp}"/*
 	mkdir -p "${gamelistpathtmp}" /tmp/.SAM_tmp
-	
-	# Download master list if missing
-	if [[ ! -f "$goat_list_path" ]]; then
-	samdebug "Downloading GOAT master list..."
-	get_samstuff .MiSTer_SAM/SAM_Gamelists/sam_goat_list.txt "$gamelistpath"
+
+	# Use custom list if present, otherwise fall back to default
+	if [[ -f "$goat_custom_path" ]]; then
+		echo "Using custom GOAT list: ${goat_custom_path}"
+		goat_list_path="$goat_custom_path"
+	else
+		# Download default list if missing
+		if [[ ! -f "$goat_list_path" ]]; then
+			samdebug "Downloading GOAT master list..."
+			get_samstuff .MiSTer_SAM/SAM_Gamelists/sam_goat_list.txt "$gamelistpath"
+		fi
 	fi
 	
 	# Parse master list into per-core tmp files
@@ -2615,7 +2696,6 @@ function build_m82_list() {
 		only_unmute_if_needed
 	fi
 	gametimer="21"
-	listenjoy=no
 }
 
 
@@ -3003,16 +3083,46 @@ function kill_all_sams() {
 
 function exit_sam() { # exit_sam [menu|game]
     local exit_mode=${1:-menu} # Default to menu if no argument
-    
-    sam_cleanup
-    bgm_stop
-    tty_exit
 
-    # 6. Load menu if requested
     if [[ "$exit_mode" == "menu" ]]; then
+        sam_cleanup
+        bgm_stop
+        tty_exit
         echo "SAM stopped. Returning to menu..."
         timeout 1s sh -c "echo 'load_core /media/fat/menu.rbf' > /dev/MiSTer_cmd"
+    elif [[ "$exit_mode" == "game" ]] && [[ "${mute}" == "core" ]]; then
+        # BGM mode: _volume.cfg was bind-mounted to mute the core. MiSTer only
+        # reads it on core load, so we must unmount it before reloading.
+        # Unmount is fast; everything else is backgrounded so load_core fires immediately.
+        local reload_path=""
+        if [ -s /tmp/SAM_Game.mgl ]; then
+            reload_path="/tmp/SAM_Game.mgl"
+        elif [ -f /tmp/.SAM_tmp/prev_game_info ]; then
+            source /tmp/.SAM_tmp/prev_game_info
+            reload_path="${rompath}"
+        fi
+        if [ -n "$reload_path" ]; then
+            # Unmount _volume.cfg bind mounts synchronously — MiSTer needs the
+            # real file visible before load_core fires.
+            readarray -t volmount <<< "$(mount | grep -i _volume.cfg | awk '{print $3}')"
+            [ "${#volmount[@]}" -gt 0 ] && umount -l "${volmount[@]}" >/dev/null 2>&1
+            echo "SAM stopped. Reloading game with restored volume..."
+            timeout 1s sh -c "echo 'load_core ${reload_path}' > /dev/MiSTer_cmd"
+            # Background the slow cleanup so it doesn't delay the reload.
+            { bgm_stop; tty_exit; } &
+        fi
+    else
+        # Normal exit-to-game (no BGM mute): just clean up and leave the game running.
+        sam_cleanup
+        tty_exit
     fi
+}
+
+function exit_sam_fast() {
+    # Critical path only: unmount Volume.dat so audio is restored immediately.
+    # BGM stop and tty cleanup are backgrounded so the menu loads without delay.
+    only_unmute_if_needed
+    { bgm_stop; tty_exit; sam_cleanup; } &
 }
 
 # ======== UTILITY FUNCTIONS ========
@@ -3482,6 +3592,8 @@ function disable_bootrom() {
 
 function mute() {
 	if [[ "${mute}" == "yes" || "${mute}" == "global" ]]; then
+		# Global mute is a one-time bind mount for the whole session; skip if already active.
+		mount | grep -q "${configpath%/}/Volume.dat" && return
 		only_mute_if_needed
 	elif [ "${mute}" == "core" ]; then
 		samdebug "mute=core"
@@ -3806,9 +3918,9 @@ function apply_ratings_filter() {
 				else
 					fgrep -f "${mrsampath}/SAM_Rated/${1}_rated.txt" "${gamelistpathtmp}/${1}_gamelist.txt" | awk -F "/" '{split($NF,a," \\("); if (!seen[a[1]]++) print $0}' > "${tmpfilefilter}"
 				fi
-				if [ -s "${tmpfilefilter}" ]; then 
+				if [ -s "${tmpfilefilter}" ]; then
 					samdebug "$(wc -l <"${tmpfilefilter}") games after kids safe filter applied."
-					cp -f "${tmpfilefilter}" "${gamelistpathtmp}/${1}_gamelist.txt"
+					cp -f "${tmpfilefilter}" "${target_file}"
 				else
 					delete_from_corelist "${1}"
 					delete_from_corelist "${1}" tmp
@@ -3859,7 +3971,7 @@ function apply_ratings_filter() {
 
 			  if [[ -s "$tmpfilefilter" ]]; then
 				samdebug "$(wc -l <"$tmpfilefilter") games after mature filter applied."
-				cp -f "$tmpfilefilter" "${gamelistpathtmp}/${1}_gamelist.txt"
+				cp -f "$tmpfilefilter" "${target_file}"
 			  else
 				delete_from_corelist "$1"
 				delete_from_corelist "$1" tmp
@@ -5004,8 +5116,7 @@ function sam_update() { # sam_update (next command)
 			sed -i 's/==/--/g' "${samini_file}"
 			sed -i 's/-=/--/g' "${samini_file}"
 			awk -F= 'NR==FNR{a[$1]=$0;next}($1 in a){$0=a[$1]}1' "${samini_file}" /tmp/MiSTer_SAM.ini >/tmp/MiSTer_SAM.tmp && cp -f --force /tmp/MiSTer_SAM.tmp "${samini_file}"
-			echo " Warning: Overwriting ini in test branch!"
-			get_samstuff MiSTer_SAM.ini /media/fat/Scripts
+			#get_samstuff MiSTer_SAM.ini /media/fat/Scripts
 			echo "Done."
 
 		else
