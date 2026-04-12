@@ -7,7 +7,7 @@ function init_vars() {
 	declare -g mrsampath="/media/fat/Scripts/.MiSTer_SAM"
 	declare -g misterpath="/media/fat"
 	# Save our PID and process
-	declare -g  sshwinconnect="chelm@192.168.1.64"
+	declare -g  sshwinconnect="christoph@192.168.1.64"
 
 	declare -g sampid="${$}"
 	declare -g samprocess="$(basename -- ${0})"
@@ -33,7 +33,7 @@ function init_vars() {
 	declare -g tmpfile2="/tmp/.SAM_List/tmpfile2"
 	declare -g corelisttmpfile="/tmp/.SAM_List/corelist.tmp"													 
 	declare -gi gametimer=110
-	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
+	declare -gl corelist="arcade,atari2600,atari5200,atari7800,atarilynx,amiga,c64,coco2,fds,gb,gbc,gba,genesis,gg,megacd,neogeo,nes,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	# Make all cores available for menu
 	declare -gl corelistall="${corelist}"
 	declare -gl create_all_gamelists="No"
@@ -79,6 +79,7 @@ function init_vars() {
 	declare -g atari7800path="/media/fat/Games/Atari7800"
 	declare -g atarilynxpath="/media/fat/Games/AtariLynx"
 	declare -g c64path="/media/fat/Games/C64"
+	declare -g coco2path="/media/fat/Games/CoCo2"
 	declare -g fdspath="/media/fat/Games/NES"
 	declare -g gbpath="/media/fat/Games/Gameboy"
 	declare -g gbcpath="/media/fat/Games/Gameboy"
@@ -103,6 +104,7 @@ function init_vars() {
 	declare -g atari7800pathextra=""
 	declare -g atarilynxpathextra=""
 	declare -g c64pathextra=""
+	declare -g coco2pathextra=""
 	declare -g fdspathextra=""
 	declare -g gbpathextra=""
 	declare -g gbcpathextra=""
@@ -127,6 +129,7 @@ function init_vars() {
 	declare -g atari7800pathrbf="_Console"
 	declare -g atarilynxpathrbf="_Console"
 	declare -g c64pathrbf="_Computer"
+	declare -g coco2pathrbf="_Computer"
 	declare -g fdspathrbf="_Console"
 	declare -g gbpathrbf="_Console"
 	declare -g gbcpathrbf="_Console"
@@ -178,7 +181,7 @@ function init_paths() {
 	declare -g GET_SYSTEM_FOLDER_RESULT=""
 	# Create folders if they don't exist
 	mkdir -p "${mrsampath}/SAM_Gamelists"
-	rm -rf /tmp/.SAM_List
+	#rm -rf /tmp/.SAM_List
 	mkdir -p /tmp/.SAM_List
 	[ -e "${tmpfile}" ] && { rm "${tmpfile}"; }
 	[ -e "${tmpfile2}" ] && { rm "${tmpfile2}"; }
@@ -201,6 +204,7 @@ function init_data() {
 		["atarilynx"]="Atari Lynx"
 		["amiga"]="Commodore Amiga"
 		["c64"]="Commodore 64"
+		["coco2"]="TRS-80 Color Computer 2"
 		["fds"]="Nintendo Disk System"
 		["gb"]="Nintendo Game Boy"
 		["gbc"]="Nintendo Game Boy Color"
@@ -227,6 +231,7 @@ function init_data() {
 		["atari7800"]="a78"     
 		["atarilynx"]="lnx"		 
 		["c64"]="crt,prg" 			# need to be tested "reu,tap,flt,rom,c1581"
+		["coco2"]="ccc"
 		["fds"]="fds"
 		["gb"]="gb"			 		
 		["gbc"]="gbc"		 		
@@ -253,6 +258,7 @@ function init_data() {
 		["atari7800"]="${atari7800path}"
 		["atarilynx"]="${atarilynxpath}"				  
 		["c64"]="${c64path}"
+		["coco2"]="${coco2path}"
 		["fds"]="${fdspath}"
 		["gb"]="${gbpath}"
 		["gbc"]="${gbcpath}"
@@ -279,6 +285,7 @@ function init_data() {
 		["atari7800"]="${atari7800pathextra}"
 		["atarilynx"]="${atarilynxpathextra}"					   
 		["c64"]="${c64pathextra}"
+		["coco2"]="${coco2pathextra}"
 		["fds"]="${fdspathextra}"
 		["gb"]="${gbpathextra}"
 		["gbc"]="${gbcpathextra}"
@@ -305,6 +312,7 @@ function init_data() {
 		["atari7800"]="${atari7800pathrbf}"
 		["atarilynx"]="${atarilynxpathrbf}"					 
 		["c64"]="${c64pathrbf}"
+		["coco2"]="${coco2pathrbf}"
 		["fds"]="${fdspathrbf}"
 		["gb"]="${gbpathrbf}"
 		["gbc"]="${gbcpathrbf}"
@@ -331,6 +339,7 @@ function init_data() {
 		["atari7800"]="Yes"
 		["atarilynx"]="Yes"			 
 		["c64"]="Yes"
+		["coco2"]="No"
 		["fds"]="Yes"
 		["gb"]="Yes"
 		["gbc"]="Yes"
@@ -357,6 +366,7 @@ function init_data() {
 		["atari7800"]="No"
 		["atarilynx"]="No"		
 		["c64"]="No"
+		["coco2"]="No"
 		["fds"]="Yes"
 		["gb"]="No"
 		["gbc"]="No"
@@ -370,7 +380,7 @@ function init_data() {
 		["sms"]="No"
 		["snes"]="No"
 		["tgfx16"]="No"
-		["tgfx16cd"]="No"
+		["tgfx16cd"]="Yes"
 		["psx"]="No"
 	)
 
@@ -383,6 +393,7 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"
 		["c64"]="C64"
+		["coco2"]="CoCo2"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -409,6 +420,7 @@ function init_data() {
 		["atari7800"]="ATARI7800"
 		["atarilynx"]="AtariLynx"		   
 		["c64"]="C64"
+		["coco2"]="CoCo2"
 		["fds"]="NES"
 		["gb"]="GAMEBOY"
 		["gbc"]="GAMEBOY"
@@ -435,6 +447,7 @@ function init_data() {
 		["atari7800"]="1"
 		["atarilynx"]="1"
 		["c64"]="1"
+		["coco2"]="1"
 		["fds"]="2"
 		["gb"]="2"
 		["gbc"]="2"
@@ -461,6 +474,7 @@ function init_data() {
 		["atari7800"]="1"
 		["atarilynx"]="1"   
 		["c64"]="1"
+		["coco2"]="1"
 		["fds"]="0"
 		["gb"]="0"
 		["gbc"]="0"
@@ -487,6 +501,7 @@ function init_data() {
 		["atari7800"]="f"
 		["atarilynx"]="f"
 		["c64"]="f"
+		["coco2"]="f"
 		["fds"]="f"
 		["gb"]="f"
 		["gbc"]="f"
@@ -599,7 +614,7 @@ function parse_cmd() {
 		nextcore=""
 		for arg in ${@,,}; do
 			case ${arg} in
-			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			arcade | atari2600 | atari5200 | atari7800 | atarilynx | amiga | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				echo " ${CORE_PRETTY[${arg}]} selected!"
 				nextcore="${arg}"
 				;;
@@ -683,7 +698,7 @@ function parse_cmd() {
 				sam_monitor
 				break
 				;;
-			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
+			amiga | arcade | atari2600 | atari5200 | atari7800 | atarilynx | c64 | coco2 | fds | gb | gbc | gba | genesis | gg | megacd | neogeo | nes | s32x | sms | snes | tgfx16 | tgfx16cd | psx)
 				: # Placeholder since we parsed these above
 				;;
 			single)
@@ -868,7 +883,7 @@ function check_list() { # args ${nextcore}
 
 function compare_mp4-gl() {
 	nextcore=${1}
-	ssh "${sshwinconnect}" 'dir /b "c:\SAM\'${nextcore}'\*.mp4"' /s | awk -F'\\' '{print $NF}' | awk -F'.mp4' '{print $1}'| sort > "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt"
+	ssh "${sshwinconnect}" 'dir /b "c:\SAM\system_mp4s\'${nextcore}'\*.mp4"' /s | awk -F'\\' '{print $NF}' | awk -F'.mp4' '{print $1}'| sort > "${gamelistpathtmp}/${nextcore}_gamelist_mp4.txt"
 	#cat "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" | awk -F/ '{print $NF}' | sort > "${gamelistpathtmp}/${nextcore}_gamelist_hdmi_stripped.txt"
 	echo -n "Comparing existing mp4's to gamelist..."
 	if [ "${nextcore}" == "amiga" ]; then
@@ -1032,8 +1047,8 @@ function load_core() { # load_core core /path/to/rom name_of_rom (countdown)
 	fi
 	sleep 30
 	
-	ssh "${sshwinconnect}" 'mkdir "c:\SAM\'${nextcore}'"'
-	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
+	ssh "${sshwinconnect}" 'mkdir "c:\SAM\system_mp4s\'${nextcore}'"'
+	ssh "${sshwinconnect}" 'C:\SAM\scripts\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\system_mp4s\'${nextcore}'\'${GAMENAME}'".mp4'
 
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
@@ -1141,14 +1156,14 @@ function load_core_arcade() {
 	fi
 	if [[ "$(cat "${gamelistpathtmp}/${nextcore}_gamelist_hdmi.txt" |wc -l)" == "0" ]]; then
 			if [[ "$yesno" == y ]]; then
-				ssh "${sshwinconnect}" 'wsl sh -c "/mnt/c/SAM/blacklist_maker.sh '${nextcore}'"'
+				ssh "${sshwinconnect}" 'wsl sh -c "python3 /mnt/c/SAM/scripts/blacklist_maker.py '${nextcore}'"'
 			fi
 	fi
 
 	# Tell MiSTer to load the next MRA
 	echo "load_core ${mra}" >/dev/MiSTer_cmd
 	sleep 30
-	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\arcade\'${mraname}'".mp4'
+	ssh "${sshwinconnect}" 'C:\SAM\scripts\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\system_mp4s\arcade\'${mraname}'".mp4'
 	echo "" | >/tmp/.SAM_Joy_Activity
 	echo "" | >/tmp/.SAM_Mouse_Activity
 	echo "" | >/tmp/.SAM_Keyboard_Activity
@@ -1158,8 +1173,8 @@ function create_amigalist () {
 
 	if [ -f "${amigapath}/listings/games.txt" ]; then
 		sort "${amigapath}"/listings/demos.txt "${amigapath}"/listings/games.txt > ${gamelistpath}/amiga_gamelist_hdmi.txt
-		cp --force ${gamelistpath}/${nextcore}_gamelist_hdmi.txt "${gamelistpathtmp}"/${nextcore}_gamelist_hdmi.txt
-		total_games=$(echo $(cat "${gamelistpath}/${nextcore}_gamelist_hdmi.txt" | sed '/^\s*$/d' | wc -l))
+		cp --force ${gamelistpath}/amiga_gamelist_hdmi.txt "${gamelistpathtmp}"/amiga_gamelist_hdmi.txt
+		total_games=$(echo $(cat "${gamelistpath}/amiga_gamelist_hdmi.txt" | sed '/^\s*$/d' | wc -l))
 
 	fi
 
@@ -1205,8 +1220,8 @@ function load_core_amiga() {
 	echo "load_core ${amigacore}" >/dev/MiSTer_cmd
 	sleep 30
 	
-	ssh "${sshwinconnect}" 'mkdir "c:\SAM\'${nextcore}'"'
-	ssh "${sshwinconnect}" 'c:\code\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\'${nextcore}'\'${GAMENAME}'".mp4'
+	ssh "${sshwinconnect}" 'mkdir "c:\SAM\system_mp4s\'${nextcore}'"'
+	ssh "${sshwinconnect}" 'C:\SAM\scripts\ffmpeg\ffmpeg -r 5 -t 90 -f dshow -rtbufsize 100M -video_size 640x480 -framerate 5 -i video="USB Video" -vcodec libx265 -crf 28 -y -fps_mode auto "c:\SAM\system_mp4s\'${nextcore}'\'"${GAMENAME}"'".mp4'
 	
 	# Delete played game from list
 	if [ "${samquiet}" == "no" ]; then echo " Selected file: ${rompath}"; fi
@@ -1230,28 +1245,45 @@ function main() {
 	init_paths
 
 	init_data # Setup data arrays
+
+	# Kill all SAM processes
+	ps -ef | grep -i '[M]iSTer_SAM_on.sh' | xargs kill &>/dev/null
+	tmux kill-session -t OLED &>/dev/null
 	
 	args="$(echo "$@")"
-
-
-
-	if [[ "$1" == "amiga" ]]; then
-		create_amigalist
+	if [[ "${args}" != *"-y"* ]]; then
+		echo "Create new romlist? y/n"
+		read answer
+		echo "Update existing list? y/n"
+		read answer2
+		echo "Create blacklist? y/n"
+		read yesno
 	else
-		if [ ! -d "${gamelistpath}/samcapture" ]; then
-			mkdir -p "${gamelistpath}/samcapture"
-		fi
-		"${mrsampath}"/samindex -s ${1} -o "${gamelistpath}/samcapture"
-		for file in "${gamelistpath}/samcapture"/*; do
-			filename=$(basename "$file")
-			cp "$file" "${gamelistpath}/${filename%.*}_hdmi.txt"
-		done
-		echo "Copying gamelist to ${sshwinconnect} machine"
-		scp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${sshwinconnect}:/SAM/${1}/${1}_gamelist_hdmi.txt"
+		answer=y
+		yesno=y
 	fi
 
+	if [[ "$answer" == y ]]; then
+		if [[ "$1" == "amiga" ]]; then
+			create_amigalist
+		else
+			if [ ! -d "${gamelistpath}/samcapture" ]; then
+				mkdir -p "${gamelistpath}/samcapture"
+			fi
+			"${mrsampath}"/samindex -s ${1} -o "${gamelistpath}/samcapture"
+			for file in "${gamelistpath}/samcapture"/*; do
+				filename=$(basename "$file")
+				cp "$file" "${gamelistpath}/${filename%.*}_hdmi.txt"
+			done
+			echo "Copying gamelist to ${sshwinconnect} machine"
+			scp "${gamelistpath}/${1}_gamelist_hdmi.txt" "${sshwinconnect}:/i:/SAM/${1}/${1}_gamelist_hdmi.txt"
+		fi
+	fi
 
-	compare_mp4-gl ${1}
+	if [[ "$answer2" == y ]]; then
+		compare_mp4-gl ${1}
+	fi
+
 
 	
 	parse_cmd ${1} # Parse command line parameters for input
