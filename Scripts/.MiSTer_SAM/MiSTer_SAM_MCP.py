@@ -187,10 +187,13 @@ async def exit_to_menu_with_retry(state, max_wait=15):
 
     for attempt in range(max_wait):
         print(f"[{elapsed()}] Attempt {attempt + 1}/{max_wait}: checking if menu is loaded...")
-        in_menu = await asyncio.to_thread(is_in_menu, state)
-        if in_menu:
-            print(f"[{elapsed()}] ✅ SUCCESS: Menu core is now loaded.")
-            return
+        
+        # Always send the load_core command on the first attempt to prevent sticky state aborts
+        if attempt > 0:
+            in_menu = await asyncio.to_thread(is_in_menu, state)
+            if in_menu:
+                print(f"[{elapsed()}] ✅ SUCCESS: Menu core is now loaded.")
+                return
 
         print(f"[{elapsed()}] Menu not loaded. Sending 'load_core' command...")
         cmd = ['timeout', '1', 'sh', '-c', f"echo '{load_menu_command}' > /dev/MiSTer_cmd"]
@@ -246,45 +249,22 @@ def is_in_menu(state):
     """
     Check if the MiSTer process is currently running the menu.rbf core.
     """
-    
-    # --- PHASE 1: INITIAL BOOT (Trust /tmp/CORENAME) ---
-    if not state.is_boot_complete():
-        try:
-            if os.path.exists('/tmp/CORENAME'):
-                with open('/tmp/CORENAME', 'r') as f:
-                    corename = f.read().strip()
-                
-                # If we see MENU, we are definitely up.
-                if corename == 'MENU':
-                    print("MCP: Boot Detection - Menu found via CORENAME.")
-                    state.set_boot_complete()
-                    return True
-                
-                # If we see ANY core name, we are also up (user booted to game).
-                elif corename:
-                    print(f"MCP: Boot Detection - Found active core '{corename}'.")
-                    state.set_boot_complete()
-                    return False
-        except Exception:
-            pass
-        return False
-
-    # --- PHASE 2: NORMAL OPERATION (Prioritize PS, Fallback to CORENAME) ---
-    
-    # 1. Try the Process Check (Preferred for avoiding "Sticky" status)
     try:
-        cmd = "ps aux | grep '/media/fat/[M]iSTer' | grep -q 'menu.rbf'"
-        subprocess.run(cmd, shell=True, check=True, capture_output=True)
-        return True
-    except subprocess.CalledProcessError:
-        # 2. Fallback: If PS fails, check CORENAME (Restores functionality on your setup)
-        try:
-            if os.path.exists('/tmp/CORENAME'):
-                with open('/tmp/CORENAME', 'r') as f:
-                    return f.read().strip() == 'MENU'
-        except Exception:
-            pass
-
+        if os.path.exists('/tmp/CORENAME'):
+            with open('/tmp/CORENAME', 'r') as f:
+                corename = f.read().strip()
+                if corename == 'MENU':
+                    if not state.is_boot_complete():
+                        print("MCP: Boot Detection - Menu found via CORENAME.")
+                        state.set_boot_complete()
+                    return True
+                elif corename:
+                    if not state.is_boot_complete():
+                        print(f"MCP: Boot Detection - Found active core '{corename}'.")
+                        state.set_boot_complete()
+                    return False
+    except Exception:
+        pass
     return False
 
 # --- Joystick Polling Logic (from Script 2, adapted) ---
@@ -1025,10 +1005,14 @@ async def main():
 
     # Load controller configuration
     controller_config = {}
+    config_file = os.path.join(SCRIPT_DIR, "sam_controllers.custom.json")
+    if not os.path.exists(config_file):
+        config_file = os.path.join(SCRIPT_DIR, "sam_controllers.json")
+
     try:
-        with open(os.path.join(SCRIPT_DIR, "sam_controllers.json"), 'r') as f:
+        with open(config_file, 'r') as f:
             controller_config = json.load(f)
-        print("MCP: Successfully loaded controller configuration.")
+        print(f"MCP: Successfully loaded controller configuration from {os.path.basename(config_file)}.")
     except (FileNotFoundError, json.JSONDecodeError) as e:
         print(f"MCP: Warning - Could not load or parse controller config: {e}")
 
