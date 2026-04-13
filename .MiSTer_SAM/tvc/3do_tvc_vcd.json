@@ -1,4 +1,32 @@
 {
+    "3do_what_time.chd": {
+        "title": "/Gridd\\|/Putt\\|/Demoli\\|/ShockWave\\|/Super.Street\\|Rash\\|/Way\\|/FIFA\\|/Pebble\\|/Twisted",
+        "duration": 30
+    },
+    "3do_asylum.chd": {
+        "title": "/Iron\\|/Pata\\|/Gex\\|/ShockWave\\|Eclipse\\|Rash\\|/Way\\|/FIFA\\|/Pebble\\|/Total\\|/Super.Street\\|Intercep\\|/Madden\\|Need",
+        "duration": 30
+    },
+     "3do_panasonic_real.chd": {
+        "title": "/Shock\\|/Crash\\|/Madden\\|/Jurassic\\|Eclipse",
+        "duration": 30
+    },
+     "3do_real_evolve.chd": {
+        "title": "Hulk\\|Need\\|Encounter\\|/Zhadn\\|/Wing\\|/Blade\\|Guest\\|/Slam\\|/Cyberia\\|/PO.ed\\|/Battlespo\\|/FIFA\\|/Iron",
+        "duration": 29
+    },
+     "3do_boss.chd": {
+        "title": "Demolit\\|/FIFA\\|/Street.Firght\\|Intercept\\|Rash\\|/Way\\|/Madden\\|/Gex\\|/Star.Control\\|Need\\|/Shockwave\\|/Gridd\\|/Putt\\|/Twiste\\|/Pebble",
+        "duration": 30
+    },
+    "3do_toys.chd": {
+        "title": "Demolit\\|/FIFA\\|/Street.Firght\\|Intercept\\|Rash\\|/Way\\|/Madden\\|/Gex\\|/Star.Control\\|Need\\|/Shockwave\\|/Gridd\\|/Putt\\|/Twiste\\|/Pebble",
+        "duration": 30
+    },
+    "3do_crystal_dynamics_nature.chd": {
+        "title": "/Gex\\|/Samur\\|/Star.Control\\|/Who.Shot\\|/Pata\\|Intercep",
+        "duration": 154
+    },
     "Panasonic_FZ-1_REAL_3DO_Interactive_Multiplayer_1993_TV_Commercial.chd": {
         "title": "",
         "duration": 30

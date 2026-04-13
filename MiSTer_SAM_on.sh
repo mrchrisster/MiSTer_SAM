@@ -1047,6 +1047,7 @@ function init_data() {
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
 		["cdi"]="cdi"
+        ["3do"]="3do"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
