@@ -191,7 +191,11 @@
         "title": "bert.(US",
         "duration": 25
     },
-   "arcade_RESCUE_starcade.chd": {
+   "arcade_QIX_starcade.chd": {
+        "title": "/Qix",
+        "duration": 23
+    },
+    "arcade_RESCUE_starcade.chd": {
         "title": "/Rescue\\.mra",
         "duration": 18
     },
@@ -262,5 +266,9 @@
    "arcade_XEVIOUS_starcade.chd": {
         "title": "/Xevious\\.mra",
         "duration": 28
+    },
+    "arcade_ZOO_KEEPER_starcade.chd": {
+        "title": "/Zoo.Keeper\\.mra",
+        "duration": 35
     }
 }
