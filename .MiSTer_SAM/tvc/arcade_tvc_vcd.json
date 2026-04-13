@@ -89,7 +89,7 @@
     },
    "arcade_ELEVATOR_ACTION_starcade.chd": {
         "title": "Elevator.Action",
-        "duration": 34
+        "duration": 35
     },
    "arcade_EYES_starcade.chd": {
         "title": "/Eyes.(US",
@@ -100,11 +100,11 @@
         "duration": 29
     },
    "arcade_FROGGER_starcade.chd": {
-        "title": "/Frogger\\.mra",
-        "duration": 29
+        "title": "/Frogger.(S",
+        "duration": 30
     },
    "arcade_GALAGA_starcade.chd": {
-        "title": "Galaga.(Midway,.Set",
+        "title": "Galaga.(Mid",
         "duration": 27
     },
    "arcade_GALAXIAN_starcade.chd": {
@@ -191,11 +191,11 @@
         "title": "bert.(US",
         "duration": 25
     },
-   "arcade_QIX_starcade.chd": {
+  "arcade_QIX_starcade.chd": {
         "title": "/Qix",
         "duration": 23
     },
-    "arcade_RESCUE_starcade.chd": {
+   "arcade_RESCUE_starcade.chd": {
         "title": "/Rescue\\.mra",
         "duration": 18
     },
@@ -267,7 +267,7 @@
         "title": "/Xevious\\.mra",
         "duration": 28
     },
-    "arcade_ZOO_KEEPER_starcade.chd": {
+   "arcade_ZOO_KEEPER_starcade.chd": {
         "title": "/Zoo.Keeper\\.mra",
         "duration": 35
     }
