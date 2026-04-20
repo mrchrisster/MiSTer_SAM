@@ -1047,7 +1047,7 @@ function init_data() {
 		["atari7800"]="atari 7800"
 		["atarilynx"]="atari lynx"
 		["cdi"]="cdi"
-        ["3do"]="3do"
+                ["3do"]="3do"
 		["gb"]="gb\|game boy"
 		["gbc"]="gb\|game boy"
 		["genesis"]="genesis"
@@ -1138,7 +1138,7 @@ function read_samini() {
 	#corelist=("$(echo "${corelist[@]}" | tr ',' ' ' | tr -s ' ')")
 	IFS=',' read -ra corelist <<< "${corelist}"
 	IFS=',' read -ra corelistall <<< "${corelistall}"
-	
+
 	#BGM mode
 	if [ "${bgm}" == "yes" ]; then
 		mute="core"
