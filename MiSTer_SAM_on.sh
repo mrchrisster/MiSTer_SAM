@@ -324,7 +324,7 @@ function init_data() {
 		["genesis"]="md,gen" 		
 		["gg"]="gg"
 		["jaguar"]="j64,rom,bin,jag"
-		["3do"]="iso,chd"
+		["3do"]="cue,chd"
 		["megacd"]="chd,cue"
 		["n64"]="n64,z64"
 		["neogeo"]="neo"
