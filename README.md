@@ -11,6 +11,7 @@ Like a screen saver, SAM comes on when your MiSTer is idle. Just wait a couple o
 
 ## Prerequisites
 - You need a MiSTer (d'oh)
+- Update All script with Arcade cores updated.
 - Make sure you have `Arcade Organizer` enabled in Update All settings (off by default) to get correct filtering of arcade roms in SAM. 
  
 
