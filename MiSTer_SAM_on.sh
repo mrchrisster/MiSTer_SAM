@@ -176,7 +176,7 @@ function init_vars() {
 	declare -g atari7800pathrbf="_Console"
 	declare -g atarilynxpathrbf="_Console"
 	declare -g c64pathrbf="_Computer"
-	declare -g cdipathrbf="_Unstable"	
+	declare -g cdipathrbf="_Console"	
 	declare -g coco2pathrbf="_Computer"
 	declare -g colecovisionpathrbf="_Console"
  	declare -g intellivisionpathrbf="_Console"
@@ -4274,7 +4274,7 @@ function sv_ar_cdi_mode() {
     local http_archive="${sv_archive_cdi//https/http}"
 
     # Check for CDi core availability
-    local cdi_check_path="/media/fat/_Unstable"
+    local cdi_check_path="/media/fat/_Console"
     local cdi_core_file=""
 
     # Find existing CDi core (case-insensitive)
@@ -4477,11 +4477,11 @@ function sv_ar_cdi_mode() {
     if [ -s /tmp/SAM_Game.mgl ]; then mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl; fi
     {
         # Prepare RBF path for MGL
-        local mgl_rbf="_Unstable/CDi_unstable"
+        local mgl_rbf="_Console/CDi"
         if [ -n "$cdi_core_file" ]; then
              # Extract filename without path and extension
              local cdi_basename=$(basename "$cdi_core_file" .rbf)
-             mgl_rbf="_Unstable/${cdi_basename}"
+             mgl_rbf="_Console/${cdi_basename}"
         fi
 
         echo "<mistergamedescription>"
