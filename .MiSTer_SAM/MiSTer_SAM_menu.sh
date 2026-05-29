@@ -1000,6 +1000,7 @@ function menu_settings() {
              menu_enablekidssafe        "Enable Kids Safe Filter" \
              menu_disablekidssafe       "Disable Kids Safe Filter" \
              menu_advancedsettings 		"Advanced Settings" \
+             update_beta                "Update to Beta (test branch)" \
       2> "${sam_menu_file}"
 
     local rc=$? choice=$(<"${sam_menu_file}")
@@ -1013,6 +1014,11 @@ function menu_settings() {
         ;;
       disablekidssafe)
         disable_kids_safe
+        ;;
+      update_beta)
+        samini_mod branch test
+        branch="test"
+        sam_update
         ;;
       *)
         parse_cmd "${choice,,}"
