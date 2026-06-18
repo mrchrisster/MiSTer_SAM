@@ -2976,6 +2976,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
     echo "$(date +%H:%M:%S) - ${core} - ${rompath:-$gamename}" >>/tmp/SAM_Games.log
     echo "${gamename} (${core})" >/tmp/SAM_Game.txt
+    echo "${gamename}" >/tmp/ACTIVEGAME
 
     if [ "${ttyenable}" == "yes" ]; then
         local tty_gamename="${gamename}"
