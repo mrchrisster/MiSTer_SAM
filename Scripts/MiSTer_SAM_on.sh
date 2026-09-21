@@ -1991,6 +1991,11 @@ function check_rom(){
         local extension="${rompath##*.}"
         local extlist="${CORE_EXT[${core}]//,/ }"
 
+        if [[ "$core" =~ ^(saturn|psx|megacd|neogeocd|tgfx16cd|cdi|amigacd32|3do)$ && "${rompath,,}" == *.zip* ]]; then
+            samdebug "Disallowed zip found for disc core: ${core} rom: ${rompath}"
+            return 1
+        fi
+
         if [[ "$extlist" != *"$extension"* ]]; then
             samdebug "Wrong extension found: '${extension^^}' for core: ${core} rom: ${rompath}"
             ensure_list "${core}" "${gamelistpath}" & # Rebuild in background
@@ -2208,6 +2213,9 @@ function build_gamelist() {
     # Always sort and de-duplicate the final output file, regardless of build type.
     if [[ -f "$file" ]]; then
         sort -u "$file" -o "$file"
+        if [[ "$core" =~ ^(saturn|psx|megacd|neogeocd|tgfx16cd|cdi|amigacd32|3do)$ ]]; then
+            grep -vi "\.zip" "$file" > "${file}.tmp" && mv -f "${file}.tmp" "$file" || true
+        fi
     fi
 
     return 0
@@ -2711,6 +2719,8 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             fi
             # --- End Prerequisite Check ---
 
+            rompath="${rompath_arg}"
+            romname="${romname_arg}"
             gamename="${romname_arg%.*}"
             mute_target="amigacd32"
 
@@ -2769,6 +2779,9 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
     echo "$(date +%H:%M:%S) - ${core} - ${rompath:-$gamename}" >>/tmp/SAM_Games.log
     echo "${gamename} (${core})" >/tmp/SAM_Game.txt
+
+    # Update /tmp/ACTIVEGAME for PlayLog, Zaparoo, and external trackers
+    echo "${rompath:-$gamename}" > /tmp/ACTIVEGAME
 
     if [ "${ttyenable}" == "yes" ]; then
         local tty_gamename="${gamename}"
@@ -2911,6 +2924,7 @@ function play_or_exit() {
 			echo "Attempt $i: Waiting for MENU..."
 			sleep 1
 		done
+		: > /tmp/ACTIVEGAME
 		echo "Thanks for playing!"
 	fi
 
@@ -3194,6 +3208,7 @@ function sam_disable() { # Disable autoplay
 
 	there_can_be_only_one
 	sed -i '/MiSTer_SAM/d' ${userstartup}
+	: > /tmp/ACTIVEGAME
 	sync
 	echo " Done."
 }
@@ -3579,6 +3594,11 @@ function filter_list() { # args: core
     if [ -n "${PATHFILTER[${core}]}" ]; then
         echo "Applying path filter for '${core}': ${PATHFILTER[${core}]}" >&2
         grep -F "${PATHFILTER[${core}]}" "${tmpfile}" > "${tmpfile}.filtered" && mv -f "${tmpfile}.filtered" "${tmpfile}"
+    fi
+
+    # Disc / CD cores do not support running from inside zip archives
+    if [[ "$core" =~ ^(saturn|psx|megacd|neogeocd|tgfx16cd|cdi|amigacd32|3do)$ ]]; then
+        grep -vi "\.zip" "${tmpfile}" > "${tmpfile}.filtered" && mv -f "${tmpfile}.filtered" "${tmpfile}" || true
     fi
 
     if [[ "${core}" == "arcade" ]] && [ -n "${arcadeorient}" ]; then
@@ -4263,6 +4283,7 @@ function samvideo_play() {
 	
 	
 	if [ -s "$tmpvideo" ]; then
+		: > /tmp/ACTIVEGAME
 		echo load_core /media/fat/menu.rbf > /dev/MiSTer_cmd
 		sleep "${samvideo_displaywait}"
 		# TODO delete blinking cursor
