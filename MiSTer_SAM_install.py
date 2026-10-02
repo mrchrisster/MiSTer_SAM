@@ -12,6 +12,21 @@ import tempfile
 import time
 
 
+CA_BUNDLES = ('/media/fat/Scripts/.config/downloader/cacert.pem',
+              '/etc/ssl/cert.pem', '/etc/ssl/certs/cacert.pem')
+
+
+def curl_ca_options():
+    # MiSTer's curl defaults to a certificate directory without hashed links.
+    # Prefer its maintained Downloader bundle, and respect an explicit override.
+    if os.environ.get('CURL_CA_BUNDLE'):
+        return []
+    for name in CA_BUNDLES:
+        if Path(name).is_file() and os.access(name, os.R_OK):
+            return ['--cacert', name]
+    return []
+
+
 def checked_source(root):
     required = ['MiSTer_SAM_on.sh', 'MiSTer_SAM.ini', 'MiSTer_SAM_install.py',
                 '.MiSTer_SAM/lib/modules.sh', '.MiSTer_SAM/lib/engine.sh',
@@ -32,7 +47,7 @@ def checked_source(root):
 def download_source(work, branch):
     archive = work / 'source.tar.gz'
     url = 'https://codeload.github.com/mrchrisster/MiSTer_SAM/tar.gz/refs/heads/' + branch
-    subprocess.run(['curl', '--fail', '--location', '--connect-timeout', '15',
+    subprocess.run(['curl'] + curl_ca_options() + ['--fail', '--location', '--connect-timeout', '15',
                     '--max-time', '180', '--retry', '2', '-o', str(archive), url], check=True)
     with tarfile.open(archive) as bundle:
         for item in bundle.getmembers():

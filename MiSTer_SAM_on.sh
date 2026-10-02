@@ -8,6 +8,14 @@ if [[ ! -r "$sam_root/lib/modules.sh" ]]; then
     [[ -z "${SAM_ROOT:-}" ]] || { echo 'SAM installation is incomplete.' >&2; exit 1; }
     sam_installer=$(mktemp /tmp/sam-install.XXXXXX.py) || exit 1
     sam_release_branch=${SAM_INSTALL_BRANCH:-test}
+    if [[ -z "${CURL_CA_BUNDLE:-}" ]]; then
+        for sam_ca_bundle in /media/fat/Scripts/.config/downloader/cacert.pem /etc/ssl/cert.pem /etc/ssl/certs/cacert.pem; do
+            if [[ -r "$sam_ca_bundle" && -f "$sam_ca_bundle" ]]; then
+                export CURL_CA_BUNDLE="$sam_ca_bundle"
+                break
+            fi
+        done
+    fi
     curl --fail --location --connect-timeout 15 --max-time 60 \
         -o "$sam_installer" "https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/$sam_release_branch/MiSTer_SAM_install.py" || { rm -f "$sam_installer"; exit 1; }
     python3 "$sam_installer" --download --branch "$sam_release_branch"

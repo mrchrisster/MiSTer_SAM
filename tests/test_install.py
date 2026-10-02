@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from paths import PACKAGE
 spec = importlib.util.spec_from_file_location('sam_install', PACKAGE / 'MiSTer_SAM_install.py')
@@ -73,6 +74,16 @@ class Install(unittest.TestCase):
             installer.checked_source(Path(self.tmp.name))
         self.assertEqual(sentinel.read_text(), 'keep this configuration')
         self.assertFalse((self.scripts / '.SAM_refactor_backups').exists())
+
+    def test_download_selects_readable_bundle_without_disabling_verification(self):
+        bundle = Path(self.tmp.name) / 'cacert.pem'
+        bundle.write_text('test CA bundle')
+        with patch.dict(installer.os.environ, {}, clear=True), patch.object(installer, 'CA_BUNDLES', [str(bundle) + '.missing', str(bundle)]):
+            self.assertEqual(installer.curl_ca_options(), ['--cacert', str(bundle)])
+
+    def test_download_respects_explicit_curl_certificate_bundle(self):
+        with patch.dict(installer.os.environ, {'CURL_CA_BUNDLE': '/custom/ca.pem'}, clear=True):
+            self.assertEqual(installer.curl_ca_options(), [])
 
 
 if __name__ == '__main__':
