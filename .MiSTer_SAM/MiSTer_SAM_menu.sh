@@ -51,7 +51,7 @@ function menu_preset_standard() {
   reset_ini
 
   # Finally, start SAM
-  exec "$0" start 
+  exec "$0" start
 }
 
 function menu_preset_svc() {
@@ -116,7 +116,7 @@ function menu_preset_svc() {
          0 0
 
   # 8) Launch it
-  exec "$0" start 
+  exec "$0" start
 }
 
 # Function to process the GOAT list and create game list files
@@ -127,12 +127,12 @@ function menu_preset_goat_mode() {
          --backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
          --msgbox "GOAT Attract Mode will only play games deemed to have the Greatest of All Time Attract Modes.\n\nPress OK to prepare the lists and return to the menu." \
          0 0
-		
+
   samini_mod sam_goat_list yes
 
   # 4) Back to main menu
   tmp_reset
-  exec "$0" start 
+  exec "$0" start
 }
 
 function menu_preset_80s() {
@@ -140,7 +140,7 @@ function menu_preset_80s() {
 	samini_mod corelist "amiga,arcade,fds,genesis,megacd,n64,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	samini_mod arcadeorient horizontal
 	enablebgm
-	exec "$0" start 
+	exec "$0" start
 }
 
 function menu_preset_maturetgfx() {
@@ -159,7 +159,7 @@ function menu_preset_maturetgfx() {
   samini_mod corelist tgfx16cd
 
   # 4) Launch SAM
-  exec "$0" start 
+  exec "$0" start
 }
 
 
@@ -167,12 +167,12 @@ menu_preset_kids() {
 	reset_ini
 	dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ MATURE TGFX ]" \
-		--msgbox "SAM uses ESRB rated games to only show games suitable for all ages.\n\nPlease feel free to contribute by editing the lists under .MiSTER_SAM/SAM_Rated folder." 0 0
+		--msgbox "SAM uses ESRB rated games to only show games suitable for all ages.\n\nPlease feel free to contribute by editing the lists under /media/fat/SAM/Rated folder." 0 0
 	samini_mod rating kids
 	corelist_value=$(printf "%s\n" "${RATED_FILES[@]}" | sed -E 's/_.+\.txt$//' | sort -u | paste -sd, -)
 	corelist_line="corelist=\"${corelist_value}\""
 	sed -i '/^corelist=/c\'"$corelist_line" $samini_file
-	exec "$0" start 
+	exec "$0" start
 }
 
 
@@ -183,8 +183,8 @@ menu_preset_m82_mode() {
 		--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
 		--msgbox "SAM will act as an M82 unit for NES. To disable this, go to MiSTer_SAM.ini and find m82 option or change to another preset.\n\nPlease make sure you configure Gamepad in SAM's menu\n\nGame Timer is set to ${m82_game_timer}s per Game - Change m82_game_timer in SAM's ini\n\nMiSter will restart now. " 0 0
 		samini_mod m82 Yes
-		exec "$0" start 
-	
+		exec "$0" start
+
 
 }
 
@@ -244,7 +244,7 @@ function menu_preset_roulette_mode() {
     } >> /tmp/.SAM_tmp/gameroulette.ini
 
     # Launch SAM with the roulette INI
-    exec "$0" start 
+    exec "$0" start
     return
   done
 }
@@ -379,7 +379,7 @@ function menu_choose_cores() {
         # Read the user's choices into a new array
         local choices
         mapfile -t choices < "${sam_menu_file}"
-        
+
         # If nothing was selected, we don't need to save or show a message.
         # The loop will simply redraw the menu.
         (( ${#choices[@]} == 0 )) && continue
@@ -388,7 +388,7 @@ function menu_choose_cores() {
         local corelistmod
         corelistmod=$(IFS=,; echo "${choices[*]}")
         samini_mod corelist "$corelistmod"
-        
+
         # --- FIX: Update the in-memory corelist array ---
         # This is crucial so the *next* loop iteration builds the menu correctly.
         corelist=( "${choices[@]}" )
@@ -512,19 +512,19 @@ function menu_controller() {
 			tag=$((i+1))
 			menu+=( "$tag" "${names[i]}" )
 		done
-	
+
 		# --- START: MODIFIED BLOCK ---
-	
+
 		# Create a temporary file to store the choice from the menu
 		CHOICE_TMP=$(mktemp)
-	
+
 		dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
 			   --menu "Multiple controllers detected.\nSelect one to configure:" \
 			   0 0 0 "${menu[@]}" 2> "$CHOICE_TMP"
-	
+
 		# Capture the dialog exit status
 		exit_status=$?
-	
+
 		# Check the exit status
 		if [[ $exit_status -ne 0 ]]; then
 			# If status is not 0, the user pressed Cancel or ESC.
@@ -532,13 +532,13 @@ function menu_controller() {
 			sam_exittask         # Call the exit function
 			return               # Exit the current function
 		fi
-	
+
 		# If we are here, the user pressed OK. Proceed to get the choice.
 		choice=$(< "$CHOICE_TMP")
 		rm -f "$CHOICE_TMP" # Clean up temp file
-	
+
 		# --- END: MODIFIED BLOCK ---
-	
+
 		sel=$((choice-1))
 		# Add a check to ensure the selection is valid
 		if [[ -z "$choice" || $sel -lt 0 || $sel -ge ${#devices[@]} ]]; then
@@ -645,10 +645,10 @@ function menu_filters() {
 
     case "${choice,,}" in
       menu_cat_include)
-        menu_cat_include    
+        menu_cat_include
         ;;
       menu_cat_exclude)
-        menu_cat_exclude   
+        menu_cat_exclude
         ;;
       arcadehoriz)
         samini_mod arcadepathfilter _Horizontal
@@ -739,7 +739,7 @@ function menu_cat_include() {
            0 0
 
     exec "$0" start
-  done 
+  done
 }
 
 
@@ -997,6 +997,7 @@ function menu_settings() {
              menu_sam_timer             "Select Timers: delay & duration" \
              menu_mute              	"Mute global volume while SAM is on" \
              menu_autoplay              "Autoplay configuration" \
+             menu_artwork               "Artwork: installed packs or lightweight database" \
              menu_enablekidssafe        "Enable Kids Safe Filter" \
              menu_disablekidssafe       "Disable Kids Safe Filter" \
              menu_advancedsettings 		"Advanced Settings" \
@@ -1021,6 +1022,11 @@ function menu_settings() {
   done
 }
 
+
+function menu_artwork() {
+    source "${mrsampath}/artwork/sam_artwork_menu.sh" || return 1
+    sam_artwork_menu
+}
 
 function menu_sam_timer() {
   local rc choice timemin secs
@@ -1221,7 +1227,7 @@ Please configure your controller in the main menu instead of using Play Current 
       enabledebuglog)    samini_mod samdebuglog Yes                ;;
       disabledebuglog)   samini_mod samdebuglog No                 ;;
       -----)             ;;  # no action, just a divider
-      *)                 
+      *)
         dialog --msgbox "Unknown selection: $choice" 0 0
         ;;
     esac
@@ -1298,7 +1304,7 @@ function menu_reset_gamelists() {
       menu_creategl)
         dialog --infobox "Creating all game lists..." 5 40
 		${mrsampath}/samindex -o "${gamelistpath}"
-		
+
 		if [ ${inmenu} -eq 1 ]; then
 			sleep 1
 			sam_menu
@@ -1308,24 +1314,24 @@ function menu_reset_gamelists() {
 			parse_cmd stop
 		fi
         dialog --msgbox "All game lists created." 0 0
-        return   
+        return
         ;;
       menu_deletegl)
         dialog --yesno "Really delete all game lists?" 7 50
         if (( $? == 0 )); then
           dialog --infobox "Deleting all game lists..." 5 40
-          	# In case of issues, reset game lists
+	# In case of issues, reset game lists
 
 			there_can_be_only_one
-			if [ -d "${mrsampath}/SAM_Gamelists" ]; then
+			if [ -d "${gamelistpath}" ]; then
 				echo "Deleting MiSTer_SAM Gamelist folder"
-				rm  "${mrsampath}"/SAM_Gamelists/*_gamelist.txt
+				rm -f "${gamelistpath}"/*_gamelist.txt
 			fi
-		
+
 			if [ -d /tmp/.SAM_List ]; then
 				rm -rf /tmp/.SAM_List
 			fi
-		
+
 			if [ ${inmenu} -eq 1 ]; then
 				sleep 1
 				sam_menu
@@ -1336,7 +1342,7 @@ function menu_reset_gamelists() {
 			fi
           dialog --msgbox "All game lists deleted." 0 0
         fi
-        return  
+        return
         ;;
       *)
         dialog --msgbox "Unknown selection: $choice" 0 0
@@ -1392,7 +1398,7 @@ function menu_deleteall() {
 
   echo "→ Creating backup at ${backup_dir}"
   mkdir -p "${backup_dir}"
-  find "${mrsampath}/SAM_Gamelists" -name "*_excludelist.txt" -exec cp --parents '{}' "${backup_dir}" \; 2>/dev/null
+  find "${ignorepath}" -name "*_excludelist.txt" -exec cp --parents '{}' "${backup_dir}" \; 2>/dev/null
   cp --parents "${samini_file}" "${backup_dir}/" 2>/dev/null
 
   # A helper to remount /
@@ -1452,12 +1458,12 @@ function menu_changes_saved() {
 function reset_ini() { # args ${nextcore}
 	# Build a comma-separated list of every core
 	corelistall=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
-	
+
 	#Reset gamelists
 	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
 	mkdir -p "${gamelistpathtmp}"
 	mkdir -p /tmp/.SAM_tmp
-	
+
 	# Mute cores, use every core, horizontal arcade by default
 	samini_mod mute Yes
 	samini_mod corelist "$corelistall"
@@ -1471,5 +1477,5 @@ function reset_ini() { # args ${nextcore}
 	samini_mod sam_goat_list No
 	samini_mod disable_blacklist No
 	samini_mod dupe_mode normal
-	
+
 }

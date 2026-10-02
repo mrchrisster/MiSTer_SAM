@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.DS_Store
+.MiSTer_SAM/artwork/database/
+.MiSTer_SAM/artwork/downloads/
+.MiSTer_SAM/artwork/eligible/
+.MiSTer_SAM/artwork/*_cache.json
+.MiSTer_SAM/sam_controllers.custom.json
+SAM/Ignore/*_excludelist.txt
+SAM/Gamelists/*_gamelist.txt

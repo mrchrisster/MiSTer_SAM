@@ -1,306 +1,89 @@
-![alt text](https://github.com/mrchrisster/attract_mode/blob/main/Media/mister-sam-logo02.jpg)
-![MiSTer_SAM](https://user-images.githubusercontent.com/81110968/117765392-8024d980-b1f3-11eb-8ecd-18f5e7c95bff.gif)
-(Thanks to [@HendrixTrog](https://twitter.com/HendrixTrog) for the video!)
-![Main_Menu](https://github.com/mrchrisster/MiSTer_SAM/blob/main/Media/2023-04-sam_menu1.png)
+# MiSTer Super Attract Mode — modular test branch
 
-# MiSTer Super Attract Mode (SAM)
+SAM selects and launches games while MiSTer is idle. This `test` branch contains the modular refactor: normal mode prepares two eligible selections while the current game runs, so Next consumes a ready selection. One foreground session owns launches and at most one background preparation worker. Optional features load only when their existing INI switches enable them.
 
-## What is it?
-**Super Attract Mode puts all your games on display to enjoy whenever your MiSTer is idle.**  
-Like a screen saver, SAM comes on when your MiSTer is idle. Just wait a couple of minutes in the main menu and SAM will launch a random game from your library. Every few minutes it will randomly select and load a new game. If you like a game that's currently playing, just pick up your controller and push a button, press a key, or move the mouse. Back in the main menu, wait another two minutes and the gaming tour begins again!
+The original HID keyboard, mouse and joystick detection is retained. Owner validation, startup cancellation and cleanup prevent stopped sessions from surviving or starting late. There is no Unix socket or additional control daemon. `partun` has been removed; archive discovery uses `samindex`, retaining its two indexing passes and delay.
 
-## Prerequisites
-- You need a MiSTer (d'oh)
-- Make sure you have `Arcade Organizer` enabled in Update All settings (off by default) to get correct filtering of arcade roms in SAM. 
- 
+## Installation and update
 
+MiSTer needs Bash, Python 3.9 or newer, tmux and its usual SAM tools. The release includes the native indexing, controller and video assets.
 
-## Installation
-  
-- The easiest way to install SAM is launch `update_all.sh` menu, select "Tools & Scripts" and select "Mister Super Attract Mode". After running update_all, you will have a file called `MiSter_SAM_on.sh` in the Scripts folder. Run `MiSter_SAM_on.sh` and wait until SAM is fully installed/updated. You can configure SAM from the menu by running `MiSTer_SAM_on.sh` and pushing up.
-  
-or  
-  
-- Copy `MiSTer_SAM_on.sh` to your MiSTer's `/media/fat/Scripts` directory
-- From the main MiSTer menu navigate to **Scripts** and select **MiSTer_SAM_on.sh**.
-- **NOTE** Additional files will be downloaded automatically the first time you run `MiSTer_SAM_on.sh`.
+For an online installation, run through SSH:
 
-or
-
-- Issue the following command in ssh
-  `cd /media/fat/Scripts && curl -kLO https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/main/MiSTer_SAM_on.sh`
-- Run `/media/fat/Scripts/MiSTer_SAM_on.sh` and let SAM do the auto install to download the other installation files.
-  
-## Offline Installation  
-If your MiSTer is not connected to the internet, click on "Code" -> "Download Zip" and download the project package.
-- Copy `MiSTer_SAM_on.sh` and `MiSTer_SAM.ini` to `/media/fat/Scripts` on your MiSTer. 
-- Additionally copy the entire `.MiSTer_SAM` directory to `/media/fat/Scripts/.MiSTer_SAM` on your MiSTer.
-- To enable autoplay, launch `MiSTer_SAM_on.sh` - push up button to enter Menu. Now find enable autoplay in the menu under Settings.
-
- 
-## Update  
-- Running `MiSTer_SAM_on.sh` will update your existing version to the newest version.
-  
-## Usage
-Simply wait at the main MiSTer menu for 2 minutes (default setting) without touching the mouse, keyboard, or controller and SAM will start.
-
-Don't want to wait? You can start SAM instantly by launching `MiSTer_SAM_on.sh` script in your MiSTer's Scripts folder! 
-
-## The Greatest Attract Screens of all Time
-If you want an easy setup and just have some great attract screens showing, use SAM goat list.  
-Make sure you have updated all Arcade cores through update_all.
-Activate it by going to the menu (either through SSH/HDMI or custom modeline for menu core on CRT) and go to Presets. Find the Greatest of all time mode.  
-  
-If you want your own list instead of the custom curated one, do the following:  
-- Rename `/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/sam_goat_list.txt` to `/media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists/sam_goat_list_custom.txt`
-- Start editing the new file
-
-## Features
-- **Autoplay** - MiSTer SAM autostarts by default when your MiSTer is idle in the main menu. If you want SAM to always autostart, no matter if in the main menu or not, you can do that by changing "menuonly" setting in `MiSTer_SAM.ini` .
-
-- **Controller Detection** - MiSTer SAM will only start when no input has been received from your controllers for the amount of time set in `MiSTer_SAM.ini`.
-
-- **Controller Mapping** - SAM can have custom button assignments for "Show next game" or "Start game". Check in SAM's menu under "Configure Gamepad" or try out if the default mapping works for you. Select button goes to next game and start button will play the current game.
-
-- **Options Menu** - All options of SAM can be configured from a menu when launching `MiSTer_SAM_on.sh`. Push UP button after launching `MiSTer_SAM_on.sh` script. 
-**NOTE** The menu does not work out of the box on CRT's . Please try adding the following settings to your `/media/fat/MiSTer.ini` and see if it will make the menu work for your CRT setup:  
-```
-[Menu]
-video_mode=640,16,64,80,240,1,3,14,12380
-vga_scaler=1
-```
-or 
-```
-[Menu]
-video_mode=640,-16,56,56,240,1,3,13,11350
-vga_scaler=1
-```
-  
-- **Exclusion Lists** - You can exclude any amount of games that you don't want to have displayed by adding a file called for example `snes_excludelist.txt` in /media/fat/Scripts/.MiSTer_SAM/SAM_Gamelists folder. One line per game, can be full file path or just the game name. Or just launch the game you want to exclude and type `/media/fat/Scripts/MiSTer_SAM_on.sh ignore` in SSH. SAM will create the exclude list for you.
-  
-- **Auto Folder Detection** - No matter if your games are on SD or USB, SAM will find your default game folders.
-  
-- **Curated Blacklists** - The SAM Team is currently recording every game's attract mode to short videos that we capture through HDMi so we can detect if a game is worthy to be shown or should be blacklisted (like Disc 2 for MegaCD, load error FDS games or games with a static screen)
-
-- **Deferred gamelist maintenance** - SAM rescans each core's game folder once to update its gamelist. Set `check_for_new_games` to `No` to skip this step, or enable `update_gamelists_during_play` or `checkzipsondisk` in `MiSTer_SAM.ini` for more frequent checks.
-  
-## Reset to Defaults
-This process can be used if you want to return MiSTer SAM to default settings or ensure you have the latest files.  
-**Method 1**  
-- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.  
-- Press **Up Button** to open SAM's menu and select reset.  
-  
-**Method 2**  
-- From the main MiSTer menu open the terminal (F9).
-- Login (default user: `root` default password: `1`).
-- `rm -fr /media/fat/Scripts/.MiSTer_SAM /media/fat/MiSTer_SAM /media/fat/Scripts/MiSTer_SAM.ini`
-- Open the OSD (F12 or your controller's menu button).
-- Navigate to **Scripts** and select **MiSTer_SAM_on.sh**.  
-  
-
-## Configuration
-The script is highly customizable through the included ini file `MiSTer_SAM.ini` (details below).
-Specify directories for the MGLs with the `mgls_dirs` setting.
-
-## Supported Systems
-Currently supported MiSTer cores:
-* Amiga (MegaAGS.hdf)
-* Amiga CD32 (.chd, .cue)
-* AO486 (Drop screensaver vhd's in /media/fat/games/AO486/screensaver - created by flynnsbit)
-* Arcade (all .MRA files)
-* Atari2600/5200/7800 (.a26 .a52 .car .a78)
-* Atari Jaguar (.j64 .rom .bin .jag)
-* Atari Lynx (.lnx)
-* C64 (.prg .crt)
-* Colecovision (.col)
-* Intellivision (.int)
-* Famicom Disk System (.fds)
-* Game Boy/ Game Boy Color (.gb .gbc)
-* Game Boy Advance (.gba)
-* Genesis (.md .gen)
-* Game Gear (.gg)
-* MegaCD AKA SegaCD (.chd .cue) - Highly recommend `JP Mega-CD 2 (Region Free) 921222 l_oliveira.bin` for best compatibility. Find it in MegaCD folder, google `htgdb-gamepacks`
-* NeoGeo (.neo)
-* NeoGeo CD (.cue, .chd)
-* NES (.nes)
-* Nintendo N64 (.z64 .n64)
-* Philips CD-i (.chd .cue)
-* Sega 32x (.s32 .32x)
-* Sega Saturn (.chd .cue)
-* Sega Titan Video (ST-V) (.mra)
-* Sega Master System (.sms .sg)
-* Super GameBoy (.gb .gbc)
-* SNES (.sfc .smc)
-* PSX (.chd .cue .exe)
-* TRS‑80 Color Computer 2 (CoCo2) (.ccc)
-* TurboGrafx-16 AKA PC Engine (.pce .sgx)
-* TurboGrafx-16 CD AKA PC Engine CD (.chd .cue) - No autoboot bios required since SAM will autostart games for you.
-* WonderSwan (.ws)
-* WonderSwan Color (.wsc)
-* Vectrex (.bin)
-* Sharp X68000 (.mgl)
-* MGLs (custom .mgl files)
-
-## MiSTer Setup
-The [Update-all](https://github.com/theypsilon/Update_All_MiSTer) script works great for putting system files in the right places.
-Make sure you have Arcade Organizer enabled for some of SAM's advanced features.
-
-## Attract Mode Configuration
-### Arcade Horizontal or Vertical Only
-Uncomment one of the "arcadepath" settings in the `MiSTer_SAM.ini` file to choose from only horizontal or vertical arcade games.
-
-### BGM Support
-You can set up BGM from SAM's menu. It will lower the core volume while showing games and reset the core volume when SAM exits.  
-Currently BGM support is broken for N64 and PSX core  
-  
-  
-### Enhanced tty2oled output
-![IMG_1029](https://github.com/mrchrisster/MiSTer_SAM/blob/main/Media/tty2oled-moving.gif)
-
-[tty2oled](https://github.com/venice1200/MiSTer_tty2oled/) adds a 3" OLED screen to your MiSTer! By default, tty2oled displays the current core name. With SAM's enhanced tty2oled support you can see the core and game name!
-
-Simply edit the `MiSTer_SAM.ini` and change the `ttyenable` setting to `ttyenable="Yes"`. If you need to use a non-standard device change it with `ttydevice="/dev/ttyUSB0"`.
-
-## FAQs
-
-### How does it work?
-A Linux startup daemon runs in the background of your MiSTer's ARM CPU. It looks for any keyboard activity, mouse movement, or controller button presses via Linux. This is being achieved by monitoring the hardware devices on your MiSTer while using minimal resources - with only native tools (CPU load of >1%). When your MiSTer is displaying the main menu and it's idle for several minutes, SAM will start launching random games.
-
-MiSTer arcade cores are launched via MRA files, all other cores are launched through generating MGL files. 
-  
-### Do you support SNAC?  
-SNAC is not handled by the Linux kernel so unfortunately we wont be able to support SNAC devices.
-  
-### I don't like how SAM does something!
-MiSTer SAM is designed to be highly configurable. Please check the `/media/fat/Scripts/MiSTer_SAM.ini` file to see if the behavior you want is configurable. If not, please [open an issue](https://github.com/mrchrisster/MiSTer_SAM/issues/new/choose)! We love feedback and feature requests.
-
-### Will this break my MiSTer? Will attract mode reduce the life of the MiSTer cycling between cores if left on long term?
-Short answer is no. FPGAs [don't have a limited number of writes](https://www.youtube.com/watch?v=gtxNu_BUL-w). They are solid state devices that are configured at boot up or - in the case of MiSTer - when a core is loaded. There is no wear from this configuration step.
-
-Also, all files that SAM creates (with the exception of the startup file during first install) are written to RAM mounted storage so you don't need to worry about wearing out your SD card when using SAM.  
-  
-### How do I know what game is on?  
-If you would like to know what game is currently playing, you can check the file `/tmp/SAM_Game.txt`. Some folks even use this with OBS to automatically change the game name for their Twitch stream!  
-  
-### Where'd this come from? What happened to the other attract mode projects?
-The great work began with MrChrisster building a MiSTer Attract feature for the NES core. This begat Attract_Arcade after Mellified ~~kept opening issues~~ started helping. Once MrChrisster worked with mbc it unlocked the power to load ROMs for more MiSTer cores, resulting in Attract_Mode. We wanted to bring the project to the next level by automating the process. From this collaboration and passion was born SAM - Super Attract Mode! Since MiSTer SAM does everything the old projects did - and lots more! - we wanted to create a new name appropriate for its new superpowers.
- 
-## Troubleshooting
-
-**- My Joystick does not trigger SAM's exit**  
-Not all joysticks are supported unfortunately. SNAC does not communicate with linux for example so we can't monitor it.  
-To see if your joystick works with SAM, you can run this command (assuming your joystick is js0) from ssh and start pushing buttons:  
-`while true; do if [[ $(xxd -l 128 -c 8 /dev/input/js0 | awk '{ print $4 }' | grep 0100) == "0100" ]]; then echo "Button pushed"; fi; sleep 0.2; done`
-  
-**- When I try to launch the script, it fails and says something about Document Type**  
-You most likely didn't download the "raw" file.  
-When downloading a file from github, click on the file, then click on "raw".  
-Now push Ctrl+S to save  
-  
-**- Core is loaded but just hangs on the menu**  
-Sometimes this happens (even on our test setups) and it could be for a variety of reasons.   
-- We noticed that some MegaCD games that the script is trying to load also won't work when loaded through the MiSTer interface. 
-- Make sure you are using the recommended folder structure, such as /media/fat/Games/SNES/. 
-- The script supports zipped Everdrive packs or unzipped folders. For MegaCD and Turbografx16 CD games must be in CHD format.  
- 
-If you are still having trouble it could simply be that the rom failed to load, it seems to happen every now and then.  
-  
-**- Turbografx16 CD and MegaCD just showing Run/Start button but not starting into the game**  
-If SAM's auto start feature fails for whatever reason, you can try and use a bios that auto launches the game.  
-
-**- Can I use a CIFS mount for my games?**  
-CIFS is supported.
-Here is an example of some values in `cifs_mount.sh` that should get you started. 
-The idea is to mount The SMB `Games` folder over the MiSTer SD card `Games` folder:
-  
-```
-SERVER="192.168.1.10"  
-SHARE="Games/Mister/Games"  
-LOCAL_DIR="*"  
-BASE_PATH="/media/fat/Games" 
+```sh
+curl -fL https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/test/MiSTer_SAM_install.py -o /tmp/MiSTer_SAM_install.py
+python3 /tmp/MiSTer_SAM_install.py --download --branch test
+/media/fat/Scripts/MiSTer_SAM_on.sh
 ```
 
-## Advanced Usage
-For technical users here are a few handy tricks to observe and debug SAM.
+The installer validates the complete release before changing installed files. It stops active SAM/MCP sessions for the update, backs up existing scripts/configuration/lists under `/media/fat/Scripts/.SAM_refactor_backups/install-*/before.tar`, and preserves the user INI, custom controller mappings, plug-ins and ignore lists. It records `branch="test"` as the installed release channel. An existing MCP is restarted; SAM starts again through its normal idle or Start path.
 
-- To enable more console messages: `samdebug="Yes"`
-- Check the generated MGL file under `/tmp/SAM_Game.mgl`. 
+To update an installed modular release:
 
-## SSH features  
+```sh
+/media/fat/Scripts/MiSTer_SAM_on.sh update
+```
 
-Some commands to control SAM from the command line  
-  
-- `MiSTer_SAM_on.sh monitor` - This will show you which game is currently playing
-- `MiSTer_SAM_on.sh start` - Start SAM immediately
-- `MiSTer_SAM_on.sh skip | next` - Load next game - doesn't interrupt loop if running
-- `MiSTer_SAM_on.sh stop` - Stop SAM immediately
-- `MiSTer_SAM_on.sh update` - Update SAM
-- `MiSTer_SAM_on.sh enable` - Enable SAM autoplay mode
-- `MiSTer_SAM_on.sh disable` - Disable SAM autoplay
-- `MiSTer_SAM_on.sh reset` - Reset SAM
-- `MiSTer_SAM_on.sh sshconfig` - Quick access to SAM's SSH features. Now you can type eg. `m update` in Terminal to update SAM.
-- `MiSTer_SAM_on.sh arcade | psx | genesis | s32x | etc...` - Only launch specific system
-- `MiSTer_SAM_on.sh favorite` - Copy the current game to "_Favorites" folder
+Offline: download this branch's ZIP, extract it, copy the extracted folder to MiSTer, and run `python3 MiSTer_SAM_install.py` from that folder. The installer uses the bundled files. Copying only `MiSTer_SAM_on.sh` still bootstraps the full release when its modules are missing; Internet access is required for that path.
+
+## Configuration and lists
+
+Edit `/media/fat/Scripts/MiSTer_SAM.ini` or use the existing configuration menu. There is no user-facing module-list setting. Artwork and Monitor are optional and disabled in the distribution defaults.
+
+Lists are accessible under `/media/fat/SAM/`:
+
+| Folder | Contents |
+| --- | --- |
+| Gamelists | Generated core lists, M82 slots and curated attract lists |
+| Rated | Age/rating lists |
+| Blacklists | Shipped exclusions |
+| Ignore | User exclusions; updates preserve these |
+
+Legacy custom ignore and M82 lists migrate into these folders during installation. Remove an exclusion's line to undo it. Cached candidates are checked against current exclusions at launch.
+
+Normal mode starts with a small eligible arcade batch on a cold installation when arcade is configured and permitted. It builds the remaining catalogs in the background. Enabled cores, mode and filters are respected. Repeated Next presses during loading coalesce into one pending skip.
+
+## Commands and integrations
+
+```sh
+MiSTer_SAM_on.sh start             # configured cores/mode
+MiSTer_SAM_on.sh start snes        # one system
+MiSTer_SAM_on.sh next
+MiSTer_SAM_on.sh previous
+MiSTer_SAM_on.sh stop
+MiSTer_SAM_on.sh exit_to_game
+MiSTer_SAM_on.sh status
+MiSTer_SAM_on.sh control pause
+MiSTer_SAM_on.sh control resume
+MiSTer_SAM_on.sh control ignore
+```
+
+The local `control` API accepts only supported actions, validates selection and process ownership, waits for acceptance and deduplicates supplied request IDs. It is suitable for Monitor and Zaparoo integrations without a new daemon. See [CONTROL_API.md](docs/CONTROL_API.md). The optional [Monitor adapter](adapters/monitor/README.md) preserves existing HTTP routes and publishes fresh SAM status/timestamps even on unchanged snapshots; SAM installation does not modify Monitor or Android.
+
+## Optional modes
+
+M82 retains BIOS/game order and phase-aware input. A game starts as a demo; first input activates `m82_game_timer`, and later input does not restart that timer. Next skips the BIOS interlude between games. Customize `/media/fat/SAM/Gamelists/m82_list.txt`.
+
+Commercial mode retains CD-i CHD and mplayer playback. `samvideo_tvc="yes"` selects a commercial and then its mapped game; `samvideo_tvc_cdi="yes"` selects CHD/CD-i playback. Display overrides are temporary bind mounts. `mute="Yes"` also mutes commercials; use `mute="No"` for sound.
+
+The artwork module currently rejects M82/video auxiliary launches. Set `Artwork_only="No"` for those modes. M82/video retain their existing transition loops inside modules; the prepared queue currently applies to normal mode. Android controls are advertised only for supported normal/roulette states. Physical joystick, CRT and AVI playback still need broader hardware testing.
+
+Artwork-only normal mode uses small catalogs and downloads/validates selected covers during preparation. It does not need complete local artwork packs; uncached images require Internet access and download failures are reported explicitly.
+
+## Development and validation
+
+[MODULE_API.md](docs/MODULE_API.md) describes plug-in hooks and services. Add a manifest and module with its own enable switch; no edits to the main entry are needed. [MCP_INPUT.md](docs/MCP_INPUT.md) covers lifecycle/input fixes. [LIVE_MODE_TESTS.md](docs/LIVE_MODE_TESTS.md) records actual M82 and commercial checks and their limits.
+
+Run on Linux/MiSTer:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+Tests isolate their game lists, state, configuration and control files. Hardware effects are replaced in fixtures; the separate `live_*.py` scripts operate a real MiSTer and require intentional use.
+
+For rollback, stop SAM/MCP, extract a selected `before.tar` into a temporary directory, and copy its `Scripts` and `SAM` contents back to `/media/fat` using ordinary copies. Do not restore tar ownership directly onto FAT. Git history also retains the pre-refactor test branch.
 
 ## Credits
-SAM has been a joined effort from the start. Huge thanks to Mellified and all other supporters!  
-Original concept and implementation: mrchrisster  
-Script layout & watchdog functionality: Mellified   
-tty2oled submodule: Paradox  
-Indexing tool & input detection: wizzomafizzo  
 
-## Development
-
-```mermaid
-graph TD
-    subgraph Initialization
-        A((Start)) --> B[Initialize Global Variables];
-    end
-
-    B --> C{loop_core launches next_core};
-
-    subgraph "Launch Attempt (next_core)"
-        C --> D["<b>1. Prepare Core</b><br/>- pick_core (if no arg passed)<br/>- check_list (JIT build)<br/>- filter_list (JIT filter)<br/>- check_list_update &"];
-        D --> E["<b>2. Select & Validate Game</b><br/>- pick_rom is called<br/>- Enters a retry loop for check_rom"];
-        E --> F{Valid ROM Found?};
-        F -->|Yes| G[<b>3. Launch Game</b><br/>load_core is called];
-        F -->|No| H[Return Failure];
-    end
-
-    G --> I{Launch Succeeded?};
-    H --> I;
-    
-    subgraph "Failure Path"
-        I -->|No| J[Blacklist Failed Core];
-        J --> C;
-    end
-
-    subgraph "Success Path"
-        I -->|Yes| K{First Launch?};
-        K -->|Yes| L[Launch create_all_gamelists &];
-        L --> M;
-        K -->|No| M;
-        M["<b>Process: run_countdown_timer</b><br/>- Delay a few seconds<br/>- Launch 'Prepare-Ahead' Task &<br/>- Begin countdown loop"];
-        M --> N{User Interrupt?};
-        N -->|Exit| P((End));
-        N -->|Skip / Timer Finishes| C;
-    end
-```
-   
-## Release History
-- 1 Aug 2025 - Refactored and cleaned up a lot for the code.
-- 4 Feb 2025 - Added amigacd32, neogeocd and various bugfixes
-- 26 Feb 2024 - Saturn, N64 and video mode implemented. Watch game commercials from back in the day and then play those games.
-- 02 Feb 2023 - ao486 integration, Kids Safe Mode, Dynamically finding new roms, Adjust global volume for BGM
-- 10 Aug 2022 - tty2oled and gamelist updates. Default blacklists now filter out static screens.
-- 24 Jun 2022 - Added category exclusion mode, atari core support and BGM support
-- 25 Apr 2022 - Added gb,gbc,gg and s32x support. SAM now uses game lists for faster load times and better exclusion options.
-- 22 Mar 2022 - Added support for Famicom Disk System and `MiSTer_SAM_on.sh favorite`
-- 17 Mar 2022 - SAM is now using MGL to launch games. Also added PSX support
-- 30 Nov 2021 - @InquisitiveCoder added Whitelist support
-- 16 May 2021 - Fixed hotplug detection, added ini editing feature through menu
-- 10 May 2021 - "2.0" release! Menu, per-core exclusions, directory exclusion, timer until next game (ssh), custom game dir support (usb0), expanded controller detection, NeoGeo compatiblity improvements
-- 28 Apr 2021 - Test branch support, added reboot to on to improve reliability, fixed confusing messages in on, fixed monitoring with no js devices
-- 24 Apr 2021 - Controller detection and removal, launch SAM only from the main menu (configurable), allow controller/keyboard/mouse interrupts (configurable), fixed INI parsing, added SAM now to launch instantly, more bugs squashed.
-- 23 Apr 2021 - Updated INI and data directory - [Reset to defaults](https://github.com/mrchrisster/MiSTer_SAM#reset-to-defaults) recommended!
-- 21 Apr 2021 - Initial version
+Original concept and implementation: mrchrisster. Script layout and watchdog functionality: Mellified. tty2oled: Paradox. Indexing and input tools: wizzomafizzo. Thanks to the SAM contributors and testers.

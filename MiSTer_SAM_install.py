@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Install/update a complete SAM release; preserve user configuration and lists."""
+import argparse
+import ast
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import tarfile
+import tempfile
+import time
+
+
+def checked_source(root):
+    required = ['MiSTer_SAM_on.sh', 'MiSTer_SAM.ini', 'MiSTer_SAM_install.py',
+                '.MiSTer_SAM/lib/modules.sh', '.MiSTer_SAM/lib/engine.sh',
+                '.MiSTer_SAM/MiSTer_SAM_MCP.py', '.MiSTer_SAM/samindex', '.MiSTer_SAM/mbc']
+    if not all((root / name).is_file() for name in required):
+        raise RuntimeError('Release is incomplete; installed files were not changed.')
+    for path in (root / '.MiSTer_SAM').rglob('*'):
+        if not path.is_file():
+            continue
+        if path.suffix == '.py' or (path.suffix == '.sh' and 'python' in path.read_text(encoding='utf-8').splitlines()[0]):
+            ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+        elif path.suffix == '.sh':
+            subprocess.run(['bash', '-n', str(path)], check=True)
+    subprocess.run(['bash', '-n', str(root / 'MiSTer_SAM_on.sh')], check=True)
+    return root
+
+
+def download_source(work, branch):
+    archive = work / 'source.tar.gz'
+    url = 'https://codeload.github.com/mrchrisster/MiSTer_SAM/tar.gz/refs/heads/' + branch
+    subprocess.run(['curl', '--fail', '--location', '--connect-timeout', '15',
+                    '--max-time', '180', '--retry', '2', '-o', str(archive), url], check=True)
+    with tarfile.open(archive) as bundle:
+        for item in bundle.getmembers():
+            parts = Path(item.name).parts
+            if item.name.startswith('/') or '..' in parts or not (item.isfile() or item.isdir()):
+                raise RuntimeError('Invalid release archive; installed files were not changed.')
+        bundle.extractall(work)
+    roots = [p for p in work.iterdir() if p.is_dir() and (p / 'MiSTer_SAM_on.sh').is_file()]
+    if len(roots) != 1:
+        raise RuntimeError('Release archive has no unique SAM source directory.')
+    return checked_source(roots[0])
+
+
+def tmux_exists(name):
+    return subprocess.run(['tmux', 'has-session', '-t', name], stdout=subprocess.DEVNULL,
+                          stderr=subprocess.DEVNULL).returncode == 0
+
+
+def copy_file(source, target):
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if source.resolve() == target.resolve():
+        return
+    # copyfile/chmod deliberately avoid ownership changes unsupported by FAT.
+    shutil.copyfile(source, target)
+    target.chmod(source.stat().st_mode & 0o777)
+
+
+def install(source, mister, branch):
+    scripts = mister / 'Scripts'
+    scripts.mkdir(parents=True, exist_ok=True)
+    payload = scripts / '.MiSTer_SAM'
+    live = mister.resolve() == Path('/media/fat')
+    restart_mcp = live and tmux_exists('MCP')
+    if restart_mcp:
+        subprocess.run(['tmux', 'send-keys', '-t', 'MCP', 'C-c'], check=True)
+        until = time.monotonic() + 2
+        while tmux_exists('MCP') and time.monotonic() < until:
+            time.sleep(.1)
+        if tmux_exists('MCP'):
+            subprocess.run(['tmux', 'kill-session', '-t', 'MCP'], check=True)
+    if live and tmux_exists('SAM'):
+        subprocess.run(['bash', str(scripts / 'MiSTer_SAM_on.sh'), 'stop'], check=True)
+
+    saved = scripts / '.SAM_refactor_backups' / ('install-' + time.strftime('%Y%m%d-%H%M%S') + '-' + str(os.getpid()))
+    saved.mkdir(parents=True)
+    with tarfile.open(saved / 'before.tar', 'w', dereference=True) as backup:
+        for relative in ['Scripts/.MiSTer_SAM', 'Scripts/MiSTer_SAM_on.sh',
+                         'Scripts/MiSTer_SAM.ini', 'Scripts/MiSTer_SAM_install.py',
+                         'Scripts/MiSTer_SAM_start.sh', 'Scripts/MiSTer_SAM_off.sh', 'SAM']:
+            path = mister / relative
+            if path.exists():
+                backup.add(path, arcname=relative)
+    print('Backup:', saved / 'before.tar', flush=True)
+
+    public = mister / 'SAM'
+    for name in ['Gamelists', 'Rated', 'Blacklists', 'Ignore']:
+        (public / name).mkdir(parents=True, exist_ok=True)
+    legacy = payload / 'SAM_Gamelists'
+    for old in legacy.glob('*_excludelist.txt'):
+        destination = public / 'Ignore' / old.name
+        existing = destination.read_text(encoding='utf-8') if destination.exists() else ''
+        lines = existing.splitlines()
+        for line in old.read_text(encoding='utf-8').splitlines():
+            if line not in lines:
+                lines.append(line)
+        destination.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    for name in ['m82_list.txt', 'sam_goat_list_custom.txt']:
+        old, target = legacy / name, public / 'Gamelists' / name
+        if old.is_file() and not target.exists():
+            copy_file(old, target)
+    for path in (source / 'SAM').rglob('*'):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(source / 'SAM')
+        target = public / relative
+        if relative.parts[0] in {'Ignore', 'Gamelists'} and target.exists():
+            continue
+        copy_file(path, target)
+    for path in (source / '.MiSTer_SAM').rglob('*'):
+        if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc':
+            copy_file(path, payload / path.relative_to(source / '.MiSTer_SAM'))
+    for name in ['MiSTer_SAM_on.sh', 'MiSTer_SAM_install.py', 'MiSTer_SAM_start.sh', 'MiSTer_SAM_off.sh']:
+        if (source / name).is_file():
+            copy_file(source / name, scripts / name)
+            (scripts / name).chmod(0o755)
+    ini = scripts / 'MiSTer_SAM.ini'
+    if not ini.exists():
+        copy_file(source / 'MiSTer_SAM.ini', ini)
+    contents = ini.read_text(encoding='utf-8')
+    contents, changed = re.subn(r'^branch=.*$', 'branch="' + branch + '"', contents, flags=re.M)
+    if not changed:
+        contents += '\nbranch="' + branch + '"\n'
+    ini.write_text(contents, encoding='utf-8')
+    (payload / 'release-branch').write_text(branch + '\n', encoding='utf-8')
+    for name in ['samindex', 'mbc', 'mplayer', 'MiSTer_SAM_init', 'MiSTer_SAM_MCP.py']:
+        path = payload / name
+        if path.is_file():
+            path.chmod(0o755)
+    (payload / 'partun').unlink(missing_ok=True)
+    if restart_mcp:
+        subprocess.run(['tmux', 'new-session', '-s', 'MCP', '-d', str(payload / 'MiSTer_SAM_MCP.py')], check=True)
+    print('SAM installed. User INI, controller mappings, plug-ins and Ignore lists preserved.')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--download', action='store_true', help='Fetch a complete release from GitHub')
+    parser.add_argument('--branch', default=os.environ.get('SAM_INSTALL_BRANCH', 'test'))
+    parser.add_argument('--source-dir', type=Path, default=Path(__file__).resolve().parent)
+    parser.add_argument('--mister-root', type=Path, default=Path('/media/fat'))
+    args = parser.parse_args()
+    if not re.fullmatch(r'[A-Za-z0-9_-][A-Za-z0-9_./-]*', args.branch) or '..' in args.branch:
+        parser.error('Invalid branch name')
+    with tempfile.TemporaryDirectory(prefix='sam-install-') as temp:
+        source = download_source(Path(temp), args.branch) if args.download or not (args.source_dir / '.MiSTer_SAM/lib/modules.sh').is_file() else checked_source(args.source_dir)
+        install(source, args.mister_root, args.branch)
+
+
+if __name__ == '__main__':
+    main()

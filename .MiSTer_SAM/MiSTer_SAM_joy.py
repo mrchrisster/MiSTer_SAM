@@ -28,7 +28,7 @@ with open(json_file_path, "r") as f:
 BUTTON = 0x01
 AXIS = 0x02
 INIT = 0x80
-ARGS = sys.argv[1:] 
+ARGS = sys.argv[1:]
 
 
 def read_event(buf: list[bytes]) -> dict[str, int]:
@@ -74,7 +74,7 @@ def get_activity(
             if "button" in ARGS:
                 print(format(pe["number"]))
                 sys.exit(0)  # Exit after printing the device ID
-   
+
             # Set to default initially
             activity = ACTIVITIES["default"]
             action = "default"
@@ -148,7 +148,7 @@ if __name__ == "__main__":
         print(device_id)
         sys.exit(0)  # Exit after printing the device ID
 
-     
+
     # Your existing activity monitoring loop here...
     while True:
         try:
