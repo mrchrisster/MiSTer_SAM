@@ -2,7 +2,7 @@
 
 SAM selects and launches games while MiSTer is idle. This `test` branch contains the modular refactor: normal mode prepares two eligible selections while the current game runs, so Next consumes a ready selection. One foreground session owns launches and at most one background preparation worker. Optional features load only when their existing INI switches enable them.
 
-The original HID keyboard, mouse and joystick detection is retained. Owner validation, startup cancellation and cleanup prevent stopped sessions from surviving or starting late. There is no Unix socket or additional control daemon. `partun` has been removed; archive discovery uses `samindex`, retaining its two indexing passes and delay.
+The HID keyboard and mouse readers and repeated joystick startup snapshots are retained. MCP resolves supported saved MiSTer controller definitions automatically, then controllerdb, then generic activity. Owner validation, startup cancellation and cleanup prevent stopped sessions from surviving or starting late. There is no Unix socket or additional control daemon. `partun` has been removed; archive discovery uses `samindex`, retaining its two indexing passes and delay.
 
 ## Installation and update
 
@@ -72,7 +72,7 @@ Artwork-only normal mode uses small catalogs and downloads/validates selected co
 
 ## Development and validation
 
-[MODULE_API.md](docs/MODULE_API.md) describes plug-in hooks and services. Add a manifest and module with its own enable switch; no edits to the main entry are needed. [MCP_INPUT.md](docs/MCP_INPUT.md) covers lifecycle/input fixes. [LIVE_MODE_TESTS.md](docs/LIVE_MODE_TESTS.md) records actual M82 and commercial checks and their limits.
+[MODULE_API.md](docs/MODULE_API.md) describes plug-in hooks and services. Add a manifest and module with its own enable switch; no edits to the main entry are needed. [MCP_INPUT.md](docs/MCP_INPUT.md) covers lifecycle, input-access constraints and mapping/debug behavior. [CHANGELOG.md](docs/CHANGELOG.md) records recent changes and validation limits. [LIVE_MODE_TESTS.md](docs/LIVE_MODE_TESTS.md) records actual M82 and commercial checks and their limits.
 
 Run on Linux/MiSTer:
 

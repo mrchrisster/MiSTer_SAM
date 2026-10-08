@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 import asyncio
 import configparser
+import math
+import fcntl
+import glob
+import queue
+import re
 import os
 import signal
 import subprocess
@@ -36,6 +41,422 @@ tasks = {}
 rescan_lock = None
 
 
+INPUT_KEY_EMU = 0x300
+
+INPUT_SLOTS = ["Right", "Left", "Down", "Up", "A", "B", "X", "Y", "L", "R", "Select", "Start"]
+
+INPUT_DB_CONTROLS = set("a b x y back start guide guide2 menuok menuesc leftshoulder rightshoulder leftstick rightstick lefttrigger righttrigger leftx lefty rightx righty asysx asysy dpup dpdown dpleft dpright misc1 paddle1 paddle2 paddle3 paddle4 touchpad".split())
+
+INPUT_NAMES = {1: "KEY_ESC", 28: "KEY_ENTER", 57: "KEY_SPACE", 88: "KEY_F12",
+         103: "KEY_UP", 105: "KEY_LEFT", 106: "KEY_RIGHT", 108: "KEY_DOWN",
+         304: "BTN_SOUTH", 305: "BTN_EAST", 307: "BTN_NORTH", 308: "BTN_WEST",
+         310: "BTN_TL", 311: "BTN_TR", 312: "BTN_TL2", 313: "BTN_TR2",
+         314: "BTN_SELECT", 315: "BTN_START", 316: "BTN_MODE",
+         317: "BTN_THUMBL", 318: "BTN_THUMBR", 544: "BTN_DPAD_UP",
+         545: "BTN_DPAD_DOWN", 546: "BTN_DPAD_LEFT", 547: "BTN_DPAD_RIGHT"}
+
+def input_code_text(code):
+    if not code:
+        return "unassigned"
+    if code >= 0x10000:
+        return "wide/flagged value; NOT truncated to 16 bits"
+    if code >= INPUT_KEY_EMU:
+        axis = (code - INPUT_KEY_EMU) // 2
+        return "axis %d %s (synthetic edge)" % (axis, "+" if code & 1 else "-")
+    return INPUT_NAMES.get(code, "KEY_%d" % code if code < 256 else "BTN_%d" % code)
+
+def input_controller_guid(identity):
+    # Main's GUID: four little-endian uint16 IDs, each padded to four bytes.
+    return b"".join(struct.pack("<H", value) + b"\0\0" for value in identity).hex()
+
+def input_db_binding(text, key_caps, abs_codes):
+    """Return (kind, Linux code, axis half, inverted), using Main enumeration.
+
+    DB bN is not a joydev number. Axes below ABS_HAT0X form Main's aN list;
+    hats refer directly to ABS_HAT0X + 2*N. No input thresholds are inferred.
+    """
+    buttons = sorted(c for c in key_caps if c >= 0x120) + sorted(c for c in key_caps if c < 0x120)
+    axes = sorted(c for c in abs_codes if c < 16)
+    match = re.fullmatch(r"b(\d+)", text)
+    if match:
+        index = int(match[1])
+        if index < len(buttons):
+            return ("button", buttons[index], "", False)
+        raise ValueError("button index exceeds EV_KEY capabilities")
+    match = re.fullmatch(r"([+-]?)a(\d+)(~?)", text)
+    if match:
+        index = int(match[2])
+        if index < len(axes):
+            return ("axis", axes[index], match[1], bool(match[3]))
+        raise ValueError("axis index exceeds Main's non-hat EV_ABS capabilities")
+    match = re.fullmatch(r"h(\d+)\.(\d+)", text)
+    if match:
+        hat, mask = int(match[1]), int(match[2])
+        if hat > 3 or mask not in (1, 2, 4, 8):
+            raise ValueError("unsupported hat number/direction (Main uses cardinal masks)")
+        code = 16 + hat * 2 + int(mask in (1, 4))
+        if code not in abs_codes:
+            raise ValueError("hat axis absent from EV_ABS capabilities")
+        return ("axis", code, "+" if mask in (2, 4) else "-", False)
+    raise ValueError("unsupported binding syntax")
+
+class InputControllerDB:
+    """Read once; retain file order so the last matching entry wins like Main."""
+    def __init__(self, directory, log):
+        self.files = []
+        for filename in ("gamecontrollerdb_user.txt", "gamecontrollerdb.txt"):
+            path = os.path.join(directory, filename)
+            entries = []
+            try:
+                with open(path, encoding="utf-8-sig") as f:
+                    for number, line in enumerate(f, 1):
+                        parts = line.strip().split(",")
+                        if not parts or not re.fullmatch(r"[0-9a-fA-F]{32}", parts[0]) or len(parts) < 3:
+                            continue
+                        fields = [tuple(p.split(":", 1)) for p in parts[2:] if ":" in p]
+                        entries.append((parts[0].lower(), parts[1], fields, number))
+                log("CONTROLLERDB loaded %s entries=%d" % (path, len(entries)))
+            except FileNotFoundError:
+                log("CONTROLLERDB missing %s" % path)
+            except (OSError, UnicodeError) as exc:
+                log("CONTROLLERDB ERROR %s: %s" % (path, exc))
+            self.files.append((path, entries))
+
+    def resolve(self, identity, key_caps, abs_codes, log):
+        self.core_specific = False
+        guid = input_controller_guid(identity)
+        log("  DB GUID=%s (exact Main bus/vendor/product/version identity)" % guid)
+        for path, entries in self.files:
+            chosen = None
+            for candidate in entries:
+                entry_guid, name, fields, number = candidate
+                if entry_guid != guid:
+                    continue
+                metadata = dict(fields)
+                platform_name = metadata.get("platform", "").lower()
+                if platform_name not in ("linux", "mister"):
+                    log("  DB SKIP %s:%d platform=%r" % (path, number, platform_name))
+                    continue
+                if platform_name == "mister" and any(k.lower() == "mistercore" for k, _ in fields):
+                    self.core_specific = True
+                    log("  DB SKIP %s:%d core-specific entry: Main's internal core aliases are not verified by this diagnostic" % (path, number))
+                    continue
+                chosen = candidate
+            if chosen is None:
+                continue
+            _, name, fields, number = chosen
+            bindings = {}
+            for control, text in fields:
+                if control not in INPUT_DB_CONTROLS:
+                    continue
+                try:
+                    bindings[control] = (text, input_db_binding(text, key_caps, abs_codes))
+                except ValueError as exc:
+                    log("  DB UNSUPPORTED %s:%d %s:%s: %s" % (path, number, control, text, exc))
+            if bindings:
+                log("  DB MATCH %s:%d name=%r GUID=%s" % (path, number, name, guid))
+                return bindings
+            log("  DB entry has no usable bindings; trying next database")
+        log("  DB NO MATCH with usable generic bindings for GUID=%s; no name/VID-PID guesses" % guid)
+        return None
+
+# --- Cached MiSTer input definitions (no input grab or event-stream reader) ---
+INPUT_CONFIG_DIR = '/media/fat/config'
+INPUT_DB_DIR = '/media/fat/linux/gamecontrollerdb'
+
+
+class InputDebugOutput:
+    """Bounded, nonblocking output; a slow terminal cannot block the poller."""
+    def __init__(self, size=256):
+        self.messages = queue.Queue(maxsize=size)
+        self.dropped = 0
+        self.thread = threading.Thread(target=self.run, name='sam-input-debug', daemon=True)
+        self.thread.start()
+
+    def emit(self, message):
+        try:
+            self.messages.put_nowait(message)
+        except queue.Full:
+            self.dropped += 1
+
+    def run(self):
+        while True:
+            message = self.messages.get()
+            if message is None:
+                return
+            try:
+                if self.dropped:
+                    count, self.dropped = self.dropped, 0
+                    print('MCP-INPUT: debug output overflow; dropped=%d' % count, flush=True)
+                print(message, flush=True)
+            except (OSError, ValueError):
+                return  # Terminal closure must not affect input/action handling.
+
+    def close(self):
+        self.emit(None)
+
+
+def input_debug(state, message):
+    output = getattr(state, 'input_debug_output', None)
+    if output is not None:
+        output.emit(message)
+
+
+class InputBindings:
+    """Per-reader immutable metadata; rebuild through MCP's existing hotplug path.
+
+    Saved global maps are authoritative, including zero slots. DB definitions
+    only drive actions when no saved definition exists. Unverified unique/mode
+    choices and flagged action slots produce generic activity, not guessed actions.
+    """
+    def __init__(self, device, state):
+        self.device, self.state = device, state
+        self.buttons, self.axes, self.mapping, self.db = [], [], None, None
+        self.source = 'generic'
+        self.map_status = 'absent'
+        self.button_labels, self.axis_labels = {}, {}
+        self.actions = {}  # (kind, js number, direction) -> SAM action
+        self.role_axes = set()
+        self.db_core_specific = False
+        self.last_events = None
+        self.last_snapshot = {}
+        self.setup()
+        self.describe()
+
+    def log(self, text):
+        # Routine metadata belongs in the standalone diagnostic, not every restart.
+        if text.lstrip().startswith(('CONTROLLERDB loaded ', 'CONTROLLERDB missing ',
+                                    'DB GUID=', 'DB MATCH ', 'saved global map=',
+                                    'action source=')):
+            return
+        input_debug(self.state, 'MCP-INPUT: %s: %s' % (self.device.get('name', 'Controller'), text))
+
+    @staticmethod
+    def ioctl(fd, kind, number, size):
+        data = bytearray(size)
+        fcntl.ioctl(fd, (2 << 30) | (size << 16) | (ord(kind) << 8) | number, data, True)
+        return bytes(data)
+
+    def setup(self):
+        try:
+            with open(self.device['js_path'], 'rb', buffering=0) as f:
+                fd = f.fileno()
+                nb = self.ioctl(fd, 'j', 0x12, 1)[0]
+                na = self.ioctl(fd, 'j', 0x11, 1)[0]
+                self.buttons = list(struct.unpack('=512H', self.ioctl(fd, 'j', 0x34, 1024))[:nb])
+                self.axes = list(self.ioctl(fd, 'j', 0x32, 64)[:na])
+        except OSError as exc:
+            self.log('js metadata unavailable: %s; generic activity only' % exc)
+            return
+        self.read_map()
+        if self.state.samdebug or (self.mapping is None and self.map_status == 'absent'):
+            try:
+                with open(self.device['event_path'], 'rb', buffering=0) as f:
+                    fd = f.fileno()
+                    identity = struct.unpack('=4H', self.ioctl(fd, 'E', 0x02, 8))
+                    key_bits = self.ioctl(fd, 'E', 0x21, 96)
+                    abs_bits = self.ioctl(fd, 'E', 0x23, 8)
+                    keys = {i for i in range(768) if key_bits[i // 8] & (1 << (i % 8))}
+                    axes = {i for i in range(64) if abs_bits[i // 8] & (1 << (i % 8))}
+                # Main uses USB bcdDevice for these specific adapter families.
+                bus, vid, pid, version = identity
+                if bus == 3 and ((vid == 0x16d0 and pid in (0x127e, 0x1460)) or (vid == 0x1209 and pid == 0x595a)):
+                    path = os.path.join('/sys', self.device.get('sysfs', '').lstrip('/'))
+                    while path.startswith('/sys/'):
+                        try:
+                            with open(os.path.join(path, 'bcdDevice')) as f:
+                                version = int(f.read(32).strip(), 16)
+                            break
+                        except (OSError, ValueError):
+                            path = os.path.dirname(path)
+                    identity = (bus, vid, pid, version)
+                with self.state.input_metadata_lock:
+                    if self.state.input_database is None:
+                        self.state.input_database = InputControllerDB(INPUT_DB_DIR, self.log)
+                    self.db = self.state.input_database.resolve(identity, keys, axes, self.log)
+                    self.db_core_specific = self.state.input_database.core_specific
+            except (OSError, KeyError, ValueError) as exc:
+                self.log('controllerdb metadata unavailable: %s' % exc)
+        self.build_labels()
+        if self.mapping is not None:
+            self.source = 'MiSTer-map'
+            for slot, action in ((11, 'start'), (10, 'next')):
+                value = self.mapping[slot]
+                if value == 0:
+                    self.log('%s explicitly unassigned; database fallback suppressed' % INPUT_SLOTS[slot])
+                elif value < 768:
+                    for number, code in enumerate(self.buttons):
+                        if code == value:
+                            self.actions.setdefault(('button', number, ''), action)
+                elif 768 <= value < 896:
+                    axis, half = (value - 768) // 2, '+' if value & 1 else '-'
+                    for number, code in enumerate(self.axes):
+                        if code == axis:
+                            self.actions.setdefault(('axis', number, half), action)
+                else:
+                    self.log('%s unsupported flagged value 0x%x; generic activity only for this slot' % (INPUT_SLOTS[slot], value))
+        elif self.map_status == 'absent' and self.db is not None and not self.db_core_specific:
+            self.source = 'controllerdb'
+            for control, action in (('start', 'start'), ('back', 'next')):
+                if control not in self.db:
+                    continue
+                _, (kind, code, half, inverted) = self.db[control]
+                indices = self.buttons if kind == 'button' else self.axes
+                for number, actual in enumerate(indices):
+                    if actual == code:
+                        # A full axis used as a digital control activates its positive half.
+                        direction = half or ('+' if kind == 'axis' else '')
+                        if inverted:
+                            direction = '-' if direction == '+' else '+'
+                        self.actions.setdefault((kind, number, direction), action)
+        self.role_axes = {number for kind, number, half in self.actions if kind == 'axis'}
+        if self.mapping is None and self.db_core_specific:
+            self.log('core-specific database identity unresolved; named actions suppressed')
+        self.log('action source=%s; saved-map status=%s; enabled roles=%s' % (self.source, self.map_status, sorted(set(self.actions.values()))))
+
+    def read_map(self):
+        model = self.device.get('id', '')
+        if not re.fullmatch('[0-9a-f]{4}_[0-9a-f]{4}', model):
+            self.map_status = 'unsupported identity'
+            self.log('saved map identity unsupported; generic actions')
+            return
+        dirs = [os.path.join(INPUT_CONFIG_DIR, 'inputs'), INPUT_CONFIG_DIR]
+        normal = 'input_%s_v3.map' % model
+        related = [p for d in dirs for p in glob.glob(os.path.join(d, 'input_%s*_v3.map' % model)) if os.path.basename(p) != normal]
+        vid, pid = (int(x, 16) for x in model.split('_'))
+        special = vid == 0x2341 or (vid == 0x16c0 and pid >> 8 == 4) or (vid == 0x16d0 and pid in (0x127e, 0x1460)) or (vid == 0x1209 and pid in (0x595a, 0xface, 0xfaca))
+        if related or special:
+            self.map_status = 'ambiguous identity/mode'
+            self.log('unique/alternate/special identity needs verification; candidates=%s; generic actions' % related)
+            return
+        for directory in dirs:
+            path = os.path.join(directory, normal)
+            try:
+                with open(path, 'rb') as f:
+                    data = f.read(129)
+            except FileNotFoundError:
+                continue
+            except OSError as exc:
+                self.map_status = 'unreadable'
+                self.log('saved map unreadable %s: %s; no database substitution' % (path, exc))
+                return
+            if len(data) != 128:
+                self.map_status = 'invalid'
+                self.log('saved map invalid size %s: %d; no database substitution' % (path, len(data)))
+                return
+            self.mapping = struct.unpack('<32I', data)
+            self.map_status = 'loaded'
+            self.log('saved global map=%s (ordinary identity; unique/merged Main quirks are not inferred)' % path)
+            return
+
+    def build_labels(self):
+        for number, code in enumerate(self.buttons):
+            mister = self.map_labels(code)
+            db = self.db_labels('button', code)
+            prefix = 'DOWN MiSTer=%s DB=%s' % (mister, db)
+            if self.mapping is not None and mister == 'unmapped' and db in ('unmapped', 'unavailable'):
+                prefix += ' Linux=%d %s' % (code, input_code_text(code))
+            if self.mapping is None:
+                prefix += ' js_button=%d Linux=%d %s' % (number, code, input_code_text(code))
+            self.button_labels[number] = prefix
+        for number, code in enumerate(self.axes):
+            self.axis_labels[number] = self.db_labels('axis', code)
+
+    def map_labels(self, code):
+        if self.mapping is None:
+            return 'unavailable'
+        labels = [name for name, value in zip(INPUT_SLOTS, self.mapping) if value == code and code]
+        labels += ['Menu%d' % (slot - 20) for slot in (21, 22) if self.mapping[slot] == code and code]
+        return '+'.join(labels) or 'unmapped'
+
+    def db_labels(self, kind, code):
+        if self.db is None:
+            return 'unavailable'
+        labels = []
+        for name, (_, (k, c, half, inverted)) in self.db.items():
+            if (k, c) == (kind, code):
+                suffix = '(%s%s)' % (half, '~' if inverted else '') if half or inverted else ''
+                labels.append(name + suffix)
+        return '+'.join(labels) or 'unmapped'
+
+    def describe(self):
+        labels = []
+        if 'start' in self.actions.values():
+            labels.append('Start')
+        if 'next' in self.actions.values():
+            labels.append('Select')
+        self.log('Ready: %s' % ('/'.join(labels) if labels else 'generic input'))
+
+    @staticmethod
+    def snapshot(events):
+        # INIT records are state; queued records must not replace that state.
+        return {(event['type'] & 0x7f, event['number']): event['value']
+                for event in events if event['type'] & 0x80}
+
+    def changes(self, previous, current):
+        old = self.last_snapshot if previous is self.last_events else self.snapshot(previous)
+        new = self.snapshot(current)
+        self.last_events, self.last_snapshot = current, new
+        if old == new:
+            return []
+        changes = [(key, old[key], value) for key, value in new.items() if key in old and old[key] != value]
+        return changes
+
+    def action(self, previous, current, changes=None):
+        # Quiet samples require no Python event-by-event action scan.
+        if changes is None:
+            changes = self.changes(previous, current)
+        if not changes:
+            return None
+        # Retain generic activity semantics; only source of named actions changes.
+        if self.role_axes:
+            ordinary_previous = [e for e in previous if not (e['type'] & AXIS_TYPE and e['number'] in self.role_axes)]
+            ordinary_current = [e for e in current if not (e['type'] & AXIS_TYPE and e['number'] in self.role_axes)]
+        else:
+            ordinary_previous, ordinary_current = previous, current
+        fallback = get_js_activity(ordinary_previous, ordinary_current, {})
+        if changes is None:
+            changes = self.changes(previous, current)
+        for (kind, number), before, after in changes:
+            if kind == BUTTON_TYPE and after == 1:
+                role = self.actions.get(('button', number, ''))
+                if role:
+                    return role
+            if kind == AXIS_TYPE:
+                for half, sign in (('+', 1), ('-', -1)):
+                    # Joydev normalizes hats/sticks. Use a half-range digital edge;
+                    # never interpret tiny analog noise as Start/Select.
+                    if before * sign <= 16384 < after * sign:
+                        role = self.actions.get(('axis', number, half))
+                        if role:
+                            return role
+        return fallback
+
+    def has_activity(self, previous, current, changes=None):
+        if changes is None:
+            changes = self.changes(previous, current)
+        return any((kind == BUTTON_TYPE and after == 1) or
+                   (kind == AXIS_TYPE and abs(after - before) > AXIS_DEADZONE)
+                   for (kind, number), before, after in changes)
+
+    def report(self, previous, current, changes=None):
+        if changes is None:
+            changes = self.changes(previous, current)
+        for (kind, number), before, after in changes:
+            if kind == BUTTON_TYPE and after == 1:
+                text = self.button_labels.get(number, 'DOWN unknown button')
+                action = self.actions.get(('button', number, ''), 'default')
+                self.log('%s action=%s' % (text, action))
+            elif kind == AXIS_TYPE and abs(after - before) > AXIS_DEADZONE:
+                code = self.axes[number] if number < len(self.axes) else None
+                edge = 768 + code * 2 + int(after > 0) if code is not None and abs(after) > 16384 else 0
+                text = 'AXIS value=%d MiSTer=%s DB=%s' % (after, self.map_labels(edge), self.axis_labels.get(number, 'unavailable'))
+                if self.mapping is None:
+                    text += ' js_axis=%d ABS=%s' % (number, code)
+                self.log(text)
+# --- End cached input definitions ---
+
+
 class SamState:
     """
     A thread-safe class to hold the state of our monitor.
@@ -56,6 +477,10 @@ class SamState:
         self.m82 = False
         self.ignore_when_skip = False
         self.listenjoy = True
+        self.samdebug = False
+        self.input_debug_output = None
+        self.input_database = None
+        self.input_metadata_lock = threading.Lock()
         self.launcher = None
         self.menu_owner = None
         self.menu_armed = False
@@ -418,11 +843,10 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
     loop that is state-aware, exactly like the original working script.
     """
     dev_path = device_info['js_path']
-    device_id = device_info.get('id', 'default')
-    device_config = controller_config.get(device_id, controller_config.get("default", {}))
 
     print(f"MCP-JS: Starting poller for {device_info.get('name', 'Unknown')} ({dev_path})")
 
+    bindings = InputBindings(device_info, state)
     previous_events = []
     sam_was_running = state.is_sam_running()
 
@@ -442,21 +866,28 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
             if data:
                 current_events = [dict(zip(("timestamp", "value", "type", "number"), struct.unpack(JS_EVENT_FORMAT, data[i:i+JS_EVENT_SIZE]))) for i in range(0, len(data), JS_EVENT_SIZE) if len(data[i:i+JS_EVENT_SIZE]) == JS_EVENT_SIZE]
 
+                input_changes = bindings.changes(previous_events, current_events)
                 if not previous_events:
                     previous_events = current_events
                     print(f"MCP-JS: Initial state captured for {dev_path}. Listening for changes...")
                 else:
-                    action = get_js_activity(previous_events, current_events, device_config)
+                    action = bindings.action(previous_events, current_events, input_changes)
                     if action:
                         if state.is_sam_running() or state.is_sam_starting():
                             # SAM is active — log and route through full action handler.
-                            print(f"MCP-JS: Button action '{action}' detected on {dev_path}")
+                            if not state.samdebug:
+                                print(f"MCP-JS: Button action '{action}' detected on {dev_path}")
                             loop.call_soon_threadsafe(handle_action, action, state, loop, "joystick")
                         else:
                             # User is playing normally — just reset the idle timer
                             # so SAM doesn't launch on an active player.
                             state.update_activity(log_event=False)
+                    elif bindings.has_activity(previous_events, current_events, input_changes):
+                        # A mapped analog control is moving toward its digital edge.
+                        state.update_activity(log_event=False)
 
+                if state.samdebug and previous_events:
+                    bindings.report(previous_events, current_events, input_changes)
                 previous_events = current_events
         except (BlockingIOError, FileNotFoundError):
             pass # This is expected on a non-blocking read with no data.
@@ -702,14 +1133,35 @@ async def launch_and_confirm(state):
         state.set_sam_starting(False)
 
 
+class IdleCountdownDisplay:
+    """One updating terminal line; no countdown while launch is disallowed."""
+    def __init__(self):
+        self.previous = None
+
+    def update(self, remaining=None):
+        if remaining is None:
+            if self.previous is not None:
+                print('\r' + ' ' * 48 + '\r', end='', flush=True)
+            self.previous = None
+            return
+        seconds = max(0, math.ceil(remaining))
+        if seconds != self.previous:
+            print(('\rMCP: Starting SAM in %ds...' % seconds).ljust(48), end='', flush=True)
+            self.previous = seconds
+
+
 async def idle_and_status_checker(state):
+    countdown = IdleCountdownDisplay()
     while True:
         try:
             owner = await asyncio.to_thread(read_sam_owner)
             if state.is_stopping():
+                countdown.update()
                 await asyncio.sleep(1)
                 continue
             state.set_sam_running(owner is not None)
+            if owner:
+                countdown.update()
             in_menu = await asyncio.to_thread(is_in_menu, state)
             if menu_requires_stop(state, owner, in_menu):
                 state.set_stopping(True)
@@ -725,9 +1177,15 @@ async def idle_and_status_checker(state):
                 idle_time = state.get_idle_time()
                 can_start = not state.menu_only or in_menu
                 if can_start and idle_time > state.idle_timeout:
+                    countdown.update()
                     await launch_and_confirm(state)
+                elif can_start:
+                    countdown.update(state.idle_timeout - idle_time)
+                else:
+                    countdown.update()
             await asyncio.sleep(1)
         except asyncio.CancelledError:
+            countdown.update()
             await cancel_launcher(state)
             raise
         except Exception as e:
@@ -807,6 +1265,8 @@ def get_input_devices():
                     for handler in handlers:
                         if handler.startswith('js'):
                             current_device['js_path'] = f"/dev/input/{handler}"
+                        elif re.fullmatch(r'event\d+', handler):
+                            current_device['event_path'] = f"/dev/input/{handler}"
 
                     # Check for the 'kbd' handler to identify a keyboard
                     if 'kbd' in handlers:
@@ -923,9 +1383,70 @@ async def _rescan_devices_impl(state, controller_config, listen_config, loop):
     except Exception as e:
         print(f"MCP: Error during device rescan: {e}")
 
+class InputHotplugFilter:
+    """Ignore software virtual input churn; retain classification for DELETE.
+
+    Only direct /devices/virtual/input nodes are software virtual here. Bluetooth
+    UHID can live below /devices/virtual/misc/uhid and must remain observable.
+    A CREATE always rechecks identity, since event/js numbers can be reused.
+    """
+    node_pattern = re.compile(r'(?:event|js|mouse)\d+|mice')
+
+    def __init__(self, prime=True):
+        self.known = {}
+        if prime:
+            self.refresh()
+
+    @classmethod
+    def classify(cls, path):
+        if path.startswith('/dev/input/by-path/'):
+            path = os.path.realpath(path)
+        name = os.path.basename(path)
+        if os.path.dirname(path) != '/dev/input' or not cls.node_pattern.fullmatch(name):
+            return None
+        sysfs = '/sys/class/input/%s/device' % name
+        if not os.path.exists(sysfs):
+            return None  # Unknown/racing creation: preserve physical hotplug.
+        target = os.path.realpath(sysfs)
+        return target.startswith('/sys/devices/virtual/input/')
+
+    def refresh(self):
+        paths = []
+        try:
+            paths.extend('/dev/input/' + name for name in os.listdir('/sys/class/input')
+                         if self.node_pattern.fullmatch(name))
+        except OSError:
+            pass
+        try:
+            paths.extend('/dev/input/by-path/' + name for name in os.listdir('/dev/input/by-path'))
+        except OSError:
+            pass
+        for path in paths:
+            classification = self.classify(path)
+            if classification is not None:
+                self.known[path] = classification
+
+    def should_rescan(self, line):
+        parts = line.split()
+        if len(parts) < 2:
+            return False
+        path, event = parts[0], parts[1].split(',')[0]
+        if event not in ('CREATE', 'DELETE'):
+            return False
+        direct = os.path.dirname(path) == '/dev/input' and self.node_pattern.fullmatch(os.path.basename(path))
+        if not direct and not path.startswith('/dev/input/by-path/'):
+            return False
+        if event == 'CREATE':
+            # Never apply an old virtual classification to a new physical node.
+            self.known[path] = self.classify(path)
+        elif path not in self.known:
+            self.known[path] = self.classify(path)
+        return self.known[path] is not True
+
+
 async def hotplug_monitor_native(state, controller_config, listen_config, loop):
     """Monitors for device hotplug events using the 'inotifywait' utility."""
-    print("MCP: Hot-plug monitor started (event-driven via inotifywait).")
+    print("MCP: Hot-plug monitor started (event-driven via inotifywait; software virtual nodes ignored).")
 
     # We watch /dev/input recursively and then filter for 'by-path' events in our loop.
     # This is the most reliable way to handle the 'by-path' directory being deleted and recreated.
@@ -935,9 +1456,14 @@ async def hotplug_monitor_native(state, controller_config, listen_config, loop):
     ]
 
     process = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    hotplug_filter = InputHotplugFilter()
 
     debounce_timer = None
     debounce_delay = 2.0  # seconds to wait after the last event
+
+    async def rescan_after_physical_hotplug():
+        hotplug_filter.refresh()
+        await rescan_devices(state, controller_config, listen_config, loop)
 
     try:
         while True:
@@ -950,23 +1476,14 @@ async def hotplug_monitor_native(state, controller_config, listen_config, loop):
 
                 decoded_line = line.decode().strip()
 
-                # Trigger a rescan on:
-                #   - by-path symlink events (USB devices)
-                #   - direct jsX node creation (Bluetooth / wireless controllers that skip by-path)
-                parts = decoded_line.split()
-                event_path = parts[0] if parts else ''
-                event_type = parts[1] if len(parts) > 1 else ''
-                is_relevant = (
-                    '/dev/input/by-path/' in event_path
-                    or event_path.startswith(('/dev/input/js', '/dev/input/event', '/dev/input/mice'))
-                )
+                is_relevant = hotplug_filter.should_rescan(decoded_line)
 
                 if is_relevant:
                     # A physical device change was detected. Trigger a debounced rescan.
                     if debounce_timer:
                         debounce_timer.cancel()
                     print(f"MCP: Hot-plug event detected ({decoded_line}). Scheduling rescan...")
-                    debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_devices(state, controller_config, listen_config, loop)))
+                    debounce_timer = loop.call_later(debounce_delay, lambda: asyncio.create_task(rescan_after_physical_hotplug()))
 
             except asyncio.CancelledError:
                 print("MCP: Hot-plug monitor cancelled.")
@@ -1036,21 +1553,15 @@ async def main():
         m82 = False
         ignore_when_skip = False
 
-    # Load controller configuration
+    # Kept for existing watcher signatures; legacy js-index JSON no longer routes actions.
     controller_config = {}
-    config_file = os.path.join(SCRIPT_DIR, "sam_controllers.custom.json")
-    if not os.path.exists(config_file):
-        config_file = os.path.join(SCRIPT_DIR, "sam_controllers.json")
-
-    try:
-        with open(config_file, 'r') as f:
-            controller_config = json.load(f)
-        print(f"MCP: Successfully loaded controller configuration from {os.path.basename(config_file)}.")
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"MCP: Warning - Could not load or parse controller config: {e}")
+    print("MCP: Controller definitions: MiSTer global map -> controllerdb -> generic activity.")
 
     # 2. Initialize state
     state = SamState(timeout=timeout, menu_only=menu_only)
+    state.samdebug = config.get("DEFAULT", "samdebug", raw=True, fallback="no").strip('"\'').lower() in ("yes", "true", "1", "on")
+    if state.samdebug:
+        state.input_debug_output = InputDebugOutput()
     state.set_mode(m82=m82, ignore_when_skip=ignore_when_skip, listenjoy=listen_config["listenjoy"])
     print(f"MCP started. Idle timeout: {state.idle_timeout}s, Menu-only: {state.menu_only}")
     print(f"MCP Listen Config: Joy={listen_config['listenjoy']}, Kbd={listen_config['listenkeyboard']}, Mouse={listen_config['listenmouse']}")
@@ -1083,6 +1594,9 @@ async def main():
         await asyncio.gather(*[t for t, e in tasks.values()], return_exceptions=True)
     except asyncio.CancelledError:
         print("MCP: Main task group cancelled.")
+    finally:
+        if state.input_debug_output is not None:
+            state.input_debug_output.close()
 
 if __name__ == "__main__":
     try:
