@@ -113,6 +113,12 @@ See [MCP_INPUT.md](MCP_INPUT.md) for behavior, constraints and the test procedur
   before these patches. An AST comparison found only joystick_poller_thread,
   idle_and_status_checker, get_input_devices, hotplug_monitor_native and main
   changed among existing module functions; none were removed.
-- The complete Linux suite was started in an isolated /tmp checkout on MiSTer.
-  At commit time it was still running. Production SAM/MCP remained active;
-  these fixtures do not install the candidate into /media/fat.
+- MiSTer Linux: the complete suite ran 124 tests in 109.2 seconds. 121 passed;
+  three installer fixtures encountered binary AppleDouble ._ files introduced
+  by macOS tar, rather than repository content. After removing the 209 archive
+  metadata artifacts from the isolated /tmp checkout, all six installer
+  fixtures passed in 10.6 seconds. All 124 test cases therefore passed across
+  the full run and affected-suite rerun. Production SAM/MCP remained active;
+  fixtures do not install the candidate into /media/fat.
+- Implementation committed and pushed to test as 71a711e. HTTPS credentials
+  were unavailable; the push succeeded using the user's GitHub SSH key.
