@@ -2,23 +2,76 @@
 # Extracted compatibility implementation; see reference and attribution.
 
 function sam_start() {
-    local core="${1:-}" command
+    local core="${1:-}" command pane_pid pane_start=
     if [[ -n "$core" ]]; then
-        sam_core_id "$core" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
+        sam_core_id "$core" || { printf 'SAM ERROR: %s\n' "$sam_core_reason" >&2; return 1; }
         core=$sam_core_id_result
     fi
+    if [[ -n "$core" ]]; then printf 'Starting SAM for %s (single core)...\n' "${CORE_PRETTY[$core]}"
+    else printf 'Starting SAM...\n'; fi
     if [[ "${sam_module_config_dirty:-0}" == 1 ]]; then
         # Menus can change module switches after loading this shell. Validate
         # the next session in a fresh registry before stopping the current one.
         bash "${SAM_ENTRY:-$misterpath/Scripts/MiSTer_SAM_on.sh}" validate_start "$core" || return 1
     else
-        sam_core_session_begin "$core" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
+        sam_core_session_begin "$core" || { printf 'SAM ERROR: %s\n' "$sam_core_reason" >&2; return 1; }
     fi
     env_check || return 1
     there_can_be_only_one || return 1
     mcp_start
-    printf -v command '%q loop_core %q' "${SAM_ENTRY:-$misterpath/Scripts/MiSTer_SAM_on.sh}" "$core"
-    tmux new-session -d -x 180 -y 40 -n 'SAM: next / previous / mute' -s SAM "$command"
+    printf -v command 'exec %q loop_core %q' "${SAM_ENTRY:-$misterpath/Scripts/MiSTer_SAM_on.sh}" "$core"
+    pane_pid=$(tmux new-session -P -F '#{pane_pid}' -d -x 180 -y 40 -n 'SAM: next / previous / mute' -s SAM "$command") || {
+        echo 'SAM ERROR: Could not create the SAM session.' >&2; return 1;
+    }
+    if [[ -n "$core" ]]; then
+        sam_pid_start "$pane_pid" && pane_start=$sam_proc_start
+        sam_wait_single_start "$core" "$pane_pid" "$pane_start"
+    else echo 'SAM session started. Use m monitor to view it.'; fi
+}
+
+sam_wait_single_start() { # report the existing engine's result; no extra scanner
+    local target="$1" pid="$2" ticks="$3" line phase owner_pid owner_start reason
+    local timeout="${SAM_START_FEEDBACK_TIMEOUT:-180}" elapsed last_notice=0 started=$SECONDS
+    [[ "$timeout" =~ ^[0-9]+$ ]] || timeout=180
+    while :; do
+        phase= owner_pid= owner_start=
+        if [[ -r "$mrsamtmp/session-owner" ]]; then
+            while IFS= read -r line; do
+                case "$line" in pid=*) owner_pid=${line#*=} ;; start=*) owner_start=${line#*=} ;; phase=*) phase=${line#*=} ;; esac
+            done < "$mrsamtmp/session-owner"
+        fi
+        if [[ "$owner_pid" == "$pid" && ( -z "$ticks" || "$owner_start" == "$ticks" ) ]]; then
+            ticks=$owner_start
+            if [[ -r "$mrsamtmp/session-$pid:$ticks/error" ]]; then
+                IFS= read -r reason < "$mrsamtmp/session-$pid:$ticks/error" || true
+                printf 'SAM ERROR (%s): %s\n' "$target" "$reason" >&2; return 1
+            fi
+            if [[ "$phase" == playing || "$phase" == video ]]; then
+                if sam_pid_start "$pid" && [[ "$sam_proc_start" == "$ticks" ]]; then
+                    printf 'SAM running: %s. Use m monitor to view it.\n' "${CORE_PRETTY[$target]}"; return 0
+                fi
+            fi
+        fi
+        if ! sam_pid_start "$pid" || [[ -n "$ticks" && "$sam_proc_start" != "$ticks" ]]; then
+            if [[ -r "$mrsamtmp/last-error.log" ]]; then
+                IFS= read -r line < "$mrsamtmp/last-error.log" || true
+                if [[ "$line" == "owner=$pid:"* && ( -z "$ticks" || "$line" == "owner=$pid:$ticks" ) ]]; then
+                    { read -r line; IFS= read -r reason; } < "$mrsamtmp/last-error.log"
+                    printf 'SAM ERROR (%s): %s\n' "$target" "$reason" >&2; return 1
+                fi
+            fi
+            printf 'SAM ERROR (%s): Session exited before a game launched; check ROMs, pack prerequisites and filters.\n' "$target" >&2
+            return 1
+        fi
+        elapsed=$((SECONDS-started))
+        if ((elapsed >= timeout)); then
+            printf 'SAM is still preparing %s. Use m monitor for progress and errors.\n' "${CORE_PRETTY[$target]}"; return 0
+        fi
+        if ((elapsed-last_notice >= 10)); then
+            printf 'Still preparing %s...\n' "${CORE_PRETTY[$target]}"; last_notice=$elapsed
+        fi
+        sleep 0.2
+    done
 }
 
 

@@ -4,6 +4,13 @@ sam_artwork_root="$mrsampath/artwork"
 source "$sam_artwork_root/sam_artwork.sh" || return 1
 
 sam_artwork_mode_check() {
+    if [[ "${SAM_MODE:-ALL}" == SINGLE ]]; then
+        case "$SAM_TARGET_CORE" in
+            amiga|ao486|x68k|mgls)
+                sam_core_reason="Artwork_only=Yes: no supported artwork catalog for $SAM_TARGET_CORE title/custom-MGL launches. Disable Artwork_only to test this core."
+                return 1 ;;
+        esac
+    fi
     case "$sam_mode" in
         m82|video|samvideo)
             sam_core_reason="Artwork-only filtering does not support $sam_mode auxiliary launches"

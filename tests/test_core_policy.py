@@ -74,6 +74,49 @@ there_can_be_only_one(){ stopped=yes; }; mcp_start(){ exit 99; }
 sam_normal_choose_core; [[ "$nextcore" == nes ]]
 ''')
 
+    def test_single_core_artwork_rejection_is_visible_before_stopping(self):
+        output=self.check('''sam_load_module artwork; corelist=(snes); stopped=no
+there_can_be_only_one(){ stopped=yes; }; env_check(){ exit 99; }
+rc=0; sam_start amiga 2> "$SAM_TMP_ROOT/start-error" || rc=$?
+[[ "$rc" == 1 && "$stopped" == no && $(<"$SAM_TMP_ROOT/start-error") == *'no supported artwork catalog for amiga'* ]]
+''')
+        self.assertIn('Starting SAM for Commodore Amiga',output)
+
+    def test_single_start_reports_current_error_and_ignores_stale_owner(self):
+        self.check('''sam_pid_start(){ return 1; }
+printf 'owner=123:7\\nNo matching artwork\\n' > "$mrsamtmp/last-error.log"
+rc=0; sam_wait_single_start fds 123 7 2> "$SAM_TMP_ROOT/error" || rc=$?
+[[ "$rc" == 1 && $(<"$SAM_TMP_ROOT/error") == *'No matching artwork'* ]]
+printf 'owner=123:8\\nSTALE\\n' > "$mrsamtmp/last-error.log"
+rc=0; sam_wait_single_start fds 123 7 2> "$SAM_TMP_ROOT/error" || rc=$?
+[[ "$rc" == 1 && $(<"$SAM_TMP_ROOT/error") != *STALE* && $(<"$SAM_TMP_ROOT/error") == *'exited before'* ]]
+''')
+
+    def test_single_start_reports_live_playing_owner_and_preparation_failure(self):
+        output=self.check('''sam_pid_start(){ sam_proc_start=7; return 0; }
+printf 'pid=123\\nstart=7\\nphase=playing\\n' > "$mrsamtmp/session-owner"
+sam_wait_single_start fds 123 7
+printf 'pid=123\\nstart=7\\nphase=preparing\\n' > "$mrsamtmp/session-owner"
+mkdir -p "$mrsamtmp/session-123:7"
+printf 'No eligible games found\\n' > "$mrsamtmp/session-123:7/error"
+rc=0; sam_wait_single_start fds 123 7 2> "$SAM_TMP_ROOT/error" || rc=$?
+[[ "$rc" == 1 && $(<"$SAM_TMP_ROOT/error") == *'No eligible games found'* ]]
+''')
+        self.assertIn('SAM running: Nintendo Disk System',output)
+
+    def test_single_start_does_not_report_reused_pid_as_running(self):
+        self.check('''sam_pid_start(){ sam_proc_start=8; return 0; }
+printf 'pid=123\\nstart=7\\nphase=playing\\n' > "$mrsamtmp/session-owner"
+rc=0; sam_wait_single_start fds 123 7 2> "$SAM_TMP_ROOT/error" || rc=$?
+[[ "$rc" == 1 && $(<"$SAM_TMP_ROOT/error") == *'exited before'* ]]
+''')
+
+    def test_slow_single_start_reports_still_preparing(self):
+        output=self.check('''sam_pid_start(){ sam_proc_start=7; return 0; }
+SAM_START_FEEDBACK_TIMEOUT=0;sam_wait_single_start snes 123 7
+''')
+        self.assertIn('still preparing',output)
+
     def test_configuration_reload_marks_registry_for_fresh_start_validation(self):
         self.check('''[[ "$sam_module_config_dirty" == 0 ]]
 read_samini

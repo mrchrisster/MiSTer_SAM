@@ -31,7 +31,7 @@ sam_session_cleanup() {
     sam_emit display_exit
     if [[ -n "${sam_session:-}" && "$sam_session" == "$mrsamtmp/session-$sam_owner" ]]; then
         if [[ -f "$sam_session/error" ]]; then
-            { cat "$sam_session/error"; cat "$sam_session/preparation.log"; } > "$mrsamtmp/last-error.log"
+            { printf 'owner=%s\n' "$sam_owner"; cat "$sam_session/error"; cat "$sam_session/preparation.log"; } > "$mrsamtmp/last-error.log"
         fi
         rm -rf -- "$sam_session"
     fi

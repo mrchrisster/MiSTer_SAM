@@ -288,6 +288,31 @@ mountpoint(){ return 1; }; sam_mount_bind(){ [[ "$1" == "$sam_session/Amiga_shar
 sam_amiga_mount; [[ "$sam_amiga_mounted" == 1 ]]
 ''')
 
+    def test_bios_skip_starts_after_launch_command(self):
+        self.assertShell('''
+launch_code=$(<"$mrsampath/lib/launch.sh")
+launch_code=${launch_code//\/tmp\//$SAM_TMP_ROOT/}
+source /dev/stdin <<< "$launch_code"
+sam_publish_phase(){ :; }; mute(){ :; }; sleep(){ :; }
+sam_run_owned_command(){ :; }
+launched=no; timeout(){ launched=yes; }
+sam_start_bios_skip(){ [[ "$launched" == yes && "$1" == fds ]]; skipped=yes; }
+skipped=no
+load_core fds '/games/Game.fds' Game
+[[ "$skipped" == yes ]]
+''')
+
+    def test_delayed_bios_skip_is_cancelled_before_keys_are_sent(self):
+        self.assertShell('''skipmessage=yes
+skipmessage(){ printf 'ready\\n' > "$SAM_TMP_ROOT/skip-started"; sleep 30; : > "$SAM_TMP_ROOT/late-keys"; }
+sam_start_bios_skip fds
+for ((i=0;i<100;i++)); do [[ ! -f "$SAM_TMP_ROOT/skip-started" ]] || break; sleep .01; done
+[[ -f "$SAM_TMP_ROOT/skip-started" && -n "$sam_launch_pid" ]]
+pid=$sam_launch_pid; sam_cancel_launch_job
+! sam_pid_start "$pid"
+[[ ! -f "$SAM_TMP_ROOT/late-keys" && -z "$sam_launch_pid" ]]
+''')
+
     def test_runtime_phase_is_atomic_and_old_owner_cannot_overwrite(self):
         self.assertShell('''mkdir -p "$mrsamtmp"; sam_pid_start "$$"; sam_owner="$$:$sam_proc_start"
 sam_publish_phase preparing; grep -q 'phase=preparing' "$mrsamtmp/session-owner"

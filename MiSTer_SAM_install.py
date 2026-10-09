@@ -34,7 +34,8 @@ def checked_source(root):
                 '.MiSTer_SAM/MiSTer_SAM_MCP.py', '.MiSTer_SAM/samindex', '.MiSTer_SAM/mbc',
                 '.MiSTer_SAM/samindex.py', '.MiSTer_SAM/sam_catalog.py', '.MiSTer_SAM/sam_zip.py',
                 '.MiSTer_SAM/sam_mgl.py', '.MiSTer_SAM/sam_compat.json',
-                '.MiSTer_SAM/zaparoo_catalog.json', '.MiSTer_SAM/zaparoo_catalog_source.json']
+                '.MiSTer_SAM/zaparoo_catalog.json', '.MiSTer_SAM/zaparoo_catalog_source.json',
+                '.MiSTer_SAM/inputs/FDS_input_1234_5678_v3.map']
     if not all((root / name).is_file() for name in required):
         raise RuntimeError('Release is incomplete; installed files were not changed.')
     # Validate the exact catalog/policy bundle before backing up configuration
@@ -150,6 +151,13 @@ def install(source, mister, branch):
     for path in (source / '.MiSTer_SAM').rglob('*'):
         if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc':
             copy_file(path, payload / path.relative_to(source / '.MiSTer_SAM'))
+    # MGL setnames select separate input profiles (e.g. FDS versus NES).
+    # Seed missing mappings for SAM's virtual keyboard only. Preserve existing
+    # mappings, including user customizations and physical controller profiles.
+    for path in (source / '.MiSTer_SAM/inputs').glob('*_input_1234_5678_v3.map'):
+        target = mister / 'config/inputs' / path.name
+        if not target.exists():
+            copy_file(path, target)
     for name in ['MiSTer_SAM_on.sh', 'MiSTer_SAM_install.py', 'MiSTer_SAM_start.sh', 'MiSTer_SAM_off.sh']:
         if (source / name).is_file():
             copy_file(source / name, scripts / name)

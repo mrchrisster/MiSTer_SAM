@@ -68,6 +68,18 @@ The local `control` API accepts only supported actions, validates selection and 
 
 M82 retains BIOS/game order and phase-aware input. A game starts as a demo; first input activates `m82_game_timer`, and later input does not restart that timer. Next skips the BIOS interlude between games. Customize `/media/fat/SAM/Gamelists/m82_list.txt`.
 
+Explicit single-core commands such as `m amiga` announce startup and report the
+first launch or failure in the calling terminal. They retain all configured
+filters, including `Artwork_only`; title-based Amiga and custom-MGL systems
+currently report an unsupported-artwork-catalog error when that setting is on.
+Long preparation prints progress; after 180 seconds the command returns with a
+message to follow `m monitor`, while SAM continues preparing. Normal automatic
+starts remain asynchronous.
+
+The installer seeds missing virtual-keyboard input maps, including the separate
+FDS profile selected by its catalog MGL, and preserves existing mappings. Delayed
+BIOS-skip sequences start after launch and are cancelled on Next or Stop.
+
 Commercial mode retains CD-i CHD and mplayer playback. `samvideo_tvc="yes"` selects a commercial and then its mapped game; `samvideo_tvc_cdi="yes"` selects CHD/CD-i playback. Display overrides are temporary bind mounts. `mute="Yes"` also mutes commercials; use `mute="No"` for sound.
 
 The artwork module currently rejects M82/video auxiliary launches. Set `Artwork_only="No"` for those modes. M82/video retain their existing transition loops inside modules; the prepared queue currently applies to normal mode. Android controls are advertised only for supported normal/roulette states. Physical joystick, CRT and AVI playback still need broader hardware testing.

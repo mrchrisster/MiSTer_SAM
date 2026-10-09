@@ -88,6 +88,18 @@ sam_cd32_start() {
     sam_pid_start "$sam_launch_pid" && sam_launch_start=$sam_proc_start
 }
 
+sam_start_bios_skip() { # asynchronous, owned by this launch and cancelled on Next
+    local skip_core="$1" callback=skipmessage
+    if [[ "$skip_core" == ao486 ]]; then callback=skipmessage_ao486
+    elif [[ "$skipmessage" != yes || "${CORE_SKIP[$skip_core]-}" != yes ]]; then return 0; fi
+    sam_cancel_launch_job
+    "$callback" "$skip_core" &
+    sam_launch_pid=$!
+    sam_launch_start=
+    sam_pid_start "$sam_launch_pid" && sam_launch_start=$sam_proc_start
+    return 0
+}
+
 function load_core() { # load_core core [/path/to/rom] [name_of_rom]
     sam_cancel_launch_job
     local core=${1}
@@ -138,7 +150,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             tty_corename="${core}"
             mute_target="${core}"
             launch_cmd="load_core ${rompath}"
-            skipmessage_ao486 &
+            post_launch_hook=sam_start_bios_skip
             ;;
 
         "x68k")
@@ -161,7 +173,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
            mute_target="${tty_corename}"
            [ -f "${rompath}" ] && cp "${rompath}" /tmp/SAM_Game.mgl
            launch_cmd="load_core ${rompath}"
-           skipmessage "${core}" &
+           post_launch_hook=sam_start_bios_skip
            ;;
 
         "amiga")
@@ -246,7 +258,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
             launch_cmd="load_core /tmp/SAM_Game.mgl"
 
-            skipmessage "${core}" &
+            post_launch_hook=sam_start_bios_skip
             ;;
     esac
 
@@ -272,7 +284,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
     sam_emit display_launch "$gamename" "$display_rompath" "$display_core" "$display_setname"
 
     if [ -n "${post_launch_hook}" ]; then
-        "$post_launch_hook"
+        "$post_launch_hook" "$core"
     fi
 
     sleep 1

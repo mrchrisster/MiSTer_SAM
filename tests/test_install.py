@@ -31,6 +31,14 @@ class Install(unittest.TestCase):
         self.assertTrue((self.scripts / 'MiSTer_SAM_on.sh').stat().st_mode & 0o111)
         self.assertFalse((self.scripts / '.MiSTer_SAM/partun').exists())
         self.assertFalse((self.scripts / '.SAM_refactor_backups').exists())
+        self.assertEqual((self.mister/'config/inputs/FDS_input_1234_5678_v3.map').read_bytes(),
+                         (PACKAGE/'.MiSTer_SAM/inputs/NES_input_1234_5678_v3.map').read_bytes())
+
+    def test_install_preserves_existing_fds_virtual_keyboard_map(self):
+        mapping=self.mister/'config/inputs/FDS_input_1234_5678_v3.map'
+        mapping.parent.mkdir(parents=True);mapping.write_bytes(b'custom')
+        installer.install(installer.checked_source(PACKAGE),self.mister,'test')
+        self.assertEqual(mapping.read_bytes(),b'custom')
 
     def test_mcp_exit_before_interrupt_does_not_fail_update_shutdown(self):
         gone = installer.subprocess.CompletedProcess([], 1, stderr='no server running')

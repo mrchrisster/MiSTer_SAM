@@ -105,6 +105,7 @@ function get_inputmap() {
         "GBA_input_1234_5678_v3.map" \
         "MegaCD_input_1234_5678_v3.map" \
         "NES_input_1234_5678_v3.map" \
+        "FDS_input_1234_5678_v3.map" \
         "TGFX16_input_1234_5678_v3.map" \
 	"NEOGEO_input_1234_5678_v3.map" \
         "SATURN_input_1234_5678_v3.map"; do

@@ -1,5 +1,22 @@
 # MCP input detection and ghost-session fixes
 
+## Single-core startup and BIOS skip: 2026-10-09
+
+Explicit core commands announce startup and observe the owned session's existing
+phase/error records until the first launch, failure, or a 180-second feedback
+timeout. They do not scan an additional list. Automatic starts remain asynchronous.
+The pane shell uses exec so its PID is the SAM owner PID; feedback checks process
+start ticks and ignores stale errors from other owners. A timeout leaves the
+session running and reports that preparation is ongoing. Artwork-only single
+Amiga/ao486/X68000/custom-MGL launches fail explicitly before stopping the current
+session, since the artwork matcher has no catalog for those title/MGL layouts.
+
+Delayed BIOS-skip jobs now begin after the load command and use the existing
+owned launch-job cancellation on Next/Stop. CD32's separate delayed job is
+preserved. The FDS catalog setname requires an FDS virtual keyboard profile;
+the installer seeds missing bundled synthetic maps without replacing existing
+maps. Input readers, physical mappings and polling frequency are unchanged.
+
 ## Core-policy refactor: 2026-10-09
 
 M82 list setup now runs after its NES-only core policy and pure session validation,
