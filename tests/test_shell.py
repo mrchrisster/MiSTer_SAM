@@ -313,6 +313,22 @@ pid=$sam_launch_pid; sam_cancel_launch_job
 [[ ! -f "$SAM_TMP_ROOT/late-keys" && -z "$sam_launch_pid" ]]
 ''')
 
+    def test_bios_skip_minimum_delay_preserves_user_setting_and_other_cores(self):
+        self.assertShell('''
+mkdir -p "$SAM_TMP_ROOT/skip-bin"
+printf '#!/bin/bash\\nexit 0\\n' > "$SAM_TMP_ROOT/skip-bin/mbc"
+chmod +x "$SAM_TMP_ROOT/skip-bin/mbc"; mrsampath="$SAM_TMP_ROOT/skip-bin"
+sleep(){ printf '%s\\n' "$1" >> "$SAM_TMP_ROOT/sleeps"; }
+skipmessage=yes; skiptime=10; skipmessage saturn
+[[ $(head -n1 "$SAM_TMP_ROOT/sleeps") == 20 ]]
+: > "$SAM_TMP_ROOT/sleeps"; skiptime=25; skipmessage saturn
+[[ $(head -n1 "$SAM_TMP_ROOT/sleeps") == 25 ]]
+: > "$SAM_TMP_ROOT/sleeps"; skiptime=0.5; skipmessage saturn
+[[ $(head -n1 "$SAM_TMP_ROOT/sleeps") == 20 ]]
+: > "$SAM_TMP_ROOT/sleeps"; skiptime=10; skipmessage fds
+[[ $(head -n1 "$SAM_TMP_ROOT/sleeps") == 10 ]]
+''')
+
     def test_runtime_phase_is_atomic_and_old_owner_cannot_overwrite(self):
         self.assertShell('''mkdir -p "$mrsamtmp"; sam_pid_start "$$"; sam_owner="$$:$sam_proc_start"
 sam_publish_phase preparing; grep -q 'phase=preparing' "$mrsamtmp/session-owner"

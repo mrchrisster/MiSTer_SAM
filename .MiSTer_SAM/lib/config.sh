@@ -367,6 +367,9 @@ function init_data() {
         ["x68k"]="${x68kpathrbf}"
 	)
 
+    # Slow CD BIOS startup can ignore keys sent with the generic delay.
+    # Modules may extend this table; a longer user skiptime still takes priority.
+    declare -gA CORE_SKIP_MIN_DELAY=([saturn]=20)
 	# Can this core skip Bios/Safety warning messages
 	declare -glA CORE_SKIP=(
 		["amiga"]="No"

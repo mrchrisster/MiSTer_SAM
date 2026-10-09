@@ -1,5 +1,21 @@
 # MCP input detection and ghost-session fixes
 
+## Saturn BIOS timing: 2026-10-09
+
+DJ Wars stayed in BIOS with the generic ten-second skip delay. The disc and
+virtual keyboard map were present; a later manual retry of the same key started
+the game. Saturn now has a twenty-second minimum delay in `CORE_SKIP_MIN_DELAY`,
+which the generic skip helper applies after launch. A longer user `skiptime`
+still takes priority. Other cores retain their configured delay; no extra
+initialization work or timer process is added.
+
+All 35 native shell tests passed, including the minimum, longer user settings,
+fractional delays, unchanged FDS timing and cancellation. The user confirmed
+automatic Saturn startup after installation. The reported missing DJ Wars cover
+was also subsequently showing; artwork-only remains enabled. During diagnosis,
+Monitor served valid covers for Dark Hunter and Rayman with HTTP 200 and SAM
+had a decoded prepared cover. No Android/server artwork behavior was changed.
+
 ## Single-core startup and BIOS skip: 2026-10-09
 
 Explicit core commands announce startup and observe the owned session's existing

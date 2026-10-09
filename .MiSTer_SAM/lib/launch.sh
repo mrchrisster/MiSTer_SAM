@@ -301,8 +301,13 @@ function skipmessage() {
 
     # Check the global 'skipmessage' setting AND the core-specific setting from the CORE_SKIP array.
     if [ "${skipmessage}" == "yes" ] && [ "${CORE_SKIP[${core}]}" == "yes" ]; then
-        # If both are 'yes', wait for the configured time and send the button presses.
-        sleep "$skiptime"
+        # Preserve the global delay, with a core-specific readiness minimum.
+        local skip_delay="$skiptime" minimum="${CORE_SKIP_MIN_DELAY[$core]:-0}" whole
+        if [[ "$skip_delay" =~ ^([0-9]+)(\.[0-9]+)?$ ]]; then
+            whole=${BASH_REMATCH[1]}
+            ((10#$whole >= minimum)) || skip_delay=$minimum
+        fi
+        sleep "$skip_delay"
         samdebug "Button push sent for '${core}' to skip BIOS"
         if [ "${core}" == "intellivision" ]; then
             "${mrsampath}/mbc" raw_seq :1C
