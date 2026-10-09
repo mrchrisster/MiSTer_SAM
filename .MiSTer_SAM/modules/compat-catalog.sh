@@ -201,5 +201,5 @@ sam_compat_ensure_list() {
     [[ -s "$out/${core}_gamelist.txt" ]]
 }
 ensure_list() { sam_compat_ensure_list "$@"; }
-declare -A COREWC=() COREP=()
+declare -gA COREWC=() COREP=()
 TOTAL_GAME_COUNT=0 COREWEIGHT_INITIALIZED=0

@@ -2,6 +2,7 @@
 # Modules are trusted installed shell programs, loaded once, only when enabled.
 # State/command files are always data and must never be sourced or evaluated.
 declare -A SAM_HOOKS=() SAM_SERVICES=() SAM_MODULES=()
+sam_modules_loaded=0 sam_module_config_dirty=0
 
 sam_register() { # event function
     [[ "$1" =~ ^[a-z_]+$ && "$2" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] || return 2
@@ -60,7 +61,8 @@ sam_load_modules() {
     fi
     for module in $enabled; do sam_load_module "$module" || return $?; done
     [[ "${SAM_MODULES_OVERRIDE-auto}" != auto ]] || sam_load_plugins || return $?
-    sam_emit config_loaded
+    sam_emit config_loaded || return $?
+    sam_modules_loaded=1 sam_module_config_dirty=0
 }
 
 # Optional installed plug-ins declare a name and their own INI enable switch.

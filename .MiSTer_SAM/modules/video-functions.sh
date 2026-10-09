@@ -35,77 +35,52 @@ function load_samvideo() {
 }
 
 function init_core_samvideo() {
-    local arr_name=$1
-    local core cnt tvc
-    local -n arr_ref=$arr_name
-
-    # always (re)load counts into SAMVC & SAMVTOTAL
-    SAMVTOTAL=0
-    if [[ -f "$core_count_file" ]]; then
-        while IFS="=" read -r core cnt; do
-            if [[ "$core" == total_count ]]; then
-                SAMVTOTAL=$cnt
-            else
-                SAMVC["$core"]=$cnt
-            fi
+    local arr_name=$1 c cnt stamp cached_stamp= files=()
+    local -a video_cores=()
+    local -A video_cached_counts=()
+    sam_core_policy_refresh || return $?
+    sam_filter_cores "$arr_name" video_cores || return 2
+    (( ${#video_cores[@]} )) || return 1
+    local suffix=_tvc.json
+    [[ "$samvideo_tvc_cdi" != yes ]] || suffix=_tvc_vcd.json
+    for c in "${video_cores[@]}"; do
+        sam_core_require "$c" || return $?
+        files+=("$mrsampath/tvc/${c}${suffix}")
+    done
+    stamp="${video_cores[*]}:$(stat -c '%n:%s:%y' "${files[@]}" 2>/dev/null || true)"
+    [[ ! -f "$core_count_file.stamp" ]] || cached_stamp=$(<"$core_count_file.stamp")
+    if [[ "$cached_stamp" == "$stamp" && -f "$core_count_file" ]]; then
+        while IFS='=' read -r c cnt; do
+            [[ "$c" =~ ^[a-z0-9_]+$ && "$cnt" =~ ^[0-9]+$ ]] || continue
+            video_cached_counts[$c]=$cnt
         done < "$core_count_file"
-    else
-        for core in "${arr_ref[@]}"; do
-            local tvc_suffix="_tvc.json"
-            if [ "${samvideo_tvc_cdi}" == "yes" ]; then
-                tvc_suffix="_tvc_vcd.json"
-            fi
-            tvc="${mrsampath}/tvc/${core}${tvc_suffix}"
-            cnt=0
-            [[ -f "$tvc" ]] && cnt=$(jq -r 'keys|length' "$tvc" 2>/dev/null || echo 0)
-            SAMVC["$core"]=$cnt
-            (( SAMVTOTAL += cnt ))
-        done
-
-        mkdir -p "$(dirname "$core_count_file")"
-        : > "$core_count_file"
-        for core in "${!SAMVC[@]}"; do
-            echo "$core=${SAMVC[$core]}" >> "$core_count_file"
-        done
-        echo "total_count=$SAMVTOTAL" >> "$core_count_file"
     fi
-
-    # print table only once, guarded by sentinel
-    if [[ ! -f "$SAMVIDEO_INIT_SENTINEL" ]]; then
-        echo -e "\nCore      TVC-Entries   Percent"
-        printf '%.0s─' {1..34}; echo
-        for core in "${!SAMVC[@]}"; do
-            cnt=${SAMVC[$core]}
-            if (( SAMVTOTAL > 0 )); then
-                pct=$(awk "BEGIN{printf \"%.2f\", ($cnt*100)/$SAMVTOTAL}")
-            else
-                pct="0.00"
-            fi
-            printf "%-8s %10d   %6s%%\n" "$core" "$cnt" "$pct"
-        done | sort -k2 -nr
-        echo "─────────────────────────────────────────────────────────────────────────────"
-
-        # ensure sentinel directory exists and create sentinel
-        mkdir -p "$(dirname "$SAMVIDEO_INIT_SENTINEL")"
-        touch "$SAMVIDEO_INIT_SENTINEL"
-    fi
+    SAMVC=(); SAMVTOTAL=0
+    for c in "${video_cores[@]}"; do
+        if [[ -n "${video_cached_counts[$c]-}" ]]; then cnt=${video_cached_counts[$c]}
+        else cnt=$(jq -r 'keys|length' "$mrsampath/tvc/${c}${suffix}" 2>/dev/null) || cnt=0; fi
+        [[ "$cnt" =~ ^[0-9]+$ ]] || cnt=0
+        cnt=$((10#$cnt)); SAMVC[$c]=$cnt; SAMVTOTAL=$((SAMVTOTAL+cnt))
+    done
+    mkdir -p "${core_count_file%/*}"
+    : > "$core_count_file"
+    for c in "${video_cores[@]}"; do printf '%s=%s\n' "$c" "${SAMVC[$c]}" >> "$core_count_file"; done
+    printf 'total_count=%s\n' "$SAMVTOTAL" >> "$core_count_file"
+    printf '%s' "$stamp" > "$core_count_file.stamp"
+    return 0
 }
 
 function pick_core_samvideo() {
-    local arr_name=$1
-    local -n array=$arr_name
-
-	init_core_samvideo "$arr_name"
-
-    # now do the weighted pick
-    nextcore=$(pick_weighted_random SAMVC "$SAMVTOTAL")
-    [[ -z "$nextcore" ]] && nextcore="${array[0]}"
-
-    # debug likelihood
-    local w=${SAMVC[$nextcore]:-0}
-    local likelihood
-    likelihood=$(awk "BEGIN{printf \"%.2f\", ($w*100)/$SAMVTOTAL}")
-    samdebug "Picked core (samvideo): $nextcore (likelihood: ${likelihood}%)"
+    init_core_samvideo "$1" || return $?
+    local c total=0
+    local -A video_weights=()
+    for c in "${!SAMVC[@]}"; do video_weights[$c]=${SAMVC[$c]}; total=$((total+SAMVC[$c])); done
+    if (( total == 0 )); then
+        for c in "${!SAMVC[@]}"; do video_weights[$c]=1; done
+        total=${#SAMVC[@]}
+    fi
+    nextcore=$(pick_weighted_random video_weights "$total") || return $?
+    sam_core_require "$nextcore"
 }
 
 function misterini_apply_temp() {
@@ -418,6 +393,7 @@ function sv_ar_cdi_mode() {
 
 
     # 10. Play file
+    sam_core_rule_check cdi auxiliary || { printf "SAM: %s\n" "$sam_core_reason" >&2; return 2; }
     local core_prefix="${sv_selected%%-*}"
     core_prefix="${core_prefix//_/ }"
     echo -e "Now playing: \e[1m${core_prefix} Commercial - ${sv_title}\e[0m"
@@ -590,10 +566,11 @@ function samvideo_tvc() {
 
     # NEW: Respect Single Core Mode
     if [ "$SAM_MODE" == "SINGLE" ] && [ -n "$SAM_TARGET_CORE" ]; then
+         sam_core_require "$SAM_TARGET_CORE" || return $?
          nextcore="$SAM_TARGET_CORE"
          samdebug "Single mode active. Forcing samvideo target: $nextcore"
     else
-         pick_core SV_TVC_CL
+         pick_core SV_TVC_CL || return $?
     fi
     samdebug "nextcore = $nextcore"
 
@@ -628,7 +605,7 @@ function samvideo_tvc() {
             break
         else
             # If the file is not found, select a new core randomly
-            pick_core SV_TVC_CL
+            pick_core SV_TVC_CL || return $?
             samdebug "${nextcore}${tvc_suffix} not found, selecting new core."
         fi
 

@@ -69,6 +69,18 @@ sam_cancel_launch_job() {
     sam_launch_pid=
 }
 
+sam_run_owned_command() { # cancellable foreground setup work for a mode
+    sam_cancel_launch_job
+    "$@" &
+    sam_launch_pid=$!
+    sam_launch_start=
+    sam_pid_start "$sam_launch_pid" && sam_launch_start=$sam_proc_start
+    local command_rc=0
+    wait "$sam_launch_pid" || command_rc=$?
+    sam_launch_pid= sam_launch_start=
+    return "$command_rc"
+}
+
 sam_cd32_start() {
     sam_cancel_launch_job
     (sleep 10; "$mrsampath/mbc" raw_seq :30) &
@@ -83,6 +95,7 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
     local rompath_arg=${2}
     local romname_arg=${3}
     local display_core="${4:-$core}" display_rompath="${5:-$rompath_arg}" display_setname=""
+    sam_core_require "$display_core" || { local rule_rc=$?; printf 'SAM: %s\n' "$sam_core_reason" >&2; return "$rule_rc"; }
     sam_is_excluded "$display_core" "$display_rompath" && return 1
     sam_emit launch_validate "$display_core" "$display_rompath" || return $?
 

@@ -15,12 +15,13 @@ sam_random_below() { # rejection sampling; no shuf/date subprocess for small pic
 
 sam_normal_choose_core() {
     local candidates=() c count total=0 weight random
-    if [[ "$SAM_MODE" == SINGLE ]]; then nextcore="$SAM_TARGET_CORE"; return 0; fi
-    for c in "${corelisttmp[@]}"; do
-        sam_emit core_allowed "$c" || continue
-        candidates+=("$c")
-    done
-    (( ${#candidates[@]} )) || candidates=("${corelist[@]}")
+    nextcore=
+    sam_core_policy_refresh || return $?
+    if [[ "$SAM_MODE" == SINGLE ]]; then
+        sam_core_require "$SAM_TARGET_CORE" || return $?
+        nextcore=$SAM_TARGET_CORE; return 0
+    fi
+    candidates=("${corelisttmp[@]}")
     (( ${#candidates[@]} )) || return 1
     if [[ "${sam_bootstrap:-0}" == 1 ]]; then
         for c in "${candidates[@]}"; do
@@ -33,7 +34,9 @@ sam_normal_choose_core() {
         # prepared by the single background job, never by the foreground timer.
         local -A weights=()
         for c in "${candidates[@]}"; do
-            sam_catalog_ready "$c" || continue
+            local rc=0
+            sam_catalog_ready "$c" || rc=$?
+            if (( rc > 1 )); then return "$rc"; elif (( rc == 1 )); then continue; fi
             read -r count < "$sam_catalog_cache/$c.count" || count=0
             [[ "$count" =~ ^[0-9]+$ ]] || count=0
             weights[$c]=$count; total=$((total + count))
@@ -84,7 +87,7 @@ sam_normal_commit() { # core path reset-cycle
         printf '%s\n' "$2" >> "$sam_session/consumed/$c"
     fi
     delete_from_corelist "$c" tmp
-    (( ${#corelisttmp[@]} )) || corelisttmp=("${corelist[@]}")
+    (( ${#corelisttmp[@]} )) || corelisttmp=("${sam_allowed_cores[@]}")
 }
 
 sam_normal_key() { return 1; }

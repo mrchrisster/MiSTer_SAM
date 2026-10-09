@@ -30,7 +30,7 @@ def curl_ca_options():
 
 def checked_source(root):
     required = ['MiSTer_SAM_on.sh', 'MiSTer_SAM.ini', 'MiSTer_SAM_install.py',
-                '.MiSTer_SAM/lib/modules.sh', '.MiSTer_SAM/lib/engine.sh',
+                '.MiSTer_SAM/lib/modules.sh', '.MiSTer_SAM/lib/engine.sh', '.MiSTer_SAM/lib/cores.sh',
                 '.MiSTer_SAM/MiSTer_SAM_MCP.py', '.MiSTer_SAM/samindex', '.MiSTer_SAM/mbc']
     if not all((root / name).is_file() for name in required):
         raise RuntimeError('Release is incomplete; installed files were not changed.')

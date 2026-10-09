@@ -1,5 +1,18 @@
 # MCP input detection and ghost-session fixes
 
+## Core-policy refactor: 2026-10-09
+
+M82 list setup now runs after its NES-only core policy and pure session validation,
+inside the owned session setup phase. Its indexer uses an owned cancellable job
+and private staging; a stopped setup cannot publish a partial list. MCP treats
+input during M82 preparation/loading as cancellation (or Next), rather than
+sending the play-timer signal before a game exists. Playing/BIOS routing retains
+its existing behavior. Dedicated readers, mappings, 20 ms joystick snapshots,
+owner validation and startup-launcher cancellation are unchanged.
+Rejected starts are reported promptly rather than waiting for a nonexistent
+owner until the startup timeout. The ordinary configured idle interval remains
+in effect; no reader backend or polling frequency was changed.
+
 ## Installer shutdown race: 2026-10-09
 
 The updater targets only the MCP tmux session. It requests Ctrl-C, allows two

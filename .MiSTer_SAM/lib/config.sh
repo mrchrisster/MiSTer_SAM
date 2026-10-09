@@ -1051,6 +1051,7 @@ function read_samini() {
         cp "$samini_update_file" "$samini_file" || return 1
 	fi
 	source "${samini_file}"
+    [[ "${sam_modules_loaded:-0}" != 1 ]] || sam_module_config_dirty=1
     sam_config_paths
 
 	declare -g raw_base="https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/${branch}"

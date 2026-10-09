@@ -42,6 +42,11 @@ sam_queue_files() {
     [[ -f "${sam_queue[0]}" ]] || sam_queue=()
 }
 
+sam_preparation_error() {
+    printf '%s\n' "$1" > "$sam_session/error.tmp.$BASHPID"
+    mv -f "$sam_session/error.tmp.$BASHPID" "$sam_session/error"
+}
+
 sam_prepare_worker() {
     trap - EXIT INT
     trap 'exit 0' TERM
@@ -49,6 +54,7 @@ sam_prepare_worker() {
     sam_job="$sam_session/jobs/$sam_job_serial"
     mkdir -p "$sam_job/lists" "$sam_job/lists/.checked"
     trap 'printf done > "$sam_job/done"' EXIT
+    sam_core_policy_refresh || { sam_preparation_error "$sam_core_reason"; return 0; }
     renice 10 -p "$BASHPID" >/dev/null 2>&1 || true
     ionice -c 3 -p "$BASHPID" >/dev/null 2>&1 || true
     gamelistpathtmp="$sam_job/lists"
@@ -67,15 +73,23 @@ sam_prepare_worker() {
         printf '%s\n' "$sam_record_path" >> "$sam_job/reserved-$sam_record_core"
         delete_from_corelist "$sam_record_core" tmp
     done
-    (( ${#corelisttmp[@]} )) || corelisttmp=("${corelist[@]}")
+    (( ${#corelisttmp[@]} )) || corelisttmp=("${sam_allowed_cores[@]}")
     for ((i=existing; i<2; i++)); do
         attempts=0
         while (( attempts < enabled_count + 3 )); do
             [[ -e "$sam_session/alive" ]] || return 0
             if [[ "$bootstrap_active" == 1 && -n "$bootstrap_core" ]]; then nextcore=$bootstrap_core
-            else sam_service choose_core || break; fi
+            else
+                rc=0; sam_service choose_core || rc=$?
+                if (( rc > 1 )); then sam_preparation_error "${sam_core_reason:-Core selection failed (status $rc)}"; return 0; fi
+                (( rc == 0 )) || break
+            fi
             c=$nextcore
-            [[ "$c" =~ ^[a-z0-9_]+$ ]] || break
+            rc=0; sam_core_require "$c" || rc=$?
+            if (( rc > 1 )); then sam_preparation_error "$sam_core_reason"; return 0; fi
+            if (( rc == 1 )); then
+                sam_preparation_error "Selector proposed a rejected core: $sam_core_reason"; return 0
+            fi
             : >> "$sam_session/consumed/$c"
             : >> "$sam_job/reserved-$c"
             sam_candidate_cover= sam_candidate_reset=no sam_candidate_policy=
@@ -90,7 +104,7 @@ sam_prepare_worker() {
                     sam_record_write "$record" "$c" "$rompath" "${rompath##*/}" "" "$sam_revision" || return 1
                     printf '%s\n' "$rompath" >> "$sam_job/reserved-$c"
                     delete_from_corelist "$c" tmp
-                    (( ${#corelisttmp[@]} )) || corelisttmp=("${corelist[@]}")
+                    (( ${#corelisttmp[@]} )) || corelisttmp=("${sam_allowed_cores[@]}")
                     break
                 else
                     rc=$?
@@ -104,10 +118,12 @@ sam_prepare_worker() {
             if ((rc == 3)); then
                 printf 'Artwork catalog or cover download failed for %s\n' "$c" > "$sam_session/error"
                 return 0
+            elif ((rc > 1)); then
+                sam_preparation_error "Candidate preparation failed for $c (status $rc)"; return 0
             fi
             attempts=$((attempts+1))
             delete_from_corelist "$c" tmp
-            (( ${#corelisttmp[@]} )) || corelisttmp=("${corelist[@]}")
+            (( ${#corelisttmp[@]} )) || corelisttmp=("${sam_allowed_cores[@]}")
         done
     done
     # Extend discovery only after filling the small ready queue. This job exits
@@ -143,14 +159,16 @@ sam_schedule_preparation() {
 }
 
 sam_take_prepared() {
-    local record c found=0
+    local record c found=0 rule_rc=0
     sam_queue_files
     for record in "${sam_queue[@]}"; do
         if ! sam_record_read "$record" || [[ "$sam_record_owner" != "$sam_owner" || "$sam_record_revision" != "$sam_revision" ]]; then
             rm -f "$record"; continue
         fi
         c=$sam_record_core
-        sam_emit core_allowed "$c" || { rm -f "$record"; continue; }
+        rule_rc=0; sam_core_require "$c" || rule_rc=$?
+        if (( rule_rc > 1 )); then sam_preparation_error "$sam_core_reason"; return 2; fi
+        if (( rule_rc == 1 )); then rm -f "$record"; continue; fi
         found=0
         for nextcore in "${corelist[@]}"; do [[ "$nextcore" != "$c" ]] || found=1; done
         if (( !found )) || sam_is_excluded "$c" "$sam_record_path"; then rm -f "$record"; continue; fi
@@ -176,7 +194,9 @@ sam_take_prepared() {
 
 sam_loading_keys() { # coalesce all queued Next presses into one pending action
     local key
-    while read -r -s -t 0.001 -n 1 key; do
+    # A 1 ms timeout can expire under CPU load despite queued input, leaving
+    # part of a burst for the next game. Allow a short bounded quiet interval.
+    while read -r -s -t 0.05 -n 1 key; do
         case "$key" in n|N) SAM_ACTION=next ;; esac
     done
 }
@@ -251,6 +271,7 @@ sam_normal_loop() {
         sam_take_prepared || take_rc=$?
         if (( take_rc != 0 )); then
             if ((take_rc == 3)); then printf 'Prepared cover is unavailable\n' > "$sam_session/error"; fi
+            if ((take_rc > 1)) && [[ ! -f "$sam_session/error" ]]; then sam_preparation_error "Selection validation failed (status $take_rc)"; fi
             if [[ -f "$sam_session/error" ]]; then
                 local error; IFS= read -r error < "$sam_session/error"
                 printf '\nSAM ERROR: %s. Current game retained; restart SAM to retry.\n' "$error" >&2
@@ -276,14 +297,19 @@ sam_normal_loop() {
             SAM_ACTION=
             sam_schedule_preparation
             run_countdown_timer
-        else rm -f "$sam_selected_record"; fi
+        else
+            local launch_rc=$?
+            rm -f "$sam_selected_record"
+            if (( launch_rc > 1 )); then
+                printf '\nSAM ERROR: launch rejected (status %s): %s\n' "$launch_rc" "${sam_core_reason:-validation failed}" >&2
+                return 1
+            fi
+        fi
     done
 }
 
 loop_core() {
-    if [[ -n "${1:-}" ]]; then SAM_MODE=SINGLE; SAM_TARGET_CORE=$1; corelist=("$1")
-    else SAM_MODE=ALL; SAM_TARGET_CORE=; fi
-    export SAM_MODE SAM_TARGET_CORE
+    sam_core_session_begin "${1:-}" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
     sam_service session_loop
 }
 sam_bind session_loop sam_normal_loop

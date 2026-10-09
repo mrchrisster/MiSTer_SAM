@@ -4,7 +4,7 @@
 # Copyright (c) 2026 mrchrisster and Mellified; modular refactor 2026.
 trap '' HUP
 sam_root="${SAM_ROOT:-/media/fat/Scripts/.MiSTer_SAM}"
-if [[ ! -r "$sam_root/lib/modules.sh" ]]; then
+if [[ ! -r "$sam_root/lib/modules.sh" || ! -r "$sam_root/lib/cores.sh" ]]; then
     [[ -z "${SAM_ROOT:-}" ]] || { echo 'SAM installation is incomplete.' >&2; exit 1; }
     sam_installer=$(mktemp /tmp/sam-install.XXXXXX.py) || exit 1
     sam_release_branch=${SAM_INSTALL_BRANCH:-test}
@@ -39,6 +39,7 @@ esac
 source "$sam_root/lib/modules.sh"
 source "$sam_root/lib/config.sh"
 source "$sam_root/lib/common.sh"
+source "$sam_root/lib/cores.sh"
 source "$sam_root/lib/state.sh"
 source "$sam_root/lib/audio.sh"
 source "$sam_root/lib/catalog.sh"

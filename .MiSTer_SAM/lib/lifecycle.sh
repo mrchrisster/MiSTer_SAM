@@ -3,7 +3,17 @@
 
 function sam_start() {
     local core="${1:-}" command
-    [[ -z "$core" || -n "${CORE_PRETTY[$core]-}" ]] || { echo 'Unsupported core.' >&2; return 1; }
+    if [[ -n "$core" ]]; then
+        sam_core_id "$core" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
+        core=$sam_core_id_result
+    fi
+    if [[ "${sam_module_config_dirty:-0}" == 1 ]]; then
+        # Menus can change module switches after loading this shell. Validate
+        # the next session in a fresh registry before stopping the current one.
+        bash "${SAM_ENTRY:-$misterpath/Scripts/MiSTer_SAM_on.sh}" validate_start "$core" || return 1
+    else
+        sam_core_session_begin "$core" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
+    fi
     env_check || return 1
     there_can_be_only_one || return 1
     mcp_start

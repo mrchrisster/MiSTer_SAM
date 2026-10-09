@@ -43,6 +43,8 @@ Lists are accessible under `/media/fat/SAM/`:
 
 Legacy custom ignore and M82 lists migrate into these folders during installation. Remove an exclusion's line to undo it. Cached candidates are checked against current exclusions at launch.
 
+Core eligibility is shared across normal, M82 and video selection. Enabled modules register core rules; all must approve a system, including explicit single-core requests and Previous. Empty allowed lists stop with an explanation. Temporary exclusions preserve the configured list. Module settings are fixed for a session; restart after editing them. See [core-rule API](docs/MODULE_API.md#core-rules) to add a module's restrictions without editing the shared picker.
+
 Normal mode starts with a small eligible arcade batch on a cold installation when arcade is configured and permitted. It builds the remaining catalogs in the background. Enabled cores, mode and filters are respected. Repeated Next presses during loading coalesce into one pending skip.
 
 ## Commands and integrations

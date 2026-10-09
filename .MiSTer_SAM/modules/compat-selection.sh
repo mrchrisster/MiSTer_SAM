@@ -2,168 +2,109 @@
 # Extracted compatibility implementation; see reference and attribution.
 
 function corelist_update() {
-
-	#Single Core Mode
-	if [ -s "${corelistfile}.single" ]; then
-		unset corelist
-		mapfile -t corelist < "${corelistfile}.single"
-		rm "${corelistfile}.single" "${corelistfile}" > /dev/null 2>&1
-
-	elif [ -s "${corelistfile}" ]; then
-		unset corelist
-		mapfile -t corelist < "${corelistfile}"
-		rm "${corelistfile}"
-	fi
-
-	# BGM mode: n64, saturn and psx are incompatible with BGM (no per-core volume control).
-	# Filter them out here so the rule is enforced regardless of how corelist was set.
-	if [[ "${bgm}" == "yes" ]]; then
-		local bgm_filtered=()
-		for core in "${corelist[@]}"; do
-			[[ "$core" != "n64" && "$core" != "psx" && "$core" != "saturn" ]] && bgm_filtered+=("$core")
-		done
-		corelist=("${bgm_filtered[@]}")
-	fi
-
-	# Resynchronize corelisttmp with the potentially updated corelist
-	declare -A valid_cores_map
-	for core in "${corelist[@]}"; do
-		valid_cores_map["$core"]=1
-	done
-
-	local updated_corelisttmp=()
-	for tmp_core in "${corelisttmp[@]}"; do
-		if [[ -n "${valid_cores_map["$tmp_core"]}" ]]; then
-			updated_corelisttmp+=("$tmp_core")
-		fi
-	done
-	corelisttmp=("${updated_corelisttmp[@]}")
-
-
-	if [[ "${disablecoredel}" == "0" ]]; then
-		delete_from_corelist "$nextcore" tmp
-	fi
-
-
-	if [ ${#corelisttmp[@]} -eq 0 ]; then
-		declare -ga corelisttmp=("${corelist[@]}")
-	fi
-
-	if [[ ! "${corelisttmp[*]}" ]]; then
-		corelisttmp=("${corelist[@]}")
-	fi
+    local incoming=() rc=0
+    if [[ -f "${corelistfile}.single" ]]; then
+        mapfile -t incoming < "${corelistfile}.single"
+        sam_normalize_cores incoming incoming || return 2
+        if (( ${#incoming[@]} != 1 )); then
+            sam_core_reason='Single-core request must contain exactly one supported core'; return 2
+        fi
+        SAM_MODE=SINGLE; SAM_TARGET_CORE=${incoming[0]}
+        sam_requested_cores=("$SAM_TARGET_CORE")
+        sam_core_policy_ready=1
+        rm -f "${corelistfile}.single" "$corelistfile"
+    elif [[ -f "$corelistfile" ]]; then
+        mapfile -t incoming < "$corelistfile"
+        sam_normalize_cores incoming sam_requested_cores || return 2
+        sam_emit core_requested sam_requested_cores || return 2
+        if [[ "$SAM_MODE" == SINGLE ]]; then sam_requested_cores=("$SAM_TARGET_CORE"); fi
+        sam_core_policy_ready=1
+        rm -f "$corelistfile"
+    fi
+    sam_core_policy_refresh || return $?
+    if [[ "$disablecoredel" == 0 ]]; then delete_from_corelist "${nextcore:-}" tmp; fi
+    (( ${#corelisttmp[@]} )) || corelisttmp=("${sam_allowed_cores[@]}")
 }
 
 function pick_core() {
-    # SAFETY: If in SINGLE mode, Force Target Core
-    if [ "$SAM_MODE" == "SINGLE" ] && [ -n "$SAM_TARGET_CORE" ]; then
-        nextcore="$SAM_TARGET_CORE"
-        samdebug "pick_core: Single mode active. Forcing core: $nextcore"
-        return
-    fi
-
-    # If it's not a first run, proceed with the standard mode selection.
-    if [[ "$coreweight" == "yes" ]]; then
-        pick_core_weighted
-    elif [[ "$samvideo" == "yes" ]]; then
-        pick_core_samvideo "$1"
+    nextcore=
+    sam_core_policy_refresh || return $?
+    if [[ "$SAM_MODE" == SINGLE ]]; then
+        sam_core_require "$SAM_TARGET_CORE" || return $?
+        nextcore=$SAM_TARGET_CORE
+    elif [[ "$coreweight" == yes ]]; then
+        pick_core_weighted || return $?
+    elif [[ "$samvideo" == yes && -n "${1:-}" ]]; then
+        pick_core_samvideo "$1" || return $?
     else
-        pick_core_standard
+        pick_core_standard || return $?
     fi
-
-    # Fallback in case a selection function failed
-    if [[ -z "$nextcore" ]]; then
-        samdebug "nextcore empty. Using arcade core as fallback."
-        nextcore="arcade"
-    fi
+    sam_core_require "$nextcore"
 }
 
 function pick_core_standard() {
-    nextcore=$(printf "%s\n" "${corelisttmp[@]}" \
-               | shuf --random-source=/dev/urandom -n1)
-    samdebug "Picked core (standard): $nextcore"
+    sam_normal_choose_core
 }
 
 function init_core_weighted() {
-    # only run once
-    (( COREWEIGHT_INITIALIZED )) && return
-    COREWEIGHT_INITIALIZED=1
-
-    echo -n "Please wait while calculating core weights..."
-
-    # a) ensure every core has a gamelist
-    for c in "${corelist[@]}"; do
-        f="${gamelistpathtmp}/${c}_gamelist.txt"
-        [[ -f "$f" ]] || check_list "$c" >/dev/null
+    sam_core_policy_refresh || return $?
+    local c f stamp files=()
+    for c in "${sam_allowed_cores[@]}"; do
+        files+=("$gamelistpathtmp/${c}_gamelist.txt" "$gamelistpath/${c}_gamelist.txt")
     done
-
-    # b) build raw counts & total
-    TOTAL_GAME_COUNT=0
-    for c in "${corelist[@]}"; do
-        f="${gamelistpathtmp}/${c}_gamelist.txt"
-        if [[ -f "$f" ]]; then
-            COREWC["$c"]=$(wc -l < "$f")
-            (( TOTAL_GAME_COUNT += COREWC["$c"] ))
-        fi
+    stamp="${sam_allowed_cores[*]}:$(stat -c '%n:%s:%y' "${files[@]}" 2>/dev/null || true)"
+    [[ "${COREWEIGHT_STAMP:-}" != "$stamp" ]] || return 0
+    COREWC=(); COREP=(); TOTAL_GAME_COUNT=0
+    # Use existing counts only. Do not advance ordered mode lists or scan all
+    # ROM collections merely to assign weights. Empty counts use equal weights.
+    for c in "${sam_allowed_cores[@]}"; do
+        f="$gamelistpathtmp/${c}_gamelist.txt"
+        [[ -f "$f" ]] || f="$gamelistpath/${c}_gamelist.txt"
+        COREWC[$c]=0
+        [[ ! -f "$f" ]] || COREWC[$c]=$(wc -l < "$f")
+        COREP[$c]=${COREWC[$c]}
+        TOTAL_GAME_COUNT=$((TOTAL_GAME_COUNT + COREWC[$c]))
     done
-
-    # c) fallback to equal if truly empty
-    if (( TOTAL_GAME_COUNT == 0 )); then
-        for c in "${corelist[@]}"; do
-            COREWC["$c"]=1
-        done
-        TOTAL_GAME_COUNT=${#corelist[@]}
-    fi
-
-    # d) mirror COREWC -> COREP for picking
-    for c in "${!COREWC[@]}"; do
-        COREP["$c"]=${COREWC["$c"]}
-    done
-
-    # e) print table of counts & percentages
-    echo -e "\nCore      Games   Percent"
-    printf '%.0s─' {1..28}; echo
-    for core in "${!COREWC[@]}"; do
-        cnt=${COREWC[$core]}
-        pct=$(awk "BEGIN{printf \"%.2f\", ($cnt*100)/${TOTAL_GAME_COUNT}}")
-        printf "%-8s %6d   %6s%%\n" "$core" "$cnt" "$pct"
-    done | sort -k2 -nr
-
-    echo " Done."
+    COREWEIGHT_STAMP=$stamp; COREWEIGHT_INITIALIZED=1
 }
 
 function pick_core_weighted() {
-    init_core_weighted
-
-    # fast pick from prebuilt COREP/TOTAL_GAME_COUNT
-    nextcore=$(pick_weighted_random COREP "$TOTAL_GAME_COUNT")
-    [[ -z "$nextcore" ]] && nextcore="${corelist[0]}"
-
-    # debug likelihood
-    local w=${COREP[$nextcore]}
-    local likelihood=$(awk "BEGIN{printf \"%.2f\", ($w*100)/$TOTAL_GAME_COUNT}")
-    samdebug "Picked core (coreweight): $nextcore (likelihood: ${likelihood}%)"
+    init_core_weighted || return $?
+    local c total=0
+    local -A current_weights=()
+    for c in "${corelisttmp[@]}"; do
+        current_weights[$c]=${COREP[$c]:-0}
+        total=$((total + current_weights[$c]))
+    done
+    if (( total == 0 )); then
+        for c in "${corelisttmp[@]}"; do current_weights[$c]=1; done
+        total=${#corelisttmp[@]}
+    fi
+    nextcore=$(pick_weighted_random current_weights "$total") || return $?
+    sam_core_require "$nextcore"
 }
 
 function pick_weighted_random() {
-    local -n weights=$1
-    local total=$2
-    (( total<=0 )) && echo "" && return
-
-    local pick sum=0
-    pick=$(shuf --random-source=/dev/urandom -i 1-"$total" -n1)
-    for key in "${!weights[@]}"; do
-        (( sum += weights[$key] ))
-        if (( pick <= sum )); then
-            echo "$key"
-            return
-        fi
+    [[ "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ && "$1" != __sam_* ]] || return 2
+    local -n __sam_weights="$1"
+    local __sam_total="$2" __sam_pick __sam_key __sam_weight
+    [[ "$__sam_total" =~ ^[0-9]+$ ]] || return 2
+    (( __sam_total > 0 )) || return 1
+    sam_random_below "$__sam_total" || return $?
+    __sam_pick=$sam_random
+    for __sam_key in "${!__sam_weights[@]}"; do
+        __sam_weight=${__sam_weights[$__sam_key]}
+        [[ "$__sam_weight" =~ ^[0-9]+$ ]] || return 2
+        __sam_weight=$((10#$__sam_weight))
+        if (( __sam_pick < __sam_weight )); then printf '%s\n' "$__sam_key"; return 0; fi
+        __sam_pick=$((__sam_pick-__sam_weight))
     done
-    echo ""
+    return 2
 }
 
 function pick_rom() {
-    sam_emit candidate_filter "$nextcore" || return 1
+    sam_core_require "$nextcore" || return $?
+    sam_emit candidate_filter "$nextcore" || return $?
     # 1. Handle special, non-random cases first.
     if [[ "$m82" == "yes" ]]; then
         # M82 mode is deterministic; it always takes the first line of the session list.
@@ -277,9 +218,9 @@ function pick_random_game() {
             # Rebuild the master list immediately so we can try again on the next pass
             ensure_list "${core_type}" "${gamelistpath}"
 
-            # RECURSIVE CALL: Try to pick again immediately from the fresh list
-            pick_random_game "${core_type}"
-			return $?
+            # The outer selection loop owns bounded retries; do not recurse
+            # indefinitely if rebuilding still yields unavailable MRA paths.
+            return 1
 		fi
 	fi
 

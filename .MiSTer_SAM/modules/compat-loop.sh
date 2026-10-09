@@ -2,15 +2,7 @@
 # Preserved special-mode transition implementation.
 function loop_core() {
     # args: [target_core]
-    if [ -n "$1" ]; then
-        SAM_MODE="SINGLE"
-        SAM_TARGET_CORE="$1"
-    else
-        SAM_MODE="ALL"
-        SAM_TARGET_CORE=""
-    fi
-    export SAM_MODE
-    export SAM_TARGET_CORE
+    sam_core_session_begin "${1:-}" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
     trap sam_session_cleanup EXIT
     trap 'exit 0' TERM
     sam_pid_start "$$"; sam_owner="$$:$sam_proc_start"; sam_publish_phase preparing
@@ -21,7 +13,7 @@ function loop_core() {
 
     # --- 1. Heavy Initialization (Runs once in background) ---
     echo "SAM Session: Initializing..."
-    read_samini
+    # Module settings are a session snapshot; do not reread the INI after loading.
 
     # This is the heavy step (downloads/mounts) that was freezing Python
     sam_prep || return 1
@@ -44,6 +36,10 @@ function loop_core() {
         if [ "$SAM_ACTION" == "previous" ]; then
              if sam_record_read "$mrsamtmp/prev_game_info"; then
                  core=$sam_record_core rompath=$sam_record_path gamename=$sam_record_name
+                 local replay_rc=0
+                 sam_core_require "$core" || replay_rc=$?
+                 if (( replay_rc > 1 )); then printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; fi
+                 if (( replay_rc == 1 )); then SAM_ACTION=; continue; fi
                  if sam_is_excluded "$core" "$rompath"; then SAM_ACTION=; continue; fi
                  if [ "$core" == "cdi" ] && [ "${samvideo_tvc_cdi}" == "yes" ]; then
                      samdebug "Replaying previous CDI video: $gamename"
@@ -72,6 +68,8 @@ function loop_core() {
 
             run_countdown_timer
         else
+            local next_rc=$?
+            if (( next_rc > 1 )); then printf 'SAM: %s\n' "${sam_core_reason:-Selection failed (status $next_rc)}" >&2; return 1; fi
             samdebug "next_core failed. Looping to pick another core."
             continue
         fi
@@ -79,6 +77,11 @@ function loop_core() {
 }
 
 function next_core() { # next_core (core)
+
+    corelist_update || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 2; }
+    if [[ -n "${1:-}" ]]; then
+        sam_core_require "$1" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 2; }
+    fi
 
 	if [[ -n "$cfgcore_configpath" ]]; then
 		configpath="$cfgcore_configpath"
@@ -91,31 +94,26 @@ function next_core() { # next_core (core)
 		if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
 	fi
 
-	if [[ ! ${corelist[*]} ]]; then
-		echo "ERROR: FATAL - List of cores is empty."
-		echo "Using default corelist"
-		declare -ga corelist=("${corelistall[@]}")
-		samdebug "Corelist is now ${corelist[*]}"
-	fi
-
 	# Pick a core if no corename was supplied as argument (eg "MiSTer_SAM_on.sh psx")
 	if [ -z "${1}" ]; then
-		corelist_update
 		#samdebug "corelist: ${corelist[@]}"
 
 		if [ "$samvideo" == "yes" ] && [ "$samvideo_tvc" == "yes" ]; then
 			nextcore=$(cat /tmp/.SAM_tmp/sv_core)
 		else
-			pick_core
+			pick_core || { printf 'SAM: %s\n' "${sam_core_reason:-No selectable cores}" >&2; return 2; }
 		fi
 	else
 		# Single Mode: Use the provided argument
 		nextcore="${1}"
 	fi
 
+    sam_core_require "$nextcore" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 2; }
+
 	check_list "${nextcore}"
 	if [ $? -ne 0 ]; then
 		samdebug "check_list function returned an error."
+        delete_from_corelist "$nextcore" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 2; }
 		return 1
 	fi
 
@@ -125,13 +123,9 @@ function next_core() { # next_core (core)
     fi
 
 	pick_rom || {
-        if [[ "${Artwork_only,,}" == "yes" ]]; then
-            delete_from_corelist "$nextcore"
-            if [[ -n "${1}" || ${#corelist[@]} -eq 0 ]]; then
-                echo "SAM artwork: no eligible games remain; stopping."
-                exit 1
-            fi
-        fi
+        local pick_rc=$?
+        (( pick_rc < 2 )) || return "$pick_rc"
+        delete_from_corelist "$nextcore" || return 2
         return 1
     }
 
@@ -160,6 +154,8 @@ function next_core() { # next_core (core)
     # After the loop, check if we ever found a valid ROM.
     if [ "$rom_is_valid" = "false" ]; then
         # All retries have been exhausted. No valid ROM was found.
+        printf 'SAM: skipping %s after %s invalid ROM selections\n' "$nextcore" "$coreretries" >&2
+        delete_from_corelist "$nextcore" || return 2
         return 1
     fi
 

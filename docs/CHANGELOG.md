@@ -1,5 +1,32 @@
 # Recent changes
 
+## 2026-10-09 — Shared module core eligibility
+
+- Add a common requested → allowed → rotation pipeline with normalized IDs,
+  module predicates, explicit rejection/error results and useful reasons.
+- Replace BGM-specific compatibility filtering with its existing module hook.
+  M82 declares its NES request/constraint; video declares matching-game support
+  and distinguishes auxiliary playback from game selection.
+- Enforce policy for normal/weighted selection, explicit targets, preparation,
+  queued launches and Previous using the original game core. Remove unrestricted
+  defaults and stop predictable empty/error cases before retrying forever.
+- Refresh legacy/video weights from the current allowed pool; keep module count
+  arrays global and avoid building every ROM catalog just to calculate weights.
+- Freeze session settings. Menu starts validate changed switches in a fresh
+  registry before interrupting an existing session. Unsupported artwork/mode
+  combinations fail during pure validation, before setup work.
+- Move M82 setup behind eligibility, with cancellable indexing and atomic list
+  publication. Preserve first-input timing, BIOS order and Next behavior. MCP
+  preparation/loading input uses cancellation/Next, with readers unchanged.
+- Add focused core-policy and startup/cancellation regression fixtures.
+- Bound invalid-ROM/MRA retries in compatibility selection. Keep loading Next
+  bursts coalesced with a 50 ms quiet interval; a 1 ms read could expire under
+  CPU load with input still pending. Include a private tmux-terminal fixture.
+- MiSTer Linux: all 165 tests passed in 107.1 seconds, using isolated roots and
+  mocked hardware operations. This includes 28 core-policy fixtures and the
+  private tmux test. No production SAM scripts or actual game launches were
+  changed by validation; physical M82/video playback remains a separate check.
+
 ## 2026-10-09 — Updater MCP shutdown race
 
 - Treat MCP disappearing between a session check and `send-keys`/`kill-session`

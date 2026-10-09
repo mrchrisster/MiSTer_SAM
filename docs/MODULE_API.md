@@ -26,6 +26,8 @@ Runtime state, commands and selection records are literal data and never sourced
 | Hook | Purpose |
 | --- | --- |
 | config_loaded | Initialize enabled module configuration |
+| core_requested | Mode adjusts requested cores through an array-name argument |
+| session_validate | Pure checks for incompatible session options, before setup/stop |
 | session_setup, session_start, session_stop | Set up and release owned resources |
 | core_allowed | Reject an incompatible core |
 | filter_stamp | Identify inputs that invalidate a cached eligible list |
@@ -61,3 +63,64 @@ Public lists: `/media/fat/SAM/{Gamelists,Rated,Blacklists,Ignore}`. Updates neve
 replace custom Ignore files. Remove an exclusion's line to undo it; a cached
 candidate list is invalidated by the file change and the launch boundary also
 checks exclusions immediately.
+
+## Core rules
+
+The shared implementation is `lib/cores.sh`. A session has three distinct lists:
+`sam_requested_cores` (normalized configuration, adjusted by the mode),
+`sam_allowed_cores` (all module predicates plus session exclusions), and
+`corelisttmp` (remaining rotation). Compatibility `corelist` mirrors the allowed
+list. Refilling a rotation never uses the unfiltered configuration/default list.
+Temporary exclusions do not modify the requested list or the INI.
+
+A feature registers a cheap predicate, loaded only when that feature is enabled:
+
+```sh
+example_core_allowed() {
+    case "$1" in
+        n64|psx|saturn)
+            sam_core_reason="This feature requires per-core volume control"
+            return 1 ;;
+        *) return 0 ;;
+    esac
+}
+sam_register core_allowed example_core_allowed
+```
+
+The callback receives a canonical core ID and a role (`candidate` by default,
+or `auxiliary` for a playback resource). Return 0 to allow, 1 to reject, or any
+other status for an error. All predicates must approve; errors stop preparation
+or launch rather than becoming an empty list. An optional one-line
+`sam_core_reason` explains rejection. Predicates must not modify lists, scan ROMs,
+download files or start processes. They run during selection and at launch/replay.
+
+`sam_normalize_cores INPUT OUTPUT` and `sam_filter_cores INPUT OUTPUT` accept
+indexed-array variable names, including in-place operation. They trim, lowercase,
+deduplicate and remove blank entries; unknown core IDs are errors. Output is
+assigned only after success. `__sam_*` variable names are private and forbidden as
+array arguments. `sam_filter_cores` returns 0 for a successfully filtered empty
+list; `sam_core_policy_refresh` returns 1 when no session cores remain, and 2 for
+rule/input errors. `sam_core_require CORE` verifies the actual selected game
+against rules and the session's allowed list; use the original core for MGL replay.
+
+Modes can register `core_requested CALLBACK`. Its argument is the requested-array
+name; M82 sets that array to `(nes)` and separately registers its NES-only
+predicate. Explicit CLI targets replace the requested array after this hook,
+then still pass every predicate, so a conflicting target is rejected clearly.
+Features should constrain cores through predicates rather than override requests.
+
+Module switches and settings are fixed for a session. Restart SAM after changes.
+Menus that reread settings mark their registry stale; `sam_start` validates the
+new options in a fresh process before stopping an existing session. Pure
+`session_validate` hooks reject unsupported combinations without running setup.
+The normal CLI start path needs no extra preflight process.
+
+Long foreground mode setup uses `sam_run_owned_command COMMAND ARG...`, which
+tracks PID/start ticks and joins the existing cancellation/cleanup path. M82
+indexes into a private staging directory and publishes its list only after
+successful completion. It releases staging on stop. Input readers are unchanged;
+M82 preparation/loading still accepts cancellation and Next rather than play.
+
+Normal and compatibility selectors share these core rules. Legacy M82/video
+sequence and timing loops remain separate; this change does not migrate them to
+the normal prepared-selection queue or introduce a new transport/daemon.

@@ -6,7 +6,8 @@ source "$sam_artwork_root/sam_artwork.sh" || return 1
 sam_artwork_mode_check() {
     case "$sam_mode" in
         m82|video|samvideo)
-            echo "SAM artwork: $sam_mode auxiliary launches are unsupported by this artwork module." >&2
+            sam_core_reason="Artwork-only filtering does not support $sam_mode auxiliary launches"
+            printf 'SAM artwork: %s\n' "$sam_core_reason" >&2
             return 1 ;;
     esac
 }
@@ -31,7 +32,7 @@ sam_artwork_validate_launch() {
     }
 }
 
-sam_register session_setup sam_artwork_mode_check
+sam_register session_validate sam_artwork_mode_check
 sam_register candidate_filter sam_artwork_filter
 sam_register candidate_prepare sam_artwork_prepare_candidate
 sam_register launch_validate sam_artwork_validate_launch

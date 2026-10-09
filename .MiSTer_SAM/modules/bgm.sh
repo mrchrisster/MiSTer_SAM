@@ -9,6 +9,9 @@ sam_bgm_game_info() {
 }
 sam_register launch_info sam_bgm_game_info
 sam_bgm_core_allowed() {
-    [[ "$1" != n64 && "$1" != psx && "$1" != saturn ]]
+    case "$1" in
+        n64|psx|saturn) sam_core_reason="BGM requires per-core volume control ($1)"; return 1 ;;
+        *) return 0 ;;
+    esac
 }
 sam_register core_allowed sam_bgm_core_allowed

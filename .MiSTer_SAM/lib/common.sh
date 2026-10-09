@@ -44,10 +44,17 @@ function delete_from_corelist() {
             [[ "${corelisttmp[$index]}" != "$target" ]] || unset 'corelisttmp[index]'
         done
     else
+        if [[ "${sam_core_policy_ready:-0}" == 1 ]]; then
+            sam_core_id "$target" || return 2
+            sam_session_core_excluded[$sam_core_id_result]=1
+            sam_core_policy_refresh
+            return $?
+        fi
         for index in "${!corelist[@]}"; do
             [[ "${corelist[$index]}" != "$target" ]] || unset 'corelist[index]'
         done
-        printf '%s\n' "${corelist[@]}" > "$corelistfile"
+        if (( ${#corelist[@]} )); then printf '%s\n' "${corelist[@]}" > "$corelistfile"
+        else : > "$corelistfile"; fi
     fi
     return 0
 }

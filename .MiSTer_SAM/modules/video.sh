@@ -6,10 +6,21 @@ source "$mrsampath/modules/compat-selection.sh"
 source "$mrsampath/modules/compat-catalog.sh"
 source "$mrsampath/modules/compat-loop.sh"
 sam_bind session_loop loop_core
-declare -A SAMVC=()
+declare -gA SAMVC=()
 SAMVTOTAL=0
 SAMVIDEO_INIT_SENTINEL="$mrsamtmp/samvideo_init"
+sam_video_core_allowed() {
+    [[ "${2:-candidate}" != auxiliary ]] || return 0
+    if [[ "$samvideo_tvc" == yes && -z "${SV_TVC[$1]-}" ]]; then
+        sam_core_reason="No commercial-to-game mapping for $1"; return 1
+    fi
+    return 0
+}
+sam_register core_allowed sam_video_core_allowed
 sam_video_setup() {
+    if [[ "$samvideo_tvc_cdi" == yes ]]; then
+        sam_core_rule_check cdi auxiliary || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
+    fi
     ini_contents=$(<"$ini_file")
     source "$mrsampath/lib/downloads.sh"
     echo -e '\033[2J' > /dev/tty1
@@ -28,7 +39,7 @@ sam_video_cleanup() {
     local pid
     for pid in $(jobs -pr); do sam_kill_tree "$pid"; done
     echo 1 > /sys/class/graphics/fbcon/cursor_blink
-    rm -f "$mrsamtmp/sv_corecount"
+    rm -f "$mrsamtmp/sv_corecount" "$mrsamtmp/sv_corecount.stamp"
     misterini_restore
 }
 sam_register session_stop sam_video_cleanup

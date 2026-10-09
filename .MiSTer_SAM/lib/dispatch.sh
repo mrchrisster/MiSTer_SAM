@@ -27,6 +27,7 @@ parse_cmd() {
     if [[ -n "${CORE_PRETTY[$first]-}" ]]; then sam_start "$first"; return; fi
     case "$first" in
         start|restart) sam_start "$@" ;;
+        validate_start) sam_core_session_begin "${1:-}" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; } ;;
         startmonitor|sm) sam_start "$@"; sleep 1; sam_monitor ;;
         control) python3 "$mrsampath/control/samctl.py" "$@" ;;
         pause|resume|play) python3 "$mrsampath/control/samctl.py" "$first" "$@" ;;

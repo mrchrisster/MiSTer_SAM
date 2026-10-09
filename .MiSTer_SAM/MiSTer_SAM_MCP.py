@@ -809,7 +809,7 @@ def handle_action(action, state, loop, source="keyboard"):
                 return
             state.set_sam_running(True)
             in_menu = await asyncio.to_thread(is_in_menu, state)
-            if session_is_m82(owner, state.m82) and not in_menu:
+            if session_is_m82(owner, state.m82) and not in_menu and owner.get("phase") not in {"preparing", "loading", "stopping"}:
                 if action == "next":
                     await asyncio.to_thread(skip_game)
                 elif await asyncio.to_thread(read_m82_phase) != "bios":
@@ -1111,6 +1111,11 @@ async def launch_and_confirm(state):
                 state.update_activity(log_event=False)
                 return
             owner = await asyncio.to_thread(read_sam_owner)
+            if not owner and state.launcher.poll() not in (None, 0):
+                print("MCP: SAM start was rejected; see the launcher's error above.")
+                await cancel_launcher(state)
+                state.update_activity(log_event=False)
+                return
             if owner and state.launcher.poll() is not None:
                 pending = state.consume_pending_action()
                 if pending and pending != "next":

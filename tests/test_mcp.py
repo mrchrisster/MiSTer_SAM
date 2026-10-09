@@ -109,6 +109,26 @@ class Lifecycle(unittest.IsolatedAsyncioTestCase):
         with patch.object(m,'read_sam_owner',return_value=OWNER),patch.object(m,'is_in_menu',return_value=False),patch.object(m,'read_m82_phase',return_value='bios'),patch.object(m,'play_m82_game') as play,patch.object(m,'skip_game') as skip:
             m.handle_action('default',state,asyncio.get_running_loop(),'joystick');await self.drain(state);play.assert_not_called()
             m.handle_action('next',state,asyncio.get_running_loop(),'joystick');await self.drain(state);skip.assert_called_once()
+    async def test_m82_input_cancels_preparation_instead_of_sending_play(self):
+        for phase in ('preparing','loading'):
+            state=m.SamState();state.m82=True;owner=dict(OWNER,phase=phase)
+            with patch.object(m,'read_sam_owner',return_value=owner),patch.object(m,'is_in_menu',return_value=False),patch.object(m,'session_is_m82',return_value=True),patch.object(m,'read_m82_phase',return_value='game'),patch.object(m,'play_m82_game') as play,patch.object(m,'stop_sam') as stop:
+                m.handle_action('default',state,asyncio.get_running_loop(),'joystick');await self.drain(state)
+                play.assert_not_called();stop.assert_called_once()
+                self.assertEqual(stop.call_args.kwargs['owner'],owner)
+    async def test_m82_next_during_preparation_keeps_the_skip_path(self):
+        state=m.SamState();state.m82=True;owner=dict(OWNER,phase='preparing')
+        with patch.object(m,'read_sam_owner',return_value=owner),patch.object(m,'is_in_menu',return_value=False),patch.object(m,'session_is_m82',return_value=True),patch.object(m,'skip_game') as skip,patch.object(m,'stop_sam') as stop:
+            m.handle_action('next',state,asyncio.get_running_loop(),'joystick');await self.drain(state)
+            skip.assert_called_once();stop.assert_not_called()
+    async def test_failed_start_returns_without_timeout_or_stopping_another_owner(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            script=Path(tmp)/'refused';script.write_text('#!/bin/sh\nexit 1\n');script.chmod(0o755)
+            state=m.SamState()
+            with patch.object(m,'SAM_ON_SCRIPT',str(script)),patch.object(m,'read_sam_owner',return_value=None),patch.object(m,'kill_sam_processes') as kill:
+                await asyncio.wait_for(m.launch_and_confirm(state),timeout=2)
+                self.assertIsNone(state.launcher);self.assertFalse(state.is_sam_starting())
+                kill.assert_not_called()
     async def test_input_cancels_delayed_launcher_no_late_session(self):
         with tempfile.TemporaryDirectory() as tmp:
             marker=Path(tmp)/'late';script=Path(tmp)/'launcher'
