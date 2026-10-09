@@ -2,6 +2,9 @@
 
 ## 2026-10-09 — Configuration-only update backup
 
+- Online updates hand off to the installer in the downloaded release, rather
+  than applying it with stale installed update logic. The staged source is
+  reused, with no second download; offline installs still use bundled source.
 - Back up only the existing `MiSTer_SAM.ini` before an update changes files or
   stops sessions. Each backup has its own `install-*` directory.
 - Remove the recursive `before.tar` backup of installed scripts, binaries,
@@ -13,6 +16,8 @@
   reinstalling the desired release or using an older full backup.
 - All eight installer tests passed on MiSTer Linux in 22.5 seconds using
   isolated temporary installation roots; production SAM was not updated.
+- With the online handoff fix, all ten installer tests passed on MiSTer Linux
+  in 27.9 seconds, again using isolated installation roots.
 
 ## 2026-10-08 — MCP input update for the test branch
 

@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import time
@@ -161,8 +162,17 @@ def main():
     if not re.fullmatch(r'[A-Za-z0-9_-][A-Za-z0-9_./-]*', args.branch) or '..' in args.branch:
         parser.error('Invalid branch name')
     with tempfile.TemporaryDirectory(prefix='sam-install-') as temp:
-        source = download_source(Path(temp), args.branch) if args.download or not (args.source_dir / '.MiSTer_SAM/lib/modules.sh').is_file() else checked_source(args.source_dir)
-        install(source, args.mister_root, args.branch)
+        download = args.download or not (args.source_dir / '.MiSTer_SAM/lib/modules.sh').is_file()
+        if download:
+            source = download_source(Path(temp), args.branch)
+            # Run the release's installer, not this previously installed copy.
+            # Pass the staged source so it does not download again or recurse.
+            print('Running installer from downloaded release...', flush=True)
+            subprocess.run([sys.executable, str(source / 'MiSTer_SAM_install.py'),
+                            '--source-dir', str(source), '--mister-root', str(args.mister_root),
+                            '--branch', args.branch], check=True)
+        else:
+            install(checked_source(args.source_dir), args.mister_root, args.branch)
 
 
 if __name__ == '__main__':

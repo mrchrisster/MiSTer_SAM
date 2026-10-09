@@ -18,6 +18,8 @@ python3 /tmp/MiSTer_SAM_install.py --download --branch test
 
 The installer validates the complete release before changing installed files. It backs up only the existing `MiSTer_SAM.ini` under `/media/fat/Scripts/.SAM_refactor_backups/install-*/MiSTer_SAM.ini`, then stops active SAM/MCP sessions for the update. It preserves the user INI, custom controller mappings, plug-ins and ignore lists. It records `branch="test"` as the installed release channel. An existing MCP is restarted; SAM starts again through its normal idle or Start path. First installations have no existing INI to back up. Caches, generated lists, binaries and historical backups are not copied into a new backup.
 
+Online updates run the installer included in the downloaded release, using that staged source without a second download. When updating from an older installer that lacks this handoff, that one update still follows its old backup behavior; subsequent updates use the new installer.
+
 To update an installed modular release:
 
 ```sh

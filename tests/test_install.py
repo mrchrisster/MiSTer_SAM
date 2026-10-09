@@ -1,6 +1,8 @@
 """Release deployment preserves user configuration, custom code and exclusions."""
 import importlib.util
+import json
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -123,6 +125,29 @@ class Install(unittest.TestCase):
     def test_download_respects_explicit_curl_certificate_bundle(self):
         with patch.dict(installer.os.environ, {'CURL_CA_BUNDLE': '/custom/ca.pem'}, clear=True):
             self.assertEqual(installer.curl_ca_options(), [])
+
+    def test_download_runs_release_installer_without_old_install_or_second_download(self):
+        source = Path(self.tmp.name) / 'new release'
+        source.mkdir()
+        marker = source / 'invoked.json'
+        (source / 'MiSTer_SAM_install.py').write_text(
+            'import json, sys\nfrom pathlib import Path\n'
+            'Path(__file__).with_name("invoked.json").write_text(json.dumps(sys.argv[1:]))\n')
+        argv = ['installer.py', '--download', '--branch', 'test', '--mister-root', str(self.mister)]
+        with patch.object(sys, 'argv', argv), patch.object(installer, 'download_source', return_value=source) as download, patch.object(installer, 'install') as old_install:
+            installer.main()
+        download.assert_called_once()
+        old_install.assert_not_called()
+        self.assertEqual(json.loads(marker.read_text()),
+                         ['--source-dir', str(source), '--mister-root', str(self.mister), '--branch', 'test'])
+        self.assertFalse((self.scripts / '.SAM_refactor_backups').exists())
+
+    def test_offline_install_uses_bundled_source_without_download_handoff(self):
+        argv = ['installer.py', '--source-dir', str(PACKAGE), '--branch', 'test', '--mister-root', str(self.mister)]
+        with patch.object(sys, 'argv', argv), patch.object(installer, 'checked_source', return_value=PACKAGE), patch.object(installer, 'download_source') as download, patch.object(installer, 'install') as bundled_install:
+            installer.main()
+        download.assert_not_called()
+        bundled_install.assert_called_once_with(PACKAGE, self.mister, 'test')
 
 
 if __name__ == '__main__':
