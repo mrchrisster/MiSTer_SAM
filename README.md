@@ -16,7 +16,7 @@ python3 /tmp/MiSTer_SAM_install.py --download --branch test
 /media/fat/Scripts/MiSTer_SAM_on.sh
 ```
 
-The installer validates the complete release before changing installed files. It stops active SAM/MCP sessions for the update, backs up existing scripts/configuration/lists under `/media/fat/Scripts/.SAM_refactor_backups/install-*/before.tar`, and preserves the user INI, custom controller mappings, plug-ins and ignore lists. It records `branch="test"` as the installed release channel. An existing MCP is restarted; SAM starts again through its normal idle or Start path.
+The installer validates the complete release before changing installed files. It backs up only the existing `MiSTer_SAM.ini` under `/media/fat/Scripts/.SAM_refactor_backups/install-*/MiSTer_SAM.ini`, then stops active SAM/MCP sessions for the update. It preserves the user INI, custom controller mappings, plug-ins and ignore lists. It records `branch="test"` as the installed release channel. An existing MCP is restarted; SAM starts again through its normal idle or Start path. First installations have no existing INI to back up. Caches, generated lists, binaries and historical backups are not copied into a new backup.
 
 To update an installed modular release:
 
@@ -82,7 +82,7 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 
 Tests isolate their game lists, state, configuration and control files. Hardware effects are replaced in fixtures; the separate `live_*.py` scripts operate a real MiSTer and require intentional use.
 
-For rollback, stop SAM/MCP, extract a selected `before.tar` into a temporary directory, and copy its `Scripts` and `SAM` contents back to `/media/fat` using ordinary copies. Do not restore tar ownership directly onto FAT. Git history also retains the pre-refactor test branch.
+To restore settings, copy a selected saved `MiSTer_SAM.ini` back to `/media/fat/Scripts/MiSTer_SAM.ini` and restart SAM. New update backups contain configuration only; reverting scripts requires reinstalling the desired release. Existing full `before.tar` backups remain untouched and can still be restored through ordinary copies from a temporary extraction directory; do not restore tar ownership directly onto FAT.
 
 ## Credits
 

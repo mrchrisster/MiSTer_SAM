@@ -1,5 +1,19 @@
 # Recent changes
 
+## 2026-10-09 — Configuration-only update backup
+
+- Back up only the existing `MiSTer_SAM.ini` before an update changes files or
+  stops sessions. Each backup has its own `install-*` directory.
+- Remove the recursive `before.tar` backup of installed scripts, binaries,
+  artwork caches, generated lists and historical backups. Existing backups
+  remain untouched. A first installation has no configuration to back up.
+- Add installer regression checks for exact configuration bytes, repeated
+  updates, preserved caches/old backups, and aborting when the backup copy fails.
+- Configuration restoration uses the saved INI. Script rollback requires
+  reinstalling the desired release or using an older full backup.
+- All eight installer tests passed on MiSTer Linux in 22.5 seconds using
+  isolated temporary installation roots; production SAM was not updated.
+
 ## 2026-10-08 — MCP input update for the test branch
 
 ### Controller definitions

@@ -79,6 +79,17 @@ def install(source, mister, branch):
     scripts = mister / 'Scripts'
     scripts.mkdir(parents=True, exist_ok=True)
     payload = scripts / '.MiSTer_SAM'
+    ini = scripts / 'MiSTer_SAM.ini'
+    # Only configuration needs an automatic backup. Do not walk installed
+    # caches, generated lists, binaries or historical backup directories.
+    # Finish this copy before stopping sessions or changing installed files.
+    if ini.is_file():
+        backup_root = scripts / '.SAM_refactor_backups'
+        backup_root.mkdir(parents=True, exist_ok=True)
+        saved = Path(tempfile.mkdtemp(prefix='install-' + time.strftime('%Y%m%d-%H%M%S') + '-',
+                                      dir=backup_root))
+        copy_file(ini, saved / 'MiSTer_SAM.ini')
+        print('Configuration backup:', saved / 'MiSTer_SAM.ini', flush=True)
     live = mister.resolve() == Path('/media/fat')
     restart_mcp = live and tmux_exists('MCP')
     if restart_mcp:
@@ -90,17 +101,6 @@ def install(source, mister, branch):
             subprocess.run(['tmux', 'kill-session', '-t', 'MCP'], check=True)
     if live and tmux_exists('SAM'):
         subprocess.run(['bash', str(scripts / 'MiSTer_SAM_on.sh'), 'stop'], check=True)
-
-    saved = scripts / '.SAM_refactor_backups' / ('install-' + time.strftime('%Y%m%d-%H%M%S') + '-' + str(os.getpid()))
-    saved.mkdir(parents=True)
-    with tarfile.open(saved / 'before.tar', 'w', dereference=True) as backup:
-        for relative in ['Scripts/.MiSTer_SAM', 'Scripts/MiSTer_SAM_on.sh',
-                         'Scripts/MiSTer_SAM.ini', 'Scripts/MiSTer_SAM_install.py',
-                         'Scripts/MiSTer_SAM_start.sh', 'Scripts/MiSTer_SAM_off.sh', 'SAM']:
-            path = mister / relative
-            if path.exists():
-                backup.add(path, arcname=relative)
-    print('Backup:', saved / 'before.tar', flush=True)
 
     public = mister / 'SAM'
     for name in ['Gamelists', 'Rated', 'Blacklists', 'Ignore']:
@@ -133,7 +133,6 @@ def install(source, mister, branch):
         if (source / name).is_file():
             copy_file(source / name, scripts / name)
             (scripts / name).chmod(0o755)
-    ini = scripts / 'MiSTer_SAM.ini'
     if not ini.exists():
         copy_file(source / 'MiSTer_SAM.ini', ini)
     contents = ini.read_text(encoding='utf-8')
