@@ -48,3 +48,24 @@ new helper and preserves user configuration, with its usual INI-only backup.
 To roll back this picker, install the complete prior release `c70be80`; do not
 restore only a caller while removing its helper. Prior behavior and its observed
 failures are documented in [the selection audit](COMMERCIAL_SELECTION_TESTS.md).
+
+## Validation and deployment
+
+Implementation `b9c435e` was installed on the MiSTer and synchronized to the
+desktop source. The existing DVD core remained running during installation.
+The full native suite passed 219 checks; later focused runs passed 57 shell/
+picker integration checks and the final 21 picker tests after optimization and
+alias-preference corrections. Those counts overlap and are not additive.
+
+The final selector was evaluated ten times for each of the original 34 targets
+using the same filtered collection snapshot on the MiSTer: 330 selections were
+accepted, all with a name/index artwork match; ten Dr. Mario selections were
+correctly unavailable. The earlier picker had 157 name/index misses among 340
+selections and chose unrelated Dr. Mario author hacks. This comparison exercised
+the native selector functions; it was not full commercial-video playback.
+
+Representative final choices were `Super Mario Bros. (World).nes`,
+`Donkey Kong Country (USA) (Rev 2).sfc`, and
+`Army Men - Sarge's Heroes (USA).z64`. The sequel and anniversary variants were
+not selected for those original-title advertisements. Raw evidence is retained
+in local `work/commercial-refined-final-comparison.json` and native test logs.
