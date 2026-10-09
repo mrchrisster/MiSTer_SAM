@@ -85,6 +85,23 @@ Other extensions sharing the tested slots have schema/slot checks, not individua
 hardware launches. Special Amiga/CD32/ao486/X68000/custom-MGL/CD-i video workflows
 were preserved; this migration does not claim new real-game coverage for them.
 
+## Installed SAM run
+
+Release `68626f0` was then installed from its complete exported archive. The
+installer backed up only `MiSTer_SAM.ini`. A normal single-core NES SAM run picked
+`Wrecking Crew (World) (Virtual Console)` from the FAT ZIP collection while USB0
+also had NES collections. SAM's candidate path, generated MGL, MiSTer's loaded
+`FULLPATH`, core process and Monitor snapshot agreed on that precise FAT archive
+member. Monitor `/media/artwork` returned HTTP 200; the downloaded JPEG decoded
+successfully and showed the matching Wrecking Crew cover. This verifies served
+artwork, not a separately observed Echo Show screen.
+
+The test was stopped afterward. `SAM_state` remained with `active=no`; MiSTer
+returned to Menu and MCP was restored. The installed scanner reports
+`samindex-python 1.0`, and the installed catalog matches the recorded SHA-256.
+The desktop `MiSTer_SAM-test` source was synchronized only after verifying all
+affected existing files still matched the previous source revision.
+
 ## Isolated fixtures on the actual MiSTer
 
 The complete pre-existing suite plus new shell integration checks passed:
