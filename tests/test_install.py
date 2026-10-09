@@ -32,6 +32,28 @@ class Install(unittest.TestCase):
         self.assertFalse((self.scripts / '.MiSTer_SAM/partun').exists())
         self.assertFalse((self.scripts / '.SAM_refactor_backups').exists())
 
+    def test_mcp_exit_before_interrupt_does_not_fail_update_shutdown(self):
+        gone = installer.subprocess.CompletedProcess([], 1, stderr='no server running')
+        with patch.object(installer.subprocess, 'run', return_value=gone) as command, patch.object(installer, 'tmux_exists', return_value=False), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
+            installer.stop_mcp()
+        self.assertEqual(command.call_count, 1)
+        self.assertEqual(command.call_args.args[0], ['tmux', 'send-keys', '-t', 'MCP', 'C-c'])
+        self.assertFalse(command.call_args.kwargs['check'])
+
+    def test_mcp_exit_between_check_and_kill_does_not_fail_update_shutdown(self):
+        gone = installer.subprocess.CompletedProcess([], 1, stderr='no server running')
+        with patch.object(installer.subprocess, 'run', return_value=gone) as command, patch.object(installer, 'tmux_exists', side_effect=[True, False]), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
+            installer.stop_mcp()
+        self.assertEqual(command.call_count, 2)
+        self.assertEqual(command.call_args.args[0], ['tmux', 'kill-session', '-t', 'MCP'])
+        self.assertFalse(command.call_args.kwargs['check'])
+
+    def test_mcp_stop_failure_is_reported_if_session_remains(self):
+        failed = installer.subprocess.CompletedProcess([], 1, stderr='permission denied')
+        with patch.object(installer.subprocess, 'run', return_value=failed), patch.object(installer, 'tmux_exists', return_value=True), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
+            with self.assertRaisesRegex(RuntimeError, 'Cannot stop MCP.*permission denied'):
+                installer.stop_mcp()
+
     def test_update_preserves_custom_settings_mappings_plugins_and_lists(self):
         payload = self.scripts / '.MiSTer_SAM'
         (payload / 'modules.d').mkdir(parents=True)

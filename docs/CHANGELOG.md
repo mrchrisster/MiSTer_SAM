@@ -1,5 +1,16 @@
 # Recent changes
 
+## 2026-10-09 — Updater MCP shutdown race
+
+- Treat MCP disappearing between a session check and `send-keys`/`kill-session`
+  as successful shutdown. Check again after the fallback kill; block installation
+  if the session still exists, rather than ignoring a real failure.
+- Add regression fixtures for both races and for an unsuccessful shutdown.
+- Preserve targeted MCP shutdown, graceful waiting and post-update restart.
+- Fourteen installer tests passed on MiSTer Linux. A private tmux server also
+  reproduced the exact check/exit/kill race: tmux returned 1 and shutdown still
+  completed successfully.
+
 ## 2026-10-09 — Smaller update archive
 
 - Exclude `mplayer`, `mplayer.zip` and obsolete `partun` from GitHub source

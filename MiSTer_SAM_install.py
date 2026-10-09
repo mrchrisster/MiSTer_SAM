@@ -67,6 +67,23 @@ def tmux_exists(name):
                           stderr=subprocess.DEVNULL).returncode == 0
 
 
+def stop_mcp():
+    # MCP can exit between any two tmux commands. A vanished session means
+    # shutdown succeeded; only a session that remains running blocks the update.
+    subprocess.run(['tmux', 'send-keys', '-t', 'MCP', 'C-c'], check=False,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    until = time.monotonic() + 2
+    while time.monotonic() < until and tmux_exists('MCP'):
+        time.sleep(.1)
+    if not tmux_exists('MCP'):
+        return
+    stopped = subprocess.run(['tmux', 'kill-session', '-t', 'MCP'], check=False,
+                             stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    if tmux_exists('MCP'):
+        detail = stopped.stderr.strip() or 'session is still running'
+        raise RuntimeError('Cannot stop MCP for update: ' + detail)
+
+
 def copy_file(source, target):
     target.parent.mkdir(parents=True, exist_ok=True)
     if source.resolve() == target.resolve():
@@ -94,12 +111,7 @@ def install(source, mister, branch):
     live = mister.resolve() == Path('/media/fat')
     restart_mcp = live and tmux_exists('MCP')
     if restart_mcp:
-        subprocess.run(['tmux', 'send-keys', '-t', 'MCP', 'C-c'], check=True)
-        until = time.monotonic() + 2
-        while tmux_exists('MCP') and time.monotonic() < until:
-            time.sleep(.1)
-        if tmux_exists('MCP'):
-            subprocess.run(['tmux', 'kill-session', '-t', 'MCP'], check=True)
+        stop_mcp()
     if live and tmux_exists('SAM'):
         subprocess.run(['bash', str(scripts / 'MiSTer_SAM_on.sh'), 'stop'], check=True)
 

@@ -1,5 +1,16 @@
 # MCP input detection and ghost-session fixes
 
+## Installer shutdown race: 2026-10-09
+
+The updater targets only the MCP tmux session. It requests Ctrl-C, allows two
+seconds for graceful exit, then removes that session if necessary. MCP may exit
+between a session check and either tmux command; a missing session/server is
+successful shutdown. After the fallback kill, the installer checks liveness
+again and aborts if MCP still exists. It restarts MCP after installation when
+MCP was running at the start of the update. No input reader or mapping behavior
+changes. Regression fixtures cover both disappearing-session races and a real
+stop failure that leaves the session alive.
+
 Compared against the upstream [test-branch MCP](https://raw.githubusercontent.com/mrchrisster/MiSTer_SAM/refs/heads/test/.MiSTer_SAM/MiSTer_SAM_MCP.py), fetched on 2026-10-02. That comparison describes the earlier deployed revision.
 
 ## Findings
