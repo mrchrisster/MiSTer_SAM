@@ -120,45 +120,19 @@ function pick_rom() {
         return
     fi
 
-	if [[ "$samvideo" == "yes" ]] && [[ "$samvideo_tvc" == "yes" ]] && [[ -f /tmp/.SAM_tmp/sv_gamename ]]; then
-        local sv_gamelist # Declare variable
-        local filtered_list="${gamelistpathtmp}/${nextcore}_gamelist.txt"
-        local master_list="${gamelistpath}/${nextcore}_gamelist.txt"
-        [[ "${Artwork_only,,}" == "yes" ]] && master_list="$sam_artwork_root/eligible/${nextcore}_gamelist.txt"
-
-		if [ ! -f "${filtered_list}" ]; then
-            samdebug "Filtered list not found for samvideo, generating..."
-			filter_list "${nextcore}"
-			# The filter didn't produce results
-			if [ $? -ne 0 ]; then
-				samdebug "filter_list failed. Falling back to master list for samvideo."
-				sv_gamelist="${master_list}"
-            else
-                samdebug "filter_list succeeded."
-                sv_gamelist="${filtered_list}"
-			fi
-		else
-            samdebug "Filtered list already exists."
-			sv_gamelist="${filtered_list}"
-		fi
-
-		# samvideo mode tries to find a specific game matching a commercial.
-        local specific_game
-        local search_term=$(cat /tmp/.SAM_tmp/sv_gamename)
-        samdebug "Searching for game matching string: $search_term"
-        specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$sv_gamelist" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
-
-        if [[ -z "${specific_game}" ]]; then
-            samdebug "Match not found in session list. Checking master list..."
-            specific_game="$(grep -if /tmp/.SAM_tmp/sv_gamename "$master_list" | grep -iv "VGM\|MSU\|Disc 2\|Sega CD 32X" | shuf -n 1)"
-        fi
-
-        if [[ -n "${specific_game}" ]]; then
-            rompath="${specific_game}"
-		    samdebug "Match found: $specific_game"
-            return # Exit successfully if we found the specific game.
-        fi
-        echo "Could not find matching game for commercial. Picking a random game instead."
+    if [[ "$samvideo" == yes && "$samvideo_tvc" == yes && -f /tmp/.SAM_tmp/sv_gamename ]]; then
+        local list="$gamelistpathtmp/${nextcore}_gamelist.txt" pick_rc=0
+        # Match only the filtered session. Never restore candidates from the
+        # master list after rating, path, ignore or artwork filters rejected them.
+        if [[ ! -f "$list" ]]; then filter_list "$nextcore" || return $?; fi
+        [[ -s "$list" ]] || return 1
+        sam_apply_exclusions "$nextcore" "$list" || return 2
+        rompath=$(python3 "$mrsampath/modules/commercial_picker.py" --core "$nextcore" \
+            --list "$list" --query-file /tmp/.SAM_tmp/sv_gamename \
+            --cache "$gamelistpathtmp/.commercial-${nextcore}.json") || pick_rc=$?
+        ((pick_rc == 0)) || return "$pick_rc"
+        samdebug "Preferred commercial ROM: $rompath"
+        return 0
     fi
 
     # 2. Default Action: If no special game modes applied, use the random picker.

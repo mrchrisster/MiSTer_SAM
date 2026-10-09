@@ -329,6 +329,52 @@ skipmessage=yes; skiptime=10; skipmessage saturn
 [[ $(head -n1 "$SAM_TMP_ROOT/sleeps") == 10 ]]
 ''')
 
+    def test_commercial_picker_uses_filtered_copies_without_master_fallback(self):
+        self.assertShell('''
+selector=$(<"$mrsampath/modules/compat-selection.sh")
+selector=${selector//\/tmp\/.SAM_tmp/$SAM_TMP_ROOT}
+source /dev/stdin <<< "$selector"
+samvideo=yes;samvideo_tvc=yes;m82=no;Artwork_only=no;nextcore=nes
+printf 'Super Mario Bros. (\\n' > "$SAM_TMP_ROOT/sv_gamename"
+printf '/games/Super Mario Bros. (USA).nes\\n' > "$gamelistpath/nes_gamelist.txt"
+printf '/games/Super Mario Bros. 2 (USA).nes\\n' > "$gamelistpathtmp/nes_gamelist.txt"
+rc=0;pick_rom || rc=$?
+[[ "$rc" == 1 && -z "$rompath" ]]
+printf '/games/06. Super Mario Bros. (USA).nes\\n/games/Super Mario Bros. (World).nes\\n' > "$gamelistpathtmp/nes_gamelist.txt"
+pick_rom
+[[ "$rompath" == '/games/Super Mario Bros. (World).nes' ]]
+''')
+
+    def test_commercial_no_match_is_bounded_before_video_playback(self):
+        self.assertShell('''
+video_code=$(<"$mrsampath/modules/video-functions.sh")
+video_code=${video_code//\/tmp\/.SAM_tmp/$SAM_TMP_ROOT}
+source /dev/stdin <<< "$video_code"
+sam_core_session_begin nes;samvideo_tvc_cdi=no
+printf '/games/Other (USA).nes\\n' > "$gamelistpathtmp/nes_gamelist.txt"
+check_list(){ :; }
+# Preserve real title matching, while giving the selector a private manifest.
+python3(){ command python3 "$@"; }
+fixture_payload="$SAM_TMP_ROOT/commercial-payload"
+mkdir -p "$fixture_payload/tvc" "$fixture_payload/modules" "$fixture_payload/artwork"
+cp "$mrsampath/modules/commercial_picker.py" "$fixture_payload/modules/"
+cp "$mrsampath/artwork/sam_artwork.py" "$fixture_payload/artwork/"
+printf '{"missing.avi":"Absent Game"}\\n' > "$fixture_payload/tvc/nes_tvc.json"
+mrsampath="$fixture_payload"
+rc=0;samvideo_tvc || rc=$?
+[[ "$rc" == 1 && -z "$sv_selected" && ! -f "$SAM_TMP_ROOT/sv_gamename" && "$count" -le 15 ]]
+''')
+
+    def test_compat_catalog_preserves_intentionally_empty_filtered_list(self):
+        self.assertShell('''source "$mrsampath/modules/compat-catalog.sh"
+m82=no;sam_goat_list=no
+printf '/games/Excluded (USA).nes\\n' > "$gamelistpath/nes_gamelist.txt"
+: > "$gamelistpathtmp/nes_gamelist.txt"
+mkdir -p "$gamelistpathtmp/.checked";: > "$gamelistpathtmp/.checked/nes.filtered"
+check_list nes
+[[ ! -s "$gamelistpathtmp/nes_gamelist.txt" ]]
+''')
+
     def test_runtime_phase_is_atomic_and_old_owner_cannot_overwrite(self):
         self.assertShell('''mkdir -p "$mrsamtmp"; sam_pid_start "$$"; sam_owner="$$:$sam_proc_start"
 sam_publish_phase preparing; grep -q 'phase=preparing' "$mrsamtmp/session-owner"

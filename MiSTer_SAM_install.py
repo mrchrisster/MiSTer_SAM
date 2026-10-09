@@ -35,7 +35,8 @@ def checked_source(root):
                 '.MiSTer_SAM/samindex.py', '.MiSTer_SAM/sam_catalog.py', '.MiSTer_SAM/sam_zip.py',
                 '.MiSTer_SAM/sam_mgl.py', '.MiSTer_SAM/sam_compat.json',
                 '.MiSTer_SAM/zaparoo_catalog.json', '.MiSTer_SAM/zaparoo_catalog_source.json',
-                '.MiSTer_SAM/inputs/FDS_input_1234_5678_v3.map']
+                '.MiSTer_SAM/inputs/FDS_input_1234_5678_v3.map',
+                '.MiSTer_SAM/modules/commercial_picker.py']
     if not all((root / name).is_file() for name in required):
         raise RuntimeError('Release is incomplete; installed files were not changed.')
     # Validate the exact catalog/policy bundle before backing up configuration

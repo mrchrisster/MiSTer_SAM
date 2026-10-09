@@ -240,7 +240,7 @@ function sv_ar_cdi_mode() {
         if [ -n "$sv_selected" ]; then
              samdebug "Video pre-selected: $sv_selected"
         elif [ "$samvideo_tvc" == "yes" ]; then
-            samvideo_tvc
+            samvideo_tvc || { printf '1\n' > "$sv_gametimer_file"; return 1; }
             # Check if selection was made
             if [ -n "$sv_selected" ]; then
                 samdebug "Video selected via TVC: $sv_selected"
@@ -473,7 +473,7 @@ function sv_ar_download() {
     # Select a video and check availability
     while true; do
         if [ "$samvideo_tvc" == "yes" ]; then
-            samvideo_tvc
+            samvideo_tvc || { printf '1\n' > "$sv_gametimer_file"; return 1; }
         else
             sv_selected="$(shuf -n1 "${samvideo_list}")"
         fi
@@ -576,8 +576,15 @@ function samvideo_tvc() {
 
     # Initialize variables
     count=0
+    sv_selected= tvc_selected=
     local gamelist_tmp="${gamelistpathtmp}/${nextcore}${tvc_suffix}"
     local gamelist_original="${mrsampath}/tvc/${nextcore}${tvc_suffix}"
+
+    # Prepare only this core, using its normal session filters. Do not play an
+    # advertisement for a named game that cannot be selected afterward.
+    check_list "$nextcore" || return 1
+    [[ -s "$gamelistpathtmp/${nextcore}_gamelist.txt" ]] || return 1
+    sam_emit candidate_filter "$nextcore" || return $?
 
     # Ensure a local temporary copy exists or reset it if empty
 	if [ ! -f "$gamelist_tmp" ] || [ ! -s "$gamelist_tmp" ] || [ "$(cat "$gamelist_tmp")" = "{}" ]; then
@@ -591,6 +598,7 @@ function samvideo_tvc() {
 
             # Select a random game and its corresponding entry
             sv_selected=$(jq -r 'keys[]' "$gamelist_tmp" | shuf -n 1)
+            [[ -n "$sv_selected" ]] || break
             tvc_selected=$(jq -r --arg key "$sv_selected" '.[$key]' "$gamelist_tmp")
 
             # Remove the selected entry from the temporary file
@@ -602,7 +610,17 @@ function samvideo_tvc() {
             else
                  echo "${tvc_selected}" > /tmp/.SAM_tmp/sv_gamename
             fi
-            break
+            local match_rc=0
+            python3 "$mrsampath/modules/commercial_picker.py" --core "$nextcore" \
+                --list "$gamelistpathtmp/${nextcore}_gamelist.txt" \
+                --query-file /tmp/.SAM_tmp/sv_gamename \
+                --cache "$gamelistpathtmp/.commercial-${nextcore}.json" >/dev/null || match_rc=$?
+            if ((match_rc == 0)); then break; fi
+            ((match_rc == 1)) || return "$match_rc"
+            printf 'SAM commercial: skipping %s; no matching game remains in the filtered list.\n' "$sv_selected" >&2
+            sv_selected= tvc_selected=
+            count=$((count+1))
+            continue
         else
             # If the file is not found, select a new core randomly
             pick_core SV_TVC_CL || return $?
@@ -612,6 +630,11 @@ function samvideo_tvc() {
         ((count++))
     done
 
+    if [[ -z "$sv_selected" ]]; then
+        rm -f /tmp/.SAM_tmp/sv_gamename
+        echo 'SAM commercial: no playable advertisement found in this batch.' >&2
+        return 1
+    fi
     echo $nextcore > /tmp/.SAM_tmp/sv_core
     samdebug "Searching for ${SV_TVC[$nextcore]}"
     if [ -z "${tvc_selected}" ]; then

@@ -93,7 +93,7 @@ function check_list() {
 
     # 4. Default action: Copy the master list to the temp session directory if no
     #    special session list (like M82) was created.
-    if [ ! -s "${session_list}" ]; then
+    if [ ! -f "${session_list}" ]; then
         cp "${gamelistpath}/${core_type}_gamelist.txt" "${session_list}" 2>/dev/null
     fi
 
