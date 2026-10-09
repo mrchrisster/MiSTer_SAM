@@ -1,5 +1,19 @@
 # Recent changes
 
+## 2026-10-09 — Smaller update archive
+
+- Exclude `mplayer`, `mplayer.zip` and obsolete `partun` from GitHub source
+  archives with `export-ignore`. Native indexing tools remain included.
+- Preserve an existing installed player. Optional video mode downloads the
+  published executable when missing; fix its previous nonexistent ZIP URL.
+- Add regression coverage for installing a release without the optional player
+  and for successful/failed optional player downloads.
+- The candidate archive shrank from 10.6 MiB to 2.9 MiB. Eleven installer tests
+  and thirty shell tests passed on MiSTer Linux. The real optional-player download in temporary storage
+  matched the published binary's SHA-256.
+- Keep Linux shell/Python files at LF in exported archives. Isolate the synthetic
+  queue fixture from real collection rescanning.
+
 ## 2026-10-09 — Configuration-only update backup
 
 - Online updates hand off to the installer in the downloaded release, rather

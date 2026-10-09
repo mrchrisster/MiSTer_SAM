@@ -6,7 +6,7 @@ The HID keyboard and mouse readers and repeated joystick startup snapshots are r
 
 ## Installation and update
 
-MiSTer needs Bash, Python 3.9 or newer, tmux and its usual SAM tools. The release includes the native indexing, controller and video assets.
+MiSTer needs Bash, Python 3.9 or newer, tmux and its usual SAM tools. The release includes the native indexing and controller assets. Regular GitHub archives exclude the optional mplayer binary and obsolete partun. Existing mplayer installations are retained; video mode downloads it separately when missing. Normal SAM does not need mplayer.
 
 For an online installation, run through SSH:
 

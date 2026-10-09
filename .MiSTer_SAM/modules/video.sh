@@ -35,12 +35,12 @@ sam_register session_stop sam_video_cleanup
 
 sam_video_assets() {
     local result=0
-    check_and_update "$raw_base/.MiSTer_SAM/mplayer.zip" /tmp/sam-mplayer.zip "$mrsampath/mplayer.zip" mplayer || result=$?
+    # The optional player is excluded from release archives. Fetch the published
+    # executable when needed; this branch has no mplayer.zip download.
+    check_and_update "$raw_base/.MiSTer_SAM/mplayer" /tmp/sam-mplayer "$mrsampath/mplayer" mplayer || result=$?
     ((result == 0 || result == 2)) || return 1
-    if ((result == 2)) || [[ ! -x "$mrsampath/mplayer" ]]; then
-        unzip -ojq "$mrsampath/mplayer.zip" -d "$mrsampath" || return 1
-        chmod +x "$mrsampath/mplayer"
-    fi
+    chmod +x "$mrsampath/mplayer" || return 1
+    [[ -x "$mrsampath/mplayer" ]]
 }
 get_samvideo() { sam_video_assets; }
 sam_register update_assets sam_video_assets

@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 import sys
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -115,6 +116,17 @@ class Install(unittest.TestCase):
             installer.checked_source(Path(self.tmp.name))
         self.assertEqual(sentinel.read_text(), 'keep this configuration')
         self.assertFalse((self.scripts / '.SAM_refactor_backups').exists())
+
+    def test_release_without_optional_player_preserves_existing_player(self):
+        source = Path(self.tmp.name) / 'small release'
+        shutil.copytree(PACKAGE, source,
+                        ignore=shutil.ignore_patterns('.git', '__pycache__', 'mplayer', 'mplayer.zip', 'partun'))
+        player = self.scripts / '.MiSTer_SAM/mplayer'
+        player.parent.mkdir(parents=True)
+        player.write_bytes(b'existing optional video player')
+        installer.install(installer.checked_source(source), self.mister, 'test')
+        self.assertFalse((source / '.MiSTer_SAM/mplayer').exists())
+        self.assertEqual(player.read_bytes(), b'existing optional video player')
 
     def test_download_selects_readable_bundle_without_disabling_verification(self):
         bundle = Path(self.tmp.name) / 'cacert.pem'

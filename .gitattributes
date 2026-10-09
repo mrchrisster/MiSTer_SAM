@@ -1,0 +1,9 @@
+# Optional video binaries remain available through raw GitHub URLs, but do not
+# belong in the regular GitHub source/update archive.
+*.sh text eol=lf
+*.py text eol=lf
+.MiSTer_SAM/MiSTer_SAM_init text eol=lf
+.MiSTer_SAM/MiSTer_SAM_tty2oled text eol=lf
+.MiSTer_SAM/mplayer export-ignore
+.MiSTer_SAM/mplayer.zip export-ignore
+.MiSTer_SAM/partun export-ignore

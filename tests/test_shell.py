@@ -86,6 +86,9 @@ sam_normal_commit snes '/games/B.sfc' yes
 
     def test_preparation_fills_two_choices_without_consuming_history(self):
         self.assertShell('''SAM_MODE=SINGLE; SAM_TARGET_CORE=snes; corelist=(snes); corelisttmp=(snes); norepeat=yes
+# This fixture has a complete synthetic catalog; real samindex discovery is
+# covered separately and must not read the device's collections here.
+check_for_new_games=no
 sam_owner=test; sam_generation=8; sam_revision=2; sam_job_serial=1
 sam_session="$SAM_TMP_ROOT/test-session"; sam_catalog_cache="$SAM_TMP_ROOT/cache"
 mkdir -p "$sam_session/ready" "$sam_session/jobs" "$sam_session/consumed" "$sam_catalog_cache"
@@ -169,6 +172,29 @@ sam_emit display_publish 42 "$((EPOCHSECONDS + 42))"
 samvideo_play(){ printf played > "$SAM_TMP_ROOT/video-played"; }
 ! load_samvideo; wait; [[ -f "$SAM_TMP_ROOT/video-played" ]]
 load_samvideo; [[ "$sv_loadcounter" == 2 ]]
+''')
+
+    def test_video_assets_download_published_player_and_make_it_executable(self):
+        self.assertShell('''sam_load_module video
+ mrsampath="$SAM_TMP_ROOT/player-assets"; mkdir -p "$mrsampath"
+raw_base=https://example.invalid/test
+check_and_update(){
+    [[ "$1" == "$raw_base/.MiSTer_SAM/mplayer" && "$2" == /tmp/sam-mplayer && "$3" == "$mrsampath/mplayer" ]] || return 1
+    printf '#!/bin/sh\\nexit 0\\n' > "$3"
+    return 2
+}
+sam_video_assets
+[[ -x "$mrsampath/mplayer" ]]
+''')
+
+    def test_video_assets_failure_does_not_replace_existing_player(self):
+        self.assertShell('''sam_load_module video
+ mrsampath="$SAM_TMP_ROOT/player-assets"; mkdir -p "$mrsampath"
+printf 'existing player' > "$mrsampath/mplayer"
+chmod +x "$mrsampath/mplayer"
+check_and_update(){ return 1; }
+! sam_video_assets
+[[ "$(cat "$mrsampath/mplayer")" == 'existing player' ]]
 ''')
 
     def test_xml_paths_and_configuration_are_literal(self):
