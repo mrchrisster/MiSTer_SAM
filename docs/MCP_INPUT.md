@@ -1,5 +1,23 @@
 # MCP input detection and ghost-session fixes
 
+## DJ Wars cover reproduction: 2026-10-09
+
+The earlier blank DJ Wars display was investigated separately from the Saturn
+BIOS timing issue. The actual Monitor 2.11.1 resolver matched and decoded the
+installed `DJ Wars (Japan) (Rev A) (10M).jpg` without loading or hashing the CHD.
+An isolated temporary INI then selected that exact ROM through normal SAM
+artwork filtering. From the first snapshot naming DJ Wars, all 67 sampled
+`/media/artwork` responses returned HTTP 200 with the same valid 113,357-byte
+JPEG (SHA-256 `8ff125cce660f11fe1bde744a7bfe54d76abae746243c2d066fd3539baabbb7e`).
+SAM's current record also contained its decoded prepared DJ Wars cover.
+
+The user confirmed the cover loaded on the display during this exact replay.
+The original blank display was not reproduced, so its historical cause is not
+established. No client retry/sequence issue is claimed as proven, and no artwork
+matching or Android behavior was changed. Echo Show debugging was deferred at
+the user's request. The permanent INI and ROM collection were unchanged; normal
+Saturn selection was restored after the temporary test.
+
 ## Saturn BIOS timing: 2026-10-09
 
 DJ Wars stayed in BIOS with the generic ten-second skip delay. The disc and
