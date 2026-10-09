@@ -17,6 +17,14 @@ preserved. The FDS catalog setname requires an FDS virtual keyboard profile;
 the installer seeds missing bundled synthetic maps without replacing existing
 maps. Input readers, physical mappings and polling frequency are unchanged.
 
+Validation: 197 native tests passed in 137.282 seconds. The exact interactive
+`m amiga` command printed its startup message and unsupported-artwork error,
+returning status 1. A live `m fds` run reported preparation and then running;
+the user confirmed Bomberman passed the FDS BIOS and reached the game. The FDS
+single-core session was left running for further testing. Existing NES and
+physical-controller maps were preserved; only the previously absent FDS virtual
+keyboard profile was seeded.
+
 ## Core-policy refactor: 2026-10-09
 
 M82 list setup now runs after its NES-only core policy and pure session validation,
