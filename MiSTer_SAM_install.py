@@ -31,9 +31,17 @@ def curl_ca_options():
 def checked_source(root):
     required = ['MiSTer_SAM_on.sh', 'MiSTer_SAM.ini', 'MiSTer_SAM_install.py',
                 '.MiSTer_SAM/lib/modules.sh', '.MiSTer_SAM/lib/engine.sh', '.MiSTer_SAM/lib/cores.sh',
-                '.MiSTer_SAM/MiSTer_SAM_MCP.py', '.MiSTer_SAM/samindex', '.MiSTer_SAM/mbc']
+                '.MiSTer_SAM/MiSTer_SAM_MCP.py', '.MiSTer_SAM/samindex', '.MiSTer_SAM/mbc',
+                '.MiSTer_SAM/samindex.py', '.MiSTer_SAM/sam_catalog.py', '.MiSTer_SAM/sam_zip.py',
+                '.MiSTer_SAM/sam_mgl.py', '.MiSTer_SAM/sam_compat.json',
+                '.MiSTer_SAM/zaparoo_catalog.json', '.MiSTer_SAM/zaparoo_catalog_source.json']
     if not all((root / name).is_file() for name in required):
         raise RuntimeError('Release is incomplete; installed files were not changed.')
+    # Validate the exact catalog/policy bundle before backing up configuration
+    # or stopping sessions. Import from this release in a fresh interpreter.
+    subprocess.run([sys.executable, '-c',
+                    'import sys; sys.path.insert(0, sys.argv[1]); from sam_catalog import Catalog; Catalog()',
+                    str(root / '.MiSTer_SAM')], check=True)
     for path in (root / '.MiSTer_SAM').rglob('*'):
         if not path.is_file():
             continue

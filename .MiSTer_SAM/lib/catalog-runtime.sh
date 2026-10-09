@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-sam_build_catalog() { # core; private staging, both samindex passes retained
+sam_build_catalog() { # core; private staging, one complete scan
     local c="$1" stage="$sam_job/build-$1" build_func rc
     mkdir -p "$stage"
     case "$c" in
@@ -13,7 +13,12 @@ sam_build_catalog() { # core; private staging, both samindex passes retained
         find "$misterpath/_Arcade" -not -path '*/.*' -type f -iname '*.mra' | head -n 64 > "$stage/arcade_gamelist.txt"
         : > "$gamelistpath/arcade.partial"
     else
-        "$build_func" "$c" "$stage" || [[ -f "$stage/${c}_gamelist.txt" ]] || return 1
+        rc=0
+        "$build_func" "$c" "$stage" || rc=$?
+        # A failed generic scan may have preserved an older staging file. Never
+        # publish it as the result of this request or remove partial markers.
+        if [[ "$build_func" == build_gamelist ]] && ((rc != 0)); then return "$rc"; fi
+        ((rc == 0)) || [[ -f "$stage/${c}_gamelist.txt" ]] || return "$rc"
         rm -f "$gamelistpath/$c.partial"
     fi
     [[ -f "$stage/${c}_gamelist.txt" ]] || return 1

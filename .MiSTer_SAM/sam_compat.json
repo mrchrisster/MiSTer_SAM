@@ -1,0 +1,219 @@
+{
+  "format": 1,
+  "aliases": {
+    "amiga": "Amiga",
+    "amigacd32": "AmigaCD32",
+    "ao486": "ao486",
+    "arcade": "Arcade",
+    "atari2600": "Atari2600",
+    "atari5200": "Atari5200",
+    "atari7800": "Atari7800",
+    "atarilynx": "AtariLynx",
+    "c64": "C64",
+    "cdi": "CDI",
+    "coco2": "CoCo2",
+    "colecovision": "ColecoVision",
+    "intellivision": "Intellivision",
+    "fds": "FDS",
+    "gb": "Gameboy",
+    "gbc": "GameboyColor",
+    "gba": "GBA",
+    "genesis": "Genesis",
+    "gg": "GameGear",
+    "jaguar": "Jaguar",
+    "megacd": "MegaCD",
+    "n64": "Nintendo64",
+    "neogeo": "NeoGeo",
+    "neogeocd": "NeoGeoCD",
+    "nes": "NES",
+    "s32x": "Sega32X",
+    "saturn": "Saturn",
+    "sgb": "SuperGameboy",
+    "sms": "MasterSystem",
+    "snes": "SNES",
+    "stv": "Arcade",
+    "tgfx16": "TurboGrafx16",
+    "tgfx16cd": "TurboGrafx16CD",
+    "3do": "3DO",
+    "vectrex": "Vectrex",
+    "wonderswan": "WonderSwan",
+    "wonderswancolor": "WonderSwanColor",
+    "psx": "PSX",
+    "x68k": "X68000",
+    "mgls": null
+  },
+  "extensions": {
+    "amigacd32": [
+      ".chd",
+      ".cue"
+    ],
+    "ao486": [
+      ".mgl"
+    ],
+    "arcade": [
+      ".mra"
+    ],
+    "atari2600": [
+      ".a26"
+    ],
+    "atari5200": [
+      ".a52",
+      ".car"
+    ],
+    "atari7800": [
+      ".a78"
+    ],
+    "atarilynx": [
+      ".lnx"
+    ],
+    "c64": [
+      ".crt",
+      ".prg"
+    ],
+    "cdi": [
+      ".chd",
+      ".cue"
+    ],
+    "coco2": [
+      ".ccc"
+    ],
+    "colecovision": [
+      ".col"
+    ],
+    "intellivision": [
+      ".int",
+      ".bin",
+      ".rom"
+    ],
+    "fds": [
+      ".fds"
+    ],
+    "gb": [
+      ".gb"
+    ],
+    "gbc": [
+      ".gbc"
+    ],
+    "gba": [
+      ".gba"
+    ],
+    "genesis": [
+      ".md",
+      ".gen"
+    ],
+    "gg": [
+      ".gg"
+    ],
+    "jaguar": [
+      ".j64",
+      ".rom",
+      ".bin",
+      ".jag"
+    ],
+    "3do": [
+      ".cue",
+      ".chd"
+    ],
+    "megacd": [
+      ".chd",
+      ".cue"
+    ],
+    "n64": [
+      ".n64",
+      ".z64"
+    ],
+    "neogeo": [
+      ".neo"
+    ],
+    "neogeocd": [
+      ".cue",
+      ".chd"
+    ],
+    "nes": [
+      ".nes"
+    ],
+    "s32x": [
+      ".32x"
+    ],
+    "saturn": [
+      ".cue",
+      ".chd"
+    ],
+    "sgb": [
+      ".gb",
+      ".gbc"
+    ],
+    "sms": [
+      ".sms",
+      ".sg"
+    ],
+    "snes": [
+      ".sfc",
+      ".smc"
+    ],
+    "tgfx16": [
+      ".pce",
+      ".sgx"
+    ],
+    "tgfx16cd": [
+      ".chd",
+      ".cue"
+    ],
+    "psx": [
+      ".chd",
+      ".cue",
+      ".exe"
+    ],
+    "vectrex": [
+      ".bin"
+    ],
+    "wonderswan": [
+      ".ws"
+    ],
+    "wonderswancolor": [
+      ".wsc"
+    ],
+    "x68k": [
+      ".mgl"
+    ],
+    "mgls": [
+      ".mgl"
+    ]
+  },
+  "launch_groups": {
+    "tgfx16": "TGFX16",
+    "sms": "SMS"
+  },
+  "media_slot_aliases": {
+    "psx": {".exe": ".chd"}
+  },
+  "handlers": {
+    "amiga": "amiga_listings",
+    "amigacd32": "amiga_cd32",
+    "ao486": "existing_mgl",
+    "x68k": "existing_mgl",
+    "mgls": "custom_mgl",
+    "arcade": "mra",
+    "stv": "stv_mra"
+  },
+  "storage_roots": [
+    "/media/usb0/games",
+    "/media/usb0",
+    "/media/usb1/games",
+    "/media/usb1",
+    "/media/usb2/games",
+    "/media/usb2",
+    "/media/usb3/games",
+    "/media/usb3",
+    "/media/usb4/games",
+    "/media/usb4",
+    "/media/usb5/games",
+    "/media/usb5",
+    "/media/network/games",
+    "/media/network",
+    "/media/fat/cifs/games",
+    "/media/fat/cifs",
+    "/media/fat/games",
+    "/media/fat"
+  ]
+}

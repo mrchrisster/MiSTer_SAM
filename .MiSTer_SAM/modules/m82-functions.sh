@@ -9,8 +9,9 @@ function build_m82_list() {
 		local index_rc=0
         sam_m82_index_stage=$(mktemp -d "$mrsamtmp/m82-index.XXXXXX") || return 1
 		sam_run_owned_command "$mrsampath/samindex" -q -s nes -o "$sam_m82_index_stage" || index_rc=$?
-		if (( index_rc > 1 )) || [[ ! -s "$sam_m82_index_stage/nes_gamelist.txt" ]]; then
-			echo "Error: NES gamelist missing. Make sure you have NES games."
+		if (( index_rc != 0 )) || [[ ! -s "$sam_m82_index_stage/nes_gamelist.txt" ]]; then
+			if ((index_rc == 8)); then echo 'Error: No NES games found.'
+            else echo "Error: NES indexing failed (status $index_rc). Existing lists preserved."; fi
             sam_m82_cleanup_index
             return 1
 		fi

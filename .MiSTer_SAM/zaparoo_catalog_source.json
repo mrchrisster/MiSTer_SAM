@@ -1,0 +1,12 @@
+{
+  "format": 1,
+  "repository": "https://github.com/ZaparooProject/zaparoo-core",
+  "revision": "c50f62a4d34a0cc71cb218cfa9cb7b8938221869",
+  "path": "mister/catalog/catalog.json",
+  "sha256": "ca54219c20e04b859118848fbfac4f90637a707d87474b067ecfa282fd69956b",
+  "license": "GPL-3.0-or-later",
+  "validated_against": [
+    "mister/catalog/catalog.go",
+    "mister/mgl/mgl.go"
+  ]
+}

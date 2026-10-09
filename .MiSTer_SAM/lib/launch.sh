@@ -240,15 +240,9 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             tty_corename="${TTY2OLED_PIC_NAME[${core}]}"
             mute_target="${CORE_LAUNCH[${core}]}"
 
-            if [ -s /tmp/SAM_Game.mgl ]; then mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl; fi
-            sam_xml_escape "$rompath"
-            {
-                echo "<mistergamedescription>"
-                echo "<rbf>${CORE_PATH_RBF[${core}]}/${MGL_CORE[${core}]}</rbf>"
-                echo "<file delay=\"${MGL_DELAY[${core}]}\" type=\"${MGL_TYPE[${core}]}\" index=\"${MGL_INDEX[${core}]}\" path=\"../../../../..${sam_xml}\"/>"
-                [ -n "${MGL_SETNAME[${core}]}" ] && echo "<setname>${MGL_SETNAME[${core}]}</setname>"
-                echo "</mistergamedescription>"
-            } >/tmp/SAM_Game.mgl
+            if [ -s /tmp/SAM_Game.mgl ]; then cp /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl || return 1; fi
+            sam_run_owned_command python3 "$mrsampath/sam_mgl.py" "$core" "$rompath" \
+                --sd-root "$misterpath" --rbf-folder "${CORE_PATH_RBF[$core]}" -o /tmp/SAM_Game.mgl || return $?
 
             launch_cmd="load_core /tmp/SAM_Game.mgl"
 

@@ -42,6 +42,38 @@ class Shell(unittest.TestCase):
     def test_public_list_paths(self):
         self.assertShell('[[ "$gamelistpath" == "$SAM_LIST_ROOT/Gamelists" && "$ignorepath" == "$SAM_LIST_ROOT/Ignore" && "$blacklistpath" == "$SAM_LIST_ROOT/Blacklists" && "$ratedpath" == "$SAM_LIST_ROOT/Rated" ]]\n')
 
+    def test_generic_indexer_runs_once_without_sleep_and_preserves_failure(self):
+        self.assertShell('''
+mkdir -p "$SAM_TMP_ROOT/scanner" "$SAM_TMP_ROOT/output"
+cat > "$SAM_TMP_ROOT/scanner/samindex" <<'SH'
+#!/bin/bash
+printf 'call\\n' >> "$SAM_TMP_ROOT/calls"
+[[ "$SAM_INDEX_RC" != 2 ]] || exit 2
+printf '/games/A.nes\\n' > "$5/nes_gamelist.txt"
+exit "$SAM_INDEX_RC"
+SH
+chmod +x "$SAM_TMP_ROOT/scanner/samindex"
+mrsampath="$SAM_TMP_ROOT/scanner"
+sleep() { echo unexpected-sleep >&2; return 99; }
+export SAM_INDEX_RC=0
+build_gamelist nes "$SAM_TMP_ROOT/output"
+[[ $(wc -l < "$SAM_TMP_ROOT/calls") == 1 ]]
+export SAM_INDEX_RC=2
+rc=0; build_gamelist nes "$SAM_TMP_ROOT/output" || rc=$?
+[[ "$rc" == 2 && $(<"$SAM_TMP_ROOT/output/nes_gamelist.txt") == '/games/A.nes' ]]
+''')
+
+    def test_generic_failed_scan_does_not_publish_old_staging_list(self):
+        self.assertShell('''
+sam_session="$SAM_TMP_ROOT/session";sam_job="$SAM_TMP_ROOT/job"
+mkdir -p "$sam_session" "$sam_job/build-nes";: > "$sam_session/alive"
+printf 'old-stage\\n' > "$sam_job/build-nes/nes_gamelist.txt"
+printf 'valid-published\\n' > "$gamelistpath/nes_gamelist.txt"
+build_gamelist(){ return 2; }
+rc=0;sam_build_catalog nes || rc=$?
+[[ "$rc" == 2 && $(<"$gamelistpath/nes_gamelist.txt") == valid-published ]]
+''')
+
     def test_literal_record_and_unknown_keys(self):
         self.assertShell('''sam_generation=3; sam_owner=test; sam_candidate_cover=''; sam_candidate_reset=no
 path='/games/$(touch /tmp/SAM_EVAL_FORBIDDEN) = Pokémon.chd'

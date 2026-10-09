@@ -1303,7 +1303,10 @@ function menu_reset_gamelists() {
     case "${choice,,}" in
       menu_creategl)
         dialog --infobox "Creating all game lists..." 5 40
-		${mrsampath}/samindex -o "${gamelistpath}"
+        if ! sam_rebuild_all_lists; then
+            dialog --msgbox "Gamelist rebuild failed. Check the storage and SAM output. Previous lists were preserved for scans that failed." 0 0
+            return 1
+        fi
 
 		if [ ${inmenu} -eq 1 ]; then
 			sleep 1

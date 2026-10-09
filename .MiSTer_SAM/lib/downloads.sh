@@ -77,18 +77,13 @@ function get_samstuff() { #get_samstuff file (path)
 }
 
 function get_samindex() {
-    echo "Downloading samindex - needed for creating gamelists..."
-    echo "Created for MiSTer by wizzo"
-    echo "https://github.com/wizzomafizzo/mrext"
-
-    # Define URLs and file paths
-    latest_url="${raw_base}/.MiSTer_SAM/samindex"
-    tmp_file="/tmp/samindex"
-    local_file="${mrsampath}/samindex"
-
-    # Check and update samindex
-    check_and_update "$latest_url" "$tmp_file" "$local_file" "samindex"
-
+    # Scanner, policy and catalog are one release bundle. Never replace only
+    # the launcher from a moving raw URL and mix incompatible versions.
+    python3 -c 'import sys; sys.path.insert(0, sys.argv[1]); from sam_catalog import Catalog; Catalog(); import samindex' "$mrsampath" || {
+        echo 'SAM scanner bundle is incomplete or invalid. Run m update to reinstall the complete release.' >&2
+        return 1
+    }
+    echo 'Bundled SAM scanner and pinned catalog verified.'
 }
 
 function get_mbc() {

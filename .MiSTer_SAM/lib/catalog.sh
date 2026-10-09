@@ -165,24 +165,22 @@ function build_gamelist() {
 
     samdebug "Building gamelist for ${core} in ${outdir}"
 
-    # 2. SETUP: Ensure output directory exists and let the filesystem settle.
-    mkdir -p "$outdir"
-    sync "$outdir"
-    sleep 1
-
-    # 3. EXECUTION: Run the indexer to generate the list.
-    # The tool is run twice to work around a potential issue where it misses files on the first pass.
-    "${mrsampath}/samindex" -q -s "$core" -o "$outdir"
-    "${mrsampath}/samindex" -q -s "$core" -o "$outdir"
-    rc=$?
+    mkdir -p "$outdir" || return 2
+    # The scanner closes and fsyncs its complete output before atomic publication.
+    # One successful pass is sufficient; errors must not masquerade as no games.
+    rc=0
+    "${mrsampath}/samindex" -q -s "$core" -o "$outdir" || rc=$?
+    if ((rc != 0 && rc != 8)); then
+        printf 'SAM: Failed to index %s (status %s). Existing gamelist preserved.\n' "$core" "$rc" >&2
+        return 2
+    fi
 
     # 4. POST-PROCESSING: Handle results and cleanup.
     file="${outdir}/${core}_gamelist.txt"
 
     # Only perform special error handling and seeding for initial builds.
     if (( is_initial_build )); then
-        # On initial build, an exit code > 1 means "no games found".
-        if (( rc > 1 )); then
+        if (( rc == 8 )); then
             delete_from_corelist "$core"
             if [ -n "$core" ]; then
                 echo "Can't find games for ${CORE_PRETTY[$core]}"
@@ -193,13 +191,14 @@ function build_gamelist() {
             return 1 # Return an error
         fi
 
-        mkdir -p "${gamelistpathtmp}"
-        cp "${file}" "${gamelistpathtmp}/${core}_gamelist.txt" 2>/dev/null
     fi
 
     # Always sort and de-duplicate the final output file, regardless of build type.
     if [[ -f "$file" ]]; then
-        sort -u "$file" -o "$file"
+        sort -u "$file" -o "$file" || return 2
+    fi
+    if ((is_initial_build)); then
+        mkdir -p "$gamelistpathtmp" && cp "$file" "$gamelistpathtmp/${core}_gamelist.txt" || return 2
     fi
 
     return 0
@@ -208,4 +207,28 @@ function build_gamelist() {
 function ensure_list() {
     [[ -s "$gamelistpath/${1}_gamelist.txt" ]] || sam_build_catalog "$1" || return $?
     [[ -s "$gamelistpath/${1}_gamelist.txt" ]]
+}
+
+sam_rebuild_all_lists() {
+    local stage c builder rc=0
+    stage=$(mktemp -d "$mrsamtmp/rebuild.XXXXXX") || return 2
+    for c in "${corelistall[@]}"; do
+        case "$c" in
+            arcade|stv) builder=build_mra_list ;;
+            ao486|x68k|mgls) builder=build_mgl_list ;;
+            amiga) sam_adapter_paths amiga || { rc=2; break; }; builder=build_amiga_list ;;
+            *) builder=build_gamelist ;;
+        esac
+        rc=0; "$builder" "$c" "$stage" || rc=$?
+        if ((rc == 2)) || [[ ! -f "$stage/${c}_gamelist.txt" ]]; then rc=2; break; fi
+        rc=0
+    done
+    if ((rc == 0)); then
+        for c in "${corelistall[@]}"; do
+            cp "$stage/${c}_gamelist.txt" "$gamelistpath/$c.tmp.$BASHPID" &&
+                mv -f "$gamelistpath/$c.tmp.$BASHPID" "$gamelistpath/${c}_gamelist.txt" || { rc=2; break; }
+        done
+    fi
+    rm -rf -- "$stage"
+    return "$rc"
 }

@@ -1,0 +1,6168 @@
+{
+  "systems": {
+    "3DO": {
+      "id": "3DO",
+      "rbf": "_Console/3DO",
+      "folders": [
+        "3DO"
+      ],
+      "extensions": [
+        ".iso",
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".iso",
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "AcornAtom": {
+      "id": "AcornAtom",
+      "rbf": "_Computer/AcornAtom",
+      "folders": [
+        "AcornAtom"
+      ],
+      "extensions": [
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "AcornElectron": {
+      "id": "AcornElectron",
+      "rbf": "_Computer/AcornElectron",
+      "folders": [
+        "AcornElectron"
+      ],
+      "extensions": [
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "AdventureVision": {
+      "id": "AdventureVision",
+      "rbf": "_Console/AdventureVision",
+      "folders": [
+        "AVision"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Game",
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "AliceMC10": {
+      "id": "AliceMC10",
+      "rbf": "_Computer/AliceMC10",
+      "folders": [
+        "AliceMC10"
+      ],
+      "extensions": [
+        ".c10",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Tape",
+          "extensions": [
+            ".c10"
+          ]
+        }
+      ]
+    },
+    "Altair8800": {
+      "id": "Altair8800",
+      "rbf": "_Computer/Altair8800",
+      "folders": [
+        "Altair8800"
+      ],
+      "extensions": [
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "extensions": [
+            ".rom"
+          ]
+        }
+      ]
+    },
+    "Amiga": {
+      "id": "Amiga",
+      "rbf": "_Computer/Minimig",
+      "folders": [
+        "Amiga"
+      ],
+      "extensions": [
+        ".adf"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "label": "df0",
+          "extensions": [
+            ".adf"
+          ]
+        }
+      ]
+    },
+    "AmigaCD32": {
+      "id": "AmigaCD32",
+      "rbf": "_Computer/Minimig",
+      "folders": [
+        "AmigaCD32"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".iso",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "CD Image",
+          "extensions": [
+            ".cue",
+            ".chd",
+            ".iso"
+          ]
+        }
+      ]
+    },
+    "Amstrad": {
+      "id": "Amstrad",
+      "rbf": "_Computer/Amstrad",
+      "folders": [
+        "Amstrad"
+      ],
+      "extensions": [
+        ".dsk",
+        ".cdt",
+        ".sna",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "A:",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "B:",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 3
+          },
+          "label": "Expansion",
+          "extensions": [
+            ".e??"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 4
+          },
+          "label": "Tape",
+          "extensions": [
+            ".cdt"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 6
+          },
+          "label": "Snapshot",
+          "extensions": [
+            ".sna"
+          ]
+        }
+      ]
+    },
+    "AmstradNC": {
+      "id": "AmstradNC",
+      "rbf": "_Computer/AmstradNC",
+      "folders": [
+        "AmstradNC"
+      ],
+      "extensions": [
+        ".rom",
+        ".zip",
+        ".dsk",
+        ".img",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "extensions": [
+            ".rom",
+            ".zip"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".dsk",
+            ".img"
+          ]
+        }
+      ]
+    },
+    "AmstradPCW": {
+      "id": "AmstradPCW",
+      "rbf": "_Computer/Amstrad-PCW",
+      "folders": [
+        "Amstrad PCW"
+      ],
+      "extensions": [
+        ".dsk",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "A:",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "B:",
+          "extensions": [
+            ".dsk"
+          ]
+        }
+      ]
+    },
+    "Apogee": {
+      "id": "Apogee",
+      "rbf": "_Computer/Apogee",
+      "folders": [
+        "APOGEE"
+      ],
+      "extensions": [
+        ".rka",
+        ".rkr",
+        ".gam",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".rka",
+            ".rkr",
+            ".gam"
+          ]
+        }
+      ]
+    },
+    "AppleI": {
+      "id": "AppleI",
+      "rbf": "_Computer/Apple-I",
+      "folders": [
+        "Apple-I"
+      ],
+      "extensions": [
+        ".txt",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ASCII",
+          "extensions": [
+            ".txt"
+          ]
+        }
+      ]
+    },
+    "AppleII": {
+      "id": "AppleII",
+      "rbf": "_Computer/Apple-II",
+      "folders": [
+        "Apple-II"
+      ],
+      "extensions": [
+        ".dsk",
+        ".do",
+        ".po",
+        ".nib",
+        ".hdv",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".nib",
+            ".dsk",
+            ".do",
+            ".po"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".hdv"
+          ]
+        }
+      ]
+    },
+    "AppleIIGS": {
+      "id": "AppleIIGS",
+      "rbf": "_Computer/Apple-IIgs",
+      "folders": [
+        "Apple-IIgs"
+      ],
+      "extensions": [
+        ".hdv",
+        ".po",
+        ".2mg",
+        ".woz",
+        ".dsk",
+        ".do",
+        ".nib",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Hard Disk",
+          "extensions": [
+            ".hdv",
+            ".po",
+            ".2mg"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "3.5-inch Floppy",
+          "extensions": [
+            ".woz"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 3
+          },
+          "label": "5.25-inch Floppy",
+          "extensions": [
+            ".dsk",
+            ".do",
+            ".nib"
+          ]
+        }
+      ]
+    },
+    "AppleIII": {
+      "id": "AppleIII",
+      "rbf": "_Computer/Apple-III",
+      "folders": [
+        "Apple-III"
+      ],
+      "extensions": [
+        ".woz",
+        ".dsk",
+        ".do",
+        ".po",
+        ".nib",
+        ".2mg",
+        ".hdv",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".woz",
+            ".dsk",
+            ".do",
+            ".po",
+            ".nib",
+            ".2mg"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 6
+          },
+          "extensions": [
+            ".hdv"
+          ]
+        }
+      ]
+    },
+    "AppleLisa": {
+      "id": "AppleLisa",
+      "rbf": "_Computer/Apple-Lisa",
+      "folders": [
+        "LISA"
+      ],
+      "extensions": [
+        ".img",
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 2
+          },
+          "label": "Hard Disk",
+          "extensions": [
+            ".img",
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "Aquarius": {
+      "id": "Aquarius",
+      "rbf": "_Computer/Aquarius",
+      "folders": [
+        "AQUARIUS"
+      ],
+      "extensions": [
+        ".bin",
+        ".caq",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "Tape",
+          "extensions": [
+            ".caq"
+          ]
+        }
+      ]
+    },
+    "Arcade": {
+      "id": "Arcade",
+      "folders": [
+        "_Arcade"
+      ],
+      "extensions": [
+        ".mra",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "extensions": [
+            ".mra"
+          ]
+        }
+      ]
+    },
+    "Arcadia": {
+      "id": "Arcadia",
+      "rbf": "_Console/Arcadia",
+      "folders": [
+        "Arcadia"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Arduboy": {
+      "id": "Arduboy",
+      "rbf": "_Other/Arduboy",
+      "folders": [
+        "Arduboy"
+      ],
+      "extensions": [
+        ".hex",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "extensions": [
+            ".bin",
+            ".hex"
+          ]
+        }
+      ]
+    },
+    "Astrocade": {
+      "id": "Astrocade",
+      "rbf": "_Console/Astrocade",
+      "folders": [
+        "Astrocade"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Atari2600": {
+      "id": "Atari2600",
+      "setName": "Atari2600",
+      "rbf": "_Console/Atari7800",
+      "folders": [
+        "ATARI7800",
+        "Atari2600"
+      ],
+      "extensions": [
+        ".a26",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".a26"
+          ]
+        }
+      ]
+    },
+    "Atari2600ARM": {
+      "id": "Atari2600ARM",
+      "rbf": "_Console/Atari.2600.ARM",
+      "rbfAliases": [
+        "Atari*2600*ARM*"
+      ],
+      "folders": [
+        "ATARI2600"
+      ],
+      "extensions": [
+        ".a26",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".a26",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Atari5200": {
+      "id": "Atari5200",
+      "rbf": "_Console/Atari5200",
+      "folders": [
+        "ATARI5200"
+      ],
+      "extensions": [
+        ".car",
+        ".a52",
+        ".bin",
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cart",
+          "extensions": [
+            ".car",
+            ".a52",
+            ".bin",
+            ".rom"
+          ]
+        }
+      ]
+    },
+    "Atari7800": {
+      "id": "Atari7800",
+      "rbf": "_Console/Atari7800",
+      "folders": [
+        "ATARI7800"
+      ],
+      "extensions": [
+        ".a78",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".a78",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Atari800": {
+      "id": "Atari800",
+      "rbf": "_Computer/Atari800",
+      "folders": [
+        "ATARI800"
+      ],
+      "extensions": [
+        ".atr",
+        ".xex",
+        ".xfd",
+        ".atx",
+        ".car",
+        ".rom",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 6
+          },
+          "label": "D1",
+          "extensions": [
+            ".atr",
+            ".xex",
+            ".xfd",
+            ".atx"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "D2",
+          "extensions": [
+            ".atr",
+            ".xex",
+            ".xfd",
+            ".atx"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 8
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".car",
+            ".rom",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "AtariLynx": {
+      "id": "AtariLynx",
+      "rbf": "_Console/AtariLynx",
+      "folders": [
+        "AtariLynx"
+      ],
+      "extensions": [
+        ".lnx",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".lnx"
+          ]
+        }
+      ]
+    },
+    "AtariLynx2P": {
+      "id": "AtariLynx2P",
+      "rbf": "_Console/AtariLynx2P",
+      "folders": [
+        "AtariLynx2P"
+      ],
+      "extensions": [
+        ".lnx",
+        ".lyx",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".lnx",
+            ".lyx"
+          ]
+        }
+      ]
+    },
+    "BBCBridgeCompanion": {
+      "id": "BBCBridgeCompanion",
+      "rbf": "_Console/BBCBridgeCompanion",
+      "folders": [
+        "BBCBridgeCompanion"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "BBCMicro": {
+      "id": "BBCMicro",
+      "rbf": "_Computer/BBCMicro",
+      "folders": [
+        "BBCMicro"
+      ],
+      "extensions": [
+        ".ssd",
+        ".dsd",
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".ssd",
+            ".dsd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".ssd",
+            ".dsd"
+          ]
+        }
+      ]
+    },
+    "BK0011M": {
+      "id": "BK0011M",
+      "rbf": "_Computer/BK0011M",
+      "folders": [
+        "BK0011M"
+      ],
+      "extensions": [
+        ".bin",
+        ".dsk",
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "FDD(A)",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "FDD(B)",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "HDD",
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "BennuGD": {
+      "id": "BennuGD",
+      "rbf": "_Other/_BennuGD/BennuGD",
+      "folders": [
+        "BennuGD"
+      ],
+      "extensions": [
+        ".dat",
+        ".dcb",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".dat",
+            ".dcb"
+          ]
+        }
+      ]
+    },
+    "C128": {
+      "id": "C128",
+      "rbf": "_Computer/C128",
+      "folders": [
+        "C128"
+      ],
+      "extensions": [
+        ".d64",
+        ".g64",
+        ".d71",
+        ".g71",
+        ".d81",
+        ".t64",
+        ".prg",
+        ".crt",
+        ".reu",
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".d64",
+            ".g64",
+            ".d71",
+            ".g71",
+            ".d81",
+            ".t64"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".prg",
+            ".crt",
+            ".reu",
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "C16": {
+      "id": "C16",
+      "rbf": "_Computer/C16",
+      "folders": [
+        "C16"
+      ],
+      "extensions": [
+        ".d64",
+        ".g64",
+        ".prg",
+        ".tap",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "#8",
+          "extensions": [
+            ".d64",
+            ".g64"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "#9",
+          "extensions": [
+            ".d64",
+            ".g64"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".prg",
+            ".tap",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "C64": {
+      "id": "C64",
+      "rbf": "_Computer/C64",
+      "folders": [
+        "C64"
+      ],
+      "extensions": [
+        ".d64",
+        ".g64",
+        ".t64",
+        ".d81",
+        ".prg",
+        ".crt",
+        ".reu",
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "#8",
+          "extensions": [
+            ".d64",
+            ".g64",
+            ".t64",
+            ".d81"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "#9",
+          "extensions": [
+            ".d64",
+            ".g64",
+            ".t64",
+            ".d81"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".prg",
+            ".crt",
+            ".reu",
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "CBMII": {
+      "id": "CBMII",
+      "rbf": "_Computer/CBM-II",
+      "folders": [
+        "CBM-II"
+      ],
+      "extensions": [
+        ".d80",
+        ".d82",
+        ".d64",
+        ".prg",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".d80",
+            ".d82",
+            ".d64"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 9
+          },
+          "extensions": [
+            ".prg"
+          ]
+        }
+      ]
+    },
+    "CDI": {
+      "id": "CDI",
+      "rbf": "_Console/CDi",
+      "folders": [
+        "CD-i"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "CasioLoopy": {
+      "id": "CasioLoopy",
+      "rbf": "_Console/Loopy",
+      "folders": [
+        "Loopy"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "CasioPV1000": {
+      "id": "CasioPV1000",
+      "rbf": "_Console/Casio_PV-1000",
+      "folders": [
+        "Casio_PV-1000"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "CasioPV2000": {
+      "id": "CasioPV2000",
+      "rbf": "_Computer/Casio_PV-2000",
+      "folders": [
+        "Casio_PV-2000"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "ChannelF": {
+      "id": "ChannelF",
+      "rbf": "_Console/ChannelF",
+      "folders": [
+        "ChannelF"
+      ],
+      "extensions": [
+        ".rom",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".rom",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Chip8": {
+      "id": "Chip8",
+      "rbf": "_Other/Chip8",
+      "folders": [
+        "Chip8"
+      ],
+      "extensions": [
+        ".ch8",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".ch8"
+          ]
+        }
+      ]
+    },
+    "CoCo2": {
+      "id": "CoCo2",
+      "rbf": "_Computer/CoCo2",
+      "folders": [
+        "CoCo2"
+      ],
+      "extensions": [
+        ".dsk",
+        ".cas",
+        ".ccc",
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".rom",
+            ".ccc"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Disk Drive 0",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Disk Drive 1",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "Disk Drive 2",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 3
+          },
+          "label": "Disk Drive 3",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "Cassette",
+          "extensions": [
+            ".cas"
+          ]
+        }
+      ]
+    },
+    "CoCo3": {
+      "id": "CoCo3",
+      "rbf": "_Computer/CoCo3",
+      "folders": [
+        "COCO3"
+      ],
+      "extensions": [
+        ".ccc",
+        ".cas",
+        ".dsk",
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".ccc"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".cas"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "ColecoAdam": {
+      "id": "ColecoAdam",
+      "rbf": "_Computer/ColecoAdam",
+      "folders": [
+        "Adam"
+      ],
+      "extensions": [
+        ".col",
+        ".bin",
+        ".rom",
+        ".dsk",
+        ".ddp",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".col",
+            ".bin",
+            ".rom"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".ddp"
+          ]
+        }
+      ]
+    },
+    "ColecoVision": {
+      "id": "ColecoVision",
+      "rbf": "_Console/ColecoVision",
+      "folders": [
+        "Coleco"
+      ],
+      "extensions": [
+        ".col",
+        ".bin",
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".col",
+            ".bin",
+            ".rom"
+          ]
+        }
+      ]
+    },
+    "CommanderX16": {
+      "id": "CommanderX16",
+      "rbf": "_Computer/X16",
+      "folders": [
+        "X16"
+      ],
+      "extensions": [
+        ".img",
+        ".crt",
+        ".bin",
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".crt"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".bin",
+            ".rom"
+          ]
+        }
+      ]
+    },
+    "CreatiVision": {
+      "id": "CreatiVision",
+      "rbf": "_Console/CreatiVision",
+      "folders": [
+        "CreatiVision"
+      ],
+      "extensions": [
+        ".rom",
+        ".bin",
+        ".bas",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".rom",
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 3
+          },
+          "label": "BASIC",
+          "extensions": [
+            ".bas"
+          ]
+        }
+      ]
+    },
+    "CommodoreCDTV": {
+      "id": "CommodoreCDTV",
+      "setName": "CDTV",
+      "rbf": "_Computer/Minimig",
+      "folders": [
+        "CDTV",
+        "AmigaCDTV",
+        "CommodoreCDTV"
+      ],
+      "extensions": [
+        ".chd",
+        ".cue",
+        ".iso",
+        ".mgl"
+      ]
+    },
+    "DVDPlayer": {
+      "id": "DVDPlayer",
+      "setName": "DVD",
+      "rbf": "_Other/DVD",
+      "folders": [
+        "DVD",
+        "DVD-Player"
+      ],
+      "extensions": [
+        ".iso",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 2,
+            "index": 0
+          },
+          "label": "DVD image",
+          "extensions": [
+            ".iso"
+          ]
+        }
+      ]
+    },
+    "DataRover840": {
+      "id": "DataRover840",
+      "rbf": "_Console/DataRover840",
+      "folders": [
+        "DataRover840"
+      ],
+      "extensions": [
+        ".rom",
+        ".ima",
+        ".bin",
+        ".pkg",
+        ".mc2",
+        ".img",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".rom",
+            ".ima",
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".pkg",
+            ".mc2"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".img"
+          ]
+        }
+      ]
+    },
+    "EDSAC": {
+      "id": "EDSAC",
+      "rbf": "_Computer/EDSAC",
+      "folders": [
+        "EDSAC"
+      ],
+      "extensions": [
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Tape",
+          "extensions": [
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "EG2000": {
+      "id": "EG2000",
+      "rbf": "_Computer/eg2000",
+      "folders": [
+        "eg2000"
+      ],
+      "extensions": [
+        ".cas",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".cas"
+          ]
+        }
+      ]
+    },
+    "Enterprise": {
+      "id": "Enterprise",
+      "rbf": "_Computer/Enterprise",
+      "folders": [
+        "Enterprise"
+      ],
+      "extensions": [
+        ".vhd",
+        ".img",
+        ".dsk",
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".img",
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "extensions": [
+            ".rom"
+          ]
+        }
+      ]
+    },
+    "FDS": {
+      "id": "FDS",
+      "setName": "FDS",
+      "rbf": "_Console/NES",
+      "folders": [
+        "NES",
+        "FDS"
+      ],
+      "extensions": [
+        ".fds",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".fds"
+          ]
+        }
+      ]
+    },
+    "FM7": {
+      "id": "FM7",
+      "rbf": "_Computer/FM-7",
+      "folders": [
+        "FM-7"
+      ],
+      "extensions": [
+        ".t77",
+        ".d77",
+        ".d88",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".t77"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".d77",
+            ".d88"
+          ]
+        }
+      ]
+    },
+    "FMTowns": {
+      "id": "FMTowns",
+      "rbf": "_Console/Marty",
+      "rbfAliases": [
+        "Marty_*"
+      ],
+      "folders": [
+        "Marty"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".iso",
+        ".d88",
+        ".d77",
+        ".hdm",
+        ".icm",
+        ".vhd",
+        ".hdd",
+        ".h0",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".cue",
+            ".chd",
+            ".iso"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".d88",
+            ".d77",
+            ".hdm"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".icm"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".vhd",
+            ".hdd",
+            ".h0"
+          ]
+        }
+      ]
+    },
+    "GBA": {
+      "id": "GBA",
+      "rbf": "_Console/GBA",
+      "folders": [
+        "GBA"
+      ],
+      "extensions": [
+        ".gba",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".gba"
+          ]
+        }
+      ]
+    },
+    "GBA2P": {
+      "id": "GBA2P",
+      "rbf": "_Console/GBA2P",
+      "folders": [
+        "GBA2P"
+      ],
+      "extensions": [
+        ".gba",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".gba"
+          ]
+        }
+      ]
+    },
+    "Galaksija": {
+      "id": "Galaksija",
+      "rbf": "_Computer/Galaksija",
+      "folders": [
+        "Galaksija"
+      ],
+      "extensions": [
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "Gamate": {
+      "id": "Gamate",
+      "rbf": "_Console/Gamate",
+      "folders": [
+        "Gamate"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "GameCom": {
+      "id": "GameCom",
+      "rbf": "_Console/GameCom",
+      "folders": [
+        "GameCom"
+      ],
+      "extensions": [
+        ".tgc",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".tgc"
+          ]
+        }
+      ]
+    },
+    "GameGear": {
+      "id": "GameGear",
+      "setName": "GameGear",
+      "rbf": "_Console/SMS",
+      "folders": [
+        "SMS",
+        "GameGear"
+      ],
+      "extensions": [
+        ".gg",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".gg"
+          ]
+        }
+      ]
+    },
+    "GameGear2P": {
+      "id": "GameGear2P",
+      "setName": "GameGear2P",
+      "rbf": "_Console/GameGear2P",
+      "folders": [
+        "GameGear2P"
+      ],
+      "extensions": [
+        ".gg",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".gg"
+          ]
+        }
+      ]
+    },
+    "GameKing": {
+      "id": "GameKing",
+      "rbf": "_Console/GameKing",
+      "folders": [
+        "GameKing"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "GameNWatch": {
+      "id": "GameNWatch",
+      "rbf": "_Console/GnW",
+      "folders": [
+        "GameNWatch"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "GameTank": {
+      "id": "GameTank",
+      "rbf": "_Console/GameTank",
+      "folders": [
+        "GameTank"
+      ],
+      "extensions": [
+        ".gtr",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".gtr"
+          ]
+        }
+      ]
+    },
+    "Gameboy": {
+      "id": "Gameboy",
+      "rbf": "_Console/Gameboy",
+      "folders": [
+        "GAMEBOY"
+      ],
+      "extensions": [
+        ".gb",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".gb"
+          ]
+        }
+      ]
+    },
+    "Gameboy2P": {
+      "id": "Gameboy2P",
+      "rbf": "_Console/Gameboy2P",
+      "folders": [
+        "GAMEBOY2P"
+      ],
+      "extensions": [
+        ".gb",
+        ".gbc",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".gb",
+            ".gbc"
+          ]
+        }
+      ]
+    },
+    "GameboyColor": {
+      "id": "GameboyColor",
+      "setName": "GBC",
+      "rbf": "_Console/Gameboy",
+      "folders": [
+        "GAMEBOY",
+        "GBC"
+      ],
+      "extensions": [
+        ".gbc",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".gbc"
+          ]
+        }
+      ]
+    },
+    "Genesis": {
+      "id": "Genesis",
+      "rbf": "_Console/MegaDrive",
+      "folders": [
+        "MegaDrive",
+        "Genesis"
+      ],
+      "extensions": [
+        ".gen",
+        ".bin",
+        ".md",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin",
+            ".gen",
+            ".md"
+          ]
+        }
+      ]
+    },
+    "Groovy": {
+      "id": "Groovy",
+      "rbf": "_Utility/Groovy",
+      "folders": [
+        "Groovy"
+      ],
+      "extensions": [
+        ".gmc",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 3,
+            "index": 1
+          },
+          "label": "GMC",
+          "extensions": [
+            ".gmc"
+          ]
+        }
+      ]
+    },
+    "Homelab": {
+      "id": "Homelab",
+      "rbf": "_Computer/Homelab",
+      "folders": [
+        "Homelab"
+      ],
+      "extensions": [
+        ".htp",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".htp"
+          ]
+        }
+      ]
+    },
+    "IQ151": {
+      "id": "IQ151",
+      "rbf": "_Computer/IQ151",
+      "folders": [
+        "IQ151"
+      ],
+      "extensions": [
+        ".iqd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".iqd"
+          ]
+        }
+      ]
+    },
+    "Intellivision": {
+      "id": "Intellivision",
+      "rbf": "_Console/Intellivision",
+      "folders": [
+        "Intellivision"
+      ],
+      "extensions": [
+        ".rom",
+        ".int",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".rom",
+            ".int",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Interact": {
+      "id": "Interact",
+      "rbf": "_Computer/Interact",
+      "folders": [
+        "Interact"
+      ],
+      "extensions": [
+        ".cin",
+        ".k7",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Tape",
+          "extensions": [
+            ".cin",
+            ".k7"
+          ]
+        }
+      ]
+    },
+    "JR100": {
+      "id": "JR100",
+      "rbf": "_Computer/JR100",
+      "folders": [
+        "JR100"
+      ],
+      "extensions": [
+        ".prg",
+        ".bas",
+        ".cmt",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".prg"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".bas"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".cmt"
+          ]
+        }
+      ]
+    },
+    "Jaguar": {
+      "id": "Jaguar",
+      "rbf": "_Console/Jaguar",
+      "folders": [
+        "Jaguar"
+      ],
+      "extensions": [
+        ".jag",
+        ".j64",
+        ".rom",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "resetDelay": 1,
+            "resetHold": 1
+          },
+          "extensions": [
+            ".jag",
+            ".j64",
+            ".rom",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "JaguarCD": {
+      "id": "JaguarCD",
+      "rbf": "_Console/Jaguar",
+      "folders": [
+        "Jaguar"
+      ],
+      "extensions": [
+        ".cdi",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1,
+            "resetDelay": 1,
+            "resetHold": 1
+          },
+          "extensions": [
+            ".cdi"
+          ]
+        }
+      ]
+    },
+    "Jupiter": {
+      "id": "Jupiter",
+      "rbf": "_Computer/Jupiter",
+      "folders": [
+        "Jupiter"
+      ],
+      "extensions": [
+        ".ace",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".ace"
+          ]
+        }
+      ]
+    },
+    "Laser": {
+      "id": "Laser",
+      "rbf": "_Computer/Laser310",
+      "folders": [
+        "Laser"
+      ],
+      "extensions": [
+        ".vz",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "VZ Image",
+          "extensions": [
+            ".vz"
+          ]
+        }
+      ]
+    },
+    "Lynx48": {
+      "id": "Lynx48",
+      "rbf": "_Computer/Lynx48",
+      "folders": [
+        "Lynx48"
+      ],
+      "extensions": [
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cassette",
+          "extensions": [
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "MSX": {
+      "id": "MSX",
+      "rbf": "_Computer/MSX",
+      "folders": [
+        "MSX"
+      ],
+      "extensions": [
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "MSX1": {
+      "id": "MSX1",
+      "rbf": "_Computer/MSX1",
+      "folders": [
+        "MSX1"
+      ],
+      "extensions": [
+        ".dsk",
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Drive A:",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "SLOT A",
+          "extensions": [
+            ".rom"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 3
+          },
+          "label": "SLOT B",
+          "extensions": [
+            ".rom"
+          ]
+        }
+      ]
+    },
+    "MacIIvi": {
+      "id": "MacIIvi",
+      "rbf": "_Computer/MacIIvi",
+      "folders": [
+        "MacIIvi"
+      ],
+      "extensions": [
+        ".dsk",
+        ".img",
+        ".vhd",
+        ".hda",
+        ".iso",
+        ".toast",
+        ".cue",
+        ".bin",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".vhd",
+            ".hda"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".iso",
+            ".toast",
+            ".cue",
+            ".bin",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "MacLC": {
+      "id": "MacLC",
+      "rbf": "_Computer/MacLC",
+      "folders": [
+        "MacLC"
+      ],
+      "extensions": [
+        ".dsk",
+        ".img",
+        ".vhd",
+        ".hda",
+        ".iso",
+        ".toast",
+        ".cue",
+        ".bin",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 6
+          },
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".vhd",
+            ".hda"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".iso",
+            ".toast",
+            ".cue",
+            ".bin",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "MacLCII": {
+      "id": "MacLCII",
+      "rbf": "_Computer/MacLCii_Unstable",
+      "rbfAliases": [
+        "MacLCii*"
+      ],
+      "folders": [
+        "MacLCii"
+      ],
+      "extensions": [
+        ".dsk",
+        ".img",
+        ".vhd",
+        ".hda",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".vhd",
+            ".hda"
+          ]
+        }
+      ]
+    },
+    "MacPlus": {
+      "id": "MacPlus",
+      "rbf": "_Computer/MacPlus",
+      "folders": [
+        "MACPLUS"
+      ],
+      "extensions": [
+        ".dsk",
+        ".img",
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Pri Floppy",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "Sec Floppy",
+          "extensions": [
+            ".dsk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "SCSI-6",
+          "extensions": [
+            ".img",
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "SCSI-5",
+          "extensions": [
+            ".img",
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "MacQuadra800": {
+      "id": "MacQuadra800",
+      "rbf": "_Computer/MacQuadra800",
+      "folders": [
+        "MacQuadra800"
+      ],
+      "extensions": [
+        ".hda",
+        ".vhd",
+        ".iso",
+        ".toast",
+        ".cue",
+        ".bin",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".hda",
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".iso",
+            ".toast",
+            ".cue",
+            ".bin",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "MasterSystem": {
+      "id": "MasterSystem",
+      "rbf": "_Console/SMS",
+      "folders": [
+        "SMS"
+      ],
+      "extensions": [
+        ".sms",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".sms"
+          ]
+        }
+      ]
+    },
+    "MegaCD": {
+      "id": "MegaCD",
+      "rbf": "_Console/MegaCD",
+      "folders": [
+        "MegaCD"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Disk",
+          "extensions": [
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "MegaDuck": {
+      "id": "MegaDuck",
+      "rbf": "_Console/Gameboy",
+      "folders": [
+        "GAMEBOY",
+        "MegaDuck"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "MegaVGMDrive": {
+      "id": "MegaVGMDrive",
+      "setName": "MegaVGMDrive",
+      "rbf": "_Custom Cores/Cores/VGM_MD_MiSTer",
+      "folders": [
+        "MegaVGMDrive"
+      ],
+      "extensions": [
+        ".vgm",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "VGM",
+          "extensions": [
+            ".vgm"
+          ]
+        }
+      ]
+    },
+    "MicroBee": {
+      "id": "MicroBee",
+      "rbf": "_Computer/MicroBee",
+      "folders": [
+        "MicroBee"
+      ],
+      "extensions": [
+        ".dsk",
+        ".ss8",
+        ".ds8",
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".dsk",
+            ".ss8",
+            ".ds8"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "MultiComp": {
+      "id": "MultiComp",
+      "rbf": "_Computer/MultiComp",
+      "folders": [
+        "MultiComp"
+      ],
+      "extensions": [
+        ".img",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".img"
+          ]
+        }
+      ]
+    },
+    "MyVision": {
+      "id": "MyVision",
+      "rbf": "_Console/MyVision",
+      "folders": [
+        "MyVision"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "ND120": {
+      "id": "ND120",
+      "rbf": "_Computer/nd120_mister_20MHz_115200",
+      "rbfAliases": [
+        "nd120_mister*"
+      ],
+      "folders": [
+        "ND120"
+      ],
+      "extensions": [
+        ".img",
+        ".bpu",
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".bpu",
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "NDS": {
+      "id": "NDS",
+      "rbf": "_Console/NDS",
+      "folders": [
+        "NDS"
+      ],
+      "extensions": [
+        ".nds",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 3
+          },
+          "extensions": [
+            ".nds"
+          ]
+        }
+      ]
+    },
+    "NES": {
+      "id": "NES",
+      "rbf": "_Console/NES",
+      "folders": [
+        "NES"
+      ],
+      "extensions": [
+        ".nes",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".nes"
+          ]
+        }
+      ]
+    },
+    "NESMusic": {
+      "id": "NESMusic",
+      "rbf": "_Console/NES",
+      "folders": [
+        "NES"
+      ],
+      "extensions": [
+        ".nsf",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".nsf"
+          ]
+        }
+      ]
+    },
+    "NeXT": {
+      "id": "NeXT",
+      "rbf": "_Computer/NeXT",
+      "folders": [
+        "NeXT"
+      ],
+      "extensions": [
+        ".vhd",
+        ".img",
+        ".iso",
+        ".cue",
+        ".bin",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".vhd",
+            ".img"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 3
+          },
+          "extensions": [
+            ".iso",
+            ".cue",
+            ".bin",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "NeoGeo": {
+      "id": "NeoGeo",
+      "rbf": "_Console/NeoGeo",
+      "folders": [
+        "NEOGEO"
+      ],
+      "extensions": [
+        ".neo"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ROM set",
+          "extensions": [
+            ".neo"
+          ]
+        }
+      ]
+    },
+    "NeoGeoCD": {
+      "id": "NeoGeoCD",
+      "rbf": "_Console/NeoGeo",
+      "folders": [
+        "NeoGeo-CD",
+        "NEOGEO"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "CD Image",
+          "extensions": [
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "NeoGeoPocket": {
+      "id": "NeoGeoPocket",
+      "setName": "NeoGeoPocket",
+      "rbf": "_Arcade/JTNGP",
+      "folders": [
+        "NGP"
+      ],
+      "extensions": [
+        ".ngp",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "label": "ROM",
+          "extensions": [
+            ".ngp"
+          ]
+        }
+      ]
+    },
+    "NeoGeoPocketColor": {
+      "id": "NeoGeoPocketColor",
+      "setName": "JTNGPC",
+      "rbf": "_Arcade/JTNGPC",
+      "folders": [
+        "NGPC"
+      ],
+      "extensions": [
+        ".ngc",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "label": "ROM",
+          "extensions": [
+            ".ngc"
+          ]
+        }
+      ]
+    },
+    "Nintendo64": {
+      "id": "Nintendo64",
+      "rbf": "_Console/N64",
+      "folders": [
+        "N64"
+      ],
+      "extensions": [
+        ".n64",
+        ".z64",
+        ".v64",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".n64",
+            ".z64",
+            ".v64"
+          ]
+        }
+      ]
+    },
+    "Odyssey2": {
+      "id": "Odyssey2",
+      "rbf": "_Console/Odyssey2",
+      "folders": [
+        "ODYSSEY2"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "OpenBOR": {
+      "id": "OpenBOR",
+      "rbf": "_Other/OpenBOR_4086",
+      "folders": [
+        "OpenBOR"
+      ],
+      "extensions": [
+        ".pak",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 2
+          },
+          "label": "PAK",
+          "extensions": [
+            ".pak"
+          ]
+        }
+      ]
+    },
+    "Orao": {
+      "id": "Orao",
+      "rbf": "_Computer/ORAO",
+      "folders": [
+        "ORAO"
+      ],
+      "extensions": [
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "Oric": {
+      "id": "Oric",
+      "rbf": "_Computer/Oric",
+      "folders": [
+        "Oric"
+      ],
+      "extensions": [
+        ".dsk",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Drive A:",
+          "extensions": [
+            ".dsk"
+          ]
+        }
+      ]
+    },
+    "PC110": {
+      "id": "PC110",
+      "rbf": "_Computer/PC110",
+      "rbfAliases": [
+        "IBM PC110*"
+      ],
+      "folders": [
+        "PC110"
+      ],
+      "extensions": [
+        ".img",
+        ".ima",
+        ".vfd",
+        ".vhd",
+        ".iso",
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".ima",
+            ".vfd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".iso",
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "PC88": {
+      "id": "PC88",
+      "rbf": "_Computer/PC88",
+      "folders": [
+        "PC8801"
+      ],
+      "extensions": [
+        ".d88",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".d88"
+          ]
+        }
+      ]
+    },
+    "PC98": {
+      "id": "PC98",
+      "rbf": "_Computer/PC98_Z486",
+      "rbfAliases": [
+        "PC98_Z486*"
+      ],
+      "folders": [
+        "PC98"
+      ],
+      "extensions": [
+        ".d88",
+        ".hdm",
+        ".fdi",
+        ".vhd",
+        ".hdi",
+        ".hdf",
+        ".img",
+        ".ima",
+        ".iso",
+        ".bin",
+        ".pcd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".d88",
+            ".hdm",
+            ".fdi"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".vhd",
+            ".hdi",
+            ".hdf",
+            ".img",
+            ".ima"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".iso",
+            ".bin",
+            ".pcd"
+          ]
+        }
+      ]
+    },
+    "PCFX": {
+      "id": "PCFX",
+      "rbf": "_Console/PCFX",
+      "folders": [
+        "PCFX"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "PCXT": {
+      "id": "PCXT",
+      "rbf": "_Computer/PCXT",
+      "folders": [
+        "PCXT"
+      ],
+      "extensions": [
+        ".img",
+        ".vhd",
+        ".ima",
+        ".vfd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Floppy A:",
+          "extensions": [
+            ".img",
+            ".ima",
+            ".vfd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Floppy B:",
+          "extensions": [
+            ".img",
+            ".ima",
+            ".vfd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "IDE 0-0",
+          "extensions": [
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 3
+          },
+          "label": "IDE 0-1",
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "PCXTEGA": {
+      "id": "PCXTEGA",
+      "rbf": "_Computer/PCXT-EGA",
+      "folders": [
+        "PCXT-EGA"
+      ],
+      "extensions": [
+        ".img",
+        ".ima",
+        ".vfd",
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".ima",
+            ".vfd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "PCjr": {
+      "id": "PCjr",
+      "rbf": "_Computer/PCjr",
+      "folders": [
+        "PCjr"
+      ],
+      "extensions": [
+        ".img",
+        ".ima",
+        ".vfd",
+        ".jrc",
+        ".jrt",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".ima",
+            ".vfd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".jrc"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".jrt"
+          ]
+        }
+      ]
+    },
+    "PDP1": {
+      "id": "PDP1",
+      "rbf": "_Computer/PDP1",
+      "folders": [
+        "PDP1"
+      ],
+      "extensions": [
+        ".bin",
+        ".rim",
+        ".pdp",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".pdp",
+            ".rim",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "PET2001": {
+      "id": "PET2001",
+      "rbf": "_Computer/PET2001",
+      "folders": [
+        "PET2001"
+      ],
+      "extensions": [
+        ".prg",
+        ".tap",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".prg",
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "PETUniversal": {
+      "id": "PETUniversal",
+      "rbf": "_Computer/PET_Universal",
+      "folders": [
+        "PET_Universal"
+      ],
+      "extensions": [
+        ".prg",
+        ".tap",
+        ".d64",
+        ".d80",
+        ".d82",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".prg",
+            ".tap"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".d64",
+            ".d80",
+            ".d82"
+          ]
+        }
+      ]
+    },
+    "PMD85": {
+      "id": "PMD85",
+      "rbf": "_Computer/PMD85",
+      "folders": [
+        "PMD85"
+      ],
+      "extensions": [
+        ".rmm",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ROM Pack",
+          "extensions": [
+            ".rmm"
+          ]
+        }
+      ]
+    },
+    "PSX": {
+      "id": "PSX",
+      "rbf": "_Console/PSX",
+      "folders": [
+        "PSX"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".exe",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "CD",
+          "extensions": [
+            ".cue",
+            ".chd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Exe",
+          "extensions": [
+            ".exe"
+          ]
+        }
+      ]
+    },
+    "Phosphor": {
+      "id": "Phosphor",
+      "rbf": "_Other/Phosphor",
+      "folders": [
+        "Phosphor"
+      ],
+      "extensions": [
+        ".mp3",
+        ".wav",
+        ".flac",
+        ".ogg",
+        ".tar",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".mp3",
+            ".wav",
+            ".flac",
+            ".ogg",
+            ".tar"
+          ]
+        }
+      ]
+    },
+    "Pico8": {
+      "id": "Pico8",
+      "rbf": "_Other/PICO-8",
+      "folders": [
+        "PICO-8"
+      ],
+      "extensions": [
+        ".p8",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 2
+          },
+          "label": "Cart",
+          "extensions": [
+            ".p8",
+            ".p8.png"
+          ]
+        }
+      ]
+    },
+    "PocketChallengeV2": {
+      "id": "PocketChallengeV2",
+      "setName": "PocketChallengeV2",
+      "rbf": "_Console/WonderSwan",
+      "folders": [
+        "WonderSwan",
+        "PocketChallengeV2"
+      ],
+      "extensions": [
+        ".pc2",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ROM",
+          "extensions": [
+            ".pc2"
+          ]
+        }
+      ]
+    },
+    "PocketStation": {
+      "id": "PocketStation",
+      "rbf": "_Console/PocketStation",
+      "folders": [
+        "PocketStation"
+      ],
+      "extensions": [
+        ".gme",
+        ".mcs",
+        ".sav",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".gme",
+            ".mcs",
+            ".sav",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "PokemonMini": {
+      "id": "PokemonMini",
+      "rbf": "_Console/PokemonMini",
+      "folders": [
+        "PokemonMini"
+      ],
+      "extensions": [
+        ".min",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ROM",
+          "extensions": [
+            ".min"
+          ]
+        }
+      ]
+    },
+    "QL": {
+      "id": "QL",
+      "rbf": "_Computer/QL",
+      "folders": [
+        "QL"
+      ],
+      "extensions": [
+        ".mdv",
+        ".win",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "HD Image",
+          "extensions": [
+            ".win"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "MDV Image",
+          "extensions": [
+            ".mdv"
+          ]
+        }
+      ]
+    },
+    "RX78": {
+      "id": "RX78",
+      "rbf": "_Computer/RX78",
+      "folders": [
+        "RX78"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Raster": {
+      "id": "Raster",
+      "rbf": "_Other/Raster",
+      "folders": [
+        "Raster"
+      ],
+      "extensions": [
+        ".mpg",
+        ".tar",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".mpg",
+            ".tar"
+          ]
+        }
+      ]
+    },
+    "SAMCoupe": {
+      "id": "SAMCoupe",
+      "rbf": "_Computer/SAMCoupe",
+      "folders": [
+        "SAMCOUPE"
+      ],
+      "extensions": [
+        ".dsk",
+        ".mgt",
+        ".img",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Drive 1",
+          "extensions": [
+            ".dsk",
+            ".mgt",
+            ".img"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Drive 2",
+          "extensions": [
+            ".dsk",
+            ".mgt",
+            ".img"
+          ]
+        }
+      ]
+    },
+    "SBC7": {
+      "id": "SBC7",
+      "rbf": "_Computer/SBC7",
+      "folders": [
+        "SBC7"
+      ],
+      "extensions": [
+        ".h7x",
+        ".pr7",
+        ".img",
+        ".dsk",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".h7x",
+            ".pr7"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".dsk"
+          ]
+        }
+      ]
+    },
+    "SG1000": {
+      "id": "SG1000",
+      "setName": "SG1000",
+      "rbf": "_Console/ColecoVision",
+      "folders": [
+        "SG1000",
+        "Coleco",
+        "SMS"
+      ],
+      "extensions": [
+        ".sg",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "label": "SG-1000",
+          "extensions": [
+            ".sg"
+          ]
+        }
+      ]
+    },
+    "SGIIndy": {
+      "id": "SGIIndy",
+      "rbf": "_Computer/SGIIndy",
+      "folders": [
+        "SGIIndy"
+      ],
+      "extensions": [
+        ".img",
+        ".iso",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".img"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 3
+          },
+          "extensions": [
+            ".iso",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "SNES": {
+      "id": "SNES",
+      "rbf": "_Console/SNES",
+      "folders": [
+        "SNES"
+      ],
+      "extensions": [
+        ".sfc",
+        ".smc",
+        ".bin",
+        ".bs",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2
+          },
+          "extensions": [
+            ".sfc",
+            ".smc",
+            ".bin",
+            ".bs"
+          ]
+        }
+      ]
+    },
+    "SNESMusic": {
+      "id": "SNESMusic",
+      "rbf": "_Console/SNES",
+      "folders": [
+        "SNES"
+      ],
+      "extensions": [
+        ".spc",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 2,
+            "index": 1
+          },
+          "extensions": [
+            ".spc"
+          ]
+        }
+      ]
+    },
+    "SVI328": {
+      "id": "SVI328",
+      "rbf": "_Computer/Svi328",
+      "folders": [
+        "SVI328"
+      ],
+      "extensions": [
+        ".cas",
+        ".bin",
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin",
+            ".rom"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "CAS File",
+          "extensions": [
+            ".cas"
+          ]
+        }
+      ]
+    },
+    "Saturn": {
+      "id": "Saturn",
+      "rbf": "_Console/Saturn",
+      "folders": [
+        "Saturn"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 2
+          },
+          "label": "Disk",
+          "extensions": [
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "Sega32X": {
+      "id": "Sega32X",
+      "rbf": "_Console/S32X",
+      "folders": [
+        "S32X"
+      ],
+      "extensions": [
+        ".32x",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".32x"
+          ]
+        }
+      ]
+    },
+    "Solarus": {
+      "id": "Solarus",
+      "rbf": "_Other/Solarus",
+      "folders": [
+        "Solarus"
+      ],
+      "extensions": [
+        ".sol",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".sol"
+          ]
+        }
+      ]
+    },
+    "SordM5": {
+      "id": "SordM5",
+      "rbf": "_Computer/SordM5",
+      "folders": [
+        "Sord M5"
+      ],
+      "extensions": [
+        ".bin",
+        ".rom",
+        ".cas",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ROM",
+          "extensions": [
+            ".bin",
+            ".rom"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "Tape",
+          "extensions": [
+            ".cas"
+          ]
+        }
+      ]
+    },
+    "SparcStation": {
+      "id": "SparcStation",
+      "rbf": "_Computer/SparcStation5",
+      "folders": [
+        "SparcStation"
+      ],
+      "extensions": [
+        ".raw",
+        ".iso",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".raw"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".iso"
+          ]
+        }
+      ]
+    },
+    "SparcStation20": {
+      "id": "SparcStation20",
+      "rbf": "_Computer/SparcStation20",
+      "folders": [
+        "SparcStation"
+      ],
+      "extensions": [
+        ".raw",
+        ".iso",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".raw"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".iso"
+          ]
+        }
+      ]
+    },
+    "Specialist": {
+      "id": "Specialist",
+      "rbf": "_Computer/Specialist",
+      "folders": [
+        "SPMX"
+      ],
+      "extensions": [
+        ".rks",
+        ".odi",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "label": "Tape",
+          "extensions": [
+            ".rks"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Disk",
+          "extensions": [
+            ".odi"
+          ]
+        }
+      ]
+    },
+    "StudioII": {
+      "id": "StudioII",
+      "rbf": "_Console/Studio-II",
+      "folders": [
+        "Studio-II"
+      ],
+      "extensions": [
+        ".st2",
+        ".bin",
+        ".ch8",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".st2",
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 3
+          },
+          "extensions": [
+            ".ch8"
+          ]
+        }
+      ]
+    },
+    "SuperACan": {
+      "id": "SuperACan",
+      "rbf": "_Console/SuperAcan",
+      "folders": [
+        "SuperAcan"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "SuperCassetteVision": {
+      "id": "SuperCassetteVision",
+      "rbf": "_Console/SCV",
+      "folders": [
+        "SCV"
+      ],
+      "extensions": [
+        ".rom",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".rom",
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "SuperGameboy": {
+      "id": "SuperGameboy",
+      "rbf": "_Console/SGB",
+      "folders": [
+        "SGB"
+      ],
+      "extensions": [
+        ".sgb",
+        ".gb",
+        ".gbc",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".gb",
+            ".gbc"
+          ]
+        }
+      ]
+    },
+    "SuperGrafx": {
+      "id": "SuperGrafx",
+      "rbf": "_Console/TurboGrafx16",
+      "folders": [
+        "TGFX16"
+      ],
+      "extensions": [
+        ".sgx",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "SuperGrafx",
+          "extensions": [
+            ".sgx"
+          ]
+        }
+      ]
+    },
+    "SuperVision": {
+      "id": "SuperVision",
+      "rbf": "_Console/SuperVision",
+      "folders": [
+        "SuperVision"
+      ],
+      "extensions": [
+        ".bin",
+        ".sv",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin",
+            ".sv"
+          ]
+        }
+      ]
+    },
+    "SuperVision8000": {
+      "id": "SuperVision8000",
+      "rbf": "_Console/Super_Vision_8000",
+      "folders": [
+        "SuperVision8000"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "System80": {
+      "id": "System80",
+      "rbf": "_Computer/System80",
+      "folders": [
+        "System80"
+      ],
+      "extensions": [
+        ".dsk",
+        ".jv1",
+        ".dmk",
+        ".cas",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".dsk",
+            ".jv1",
+            ".dmk"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".cas"
+          ]
+        }
+      ]
+    },
+    "TI89": {
+      "id": "TI89",
+      "rbf": "_Console/TI89",
+      "folders": [
+        "TI89"
+      ],
+      "extensions": [
+        ".89u",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "extensions": [
+            ".89u"
+          ]
+        }
+      ]
+    },
+    "TI994A": {
+      "id": "TI994A",
+      "rbf": "_Computer/Ti994a",
+      "folders": [
+        "TI-99_4A"
+      ],
+      "extensions": [
+        ".bin",
+        ".m99",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Full Cart",
+          "extensions": [
+            ".m99",
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "ROM Cart",
+          "extensions": [
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 3
+          },
+          "label": "GROM Cart",
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "TK2000": {
+      "id": "TK2000",
+      "rbf": "_Computer/TK2000",
+      "folders": [
+        "TK2000"
+      ],
+      "extensions": [
+        ".nib",
+        ".dsk",
+        ".do",
+        ".po",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".nib",
+            ".dsk",
+            ".do",
+            ".po"
+          ]
+        }
+      ]
+    },
+    "TRS80": {
+      "id": "TRS80",
+      "rbf": "_Computer/TRS-80",
+      "folders": [
+        "TRS-80"
+      ],
+      "extensions": [
+        ".dsk",
+        ".jvi",
+        ".cmd",
+        ".cas",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Disk 0",
+          "extensions": [
+            ".dsk",
+            ".jvi"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Disk 1",
+          "extensions": [
+            ".dsk",
+            ".jvi"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "Program",
+          "extensions": [
+            ".cmd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cassette",
+          "extensions": [
+            ".cas"
+          ]
+        }
+      ]
+    },
+    "TSConf": {
+      "id": "TSConf",
+      "rbf": "_Computer/TSConf",
+      "folders": [
+        "TSConf"
+      ],
+      "extensions": [
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Virtual SD",
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "TVC": {
+      "id": "TVC",
+      "rbf": "_Computer/TVC",
+      "folders": [
+        "TVC"
+      ],
+      "extensions": [
+        ".cas",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 3
+          },
+          "extensions": [
+            ".cas"
+          ]
+        }
+      ]
+    },
+    "Tamagotchi": {
+      "id": "Tamagotchi",
+      "rbf": "_Other/Tamagotchi",
+      "folders": [
+        "Tamagotchi"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Tandy1000": {
+      "id": "Tandy1000",
+      "rbf": "_Computer/Tandy1000",
+      "folders": [
+        "Tandy1000"
+      ],
+      "extensions": [
+        ".img",
+        ".ima",
+        ".vfd",
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".ima",
+            ".vfd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "TatungEinstein": {
+      "id": "TatungEinstein",
+      "rbf": "_Computer/TatungEinstein",
+      "folders": [
+        "TatungEinstein"
+      ],
+      "extensions": [
+        ".dsk",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Disk 0",
+          "extensions": [
+            ".dsk"
+          ]
+        }
+      ]
+    },
+    "Thomson": {
+      "id": "Thomson",
+      "rbf": "_Computer/Thomson-TOMO",
+      "folders": [
+        "TOMO"
+      ],
+      "extensions": [
+        ".rom",
+        ".bin",
+        ".wav",
+        ".fd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".rom",
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".wav"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 3
+          },
+          "extensions": [
+            ".fd"
+          ]
+        }
+      ]
+    },
+    "TomyTutor": {
+      "id": "TomyTutor",
+      "rbf": "_Computer/TomyTutor",
+      "folders": [
+        "TomyTutor"
+      ],
+      "extensions": [
+        ".bin",
+        ".cas",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Tape Image",
+          "extensions": [
+            ".cas"
+          ]
+        }
+      ]
+    },
+    "TurboGrafx16": {
+      "id": "TurboGrafx16",
+      "rbf": "_Console/TurboGrafx16",
+      "folders": [
+        "TGFX16"
+      ],
+      "extensions": [
+        ".pce",
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1
+          },
+          "label": "TurboGrafx",
+          "extensions": [
+            ".bin",
+            ".pce"
+          ]
+        }
+      ]
+    },
+    "TurboGrafx16CD": {
+      "id": "TurboGrafx16CD",
+      "rbf": "_Console/TurboGrafx16",
+      "folders": [
+        "TGFX16-CD"
+      ],
+      "extensions": [
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "CD",
+          "extensions": [
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "UK101": {
+      "id": "UK101",
+      "rbf": "_Computer/UK101",
+      "folders": [
+        "UK101"
+      ],
+      "extensions": [
+        ".txt",
+        ".bas",
+        ".lod",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ASCII",
+          "extensions": [
+            ".txt",
+            ".bas",
+            ".lod"
+          ]
+        }
+      ]
+    },
+    "VC4000": {
+      "id": "VC4000",
+      "rbf": "_Console/VC4000",
+      "folders": [
+        "VC4000"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Cartridge",
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "VIC20": {
+      "id": "VIC20",
+      "rbf": "_Computer/VIC20",
+      "folders": [
+        "VIC20"
+      ],
+      "extensions": [
+        ".d64",
+        ".g64",
+        ".prg",
+        ".tap",
+        ".crt",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "#8",
+          "extensions": [
+            ".d64",
+            ".g64"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "#9",
+          "extensions": [
+            ".d64",
+            ".g64"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".prg",
+            ".crt",
+            ".ct?",
+            ".tap"
+          ]
+        }
+      ]
+    },
+    "VSmile": {
+      "id": "VSmile",
+      "rbf": "_Console/VSmile",
+      "rbfAliases": [
+        "VSmile*"
+      ],
+      "folders": [
+        "VSmile"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "Vector06C": {
+      "id": "Vector06C",
+      "rbf": "_Computer/Vector-06C",
+      "folders": [
+        "VECTOR06"
+      ],
+      "extensions": [
+        ".rom",
+        ".com",
+        ".c00",
+        ".edd",
+        ".fdd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".rom",
+            ".com",
+            ".c00",
+            ".edd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Disk A",
+          "extensions": [
+            ".fdd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Disk B",
+          "extensions": [
+            ".fdd"
+          ]
+        }
+      ]
+    },
+    "Vectrex": {
+      "id": "Vectrex",
+      "rbf": "_Console/Vectrex",
+      "folders": [
+        "VECTREX"
+      ],
+      "extensions": [
+        ".vec",
+        ".bin",
+        ".rom",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".vec",
+            ".bin",
+            ".rom"
+          ]
+        }
+      ]
+    },
+    "VideoBrain": {
+      "id": "VideoBrain",
+      "rbf": "_Computer/VideoBrain",
+      "folders": [
+        "VideoBrain"
+      ],
+      "extensions": [
+        ".bin",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".bin"
+          ]
+        }
+      ]
+    },
+    "VirtualBoy": {
+      "id": "VirtualBoy",
+      "rbf": "_Console/VirtualBoy",
+      "folders": [
+        "VirtualBoy"
+      ],
+      "extensions": [
+        ".vb",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "extensions": [
+            ".vb"
+          ]
+        }
+      ]
+    },
+    "WonderSwan": {
+      "id": "WonderSwan",
+      "rbf": "_Console/WonderSwan",
+      "folders": [
+        "WonderSwan"
+      ],
+      "extensions": [
+        ".ws",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ROM",
+          "extensions": [
+            ".ws"
+          ]
+        }
+      ]
+    },
+    "WonderSwanColor": {
+      "id": "WonderSwanColor",
+      "setName": "WonderSwanColor",
+      "rbf": "_Console/WonderSwan",
+      "folders": [
+        "WonderSwan",
+        "WonderSwanColor"
+      ],
+      "extensions": [
+        ".wsc",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "ROM",
+          "extensions": [
+            ".wsc"
+          ]
+        }
+      ]
+    },
+    "X68000": {
+      "id": "X68000",
+      "rbf": "_Computer/X68000",
+      "folders": [
+        "X68000"
+      ],
+      "extensions": [
+        ".d88",
+        ".hdf",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "FDD0",
+          "extensions": [
+            ".d88"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "FDD1",
+          "extensions": [
+            ".d88"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "SASI Hard Disk",
+          "extensions": [
+            ".hdf"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 3
+          },
+          "label": "RAM",
+          "extensions": [
+            ".ram"
+          ]
+        }
+      ]
+    },
+    "Z486": {
+      "id": "Z486",
+      "rbf": "_Computer/z486",
+      "folders": [
+        "Z486"
+      ],
+      "extensions": [
+        ".img",
+        ".ima",
+        ".vfd",
+        ".vhd",
+        ".iso",
+        ".cue",
+        ".chd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "extensions": [
+            ".img",
+            ".ima",
+            ".vfd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "extensions": [
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 4
+          },
+          "extensions": [
+            ".iso",
+            ".cue",
+            ".chd"
+          ]
+        }
+      ]
+    },
+    "ZX81": {
+      "id": "ZX81",
+      "rbf": "_Computer/ZX81",
+      "folders": [
+        "ZX81"
+      ],
+      "extensions": [
+        ".p",
+        ".0",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Tape",
+          "extensions": [
+            ".0",
+            ".p"
+          ]
+        }
+      ]
+    },
+    "ZXNext": {
+      "id": "ZXNext",
+      "rbf": "_Computer/ZXNext",
+      "folders": [
+        "ZXNext"
+      ],
+      "extensions": [
+        ".vhd",
+        ".tzx",
+        ".csw",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "C:",
+          "extensions": [
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "D:",
+          "extensions": [
+            ".vhd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "Tape",
+          "extensions": [
+            ".tzx",
+            ".csw"
+          ]
+        }
+      ]
+    },
+    "ZXSpectrum": {
+      "id": "ZXSpectrum",
+      "rbf": "_Computer/ZX-Spectrum",
+      "folders": [
+        "Spectrum"
+      ],
+      "extensions": [
+        ".tap",
+        ".csw",
+        ".tzx",
+        ".sna",
+        ".z80",
+        ".trd",
+        ".img",
+        ".dsk",
+        ".mgt",
+        ".vhd",
+        ".mgl"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Disk",
+          "extensions": [
+            ".trd",
+            ".img",
+            ".dsk",
+            ".mgt"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "Tape",
+          "extensions": [
+            ".tap",
+            ".csw",
+            ".tzx"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "f",
+            "delay": 1,
+            "index": 4
+          },
+          "label": "Snapshot",
+          "extensions": [
+            ".z80",
+            ".sna"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 1
+          },
+          "label": "DivMMC",
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    },
+    "ao486": {
+      "id": "ao486",
+      "rbf": "_Computer/ao486",
+      "folders": [
+        "AO486"
+      ],
+      "extensions": [
+        ".img",
+        ".ima",
+        ".vfd",
+        ".vhd"
+      ],
+      "slots": [
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1
+          },
+          "label": "Floppy A:",
+          "extensions": [
+            ".img",
+            ".ima",
+            ".vfd"
+          ]
+        },
+        {
+          "mgl": {
+            "method": "s",
+            "delay": 1,
+            "index": 2
+          },
+          "label": "IDE 0-0",
+          "extensions": [
+            ".vhd"
+          ]
+        }
+      ]
+    }
+  },
+  "groups": {
+    "Atari7800": [
+      {
+        "id": "Atari7800",
+        "rbf": "_Console/Atari7800",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1,
+              "index": 1
+            },
+            "extensions": [
+              ".a78",
+              ".bin"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "Atari2600",
+        "setName": "Atari2600",
+        "rbf": "_Console/Atari7800",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1,
+              "index": 1
+            },
+            "extensions": [
+              ".a26"
+            ]
+          }
+        ]
+      }
+    ],
+    "Coleco": [
+      {
+        "id": "ColecoVision",
+        "rbf": "_Console/ColecoVision",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1,
+              "index": 1
+            },
+            "extensions": [
+              ".col",
+              ".bin",
+              ".rom"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "SG1000",
+        "setName": "SG1000",
+        "rbf": "_Console/ColecoVision",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1
+            },
+            "label": "SG-1000",
+            "extensions": [
+              ".sg"
+            ]
+          }
+        ]
+      }
+    ],
+    "Gameboy": [
+      {
+        "id": "Gameboy",
+        "rbf": "_Console/Gameboy",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 2,
+              "index": 1
+            },
+            "extensions": [
+              ".gb"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "GameboyColor",
+        "setName": "GBC",
+        "rbf": "_Console/Gameboy",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 2,
+              "index": 1
+            },
+            "extensions": [
+              ".gbc"
+            ]
+          }
+        ]
+      }
+    ],
+    "Jaguar": [
+      {
+        "id": "Jaguar",
+        "rbf": "_Console/Jaguar",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1,
+              "resetDelay": 1,
+              "resetHold": 1
+            },
+            "extensions": [
+              ".jag",
+              ".j64",
+              ".rom",
+              ".bin"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "JaguarCD",
+        "rbf": "_Console/Jaguar",
+        "slots": [
+          {
+            "mgl": {
+              "method": "s",
+              "delay": 1,
+              "index": 1,
+              "resetDelay": 1,
+              "resetHold": 1
+            },
+            "extensions": [
+              ".cdi"
+            ]
+          }
+        ]
+      }
+    ],
+    "NES": [
+      {
+        "id": "NES",
+        "rbf": "_Console/NES",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 2,
+              "index": 1
+            },
+            "extensions": [
+              ".nes"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "NESMusic",
+        "rbf": "_Console/NES",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 2,
+              "index": 1
+            },
+            "extensions": [
+              ".nsf"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "FDS",
+        "setName": "FDS",
+        "rbf": "_Console/NES",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 2,
+              "index": 1
+            },
+            "extensions": [
+              ".fds"
+            ]
+          }
+        ]
+      }
+    ],
+    "SMS": [
+      {
+        "id": "MasterSystem",
+        "rbf": "_Console/SMS",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1,
+              "index": 1
+            },
+            "extensions": [
+              ".sms"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "GameGear",
+        "setName": "GameGear",
+        "rbf": "_Console/SMS",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1,
+              "index": 2
+            },
+            "extensions": [
+              ".gg"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "SG1000",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1,
+              "index": 1
+            },
+            "extensions": [
+              ".sg"
+            ]
+          }
+        ]
+      }
+    ],
+    "SNES": [
+      {
+        "id": "SNES",
+        "rbf": "_Console/SNES",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 2
+            },
+            "extensions": [
+              ".sfc",
+              ".smc",
+              ".bin",
+              ".bs"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "SNESMusic",
+        "rbf": "_Console/SNES",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 2,
+              "index": 1
+            },
+            "extensions": [
+              ".spc"
+            ]
+          }
+        ]
+      }
+    ],
+    "TGFX16": [
+      {
+        "id": "TurboGrafx16",
+        "rbf": "_Console/TurboGrafx16",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1
+            },
+            "label": "TurboGrafx",
+            "extensions": [
+              ".bin",
+              ".pce"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "SuperGrafx",
+        "rbf": "_Console/TurboGrafx16",
+        "slots": [
+          {
+            "mgl": {
+              "method": "f",
+              "delay": 1,
+              "index": 1
+            },
+            "label": "SuperGrafx",
+            "extensions": [
+              ".sgx"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

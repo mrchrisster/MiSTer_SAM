@@ -4,6 +4,9 @@
 *.py text eol=lf
 .MiSTer_SAM/MiSTer_SAM_init text eol=lf
 .MiSTer_SAM/MiSTer_SAM_tty2oled text eol=lf
+.MiSTer_SAM/samindex text eol=lf
+# Preserve the exact upstream bytes covered by the pinned SHA-256.
+.MiSTer_SAM/zaparoo_catalog.json -text
 .MiSTer_SAM/mplayer export-ignore
 .MiSTer_SAM/mplayer.zip export-ignore
 .MiSTer_SAM/partun export-ignore
