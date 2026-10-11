@@ -94,8 +94,20 @@ class MenuSession:
         if owner is None:
             return '-'
         status = self.read_status()
-        if (status.get('state') or {}).get('mode') not in {'normal', 'roulette'}:
-            raise MenuSessionError('This active mode cannot pause for a menu. Stop SAM first with "m stop", then open the menu.')
+        state = status.get('state') or {}
+        if state.get('mode') in {'m82', 'samvideo', 'video'}:
+            # These modes keep running behind the UI; they do not implement the
+            # countdown pause protocol. The shell's menu lock still excludes
+            # concurrent menus, physical actions and automatic mode restarts.
+            # Verify the state belongs to the live owner rather than trusting
+            # a previous session's display snapshot. Never create a resume lease.
+            if (status.get('active')
+                    and (state.get('owner_pid'), state.get('owner_start')) == owner_key(owner)
+                    and owner_key(self.read_owner()) == owner_key(owner)):
+                return '-'
+            raise MenuSessionError('SAM changed while opening the menu. Retry the menu.')
+        if state.get('mode') not in {'normal', 'roulette'}:
+            raise MenuSessionError('SAM status is not ready. Retry the menu once the game is ready.')
         selection = self.selection(owner, status)
         if selection is None:
             raise MenuSessionError('SAM is preparing, loading, or cannot pause this mode. Retry the menu once the game is ready.')

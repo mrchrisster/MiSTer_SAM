@@ -1,9 +1,13 @@
 # Recent changes
 
-## 2026-10-11 — Start instructions without an SSH shortcut
+## 2026-10-11 — Menu access, monitor controls and start instructions
 
 - After installation or update, show the full SAM start command rather than
   assuming the optional `m` shortcut is installed.
+- Remove the SAM monitor's Y/M82 play shortcut while preserving physical M82
+  actions. Simplify both monitor footers to mention Q only as detach.
+- Restore menu access during commercial and M82 mode. Those modes continue
+  playback behind the locked menu without an unsupported pause/resume request.
 
 ## 2026-10-10 — Diagnostics, optional free log upload and clearer updates
 

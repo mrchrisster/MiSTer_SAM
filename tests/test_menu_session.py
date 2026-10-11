@@ -58,15 +58,50 @@ class MenuLeaseTests(unittest.TestCase):
         self.session.release('-')
         self.gateway.execute.assert_not_called()
 
-    def test_loading_preparing_nonready_or_unsupported_mode_refuses_menu(self):
+    def test_loading_preparing_or_nonready_pause_protocol_refuses_menu(self):
         for field, value in [('phase', 'loading'), ('phase', 'preparing'),
-                             ('ready', False), ('mode', 'm82'), ('mode', 'samvideo')]:
+                             ('ready', False), ('mode', 'unknown')]:
             with self.subTest(field=field, value=value):
                 owner, status = copy.deepcopy(self.owner), copy.deepcopy(self.status)
                 target = owner if field == 'phase' else status['state' if field == 'mode' else 'control']
                 target[field] = value
                 session = menu.MenuSession(self.gateway, lambda: owner, lambda: status)
-                with self.assertRaisesRegex(menu.MenuSessionError, 'Retry|Stop SAM first'):
+                with self.assertRaisesRegex(menu.MenuSessionError, 'Retry'):
+                    session.hold()
+        self.gateway.execute.assert_not_called()
+
+    def test_special_modes_open_menu_without_pause_or_resume(self):
+        for mode in ('m82', 'samvideo', 'video'):
+            for phase in ('playing', 'loading', 'preparing'):
+                with self.subTest(mode=mode, phase=phase):
+                    self.owner['phase'] = phase
+                    self.status['state']['mode'] = mode
+                    self.status['control'] = {}
+                    self.assertEqual(self.session.hold(), '-')
+                    self.session.release('-')
+        self.gateway.execute.assert_not_called()
+
+    def test_special_mode_rejects_stale_or_inactive_display_state(self):
+        self.status['state']['mode'] = 'samvideo'
+        for field, value in (('owner_pid', '322'), ('owner_start', '78')):
+            with self.subTest(field=field):
+                status = copy.deepcopy(self.status)
+                status['state'][field] = value
+                session = menu.MenuSession(self.gateway, lambda: self.owner, lambda: status)
+                with self.assertRaisesRegex(menu.MenuSessionError, 'changed'):
+                    session.hold()
+        self.status['active'] = False
+        with self.assertRaisesRegex(menu.MenuSessionError, 'changed'):
+            self.session.hold()
+        self.gateway.execute.assert_not_called()
+
+    def test_special_mode_owner_replacement_never_creates_resume_lease(self):
+        self.status['state']['mode'] = 'samvideo'
+        for replacement in (None, dict(self.owner, start='78')):
+            with self.subTest(replacement=replacement):
+                owners = iter((self.owner, replacement))
+                session = menu.MenuSession(self.gateway, lambda: next(owners), lambda: self.status)
+                with self.assertRaisesRegex(menu.MenuSessionError, 'changed'):
                     session.hold()
         self.gateway.execute.assert_not_called()
 

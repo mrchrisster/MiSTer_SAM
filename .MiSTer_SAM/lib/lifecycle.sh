@@ -656,13 +656,13 @@ sam_monitor_help() { # Static session-local footer; never runs in input/timer lo
     case "$session" in
         SAM)
             line0=' SAM monitor | N/P: next/previous game | M: toggle mute'
-            line1=' Y: play (M82 only) | Q: detach; SAM and game keep running'
-            line2=' S: scroll history | Arrows/PgUp: browse | Q in history: return'
+            line1=' Q: detach; SAM and game keep running'
+            line2=' S: scroll history | Arrows/PgUp: browse'
             ;;
         MCP)
             line0=' MCP monitor | K/J/M: toggle keyboard/joystick/mouse detection'
             line1=' D: debug on/off | R: restore INI | H or ?: help | Q: detach'
-            line2=' S: scroll (Q returns) | Toggles are temporary; INI unchanged'
+            line2=' S: scroll history | Toggles are temporary; INI unchanged'
             ;;
         *) return 2 ;;
     esac
@@ -684,7 +684,13 @@ sam_monitor_help() { # Static session-local footer; never runs in input/timer lo
         set-option -t "$target" status 3 \; \
         set-option -t "$target" 'status-format[0]' "$line0" \; \
         set-option -t "$target" 'status-format[1]' "$line1" \; \
-        set-option -t "$target" 'status-format[2]' "$line2"
+        set-option -t "$target" 'status-format[2]' "$line2" || return 1
+    if [[ "$session" == SAM ]]; then
+        # Swallow terminal Y without a helper process. The internal M82 command
+        # uses send-keys directly and still reaches the owner's verified pane.
+        tmux bind-key -T "$table" y if-shell -F 0 '' \; \
+            bind-key -T "$table" Y if-shell -F 0 ''
+    fi
 }
 
 function mcp_monitor() {
@@ -703,7 +709,7 @@ function mcp_monitor() {
     fi
     echo 'MCP monitor: K keyboard, J joystick, M mouse, D debug, R restore INI, H help.'
     echo 'Q / Ctrl-C or Ctrl-b then d detaches; MCP keeps running.'
-    echo 'S opens history; arrows/PgUp scroll, Q returns to the live view.'
+    echo 'S opens history; arrows/PgUp scroll.'
     sam_diagnostic monitor_attach "terminal=$terminal local_keyboard_reserved=${keyboard_fd:+yes}" '' cli
     tmux send-keys -t MCP h
     tmux attach-session -t MCP || rc=$?

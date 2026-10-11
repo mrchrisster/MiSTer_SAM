@@ -1,5 +1,14 @@
 # MCP input detection and ghost-session fixes
 
+## Special-mode menu access: 2026-10-11
+
+Commercial/video and M82 sessions can open the menu without a pause lease;
+playback continues behind the UI. Admission verifies the active state and live
+PID/start identity twice, so stale display state does not authorize a lease.
+Closing the menu never sends pause/resume to those modes. The retained menu lock
+still excludes concurrent dialogs, MCP physical actions and automatic restarts.
+Normal/roulette keep their acknowledged pause/resume tied to one selection.
+
 ## Bounded diagnostics, SSH keyboard actions and scroll shortcut: 2026-10-10
 
 `m diagnostics` is the single history/support command; there is no separate
@@ -96,13 +105,18 @@ escape sequences cannot accidentally toggle options. No new input daemon, INI
 option, persistent override file or diagnostic SD writes are introduced.
 
 Both monitor views have a persistent three-line bottom tmux help bar. SAM shows
-N/P next/previous, M mute, Y play (M82 only), Q detach, and tmux history/detach
+N/P next/previous, M mute, Q detach, and tmux history/detach
 shortcuts. MCP explains its detector/debug toggles, R restore, H/? help, Q detach
 and temporary scope. Session-local key tables intercept Q/q for both views,
 including during preparation or a core load; these keys do not enter the game
 loop or send a stop command. Other tmux sessions retain their own options and
 bindings. The footer is static and configured only on monitor attachment, adding
 no input polling, timer work, helper process, INI change or SD write.
+
+The monitor help describes Q only as detach; it omits the history-mode Q hint.
+SAM monitor swallows Y/y with a process-free tmux format condition, so M82 play
+is not a terminal shortcut. Physical M82 actions still use the verified internal
+command gateway and bypass the client key table via direct pane `send-keys`.
 
 Live footer validation on tmux 3.1c: both views rendered all three lines in an
 80-column terminal. Q/q detached SAM and Q detached MCP without replacing either
