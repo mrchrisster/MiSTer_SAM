@@ -197,7 +197,9 @@ there_can_be_only_one 321 77
 ''')
 
     def test_phase_transitions_use_one_lock_helper_and_ticks_use_none(self):
-        self.check('''flock(){
+        self.check('''# Measure owner transitions independently of optional diagnostic locks.
+sam_diagnostic(){ :; }
+flock(){
     printf '%s\\n' "$*" >> "$SAM_TMP_ROOT/lock-calls"
     command flock "$@"
 }

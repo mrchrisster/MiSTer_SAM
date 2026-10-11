@@ -25,6 +25,14 @@ The installer validates the complete release before changing installed files. It
 
 Online updates run the installer included in the downloaded release, using that staged source without a second download. When updating from an older installer that lacks this handoff, that one update still follows its old backup behavior; subsequent updates use the new installer.
 
+Updates show download, validation, installation and finishing stages, including
+received size/time, the INI backup path and changed/unchanged file counts. TTYs
+get a compact animated indicator; redirected output stays plain. Network, TLS,
+validation and installation errors produce concise guidance instead of Python
+tracebacks. Certificate errors show the device's UTC time and keep verification
+enabled. Failed downloads/validation leave installed files and running sessions
+alone; partial installation failures are reported as incomplete.
+
 To update an installed modular release:
 
 ```sh
@@ -74,6 +82,7 @@ MiSTer_SAM_on.sh exit_to_game
 MiSTer_SAM_on.sh status
 MiSTer_SAM_on.sh monitor           # SAM output and game controls
 MiSTer_SAM_on.sh mcp_monitor       # physical input diagnostics and toggles
+MiSTer_SAM_on.sh diagnostics       # retained exits, failures and recent decisions
 MiSTer_SAM_on.sh control pause
 MiSTer_SAM_on.sh control resume
 MiSTer_SAM_on.sh control ignore
@@ -85,7 +94,7 @@ Both monitor views show their hotkeys in a persistent bottom help bar. Q detache
 the current view while SAM/MCP keep running. SAM uses N/P for next/previous, M for
 mute and Y for M82 play. MCP uses K/J/M to toggle keyboard/joystick/mouse detection,
 D for debug, R to restore current INI settings and H/? for help. MCP toggles are
-temporary and do not rewrite the INI. Ctrl-b then [ opens tmux history; q leaves
+temporary and do not rewrite the INI. S opens tmux history; q leaves
 history, and another q detaches from the ordinary view.
 
 Debug reports observed physical joystick presses with Linux/js codes, MiSTer and
@@ -117,6 +126,20 @@ M82/video retain their specialized transition loops inside modules; the prepared
 queue applies to normal mode. Android controls are advertised only for supported
 normal/roulette states. Physical joystick, CRT and AVI playback still need broader
 hardware testing.
+
+Diagnostics retain a bounded history in RAM across subsequent runs in the same
+boot. `m diagnostics` shows the latest exit, latest failure, and recent lifecycle
+and input decisions with timestamps and owner IDs. A successful later run does
+not erase the last failure. `samdebuglog="Yes"` enables additional bounded SAM
+debug history; view it with `m diagnostics --verbose`.
+
+`m diagnostics --preview` shows the filtered log that would be shared.
+`m diagnostics --upload` uploads it to the free 0x0.st service and prints a link.
+Uploads occur only when requested; anyone with the link can read the log. Full
+INI contents are omitted and mounted storage paths/credential-like values are
+filtered. A longer random link and one-week expiry are requested. A custom
+multipart upload endpoint can be passed after `--upload`. All local history is
+lost at reboot; collect it while the problem is still observable.
 
 Artwork-only normal mode uses small catalogs and downloads/validates selected covers during preparation. It does not need complete local artwork packs; uncached images require Internet access and download failures are reported explicitly.
 

@@ -12,7 +12,7 @@ except ImportError:  # A terminal console is available only on Unix hosts.
 
 HELP_TEXT = (
     "Hotkeys: k keyboard | j joystick | m mouse | d debug | "
-    "r restore INI | h/? help | q/Ctrl-C detach"
+    "r restore INI | h/? help | s scroll (tmux) | q/Ctrl-C detach"
 )
 
 

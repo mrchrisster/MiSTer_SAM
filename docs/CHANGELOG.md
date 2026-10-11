@@ -1,5 +1,28 @@
 # Recent changes
 
+## 2026-10-10 — Diagnostics, optional free log upload and clearer updates
+
+- Retain timestamped lifecycle/input decisions in bounded RAM history. Preserve
+  the latest exit and latest failure separately across subsequent runs; capture
+  exit status/selection before cleanup while preserving existing exit semantics.
+- Add one `m diagnostics` command and a Diagnostics and logs menu: view history,
+  verbose debug, preview upload content, or explicitly upload a filtered log.
+  Free 0x0.st uploads return a shareable link and request a random secret URL
+  and seven-day expiry. No account, new INI setting or automatic telemetry.
+- Bound optional SAM debug files in RAM. No unchanged input samples, timer ticks,
+  ROM scans or ROM hashing are added to logging. Busy diagnostic locks fail open.
+- Fix physical keyboard actions being suppressed during SSH MCP monitoring;
+  reserve console hotkeys only on the actual local MiSTer virtual console.
+  Add S scrollback in both monitors, with Q returning to the live view.
+- Show update stages, download size/time, settings backup and updated/current
+  file counts. Replace tracebacks with concise network/TLS/validation/install
+  errors, retain certificate verification and explain device-time checks.
+- Exported Linux suite: 762 tests passed, nine existing socat-dependent BGM cases
+  skipped on that host. Controlled native Python 3.9 checks passed 99 of 100,
+  with the remaining HTTP-error fixture corrected and all 15 upload cases then
+  passing. A loaded native run timed out and is not counted as a pass. Real
+  installed checks are recorded separately.
+
 ## 2026-10-10 — Lean runtime, reliable cleanup and configurable selection
 
 - Keep normal/roulette timing in the foreground Bash owner; remove the discarded

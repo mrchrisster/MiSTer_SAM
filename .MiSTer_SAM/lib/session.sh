@@ -75,10 +75,11 @@ sam_session_begin() {
         sam_session_unlock; return 1
     fi
     sam_owner=$owner sam_session="$mrsamtmp/session-$owner"
-    trap sam_session_cleanup EXIT
-    trap 'exit 0' TERM
+    trap 'sam_session_exit "$?"' EXIT
+    trap sam_session_term TERM
     sam_catalog_cache="$mrsamtmp/catalog-cache"
     sam_last_phase= sam_launch_serial=0 sam_generation=0
+    sam_exit_reason= sam_exit_reported=0 sam_exit_snapshot_taken=0 sam_diagnostic_cleanup_status=0
     sam_session_cleaned=0 sam_cleanup_done=0 sam_session_stop_done=0 sam_audio_stop_done=0
     if mkdir -p "$sam_session/ready" "$sam_session/jobs" "$sam_session/consumed" "$sam_catalog_cache" &&
         : > "$sam_session/alive" && sam_session_write_phase preparing 0; then
@@ -87,6 +88,9 @@ sam_session_begin() {
         printf '%s\n' "${sam_config_roulette_snapshot:-}" > "$sam_session/config-roulette"
         [[ ! -f "$gamelistpath/.excludetags" ]] || cp -- "$gamelistpath/.excludetags" "$sam_session/config-tags"
         sam_session_started=1
+        if declare -F sam_diagnostic >/dev/null; then
+            sam_diagnostic session_start "mode=${sam_mode:-${SAM_MODE:-}} target=${SAM_TARGET_CORE:-}" "$sam_owner" || true
+        fi
     else rc=1; fi
     sam_session_unlock
     return "$rc"
@@ -105,13 +109,16 @@ sam_publish_phase() {
         sam_session_is_current; return $?
     fi
     sam_session_lock || return 1
-    local rc=0 serial=${sam_launch_serial:-0}
+    local rc=0 serial=${sam_launch_serial:-0} changed=0
     if ! sam_session_is_current; then rc=1
     elif [[ "$1" != "$sam_last_phase" || "$1" == loading ]]; then
         [[ "$1" != loading ]] || serial=$((serial+1))
-        sam_session_write_phase "$1" "$serial" || rc=1
+        if sam_session_write_phase "$1" "$serial"; then changed=1; else rc=1; fi
     fi
     sam_session_unlock
+    if ((changed)) && declare -F sam_diagnostic >/dev/null; then
+        sam_diagnostic phase_change "phase=$1 launch=$serial core=${core:-${nextcore:-}}" "$sam_owner" || true
+    fi
     return "$rc"
 }
 
@@ -137,7 +144,60 @@ sam_record_empty_autostart() {
         --lists "$gamelistpath" --root "$mrsampath" --runtime "$mrsamtmp" --owner "$sam_owner" --revision "$sam_revision"
 }
 
+# Preserve selection before explicit cleanup removes records or changes phase.
+sam_session_exit_snapshot() {
+    [[ "${sam_exit_snapshot_taken:-0}" != 1 ]] || return 0
+    sam_exit_phase=${sam_last_phase:-}
+    sam_exit_core=${core:-${nextcore:-}}
+    sam_exit_game=${gamename:-${romname:-}}
+    sam_exit_rom=${rompath:-}
+    sam_exit_error=
+    if [[ -n "${sam_session:-}" && -r "$sam_session/error" ]]; then
+        IFS= read -r sam_exit_error < "$sam_session/error" || true
+    fi
+    sam_exit_snapshot_taken=1
+}
+
+sam_session_term() {
+    [[ -n "${sam_exit_reason:-}" ]] || sam_exit_reason=term
+    exit 0
+}
+
+sam_session_exit() {
+    local status=${1:-0} cleanup_status=0 reason=${sam_exit_reason:-}
+    [[ "$BASHPID" == "$$" ]] || return "$status"
+    sam_session_exit_snapshot
+    # Error files contain supplied evidence; absence leaves the cause unknown.
+    local reported=${sam_exit_reported:-0} error=${sam_exit_error:-}
+    if [[ -n "${sam_session:-}" && -r "$sam_session/error" ]]; then
+        IFS= read -r error < "$sam_session/error" || true
+    fi
+    [[ -n "$reason" || -z "$error" ]] || reason=$error
+    sam_session_cleanup || cleanup_status=$?
+    (( ${sam_diagnostic_cleanup_status:-0} == 0 )) || cleanup_status=$sam_diagnostic_cleanup_status
+    if [[ -z "$reason" ]]; then
+        if ((status)); then reason=unexplained_exit; else reason=completed; fi
+    fi
+    if ((status != 0 && reported == 0)) && [[ "$reason" == unexplained_exit ]]; then
+        printf 'SAM ERROR: session ended unexpectedly (status %s). Check RAM diagnostics.\n' "$status" >&2
+    fi
+    if declare -F sam_diagnostic_exit >/dev/null; then
+        sam_diagnostic_exit "$status" "$reason" "$cleanup_status" "$sam_exit_phase" \
+            "$sam_exit_core" "$sam_exit_game" "$sam_exit_rom" || true
+    fi
+    return "$status"
+}
+
 sam_session_cleanup() {
+    [[ "$BASHPID" == "$$" ]] || return 1
+    sam_session_exit_snapshot
+    local rc=0
+    sam_session_cleanup_impl || rc=$?
+    ((rc == 0)) || sam_diagnostic_cleanup_status=$rc
+    return "$rc"
+}
+
+sam_session_cleanup_impl() {
     [[ "${sam_session_cleaned:-0}" != 1 ]] || return 0
     [[ "$BASHPID" == "$$" ]] || return 1
     trap ':' TERM
@@ -171,7 +231,7 @@ sam_session_cleanup() {
     fi
     sam_session_lock || {
         ((defer_preparation == 0)) || sam_cleanup_preparation || true
-        trap 'exit 0' TERM; return 1;
+        trap sam_session_term TERM; return 1;
     }
     if sam_session_is_current; then
         sam_session_write_phase stopping "${sam_launch_serial:-0}" || true
@@ -180,7 +240,7 @@ sam_session_cleanup() {
             { printf 'owner=%s\n' "$sam_owner"; cat "$sam_session/cleanup-error"; } > "$mrsamtmp/last-error.log"
             sam_session_lock_depth=1; sam_session_unlock
             echo 'SAM: owned-job cleanup incomplete; evidence preserved and audio held.' >&2
-            trap 'exit 0' TERM
+            trap sam_session_term TERM
             return 1
         fi
         # Admission refuses a live PID/start even in stopping phase. Release
@@ -212,6 +272,7 @@ sam_session_cleanup() {
                     sam_session_unlock
                 fi
             else
+                sam_diagnostic_cleanup_status=$critical_rc
                 echo 'SAM: critical cleanup hook failed; early Menu handoff disabled.' >&2
             fi
             if ((defer_preparation)); then
@@ -234,7 +295,7 @@ sam_session_cleanup() {
         sam_session_unlock
     fi
     ((defer_preparation == 0)) || sam_cleanup_preparation || cleanup_failed=1
-    if ((cleanup_failed)); then trap 'exit 0' TERM; return 1; fi
+    if ((cleanup_failed)); then trap sam_session_term TERM; return 1; fi
     sam_session_cleaned=1
     sam_exit_trace cleanup_finished
     if [[ -n "${sam_session:-}" && "$sam_session" == "$mrsamtmp/session-$sam_owner" ]]; then
@@ -244,5 +305,5 @@ sam_session_cleanup() {
         rm -rf -- "$sam_session"
     fi
     # Keep stopping record for Menu audio restoration and startup feedback.
-    trap 'exit 0' TERM
+    trap sam_session_term TERM
 }

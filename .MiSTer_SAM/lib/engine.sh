@@ -251,8 +251,6 @@ run_countdown_timer() {
 
 sam_normal_loop() {
     sam_session_begin || return 1
-    trap sam_session_cleanup EXIT
-    trap 'exit 0' TERM
     trap 'tmux detach-client' INT
     sam_emit display_start
     sam_prep || return 1
@@ -262,6 +260,7 @@ sam_normal_loop() {
     if ((startup_rc != 0));then
         startup_error="Session startup failed (status $startup_rc). Check startup modules: ${SAM_HOOKS[session_start]:-none}"
         sam_preparation_error "$startup_error"
+        sam_exit_reported=1
         printf 'SAM ERROR: %s\n' "$startup_error" >&2
         return 1
     fi
@@ -290,6 +289,7 @@ sam_normal_loop() {
             if ((take_rc > 1)) && [[ ! -f "$sam_session/error" ]]; then sam_preparation_error "Selection validation failed (status $take_rc)"; fi
             if [[ -f "$sam_session/error" ]]; then
                 local error; IFS= read -r error < "$sam_session/error"
+                sam_exit_reported=1
                 printf '\nSAM ERROR: %s. Current game retained; restart SAM to retry.\n' "$error" >&2
                 sam_record_empty_autostart || true
                 return 1
@@ -314,6 +314,8 @@ sam_normal_loop() {
                 local commit_rc=0
                 sam_service commit "$nextcore" "$rompath" "$sam_record_reset" "$sam_record_policy" || commit_rc=$?
                 if ((commit_rc != 0)); then
+                    sam_exit_reported=1
+                    sam_exit_reason="Launch commit failed (status $commit_rc)"
                     printf '\nSAM ERROR: launch commit failed (status %s).\n' "$commit_rc" >&2
                     return 1
                 fi
@@ -333,6 +335,7 @@ sam_normal_loop() {
             rm -f "$sam_selected_record"
             if (( launch_rc > 1 )); then
                 sam_preparation_error "${sam_core_reason:-Launch infrastructure failed (status $launch_rc)}"
+                sam_exit_reported=1
                 printf '\nSAM ERROR: launch rejected (status %s): %s\n' "$launch_rc" "${sam_core_reason:-validation failed}" >&2
                 return 1
             fi

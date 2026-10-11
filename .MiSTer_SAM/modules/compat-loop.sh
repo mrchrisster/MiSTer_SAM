@@ -4,8 +4,6 @@ function loop_core() {
     # args: [target_core]
     sam_core_session_begin "${1:-}" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
     sam_session_begin || return 1
-    trap sam_session_cleanup EXIT
-    trap 'exit 0' TERM
     sam_emit display_start
 
     # Global trap to detach monitor on Ctrl+C instead of killing SAM

@@ -325,6 +325,7 @@ function exit_sam() { # exit_sam [menu|game]
         if [[ -r "$sam_session/launch-path" ]]; then
             IFS= read -r sam_exit_reload_path < "$sam_session/launch-path" || true
         fi
+        sam_exit_reason=keep_game
         own_exit=1
     fi
     local external_lock=0 exit_rc=0 expected=${sam_exit_expected_owner:-0:0}
@@ -656,12 +657,12 @@ sam_monitor_help() { # Static session-local footer; never runs in input/timer lo
         SAM)
             line0=' SAM monitor | N/P: next/previous game | M: toggle mute'
             line1=' Y: play (M82 only) | Q: detach; SAM and game keep running'
-            line2=' Ctrl-b then d: detach | Ctrl-b then [: scroll history'
+            line2=' S: scroll history | Arrows/PgUp: browse | Q in history: return'
             ;;
         MCP)
             line0=' MCP monitor | K/J/M: toggle keyboard/joystick/mouse detection'
             line1=' D: debug on/off | R: restore INI | H or ?: help | Q: detach'
-            line2=' Toggles are temporary. Q keeps MCP + SAM running. Ctrl-b then [: scroll'
+            line2=' S: scroll (Q returns) | Toggles are temporary; INI unchanged'
             ;;
         *) return 2 ;;
     esac
@@ -676,6 +677,8 @@ sam_monitor_help() { # Static session-local footer; never runs in input/timer lo
     # the owner sees it, so detachment also works during preparation/core loads.
     tmux bind-key -T "$table" q detach-client \; \
         bind-key -T "$table" Q detach-client \; \
+        bind-key -T "$table" s copy-mode \; \
+        bind-key -T "$table" S copy-mode \; \
         set-option -t "$target" key-table "$table" \; \
         set-option -t "$target" status-position bottom \; \
         set-option -t "$target" status 3 \; \
@@ -687,18 +690,27 @@ sam_monitor_help() { # Static session-local footer; never runs in input/timer lo
 function mcp_monitor() {
     mcp_start || return 1
     sam_monitor_help MCP || return 1
-    local monitor_fd rc=0
+    local monitor_fd keyboard_fd= rc=0 terminal
     mkdir -p "$mrsamtmp" || return 1
     exec {monitor_fd}> "$mrsamtmp/mcp-monitor.lock" || return 1
     flock -s "$monitor_fd" || { exec {monitor_fd}>&-; return 1; }
+    # SSH terminal hotkeys are separate from the MiSTer's physical keyboard.
+    # Reserve physical keys only when this client uses the local virtual console.
+    terminal=$(readlink /proc/$$/fd/0) || terminal=
+    if [[ "$terminal" =~ ^/dev/tty[0-9]+$ ]]; then
+        exec {keyboard_fd}> "$mrsamtmp/mcp-console-keyboard.lock" || { exec {monitor_fd}>&-; return 1; }
+        flock -s "$keyboard_fd" || { exec {keyboard_fd}>&-; exec {monitor_fd}>&-; return 1; }
+    fi
     echo 'MCP monitor: K keyboard, J joystick, M mouse, D debug, R restore INI, H help.'
     echo 'Q / Ctrl-C or Ctrl-b then d detaches; MCP keeps running.'
-    # The service owns its terminal keys. Physical keyboard exit actions are
-    # reserved only for this attached monitor, not the ordinary SAM monitor.
+    echo 'S opens history; arrows/PgUp scroll, Q returns to the live view.'
+    sam_diagnostic monitor_attach "terminal=$terminal local_keyboard_reserved=${keyboard_fd:+yes}" '' cli
     tmux send-keys -t MCP h
     tmux attach-session -t MCP || rc=$?
+    if [[ -n "$keyboard_fd" ]]; then flock -u "$keyboard_fd"; exec {keyboard_fd}>&-; fi
     flock -u "$monitor_fd"
     exec {monitor_fd}>&-
+    sam_diagnostic monitor_detach "terminal=$terminal" '' cli
     return "$rc"
 }
 

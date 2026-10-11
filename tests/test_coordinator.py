@@ -107,6 +107,37 @@ class CoordinatorTests(unittest.IsolatedAsyncioTestCase):
         deps.stop_sam.assert_not_awaited()
         self.assertFalse(state.stopping)
 
+    async def test_monitor_suppression_diagnostic_explains_gate(self):
+        diagnostic = Mock()
+        dependencies = self.dependencies(monitor_active=Mock(return_value=True), diagnostic=diagnostic)
+        state = State()
+        LifecycleCoordinator(dependencies).handle_action('default', state, asyncio.get_running_loop())
+        diagnostic.assert_called_once_with('mcp', 'input_suppressed', owner='', phase='', source='keyboard', action='default', reason='monitor_active')
+        dependencies.read_sam_owner.assert_not_called()
+        dependencies.stop_sam.assert_not_awaited()
+
+    async def test_diagnostic_failure_cannot_prevent_dispatch(self):
+        diagnostic = Mock(side_effect=RuntimeError('logging failed'))
+        dependencies = self.dependencies(diagnostic=diagnostic)
+        state = State()
+        LifecycleCoordinator(dependencies).handle_action('default', state, asyncio.get_running_loop(), source='remote_keyboard')
+        await self.drain(state)
+        dependencies.stop_sam.assert_awaited_once()
+        self.assertFalse(state.stopping)
+
+    async def test_exit_events_use_captured_owner_and_result(self):
+        diagnostic = Mock()
+        dependencies = self.dependencies(diagnostic=diagnostic)
+        state = State()
+        LifecycleCoordinator(dependencies).handle_action('default', state, asyncio.get_running_loop(), source='remote_keyboard')
+        await self.drain(state)
+        records = [(call.args[1], call.kwargs) for call in diagnostic.call_args_list]
+        request = next(fields for event, fields in records if event == 'exit_requested')
+        result = next(fields for event, fields in records if event == 'exit_result')
+        self.assertEqual(request['owner'], '321:77')
+        self.assertEqual(result['owner'], request['owner'])
+        self.assertEqual(result['phase'], request['phase'])
+
     async def test_disabled_keyboard_mouse_and_joystick_do_not_dispatch(self):
         for source in ('keyboard','remote_keyboard','mouse','joystick'):
             state=State();state.listenkeyboard=False;state.listenmouse=False;state.listenjoy=False

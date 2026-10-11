@@ -25,6 +25,12 @@ parse_cmd() {
     [[ -n "$first" ]] || { source "$mrsampath/lib/menu.sh"; sam_menu_run sam_premenu; return; }
     shift
     case "$first" in
+        start|restart|stop|kill|stop_owner|exit_to_game|exit_to_menu|exit_to_menu_fast|loop_core)
+            if declare -F sam_diagnostic >/dev/null; then
+                sam_diagnostic command_received "command=$first" "${sam_owner:-}" gateway || true
+            fi ;;
+    esac
+    case "$first" in
         control|status|pause|resume|play|next|skip|previous|mute|m82_play|start|restart|stop|kill|stop_owner|exit_to_game|exit_to_menu|exit_to_menu_fast|menu_audio_restore|unmute|ignore)
             if [[ "${sam_gateway_backend:-0}" != 1 ]]; then
                 python3 "$mrsampath/samctl.py" "$first" "$@"

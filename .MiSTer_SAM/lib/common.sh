@@ -15,7 +15,9 @@ function samdebug() {
 
     if [[ "${samdebuglog}" == "yes" ]]; then
         # Writing to a log file is already separate and is perfectly fine.
-        echo "[${ts}] ${msg}" >> /tmp/samdebug.log
+        if declare -F sam_diagnostic_debug >/dev/null; then
+            sam_diagnostic_debug "[${ts}] ${msg}" || true
+        else echo "[${ts}] ${msg}" >> /tmp/samdebug.log; fi
     fi
 }
 

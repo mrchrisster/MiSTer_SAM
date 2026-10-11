@@ -258,6 +258,9 @@ function sv_ar_cdi_mode() {
              return
         fi
 
+        if declare -F sam_diagnostic >/dev/null; then
+            sam_diagnostic video_selected "core=${nextcore:-} file=$sv_selected" "${sam_owner:-}" || true
+        fi
         sv_selected_url="${http_archive%/*}/${sv_selected}"
 
         # 4. Check Local Availability First
@@ -327,6 +330,9 @@ function sv_ar_cdi_mode() {
             fresh_download="yes"
         else
             echo "Error: Download failed or file is empty."
+            if declare -F sam_diagnostic >/dev/null; then
+                sam_diagnostic video_error "empty/download failure file=$sv_selected" "${sam_owner:-}" || true
+            fi
             echo "1" > "$sv_gametimer_file"
             return
         fi
@@ -397,6 +403,9 @@ function sv_ar_cdi_mode() {
     local core_prefix="${sv_selected%%-*}"
     core_prefix="${core_prefix//_/ }"
     echo -e "Now playing: \e[1m${core_prefix} Commercial - ${sv_title}\e[0m"
+    if declare -F sam_diagnostic >/dev/null; then
+        sam_diagnostic video_launch_request "core=cdi file=$sv_selected" "${sam_owner:-}" || true
+    fi
     if [ -s /tmp/SAM_Game.mgl ]; then mv /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl; fi
     {
         # Prepare RBF path for MGL

@@ -3,6 +3,9 @@ import asyncio
 import contextlib
 import io
 import threading
+import os
+import tempfile
+from pathlib import Path
 import unittest
 from unittest.mock import AsyncMock,Mock,patch
 import test_mcp
@@ -80,6 +83,27 @@ class MonitorOptions(unittest.IsolatedAsyncioTestCase):
 
 
 class PhysicalInventory(unittest.TestCase):
+    @unittest.skipUnless(os.name=='posix','Linux flock focus')
+    def test_ssh_monitor_lock_does_not_reserve_physical_keyboard(self):
+        import fcntl
+        with tempfile.TemporaryDirectory() as directory, patch.object(m,'SAM_RUNTIME_ROOT',directory), \
+             patch.object(m,'_monitor_was_attached',False),patch.object(m,'_monitor_keyboard_until',0):
+            with (Path(directory)/'mcp-monitor.lock').open('w') as lock:
+                fcntl.flock(lock,fcntl.LOCK_SH)
+                self.assertFalse(m.mcp_monitor_active())
+
+    @unittest.skipUnless(os.name=='posix','Linux flock focus')
+    def test_local_console_lock_reserves_keys_with_release_grace(self):
+        import fcntl
+        with tempfile.TemporaryDirectory() as directory, patch.object(m,'SAM_RUNTIME_ROOT',directory), \
+             patch.object(m,'_monitor_was_attached',False),patch.object(m,'_monitor_keyboard_until',0):
+            with (Path(directory)/'mcp-console-keyboard.lock').open('w') as lock:
+                fcntl.flock(lock,fcntl.LOCK_SH)
+                self.assertTrue(m.mcp_monitor_active())
+            self.assertTrue(m.mcp_monitor_active())
+            with patch.object(m.time,'monotonic',return_value=m._monitor_keyboard_until+1):
+                self.assertFalse(m.mcp_monitor_active())
+
     def test_virtual_devices_are_excluded_bluetooth_uhid_and_physical_mouse_kept(self):
         records='''I: Bus=0003 Vendor=1234 Product=0001 Version=0001
 N: Name="Physical Pad"

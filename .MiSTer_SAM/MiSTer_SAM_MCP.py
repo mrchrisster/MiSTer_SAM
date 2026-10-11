@@ -27,6 +27,7 @@ from sam.menu_session import active as menu_session_active
 from sam.autostart import EmptySelectionGuard
 from sam.input_options import InputOptions
 from sam.mcp_console import MCPConsole, HELP_TEXT as MCP_HELP_TEXT
+from sam.diagnostics import DiagnosticLog
 
 # --- Configuration (from Script 1) ---
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -44,6 +45,7 @@ _empty_selection_guard = None
 _empty_selection_announced = None
 _monitor_was_attached = False
 _monitor_keyboard_until = 0
+_diagnostic_log = None
 
 
 def empty_selection_blocked():
@@ -63,11 +65,16 @@ def empty_selection_blocked():
 
 def mcp_monitor_active():
     global _monitor_was_attached, _monitor_keyboard_until
-    attached=menu_session_active(os.path.join(SAM_RUNTIME_ROOT,'mcp-monitor.lock'))
+    attached=menu_session_active(os.path.join(SAM_RUNTIME_ROOT,'mcp-console-keyboard.lock'))
     if _monitor_was_attached and not attached:
         _monitor_keyboard_until=time.monotonic()+1.2
     _monitor_was_attached=attached
     return attached or time.monotonic()<_monitor_keyboard_until
+
+
+def diagnostic_event(component,event,owner='',**fields):
+    if _diagnostic_log is not None:
+        _diagnostic_log.emit(component,event,owner,**fields)
 M82_PHASE_FILE = os.path.join(SAM_RUNTIME_ROOT, 'm82_phase')  # "bios" or "game", written by pick_rom()
 
 # --- Constants for jsX Polling (from Script 2) ---
@@ -673,8 +680,15 @@ def session_is_m82(owner, configured):
     return session_records.session_is_m82(owner, configured, read_literal_file(SAM_STATE_FILE))
 
 
-def lifecycle_coordinator():
+def lifecycle_coordinator(input_device=None):
     """Bind platform callbacks at the compatibility boundary, never in readers."""
+    def report(component,event,owner='',**fields):
+        # Routine idle activity is not a session failure or command decision.
+        if event=='owner_missing' or (event=='action_received' and not owner and fields.get('routing')=='dispatch'):
+            return
+        if input_device:
+            fields['device']=input_device
+        diagnostic_event(component,event,owner,**fields)
     return LifecycleCoordinator(CoordinatorDependencies(
         read_sam_owner=read_sam_owner,
         is_in_menu=is_in_menu,
@@ -692,6 +706,7 @@ def lifecycle_coordinator():
         menu_active=menu_session_active,
         empty_selection_blocked=empty_selection_blocked,
         monitor_active=mcp_monitor_active,
+        diagnostic=report,
     ))
 
 
@@ -848,8 +863,8 @@ def kill_sam_processes(owner=None):
     return command_gateway().execute("stop_owner", owner=owner)
 
 
-def handle_action(action, state, loop, source="keyboard"):
-    return lifecycle_coordinator().handle_action(action, state, loop, source)
+def handle_action(action, state, loop, source="keyboard", input_device=None):
+    return lifecycle_coordinator(input_device).handle_action(action, state, loop, source)
 
 
 def joystick_poller_thread(device_info, state, controller_config, loop, stop_event):
@@ -890,7 +905,7 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
                     if action and state.listenjoy:
                         if state.is_sam_running() or state.is_sam_starting():
                             # SAM is active — log and route through full action handler.
-                            loop.call_soon_threadsafe(handle_action, action, state, loop, "joystick")
+                            loop.call_soon_threadsafe(handle_action, action, state, loop, "joystick", dev_path)
                         else:
                             # User is playing normally — just reset the idle timer
                             # so SAM doesn't launch on an active player.
@@ -943,7 +958,7 @@ def byte_activity_poller_thread(device_path, state, loop, stop_event, label):
                     enabled = getattr(state, gate, True)
                     if enabled:
                         loop.call_soon_threadsafe(handle_action, "default", state, loop,
-                                                 'keyboard' if label=='Keyboard' else 'mouse')
+                                                 'keyboard' if label=='Keyboard' else 'mouse', device_path)
                     if state.samdebug:
                         input_debug(state, 'MCP-INPUT: %s device=%s report=%s source=generic action=default detection=%s (raw activity; key/button names unavailable)' %
                                     (label, device_path, report[:64].hex(), 'enabled' if enabled else 'disabled'))
@@ -1179,6 +1194,8 @@ def console_status(state):
           (sum(path.startswith('/dev/input/js') for path in readers),
            sum(path.startswith('/dev/hidraw') for path in readers),
            sum(re.fullmatch(r'/dev/input/mouse\d+',path) is not None for path in readers)),flush=True)
+    print('Physical keyboard actions: %s.' % ('reserved for local console monitor' if mcp_monitor_active()
+                                            else 'enabled when detection is ON; SSH monitor does not suppress them'),flush=True)
 
 
 async def console_command(state,key):
@@ -1712,6 +1729,14 @@ def read_initial_settings(ini_path=None, runtime_root=None):
 
 
 async def main():
+    global _diagnostic_log
+    _diagnostic_log = DiagnosticLog(SAM_RUNTIME_ROOT)
+    try:
+        import hashlib
+        code_hash=hashlib.sha256(open(__file__,'rb').read(256*1024)).hexdigest()
+    except OSError:
+        code_hash='unavailable'
+    diagnostic_event('mcp','service_start',pid=os.getpid(),code_sha256=code_hash)
     try:
         settings = read_initial_settings()
     except (OSError, ValueError, UnicodeError, TypeError) as error:

@@ -805,9 +805,31 @@ function menu_advanced() {
     menu_advancedsettings "Startup, core weighting, input and debug" \
     menu_inieditor "Edit MiSTer_SAM.ini" \
     startmonitor "Start SAM with SSH Monitor" \
+    menu_diagnostics "Diagnostics and logs" \
     update "Update SAM" \
     menu_reset "Rebuild lists, reset or uninstall"
 }
+
+function menu_diagnostics() {
+  sam_menu_group "Diagnostics and logs" "History is kept in RAM until reboot. Upload sends a filtered log to public 0x0.st; anyone with its link can read it." \
+    menu_diagnostics_recent "View recent decisions, exit and failure" \
+    menu_diagnostics_verbose "View verbose SAM debug" \
+    menu_diagnostics_preview "Preview the filtered upload log" \
+    menu_diagnostics_upload "Upload log and get a shareable URL"
+}
+
+sam_diagnostics_view() {
+  local file rc=0
+  file=$(mktemp "${sam_ui_root:-/tmp}/sam-diagnostics.XXXXXX") || return 1
+  python3 "$mrsampath/sam/diagnostics.py" --runtime "$mrsamtmp" "$@" > "$file" 2>&1 || rc=$?
+  sam_dialog --title "[ Diagnostics and logs ]" --textbox "$file" 0 0 || true
+  rm -f -- "$file"
+  return "$rc"
+}
+menu_diagnostics_recent() { sam_diagnostics_view; }
+menu_diagnostics_verbose() { sam_diagnostics_view --verbose; }
+menu_diagnostics_preview() { sam_diagnostics_view --preview; }
+menu_diagnostics_upload() { sam_diagnostics_view --upload; }
 
 
 function menu_artwork() {

@@ -13,7 +13,12 @@ sam_exit_trace() {
 }
 sam_exit_trace entry
 sam_root="${SAM_ROOT:-/media/fat/Scripts/.MiSTer_SAM}"
-if [[ ! -r "$sam_root/lib/modules.sh" || ! -r "$sam_root/lib/cores.sh" ]]; then
+if [[ "${1,,}" == diagnostics ]]; then
+    [[ -r "$sam_root/sam/diagnostics.py" ]] || { echo 'Diagnostics tool is missing; reinstall SAM.' >&2; exit 1; }
+    shift
+    exec python3 "$sam_root/sam/diagnostics.py" --runtime "${SAM_TMP_ROOT:-/tmp/.SAM_tmp}" "$@"
+fi
+if [[ ! -r "$sam_root/lib/modules.sh" || ! -r "$sam_root/lib/cores.sh" || ! -r "$sam_root/lib/diagnostics.sh" ]]; then
     [[ -z "${SAM_ROOT:-}" ]] || { echo 'SAM installation is incomplete.' >&2; exit 1; }
     sam_installer=$(mktemp /tmp/sam-install.XXXXXX.py) || exit 1
     sam_release_branch=${SAM_INSTALL_BRANCH:-test}
@@ -75,6 +80,7 @@ fi
 source "$sam_root/lib/modules.sh"
 source "$sam_root/lib/config.sh"
 source "$sam_root/lib/common.sh"
+source "$sam_root/lib/diagnostics.sh"
 source "$sam_root/lib/cores.sh"
 source "$sam_root/lib/state.sh"
 source "$sam_root/lib/session.sh"

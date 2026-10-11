@@ -1,5 +1,52 @@
 # MCP input detection and ghost-session fixes
 
+## Bounded diagnostics, SSH keyboard actions and scroll shortcut: 2026-10-10
+
+`m diagnostics` is the single history/support command; there is no separate
+report command. It reads bounded literal data in `/tmp/.SAM_tmp/diagnostics`:
+two 128 KiB decision-history files, atomic latest-exit/latest-failure snapshots,
+and optional two 128 KiB SAM debug files. Default history stays below 264 KiB;
+enabling `samdebuglog` adds at most 256 KiB. A successful later session replaces
+latest-exit but preserves latest-failure. Reboot clears RAM history.
+
+Foreground EXIT snapshots status, phase, mode, core, game and ROM before cleanup
+removes session scratch. The wrapper preserves original exit status, records
+TERM/keep-game intent, and retains cleanup failure status. Background workers
+cannot publish foreground exit evidence. Unexplained nonzero exits produce a
+generic error; supplied engine errors are not duplicated. Existing Menu/audio
+ordering remains intact. `SIGKILL`/power loss cannot run EXIT; MCP may observe
+owner disappearance, but that observation does not invent an exit status/cause.
+
+MCP records accepted/suppressed input decisions, source/device, requested
+commands, owner identity/phase, results and startup decisions. These are action
+boundary/lifecycle writes, never unchanged joystick snapshots or timer ticks.
+The shared JSONL writer rotates under a retained nonblocking flock. A busy lock
+or IO error drops a history event rather than delaying/failing dispatch; this is
+best-effort history, not a lossless event stream. Exit/failure snapshots are
+separate atomic files. Diagnostic data is never sourced or evaluated.
+
+S/s opens tmux history in both monitor views. Arrows/PgUp browse; Q returns to
+the live view, where Q detaches. The original tmux prefix shortcuts remain.
+SSH monitor attachment does not reserve MiSTer's physical keyboard. Only an
+attachment on `/dev/ttyN` holds `mcp-console-keyboard.lock`, with the established
+release grace; its reserved status is shown in monitor help. This fixes enabled
+physical keyboard activity being observed but suppressed during SSH monitoring.
+
+`m diagnostics --preview` renders the exact filtered upload content locally.
+`m diagnostics --upload` explicitly sends it to 0x0.st and prints a share link.
+This is not automatic crash telemetry. Full INI data is excluded; storage paths
+and obvious credential values are filtered, with a 512 KiB payload cap. The
+client identifies SAM, requests a longer random link and seven-day expiry, uses
+verified HTTPS and bounded replies. Local logs remain after upload failures.
+Custom multipart endpoints can be supplied with `--upload URL` or the optional
+`SAM_LOG_UPLOAD_URL` environment variable; no new INI option is introduced.
+
+Zaparoo uses the same multipart-file/URL pattern on its own Rustypaste service:
+[announcement](https://zaparoo.org/blog/core-v2.9.1/),
+[uploader source](https://github.com/ZaparooProject/zaparoo-core/blob/main/pkg/helpers/logupload.go).
+SAM uses the free public [0x0.st API](https://0x0.st/) rather than Zaparoo's server.
+Shared links are publicly readable by anyone who obtains them.
+
 ## Current MCP diagnostics and monitor keys: 2026-10-10
 
 `m mcp_monitor` supports K (keyboard detection), J (joystick detection), M
@@ -40,8 +87,9 @@ to be ignored by hotplug scheduling.
 
 An attached MCP monitor holds a shared RAM flock at
 `/tmp/.SAM_tmp/mcp-monitor.lock`. The retained inode is never unlinked. MCP reserves
-physical keyboard actions for the monitor while attached, and for a 1.2-second
-release grace after detachment; joystick actions remain available. The probe runs
+physical keyboard actions only for local `/dev/ttyN` attachments using the
+separate `mcp-console-keyboard.lock`, with a 1.2-second release grace. SSH viewers
+leave physical keyboard actions enabled; joystick actions remain available. The probe runs
 at the action boundary and existing one-second checker, outside the 20 ms reader.
 The console uses the existing event loop and restores terminal settings on close;
 escape sequences cannot accidentally toggle options. No new input daemon, INI

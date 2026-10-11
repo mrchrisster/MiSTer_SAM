@@ -14,7 +14,7 @@ class ExitTrace(unittest.TestCase):
             root = Path(directory)
             library = root / 'lib'
             library.mkdir()
-            for name in ('modules', 'config', 'common', 'cores', 'state', 'session', 'config-reload',
+            for name in ('modules', 'config', 'common', 'diagnostics', 'cores', 'state', 'session', 'config-reload',
                          'audio', 'catalog', 'filter', 'launch', 'lifecycle',
                          'catalog-runtime', 'policy', 'engine', 'dispatch'):
                 (library / (name + '.sh')).write_text('')

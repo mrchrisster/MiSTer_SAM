@@ -248,7 +248,9 @@ class Install(unittest.TestCase):
         with patch.object(sys, 'argv', argv), patch.object(installer, 'checked_source', return_value=PACKAGE), patch.object(installer, 'download_source') as download, patch.object(installer, 'install') as bundled_install:
             installer.main()
         download.assert_not_called()
-        bundled_install.assert_called_once_with(PACKAGE, self.mister, 'test')
+        bundled_install.assert_called_once()
+        self.assertEqual(bundled_install.call_args.args[:3], (PACKAGE, self.mister, 'test'))
+        self.assertIsInstance(bundled_install.call_args.args[3], installer.UpdateUI)
 
 
 if __name__ == '__main__':
