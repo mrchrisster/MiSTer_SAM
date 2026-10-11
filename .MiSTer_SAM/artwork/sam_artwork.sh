@@ -65,7 +65,10 @@ sam_artwork_stamp() {
     done
     # Directory timestamps reflect image additions/removals; index/master changes
     # invalidate matching. The launch guard checks overwritten image contents.
-    stat -c '%n:%s:%y' "${paths[@]}" 2>/dev/null
+    # Missing catalog/index paths are normal on a core's first use. Their
+    # absence is part of the stamp, not a fatal preparation error; the resolver
+    # owns catalogue acquisition and its explicit failure handling.
+    stat -c '%n:%s:%y' "${paths[@]}" 2>/dev/null || true
 }
 
 sam_artwork_filter() {

@@ -1,5 +1,47 @@
 # Recent changes
 
+## 2026-10-10 — Lean runtime, reliable cleanup and configurable selection
+
+- Keep normal/roulette timing in the foreground Bash owner; remove the discarded
+  resident Python timer bridge. Share command routing and verified owner/phase
+  handling across CLI, menus and MCP. No new control daemon is introduced.
+- Serialize starts, fence preparation/launch cancellation, coalesce loading input
+  and release resources through bounded owner-specific cleanup. Deliver Menu as
+  soon as critical launch/module work is quiescent; finish optional cleanup after.
+- Require fresh Menu/Main/FIFO identities before restoring audio. Preserve saved
+  global/core volume and mute preferences with owned RAM bind mounts, including
+  reboot/error recovery. Remove startup unmute that changed user preferences.
+- Add bounded BGM negotiation, acknowledgements and session playback policy, with
+  legacy compatibility. The separately built native BGM remains an optional
+  payload; it is not added to SAM's regular source archive.
+- Refresh timers/input settings live and apply validated mode/module selection
+  changes at the next game boundary. M82/commercial sessions disable artwork-only
+  filtering without changing the saved normal-mode preference.
+- Replace broad Kids franchise matches with conservative platform-specific
+  all-ages lists and exact reviewed Neo Geo aliases. Add persistent or boot-only
+  category presets, genre-folder membership and conservative exact-title fallback.
+- Distinguish failed scans/filters from valid empty catalogues. Suspend autostart
+  after confirmed exhaustion; configuration/catalogue changes or explicit start
+  permit a fresh attempt. Preserve master ROM collections and manual launching.
+- Make dialog ownership, result handling and pause/resume safe across concurrent
+  menus, cancellations and reused process identities. Retain shared lock inodes.
+- Report observed physical buttons with js/Linux codes, MiSTer/DB labels, mapping
+  source and action. Exclude software virtual inputs; cache labels outside the
+  20 ms joystick snapshots and queue conditional debug output.
+- Add temporary MCP monitor K/J/M/D toggles, R restore and H/? help. Both monitor
+  views have persistent bottom help bars and Q detachment handled directly by
+  tmux. Preserve SAM/MCP owners, INIs and other tmux sessions on detachment.
+- Native and live validation is recorded in the focused audit, audio, BGM, Kids,
+  category, lean-runtime and MCP documents. The final MCP suite passed 102 native
+  tests; installed 80-column terminal checks verified help, toggles, history and
+  detachment. Final payload checks matched 167 runtime/public files. Physical
+  button/CRT/audio observations are distinguished from software fixtures.
+- Publication check: 720 exported-source tests ran on desktop Linux; 711 passed
+  and nine BGM integration cases were skipped because that host lacks socat.
+  Those integration cases have earlier native MiSTer coverage in the 121-test
+  BGM suite. Correct stale startup/filter fixtures and export INIs, lists, JSON
+  and documentation with LF; preserve the pinned upstream catalogue bytes.
+
 ## 2026-10-09 — Shared module core eligibility
 
 - Add a common requested → allowed → rotation pipeline with normalized IDs,

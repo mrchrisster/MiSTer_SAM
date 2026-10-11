@@ -98,20 +98,28 @@ def wait_core_change():
             log("No CORENAME file found")
             return None
 
-    # FIXME: not a big deal, but this process can be orphaned during service shutdown
     args = ("inotifywait", "-e", "modify", CORENAME_FILE)
     monitor = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    while monitor is not None and monitor.poll() is None:
-        line = monitor.stdout.readline()
-        log(line.decode().rstrip())
+    try:
+        while monitor.poll() is None:
+            line = monitor.stdout.readline()
+            log(line.decode().rstrip())
+        if monitor.returncode != 0:
+            log("Error when running inotify watch")
+            return None
+        core = get_core()
+        log("Core change to: {}".format(core))
+        return core
+    finally:
+        # Signal-driven SystemExit must release the exact owned watcher.
+        if monitor.poll() is None:
+            monitor.kill()
+        try:
+            monitor.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            pass
+        monitor.stdout.close()
 
-    if monitor.returncode != 0:
-        log("Error when running inotify watch")
-        return None
-
-    core = get_core()
-    log("Core change to: {}".format(core))
-    return core
 
 
 class Player:
@@ -281,15 +289,19 @@ class Player:
         self.history.append(filename)
 
     def kill_player(self):
-        if self.player is not None:
-            self.player.kill()
-            self.player = None
+        # Clear ownership before signal cleanup and playback can both stop it.
+        child = self.player
+        self.player = None
+        if child is not None:
+            try:
+                child.kill()
+                child.wait(timeout=1)
+            except (OSError, subprocess.TimeoutExpired):
+                pass
 
     def stop(self):
-        if self.player is not None:
-            self.playing = None
-            self.player.kill()
-            self.player = None
+        self.playing = None
+        self.kill_player()
 
     def play(self, filename: str):
         self.stop()
@@ -538,13 +550,17 @@ class Player:
 def send_socket(msg: str):
     if not os.path.exists(SOCKET_FILE):
         return
-    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    s.connect(SOCKET_FILE)
-    s.send(msg.encode())
-    response = s.recv(MESSAGE_SIZE)
-    s.close()
-    if len(response) > 0:
-        return response.decode()
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+            connection.settimeout(1)
+            connection.connect(SOCKET_FILE)
+            connection.sendall(msg.encode())
+            response = connection.recv(MESSAGE_SIZE)
+            if response:
+                return response.decode()
+    except OSError:
+        # A stale socket or nonresponsive remote must not block TERM cleanup.
+        return None
 
 
 def cleanup(player: Player):

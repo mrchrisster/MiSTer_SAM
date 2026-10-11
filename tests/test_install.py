@@ -22,6 +22,46 @@ class Install(unittest.TestCase):
         self.scripts = self.mister / 'Scripts'
         self.scripts.mkdir(parents=True)
 
+    def test_unchanged_payload_is_not_rewritten(self):
+        source, target = self.mister / 'source', self.mister / 'target'
+        source.write_bytes(b'unchanged payload')
+        target.write_bytes(source.read_bytes())
+        before = target.stat().st_mtime_ns
+        with patch.object(installer.tempfile, 'mkstemp', side_effect=AssertionError('No writes for identical files')):
+            installer.copy_file(source, target)
+        self.assertEqual(target.stat().st_mtime_ns, before)
+        source.write_bytes(b'different payload')  # same length is not sufficient
+        installer.copy_file(source, target)
+        self.assertEqual(target.read_bytes(), source.read_bytes())
+
+    def test_preflight_checks_retained_coordinator_without_timer_controller(self):
+        with patch.object(installer.subprocess, 'run') as command:
+            self.assertEqual(installer.checked_source(PACKAGE), PACKAGE)
+        imports = command.call_args_list[0].args[0][2]
+        self.assertIn('from sam.coordinator import LifecycleCoordinator', imports)
+        self.assertIn('from sam.commands import CommandGateway', imports)
+        self.assertNotIn('sam.engine', imports)
+        self.assertNotIn('sam.game', imports)
+
+    def test_failed_payload_copy_preserves_installed_file_and_removes_stage(self):
+        source, target = self.mister / 'source', self.mister / 'target'
+        source.write_bytes(b'new payload')
+        target.write_bytes(b'previous working payload')
+        def incomplete(incoming, output, length):
+            output.write(b'partial')
+            raise OSError('disk full')
+        with patch.object(installer.shutil, 'copyfileobj', side_effect=incomplete):
+            with self.assertRaisesRegex(OSError, 'disk full'):
+                installer.copy_file(source, target)
+        self.assertEqual(target.read_bytes(), b'previous working payload')
+        self.assertFalse(list(self.mister.glob('.target.*')))
+
+    def test_unchanged_configuration_keeps_original_bytes(self):
+        target = self.mister / 'SAM.ini'
+        target.write_bytes(b'branch="test"\r\n')
+        installer.write_changed(target, 'branch="test"\n')
+        self.assertEqual(target.read_bytes(), b'branch="test"\r\n')
+
     def test_complete_first_install_has_public_lists_and_executable_entry(self):
         source = installer.checked_source(PACKAGE)
         installer.install(source, self.mister, 'test')
@@ -42,15 +82,21 @@ class Install(unittest.TestCase):
 
     def test_mcp_exit_before_interrupt_does_not_fail_update_shutdown(self):
         gone = installer.subprocess.CompletedProcess([], 1, stderr='no server running')
-        with patch.object(installer.subprocess, 'run', return_value=gone) as command, patch.object(installer, 'tmux_exists', return_value=False), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
+        with patch.object(installer.mcp_helper(), 'stop'), patch.object(installer.subprocess, 'run', return_value=gone) as command, patch.object(installer, 'tmux_exists', return_value=False), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
             installer.stop_mcp()
         self.assertEqual(command.call_count, 1)
         self.assertEqual(command.call_args.args[0], ['tmux', 'send-keys', '-t', 'MCP', 'C-c'])
         self.assertFalse(command.call_args.kwargs['check'])
 
+    def test_verified_mcp_survivor_blocks_update_before_tmux_teardown(self):
+        with patch.object(installer.mcp_helper(), 'stop', side_effect=RuntimeError('Verified MCP process remains')), patch.object(installer.subprocess, 'run') as command:
+            with self.assertRaisesRegex(RuntimeError, 'Verified MCP process remains'):
+                installer.stop_mcp()
+        command.assert_not_called()
+
     def test_mcp_exit_between_check_and_kill_does_not_fail_update_shutdown(self):
         gone = installer.subprocess.CompletedProcess([], 1, stderr='no server running')
-        with patch.object(installer.subprocess, 'run', return_value=gone) as command, patch.object(installer, 'tmux_exists', side_effect=[True, False]), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
+        with patch.object(installer.mcp_helper(), 'stop'), patch.object(installer.subprocess, 'run', return_value=gone) as command, patch.object(installer, 'tmux_exists', side_effect=[True, False]), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
             installer.stop_mcp()
         self.assertEqual(command.call_count, 2)
         self.assertEqual(command.call_args.args[0], ['tmux', 'kill-session', '-t', 'MCP'])
@@ -58,7 +104,7 @@ class Install(unittest.TestCase):
 
     def test_mcp_stop_failure_is_reported_if_session_remains(self):
         failed = installer.subprocess.CompletedProcess([], 1, stderr='permission denied')
-        with patch.object(installer.subprocess, 'run', return_value=failed), patch.object(installer, 'tmux_exists', return_value=True), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
+        with patch.object(installer.mcp_helper(), 'stop'), patch.object(installer.subprocess, 'run', return_value=failed), patch.object(installer, 'tmux_exists', return_value=True), patch.object(installer.time, 'monotonic', side_effect=[0, 3]):
             with self.assertRaisesRegex(RuntimeError, 'Cannot stop MCP.*permission denied'):
                 installer.stop_mcp()
 
@@ -144,6 +190,19 @@ class Install(unittest.TestCase):
         sentinel.write_text('keep this configuration')
         with self.assertRaises(RuntimeError):
             installer.checked_source(Path(self.tmp.name))
+        self.assertEqual(sentinel.read_text(), 'keep this configuration')
+        self.assertFalse((self.scripts / '.SAM_refactor_backups').exists())
+
+    def test_missing_coordinator_component_rejected_before_install(self):
+        source = Path(self.tmp.name) / 'incomplete coordinator release'
+        shutil.copytree(PACKAGE, source,
+                        ignore=shutil.ignore_patterns('.git', '__pycache__', 'mplayer', 'mplayer.zip', 'partun'))
+        missing = source / '.MiSTer_SAM/sam/coordinator.py'
+        missing.unlink()
+        sentinel = self.scripts / 'MiSTer_SAM.ini'
+        sentinel.write_text('keep this configuration')
+        with self.assertRaisesRegex(RuntimeError, 'Release is incomplete'):
+            installer.checked_source(source)
         self.assertEqual(sentinel.read_text(), 'keep this configuration')
         self.assertFalse((self.scripts / '.SAM_refactor_backups').exists())
 

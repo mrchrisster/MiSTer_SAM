@@ -24,6 +24,10 @@ STORE = Path(os.environ.get('SAM_CONTROL_STORE', '/media/fat/Scripts/.MiSTer_SAM
 STATE = Path(os.environ.get('SAM_CONTROL_STATE', '/tmp/SAM_state'))
 MONITOR = os.environ.get('SAM_CONTROL_MONITOR', 'http://127.0.0.1:8081/status/snapshot')
 MAX_REQUEST = 4096
+COMMAND_COMPLETION_TIMEOUT = 5
+# Play acknowledges after owned jobs and audio finish, rather than immediately
+# after claim. Give that teardown the same bounded window as Menu completion.
+PLAY_COMPLETION_TIMEOUT = 20
 
 
 def read_json(path, default=None):
@@ -199,13 +203,14 @@ def submit(request, expected=None):
         atomic(ROOT / 'pending.json', dict(request=request, generation=result['generation'],
                identity=result['identity'], expires=time.monotonic()+4))
         reply = None
-        deadline = time.monotonic() + 5
+        completion_timeout = PLAY_COMPLETION_TIMEOUT if request['action'] == 'play' else COMMAND_COMPLETION_TIMEOUT
+        deadline = time.monotonic() + completion_timeout
         while time.monotonic() < deadline:
             reply = read_json(ack)
             if reply: break
             time.sleep(.05)
         if reply: code, body = reply['code'], reply['body']
-        else: code, body = 503, {'ok': False, 'error': 'SAM did not accept the command'}
+        else: code, body = 503, {'ok': False, 'error': 'SAM command did not finish before the timeout'}
         journal(request, code, body)
         (ROOT / 'pending.json').unlink(missing_ok=True)
         ack.unlink(missing_ok=True)

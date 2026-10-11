@@ -1,5 +1,160 @@
 # MCP input detection and ghost-session fixes
 
+## Current MCP diagnostics and monitor keys: 2026-10-10
+
+`m mcp_monitor` supports K (keyboard detection), J (joystick detection), M
+(mouse detection), D (debug), R (restore current INI values and refresh mapping
+labels), H/? (help and status), and Q/Ctrl-C (detach). Keys are case insensitive.
+The ordinary `m monitor` retains its game controls. Detaching leaves MCP and SAM
+running; Q detaches the current monitor client only.
+
+Toggles are temporary for the current MCP process. They never rewrite an INI.
+An edit to the corresponding INI option supersedes its temporary override;
+unrelated edits preserve the other overrides. R clears all overrides and rereads
+the current INI. Enabling debug rebuilds cached joystick labels without requiring
+a controller reconnect. The status line shows enabled detectors and physical
+reader counts. A detector may be disabled while debug continues observing it;
+these observations do not dispatch actions or reset idle time for that detector.
+
+With `samdebug` enabled, each observed physical joystick button DOWN reports its
+device, js button index, Linux button code, MiSTer label, controller-DB label,
+selected mapping source, resolved action, and detector state. Setup reports the
+GUID and selected map/DB definitions. Unmapped and explicitly unassigned buttons
+are included. Held startup state, releases and unchanged snapshots do not invent
+presses. Labels are cached during discovery; the 20 ms reader performs no DB or
+metadata reads. Debug uses a bounded 256-message output queue, not an SD log.
+A completed tap between snapshots can be missed, and a saturated queue can drop
+diagnostics; this is observation of sampled state, not a complete event history.
+
+Raw physical keyboard debug identifies the device and HID report; it does not
+claim decoded key names without a HID descriptor decoder. Existing keyboard
+debouncing remains. Remote-log and NFC commands retain their separate action
+paths and are not presented as physical button presses.
+
+Discovery excludes software `/devices/virtual/input/` devices for joysticks,
+keyboards and mice. Bluetooth UHID and unknown identities retain their existing
+fallback handling. Mouse readers use individual physical `mouseN` nodes, never
+the aggregate `/dev/input/mice`, which could mix in virtual activity. No virtual
+devices are admitted solely for debug. Changes to virtual input nodes continue
+to be ignored by hotplug scheduling.
+
+An attached MCP monitor holds a shared RAM flock at
+`/tmp/.SAM_tmp/mcp-monitor.lock`. The retained inode is never unlinked. MCP reserves
+physical keyboard actions for the monitor while attached, and for a 1.2-second
+release grace after detachment; joystick actions remain available. The probe runs
+at the action boundary and existing one-second checker, outside the 20 ms reader.
+The console uses the existing event loop and restores terminal settings on close;
+escape sequences cannot accidentally toggle options. No new input daemon, INI
+option, persistent override file or diagnostic SD writes are introduced.
+
+Both monitor views have a persistent three-line bottom tmux help bar. SAM shows
+N/P next/previous, M mute, Y play (M82 only), Q detach, and tmux history/detach
+shortcuts. MCP explains its detector/debug toggles, R restore, H/? help, Q detach
+and temporary scope. Session-local key tables intercept Q/q for both views,
+including during preparation or a core load; these keys do not enter the game
+loop or send a stop command. Other tmux sessions retain their own options and
+bindings. The footer is static and configured only on monitor attachment, adding
+no input polling, timer work, helper process, INI change or SD write.
+
+Live footer validation on tmux 3.1c: both views rendered all three lines in an
+80-column terminal. Q/q detached SAM and Q detached MCP without replacing either
+runtime owner. Ctrl-b [ history and Ctrl-b d detachment still worked; MCP toggles,
+R restore, H help and Ctrl-C detach were rechecked. Other session/global tmux
+options and the saved SAM, MiSTer and BGM INIs stayed unchanged. The option parser
+requires session IDs rather than `=SAM`/`=MCP`; attachment resolves and verifies
+the session name before configuring that exact ID.
+
+Validation: 102 native ARM/Python 3.9 tests passed, including mapping/debug,
+bounded readers, Linux PTY console behavior, temporary options, coordinator and
+configuration reload. Installed MCP monitor K/J/M/D/R/H, Q and Ctrl-C passed real
+terminal checks while the same MCP PID/start and SAM owner remained running;
+saved SAM, MiSTer and BGM INIs remained byte-identical. This installation currently
+exposes only software virtual input devices, so physical controller button labels
+have fixture coverage but no new physical gameplay confirmation.
+
+## Preset transitions: 2026-10-10
+
+Preset starts stop the exact MCP instance before launching SAM so its startup
+snapshot rereads the current INI and roulette sidecar. Otherwise entering or
+leaving Roulette could retain the preceding listener policy. The existing
+verified Python executable/script ownership checks remain in use. Reader and
+polling behavior is unchanged. Canceling a preset does not restart MCP.
+
+## Fresh Menu completion during a core change: 2026-10-09
+
+A live Stop during Darkstalkers CPS2 loading exposed a stale Menu marker:
+volume binds were released while the next core was still loading and its command
+FIFO had no reader. Main publishes CORENAME before recreating/opening the FIFO.
+The shared Bash stop path now captures the preceding Main PID/start, FIFO and
+marker signatures before requesting Menu. Audio restoration requires a fresh
+Menu marker, a new verified Main process and replacement FIFO, with that exact
+Main holding the current FIFO inode. It rechecks the bound identities before
+unmute and after restoration; a changed process or failed write retains pending
+completion. Standalone audio recovery retains its existing ownership checks.
+
+These checks run only during pending Menu completion. They add no input polling
+work, resident process or ordinary countdown file writes. FIFO write success is
+still transport acceptance, not an application acknowledgement or proof of
+audible output. See [command delivery research](COMMAND_DELIVERY_RESEARCH_2026-10-09.md).
+
+Menu dispatch can now overlap optional cleanup. The stopped owner first cancels
+its private preparation/launch groups, runs all session-stop hooks (including
+video/INI cleanup) and stops BGM, then publishes its exact PID/start in a private
+quiescence marker. Only then may the waiting stop backend issue an early Menu
+request. It captures the Main/FIFO/marker baseline before TERM and carries the
+accepted request into final observation, avoiding an immediate duplicate reload.
+The owner continues mount/display cleanup in its own process; it blocks new
+session admission while alive. Audio still waits for owner exit and confirmed
+fresh Menu/FIFO state. Failed critical cleanup does not publish the barrier.
+The existing five-second owner-exit deadline remains: Menu can be visible while
+completion is still reported as pending/failed. No extra dispatcher is spawned.
+
+## Normal-loop migration and start admission: 2026-10-09
+
+During an ordinary verified Next/Ignore operation, MCP retains one default/Exit
+Menu request and delivers it after checking that the same PID/start still owns
+SAM. Repeated requests coalesce; replacement owners, M82 actions and keep-playing
+actions do not inherit this request. Startup retains its separate cancellation
+barrier. This adds no reader polling or persistent process.
+
+MCP automatic launches now use the shared gateway's conditional start path.
+Automatic and manual starts serialize on a RAM start-admission lock; an automatic
+request preserves a live owner or an exact SAM pane still initializing its owner
+record. Explicit manual starts still replace a verified session; an occupied
+pane without a verified owner produces a clear retry error. Admission waits up
+to three seconds for the new foreground to publish ownership before unlocking,
+but does not wait for ROM preparation. Spawned daemon children close inherited
+lock descriptors. The lock releases before single-core startup feedback.
+
+MCP resets idle activity once when a previously verified owner disappears,
+including a CLI stop. This gives Menu a fresh idle interval instead of restarting
+immediately from an old expired deadline. These changes address the two start
+races found during live checks; they add no input polling change.
+
+Normal/roulette timing is again handled directly by the foreground Bash owner.
+The experimental Python timer/pipe bridge was removed after resource regression
+measurements. Shared MCP input policy, command routing, ownership and the start
+fixes above are retained. Input mappings, joystick snapshots, phase-aware routing
+and Menu/audio ordering remain unchanged. See `LEAN_RUNTIME_2026-10-09.md`.
+
+## Coordinator migration: 2026-10-09
+
+MCP retains its device discovery, mappings, dedicated readers and joystick
+snapshot backend. Its input/startup/cancellation policy now lives in
+`sam/coordinator.py` with injected platform callbacks; `sam/session.py` supplies
+bounded immutable PID/start/phase/launch snapshots. Compatibility wrappers in
+MCP preserve the existing input diagnostic and regression-test boundaries.
+
+MCP calls the shared local command gateway in process. Next and M82 play bind to
+the captured owner and its exact tmux pane; Ignore also carries owner identity.
+Startup retains a tracked launcher and the existing cancellation barrier.
+MCP no longer writes Menu load commands or runs a separate audio-restore loop:
+it uses the same owner-bound Bash stop path as the CLI. Keep-game requires a
+playing/video phase, and stale Zaparoo input cannot unmute a replacement owner.
+No input polling interval or mapping precedence changed. Native software and
+private tmux tests do not establish physical button-to-Menu latency.
+
+
 ## DJ Wars cover reproduction: 2026-10-09
 
 The earlier blank DJ Wars display was investigated separately from the Saturn
@@ -320,8 +475,9 @@ those adapters' special map identities still require further work.
 sources can feed the existing repeated js startup-snapshot reader. The final
 fallback should remain this grab-compatible reader; a persistent stream of pure
 js events can still be blocked while Main owns the device. The standalone diagnostic exposes selected files, entries, GUIDs and bindings.
-Concise MCP debug shows MiSTer/DB labels and action, with raw js indices only
-when a saved MiSTer map is unavailable and warnings for exceptional fallbacks. Start/Select were subsequently verified on
+MCP debug shows MiSTer/DB labels, raw js indices and Linux codes, selected mapping
+source and resolved action for every observed digital press, including generic
+and unmapped buttons. Start/Select were subsequently verified on
 one adapter in the [controller hardware report](CHANGELOG.md).
 Broader identity/axis/controller coverage and full action-transition validation
 remain pending. The mapping update preserved registration, action dispatch and lifecycle.
@@ -337,21 +493,33 @@ per sample; unchanged state avoids action/debug scans. Named axis roles cross
 updates inactivity without prematurely exiting SAM. Generic detection retains
 its existing 2000 axis-change threshold and positional snapshot limitations.
 
-With samdebug=yes, a bounded 256-message daemon output queue shows semantic
-presses after dispatching the action. A full queue drops/counts messages instead
-of blocking input. Controller names appear once; routine GUID/path/binding
-tables and source tags are omitted. Example:
+With samdebug=yes, a bounded 256-message daemon output queue shows observed
+presses after action dispatch. A full queue drops/counts messages instead of
+blocking input. Setup reports the exact GUID, selected map path and DB file/line
+match once per reader. Each press includes both label sets, raw identity and
+the chosen mapping/action source. Example:
 
 ```text
-MCP-INPUT: PLAYSTATION(R)3 Controller: DOWN MiSTer=Start DB=start action=start
+MCP-INPUT: PLAYSTATION(R)3 Controller: DOWN MiSTer=Start DB=start js_button=3 Linux=315 BTN_START source=MiSTer-map action=start detection=enabled
 ```
 
-Saved-map output omits js indices; DB/generic fallback includes them. Setup
-prints Ready: Start/Select and exceptional mapping reasons. The standalone
+Debug remains able to observe joysticks and keyboards when their action gates
+are disabled; those observations do not dispatch actions or reset idle time.
+Initial/held states, releases and queued-only joystick events cannot create a
+digital press. Debug output is conditional even when a queue already exists;
+a closed terminal marks its queue dead so a later debug enable can recreate it.
+Keyboard output identifies the hidraw device and a bounded raw report, with
+key names explicitly unavailable: the existing byte reader has no verified HID
+descriptor decoder. Its existing one-second debounce remains. Joystick samples
+remain 20 ms startup snapshots, so taps entirely between snapshots are not
+observable; queue overflow also prevents a guarantee of every physical tap.
+Setup prints Ready: Start/Select and exceptional mapping reasons. The standalone
 [diagnostic](../.MiSTer_SAM/tools-extras/sam_input_debug.md) retains full metadata,
 Linux codes, map/DB labels, snapshot comparison and automatic hotplug rescans.
-Metadata/maps are resolved when the reader is created. The DB is cached once
-per MCP process. Restart MCP after changing definitions; reconnect reloads maps,
+Metadata/maps are resolved when the reader is created. Enabling debug recreates
+readers through the existing rescan so saved-map readers also gain cached DB
+comparison labels. No metadata or DB I/O enters button polling. The DB is cached
+once per MCP process. Restart MCP after changing definitions; reconnect reloads maps,
 but DB file edits still require a restart. Legacy SAM controller JSON remains
 for older utilities and does not configure current MCP actions.
 
@@ -394,3 +562,189 @@ pending. See [change log](CHANGELOG.md) for performance measurements and scope.
 Run the mapping, hotplug, countdown and diagnostic fixtures together with the
 existing modular lifecycle suite using the README's unittest command. Fixtures
 cannot establish physical button-to-exit latency or universal gameplay support.
+
+
+## Bounded reader audit: 2026-10-09
+
+Joystick polling retains the 20 ms repeated-open startup-snapshot backend.
+The raw, unbuffered read now covers the button-plus-axis count discovered once
+at setup, rather than truncating every sample at 64 records. If metadata is
+unavailable, its bounded fallback accommodates both byte-sized count fields.
+Generic activity compares keyed INIT changes, avoiding positional mismatches
+when queued records or record order differ; unchanged and queued-only samples
+cannot replay a press. No extra metadata queries enter the polling loop.
+
+Hidraw and mouse byte readers now use nonblocking descriptors with select.
+Readiness wakes immediately; the 250 ms timeout only bounds idle cancellation.
+The existing one-second flood debounce/reopen behavior remains, but cancellation
+interrupts it. A removed silent reader closes its descriptor instead of leaving
+a blocked daemon behind for each reconnect. This retains hidraw/mice semantics
+and does not add evdev reads or exclusive grabs. Remote-log error waits are also
+interruptible. No poll-rate option or additional SD writes were introduced.
+
+Activity diagnostics also use the existing bounded debug queue after releasing
+the state lock. Routine nondebug action output no longer blocks dispatch on a
+slow terminal.
+
+Eight isolated regression fixtures cover complete large-controller snapshots,
+keyed generic matching, cancellation and descriptor closure for silent keyboard
+and mouse readers, and immediate report readiness during cancellation debounce.
+The integrated native suite passed all 304 tests; the final input subset passed
+61 tests after the last logging adjustment. Pipe readiness and fixtures cannot
+prove physical controller-to-Menu latency or universal hidraw compatibility;
+no hardware input/reconnect evidence is claimed for this audit.
+
+
+## Menu/audio ordering and runtime audit: 2026-10-09
+
+Menu exit now writes a PID/start-tagged RAM marker before terminating the owner.
+The owner cancels preparation and launch jobs and releases services while keeping
+volume binds. MCP confirms Menu at 100 ms intervals, then the shell rechecks
+CORENAME and ownership before restoring audio. CLI Menu retries also reject a
+new live owner before issuing another load. Failed Menu loads stay muted and
+report failure. No detached background cleanup may restore a newer session.
+
+Startup input uses the same cancellation barrier and Menu stop; Start/Zaparoo
+can preserve an already playing game. BGM Keep playing captures the verified
+actual launch path before cleanup. Internal Monitor Play cancels owned work and
+publishes inactive/kept status before reloading; failed handoff is reported.
+
+The native 304-test suite covered lifecycle, both control routes, Menu failure,
+replacement owners, stale markers, exact mount selection, and BGM reload paths.
+An observation-only probe measured pipe-ready callback median 0.363 ms and max
+1.132 ms (30 samples), silent cancellation max 249.810 ms (five samples), and
+zero descriptor growth. Isolated five-second joystick samples used 6.41–6.56%
+of one CPU versus baseline 6.56–7.46%; these overlapping short runs do not prove
+a significant CPU improvement. No physical press-to-Menu or audible verification
+was possible. See [the audit](AUDIT_2026-10-09.md) for scope, files and rollback.
+
+## Bounded MCP shutdown and orphan recovery: 2026-10-09
+
+Killing the MCP tmux pane can leave Python alive, including command executor threads during a core transition. Stop/restart and installer updates now stop every exact MCP script process before removing its pane or stopping SAM. The shutdown helper verifies Python executable, exact script argument and kernel PID/start identity before each signal: TERM gets three seconds, then verified survivors receive KILL with one second to disappear. Failure blocks restart/update. Start retains one verified MCP in its pane; duplicate or orphan instances are removed before replacement. No reader strategy, input polling or resident process changes. Test harnesses must use this helper instead of tmux-only teardown.
+
+## Menu-first cleanup: 2026-10-10
+
+The shared stop backend now allows Menu loading to overlap preparation-process
+cancellation and BGM termination, after actual launch jobs and critical Menu
+configuration have been settled. Audio restoration requires its own matching
+cleanup receipt; Menu dispatch alone is insufficient. MCP still uses the same
+owner-bound gateway and input readers. See [Menu return validation](MENU_RETURN_2026-10-10.md).
+
+## Live SAM INI settings: 2026-10-10
+
+The existing one-second MCP checker watches the SAM INI identity. It reads a
+changed file only after two stable checker samples, validates literal assignments,
+and keeps the last valid settings during incomplete edits. Idle timeout, Menu-only,
+listener gates, Ignore-on-Next and debug settings update promptly. Gate changes
+rescan the existing readers; unchanged settings do not rescan devices or read
+controller metadata. The 20 ms joystick startup-snapshot loop is unchanged.
+
+The verified owner receives a literal request in its private RAM session folder.
+The ordinary game timer adjusts remaining time by the timer change, including a
+paused timer; zero selects an indefinite countdown. M82 keeps its fixed demo
+timer and applies changes to its separate play timer. Commercial video duration
+remains controlled by the selected video. Reload checks use builtin file reads
+at existing whole-second timer work, without a Python process on timer ticks.
+
+Core/filter/category changes apply before the next game: the foreground cancels
+and reaps its preparation worker, discards old proposals, advances the policy
+revision and refreshes the existing module policy. Current gameplay continues
+until its countdown or Next reaches that boundary. Temporary category choices
+and permanent category exclusions use the same boundary notification.
+
+Mode/module changes wait at that boundary. MCP validates the new configuration,
+stops the exact old owner through normal Menu/audio cleanup, then uses the existing
+tracked, cancellable launcher to create a new PID/start owner. A brief Menu
+transition is expected. Human Stop/Play during that handoff suppresses automatic
+restart; Next and ordinary activity preserve the requested mode change. Rejected
+mode configurations retain the current game and report one error per revision.
+No runtime record is sourced/evaluated, no additional user option or daemon is
+introduced, and reload bookkeeping writes only RAM.
+
+Native fixtures cover literal parsing, stable edits, owner-specific publication,
+timer/pause adjustment, preparation fencing, mode validation and a human Stop
+overriding replacement. Hardware input/audio behavior still requires live checks.
+
+## Interactive menu ownership: 2026-10-10
+
+The SAM menu owns a kernel flock for its complete premenu/dialog lifecycle in
+`${SAM_MENU_TMP_ROOT:-/tmp/.SAM_menu}/menu.lock`. The lock stays outside session
+scratch and is never unlinked. An existing unlocked file or an exited holder is
+inactive; a symlink, nonregular file or unavailable existing lock blocks actions
+conservatively. No PID-file timeout or new resident process is used.
+
+MCP records activity but suppresses game actions while that lock is held. It
+checks once at the actual action boundary, without changing the 20 ms joystick
+startup-snapshot loop. Its existing one-second checker suppresses countdown
+autostart, external Menu cleanup and configuration mode handoff while the UI is
+open. Direct mode-boundary handoff also rechecks before stopping/restarting.
+
+The short-lived `sam/menu_session.py` helper uses the existing owner-bound,
+acknowledged Pause command before opening the UI. It refuses an active owner
+that is preparing/loading, lacks ready control status, or uses M82/video mode
+(the existing control transport supports Pause only for normal/roulette).
+Inactive SAM remains configurable. An already paused owner stays paused.
+
+A lease token is returned only after the UI changes Pause from false to true
+and verifies the acknowledgement/status against the same PID/start, countdown
+generation, start time and ROM path. On exit, Resume requires that exact ready,
+still-paused selection. Stop, Next, an owner replacement or an external Resume
+cannot transfer the lease to another game. Tokens are literal data and never
+evaluated. Failed or uncertain acknowledgements report a clear retry/resume
+message instead of claiming the timer was safely held.
+
+Fixtures cover pause ownership, stale selections, unsupported/loading states,
+uncertain acknowledgement, unchanged polling boundaries, suppressed autostart
+and deferred mode handoff. Linux flock tests cover live/dead holders and retained
+lock inodes; these fixtures do not establish physical gameplay input behavior.
+
+The menu shares start-admission serialization before attempting Pause. New
+manual starts are refused while the UI is locked; conditional autostarts skip
+without disturbing the owner. A shell flock probe handles that admission check,
+avoiding a Python startup probe. The one-second checker refreshes idle activity
+while the UI is open so dismissal receives a fresh inactivity interval.
+
+Dialog result tags use `--output-fd 3`; diagnostic stderr is separate. SAM sets
+`DIALOG_ERROR=254` and `DIALOG_ESC=255` to distinguish internal errors from
+Escape. Harmless terminal warnings do not convert cancellation into failure.
+Nested dialogs reuse the same UI lifetime; each outer UI has private RAM result
+and diagnostic files. These files are removed at normal/signal cleanup, and
+exec paths release UI resources first. Menu Next/Stop/Play acts on the paused
+selection before cleanup attempts an owner/selection-bound Resume; this avoids
+advancing the old timer immediately before delivering Next.
+
+Preset startup no longer stops MCP before exec, because changed INI settings
+are already reloaded live. Reset INI deliberately quiesces MCP and stops the
+verified SAM owner before clearing private list/mode scratch, preserves the
+runtime root/lock inodes, and restores previously running MCP on ordinary
+failure paths. Its presence check includes verified duplicate/orphan instances.
+
+## Empty catalogue autostart suspension: 2026-10-10
+
+Only exhausted discovery with no eligible/queued games publishes the typed
+`reason=no_eligible_games` outcome. The foreground validates its policy revision
+and live ownership, then records suppression in RAM before ordinary cleanup.
+Generic errors, cancelled preparation and cleanup never create this outcome.
+Single-core testing does not veto the separately configured automatic selection.
+
+The record binds to the INI, public list and installed runtime paths. Publishing
+holds the existing owner transition lock and rechecks PID/start, alive, exact
+outcome/revision and applied INI/category/roulette/tag snapshots. A configuration
+changed while the failed preparation ran cannot silently inherit the suspension.
+
+MCP checks the RAM marker in its existing one-second checker. While blocked it
+checks cached metadata of selected master lists, filter data, artwork indexes/
+generation and installed code at five-second intervals. It never walks ROM trees,
+hashes CHDs or runs this work in the 20 ms input loop. Dependency changes or
+marker removal resume ordinary autostart. The marker survives MCP restart within
+the current boot and disappears with RAM at reboot. Nested ROM additions require
+a normal catalogue refresh; no collection scan is added by this guard.
+
+Validated explicit starts clear suppression only after old-owner cleanup and
+before spawning the replacement. Conditional automatic starts preserve it. A
+fast empty owner can exit between MCP samples: its typed record ends startup
+confirmation without a timeout or redundant Menu/core cleanup command. The same
+quiet completion covers a conditional start skipped because a menu is open.
+
+The original ROM collection, manual MiSTer game launching and saved INI are
+unchanged. No new user option, SD marker or resident process is introduced.

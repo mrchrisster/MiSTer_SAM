@@ -2,6 +2,10 @@
 # belong in the regular GitHub source/update archive.
 *.sh text eol=lf
 *.py text eol=lf
+*.ini text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.md text eol=lf
 .MiSTer_SAM/MiSTer_SAM_init text eol=lf
 .MiSTer_SAM/MiSTer_SAM_tty2oled text eol=lf
 .MiSTer_SAM/samindex text eol=lf

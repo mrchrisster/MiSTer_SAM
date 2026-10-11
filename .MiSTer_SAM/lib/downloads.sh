@@ -2,14 +2,20 @@
 # Extracted compatibility implementation; see reference and attribution.
 
 function curl_download() { # curl_download ${filepath} ${URL}
-
-	curl \
+    local target="$1" url="$2" partial rc=0
+    partial=$(mktemp "${target}.part.XXXXXX") || return 1
+    curl \
 		--connect-timeout 15 --max-time 600 --retry 3 --retry-delay 5 --silent --show-error \
 		--insecure \
 		--fail \
 		--location \
-		-o "${1}" \
-		"${2}"
+        -o "$partial" "$url" || rc=$?
+    if ((rc != 0)); then rm -f -- "$partial"; return "$rc"; fi
+    if [[ -f "$target" ]] && cmp -s -- "$partial" "$target"; then
+        rm -f -- "$partial"; return 0
+    fi
+    if [[ -x "$target" ]]; then chmod +x "$partial" || { rm -f -- "$partial"; return 1; }; fi
+    mv -f -- "$partial" "$target" || { rm -f -- "$partial"; return 1; }
 }
 
 function check_and_update() {
@@ -17,10 +23,12 @@ function check_and_update() {
     local tmp_file="$2"
     local local_file="$3"
     local description="$4"
+    local remote_size local_size executable=0
+    [[ ! -x "$local_file" ]] || executable=1
 
     # Fetch the remote file size (follow redirects)
-    remote_size=$(curl -sI --location --insecure "$url" | awk '/^Content-Length:/ {size=$2} END {print size}' | tr -d '\r')
-    if [ -z "$remote_size" ]; then
+    remote_size=$(curl --connect-timeout 15 --max-time 30 --fail -sI --location --insecure "$url" | awk 'tolower($1)=="content-length:" {size=$2} END {print size}' | tr -d '\r')
+    if [[ ! "$remote_size" =~ ^[0-9]+$ ]]; then
         echo "Error: Unable to determine the size of $description at $url" >&2
         return 1
     fi
@@ -44,7 +52,7 @@ function check_and_update() {
         echo "Updating $description..."
         curl_download "$tmp_file" "$url" || return 1  # Download failed
         mv "$tmp_file" "$local_file" || { echo "Error: Unable to move $tmp_file to $local_file" >&2; return 1; }
-        [[ ! -x "$local_file" ]] || chmod +x "$local_file"
+        ((executable == 0)) || chmod +x "$local_file" || return 1
         echo "$description updated successfully."
         return 2  # File was updated
     fi
@@ -56,21 +64,21 @@ function get_samstuff() { #get_samstuff file (path)
 		return 1
 	fi
 
-	filepath="${2}"
+    local filepath="${2}"
 	if [ -z "${filepath}" ]; then
 		filepath="${mrsampath}"
 	fi
 
 	echo -n " Downloading from ${raw_base}/${1} to ${filepath}/..."
-	curl_download "/tmp/${1##*/}" "${raw_base}/${1}"
+    curl_download "/tmp/${1##*/}" "${raw_base}/${1}" || return 1
 
 
 	if [ ! "${filepath}" == "/tmp" ]; then
-		mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}"
+        mv --force "/tmp/${1##*/}" "${filepath}/${1##*/}" || return 1
 	fi
 
 	if [ "${1##*.}" == "sh" ]; then
-		chmod +x "${filepath}/${1##*/}"
+        chmod +x "${filepath}/${1##*/}" || return 1
 	fi
 
 	echo " Done."

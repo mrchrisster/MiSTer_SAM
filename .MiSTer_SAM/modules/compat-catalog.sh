@@ -52,7 +52,9 @@ function check_list() {
         if [ ! -s "${session_list}" ]; then
             samdebug "Creating M82 game list from m82_list.txt"
             # Each game is preceded by a BIOS entry: BIOS, game1, BIOS, game2, ...
-            while IFS= read -r line; do
+            while IFS= read -r line || [[ -n "$line" ]]; do
+                line=${line%$'\r'}
+                [[ -n "$line" && "$line" != \#* ]] || continue
                 echo "$m82_bios_path"
                 fgrep "$line" "${gamelistpath}/nes_gamelist.txt" | head -n 1
             done < "${gamelistpath}/m82_list.txt" > "${session_list}"
@@ -74,7 +76,9 @@ function check_list() {
                 # If skipping BIOS emptied the list, rebuild and skip the first BIOS again
                 if [ ! -s "${session_list}" ]; then
                     samdebug "M82: list empty after BIOS skip — rebuilding and skipping first BIOS"
-                    while IFS= read -r line; do
+                    while IFS= read -r line || [[ -n "$line" ]]; do
+                        line=${line%$'\r'}
+                        [[ -n "$line" && "$line" != \#* ]] || continue
                         echo "$m82_bios_path"
                         fgrep "$line" "${gamelistpath}/nes_gamelist.txt" | head -n 1
                     done < "${gamelistpath}/m82_list.txt" > "${session_list}"
@@ -83,8 +87,6 @@ function check_list() {
             fi
         fi
         SAM_ACTION=""  # consumed; clear so it doesn't bleed into the next cycle
-
-		sync
 
         # --- Finalize M82 state for this cycle ---
         gametimer="21"

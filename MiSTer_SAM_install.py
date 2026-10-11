@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Install/update a complete SAM release; preserve user configuration and lists."""
 import argparse
+import importlib.util
 import ast
 import os
 from pathlib import Path
@@ -12,6 +13,17 @@ import tarfile
 import tempfile
 import time
 
+
+_mcp_process = None
+
+def mcp_helper(root=None):
+    global _mcp_process
+    if _mcp_process is None or root is not None:
+        path = (root or Path(__file__).parent) / '.MiSTer_SAM/sam_mcp_process.py'
+        spec = importlib.util.spec_from_file_location('sam_mcp_process', path)
+        _mcp_process = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_mcp_process)
+    return _mcp_process
 
 CA_BUNDLES = ('/media/fat/Scripts/.config/downloader/cacert.pem',
               '/etc/ssl/cert.pem', '/etc/ssl/certs/cacert.pem')
@@ -36,13 +48,27 @@ def checked_source(root):
                 '.MiSTer_SAM/sam_mgl.py', '.MiSTer_SAM/sam_compat.json',
                 '.MiSTer_SAM/zaparoo_catalog.json', '.MiSTer_SAM/zaparoo_catalog_source.json',
                 '.MiSTer_SAM/inputs/FDS_input_1234_5678_v3.map',
-                '.MiSTer_SAM/modules/commercial_picker.py']
+                '.MiSTer_SAM/modules/commercial_picker.py',
+                '.MiSTer_SAM/sam_mcp_process.py', '.MiSTer_SAM/sam_bgm_client.py', '.MiSTer_SAM/lib/session.sh', '.MiSTer_SAM/samctl.py',
+                '.MiSTer_SAM/sam/__init__.py', '.MiSTer_SAM/sam/session.py',
+                '.MiSTer_SAM/sam/coordinator.py', '.MiSTer_SAM/sam/commands.py',
+                '.MiSTer_SAM/sam/menu_session.py',
+                '.MiSTer_SAM/sam/autostart.py',
+                '.MiSTer_SAM/sam/input_options.py', '.MiSTer_SAM/sam/mcp_console.py',
+                '.MiSTer_SAM/lib/config-reload.sh', '.MiSTer_SAM/sam/config_reload.py',
+                '.MiSTer_SAM/modules/category.sh', '.MiSTer_SAM/modules/category_filter.py',
+                '.MiSTer_SAM/modules/category-aliases.json',
+                '.MiSTer_SAM/sam_titles.py', '.MiSTer_SAM/sam_kids_filter.py']
     if not all((root / name).is_file() for name in required):
         raise RuntimeError('Release is incomplete; installed files were not changed.')
     # Validate the exact catalog/policy bundle before backing up configuration
     # or stopping sessions. Import from this release in a fresh interpreter.
     subprocess.run([sys.executable, '-c',
-                    'import sys; sys.path.insert(0, sys.argv[1]); from sam_catalog import Catalog; Catalog()',
+                    'import sys; sys.path.insert(0, sys.argv[1]); '
+                    'from sam_catalog import Catalog; Catalog(); '
+                    'from sam.session import SessionSnapshot; '
+                    'from sam.coordinator import LifecycleCoordinator; '
+                    'from sam.commands import CommandGateway',
                     str(root / '.MiSTer_SAM')], check=True)
     for path in (root / '.MiSTer_SAM').rglob('*'):
         if not path.is_file():
@@ -77,7 +103,8 @@ def tmux_exists(name):
                           stderr=subprocess.DEVNULL).returncode == 0
 
 
-def stop_mcp():
+def stop_mcp(script=Path('/media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_MCP.py')):
+    mcp_helper().stop(script)
     # MCP can exit between any two tmux commands. A vanished session means
     # shutdown succeeded; only a session that remains running blocks the update.
     subprocess.run(['tmux', 'send-keys', '-t', 'MCP', 'C-c'], check=False,
@@ -98,12 +125,43 @@ def copy_file(source, target):
     target.parent.mkdir(parents=True, exist_ok=True)
     if source.resolve() == target.resolve():
         return
-    # copyfile/chmod deliberately avoid ownership changes unsupported by FAT.
-    shutil.copyfile(source, target)
-    target.chmod(source.stat().st_mode & 0o777)
+    # Compare small buffered reads rather than rewriting the entire payload on
+    # every update. Never trust equal sizes alone (scripts often keep their size).
+    if same_contents(source, target):
+        return
+    # Publish each complete file on its target filesystem. A failed copy leaves
+    # the previous file intact; ownership changes are unsupported by FAT.
+    fd, name = tempfile.mkstemp(prefix='.' + target.name + '.', dir=target.parent)
+    staged = Path(name)
+    try:
+        with os.fdopen(fd, 'wb') as output, source.open('rb') as incoming:
+            shutil.copyfileobj(incoming, output, 65536)
+        staged.chmod(source.stat().st_mode & 0o777)
+        os.replace(staged, target)
+    finally:
+        staged.unlink(missing_ok=True)
+
+
+def same_contents(source, target):
+    if not target.is_file() or source.stat().st_size != target.stat().st_size:
+        return False
+    with source.open('rb') as left, target.open('rb') as right:
+        while True:
+            chunk = left.read(65536)
+            if chunk != right.read(65536):
+                return False
+            if not chunk:
+                return True
+
+
+def write_changed(target, contents):
+    if target.is_file() and target.read_text(encoding='utf-8') == contents:
+        return
+    target.write_text(contents, encoding='utf-8')
 
 
 def install(source, mister, branch):
+    mcp_helper(source)
     scripts = mister / 'Scripts'
     scripts.mkdir(parents=True, exist_ok=True)
     payload = scripts / '.MiSTer_SAM'
@@ -119,7 +177,7 @@ def install(source, mister, branch):
         copy_file(ini, saved / 'MiSTer_SAM.ini')
         print('Configuration backup:', saved / 'MiSTer_SAM.ini', flush=True)
     live = mister.resolve() == Path('/media/fat')
-    restart_mcp = live and tmux_exists('MCP')
+    restart_mcp = live and (tmux_exists('MCP') or bool(_mcp_process.processes(payload / 'MiSTer_SAM_MCP.py')))
     if restart_mcp:
         stop_mcp()
     if live and tmux_exists('SAM'):
@@ -136,7 +194,7 @@ def install(source, mister, branch):
         for line in old.read_text(encoding='utf-8').splitlines():
             if line not in lines:
                 lines.append(line)
-        destination.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+        write_changed(destination, '\n'.join(lines) + '\n')
     for name in ['m82_list.txt', 'sam_goat_list_custom.txt']:
         old, target = legacy / name, public / 'Gamelists' / name
         if old.is_file() and not target.exists():
@@ -169,15 +227,15 @@ def install(source, mister, branch):
     contents, changed = re.subn(r'^branch=.*$', 'branch="' + branch + '"', contents, flags=re.M)
     if not changed:
         contents += '\nbranch="' + branch + '"\n'
-    ini.write_text(contents, encoding='utf-8')
-    (payload / 'release-branch').write_text(branch + '\n', encoding='utf-8')
+    write_changed(ini, contents)
+    write_changed(payload / 'release-branch', branch + '\n')
     for name in ['samindex', 'mbc', 'mplayer', 'MiSTer_SAM_init', 'MiSTer_SAM_MCP.py']:
         path = payload / name
         if path.is_file():
             path.chmod(0o755)
     (payload / 'partun').unlink(missing_ok=True)
     if restart_mcp:
-        subprocess.run(['tmux', 'new-session', '-s', 'MCP', '-d', str(payload / 'MiSTer_SAM_MCP.py')], check=True)
+        subprocess.run(['tmux', 'new-session', '-s', 'MCP', '-d', 'exec ' + str(payload / 'MiSTer_SAM_MCP.py')], check=True)
     print('SAM installed. User INI, controller mappings, plug-ins and Ignore lists preserved.')
 
 

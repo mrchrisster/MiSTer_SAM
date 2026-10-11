@@ -7,7 +7,7 @@ import uuid
 import sam_control as transport
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description='Control the active SAM selection')
     parser.add_argument('action', choices=('status',) + transport.ACTIONS)
     parser.add_argument('--request-id', default=None)
@@ -15,7 +15,7 @@ def main():
     parser.add_argument('--owner-pid')
     parser.add_argument('--owner-start')
     parser.add_argument('--generation')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.request_id:
         try: request_id=str(uuid.UUID(args.request_id))
         except ValueError: parser.error('request-id must be a UUID')

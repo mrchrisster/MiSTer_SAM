@@ -33,11 +33,375 @@ class Shell(unittest.TestCase):
         self.assertEqual(result.returncode,0,result.stderr+'\n'+result.stdout)
         return result.stdout
 
+    def test_automatic_start_preserves_verified_live_owner(self):
+        self.assertShell(r"""
+sam_session_read_owner(){ sam_session_owner_pid=321; sam_session_owner_start=77; }
+sam_pid_start(){ sam_proc_start=77; }
+sam_core_session_begin(){ echo unexpected-validation >&2; return 1; }
+there_can_be_only_one(){ echo unexpected-replacement >&2; return 1; }
+sam_start --if-idle
+flock -n "$mrsamtmp/session-start.lock" true
+""")
+
+    def test_manual_and_automatic_starts_share_admission(self):
+        self.assertShell(r"""
+sam_core_session_begin(){ echo validate >> "$mrsamtmp/admissions"; }
+env_check(){ :; }
+mcp_start(){ :; }
+there_can_be_only_one(){ echo replace >> "$mrsamtmp/admissions"; }
+sam_session_read_owner(){
+    [[ -e "$mrsamtmp/test-owner" ]] || return 1
+    sam_session_owner_pid=321 sam_session_owner_start=77
+}
+sam_pid_start(){ sam_proc_start=77; }
+timeout(){ shift; "$@"; }
+tmux(){
+    if [[ "$1" == has-session ]]; then [[ -e "$mrsamtmp/spawning" ]]; return; fi
+    echo spawn >> "$mrsamtmp/admissions"
+    touch "$mrsamtmp/spawning"
+    sleep .2
+    touch "$mrsamtmp/test-owner"
+    printf '321\n'
+}
+sam_start & manual=$!
+for ((i=0;i<100;i++)); do [[ -e "$mrsamtmp/spawning" ]] && break; sleep .01; done
+[[ -e "$mrsamtmp/spawning" ]]
+sam_start --if-idle
+wait "$manual"
+[[ $(cat "$mrsamtmp/admissions") == $'validate\nreplace\nspawn' ]]
+flock -n "$mrsamtmp/session-start.lock" true
+""")
+
+    def test_automatic_start_preserves_spawn_before_owner_publication(self):
+        self.assertShell(r"""
+sam_core_session_begin(){ echo validate >> "$mrsamtmp/admissions"; }
+env_check(){ :; }
+mcp_start(){ :; }
+there_can_be_only_one(){ echo replace >> "$mrsamtmp/admissions"; }
+sam_session_read_owner(){ return 1; }
+tmux(){
+    if [[ "$1" == has-session ]]; then
+        [[ "$2" == -t && "$3" == '=SAM' && -e "$mrsamtmp/pending-pane" ]]
+        return
+    fi
+    [[ "$1" == new-session ]]
+    echo spawn >> "$mrsamtmp/admissions"
+    touch "$mrsamtmp/pending-pane"
+    printf '321\n'
+}
+# timeout must invoke our fake tmux rather than the host binary.
+timeout(){ shift; "$@"; }
+sleep(){ :; }
+sam_start
+[[ ! -e "$mrsamtmp/session-owner" ]]
+sam_start --if-idle
+[[ $(cat "$mrsamtmp/admissions") == $'validate\nreplace\nspawn' ]]
+""")
+
+    def test_start_lock_released_before_feedback_and_on_validation_failure(self):
+        self.assertShell(r"""
+sam_core_id(){ sam_core_id_result=$1; }
+sam_core_session_begin(){ return 1; }
+if sam_start snes; then exit 1; fi
+flock -n "$mrsamtmp/session-start.lock" true
+sam_core_session_begin(){ :; }
+env_check(){ :; }
+there_can_be_only_one(){ :; }
+mcp_start(){ :; }
+timeout(){ shift; "$@"; }
+tmux(){ [[ "$1" != has-session ]] || return 1; printf '321\n'; }
+sam_pid_start(){ sam_proc_start=77; }
+sam_session_read_owner(){ sam_session_owner_pid=321 sam_session_owner_start=77; }
+sam_wait_single_start(){ flock -n "$mrsamtmp/session-start.lock" true; }
+sam_start snes
+""")
+
+    def test_manual_start_waits_for_automatic_owner_publication(self):
+        self.assertShell(r"""
+sam_core_session_begin(){ :; }
+env_check(){ :; }
+mcp_start(){ :; }
+sam_session_read_owner(){
+    [[ -e "$mrsamtmp/published" ]] || return 1
+    sam_session_owner_pid=321 sam_session_owner_start=77
+}
+sam_pid_start(){ sam_proc_start=77; }
+there_can_be_only_one(){
+    if [[ -e "$mrsamtmp/pending" ]]; then
+        [[ -e "$mrsamtmp/published" ]] || return 91
+        echo verified-replacement >> "$mrsamtmp/events"
+        rm "$mrsamtmp/pending" "$mrsamtmp/published"
+    fi
+}
+timeout(){ shift; "$@"; }
+tmux(){
+    if [[ "$1" == has-session ]]; then [[ -e "$mrsamtmp/pending" ]]; return; fi
+    [[ ! -e "$mrsamtmp/pending" ]] || return 92
+    touch "$mrsamtmp/pending"
+    echo spawn >> "$mrsamtmp/events"
+    (sleep .15; touch "$mrsamtmp/published") >/dev/null 2>&1 &
+    printf '321\n'
+}
+sam_start --if-idle & automatic=$!
+for ((i=0;i<100;i++)); do [[ -e "$mrsamtmp/pending" ]] && break; sleep .01; done
+[[ -e "$mrsamtmp/pending" ]]
+sam_start
+wait "$automatic"
+[[ $(cat "$mrsamtmp/events") == $'spawn\nverified-replacement\nspawn' ]]
+""")
+
+    def test_manual_start_refuses_an_unpublished_occupied_pane(self):
+        self.assertShell(r"""
+sam_session_read_owner(){ return 1; }
+timeout(){ shift; "$@"; }
+tmux(){ [[ "$1" == has-session && "$2" == -t && "$3" == '=SAM' ]]; }
+there_can_be_only_one(){ echo unexpected-stop >&2; return 99; }
+if sam_start; then exit 1; fi
+flock -n "$mrsamtmp/session-start.lock" true
+""")
+
     def test_disabled_modules_are_unloaded(self):
         self.assertShell('[[ ${#SAM_MODULES[@]} == 0 ]]; ! declare -F sam_artwork_filter; ! declare -F sam_display_write; ! declare -F bgm_start; ! declare -F tty_start; ! declare -F samvideo_play\n')
 
     def test_debug_off_does_not_start_date(self):
         self.assertShell('date() { echo forbidden >&2; return 99; }; samdebug=no; samdebuglog=no; samdebug hello\n')
+
+    def test_menu_stop_defers_audio_in_owner_cleanup(self):
+        self.assertShell('''
+sam_owner=321:77; mute=global
+printf '%s\\n' "$sam_owner" > "$mrsamtmp/menu-audio-owner"
+sam_restore_audio(){ echo early-unmute >&2; return 99; }
+sam_emit(){ :; };samdebug(){ :; }
+sam_cleanup
+[[ "$sam_cleanup_done" == 1 ]]
+''')
+
+    def test_menu_audio_restore_requires_menu_and_original_dead_owner(self):
+        self.assertShell('''
+export SAM_CORENAME_FILE="$mrsamtmp/core"
+printf 'pid=321\\nstart=77\\n' > "$mrsamtmp/session-owner"
+printf '321:77\\n' > "$mrsamtmp/menu-audio-owner"
+printf '321:77\\n' > "$mrsamtmp/menu-audio-complete"
+sam_pid_start(){ return 1; }
+sam_restore_audio(){ printf restored >> "$mrsamtmp/restored"; }
+printf 'SNES\\n' > "$SAM_CORENAME_FILE"
+! sam_menu_audio_restore 321 77; [[ ! -e "$mrsamtmp/restored" ]]
+printf 'MENU\\n' > "$SAM_CORENAME_FILE"
+! sam_menu_audio_restore 321 78; [[ ! -e "$mrsamtmp/restored" ]]
+printf 'pid=322\\nstart=78\\n' > "$mrsamtmp/session-owner"
+! sam_menu_audio_restore 321 77; [[ ! -e "$mrsamtmp/restored" ]]
+printf 'pid=321\\nstart=77\\n' > "$mrsamtmp/session-owner"
+sam_pid_start(){ sam_proc_start=77; return 0; }
+! sam_menu_audio_restore 321 77; [[ ! -e "$mrsamtmp/restored" ]]
+sam_pid_start(){ return 1; }
+sam_menu_audio_restore 321 77
+[[ $(<"$mrsamtmp/restored") == restored && ! -e "$mrsamtmp/menu-audio-owner" ]]
+''')
+
+    def test_keep_game_cleanup_restores_audio_without_menu(self):
+        self.assertShell('''
+sam_owner=321:77;mute=global
+sam_restore_audio(){ printf restored > "$mrsamtmp/restored"; }
+sam_emit(){ :; };samdebug(){ :; }
+sam_cleanup
+[[ $(<"$mrsamtmp/restored") == restored ]]
+''')
+
+    def test_audio_restore_matches_exact_config_mounts_and_bounds_commands(self):
+        self.assertShell('''
+SAM_MOUNTS_FILE="$mrsamtmp/mounts";mute=global
+mkdir -p "$configpath" "$mrsamtmp/SAM_config"
+printf 'owned' > "$mrsamtmp/SAM_config/SNES_volume.cfg"
+ln "$mrsamtmp/SAM_config/SNES_volume.cfg" "$configpath/SNES_volume.cfg"
+printf '\\x05' > "$mrsamtmp/original-volume"
+printf '\\x15' > "$mrsamtmp/Volume.dat"
+ln "$mrsamtmp/Volume.dat" "$configpath/Volume.dat"
+printf 'tmpfs %s/Volume.dat none rw 0 0\\ntmpfs %s/SNES_volume.cfg none rw 0 0\\ntmpfs /other/Volume.dat none rw 0 0\\n' "$configpath" "$configpath" > "$SAM_MOUNTS_FILE"
+timeout(){
+    [[ "$1" == 1s ]]; shift; printf '%s\\n' "$*" >> "$mrsamtmp/commands"
+    if [[ "$3" == "$configpath/SNES_volume.cfg" ]]; then
+        printf 'tmpfs %s/Volume.dat none rw 0 0\\ntmpfs /other/Volume.dat none rw 0 0\\n' "$configpath" > "$SAM_MOUNTS_FILE"
+    elif [[ "$3" == "$configpath/Volume.dat" ]]; then
+        rm "$3";cp "$mrsamtmp/original-volume" "$3"
+        printf 'tmpfs /other/Volume.dat none rw 0 0\\n' > "$SAM_MOUNTS_FILE"
+    fi
+}
+sam_audio_set_live(){ printf 'volume %s\\n' "$1" >> "$mrsamtmp/commands"; }
+sam_restore_audio
+[[ $(wc -l < "$mrsamtmp/commands") == 3 ]]
+! grep -q /other "$mrsamtmp/commands"
+grep -q 'volume unmute' "$mrsamtmp/commands"
+''')
+
+    def test_changed_ini_still_unmutes_existing_global_mount(self):
+        self.assertShell('''
+SAM_MOUNTS_FILE="$mrsamtmp/mounts";mute=no
+mkdir -p "$configpath"
+printf '\\x05' > "$mrsamtmp/original-volume"
+printf '\\x15' > "$mrsamtmp/Volume.dat"
+ln "$mrsamtmp/Volume.dat" "$configpath/Volume.dat"
+printf 'tmpfs %s/Volume.dat none rw 0 0\\n' "$configpath" > "$SAM_MOUNTS_FILE"
+timeout(){
+    shift;printf '%s\\n' "$*" >> "$mrsamtmp/commands"
+    rm "$3";cp "$mrsamtmp/original-volume" "$3";: > "$SAM_MOUNTS_FILE"
+}
+sam_audio_set_live(){ printf 'volume %s\\n' "$1" >> "$mrsamtmp/commands"; }
+sam_restore_audio
+grep -q 'volume unmute' "$mrsamtmp/commands"
+''')
+
+    def test_menu_deferral_also_protects_owned_audio_mounts(self):
+        self.assertShell('''
+sam_owner=321:77;mute=global
+printf '%s\\n' "$sam_owner" > "$mrsamtmp/menu-audio-owner"
+SAM_OWNED_MOUNTS=("$configpath/Volume.dat" "$configpath/SNES_volume.cfg" "$configpath/ROM.bin")
+timeout(){ shift; printf '%s\\n' "$*" >> "$mrsamtmp/commands"; }
+sam_emit(){ :; };samdebug(){ :; }
+sam_cleanup
+[[ $(wc -l < "$mrsamtmp/commands") == 1 ]]
+grep -q ROM.bin "$mrsamtmp/commands"
+''')
+
+    def test_menu_audio_restore_without_owner_and_crlf_corename(self):
+        self.assertShell('''
+export SAM_CORENAME_FILE="$mrsamtmp/core"
+printf 'MENU\\r\\n' > "$SAM_CORENAME_FILE"
+sam_restore_audio(){ printf restored > "$mrsamtmp/restored"; }
+sam_menu_audio_restore
+[[ $(<"$mrsamtmp/restored") == restored ]]
+''')
+
+    def test_keep_game_captures_owned_launch_path_before_exit_deletes_it(self):
+        self.assertShell('''
+printf 'pid=321\\nstart=77\\n' > "$mrsamtmp/session-owner"
+mkdir -p "$mrsamtmp/session-321:77"
+printf '/games/Actual Arcade.mra\\n' > "$mrsamtmp/session-321:77/launch-path"
+alive=1
+sam_pid_start(){ sam_proc_start=77; [[ "$alive" == 1 ]]; }
+kill(){ [[ "$sam_exit_reload_path" == '/games/Actual Arcade.mra' ]]; alive=0; rm -f "$mrsamtmp/session-321:77/launch-path"; }
+tmux(){ :; }
+timeout(){ shift; "$@"; }
+there_can_be_only_one 321 77
+mute=core; sam_emit(){ :; }
+timeout(){ printf '%s\\n' "$*" > "$mrsamtmp/reload"; }
+exit_sam game
+grep -q 'Actual Arcade.mra' "$mrsamtmp/reload"
+! grep -q SAM_Game.mgl "$mrsamtmp/reload"
+''')
+
+    def test_keep_game_without_verified_launch_path_never_reloads_stale_mgl(self):
+        self.assertShell('''
+mute=core;sam_exit_reload_path=
+sam_emit(){ :; };timeout(){ echo unsafe-reload >&2; return 99; }
+! exit_sam game
+''')
+
+    def test_monitor_play_inside_bgm_owner_cleans_before_reload_and_keeps_state(self):
+        self.assertShell('''
+sam_load_module controls
+sam_owner="$$:77";sam_session="$mrsamtmp/session-$sam_owner";sam_last_phase=playing
+mkdir -p "$sam_session";: > "$sam_session/alive"
+printf 'pid=%s\\nstart=77\\nphase=playing\\n' "$$" > "$mrsamtmp/session-owner"
+printf '/games/Actual Arcade.mra\\n' > "$sam_session/launch-path"
+sam_pid_start(){ sam_proc_start=77;return 0; }
+sam_display_state_file="$SAM_STATE_FILE";sam_display_owner_start=77
+sam_display_game=Arcade;sam_display_rom_path=/games/Actual.mra;sam_display_core=arcade;sam_display_setname=
+sam_display_write yes normal 30 1
+sam_control_root="$mrsamtmp/control";mkdir -p "$sam_control_root"
+: > "$sam_control_root/pending.json";printf '{}' > "$sam_control_root/pending.json"
+request=12345678-1234-1234-1234-123456789abc
+python3(){ printf '12345678-1234-1234-1234-123456789abc play\\n'; }
+sam_cancel_preparation(){ printf 'prep\\n' >> "$mrsamtmp/order"; }
+sam_cancel_launch_job(){ printf 'launch\\n' >> "$mrsamtmp/order"; }
+sam_restore_audio(){ printf 'audio\\n' >> "$mrsamtmp/order"; }
+timeout(){
+    if [[ "$2" == flock ]]; then shift; "$@"; return; fi
+    [[ ! -e "$sam_session/alive" ]];printf 'reload\\n' >> "$mrsamtmp/order";printf '%s\\n' "$*" > "$mrsamtmp/reload"
+}
+mute=core
+sam_control_tick
+''')
+        runtime = self.root / 'tmp'
+        # Cleanup restores once; finalization rechecks the idempotent restore
+        # before permitting a keep-game reload.
+        self.assertEqual((runtime / 'order').read_text(), 'prep\nlaunch\naudio\naudio\nreload\n')
+        self.assertIn('Actual Arcade.mra', (runtime / 'reload').read_text())
+        self.assertIn('"code":200', (runtime / 'control/ack-12345678-1234-1234-1234-123456789abc.json').read_text())
+        self.assertIn('active=no', (self.root / 'SAM_state').read_text())
+        self.assertIn('game_kept=yes', (self.root / 'SAM_state').read_text())
+
+    def test_monitor_play_acknowledges_failed_handoff(self):
+        self.assertShell('''
+sam_load_module controls
+sam_control_root="$mrsamtmp/control";mkdir -p "$sam_control_root"
+printf '{}' > "$sam_control_root/pending.json"
+request=12345678-1234-1234-1234-123456789abc
+python3(){ printf '12345678-1234-1234-1234-123456789abc play\\n'; }
+sam_control_publish(){ :; };exit_sam(){ return 1; }
+! (sam_control_tick)
+grep -q '"code":503' "$sam_control_root/ack-$request.json"
+grep -q 'Game could not be kept' "$sam_control_root/ack-$request.json"
+''')
+
+    def test_cli_menu_retry_never_loads_over_replacement_owner(self):
+        self.assertShell('''
+printf 'pid=321\\nstart=77\\n' > "$mrsamtmp/session-owner"
+printf '321:77\\n' > "$mrsamtmp/menu-audio-owner"
+SAM_CORENAME_FILE="$mrsamtmp/core";printf 'SNES\\n' > "$SAM_CORENAME_FILE"
+sam_emit(){ :; }
+sam_pid_start(){ sam_proc_start=78;[[ "$1" == 322 ]]; }
+timeout(){ printf load >> "$mrsamtmp/loads"; }
+sleep(){
+    if [[ "$1" == 0.1 ]]; then
+        printf 'pid=322\\nstart=78\\n' > "$mrsamtmp/session-owner"
+    fi
+}
+! exit_sam menu
+[[ $(<"$mrsamtmp/loads") == load ]]
+[[ $(<"$mrsamtmp/menu-audio-owner") == 321:77 ]]
+''')
+
+    def test_cli_menu_never_loads_when_owner_is_already_alive(self):
+        self.assertShell('''
+printf 'pid=322\\nstart=78\\n' > "$mrsamtmp/session-owner"
+sam_emit(){ :; };sam_pid_start(){ sam_proc_start=78;return 0; }
+timeout(){ echo unsafe-load >&2;return 99; }
+! exit_sam menu
+''')
+
+    def test_inactive_stop_does_not_adopt_late_owner(self):
+        self.assertShell('''
+tmux(){ echo unverified-pane >&2; return 99; }
+there_can_be_only_one 0 0
+printf 'pid=322\\nstart=78\\n' > "$mrsamtmp/session-owner"
+sam_pid_start(){ sam_proc_start=78;return 0; }
+! there_can_be_only_one 0 0
+''')
+
+    def test_owner_bound_unmute_refuses_stale_or_late_session(self):
+        self.assertShell('''
+sam_restore_audio(){ printf restored >> "$mrsamtmp/restored"; }
+sam_unmute_owner 0 0
+[[ $(<"$mrsamtmp/restored") == restored ]]
+printf 'pid=322\\nstart=78\\n' > "$mrsamtmp/session-owner"
+sam_pid_start(){ sam_proc_start=78;return 0; }
+! sam_unmute_owner 321 77
+! sam_unmute_owner 0 0
+[[ $(<"$mrsamtmp/restored") == restored ]]
+sam_unmute_owner 322 78
+[[ $(<"$mrsamtmp/restored") == restoredrestored ]]
+''')
+
+    def test_shared_menu_restore_checks_entire_retry_interval(self):
+        self.assertShell('''
+sam_emit(){ :; };sam_menu_exit_guard(){ return 0; }
+timeout(){ printf load >> "$mrsamtmp/loads"; }
+checks=0
+sleep(){ [[ "$1" == 0.1 ]]; checks=$((checks+1)); }
+sam_menu_audio_restore(){ ((checks == 10)); }
+exit_sam menu
+[[ "$checks" == 10 && $(<"$mrsamtmp/loads") == load ]]
+''')
 
     def test_public_list_paths(self):
         self.assertShell('[[ "$gamelistpath" == "$SAM_LIST_ROOT/Gamelists" && "$ignorepath" == "$SAM_LIST_ROOT/Ignore" && "$blacklistpath" == "$SAM_LIST_ROOT/Blacklists" && "$ratedpath" == "$SAM_LIST_ROOT/Rated" ]]\n')
@@ -201,6 +565,7 @@ sam_emit display_publish 42 "$((EPOCHSECONDS + 42))"
 
     def test_video_alternate_policy_stays_inside_module(self):
         self.assertShell('''sam_load_module video; samvideo_freq=alternate; sv_loadcounter=0
+sam_publish_phase(){ [[ "$1" == video ]]; }
 samvideo_play(){ printf played > "$SAM_TMP_ROOT/video-played"; }
 ! load_samvideo; wait; [[ -f "$SAM_TMP_ROOT/video-played" ]]
 load_samvideo; [[ "$sv_loadcounter" == 2 ]]
@@ -376,7 +741,7 @@ check_list nes
 ''')
 
     def test_runtime_phase_is_atomic_and_old_owner_cannot_overwrite(self):
-        self.assertShell('''mkdir -p "$mrsamtmp"; sam_pid_start "$$"; sam_owner="$$:$sam_proc_start"
+        self.assertShell('''sam_cleanup(){ :; }; sam_emit(){ :; }; sam_session_begin
 sam_publish_phase preparing; grep -q 'phase=preparing' "$mrsamtmp/session-owner"
 sam_publish_phase loading; grep -q 'launch=1' "$mrsamtmp/session-owner"
 sam_publish_phase playing; grep -q 'phase=playing' "$mrsamtmp/session-owner"
@@ -395,11 +760,19 @@ sam_pid_start(){ sam_proc_start=78; return 0; }
 
     def test_stop_treats_zombie_and_reused_pid_as_exited(self):
         self.assertShell('''mkdir -p "$mrsamtmp"; printf 'pid=321\\nstart=77\\n' > "$mrsamtmp/session-owner"
-checks=0; sam_pid_start(){ checks=$((checks+1)); sam_proc_start=77; ((checks<3)); }
-kill(){ :; }; tmux(){ touch "$SAM_TMP_ROOT/pane-closed"; }
+alive=1; sam_pid_start(){ sam_proc_start=77; [[ "$alive" == 1 ]]; }
+kill(){ alive=0; }
+timeout(){ shift; "$@"; }
+tmux(){
+    case "$1" in
+        list-panes) printf '$7 321 900\\n' ;;
+        if-shell) touch "$SAM_TMP_ROOT/pane-closed" ;;
+        *) return 99 ;;
+    esac
+}
 there_can_be_only_one 321 77; [[ -e "$SAM_TMP_ROOT/pane-closed" ]]
-rm "$SAM_TMP_ROOT/pane-closed"; checks=0
-sam_pid_start(){ checks=$((checks+1)); if ((checks<3)); then sam_proc_start=77; else sam_proc_start=78; fi; }
+rm "$SAM_TMP_ROOT/pane-closed"; alive=1
+sam_pid_start(){ if [[ "$alive" == 1 ]]; then sam_proc_start=77; else sam_proc_start=78; fi; }
 there_can_be_only_one 321 77; [[ -e "$SAM_TMP_ROOT/pane-closed" ]]
 ''')
 
@@ -414,6 +787,10 @@ wait "$worker" || true; ! sam_pid_start "$worker"
 sam_kill_tree "$worker" "$((original+1))"; sam_pid_start "$worker"; [[ "$sam_proc_start" == "$original" ]]
 kill -TERM "$worker"; wait "$worker" || true
 ''')
+
+
+
+
 
 
 if __name__ == '__main__':

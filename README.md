@@ -2,11 +2,16 @@
 
 SAM selects and launches games while MiSTer is idle. This `test` branch contains the modular refactor: normal mode prepares two eligible selections while the current game runs, so Next consumes a ready selection. One foreground session owns launches and at most one background preparation worker. Optional features load only when their existing INI switches enable them.
 
-The HID keyboard and mouse readers and repeated joystick startup snapshots are retained. MCP resolves supported saved MiSTer controller definitions automatically, then controllerdb, then generic activity. Owner validation, startup cancellation and cleanup prevent stopped sessions from surviving or starting late. There is no Unix socket or additional control daemon. `partun` has been removed; archive discovery uses `samindex`, retaining its two indexing passes and delay.
+The [coordinator architecture](docs/ARCHITECTURE.md) now separates input lifecycle
+decisions, local command routing and foreground session ownership. CLI, menu and
+MCP commands share a gateway; the existing Bash selection/launch engine remains
+the backend during the staged migration.
+
+The HID keyboard and mouse readers and repeated joystick startup snapshots are retained. MCP resolves supported saved MiSTer controller definitions automatically, then controllerdb, then generic activity. Owner validation, startup cancellation and cleanup prevent stopped sessions from surviving or starting late. There is no Unix socket or additional control daemon. `partun` has been removed; archive discovery uses the bundled Python `samindex` and pinned catalog in one scan.
 
 ## Installation and update
 
-MiSTer needs Bash, Python 3.9 or newer, tmux and its usual SAM tools. The release includes the native indexing and controller assets. Regular GitHub archives exclude the optional mplayer binary and obsolete partun. Existing mplayer installations are retained; video mode downloads it separately when missing. Normal SAM does not need mplayer.
+MiSTer needs Bash, Python 3.9 or newer, tmux, flock, timeout and its usual SAM tools. These utilities are present on the tested MiSTer. The release includes the standard-library Python scanner and controller assets. Regular GitHub archives exclude the optional mplayer binary and obsolete partun. Existing mplayer installations are retained; video mode downloads it separately when missing. Normal SAM does not need mplayer.
 
 For an online installation, run through SSH:
 
@@ -16,7 +21,7 @@ python3 /tmp/MiSTer_SAM_install.py --download --branch test
 /media/fat/Scripts/MiSTer_SAM_on.sh
 ```
 
-The installer validates the complete release before changing installed files. It backs up only the existing `MiSTer_SAM.ini` under `/media/fat/Scripts/.SAM_refactor_backups/install-*/MiSTer_SAM.ini`, then stops active SAM/MCP sessions for the update. It preserves the user INI, custom controller mappings, plug-ins and ignore lists. It records `branch="test"` as the installed release channel. An existing MCP is restarted; SAM starts again through its normal idle or Start path. First installations have no existing INI to back up. Caches, generated lists, binaries and historical backups are not copied into a new backup.
+The installer validates the complete release before changing installed files. It backs up only the existing `MiSTer_SAM.ini` under `/media/fat/Scripts/.SAM_refactor_backups/install-*/MiSTer_SAM.ini`, then stops active SAM/MCP sessions for the update. It preserves the user INI, custom controller mappings, plug-ins and ignore lists. Unchanged payload files are not rewritten; changed payload files are staged before replacement. It records `branch="test"` as the installed release channel. An existing MCP is restarted; SAM starts again through its normal idle or Start path. First installations have no existing INI to back up. Caches, generated lists, binaries and historical backups are not copied into a new backup.
 
 Online updates run the installer included in the downloaded release, using that staged source without a second download. When updating from an older installer that lacks this handoff, that one update still follows its old backup behavior; subsequent updates use the new installer.
 
@@ -43,7 +48,17 @@ Lists are accessible under `/media/fat/SAM/`:
 
 Legacy custom ignore and M82 lists migrate into these folders during installation. Remove an exclusion's line to undo it. Cached candidates are checked against current exclusions at launch.
 
-Core eligibility is shared across normal, M82 and video selection. Enabled modules register core rules; all must approve a system, including explicit single-core requests and Previous. Empty allowed lists stop with an explanation. Temporary exclusions preserve the configured list. Module settings are fixed for a session; restart after editing them. See [core-rule API](docs/MODULE_API.md#core-rules) to add a module's restrictions without editing the shared picker.
+Core eligibility is shared across normal, M82 and video selection. Enabled modules register core rules; all must approve a system, including explicit single-core requests and Previous. Empty allowed lists stop with an explanation. Temporary exclusions preserve the configured list. Timer and input settings refresh live; selection filters and mode/module changes apply at the next game boundary through the validated session handoff. See [core-rule API](docs/MODULE_API.md#core-rules) to add a module's restrictions without editing the shared picker.
+
+Smart category presets include pinball, horizontal/vertical arcade, shoot 'em ups,
+fighting, puzzle and racing. Save a choice permanently or keep it until reboot.
+Genre folders provide membership when available; conservative exact-title lists
+provide a fallback. A missing match never enables unrestricted selection. See
+[category presets](docs/CATEGORY_PRESETS.md) and [Kids whitelists](docs/KIDS_WHITELISTS.md).
+
+A confirmed empty eligible catalogue suspends automatic starts with a clear
+error. Changed configuration/catalogue metadata or an explicit start allows a
+fresh attempt; it does not repeatedly scan and relaunch an empty selection.
 
 Normal mode starts with a small eligible arcade batch on a cold installation when arcade is configured and permitted. It builds the remaining catalogs in the background. Enabled cores, mode and filters are respected. Repeated Next presses during loading coalesce into one pending skip.
 
@@ -57,12 +72,26 @@ MiSTer_SAM_on.sh previous
 MiSTer_SAM_on.sh stop
 MiSTer_SAM_on.sh exit_to_game
 MiSTer_SAM_on.sh status
+MiSTer_SAM_on.sh monitor           # SAM output and game controls
+MiSTer_SAM_on.sh mcp_monitor       # physical input diagnostics and toggles
 MiSTer_SAM_on.sh control pause
 MiSTer_SAM_on.sh control resume
 MiSTer_SAM_on.sh control ignore
 ```
 
 The local `control` API accepts only supported actions, validates selection and process ownership, waits for acceptance and deduplicates supplied request IDs. It is suitable for Monitor and Zaparoo integrations without a new daemon. See [CONTROL_API.md](docs/CONTROL_API.md). The optional [Monitor adapter](adapters/monitor/README.md) preserves existing HTTP routes and publishes fresh SAM status/timestamps even on unchanged snapshots; SAM installation does not modify Monitor or Android.
+
+Both monitor views show their hotkeys in a persistent bottom help bar. Q detaches
+the current view while SAM/MCP keep running. SAM uses N/P for next/previous, M for
+mute and Y for M82 play. MCP uses K/J/M to toggle keyboard/joystick/mouse detection,
+D for debug, R to restore current INI settings and H/? for help. MCP toggles are
+temporary and do not rewrite the INI. Ctrl-b then [ opens tmux history; q leaves
+history, and another q detaches from the ordinary view.
+
+Debug reports observed physical joystick presses with Linux/js codes, MiSTer and
+controller-DB labels, mapping source and action. Software virtual devices are
+excluded. Snapshot sampling can miss very short taps; raw keyboard reports are
+not claimed to be decoded key names. See [MCP input details](docs/MCP_INPUT.md).
 
 ## Optional modes
 
@@ -82,9 +111,18 @@ BIOS-skip sequences start after launch and are cancelled on Next or Stop.
 
 Commercial mode retains CD-i CHD and mplayer playback. `samvideo_tvc="yes"` selects a commercial and then its mapped game; `samvideo_tvc_cdi="yes"` selects CHD/CD-i playback. Display overrides are temporary bind mounts. `mute="Yes"` also mutes commercials; use `mute="No"` for sound.
 
-The artwork module currently rejects M82/video auxiliary launches. Set `Artwork_only="No"` for those modes. M82/video retain their existing transition loops inside modules; the prepared queue currently applies to normal mode. Android controls are advertised only for supported normal/roulette states. Physical joystick, CRT and AVI playback still need broader hardware testing.
+M82 and commercial mode automatically disable artwork-only filtering for their
+session; the saved `Artwork_only` preference is preserved for ordinary SAM.
+M82/video retain their specialized transition loops inside modules; the prepared
+queue applies to normal mode. Android controls are advertised only for supported
+normal/roulette states. Physical joystick, CRT and AVI playback still need broader
+hardware testing.
 
 Artwork-only normal mode uses small catalogs and downloads/validates selected covers during preparation. It does not need complete local artwork packs; uncached images require Internet access and download failures are reported explicitly.
+
+The main menu prioritizes Start, Stop, Next, Keep playing and Exclude. Game modes,
+games/filters, and everyday settings are grouped below those actions. Controller
+actions inherit MiSTer global definitions; no separate SAM mapping is needed.
 
 ## Development and validation
 

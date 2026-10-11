@@ -2,7 +2,7 @@
 
 Users keep the existing INI switches. SAM automatically loads only the enabled
 modules: artwork, Monitor, BGM, tty2oled, curated lists, M82, video and roulette.
-The lightweight local-control module loads by default. No module-list setting is
+The lightweight local-control and category policy modules load by default. No module-list setting is
 needed in the user INI. Disabled artwork performs no catalog/image/cache work.
 
 To install a plug-in without editing MiSTer_SAM_on.sh, provide:
@@ -21,6 +21,8 @@ shell implementation is not sourced.
 
 Register callbacks with `sam_register EVENT FUNCTION`, or replace one service
 with `sam_bind SERVICE FUNCTION`. Function names are validated and called directly.
+Modules are sourced inside the loader function: use `declare -g`, `declare -gA`
+or `declare -ga` for shared module state, rather than a local `declare`.
 Runtime state, commands and selection records are literal data and never sourced.
 
 | Hook | Purpose |
@@ -29,9 +31,12 @@ Runtime state, commands and selection records are literal data and never sourced
 | core_requested | Mode adjusts requested cores through an array-name argument |
 | session_validate | Pure checks for incompatible session options, before setup/stop |
 | session_setup, session_start, session_stop | Set up and release owned resources |
+| menu_prepare | Bounded policy handoff before Menu dispatch; no slow player shutdown |
 | core_allowed | Reject an incompatible core |
 | filter_stamp | Identify inputs that invalidate a cached eligible list |
 | candidate_filter | Refine a private list in the background |
+| filter_policy | Set dynamically scoped policy flags before standard filters; never add candidates |
+| config_refresh | Refresh literal selection settings at a game boundary |
 | candidate_prepare | Prepare/validate a selected candidate in the background |
 | launch_validate | Cheap final check before dispatch |
 | launch_info, launch_observe | Observe a real launch |
@@ -50,10 +55,37 @@ consume no-repeat history. Only the foreground owner commits real launches.
 Queue records are published atomically and include owner, policy revision and
 literal paths. Countdown hooks must not start per-tick helper processes.
 
-Callback failure stops that event. Candidate preparation code 3 denotes an artwork
+Callback failure stops ordinary events. Cleanup events `session_stop`, `audio_stop`,
+`display_shutdown` and `display_exit` attempt every registered callback and return
+the first failure, so one broken module cannot prevent another from releasing its
+resources. Candidate preparation code 3 denotes an artwork
 download/validation failure: retain the current game and report an explicit error.
 Hooks must release owned resources on stop. Local controls share the existing
 atomic-file/ack transport with Monitor; they do not require Monitor or a daemon.
+
+`audio_stop` callbacks must be bounded and safe to retry. The optional first
+argument is `menu` or `game`; callers without a destination retain ordinary stop
+semantics. Return failure until the requested audio policy is settled; a finalizer can invoke this event once
+more after owner cleanup, before restoring volume or completing a keep-game
+handoff. Global volume restoration belongs to the lifecycle finalizer, so an
+audio-service callback must not bypass its Menu/ownership checks. `session_stop`
+is not generically replayed by this retry.
+For Menu exits, cancellation of launch jobs and `session_stop` plus
+`menu_prepare` happen before the launch barrier is published. Menu can load while
+preparation cancellation, `audio_stop` and optional display cleanup continue.
+The preparer's publication token is revoked immediately; preparers must obey
+the no-launch/no-live-hardware contract above. Failed preparation cleanup blocks
+replacement admission and the audio-completion receipt. Keep the game's mute mounts
+until a separate owner-specific audio-completion receipt exists and Menu's Main
+process/FIFO are confirmed. An accepted Menu command alone never proves audio
+cleanup. The receipt prevents duplicate audio shutdown after Menu has resumed
+its playlist; missing or mismatched receipts require a bounded retry.
+
+Persistent BGM sets and confirms `playincore=no` in `menu_prepare`. Its Menu
+`audio_stop` confirms that policy without stopping the playlist; a game exit
+still stops playback. Full player termination can overlap Menu loading. Plug-ins
+must keep any configuration changes required by Menu in `session_stop` or
+`menu_prepare`, and must not release SAM's volume protection themselves.
 
 Developer-only `SAM_MODULES_OVERRIDE` can isolate modules during tests. An empty
 value disables all; a comma-separated value loads exactly those named modules.
@@ -116,7 +148,10 @@ new options in a fresh process before stopping an existing session. Pure
 The normal CLI start path needs no extra preflight process.
 
 Long foreground mode setup uses `sam_run_owned_command COMMAND ARG...`, which
-tracks PID/start ticks and joins the existing cancellation/cleanup path. M82
+registers a private process group with PID/start/group/session identity before
+releasing the callback, and joins the cancellation/cleanup path. Callbacks must
+not detach with `setsid`, create new process groups, or leave untracked services.
+They receive `/dev/null` as stdin. M82
 indexes into a private staging directory and publishes its list only after
 successful completion. It releases staging on stop. Input readers are unchanged;
 M82 preparation/loading still accepts cancellation and Next rather than play.
@@ -124,3 +159,77 @@ M82 preparation/loading still accepts cancellation and Next rather than play.
 Normal and compatibility selectors share these core rules. Legacy M82/video
 sequence and timing loops remain separate; this change does not migrate them to
 the normal prepared-selection queue or introduce a new transport/daemon.
+
+On Menu exit, `session_stop` and `audio_stop` are critical barriers: they must
+finish stopping core-writing work and restoring launch-sensitive configuration
+before returning. SAM may then request Menu while the owner completes mount and
+display housekeeping. Display shutdown hooks must not launch cores or leave
+untracked helpers; keep their work bounded. These hooks still run in the owner
+with its variables available, and admission remains blocked until it exits.
+See [owned job cleanup](OWNED_JOB_CLEANUP_2026-10-09.md).
+
+## Where to make changes
+
+- `sam/commands.py`, `sam/coordinator.py`: shared local commands and input lifecycle policy.
+- `sam/session.py`: immutable verified session snapshots for Python callers.
+- `lib/session.sh`: foreground admission, transitions, worker publication and cleanup.
+- `lib/engine.sh`, `lib/lifecycle.sh`: foreground selection, countdown and platform start/stop.
+- `lib/catalog*.sh`, `lib/filter.sh`, `lib/policy.sh`: prepared candidates and policy.
+- `lib/modules.sh`: manifest parsing, hooks and service bindings.
+- `modules/*.sh`, `modules.d/*.module`: optional feature implementations and switches.
+- `lib/menu.sh`: entry menu and lazy loading; `MiSTer_SAM_menu.sh`: settings dialogs.
+- `MiSTer_SAM_MCP.py`: input readers and routing; consult `docs/MCP_INPUT.md` before edits.
+
+Normal/roulette timing and hooks execute directly in the foreground Bash process.
+There is no Python timer controller or pipe protocol. Configure `gametimer`
+before the session. Timer hooks share the shell countdown context; expensive
+work belongs in preparation hooks, not `countdown_tick` or `timer_tick`.
+Returning nonzero from either tick hook requests normal advancement. The
+foreground processes pending controls before checking expiry, so a claimed
+pause can freeze a game at zero remaining seconds. The public control API
+continues rejecting a new pause of an already paused game with 409.
+Existing M82/video adapters retain their specialized timing implementations.
+
+Call `sam_session_begin` in a foreground shell before starting a custom session
+loop. Only the admitted foreground owner publishes lifecycle phases. Use
+`sam_publish_phase` and propagate failure before hardware operations; a stale
+worker cannot publish phases. Do not unlink `session-owner.lock` or reset the
+shared runtime directory. See [ARCHITECTURE.md](ARCHITECTURE.md) for the boundaries
+between the coordinator, command gateway and compatibility engine.
+
+Menu changes take effect for the next session. UI functions write existing INI
+keys through `samini_mod`; they must not mutate the running owner's settings or
+launch a background candidate directly. Main menu `play` uses the same acknowledged
+control path as other local controls. A new optional feature should register its
+hooks when sourced, keep expensive initialization in `session_setup`, and release
+only its own resources in `session_stop`. Keep scratch/cache activity under the
+runtime temporary root; persistent files belong in the documented public lists.
+
+For a new menu group, use `sam_menu_group TITLE PROMPT TAG LABEL ...`; only the
+listed tags dispatch through `parse_cmd`. Avoid recursive `sam_menu` calls from
+submenus: return to the caller so repeated visits do not accumulate shell frames.
+
+BGM controls use bounded socket operations and identify its installed script by
+exact native executable path, or Python/shell executable plus the exact script
+argument, never an argv substring. Native ELF installations are started through
+their foreground `exec` service interface.
+Stopping BGM requests its owned player's cleanup through the service and sends
+TERM only after revalidation. The bundled Python player reaps its own media child; these Python changes do not
+modify a separately installed native ARM BGM executable. SAM
+does not terminate arbitrary processes named `mpg123`. Existing installations
+are reused until explicitly updated.
+
+Native BGM builds advertising v2 policy support receive one acknowledged
+temporary policy per lifecycle transition. `sam_bgm_client.py` uses Python 3.9
+stdlib sockets, with bounded deadlines and a RAM record keyed to the verified
+daemon PID/start/socket identity. Request IDs and increasing revisions make
+retries idempotent. `active` acquires playback, `menu` restores normal Menu
+preferences, and `game` restores preferences while stopping playback. Exact
+service termination for `bgmstop=Yes` is unchanged. Unsupported completed
+capability replies use the legacy path; transport failures block the audio
+barrier and can be retried. A timed-out request is not proof of application.
+
+`sam_finish_audio_stop` supplies its verified cleanup owner through dynamic
+`sam_bgm_policy_owner`, avoiding accidental ownership by the helper shell.
+Policy records and readiness do not replace the existing independent Menu/audio
+completion receipt or the exact process and socket ownership checks.

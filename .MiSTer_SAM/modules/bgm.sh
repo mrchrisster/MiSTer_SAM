@@ -4,6 +4,7 @@ mute=core
 source "$mrsampath/modules/bgm-functions.sh"
 sam_register session_start bgm_start
 sam_register audio_stop bgm_stop
+sam_register menu_prepare sam_bgm_menu_prepare
 sam_bgm_game_info() {
     streamtitle=$(awk -F"'" '/StreamTitle=/{title=$2} END{print title}' /tmp/bgm.log 2>/dev/null)
 }

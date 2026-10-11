@@ -16,13 +16,21 @@ sam_bind() { # service function
     SAM_SERVICES[$1]="$2"
 }
 
-sam_emit() { # event [literal arguments]; first failure stops the event
-    local event="$1" handler
+sam_emit() { # policy fails fast; teardown must attempt every resource owner
+    local event="$1" handler rc=0 result=0
     shift
     for handler in ${SAM_HOOKS[$event]-}; do
-        "$handler" "$@" || return $?
+        rc=0
+        "$handler" "$@" || rc=$?
+        if ((rc != 0)); then
+            case "$event" in
+                session_stop|audio_stop|display_shutdown|display_exit)
+                    ((result != 0)) || result=$rc ;;
+                *) return "$rc" ;;
+            esac
+        fi
     done
-    return 0
+    return "$result"
 }
 
 sam_service() {
@@ -44,7 +52,7 @@ sam_load_module() {
 sam_load_modules() {
     local enabled="${SAM_MODULES_OVERRIDE-auto}" module
     if [[ "$enabled" == auto ]]; then
-        enabled="controls"
+        enabled="controls category"
         [[ ! -f "$mrsamtmp/gameroulette.ini" ]] || enabled+=" roulette"
         [[ "${monitorenable,,}" == yes ]] && enabled+=" monitor"
         [[ "${sam_goat_list,,}" == yes ]] && enabled+=" curated"

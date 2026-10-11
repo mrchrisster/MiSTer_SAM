@@ -6,8 +6,8 @@
 [[ -n "${SAM_MENU_LOADED:-}" ]] && return
 SAM_MENU_LOADED=1
 
-# Temporary file for dialog output
-sam_menu_file="/tmp/.sam_menu_choice"
+# Temporary file for sam_dialog output
+sam_menu_file="/tmp/.sam_menu_choice.${BASHPID:-$$}"
 
 # All cores
 # source /tmp/.SAM_tmp/sam_core_pretty
@@ -15,18 +15,25 @@ sam_menu_file="/tmp/.sam_menu_choice"
 #-------------------------------------------------------------------------------
 # PRESETS MENU
 #-------------------------------------------------------------------------------
+sam_preset_start() {
+  # MCP applies literal settings live; retain input monitoring if Start fails.
+  if declare -F sam_menu_release_for_exec >/dev/null; then sam_menu_release_for_exec; fi
+  exec "${SAM_ENTRY:-$0}" start
+}
+
 function menu_presets() {
   inmenu=1
   while true; do
-    dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
+    sam_dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Exit" \
            --backtitle "Super Attract Mode" --title "[ Game Modes ]" \
            --menu "Use the arrow keys or d-pad+A to navigate" 0 0 0 \
              menu_preset_standard      "Default Setting - Play all cores muted" \
+             menu_smart_presets        "Smart category presets (permanent or until reboot)" \
              menu_preset_svc           "Play TV commercials and then show the advertised game." \
              menu_preset_goat_mode     "Play the Greatest of All Time Attract modes." \
              menu_preset_80s           "Play 80s Music, no Handhelds and only Horiz. games." \
              menu_preset_maturetgfx    "Play Games rated mature for TurboGrafx-CD." \
-             menu_preset_kids          "All-Ages ESRB games only (Kids Safe)" \
+             menu_preset_kids          "Kids: community game whitelist" \
              menu_preset_m82_mode      "Turn your MiSTer into a NES M82 unit." \
              menu_preset_roulette_mode "Game Roulette (timed random games)" \
       2> "${sam_menu_file}"
@@ -40,7 +47,7 @@ function menu_presets() {
       "$choice"
       return
     else
-      dialog --msgbox "Unknown selection: $choice" 0 0
+      sam_dialog --msgbox "Unknown selection: $choice" 0 0
     fi
   done
 }
@@ -51,46 +58,60 @@ function menu_preset_standard() {
   reset_ini
 
   # Finally, start SAM
-  exec "$0" start
+  sam_preset_start
 }
 
 function menu_preset_svc() {
-  # 1) Reset to a clean INI
-  reset_ini
+  local rc selection keep
 
   # 2) Inform the user what this mode does
-  dialog --clear --ascii-lines --no-cancel \
+  sam_dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ SAMVIDEO MODE ]" \
          --msgbox "This mode will download commercials from archive.org, play them on your MiSTer,\nand then attempt to launch the advertised game.\n\nExperimental: results may vary!" \
          0 0
 
   # 3) Choose CD-i or mplayer
   exec 3>&1
-  selection=$(dialog --clear --ascii-lines --no-cancel --backtitle "Super Attract Mode" \
+  selection=$(sam_dialog --clear --ascii-lines --no-cancel --backtitle "Super Attract Mode" \
             --title "[ Video Mode ]" \
             --menu "Select how we want to play videos" 0 0 0 \
               1 "CD-i (best compatibility)" \
               2 "mPlayer" \
             2>&1 1>&3)
+  rc=$?
   exec 3>&-
-  (( $? != 0 )) && return  # cancelled
-
-  if [[ "$selection" == "1" ]]; then
-    samini_mod samvideo_tvc_cdi Yes
-  else
-    samini_mod samvideo_tvc_cdi No
-  fi
+  (( rc != 0 )) && return 0  # cancelled
 
   # 4) Ask about keeping local copies
   exec 3>&1
-  keep=$(dialog --clear --ascii-lines --no-cancel --backtitle "Super Attract Mode" \
+  keep=$(sam_dialog --clear --ascii-lines --no-cancel --backtitle "Super Attract Mode" \
            --title "[ Local Copies ]" \
            --menu "Keep local copies of commercials? (~4GB req’d)" 0 0 0 \
              1 "Yes" \
              2 "No" \
            2>&1 1>&3)
+  rc=$?
   exec 3>&-
-  (( $? != 0 )) && return
+  (( rc != 0 )) && return 0
+  [[ "$selection" == 1 || "$selection" == 2 ]] || return 1
+  [[ "$keep" == 1 || "$keep" == 2 ]] || return 1
+
+  # Commercial mappings are JSON assets; a nonexistent legacy .txt filename
+  # must not trigger a player update on every visit to this preset.
+  local tvc_suffix=_tvc.json
+  [[ "$selection" != 1 ]] || tvc_suffix=_tvc_vcd.json
+  if [[ ! -s "$mrsampath/tvc/nes$tvc_suffix" ]]; then
+    source "$mrsampath/lib/downloads.sh" || return 1
+    get_tvc_files || return 1
+    [[ -s "$mrsampath/tvc/nes$tvc_suffix" ]] || return 1
+  fi
+
+  reset_ini
+  if [[ "$selection" == "1" ]]; then
+    samini_mod samvideo_tvc_cdi Yes
+  else
+    samini_mod samvideo_tvc_cdi No
+  fi
 
   if [[ "$keep" == "1" ]]; then
     samini_mod keep_local_copy Yes
@@ -101,29 +122,25 @@ function menu_preset_svc() {
   # 5) Core & BGM config for video mode
   samini_mod corelist "arcade,atarilynx,gb,gbc,genesis,gg,megacd,n64,nes,psx,saturn,s32x,sgb,sms,snes,tgfx16,tgfx16cd"
   samini_mod samvideo Yes
+  samini_mod Artwork_only No
   samini_mod samvideo_source Archive
   samini_mod samvideo_tvc Yes
 
-  # 6) Ensure the NES TV commercial list is present
-  if [[ ! -f "${gamelistpath}/nes_tvc.txt" ]]; then
-    get_samvideo
-  fi
-
   # 7) Final confirmation
-  dialog --clear --ascii-lines --no-cancel \
+  sam_dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ All Set ]" \
          --msgbox "Configuration saved. Press OK to start SAMVIDEO mode.\n\nIf commercials are slow to appear, give it a moment to download first." \
          0 0
 
   # 8) Launch it
-  exec "$0" start
+  sam_preset_start
 }
 
 # Function to process the GOAT list and create game list files
 function menu_preset_goat_mode() {
   reset_ini
   # 1) Show info
-  dialog --clear --ascii-lines --no-cancel \
+  sam_dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ GOAT MODE ]" \
          --msgbox "GOAT Attract Mode will only play games deemed to have the Greatest of All Time Attract Modes.\n\nPress OK to prepare the lists and return to the menu." \
          0 0
@@ -131,16 +148,17 @@ function menu_preset_goat_mode() {
   samini_mod sam_goat_list yes
 
   # 4) Back to main menu
-  tmp_reset
-  exec "$0" start
+  # The next session has private lists; its policy stamp includes this preset.
+  # Never wipe shared runtime ownership/state while an old session is running.
+  sam_preset_start
 }
 
 function menu_preset_80s() {
 	reset_ini
 	samini_mod corelist "amiga,arcade,fds,genesis,megacd,n64,neogeo,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx"
 	samini_mod arcadeorient horizontal
-	enablebgm
-	exec "$0" start
+	enablebgm || return $?
+	sam_preset_start
 }
 
 function menu_preset_maturetgfx() {
@@ -148,7 +166,7 @@ function menu_preset_maturetgfx() {
   reset_ini
 
   # 2) Inform the user about this preset
-  dialog --clear --ascii-lines --no-cancel \
+  sam_dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ Mature TGFX Mode ]" \
          --msgbox "Mature TGFX Mode will only show mature-rated TurboGrafx-CD titles.\n\nEnjoy the edgier side of the library!" \
          0 0
@@ -159,47 +177,51 @@ function menu_preset_maturetgfx() {
   samini_mod corelist tgfx16cd
 
   # 4) Launch SAM
-  exec "$0" start
+  sam_preset_start
 }
 
 
 menu_preset_kids() {
 	reset_ini
-	dialog --clear --no-cancel --ascii-lines \
-		--backtitle "Super Attract Mode" --title "[ MATURE TGFX ]" \
-		--msgbox "SAM uses ESRB rated games to only show games suitable for all ages.\n\nPlease feel free to contribute by editing the lists under /media/fat/SAM/Rated folder." 0 0
+	sam_dialog --clear --no-cancel --ascii-lines \
+		--backtitle "Super Attract Mode" --title "[ ALL-AGES GAMES ]" \
+		--msgbox "SAM restricts games to the community whitelists under /media/fat/SAM/Rated.\n\nThese lists may contain rating errors. Review them for your household before relying on this mode." 0 0
 	samini_mod rating kids
-	corelist_value=$(printf "%s\n" "${RATED_FILES[@]}" | sed -E 's/_.+\.txt$//' | sort -u | paste -sd, -)
-	corelist_line="corelist=\"${corelist_value}\""
-	sed -i '/^corelist=/c\'"$corelist_line" $samini_file
-	exec "$0" start
+    local file corelist_value= core
+    for file in "$ratedpath/"*_rated.txt; do
+        [[ -s "$file" ]] || continue
+        core=${file##*/}; core=${core%_rated.txt}
+        [[ "$core" =~ ^[a-z0-9]+$ ]] || continue
+        corelist_value+="${corelist_value:+,}$core"
+    done
+    [[ -n "$corelist_value" ]] || { sam_dialog --msgbox "No Kids whitelists are installed." 0 0; return 1; }
+    samini_mod corelist "$corelist_value" || return 1
+	sam_preset_start
 }
 
 
 # M82 mode
 menu_preset_m82_mode() {
 	reset_ini
-	dialog --clear --no-cancel --ascii-lines \
+	sam_dialog --clear --no-cancel --ascii-lines \
 		--backtitle "Super Attract Mode" --title "[ M82 MODE ]" \
-		--msgbox "SAM will act as an M82 unit for NES. To disable this, go to MiSTer_SAM.ini and find m82 option or change to another preset.\n\nPlease make sure you configure Gamepad in SAM's menu\n\nGame Timer is set to ${m82_game_timer}s per Game - Change m82_game_timer in SAM's ini\n\nMiSter will restart now. " 0 0
+		--msgbox "SAM will act as an M82 unit for NES. To disable this, go to MiSTer_SAM.ini and find m82 option or change to another preset.\n\nPlease define your controller in MiSTer's main menu\n\nGame Timer is set to ${m82_game_timer}s per Game - Change m82_game_timer in SAM's ini\n\nMiSter will restart now. " 0 0
 		samini_mod m82 Yes
-		exec "$0" start
+        samini_mod Artwork_only No
+		sam_preset_start
 
 
 }
 
 function menu_preset_roulette_mode() {
-  # Reset to defaults for Roulette mode
-  reset_ini
-
   # Explain the mode
-  dialog --clear --ascii-lines --no-cancel \
+  sam_dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
          --msgbox "Game Roulette mode picks a random title for you to play for a set time, then moves on to the next random title.\n\nEnjoy the surprise!" \
          0 0
 
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --backtitle "Super Attract Mode" --title "[ GAME ROULETTE ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Choose a time per game:" 0 0 0 \
@@ -219,21 +241,29 @@ function menu_preset_roulette_mode() {
     # Back → return to Game Modes menu
     (( rc != 0 )) && return
 
-    # Build a temporary INI for this roulette session
-    mkdir -p /tmp/.SAM_tmp
+    local timer
     case "$choice" in
       Roulettetimer)
-        echo "gametimer=${roulettetimer}" > /tmp/.SAM_tmp/gameroulette.ini
+        timer=$roulettetimer
         ;;
-      Roulette*)
-        local mins=${choice//Roulette/}
-        echo "gametimer=$((mins*60))" > /tmp/.SAM_tmp/gameroulette.ini
+      Roulette2|Roulette5|Roulette10|Roulette15|Roulette20|Roulette25|Roulette30)
+        timer=$(( ${choice#Roulette} * 60 ))
         ;;
       *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         continue
         ;;
     esac
+    [[ "$timer" =~ ^[1-9][0-9]*$ ]] || {
+      sam_dialog --msgbox "Roulette needs a positive time in seconds." 0 0
+      return 1
+    }
+
+    # Commit only after selection. Back must preserve the existing mode.
+    reset_ini
+    mkdir -p "$mrsamtmp" || return 1
+    local staged="$mrsamtmp/gameroulette.ini.tmp.$BASHPID"
+    echo "gametimer=$timer" > "$staged" || return 1
 
     # Always disable core listening during roulette
     {
@@ -241,10 +271,10 @@ function menu_preset_roulette_mode() {
       echo "listenmouse=No"
       echo "listenkeyboard=No"
       echo "listenjoy=No"
-    } >> /tmp/.SAM_tmp/gameroulette.ini
+    } >> "$staged" && mv -f -- "$staged" "$mrsamtmp/gameroulette.ini" || return 1
 
     # Launch SAM with the roulette INI
-    exec "$0" start
+    sam_preset_start
     return
   done
 }
@@ -258,7 +288,7 @@ function menu_preset_roulette_mode() {
 function menu_coreconfig() {
   # Show intro only once
   if [[ -z $shown_coreconfig ]]; then
-    dialog --clear --no-cancel --ascii-lines \
+    sam_dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ CORE CONFIG ]" \
            --msgbox "Current corelist:\n\n${corelist[*]}" 0 0
     shown_coreconfig=1
@@ -270,7 +300,7 @@ function menu_coreconfig() {
     menu_singlecore        "Only play games from one core (until reboot)"
   )
 
-  while dialog --clear --ascii-lines --no-tags \
+  while sam_dialog --clear --ascii-lines --no-tags \
                --backtitle "Super Attract Mode" --title "[ CORE CONFIG ]" \
                --ok-label "Select" --cancel-label "Back" \
                --menu "Select an option:" 0 0 0 \
@@ -282,7 +312,7 @@ function menu_coreconfig() {
     if declare -F "$choice" >/dev/null; then
       "$choice"      # call menu_corelist_preset, menu_choose_cores, etc.
     else
-      dialog --msgbox "Unknown selection: $choice" 0 0
+      sam_dialog --msgbox "Unknown selection: $choice" 0 0
     fi
   done
 }
@@ -290,13 +320,13 @@ function menu_coreconfig() {
 
 function menu_corelist_preset() {
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Select a preset" 0 0 0 \
              2 "Only Arcade & Console Cores" \
              1 "Only Arcade and NeoGeo games" \
-             6 "Only Arcade and NeoGeo games from the 1990s" \
+             6 "1990s Arcade games + Neo Geo" \
              3 "Only Handheld Cores" \
              4 "Only Computer Cores" \
              5 "Only Cores from the 1990s (no handheld)" \
@@ -315,7 +345,7 @@ function menu_corelist_preset() {
       4) samini_mod corelist "amiga,c64,coco2" ;;
       5|6)
          # Shared “1990s” confirmation
-         dialog --clear --ascii-lines --no-cancel \
+         sam_dialog --clear --ascii-lines --no-cancel \
                 --backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
                 --yesno "This will set Arcade Path Filter to 1990's.\nRemove later via Filters menu?" \
                 0 0
@@ -332,13 +362,13 @@ function menu_corelist_preset() {
          ;;
       7) samini_mod corelist "amiga,amigacd32,ao486,arcade,fds,genesis,megacd,neogeo,neogeocd,n64,nes,saturn,s32x,sms,snes,tgfx16,tgfx16cd,psx" ;;
       *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         continue
         ;;
     esac
 
     # Confirm & loop
-    dialog --clear --ascii-lines --no-cancel \
+    sam_dialog --clear --ascii-lines --no-cancel \
            --backtitle "Super Attract Mode" --title "[ CORELIST PRESET ]" \
            --msgbox "Changes saved!" 0 0
   done
@@ -347,7 +377,7 @@ function menu_corelist_preset() {
 function menu_choose_cores() {
     # Show warning only once
     if [[ -z $shown_choose_cores ]]; then
-        dialog --clear --no-cancel --ascii-lines \
+        sam_dialog --clear --no-cancel --ascii-lines \
             --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
             --msgbox "Joystick isn’t supported for core toggling—use a keyboard (space to toggle).\n\nHit Back if you’re on a joystick." \
             0 0
@@ -367,7 +397,7 @@ function menu_choose_cores() {
         done
 
         # Show the dialog. If the user hits "Back" (Cancel), break the loop.
-        if ! dialog --clear --ascii-lines --no-tags \
+        if ! sam_dialog --clear --ascii-lines --no-tags \
             --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
             --ok-label "Save" --cancel-label "Back" \
             --separate-output --checklist "Toggle cores on/off:" 0 0 0 \
@@ -393,7 +423,7 @@ function menu_choose_cores() {
         # This is crucial so the *next* loop iteration builds the menu correctly.
         corelist=( "${choices[@]}" )
 
-        dialog --clear --ascii-lines --no-cancel \
+        sam_dialog --clear --ascii-lines --no-cancel \
             --backtitle "Super Attract Mode" --title "[ CORE CONFIGURATION ]" \
             --msgbox "Changes saved! Your new list has ${#corelist[@]} cores." \
             0 0
@@ -409,7 +439,7 @@ function menu_singlecore() {
     done
 
     # Show the single‐system menu
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --ok-label "Select" --cancel-label "Back" \
            --backtitle "Super Attract Mode" --title "[ Single System Select ]" \
            --menu "Choose a system to play only its games:" 0 0 0 \
@@ -423,7 +453,8 @@ function menu_singlecore() {
     (( rc != 0 )) && return
 
     # Launch just that core
-    exec "$0" "${choice,,}"
+    if declare -F sam_menu_release_for_exec >/dev/null; then sam_menu_release_for_exec; fi
+    exec "${SAM_ENTRY:-$0}" "${choice,,}"
     return
   done
 }
@@ -440,14 +471,14 @@ function menu_exitbehavior() {
     else
       msg="Currently, exiting will *return to the MiSTer menu* when you push a button.\n\nIf you configured your controller, only START (or NEXT) will play the game."
     fi
-    dialog --clear --no-cancel --ascii-lines \
+    sam_dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ Exit Behavior ]" \
            --msgbox "$msg" 0 0
     shown_exitbehavior=1
   fi
 
   # Loop until the user hits “Back”
-  while dialog --clear --ascii-lines --no-tags \
+  while sam_dialog --clear --ascii-lines --no-tags \
                 --backtitle "Super Attract Mode" --title "[ Exit Behavior ]" \
                 --ok-label "Select" --cancel-label "Back" \
                 --menu "Choose what happens when you exit SAM:" 0 0 0 \
@@ -466,12 +497,12 @@ function menu_exitbehavior() {
         samini_mod playcurrentgame No
         ;;
       *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         continue
         ;;
     esac
 
-    dialog --clear --ascii-lines --no-cancel \
+    sam_dialog --clear --ascii-lines --no-cancel \
            --backtitle "Super Attract Mode" --title "[ Exit Behavior ]" \
            --msgbox "Changes saved!" 0 0
   done
@@ -481,142 +512,9 @@ function menu_exitbehavior() {
 # CONTROLLER CONFIGURATOR
 #-------------------------------------------------------------------------------
 function menu_controller() {
-    # 1) Gather all joystick devices
-    mapfile -t devices < <(ls /dev/input/js* 2>/dev/null)
-    total=${#devices[@]}
-
-    # 2) Build a parallel array of friendly names
-    names=()
-    for dev in "${devices[@]}"; do
-        js=$(basename "$dev")
-        model=$(udevadm info --query=property --name="$dev" 2>/dev/null \
-                | awk -F= '/^ID_MODEL=/{print $2}')
-        if [[ -z "$model" ]]; then
-            sysfs="/sys/class/input/$js/device/name"
-            [[ -r "$sysfs" ]] && model=$(cat "$sysfs")
-        fi
-        names+=( "$model" )
-    done
-
-    # 3) No controllers?
-    if (( total == 0 )); then
-        dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-               --msgbox "No joysticks connected." 0 0
-        sam_exittask
-    fi
-
-	# 4) If more than one, prompt to pick by friendly name
-	if (( total > 1 )); then
-		menu=()
-		for i in "${!devices[@]}"; do
-			tag=$((i+1))
-			menu+=( "$tag" "${names[i]}" )
-		done
-
-		# --- START: MODIFIED BLOCK ---
-
-		# Create a temporary file to store the choice from the menu
-		CHOICE_TMP=$(mktemp)
-
-		dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-			   --menu "Multiple controllers detected.\nSelect one to configure:" \
-			   0 0 0 "${menu[@]}" 2> "$CHOICE_TMP"
-
-		# Capture the dialog exit status
-		exit_status=$?
-
-		# Check the exit status
-		if [[ $exit_status -ne 0 ]]; then
-			# If status is not 0, the user pressed Cancel or ESC.
-			rm -f "$CHOICE_TMP" # Clean up temp file
-			sam_exittask         # Call the exit function
-			return               # Exit the current function
-		fi
-
-		# If we are here, the user pressed OK. Proceed to get the choice.
-		choice=$(< "$CHOICE_TMP")
-		rm -f "$CHOICE_TMP" # Clean up temp file
-
-		# --- END: MODIFIED BLOCK ---
-
-		sel=$((choice-1))
-		# Add a check to ensure the selection is valid
-		if [[ -z "$choice" || $sel -lt 0 || $sel -ge ${#devices[@]} ]]; then
-			dialog --msgbox "Invalid selection." 0 0
-			sam_exittask
-			return
-		fi
-		device="${devices[sel]}"
-		name="${names[sel]}"
-	else
-		device="${devices[0]}"
-		name="${names[0]}"
-	fi
-    # 5) Prompt & wait for START button
-    dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-           --infobox "Using:\n  $name\n($device)\n\n⏳ Waiting for you to press the START button..." \
-           8 50
-
-    id="$(${mrsampath}/MiSTer_SAM_joy.py "$device" id)"
-    startbtn="$(${mrsampath}/MiSTer_SAM_joy.py "$device" button)"
-
-    dialog --clear
-    dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-           --msgbox "Got it! START = button $startbtn" 6 50
-
-    # 6) Prompt & wait for NEXT button
-    dialog --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
-           --infobox "Press the button you want to use for NEXT GAME (eg SELECT Button)...\n\n⏳ Waiting for NEXT button press..." \
-           6 50
-
-    nextbtn="$(${mrsampath}/MiSTer_SAM_joy.py "$device" button)"
-
-    dialog --clear
-    dialog --backtitle "Super Attract Mode" --title "[ NEXT BUTTON SETUP ]" \
-           --msgbox "Great! NEXT = button $nextbtn" 6 50
-
-    # 7) Save into JSON
-    c_json="${mrsampath}/sam_controllers.json"
-    c_custom_json="${mrsampath}/sam_controllers.custom.json"
-
-    if [[ "$startbtn" == *not\ exist* || "$nextbtn" == *not\ exist* ]]; then
-        dialog --backtitle "Super Attract Mode" --title "[ CONTROLLER SETUP ]" \
-               --msgbox "No joysticks connected." 0 0
-        sam_exittask
-    fi
-
-    # ensure custom file exists
-    if [[ ! -f "$c_custom_json" ]]; then
-        cp "$c_json" "$c_custom_json"
-    fi
-
-    # merge safely into custom
-    if jq --arg name  "$name" \
-          --arg id    "$id" \
-          --argjson start "$startbtn" \
-          --argjson next  "$nextbtn" \
-          '. + {($id): {"name": $name, "button": {"start": $start, "next": $next}, "axis": {}}}' \
-          "$c_custom_json" > /tmp/temp.json
-    then
-        mv /tmp/temp.json "$c_custom_json"
-    else
-        dialog --backtitle "Super Attract Mode" --title "[ ERROR ]" \
-               --msgbox "Failed to update controller JSON:\n$c_custom_json" 0 0
-        return 1
-    fi
-
-	# only prompt if needed
-	if ! grep -qEi '^[[:space:]]*playcurrentgame[[:space:]]*=[[:space:]]*"?[Nn][Oo]"?[[:space:]]*$' "$samini_file"; then
-		dialog --backtitle "Super Attract Mode" --yesno \
-		"Should we adjust settings so that only pushing START button will play the active game?\
-		\n(While SAM is running, push any button to return to Menu unless START or NEXT button are pressed.)" 0 0
-					…
-	fi
-	dialog --clear --ascii-lines --no-cancel \
-	--backtitle "Super Attract Mode" --title "[ GAME CONTROLLER ]" \
-	--msgbox "Changes saved./n/nIf it doesn't work right away, you might have to restart your MiSTer. " 0 0
-	sam_menu
-	tmp_reset
+    sam_dialog --clear --ascii-lines --backtitle "Super Attract Mode" \
+        --title "[ Controller buttons ]" --msgbox \
+        "Define your controller once in MiSTer's main menu: Define joystick buttons.\n\nSAM reads supported saved global maps, then the controller database. Start keeps playing; Select advances to the next game; ordinary activity returns to Menu.\n\nFor troubleshooting, use the standalone sam_input_debug.py diagnostic from the SAM repository's tools-extras folder. Run with --duration 60 during gameplay; it does not change mappings or launch cores." 0 0
 }
 
 #-------------------------------------------------------------------------------
@@ -627,213 +525,93 @@ function menu_controller() {
 function menu_filters() {
   local rc choice
   while true; do
-    dialog --clear --ascii-lines --no-tags \
-           --backtitle "Super Attract Mode" --title "[ Filters ]" \
-           --ok-label "Select" --cancel-label "Back" \
-           --menu "Select a filter option:" 0 0 0 \
-             menu_cat_include   "Include single category/genre" \
-             menu_cat_exclude   "Exclude categories/genres" \
-             arcadehoriz    	"Horizontal arcade only" \
-             arcadevert         "Vertical arcade only" \
-             arcadedisable      "Show all arcade games" \
-      2> "${sam_menu_file}"
-
-    rc=$? choice=$(<"${sam_menu_file}")
-    clear
-    # Back → return to Main Menu
-    (( rc != 0 )) && return
-
-    case "${choice,,}" in
-      menu_cat_include)
-        menu_cat_include
-        ;;
-      menu_cat_exclude)
-        menu_cat_exclude
-        ;;
-      arcadehoriz)
-        samini_mod arcadepathfilter _Horizontal
-        samini_mod arcadeorient horizontal
-        menu_changes_saved
-        ;;
-      arcadevert)
-        samini_mod arcadeorient vertical
-        menu_changes_saved
-        ;;
-      arcadedisable)
-        samini_mod arcadeorient
-        menu_changes_saved
-        ;;
-      *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
-        ;;
+    sam_dialog --clear --ascii-lines --no-tags --backtitle "Super Attract Mode" \
+      --title "[ Filters ]" --ok-label "Select" --cancel-label "Back" \
+      --menu "Filters refine your existing core, Kids, Ignore and artwork choices." 0 0 0 \
+      menu_smart_presets "Smart category presets (permanent or until reboot)" \
+      menu_cat_exclude "Exclude regions and release categories" \
+      2> "$sam_menu_file"
+    rc=$? choice=$(<"$sam_menu_file")
+    ((rc == 0)) || return 0
+    case "$choice" in
+      menu_smart_presets|menu_cat_include) menu_smart_presets ;;
+      menu_cat_exclude) menu_cat_exclude ;;
+      # Retain the old explicit reset command for existing scripted menus.
+      arcadedisable) samini_mod arcadepathfilter ""; samini_mod arcadeorient ""; menu_changes_saved ;;
     esac
   done
 }
 
-function menu_cat_include() {
-  reset_ini
-  local rc choice categ
-
-
-  # 1) Intro
-  dialog --clear --no-cancel --ascii-lines \
-         --backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-         --msgbox $'Play games from only one category.\n\nUse Everdrive packs for this mode.\nMake sure you have built game lists first.' \
-         0 0
-
-  # 2) Pick a category
-  while dialog --clear --ascii-lines --no-tags \
-		--backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-		--ok-label "Select" --cancel-label "Back" \
-		--menu "Only play games from the following categories:" 0 0 0 \
-		 usa         "Only USA Games" \
-		 japan       "Only Japanese Games" \
-		 europe      "Only European Games" \
-		 shoot-em    "Only Shoot ’Em Ups" \
-		 beat-em     "Only Beat ’Em Ups" \
-		 rpg         "Only Role-Playing Games" \
-		 pinball     "Only Pinball Games" \
-		 platformers "Only Platformers" \
-		 fighting    "Only Fighting Games" \
-		 trivia      "Only Trivia Games" \
-		 sports      "Only Sports Games" \
-		 racing      "Only Racing Games" \
-		 hacks       "Only Hacks" \
-		 kiosk       "Only Kiosk Mode Games" \
-		 translations "Only Translations" \
-		 homebrew    "Only Homebrew" \
-    2> "${sam_menu_file}"; do
-
-    rc=$? choice=$(<"${sam_menu_file}")
-    clear
-    (( rc != 0 )) && return
-
-    categ="$choice"
-    echo "Please wait… filtering lists for '$categ'"
-
-    # clear out the temp folder
-    rm -f "${gamelistpathtmp}"/*_gamelist.txt
-
-    # for each existing gamelist, grep the category
-    find "${gamelistpath}" -name "*_gamelist.txt" | while read -r list; do
-      listfile=$(basename "$list")
-      # directly grep+dedupe into the temp gamelist file
-      grep -i -- "$categ" "$list" | awk -F'/' '!seen[$NF]++' \
-        > "${gamelistpathtmp}/${listfile}"
-      # if there were no matches, remove the empty file so later logic skips it
-      [[ ! -s "${gamelistpathtmp}/${listfile}" ]] && rm -f "${gamelistpathtmp}/${listfile}"
-    done
-
-    # collect which cores survived
-    readarray -t corelist <<< \
-      "$(find "${gamelistpathtmp}" -name "*_gamelist.txt" \
-             -exec basename {} \; | cut -d _ -f1)"
-    corelistmod=$(IFS=,; echo "${corelist[*]}")
-
-    # write out the corelist file for SAM
-    printf "%s\n" "${corelist[@]}" > "${corelistfile}"
-
-    dialog --clear --no-cancel --ascii-lines \
-           --backtitle "Super Attract Mode" --title "[ CATEGORY SELECTION ]" \
-           --msgbox "Now playing *only* '${categ^^}' games.\nReboot will reset to all games." \
-           0 0
-
-    exec "$0" start
-  done
+sam_category_menu_ready() {
+  declare -F sam_category_read_scope >/dev/null || sam_load_module category || return 1
+  sam_category_read_scope
 }
 
+sam_category_menu_scope() { # selected preset, literal exclusion tags
+  local rc scope
+  sam_dialog --clear --ascii-lines --no-tags --backtitle "Super Attract Mode" \
+    --title "[ Save filter ]" --ok-label "Save" --cancel-label "Back" \
+    --menu "Keep this choice after reboot? Running SAM applies it at the next game." 0 0 0 \
+    permanent "Save permanently" reboot "Until reboot" 2> "$sam_menu_file"
+  rc=$? scope=$(<"$sam_menu_file")
+  ((rc == 0)) || return 0
+  case "$scope" in permanent|reboot) ;; *) return 1;; esac
+  sam_category_store "$1" "$2" "$scope" || {
+    sam_dialog --msgbox "The filter could not be fully saved. Check the selected settings before starting SAM." 0 0
+    return 1
+  }
+  local note="Saved. Active SAM applies this at the next game. Start SAM from the main menu if it is idle."
+  [[ "$1" != pinball ]] || note+="\n\nPinball allows static-screen titles; Kids, Ignore, exclusions and artwork still apply."
+  [[ "$scope" != reboot ]] || note+="\n\nAfter reboot your saved filters return."
+  if compgen -G "$blacklistpath/*_gamelist_exclude.txt" >/dev/null; then
+    note+="\n\nExisting legacy exclusion lists in Blacklists still apply. Clear them separately if needed; this menu does not delete user lists."
+  fi
+  sam_dialog --msgbox "$note" 0 0
+}
+
+function menu_smart_presets() {
+  sam_category_menu_ready || return 1
+  local rc preset current=${sam_category_preset//_/ } scope=saved
+  [[ "$sam_category_preset" != off ]] || current='all categories'
+  [[ "${sam_category_scope:-permanent}" != reboot ]] || scope='until reboot'
+  sam_dialog --clear --ascii-lines --no-tags --backtitle "Super Attract Mode" \
+    --title "[ Smart category presets ]" --ok-label "Select" --cancel-label "Back" \
+    --default-item "$sam_category_preset" \
+    --menu "Current: $current ($scope)\n\nChoose what SAM plays. Your other filters still apply." 0 0 0 \
+    off "All categories (keep other filters)" \
+    pinball "Pinball only (allow static-screen tables)" \
+    arcade_horizontal "Arcade: horizontal only" \
+    arcade_vertical "Arcade: vertical only" \
+    shmups "Shoot 'em ups" fighting "Fighting games" puzzle "Puzzle games" racing "Racing games" \
+    2> "$sam_menu_file"
+  rc=$? preset=$(<"$sam_menu_file")
+  ((rc == 0)) || return 0
+  sam_category_valid "$preset" || return 1
+  sam_category_menu_scope "$preset" "$sam_category_exclusions"
+}
+
+function menu_cat_include() { menu_smart_presets; }
 
 function menu_cat_exclude() {
-  local rc choice
-  local excludetags="$gamelistpath/.excludetags"
-  local failures  # will accumulate failed cores
-
-  # 1) Ensure the directory & tags file exist
-  mkdir -p "$gamelistpath" \
-    || { echo "ERROR: cannot create '$gamelistpath'" >&2; return 1; }
-  touch "$excludetags" \
-    || { echo "ERROR: cannot touch '$excludetags'" >&2; return 1; }
-
-  # 2) Show current exclusions
-  if [[ -s $excludetags ]]; then
-    dialog --clear --no-cancel --ascii-lines \
-           --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
-           --msgbox "Currently excluded tags:\n\n$(<"$excludetags")" 0 0
-  else
-    dialog --clear --no-cancel --ascii-lines \
-           --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
-           --msgbox "Exclude certain categories (e.g. hacks, homebrew) so SAM never shows those games." \
-           0 0
-  fi
-
-  # 3) Main toggle loop
-  while dialog --clear --ascii-lines --no-tags \
-               --backtitle "Super Attract Mode" --title "[ EXCLUDE CATEGORIES ]" \
-               --ok-label "Select" --cancel-label "Done" \
-               --menu "Which tag would you like to toggle?" 0 0 0 \
-                 Beta         "Beta Games" \
-                 Hack         "Hacks" \
-                 Homebrew     "Homebrew" \
-                 Prototype    "Prototypes" \
-                 Unlicensed   "Unlicensed Games" \
-                 Translations "Translated Games" \
-                 USA          "USA Games" \
-                 Japan        "Japanese Games" \
-                 Europe       "European Games" \
-                 Reset        "Clear all exclusions" \
-        2> "${sam_menu_file}"; do
-
-    rc=$? choice=$(<"${sam_menu_file}")
-    clear
-    (( rc != 0 )) && return
-
-    # Reset
-    if [[ "$choice" == Reset ]]; then
-      rm -f "$excludetags" "${gamelistpath}"/*_gamelist_exclude.txt
-      sync
-      dialog --msgbox "All exclusion filters removed." 0 0
-      touch "$excludetags"
-      continue
-    fi
-
-    # Toggle tag in .excludetags
-    if grep -qiFx "$choice" "$excludetags"; then
-      grep -ivFx "$choice" "$excludetags" > "${excludetags}.tmp"
-      mv "${excludetags}.tmp" "$excludetags"
-      dialog --msgbox "'$choice' un-excluded." 0 0
-    else
-      echo "$choice" >> "$excludetags"
-      dialog --msgbox "'$choice' will now be excluded." 0 0
-    fi
-    sync
-
-    # 4) Rebuild each core’s exclude-list, collecting failures
-    failures=""
-    for core in "${corelist[@]}"; do
-      local src="$gamelistpath/${core}_gamelist.txt"
-      local dst="$gamelistpath/${core}_gamelist_exclude.txt"
-
-      if [[ ! -f "$src" ]]; then
-        # skip missing source
-        continue
-      fi
-
-      if ! grep -iF -f "$excludetags" "$src" > "$dst"; then
-        failures+="$core\n"
-      fi
-    done
-
-    # 5) If any failures, show them
-    if [[ -n "$failures" ]]; then
-      dialog --clear --ascii-lines --no-cancel \
-             --backtitle "Super Attract Mode" --title "[ EXCLUDE LIST ERRORS ]" \
-             --msgbox "Failed to build exclude lists for these cores:\n\n${failures}" \
-             0 0
-    fi
-
+  sam_category_menu_ready || return 1
+  local rc selected tag status
+  local -a items=()
+  for tag in Beta Hack Homebrew Prototype Unlicensed Translations USA Japan Europe; do
+    status=off
+    [[ ",${sam_category_exclusions,,}," != *",${tag,,},"* ]] || status=on
+    items+=("$tag" "$tag" "$status")
   done
+  sam_dialog --clear --ascii-lines --separate-output --backtitle "Super Attract Mode" \
+    --title "[ Category exclusions ]" --ok-label "Select" --cancel-label "Back" \
+    --checklist "Exclude exact folder or release metadata. Clear every checkbox to remove these tag rules. Existing legacy/user exclusion lists remain active." 0 0 0 \
+    "${items[@]}" 2> "$sam_menu_file"
+  rc=$? selected=$(<"$sam_menu_file")
+  ((rc == 0)) || return 0
+  selected=${selected//$'\n'/,}
+  selected=${selected//\"/}
+  sam_category_tags_valid "$selected" || return 1
+  sam_category_menu_scope "$sam_category_preset" "$selected"
 }
-
 
 
 #-------------------------------------------------------------------------------
@@ -846,14 +624,14 @@ function menu_addons() {
 
   # Show intro only once (no change here)
   if [[ -z $shown_bgmmenu ]]; then
-    dialog --clear --no-cancel --ascii-lines \
+    sam_dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ SAMVIDEO, BGM & TTY2OLED ]" \
            --msgbox $'SAMVIDEO\n----------------\nVideo playback on MiSTer (toggles per core).\n\nBGM\n----------------\nPlay background music while SAM shuffles games.\n\nTTY2OLED\n----------------\nHardware display support (only if you have TTY2OLED).' 0 0
     shown_bgmmenu=1
   fi
 
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --backtitle "Super Attract Mode" --title "[ SAMVIDEO, BGM & TTY2OLED ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Pick an option:" 0 0 0 \
@@ -888,56 +666,50 @@ function menu_addons() {
       enablear)   samini_mod samvideo_source Archive ;;
       enablebgm)  enablebgm ;;
       disablebgm)
-        bgm_stop
-        rm -f /media/fat/Scripts/bgm.sh /media/fat/music/bgm.ini
-        sed -i '/bgm.sh/d;/Startup BGM/d' "${userstartup}"
+        bgm_stop force
         samini_mod bgm No
         ;;
       enabletty)  samini_mod ttyenable Yes        ;;
       disabletty) samini_mod ttyenable No         ;;
       *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         continue
         ;;
     esac
 
-    dialog --clear --ascii-lines --no-cancel \
+    sam_dialog --clear --ascii-lines --no-cancel \
            --backtitle "Super Attract Mode" --title "[ SAMVIDEO, BGM & TTY2OLED ]" \
            --msgbox "Changes saved!" 0 0
   done
 }
 
 function enablebgm() {
-	if [ ! -f "/media/fat/Scripts/bgm.sh" ]; then
-		echo " Installing BGM to Scripts folder"
-		repository_url="https://github.com/wizzomafizzo/MiSTer_BGM"
-		curl_download "/tmp/bgm.sh" "https://raw.githubusercontent.com/wizzomafizzo/MiSTer_BGM/main/bgm.sh"
-		mv --force /tmp/bgm.sh /media/fat/Scripts/
-	else
-		echo " BGM script is installed already. Updating just in case..."
-		echo -n "stop" | socat - UNIX-CONNECT:/tmp/bgm.sock 2>/dev/null
-		kill -9 "$(ps -o pid,args | grep '[b]gm.sh' | awk '{print $1}' | head -1)" 2>/dev/null
-		rm /tmp/bgm.sock 2>/dev/null
-		curl_download "/tmp/bgm.sh" "https://raw.githubusercontent.com/wizzomafizzo/MiSTer_BGM/main/bgm.sh"
-		mv --force /tmp/bgm.sh /media/fat/Scripts/
-		echo " Resetting BGM now."
-	fi
-	#echo " Updating MiSTer_SAM.ini to use Mute=No"
-	samini_mod mute No
-	/media/fat/Scripts/bgm.sh &>/dev/null &
-	sync
-	get_samstuff Media/80s.pls /media/fat/music
-	[[ ! $(grep -i "bgm" "${samini_file}") ]] && echo "bgm=Yes" >> "${samini_file}"
-	samini_mod bgm Yes
-	echo " Enabling BGM debug so SAM can see what's playing.."
-	sleep 5
-	if grep -q '^debug = no' /media/fat/music/bgm.ini; then
-		sed -i 's/^debug = no/debug = yes/' /media/fat/music/bgm.ini
-		sleep 1
-	fi
-	#echo " All Done. Starting SAM now."
-	exec "$0" start
+    local staged script=${SAM_BGM_SCRIPT:-/media/fat/Scripts/bgm.sh}
+    local music=${SAM_BGM_MUSIC_DIR:-/media/fat/music}
+    if [[ ! -r "$script" ]]; then
+        staged=$(mktemp /tmp/sam-bgm-install.XXXXXX.sh) || return 1
+        if ! curl_download "$staged" "https://raw.githubusercontent.com/wizzomafizzo/MiSTer_BGM/main/bgm.sh" ||
+           [[ ! -s "$staged" ]] || ! python3 -c 'import ast,sys; ast.parse(open(sys.argv[1]).read())' "$staged"; then
+            rm -f "$staged"
+            sam_dialog --msgbox "BGM download failed. Existing settings were preserved." 0 0
+            return 1
+        fi
+        chmod +x "$staged" && mv "$staged" "$script" || {
+            rm -f "$staged"; return 1;
+        }
+    fi
+    # A healthy installation is reused. Updating SAM must not kill unrelated
+    # music processes or redownload BGM each time this option is selected.
+    mkdir -p "$music" || return 1
+    if [[ ! -r "$music/80s.pls" ]]; then
+        get_samstuff Media/80s.pls "$music" || return 1
+    fi
+    # Publish configuration only after every installation prerequisite succeeds.
+    samini_mod mute No
+    samini_mod bgm Yes
+    sam_preset_start
 }
+
 
 
 #-------------------------------------------------------------------------------
@@ -948,13 +720,13 @@ function menu_inieditor() {
   local rc tmpfile
 
   # Intro message
-  dialog --clear --ascii-lines --no-cancel \
+  sam_dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
          --msgbox "Edit MiSTer_SAM.ini directly.\n\nUse TAB to switch between file, OK and Cancel." 0 0
 
   # Loop: allow multiple edits until user cancels
   while true; do
-    dialog --clear --ascii-lines \
+    sam_dialog --clear --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
            --ok-label "Save" --cancel-label "Back" \
            --editbox "${samini_file}" 0 0 2> "${sam_menu_file}"
@@ -967,14 +739,14 @@ function menu_inieditor() {
     (( rc != 0 )) && return
 
     # Only copy back if file is non-empty and differs
-    if [[ -s "$tmpfile" ]] && ! diff -wq "$tmpfile" "${samini_file}" >/dev/null; then
+    if [[ -s "$tmpfile" ]] && ! cmp -s "$tmpfile" "${samini_file}" >/dev/null; then
       cp -f "$tmpfile" "${samini_file}"
-      dialog --clear --ascii-lines --no-cancel \
+      sam_dialog --clear --ascii-lines --no-cancel \
              --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
              --msgbox "Changes saved!" 0 0
     else
       # No changes → just continue or break
-      dialog --clear --ascii-lines --no-cancel \
+      sam_dialog --clear --ascii-lines --no-cancel \
              --backtitle "Super Attract Mode" --title "[ INI Settings ]" \
              --msgbox "No changes made." 0 0
     fi
@@ -988,38 +760,53 @@ function menu_inieditor() {
 #-------------------------------------------------------------------------------
 # SETTINGS
 #-------------------------------------------------------------------------------
-function menu_settings() {
+# Menu tags are an explicit allowlist. Cancel and sam_dialog errors invoke nothing.
+function sam_menu_group() {
+  local title=$1 prompt=$2 rc choice tag matched
+  shift 2
+  local entries=( "$@" )
   while true; do
-    dialog --clear --ascii-lines --no-tags \
-           --ok-label "Select" --cancel-label "Back" \
-           --backtitle "Super Attract Mode" --title "[ Settings ]" \
-           --menu "Configure SAM behavior" 0 0 0 \
-             menu_sam_timer             "Select Timers: delay & duration" \
-             menu_mute              	"Mute global volume while SAM is on" \
-             menu_autoplay              "Autoplay configuration" \
-             menu_artwork               "Artwork: installed packs or lightweight database" \
-             menu_enablekidssafe        "Enable Kids Safe Filter" \
-             menu_disablekidssafe       "Disable Kids Safe Filter" \
-             menu_advancedsettings 		"Advanced Settings" \
-      2> "${sam_menu_file}"
-
-    local rc=$? choice=$(<"${sam_menu_file}")
+    sam_dialog --clear --ascii-lines --no-tags --ok-label "Select" --cancel-label "Back" \
+      --backtitle "Super Attract Mode" --title "[ $title ]" \
+      --menu "$prompt" 0 0 0 "${entries[@]}" 2> "$sam_menu_file"
+    rc=$?
+    choice=$(<"$sam_menu_file")
     clear
-    # “Back” selected → exit to Main Menu
-    (( rc != 0 )) && break
-
-    case "${choice,,}" in
-      enablekidssafe)
-        enable_kids_safe
-        ;;
-      disablekidssafe)
-        disable_kids_safe
-        ;;
-      *)
-        parse_cmd "${choice,,}"
-        ;;
-    esac
+    (( rc == 0 )) || return 0
+    matched=0
+    for ((tag=0; tag<${#entries[@]}; tag+=2)); do
+      [[ "$choice" == "${entries[tag]}" ]] && { matched=1; break; }
+    done
+    (( matched )) || continue
+    parse_cmd "$choice"
   done
+}
+
+function menu_games() {
+  sam_menu_group "Games" "Choose games and input behavior" \
+    menu_coreconfig "Systems: cores or a single system" \
+    menu_filters "Filters: genre and arcade orientation" \
+    menu_exitbehavior "On input: return to menu or keep playing" \
+    menu_controller "Controller: MiSTer mapping and diagnostics"
+}
+
+function menu_settings() {
+  sam_menu_group "Settings" "Everyday screensaver settings" \
+    menu_sam_timer "Timing: idle delay and time per game" \
+    menu_autoplay "Autoplay: start SAM when idle" \
+    menu_mute "Sound: mute games during SAM" \
+    menu_artwork "Artwork: covers and installed packs" \
+    menu_addons "Display, music and video add-ons" \
+    menu_advanced "Advanced and maintenance"
+}
+
+function menu_advanced() {
+  sam_menu_group "Advanced and maintenance" "Options for customized setups" \
+    menu_advancedsettings "Startup, core weighting, input and debug" \
+    menu_inieditor "Edit MiSTer_SAM.ini" \
+    startmonitor "Start SAM with SSH Monitor" \
+    update "Update SAM" \
+    menu_reset "Rebuild lists, reset or uninstall"
 }
 
 
@@ -1033,14 +820,14 @@ function menu_sam_timer() {
 
   # Intro only once
   if [[ -z $shown_timer ]]; then
-    dialog --clear --no-cancel --ascii-lines \
+    sam_dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
            --msgbox $'Configure when SAM starts and for how long:\n\n• Delay = idle before showing games\n• Duration = how long to display games' 0 0
     shown_timer=1
   fi
 
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Choose an option:" 0 0 0 \
@@ -1062,24 +849,24 @@ function menu_sam_timer() {
     (( rc != 0 )) && return
 
     case "$choice" in
-      samtimeout* )
+      samtimeout1|samtimeout2|samtimeout3|samtimeout5 )
         timemin=${choice#samtimeout}
         secs=$(( timemin * 60 ))
         samini_mod samtimeout "$secs"
-        dialog --clear --ascii-lines --no-cancel \
+        sam_dialog --clear --ascii-lines --no-cancel \
                --backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
                --msgbox "Delay set: $timemin minute(s) ($secs seconds)." 0 0
         ;;
-      gametimer* )
+      gametimer1|gametimer2|gametimer3|gametimer5|gametimer10|gametimer15 )
         timemin=${choice#gametimer}
         secs=$(( timemin * 60 ))
         samini_mod gametimer "$secs"
-        dialog --clear --ascii-lines --no-cancel \
+        sam_dialog --clear --ascii-lines --no-cancel \
                --backtitle "Super Attract Mode" --title "[ GAME TIMER ]" \
                --msgbox "Duration set: $timemin minute(s) ($secs seconds)." 0 0
         ;;
       * )
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         ;;
     esac
   done
@@ -1091,13 +878,13 @@ function menu_mute() {
   local rc choice
 
   # Intro
-  dialog --clear --no-cancel --ascii-lines \
+  sam_dialog --clear --no-cancel --ascii-lines \
          --backtitle "Super Attract Mode" --title "[ MUTE INFO ]" \
          --msgbox $'SAM can mute the system volume globally while games are shown in Attract Mode.' \
          0 0
 
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --backtitle "Super Attract Mode" --title "[ MUTE OPTIONS ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Choose mute mode:" 0 0 0 \
@@ -1113,14 +900,14 @@ function menu_mute() {
     case "${choice,,}" in
       enablemute)
         samini_mod mute Yes
-        dialog --msgbox "Global mute enabled." 0 0
+        sam_dialog --msgbox "Global mute enabled." 0 0
         ;;
       disablemute)
         samini_mod mute No
-        dialog --msgbox "Global mute disabled." 0 0
+        sam_dialog --msgbox "Global mute disabled." 0 0
         ;;
       *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         ;;
     esac
   done
@@ -1131,7 +918,7 @@ function menu_autoplay() {
   local rc choice
 
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --backtitle "Super Attract Mode" --title "[ Autoplay Configuration ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Enable or disable Autoplay:" 0 0 0 \
@@ -1147,18 +934,18 @@ function menu_autoplay() {
     case "${choice,,}" in
       enable)
         sam_enable
-        dialog --clear --ascii-lines --no-cancel \
+        sam_dialog --clear --ascii-lines --no-cancel \
                --backtitle "Super Attract Mode" --title "[ Autoplay Configuration ]" \
                --msgbox "Autoplay enabled." 0 0
         ;;
       disable)
         sam_disable
-        dialog --clear --ascii-lines --no-cancel \
+        sam_dialog --clear --ascii-lines --no-cancel \
                --backtitle "Super Attract Mode" --title "[ Autoplay Configuration ]" \
                --msgbox "Autoplay disabled." 0 0
         ;;
       *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         ;;
     esac
   done
@@ -1172,7 +959,7 @@ function menu_autoplay() {
 function menu_advancedsettings() {
   # Show the initial info box only once per session
   if [[ "${shown_menu_misc:-0}" == "0" ]]; then
-    dialog --clear --no-cancel --ascii-lines \
+    sam_dialog --clear --no-cancel --ascii-lines \
            --backtitle "Super Attract Mode" --title "[ ALT CORE MODE ]" \
            --msgbox "Alternative Core Mode will prefer cores with larger libraries so you don't get many repeats.
 
@@ -1182,7 +969,7 @@ Please configure your controller in the main menu instead of using Play Current 
   fi
 
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --ok-label "Select" --cancel-label "Back" \
            --backtitle "Super Attract Mode" --title "[ Miscellaneous Settings ]" \
            --menu "Select from the following options:" 0 0 0 \
@@ -1228,7 +1015,7 @@ Please configure your controller in the main menu instead of using Play Current 
       disabledebuglog)   samini_mod samdebuglog No                 ;;
       -----)             ;;  # no action, just a divider
       *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         ;;
     esac
 
@@ -1247,7 +1034,7 @@ function menu_reset() {
   local rc choice
 
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --backtitle "Super Attract Mode" --title "[ Reset / Uninstall ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Choose an action:" 0 0 0 \
@@ -1266,13 +1053,13 @@ function menu_reset() {
       menu_resetini)       menu_resetini        ;;
       menu_deleteall)      menu_deleteall       ;;
       menu_reinstall)      menu_reinstall       ;;
-      *)                   dialog --msgbox "Unknown selection: $choice" 0 0; continue ;;
+      *)                   sam_dialog --msgbox "Unknown selection: $choice" 0 0; continue ;;
     esac
 
     # For those that don’t self-confirm, give a "Done" box
     case "${choice,,}" in
       menu_resetini|menu_reinstall)
-        dialog --msgbox "Done." 0 0
+        sam_dialog --msgbox "Done." 0 0
         ;;
     esac
   done
@@ -1281,13 +1068,13 @@ function menu_reset() {
 
 function menu_reset_gamelists() {
   # Intro
-  dialog --clear --ascii-lines --colors \
+  sam_dialog --clear --ascii-lines --colors \
          --backtitle "Super Attract Mode" --title "[ GAMELIST MENU ]" \
          --msgbox $'Game lists contain filenames SAM uses per core.\n\nThey\'re built automatically when SAM plays games, but you can recreate or remove them here.' \
          0 0
 
   while true; do
-    dialog --clear --ascii-lines --no-tags \
+    sam_dialog --clear --ascii-lines --no-tags \
            --backtitle "Super Attract Mode" --title "[ GAMELIST MENU ]" \
            --ok-label "Select" --cancel-label "Back" \
            --menu "Choose an action:" 0 0 0 \
@@ -1302,27 +1089,27 @@ function menu_reset_gamelists() {
 
     case "${choice,,}" in
       menu_creategl)
-        dialog --infobox "Creating all game lists..." 5 40
+        sam_dialog --infobox "Creating all game lists..." 5 40
         if ! sam_rebuild_all_lists; then
-            dialog --msgbox "Gamelist rebuild failed. Check the storage and SAM output. Previous lists were preserved for scans that failed." 0 0
+            sam_dialog --msgbox "Gamelist rebuild failed. Check the storage and SAM output. Previous lists were preserved for scans that failed." 0 0
             return 1
         fi
 
 		if [ ${inmenu} -eq 1 ]; then
 			sleep 1
-			sam_menu
+			: # Return through the existing menu stack.
 		else
 			echo -e "\nGamelist creation successful. Please start SAM now.\n"
 			sleep 1
 			parse_cmd stop
 		fi
-        dialog --msgbox "All game lists created." 0 0
+        sam_dialog --msgbox "All game lists created." 0 0
         return
         ;;
       menu_deletegl)
-        dialog --yesno "Really delete all game lists?" 7 50
+        sam_dialog --yesno "Really delete all game lists?" 7 50
         if (( $? == 0 )); then
-          dialog --infobox "Deleting all game lists..." 5 40
+          sam_dialog --infobox "Deleting all game lists..." 5 40
 	# In case of issues, reset game lists
 
 			there_can_be_only_one
@@ -1336,19 +1123,18 @@ function menu_reset_gamelists() {
 			fi
 
 			if [ ${inmenu} -eq 1 ]; then
-				sleep 1
-				sam_menu
+                : # Return through the existing sam_dialog stack.
 			else
 				echo -e "\nGamelist reset successful. Please start SAM now.\n"
 				sleep 1
 				parse_cmd stop
 			fi
-          dialog --msgbox "All game lists deleted." 0 0
+          sam_dialog --msgbox "All game lists deleted." 0 0
         fi
         return
         ;;
       *)
-        dialog --msgbox "Unknown selection: $choice" 0 0
+        sam_dialog --msgbox "Unknown selection: $choice" 0 0
         ;;
     esac
   done
@@ -1356,38 +1142,54 @@ function menu_reset_gamelists() {
 
 
 function menu_resetini() {
-  # 1) Clean up any running SAM state
-  rm -rf "/tmp/.SAM_List" "/tmp/.SAM_tmp"
-  sam_cleanup
-
-  # 2) No args → full INI reset
-  if (( $# == 0 )); then
-    if [[ -f "${mrsampath}/MiSTer_SAM.default.ini" ]]; then
-      cp "${mrsampath}/MiSTer_SAM.default.ini" "${samini_file}"
-    else
-      get_samstuff MiSTer_SAM.ini /tmp
-      cp /tmp/MiSTer_SAM.ini "${samini_file}"
-    fi
-    return
+  local mcp_was_running=0 result=0
+  if tmux has-session -t MCP 2>/dev/null ||
+     python3 "$mrsampath/sam_mcp_process.py" --running "$mrsampath/MiSTer_SAM_MCP.py"; then
+    mcp_was_running=1
   fi
+  # Quiesce autostart before stopping the exact session. Restore monitoring on
+  # every ordinary error path, including failed stop, download and INI writes.
+  if mcp_stop; then
+    sam_menu_resetini_apply "$@" || result=$?
+  else
+    result=$?
+  fi
+  if ((mcp_was_running)); then
+    local restart_result=0
+    mcp_start || restart_result=$?
+    ((result != 0 || restart_result == 0)) || result=$restart_result
+  fi
+  return "$result"
+}
 
-  # 3) Partial resets
+sam_menu_resetini_apply() {
+  local staged source_file key
+  python3 "$mrsampath/samctl.py" stop || return 1
+  # Preserve the runtime root: it contains ownership locks and the UI lease.
+  # Only stopped-session lists and temporary mode/filter choices need clearing.
+  rm -rf -- "$gamelistpathtmp" || return 1
+  rm -f -- "$mrsamtmp/category-preset" "$mrsamtmp/gameroulette.ini" || return 1
+  if (( $# == 0 )); then
+    source_file="$mrsampath/MiSTer_SAM.default.ini"
+    if [[ ! -f "$source_file" ]]; then
+      get_samstuff MiSTer_SAM.ini /tmp || return 1
+      source_file=/tmp/MiSTer_SAM.ini
+    fi
+    staged=$(mktemp "${samini_file}.reset.XXXXXX") || return 1
+    if ! cp "$source_file" "$staged" || ! mv -f "$staged" "$samini_file"; then
+      rm -f "$staged"
+      return 1
+    fi
+    return 0
+  fi
   for key in "$@"; do
     case "$key" in
-      bgm)
-        bgm_stop force
-        samini_mod bgm No
-        ;;
+      bgm) bgm_stop force; samini_mod bgm No || return 1 ;;
       samvideo)
-        samini_mod samvideo No
-        samini_mod samvideo_source ""   # clear any selected source
-        ;;
-      m82)
-        samini_mod m82 No
-        ;;
-      *)
-        echo "Warning: unknown reset target '$key'" >&2
-        ;;
+        samini_mod samvideo No || return 1
+        samini_mod samvideo_source "" || return 1 ;;
+      m82) samini_mod m82 No || return 1 ;;
+      *) printf "Unknown reset target '%s'\n" "$key" >&2; return 1 ;;
     esac
   done
 }
@@ -1453,23 +1255,25 @@ function menu_deleteall() {
 
 # Display a simple “saved” confirmation
 function menu_changes_saved() {
-  dialog --clear --ascii-lines --no-cancel \
+  sam_dialog --clear --ascii-lines --no-cancel \
          --backtitle "Super Attract Mode" --title "[ Settings ]" \
          --msgbox "Changes saved!" 0 0
 }
 
 function reset_ini() { # args ${nextcore}
 	# Build a comma-separated list of every core
-	corelistall=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
+	local allcores
+	allcores=$(printf "%s\n" "${!CORE_PRETTY[@]}" | sort | paste -sd "," -)
 
-	#Reset gamelists
-	[[ -d /tmp/.SAM_List ]] && rm -rf /tmp/.SAM_List
-	mkdir -p "${gamelistpathtmp}"
-	mkdir -p /tmp/.SAM_tmp
+	# A roulette marker is an enable switch, not a cache. Other presets must
+	# clear it or they retain roulette's timer and disabled input listeners.
+	rm -f -- "${mrsamtmp:-/tmp/.SAM_tmp}/gameroulette.ini"
+    rm -f -- "${mrsamtmp:-/tmp/.SAM_tmp}/category-preset"
+    samini_mod category_preset off
 
 	# Mute cores, use every core, horizontal arcade by default
 	samini_mod mute Yes
-	samini_mod corelist "$corelistall"
+	samini_mod corelist "$allcores"
 	samini_mod arcadeorient horizontal
 	samini_mod bgm No
 	samini_mod samvideo No

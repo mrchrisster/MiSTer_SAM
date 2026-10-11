@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # One foreground owner. At most one owned background preparation job.
-sam_worker_pid= sam_worker_start= sam_job_serial=0 sam_generation=0 sam_revision=1
+sam_worker_pid= sam_worker_start= sam_worker_group= sam_worker_sid= sam_job_serial=0 sam_generation=0 sam_revision=1
 SAM_ACTION=
 
 sam_request_next() {
@@ -11,30 +11,16 @@ sam_request_next() {
 
 sam_cancel_preparation() {
     [[ -n "$sam_worker_pid" ]] || return 0
-    if sam_pid_start "$sam_worker_pid" && [[ "$sam_proc_start" == "$sam_worker_start" ]]; then
+    if [[ -n "${sam_worker_group:-}" ]]; then
+        sam_job_cancel "$sam_worker_pid" "$sam_worker_start" "$sam_worker_group" "$sam_worker_sid" || return 1
+    elif sam_pid_start "$sam_worker_pid" && [[ "$sam_proc_start" == "$sam_worker_start" ]]; then
         sam_kill_tree "$sam_worker_pid" "$sam_worker_start"
     fi
-    wait "$sam_worker_pid" 2>/dev/null || true
-    sam_worker_pid= sam_worker_start=
-}
-
-sam_session_cleanup() {
-    [[ -z "${sam_session:-}" ]] || rm -f "$sam_session/alive"
-    sam_publish_phase stopping
-    sam_cancel_preparation
-    sam_cancel_launch_job
-    [[ "${sam_session_cleaned:-0}" != 1 ]] || return 0
-    sam_session_cleaned=1
-    sam_cleanup
-    sam_emit audio_stop
-    sam_emit display_shutdown
-    sam_emit display_exit
-    if [[ -n "${sam_session:-}" && "$sam_session" == "$mrsamtmp/session-$sam_owner" ]]; then
-        if [[ -f "$sam_session/error" ]]; then
-            { printf 'owner=%s\n' "$sam_owner"; cat "$sam_session/error"; cat "$sam_session/preparation.log"; } > "$mrsamtmp/last-error.log"
-        fi
-        rm -rf -- "$sam_session"
+    if sam_pid_start "$sam_worker_pid" && [[ "$sam_proc_start" == "$sam_worker_start" ]]; then
+        sam_job_error='Preparation process did not exit'; return 1
     fi
+    wait "$sam_worker_pid" 2>/dev/null || true
+    sam_worker_pid= sam_worker_start= sam_worker_group= sam_worker_sid=
 }
 
 sam_queue_files() {
@@ -43,6 +29,8 @@ sam_queue_files() {
 }
 
 sam_preparation_error() {
+    # A generic failure must never inherit the typed final-empty result.
+    rm -f -- "$sam_session/outcome"
     printf '%s\n' "$1" > "$sam_session/error.tmp.$BASHPID"
     mv -f "$sam_session/error.tmp.$BASHPID" "$sam_session/error"
 }
@@ -109,14 +97,13 @@ sam_prepare_worker() {
                 else
                     rc=$?
                     if (( rc == 3 )); then
-                        printf 'Cover download or validation failed for %s\n' "$c" > "$sam_session/error.tmp.$BASHPID"
-                        mv "$sam_session/error.tmp.$BASHPID" "$sam_session/error"
+                        sam_preparation_error "Cover download or validation failed for $c"
                         return 0
                     fi
                 fi
             else rc=$?; fi
             if ((rc == 3)); then
-                printf 'Artwork catalog or cover download failed for %s\n' "$c" > "$sam_session/error"
+                sam_preparation_error "Artwork catalog or cover download failed for $c"
                 return 0
             elif ((rc > 1)); then
                 sam_preparation_error "Candidate preparation failed for $c (status $rc)"; return 0
@@ -128,10 +115,21 @@ sam_prepare_worker() {
     done
     # Extend discovery only after filling the small ready queue. This job exits
     # after one catalog; the next event schedules more work, never another daemon.
-    sam_catalog_background_step
+    rc=0
+    sam_catalog_background_step || rc=$?
+    if ((rc > 1)); then
+        sam_preparation_error "Background catalog discovery failed (status $rc)"; return 0
+    fi
     sam_queue_files
     if (( prepared == 0 && existing == 0 && ${#sam_queue[@]} == 0 )) && ! sam_catalog_pending; then
-        printf 'No eligible games found for the enabled cores and filters\n' > "$sam_session/error"
+        [[ -e "$sam_session/alive" ]] || return 0
+        # Publish typed data before the error observed by the foreground. Only
+        # exhausted discovery can suppress automatic retries; other failures
+        # and cancelled workers have no final-empty outcome.
+        printf 'reason=no_eligible_games\nrevision=%s\n' "$sam_revision" > "$sam_session/outcome.tmp.$BASHPID" &&
+            mv -f -- "$sam_session/outcome.tmp.$BASHPID" "$sam_session/outcome" || return 1
+        printf 'No eligible games found for the enabled cores and filters\n' > "$sam_session/error.tmp.$BASHPID" &&
+            mv -f -- "$sam_session/error.tmp.$BASHPID" "$sam_session/error"
     fi
 }
 
@@ -139,10 +137,9 @@ sam_schedule_preparation() {
     if [[ -n "$sam_worker_pid" ]]; then
         if [[ ! -f "$sam_session/jobs/$sam_job_serial/done" ]]; then
             if sam_pid_start "$sam_worker_pid" && [[ "$sam_proc_start" == "$sam_worker_start" ]]; then return 0; fi
-            printf 'Preparation worker exited unexpectedly\n' > "$sam_session/error"
+            sam_preparation_error 'Preparation worker exited unexpectedly'
         fi
-        wait "$sam_worker_pid" 2>/dev/null || true
-        sam_worker_pid= sam_worker_start=
+        sam_cancel_preparation || { sam_preparation_error "${sam_job_error:-Preparation cleanup failed}"; return 1; }
         rm -rf -- "$sam_session/jobs/$sam_job_serial"
     fi
     [[ ! -f "$sam_session/error" ]] || return 0
@@ -153,9 +150,11 @@ sam_schedule_preparation() {
         sam_catalog_pending || return 0
     fi
     sam_job_serial=$((sam_job_serial+1))
-    (sam_prepare_worker) > "$sam_session/preparation.log" 2>&1 &
-    sam_worker_pid=$!
-    if sam_pid_start "$sam_worker_pid"; then sam_worker_start=$sam_proc_start; fi
+    # Defer owner termination only across fork/identity registration. Cleanup
+    # must never observe a live owned worker without its verified PID/start.
+    sam_job_spawn sam_worker sam_prepare_worker > "$sam_session/preparation.log" 2>&1 || {
+        sam_preparation_error 'Preparation job registration failed'; return 1;
+    }
 }
 
 sam_take_prepared() {
@@ -192,94 +191,118 @@ sam_take_prepared() {
     return 1
 }
 
-sam_loading_keys() { # coalesce all queued Next presses into one pending action
+sam_loading_keys() { # coalesce navigation into one pending action; last wins
     local key
     # A 1 ms timeout can expire under CPU load despite queued input, leaving
     # part of a burst for the next game. Allow a short bounded quiet interval.
     while read -r -s -t 0.05 -n 1 key; do
-        case "$key" in n|N) SAM_ACTION=next ;; esac
+        case "$key" in
+            n|N) SAM_ACTION=next ;;
+            p|P) SAM_ACTION=previous ;;
+        esac
     done
 }
 
 run_countdown_timer() {
-    sam_publish_phase playing
+    sam_publish_phase playing || return 1
     local countdown=$gametimer sam_paused=0 sam_frozen=0
     local start_time=$SECONDS end_time=$((SECONDS + gametimer)) current_rem key last_output=-1 last_schedule=-1
     sam_emit display_publish "$countdown" "$((EPOCHSECONDS + countdown))"
     sam_emit countdown_start
     sam_service timer_begin
-    while (( sam_paused || gametimer == 0 || SECONDS < end_time )); do
+    while :; do
+        if ((SECONDS != last_schedule)); then sam_config_timer_update; fi
+        # Claim queued controls before expiry: a pause already waiting at the
+        # deadline must freeze this game rather than advance to its successor.
         sam_emit countdown_tick || return 0
         sam_service timer_tick || return 0
+        if (( !sam_paused && gametimer != 0 && SECONDS >= end_time )); then break; fi
+        # SECONDS is a builtin elapsed-session clock with whole-second
+        # resolution. Zero is an indefinite timer, including after resume.
         current_rem=$((end_time - SECONDS))
+        (( gametimer != 0 )) || current_rem=0
         (( !sam_paused )) || current_rem=$sam_frozen
         (( current_rem >= 0 )) || current_rem=0
-        if (( current_rem != last_output )); then
+        if [[ "$current_rem:$sam_paused" != "$last_output" ]]; then
             if (( sam_paused )); then printf 'Paused: %s seconds remaining...\033[0K\r' "$current_rem"
             else printf 'Next in %s seconds...\033[0K\r' "$current_rem"; fi
-            last_output=$current_rem
+            last_output="$current_rem:$sam_paused"
         fi
         if (( SECONDS != last_schedule )); then sam_schedule_preparation; last_schedule=$SECONDS; fi
         # A builtin timed read handles keyboard immediately and bounds file
         # command latency. No sleep/date/stat/Python on an idle timer tick.
-        if read -r -s -t 0.1 -n 1 key; then
-            case "$key" in
-                n|N) sam_request_next; return 0 ;;
-                p|P) SAM_ACTION=previous; sam_emit controls_ready 0; return 0 ;;
-                m|M) toggle_mute ;;
-                *) sam_service mode_key "$key" || true ;;
-            esac
-        else
-            # Timeout is >128; EOF is 1. Headless callers must not spin.
-            [[ $? != 1 ]] || sleep 0.1
-        fi
+        # Bash can leave a delivered byte in key when a timed read is
+        # interrupted. Handle that byte even if the read status is nonzero.
+        read -r -s -t 0.1 -n 1 key || {
+            # Timeout is >128; only empty EOF needs a headless backoff.
+            [[ $? != 1 || -n "$key" ]] || sleep 0.1
+        }
+        case "$key" in
+            n|N) sam_request_next; return 0 ;;
+            p|P) SAM_ACTION=previous; sam_emit controls_ready 0; sam_emit display_publish; return 0 ;;
+            m|M) toggle_mute ;;
+            '') ;;
+            *) sam_service mode_key "$key" || true ;;
+        esac
     done
     sam_emit controls_ready 0
     sam_emit display_publish
 }
 
 sam_normal_loop() {
-    sam_pid_start "$$" || return 1
-    sam_owner="$$:$sam_proc_start"
-    sam_session="$mrsamtmp/session-$sam_owner"
-    sam_catalog_cache="$mrsamtmp/catalog-cache"
-    mkdir -p "$sam_session/ready" "$sam_session/jobs" "$sam_session/consumed" "$sam_catalog_cache"
-    : > "$sam_session/alive"
-    sam_publish_phase preparing
+    sam_session_begin || return 1
     trap sam_session_cleanup EXIT
     trap 'exit 0' TERM
     trap 'tmux detach-client' INT
     sam_emit display_start
     sam_prep || return 1
     disable_bootrom
-    sam_emit session_start
+    local startup_rc=0 startup_error
+    sam_emit session_start || startup_rc=$?
+    if ((startup_rc != 0));then
+        startup_error="Session startup failed (status $startup_rc). Check startup modules: ${SAM_HOOKS[session_start]:-none}"
+        sam_preparation_error "$startup_error"
+        printf 'SAM ERROR: %s\n' "$startup_error" >&2
+        return 1
+    fi
     sam_emit display_startup
     corelisttmp=("${corelist[@]}")
-    local c have_catalog=0
+    local c have_catalog=0 last_prepare=-1
     for c in "${corelist[@]}"; do [[ ! -s "$gamelistpath/${c}_gamelist.txt" ]] || have_catalog=1; done
     sam_bootstrap=$((1-have_catalog))
     printf '\n' > "$sam_game_log"
     while :; do
-        sam_schedule_preparation
+        sam_config_game_boundary || return 1
+        if ((SECONDS != last_prepare)); then
+            sam_schedule_preparation
+            last_prepare=$SECONDS
+        fi
         sam_replaying=0
         if [[ "$SAM_ACTION" == previous && -f "$sam_session/previous" ]]; then
             cp "$sam_session/previous" "$sam_session/ready/00000000.record"
         fi
         SAM_ACTION=
-        sam_publish_phase preparing
+        sam_publish_phase preparing || return 1
         local take_rc=0
         sam_take_prepared || take_rc=$?
         if (( take_rc != 0 )); then
-            if ((take_rc == 3)); then printf 'Prepared cover is unavailable\n' > "$sam_session/error"; fi
+            if ((take_rc == 3)); then sam_preparation_error 'Prepared cover is unavailable'; fi
             if ((take_rc > 1)) && [[ ! -f "$sam_session/error" ]]; then sam_preparation_error "Selection validation failed (status $take_rc)"; fi
             if [[ -f "$sam_session/error" ]]; then
                 local error; IFS= read -r error < "$sam_session/error"
                 printf '\nSAM ERROR: %s. Current game retained; restart SAM to retry.\n' "$error" >&2
+                sam_record_empty_autostart || true
                 return 1
             fi
             local key
             read -r -s -t 0.1 -n 1 key || { [[ $? != 1 ]] || sleep 0.1; }
-            case "$key" in n|N) SAM_ACTION=next ;; esac
+            case "$key" in
+                n|N) SAM_ACTION=next ;;
+                p|P) SAM_ACTION=previous ;;
+                m|M) toggle_mute ;;
+                '') ;;
+                *) sam_service mode_key "$key" || true ;;
+            esac
             continue
         fi
         sam_bootstrap=0
@@ -287,20 +310,29 @@ sam_normal_loop() {
         sam_emit controls_ready 0
         SAM_ACTION=
         if load_core "$nextcore" "$rompath" "${romname%.*}"; then
-            [[ "${sam_selected_record##*/}" == 00000000.record ]] || sam_service commit "$nextcore" "$rompath" "$sam_record_reset" "$sam_record_policy"
+            if [[ "${sam_selected_record##*/}" != 00000000.record ]]; then
+                local commit_rc=0
+                sam_service commit "$nextcore" "$rompath" "$sam_record_reset" "$sam_record_policy" || commit_rc=$?
+                if ((commit_rc != 0)); then
+                    printf '\nSAM ERROR: launch commit failed (status %s).\n' "$commit_rc" >&2
+                    return 1
+                fi
+            fi
             # Keep compatibility replay data, but never source a runtime record.
             [[ ! -f "$sam_session/current" ]] || cp "$sam_session/current" "$sam_session/previous"
             cp "$sam_selected_record" "$sam_session/current"
             rm -f "$sam_selected_record"
             sam_loading_keys
             if [[ "$SAM_ACTION" == next ]]; then SAM_ACTION=; continue; fi
+            if [[ "$SAM_ACTION" == previous ]]; then continue; fi
             SAM_ACTION=
             sam_schedule_preparation
-            run_countdown_timer
+            run_countdown_timer || return $?
         else
             local launch_rc=$?
             rm -f "$sam_selected_record"
             if (( launch_rc > 1 )); then
+                sam_preparation_error "${sam_core_reason:-Launch infrastructure failed (status $launch_rc)}"
                 printf '\nSAM ERROR: launch rejected (status %s): %s\n' "$launch_rc" "${sam_core_reason:-validation failed}" >&2
                 return 1
             fi

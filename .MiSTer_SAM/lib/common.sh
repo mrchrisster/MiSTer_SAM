@@ -23,20 +23,6 @@ function init_paths() {
     mkdir -p "$gamelistpath" "$ratedpath" "$blacklistpath" "$ignorepath" "$gamelistpathtmp" "$mrsamtmp"
 }
 
-function tmp_reset() {
-	if [[ -d /tmp/.SAM_List ]]; then
-        local reset_path
-        local -a reset_paths=()
-        for reset_path in /tmp/.SAM* /tmp/SAM* /tmp/MiSTer_SAM*; do
-            # Keep the complete display snapshot across stop/session cleanup.
-            [[ "$reset_path" == "$sam_display_state_file" || "$reset_path" == "$sam_display_state_file.tmp."* ]] && continue
-            reset_paths+=("$reset_path")
-        done
-        (( ${#reset_paths[@]} == 0 )) || rm -rf -- "${reset_paths[@]}"
-    fi
-	mkdir -p /tmp/.SAM_List  /tmp/.SAM_tmp
-}
-
 function delete_from_corelist() {
     local target="$1" kind="${2:-}" index
     if [[ "$kind" == tmp ]]; then

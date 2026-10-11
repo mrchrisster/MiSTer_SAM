@@ -1,5 +1,27 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 sam_goat_list=yes
+declare -gA SAM_CURATED_CORES=()
+sam_curated_cores_loaded=0
+sam_curated_core_allowed() {
+    [[ "${2:-candidate}" != auxiliary ]] || return 0
+    if ((sam_curated_cores_loaded == 0)); then
+        local source="$gamelistpath/sam_goat_list_custom.txt" line section=
+        [[ -r "$source" ]] || source="$gamelistpath/sam_goat_list.txt"
+        [[ -r "$source" ]] || { sam_core_reason='GOAT list is missing'; return 2; }
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line=${line%$'\r'}
+            if [[ "$line" =~ ^\[(.+)\]$ ]]; then section="${BASH_REMATCH[1],,}"
+            elif [[ "$section" =~ ^[a-z0-9_]+$ && -n "$line" && "$line" != \#* ]]; then
+                SAM_CURATED_CORES[$section]=1
+            fi
+        done < "$source"
+        sam_curated_cores_loaded=1
+    fi
+    [[ -n "${SAM_CURATED_CORES[$1]-}" ]] && return 0
+    sam_core_reason="GOAT list has no entries for $1"
+    return 1
+}
+sam_register core_allowed sam_curated_core_allowed
 sam_curated_filter() {
     local c="$1" list="$gamelistpathtmp/${1}_gamelist.txt" names="${sam_job:-$mrsamtmp}/curated-names" line section=
     local source="$gamelistpath/sam_goat_list_custom.txt"
@@ -7,6 +29,7 @@ sam_curated_filter() {
     [[ -r "$source" ]] || { echo 'SAM: curated list is missing.' >&2; return 1; }
     : > "$names"
     while IFS= read -r line || [[ -n "$line" ]]; do
+        line=${line%$'\r'}
         if [[ "$line" =~ ^\[(.+)\]$ ]]; then section="${BASH_REMATCH[1],,}"
         elif [[ "$section" == "$c" && -n "$line" ]]; then printf '%s\n' "$line" >> "$names"; fi
     done < "$source"

@@ -144,8 +144,8 @@ class Lifecycle(unittest.IsolatedAsyncioTestCase):
         process=subprocess.Popen(['sh','-c','exit 0'],start_new_session=True);process.wait()
         def start(s):s.launcher=process
         def owner():state.set_pending_action('default');return OWNER
-        with patch.object(m,'start_sam',side_effect=start),patch.object(m,'read_sam_owner',side_effect=owner),patch.object(m,'kill_sam_processes') as stop:
-            await m.launch_and_confirm(state);stop.assert_called_once_with(OWNER);self.assertFalse(state.is_sam_running())
+        with patch.object(m,'start_sam',side_effect=start),patch.object(m,'read_sam_owner',side_effect=owner),patch.object(m,'stop_sam') as stop:
+            await m.launch_and_confirm(state);stop.assert_called_once_with(state,play_current=False,owner=OWNER);self.assertFalse(state.is_sam_running())
     async def test_startup_next_coalesces(self):
         state=m.SamState();process=subprocess.Popen(['sh','-c','exit 0'],start_new_session=True);process.wait()
         def start(s):s.launcher=process;s.set_pending_action('next')

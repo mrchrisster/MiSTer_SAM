@@ -3,9 +3,9 @@
 function loop_core() {
     # args: [target_core]
     sam_core_session_begin "${1:-}" || { printf 'SAM: %s\n' "$sam_core_reason" >&2; return 1; }
+    sam_session_begin || return 1
     trap sam_session_cleanup EXIT
     trap 'exit 0' TERM
-    sam_pid_start "$$"; sam_owner="$$:$sam_proc_start"; sam_publish_phase preparing
     sam_emit display_start
 
     # Global trap to detach monitor on Ctrl+C instead of killing SAM
@@ -32,7 +32,8 @@ function loop_core() {
 
     # The infinite loop
     while :; do
-        sam_publish_phase preparing
+        sam_config_game_boundary || return 1
+        sam_publish_phase preparing || return 1
         if [ "$SAM_ACTION" == "previous" ]; then
              if sam_record_read "$mrsamtmp/prev_game_info"; then
                  core=$sam_record_core rompath=$sam_record_path gamename=$sam_record_name
@@ -90,8 +91,12 @@ function next_core() { # next_core (core)
 	fi
 
 	if [ "${samvideo}" == "yes" ]; then
-		load_samvideo
-		if [ $? -ne 0 ]; then sv_nextcore="samvideo" && return; fi
+        local video_rc=0
+        load_samvideo || video_rc=$?
+        # Status 1 is the existing successful video sentinel; other failures
+        # must not claim a video launch or enter its countdown.
+        if ((video_rc == 1)); then sv_nextcore="samvideo"; return 0
+        elif ((video_rc > 1)); then return "$video_rc"; fi
 	fi
 
 	# Pick a core if no corename was supplied as argument (eg "MiSTer_SAM_on.sh psx")
@@ -169,8 +174,8 @@ function next_core() { # next_core (core)
 
 function run_countdown_timer() {
     if [[ "${samvideo,,}" == yes && "${sv_nextcore:-}" == samvideo ]]; then
-        sam_publish_phase video
-    else sam_publish_phase playing; fi
+        sam_publish_phase video || return 1
+    else sam_publish_phase playing || return 1; fi
     local countdown=${gametimer}
     local sam_paused=0 sam_frozen=0
     sam_control_generation=$(( ${sam_control_generation:-0} + 1 ))
@@ -199,6 +204,7 @@ function run_countdown_timer() {
 
     sam_emit controls_ready 1
     while (( sam_paused == 1 || SECONDS < end_time )); do
+        sam_config_timer_update
         sam_emit countdown_tick || return
         if [ "$video_synced" == "no" ]; then
             # extend timeout slightly to keep loop alive if loading is slow

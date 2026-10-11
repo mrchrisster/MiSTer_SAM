@@ -62,7 +62,7 @@ class MappingTests(unittest.TestCase):
     def output(self, state):
         return '\n'.join(call.args[0] for call in state.input_debug_output.emit.call_args_list)
 
-    def test_saved_reassignment_drives_actions_and_hides_js_indices(self):
+    def test_saved_reassignment_drives_actions_and_reports_raw_indices(self):
         with tempfile.TemporaryDirectory() as tmp:
             values = [0] * 32
             values[10], values[11], values[4] = 315, 314, 312
@@ -75,20 +75,23 @@ class MappingTests(unittest.TestCase):
             log = self.output(state)
             self.assertIn('MiSTer=Start DB=back', log)
             self.assertIn('action=start', log)
-            self.assertNotIn('source=', log)
+            self.assertIn('source=MiSTer-map', log)
             self.assertEqual(log.count('Pad'), 1)
-            self.assertNotIn('js_button', log)
+            self.assertIn('js_button=1 Linux=314', log)
             self.assertNotIn('js_axis', log)
 
-    def test_startup_is_concise_and_deep_metadata_is_not_repeated(self):
+    def test_setup_identifies_selected_map_and_exact_database_match(self):
         with tempfile.TemporaryDirectory() as tmp:
             values=[0]*32
             values[10],values[11]=315,314
             binding,state=self.resolver(Path(tmp),values)
             log=self.output(state)
             self.assertIn('Pad: Ready: Start/Select',log)
-            for fragment in ('binding ', 'DB MATCH', 'DB GUID', 'saved global map=', 'source='):
-                self.assertNotIn(fragment,log)
+            for fragment in ('DB MATCH', 'DB GUID', 'saved global map=', 'source=MiSTer-map'):
+                self.assertIn(fragment,log)
+            self.assertIn(str(Path(tmp) / 'inputs/input_1234_5678_v3.map'), log)
+            self.assertIn(str(Path(tmp) / 'gamecontrollerdb.txt') + ':1', log)
+            self.assertNotIn('binding ', log)
 
     def test_saved_unassigned_and_flagged_slots_never_fall_back_to_db(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,6 +1,20 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Extracted compatibility implementation; see reference and attribution.
 
+sam_catalog_find_list() { # complete find result; preserve previous list on error
+    local output_file="$1" temporary="$1.scan.$BASHPID"
+    shift
+    if ! find "$@" > "$temporary"; then
+        rm -f -- "$temporary"
+        return 2
+    fi
+    if [[ -f "$output_file" ]] && cmp -s "$temporary" "$output_file"; then
+        rm -f -- "$temporary" || return 2
+    else
+        mv -f "$temporary" "$output_file" || { rm -f -- "$temporary"; return 2; }
+    fi
+}
+
 function build_mra_list() {
     # Accept core and destination directory arguments
     local core_type="$1"
@@ -25,22 +39,14 @@ function build_mra_list() {
     # 2. Check if the search directory exists.
     if [ ! -d "${mra_path}" ]; then
         echo "The path ${mra_path} does not exist!"
-        : > "${output_file}" # Create empty list to prevent re-running
+        : > "${output_file}" || return 2 # Create empty list to prevent re-running
         return 0
     fi
 
-    # Check if the directory contains any MRA files before running a full find.
-    if ! find "${mra_path}" -type f -iname "*.mra" -print -quit | grep -q .; then
-        echo "The path ${mra_path} contains no MRA files!"
-        : > "${output_file}" # Create empty list
-        return 0
-    fi
-
-    # 3. Build the list directly into the destination file using find.
-    find "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" > "${output_file}"
-
+    # One traversal, with failures distinguished from a valid empty list.
+    sam_catalog_find_list "$output_file" "${mra_path}" -not -path '*/.*' -type f -iname "*.mra" || return $?
     samdebug "Created ${core_type} MRA gamelist in '${dest_dir}'."
-    sync "${output_file}"
+    return 0
 }
 
 function build_mgl_list() {
@@ -49,7 +55,7 @@ function build_mgl_list() {
 	local dest_dir="${2:-$gamelistpath}"
 
     # Define paths, making the output file dynamic
-    local search_paths
+    local search_paths path
     local output_file="${dest_dir}/${core_type}_gamelist.txt"
     local game_count
     local existing_paths=()
@@ -87,12 +93,12 @@ function build_mgl_list() {
     # If no valid search directories were found, create an empty list and exit
     if [ ${#existing_paths[@]} -eq 0 ]; then
         samdebug "No valid MGL search directories found for ${core_type}."
-        : > "${output_file}" # Create empty list to prevent retry loops
+        : > "${output_file}" || return 2 # Create empty list to prevent retry loops
         return 0
     fi
 
     # Run find on existing paths and write directly to the destination file
-    find "${existing_paths[@]}" -type f -iname '*.mgl' 2>/dev/null > "${output_file}"
+    sam_catalog_find_list "$output_file" "${existing_paths[@]}" -type f -iname '*.mgl' || return $?
 
     # If the resulting list is empty, disable the core
     if [ ! -s "${output_file}" ]; then
@@ -124,12 +130,12 @@ function build_amiga_list() {
     fi
 
     # Start with a fresh, empty list directly at the final destination
-    > "${output_file}"
+    > "${output_file}" || return 2
 
     # Append demos to the output file if selected
     if [[ "${amigaselect}" == "demos" ]] || [[ "${amigaselect}" == "all" ]]; then
         if [ -f "${demos_file}" ]; then
-            sed 's/^/Demo: /' "${demos_file}" >> "${output_file}"
+            sed 's/^/Demo: /' "${demos_file}" >> "${output_file}" || return 2
         else
             samdebug "Demos list not found at ${demos_file}"
         fi
@@ -137,7 +143,7 @@ function build_amiga_list() {
 
     # Append games to the output file if selected
     if [[ "${amigaselect}" == "games" ]] || [[ "${amigaselect}" == "all" ]]; then
-        cat "${games_file}" >> "${output_file}"
+        cat "${games_file}" >> "${output_file}" || return 2
     fi
 
     # Verify that the final list is not empty
@@ -194,7 +200,7 @@ function build_gamelist() {
     fi
 
     # Always sort and de-duplicate the final output file, regardless of build type.
-    if [[ -f "$file" ]]; then
+    if [[ -f "$file" && "${sam_catalog_runtime_sort:-0}" != 1 ]]; then
         sort -u "$file" -o "$file" || return 2
     fi
     if ((is_initial_build)); then
@@ -220,13 +226,12 @@ sam_rebuild_all_lists() {
             *) builder=build_gamelist ;;
         esac
         rc=0; "$builder" "$c" "$stage" || rc=$?
-        if ((rc == 2)) || [[ ! -f "$stage/${c}_gamelist.txt" ]]; then rc=2; break; fi
+        if ((rc > 1)) || [[ ! -f "$stage/${c}_gamelist.txt" ]]; then rc=2; break; fi
         rc=0
     done
     if ((rc == 0)); then
         for c in "${corelistall[@]}"; do
-            cp "$stage/${c}_gamelist.txt" "$gamelistpath/$c.tmp.$BASHPID" &&
-                mv -f "$gamelistpath/$c.tmp.$BASHPID" "$gamelistpath/${c}_gamelist.txt" || { rc=2; break; }
+            sam_publish_catalog "$stage/${c}_gamelist.txt" "$gamelistpath/${c}_gamelist.txt" || { rc=2; break; }
         done
     fi
     rm -rf -- "$stage"

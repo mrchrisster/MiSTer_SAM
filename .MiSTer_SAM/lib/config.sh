@@ -49,6 +49,7 @@ function init_vars() {
 	declare -gl skiptime="10"
 	declare -gl norepeat="Yes"
 	declare -gl disable_blacklist="No"
+    declare -gl category_preset="off"
 	declare -gl amigaselect="All"
 	declare -gl m82="no"
 	declare -gi m82_game_timer=180      # How long (secs) user can play in M82 play mode
@@ -873,7 +874,13 @@ function read_samini() {
         echo "Creating SAM INI from installed defaults."
         cp "$samini_update_file" "$samini_file" || return 1
 	fi
+    # Capture the trusted INI baseline around startup. The later RAM
+    # baseline is comparison data and is never sourced by the reload protocol.
+    sam_config_ini_snapshot=$(cat "$samini_file") || return 1
 	source "${samini_file}"
+    sam_config_category_snapshot= sam_config_roulette_snapshot=
+    [[ ! -f "$mrsamtmp/category-preset" ]] || sam_config_category_snapshot=$(cat "$mrsamtmp/category-preset")
+    [[ ! -f "$mrsamtmp/gameroulette.ini" ]] || sam_config_roulette_snapshot=$(cat "$mrsamtmp/gameroulette.ini")
     [[ "${sam_modules_loaded:-0}" != 1 ]] || sam_module_config_dirty=1
     sam_config_paths
 
@@ -887,6 +894,10 @@ function read_samini() {
 	if [ "${bgm}" == "yes" ]; then
 		mute="core"
 	fi
+
+    # These modes use explicit commercial/M82 mappings rather than ordinary
+    # artwork eligibility. Reading configuration never rewrites the user's INI.
+    if [[ "${m82,,}" == yes || "${samvideo,,}" == yes ]]; then Artwork_only=No; fi
 
 
 }
@@ -912,7 +923,7 @@ function update_samini() {
 samini_mod() {
   local key="$1"
   local value="$2"
-  local file="${3:-/media/fat/Scripts/MiSTer_SAM.ini}"
+  local file="${3:-${samini_file:-${SAM_INI:-/media/fat/Scripts/MiSTer_SAM.ini}}}"
   local formatted="${key}=\"${value}\""
 
   if grep -q "^${key}=" "$file"; then

@@ -1,10 +1,14 @@
 #!/bin/bash
 # Existing user-startup entry; the engine owns its workers and cleanup.
 entry=/media/fat/Scripts/MiSTer_SAM_on.sh
+stop_mcp() {
+    python3 /media/fat/Scripts/.MiSTer_SAM/sam_mcp_process.py /media/fat/Scripts/.MiSTer_SAM/MiSTer_SAM_MCP.py || return 1
+    tmux kill-session -t MCP 2>/dev/null || ! tmux has-session -t MCP 2>/dev/null
+}
 case "${1,,}" in
     start) exec "$entry" bootstart ;;
     quickstart) exec "$entry" start ;;
-    stop) tmux kill-session -t MCP 2>/dev/null; exec "$entry" stop ;;
-    restart) tmux kill-session -t MCP 2>/dev/null; "$entry" stop; exec "$entry" bootstart ;;
+    stop) stop_mcp || exit 1; exec "$entry" stop ;;
+    restart) stop_mcp || exit 1; "$entry" stop || exit 1; exec "$entry" bootstart ;;
     *) echo 'Usage: MiSTer_SAM_init {start|quickstart|stop|restart}' >&2; exit 1 ;;
 esac

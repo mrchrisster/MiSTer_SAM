@@ -31,15 +31,19 @@ sam_control_tick() {
     [[ -n "$request" ]] || return 0
     case "$action" in
         pause)
-            sam_frozen=$((end_time - SECONDS))
-            (( sam_frozen < 0 )) && sam_frozen=0
-            sam_paused=1
+            if [[ "${sam_paused:-0}" == 0 ]]; then
+                sam_frozen=$((end_time - SECONDS))
+                (( sam_frozen < 0 )) && sam_frozen=0
+                sam_paused=1
+            fi
             sam_control_publish 1
             ;;
         resume)
-            end_time=$((SECONDS + sam_frozen))
-            sam_paused=0
-            sam_display_publish "$sam_frozen" "$((EPOCHSECONDS + sam_frozen))"
+            if [[ "${sam_paused:-0}" == 1 ]]; then
+                end_time=$((SECONDS + sam_frozen))
+                sam_paused=0
+                sam_display_publish "$sam_frozen" "$((EPOCHSECONDS + sam_frozen))"
+            fi
             sam_control_publish 1
             ;;
         ignore)
@@ -59,7 +63,10 @@ sam_control_tick() {
             ;;
         play)
             sam_control_publish 0
-            exit_sam game
+            if ! exit_sam game; then
+                sam_control_ack "$request" 503 play
+                exit 1
+            fi
             sam_control_ack "$request" 200
             exit 0
             ;;
@@ -76,7 +83,12 @@ sam_control_ack() {
     [[ "$request" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]] || return 1
     case "$code" in
         200) printf '{"code":200,"body":{"ok":true}}\n' > "$temp" ;;
-        503) printf '{"code":503,"body":{"ok":false,"error":"Exclusion could not be saved"}}\n' > "$temp" ;;
+        503)
+            if [[ "${3:-}" == play ]]; then
+                printf '{"code":503,"body":{"ok":false,"error":"Game could not be kept"}}\n' > "$temp"
+            else
+                printf '{"code":503,"body":{"ok":false,"error":"Exclusion could not be saved"}}\n' > "$temp"
+            fi ;;
         *) return 1 ;;
     esac
     mv -f "$temp" "$sam_control_root/ack-$request.json"

@@ -64,44 +64,42 @@ sam_amiga_mount() {
 
 sam_cancel_launch_job() {
     [[ -n "${sam_launch_pid:-}" ]] || return 0
-    if sam_pid_start "$sam_launch_pid" && [[ "$sam_proc_start" == "$sam_launch_start" ]]; then sam_kill_tree "$sam_launch_pid" "$sam_launch_start"; fi
+    if [[ -n "${sam_launch_group:-}" ]]; then
+        sam_job_cancel "$sam_launch_pid" "$sam_launch_start" "$sam_launch_group" "$sam_launch_sid" || return 1
+    elif sam_pid_start "$sam_launch_pid" && [[ "$sam_proc_start" == "$sam_launch_start" ]]; then sam_kill_tree "$sam_launch_pid" "$sam_launch_start"; fi
+    if sam_pid_start "$sam_launch_pid" && [[ "$sam_proc_start" == "$sam_launch_start" ]]; then
+        sam_job_error='Launch process did not exit'; return 1
+    fi
     wait "$sam_launch_pid" 2>/dev/null || true
-    sam_launch_pid=
+    sam_launch_pid= sam_launch_start= sam_launch_group= sam_launch_sid=
 }
 
 sam_run_owned_command() { # cancellable foreground setup work for a mode
-    sam_cancel_launch_job
-    "$@" &
-    sam_launch_pid=$!
-    sam_launch_start=
-    sam_pid_start "$sam_launch_pid" && sam_launch_start=$sam_proc_start
+    sam_cancel_launch_job || return 1
+    sam_job_spawn sam_launch "$@" || return 1
     local command_rc=0
     wait "$sam_launch_pid" || command_rc=$?
-    sam_launch_pid= sam_launch_start=
+    sam_cancel_launch_job || return 1
     return "$command_rc"
 }
 
 sam_cd32_start() {
-    sam_cancel_launch_job
-    (sleep 10; "$mrsampath/mbc" raw_seq :30) &
-    sam_launch_pid=$!
-    sam_pid_start "$sam_launch_pid" && sam_launch_start=$sam_proc_start
+    sam_cancel_launch_job || return 1
+    sam_job_spawn sam_launch sam_cd32_job
 }
+
+sam_cd32_job() { sleep 10; "$mrsampath/mbc" raw_seq :30; }
 
 sam_start_bios_skip() { # asynchronous, owned by this launch and cancelled on Next
     local skip_core="$1" callback=skipmessage
     if [[ "$skip_core" == ao486 ]]; then callback=skipmessage_ao486
     elif [[ "$skipmessage" != yes || "${CORE_SKIP[$skip_core]-}" != yes ]]; then return 0; fi
-    sam_cancel_launch_job
-    "$callback" "$skip_core" &
-    sam_launch_pid=$!
-    sam_launch_start=
-    sam_pid_start "$sam_launch_pid" && sam_launch_start=$sam_proc_start
-    return 0
+    sam_cancel_launch_job || return 1
+    sam_job_spawn sam_launch "$callback" "$skip_core"
 }
 
 function load_core() { # load_core core [/path/to/rom] [name_of_rom]
-    sam_cancel_launch_job
+    sam_cancel_launch_job || return 1
     local core=${1}
     configpath="${cfgcore_configpath:-${SAM_CONFIG_ROOT:-$misterpath/config}}"
     local rompath_arg=${2}
@@ -111,7 +109,8 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
     sam_is_excluded "$display_core" "$display_rompath" && return 1
     sam_emit launch_validate "$display_core" "$display_rompath" || return $?
 
-    sam_publish_phase loading
+    # Refuse hardware dispatch if this session has lost ownership.
+    sam_publish_phase loading || return 2
 
     # --- Local variables for unified logic ---
     local gamename tty_corename launch_cmd streamtitle mute_target rompath romname post_launch_hook
@@ -264,7 +263,11 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
     # --- Common Execution Block ---
 
-    [ -n "${mute_target}" ] && mute "${mute_target}"
+    if [[ -n "${mute_target}" ]] && ! mute "${mute_target}"; then
+        sam_core_reason="Audio protection failed for ${mute_target}; refusing core launch"
+        printf 'SAM: %s\n' "$sam_core_reason" >&2
+        return 2
+    fi
     sam_emit launch_info
 
     echo -n "Starting now on the "; echo -ne "\e[4m${CORE_PRETTY[${core}]}\e[0m: "; echo -e "\e[1m${gamename}\e[0m"
@@ -278,6 +281,9 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
 		# Time to launch this puppy
     timeout 1s bash -c 'printf "%s\n" "$1" > /dev/MiSTer_cmd' _ "$launch_cmd" || return 1
+    if [[ "${mute}" == core && -n "${sam_session:-}" && -d "$sam_session" ]]; then
+        printf '%s\n' "${launch_cmd#load_core }" > "$sam_session/launch-path"
+    fi
     if [[ "$display_core" == arcade || "$display_core" == stv ]]; then
         display_setname=$(sed -n 's/.*<setname[^>]*>\([^<]*\)<\/setname>.*/\1/p' "$display_rompath" | head -n 1)
     fi

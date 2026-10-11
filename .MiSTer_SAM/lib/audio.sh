@@ -11,150 +11,249 @@ function toggle_mute() {
     if (( (val & 16) == 16 )); then
         val=$((val & ~16))
         echo -e "\nUnmuting..."
-        timeout 1s sh -c "echo 'volume unmute' > /dev/MiSTer_cmd"
+        sam_audio_set_live unmute || return 1
     else
         val=$((val | 16))
         echo -e "\nMuting..."
-        timeout 1s sh -c "echo 'volume mute' > /dev/MiSTer_cmd"
+        sam_audio_set_live mute || return 1
     fi
     printf "\\x$(printf %02x $val)" | dd of="$volfile" bs=1 count=1 conv=notrunc 2>/dev/null
 }
 
 function mute() {
 	if [[ "${mute}" == "yes" || "${mute}" == "global" ]]; then
-		# Global mute is a one-time bind mount for the whole session; skip if already active.
-		mount | grep -q "${configpath%/}/Volume.dat" && return
+		# The helper proves ownership; a substring in mount output cannot do so.
 		only_mute_if_needed
 	elif [ "${mute}" == "core" ]; then
-		samdebug "mute=core"
-		only_unmute_if_needed
-		# Create empty volume files. Only SD card write operation necessary for mute to work.
-		[ ! -f "${configpath}/${1}_volume.cfg" ] && touch "${configpath}/${1}_volume.cfg"
-		[ ! -f "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" ] && touch "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
-		for i in {1..3}; do
-		  if mount | grep -iq "${configpath}/${1}_volume.cfg"; then
-			samdebug "${1}_volume.cfg already mounted"
-			break
-		  fi
-
-		  mount --bind "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg" "${configpath}/${1}_volume.cfg"
-
-		  if [ $? -eq 0 ]; then
-			samdebug "${1}_volume.cfg mounted successfully"
-			break
-		  else
-			echo "ERROR: Failed to mute ${1} (attempt ${i})"
-			if [ $i -eq 3 ]; then
-			  echo "ERROR: All attempts to mute ${1} failed... Continuing."
-			fi
-			sleep 2
-		  fi
-		done
-		[[ "$(mount | grep -ic "${1}"_volume.cfg)" != "0" ]] && echo -e "\0006\c" > "/tmp/.SAM_tmp/SAM_config/${1}_volume.cfg"
-		# Only keep one volume.cfg file mounted
-		if [ -n "${prevcore}" ] && [ "${prevcore}" != "${1}" ]; then
-			umount "${configpath}/${prevcore}_volume.cfg"
-			sync
-		fi
-		prevcore=${1}
+        sam_core_volume_mute "${1:-}"
 	fi
 }
 
-function write_byte() {
-  local f="$1"; local hex="$2"
-  printf '%b' "\\x$hex" > "$f" && sync
+sam_core_volume_owned() { # exact target and original RAM-source inode
+    sam_volume_is_mounted "$1" && [[ -f "$2" && "$1" -ef "$2" ]]
+}
+
+sam_core_volume_source_for_target() { # canonical FAT spelling need not match RAM
+    local candidate
+    sam_core_volume_resolved=
+    for candidate in "$mrsamtmp"/SAM_config/*_volume.cfg; do
+        if [[ -f "$candidate" && "$1" -ef "$candidate" ]]; then
+            sam_core_volume_resolved=$candidate
+            return 0
+        fi
+    done
+    return 1
+}
+
+sam_core_volume_release_other() { # mount state survives fresh launch shells
+    local keep=$1 mount_source target kind rest source
+    while IFS=' ' read -r mount_source target kind rest; do
+        target=${target//\\040/ }; target=${target//\\011/$'\t'}; target=${target//\\134/\\}
+        [[ "$target" != "$keep" && ! "$target" -ef "$keep" ]] || continue
+        [[ "$target" == *_volume.cfg ]] || continue
+        if sam_core_volume_source_for_target "$target" &&
+           sam_core_volume_owned "$target" "$sam_core_volume_resolved"; then
+            timeout 1s umount -l "$target" || return 1
+            sam_volume_is_mounted "$target" && return 1
+        elif [[ "$target" == "${sam_core_volume_target:-}" ]]; then
+            return 1 # previous ownership was replaced; never adopt it
+        fi
+        :
+    done < "${SAM_MOUNTS_FILE:-/proc/mounts}" || return 1
+    return 0
+}
+
+sam_core_volume_mute() {
+    local core=$1 target source mounted=0
+    [[ -n "$core" && "$core" != . && "$core" != .. &&
+       "$core" != */* && "$core" != *$'\n'* && "$core" != *$'\r'* ]] || return 1
+    target="${configpath%/}/${core}_volume.cfg"
+    source="$mrsamtmp/SAM_config/${core}_volume.cfg"
+    # Restoring a SAM-owned global bind may fail; never proceed over that error.
+    # A user's independent global mute is not ours to clear for BGM.
+    if [[ -e "$mrsamtmp/volume-restore" ]] || sam_volume_owned_mount "${configpath%/}/Volume.dat"; then
+        only_unmute_if_needed || return 1
+    fi
+    if sam_volume_is_mounted "$target"; then
+        sam_core_volume_source_for_target "$target" || return 1
+        source=$sam_core_volume_resolved
+        sam_core_volume_owned "$target" "$source" || return 1
+        mounted=1
+    fi
+    sam_core_volume_release_other "$target" || return 1
+    if ((mounted)); then
+        sam_core_volume_owned "$target" "$source" || return 1
+        printf '\x06' > "$source" || return 1
+        prevcore=$core sam_core_volume_target=$target sam_core_volume_source=$source
+        return 0
+    fi
+    mkdir -p "$mrsamtmp/SAM_config" "$configpath" || return 1
+    [[ ! -e "$target" || -f "$target" ]] || return 1
+    [[ -f "$target" ]] || : > "$target" || return 1
+    # Main reads this byte on load. Publish the mute value before binding it,
+    # rather than exposing an empty/unmuted temporary file during the mount.
+    printf '\x06' > "$source" || return 1
+    timeout 1s mount --bind "$source" "$target" || return 1
+    sam_core_volume_owned "$target" "$source" || return 1
+    prevcore=$core sam_core_volume_target=$target sam_core_volume_source=$source
+}
+
+sam_audio_restore_in_budget() {
+    if [[ "${sam_menu_delivery_active:-0}" == 1 && "${sam_menu_deadline:-}" =~ ^[0-9]+$ ]]; then
+        (( SECONDS < sam_menu_deadline )) || return 1
+    fi
+}
+
+sam_audio_set_live() { # the only live mute command path
+    [[ "$1" == mute || "$1" == unmute ]] || return 1
+    sam_audio_restore_in_budget || return 1
+    if [[ "${sam_menu_delivery_active:-0}" == 1 ]]; then sam_menu_delivery_still_current || return 1; fi
+    timeout 1s sh -c 'printf "volume %s\n" "$1" > "$2"' _ "$1" "${SAM_MISTER_CMD_FILE:-/dev/MiSTer_cmd}"
+}
+
+sam_volume_read_byte() {
+    sam_volume_byte=$(xxd -p -l 1 "$1") || return 1
+    [[ "$sam_volume_byte" =~ ^[0-9a-fA-F]{2}$ ]]
+}
+
+sam_volume_record_read() {
+    local line
+    sam_volume_path= sam_volume_saved= sam_volume_phase=
+    [[ -r "$mrsamtmp/volume-restore" ]] || return 1
+    while IFS= read -r line; do
+        case "$line" in path=*) sam_volume_path=${line#*=};; byte=*) sam_volume_saved=${line#*=};; phase=*) sam_volume_phase=${line#*=};; esac
+    done < "$mrsamtmp/volume-restore"
+    [[ "$sam_volume_path" == /* && "$sam_volume_saved" =~ ^[0-9a-fA-F]{2}$ &&
+       ( "$sam_volume_phase" == bound || "$sam_volume_phase" == pending ) ]]
+}
+
+sam_volume_record_write() { # path original-byte bound|pending; RAM only
+    local temp="$mrsamtmp/volume-restore.tmp.$BASHPID"
+    printf 'path=%s\nbyte=%s\nphase=%s\n' "$1" "$2" "$3" > "$temp" &&
+        mv -f "$temp" "$mrsamtmp/volume-restore"
+}
+
+sam_volume_is_mounted() {
+    local source target rest
+    while IFS=' ' read -r source target rest; do
+        target=${target//\\040/ }; target=${target//\\011/$'\t'}; target=${target//\\134/\\}
+        if [[ "$target" == "$1" || "$target" -ef "$1" ]]; then return 0; fi
+    done < "${SAM_MOUNTS_FILE:-/proc/mounts}"
+    return 1
+}
+
+sam_volume_owned_mount() {
+    sam_volume_is_mounted "$1" && [[ "$1" -ef "$mrsamtmp/Volume.dat" ]]
 }
 
 function global_mute() {
-	local real="${configpath%/}/Volume.dat"
-	local tmp="/tmp/.SAM_tmp/Volume.dat"
-
-	# Nothing to do if already bind-mounted
-	if mount | grep -q "${real}"; then
-		samdebug "Volume.dat already bind-mounted, skipping"
-		return
-	fi
-
-	# If Volume.dat doesn't exist yet create a silent (level 0) real file so
-	# there is something to bind-mount over.
-	if [ ! -f "${real}" ]; then
-		printf '%b' "\\x00" > "${real}" && sync
-		samdebug "Volume.dat created (0x00) as placeholder"
-	fi
-
-	# Read the real byte and set the mute bit in the tmpfs copy
-	local cur m hex
-	cur=$(xxd -p -c1 "${real}")
-	m=$(( 0x$cur | 0x10 ))
-	hex=$(printf '%02x' "$m")
-	mkdir -p /tmp/.SAM_tmp
-	printf '%b' "\\x$hex" > "${tmp}"
-
-	mount --bind "${tmp}" "${real}"
-	timeout 1s sh -c "echo 'volume mute' > /dev/MiSTer_cmd"
-	samdebug "Global mute: bind-mounted tmpfs Volume.dat (0x$hex), SD card untouched"
+    local real="${configpath%/}/Volume.dat" tmp="$mrsamtmp/Volume.dat" original hex
+    if [[ -e "$mrsamtmp/volume-restore" ]]; then
+        sam_volume_record_read || return 1
+        if [[ "$sam_volume_phase" == bound ]] && sam_volume_owned_mount "$sam_volume_path"; then
+            sam_volume_read_byte "$sam_volume_path" || return 1
+            if (( (0x$sam_volume_byte & 0x10) == 0 )); then
+                # A restored but still bound file may remain after failed
+                # unmount. Reacquire live mute before another attract session.
+                sam_audio_set_live mute || return 1
+                sam_volume_owned_mount "$sam_volume_path" || return 1
+                sam_volume_read_byte "$sam_volume_path" || return 1
+                printf -v hex '%02x' "$((0x$sam_volume_byte | 0x10))"
+                printf '%b' "\\x$hex" > "$tmp" || return 1
+            fi
+            return 0
+        fi
+        global_unmute || return 1
+    fi
+    # An unrelated bind must never be replaced or adopted as SAM's mute.
+    sam_volume_is_mounted "$real" && return 1
+    mkdir -p "$mrsamtmp" || return 1
+    # A first-time mount target needs a file; 00 is the normal default byte,
+    # not an instruction to clear an existing user's mute setting.
+    [[ -f "$real" ]] || printf '\x00' > "$real" || return 1
+    sam_volume_read_byte "$real" || return 1
+    original=$sam_volume_byte
+    printf -v hex '%02x' "$((0x$original | 0x10))"
+    printf '%b' "\\x$hex" > "$tmp" || return 1
+    mount --bind "$tmp" "$real" || return 1
+    if ! sam_volume_owned_mount "$real"; then return 1; fi
+    if ! sam_volume_record_write "$real" "$original" bound; then
+        timeout 1s umount -l "$real" >/dev/null 2>&1 || true
+        return 1
+    fi
+    # A failed delivery retains the bind and saved byte for safe cleanup/retry.
+    sam_audio_set_live mute
 }
 
 function global_unmute() {
-	local real="${configpath%/}/Volume.dat"
-
-	if mount | grep -q "${real}"; then
-		umount -l "${real}" 2>/dev/null || umount "${real}" 2>/dev/null
-		samdebug "Global unmute: bind mount removed, SD card Volume.dat restored"
-	else
-		samdebug "Global unmute: no bind mount active, nothing to do"
-	fi
-	timeout 1s sh -c "echo 'volume unmute' > /dev/MiSTer_cmd"
+    sam_audio_restore_in_budget || return 1
+    local real="${configpath%/}/Volume.dat" original= phase= action
+    if [[ -e "$mrsamtmp/volume-restore" ]]; then
+        sam_volume_record_read || return 1
+        real=$sam_volume_path original=$sam_volume_saved phase=$sam_volume_phase
+    fi
+    if sam_volume_is_mounted "$real"; then
+        sam_volume_owned_mount "$real" || return 1
+        if [[ -n "$original" ]]; then
+            action=unmute
+            (( (0x$original & 0x10) == 0 )) || action=mute
+            sam_volume_read_byte "$real" || return 1
+            if (( (0x$sam_volume_byte & 0x10) != (0x$original & 0x10) )); then
+                sam_audio_set_live "$action" || return 1
+                local attempt acknowledged=0
+                # Main saves live volume after its command delay. Keep the SD
+                # original hidden until that save acknowledges the desired bit.
+                for ((attempt=0; attempt<20; attempt++)); do
+                    sam_audio_restore_in_budget || return 1
+                    sam_volume_owned_mount "$real" || return 1
+                    if [[ "${sam_menu_delivery_active:-0}" == 1 ]]; then
+                        sam_menu_delivery_still_current || return 1
+                    fi
+                    sam_volume_read_byte "$real" || return 1
+                    if (( (0x$sam_volume_byte & 0x10) == (0x$original & 0x10) )); then
+                        acknowledged=1; break
+                    fi
+                    sleep 0.1
+                done
+                [[ "$acknowledged" == 1 ]] || return 1
+            fi
+            sam_volume_owned_mount "$real" || return 1
+            if [[ "${sam_menu_delivery_active:-0}" == 1 ]]; then
+                sam_menu_delivery_still_current || return 1
+            fi
+            sam_audio_restore_in_budget || return 1
+            timeout 1s umount -l "$real" >/dev/null 2>&1 || return 1
+            sam_volume_is_mounted "$real" && return 1
+            rm -f "$mrsamtmp/volume-restore"
+            return
+        fi
+        # Old installed binds have no record; read their underlying byte after
+        # unmount. New binds retain the premount byte against delayed Main saves.
+        if [[ -n "$original" ]]; then sam_volume_record_write "$real" "$original" pending || return 1; fi
+        sam_audio_restore_in_budget || return 1
+        timeout 1s umount -l "$real" >/dev/null 2>&1 || return 1
+        sam_volume_is_mounted "$real" && return 1
+        sam_volume_read_byte "$real" || return 1
+        [[ -n "$original" ]] || original=$sam_volume_byte
+        sam_volume_record_write "$real" "$original" pending || return 1
+    elif [[ "$phase" != pending ]]; then
+        # No actual SAM bind and no pending restore: preserve live user state.
+        return 0
+    fi
+    action=unmute
+    (( (0x$original & 0x10) == 0 )) || action=mute
+    sam_audio_set_live "$action" || return 1
+    rm -f "$mrsamtmp/volume-restore"
 }
 
 function only_mute_if_needed() {
-	local real="${configpath%/}/Volume.dat"
-
-	# If bind mount already active we're already muted
-	if mount | grep -q "${real}"; then
-		samdebug "Volume.dat already bind-mounted (muted) -> skipping"
-		return
-	fi
-
-	samdebug "Volume not yet muted -> muting via bind mount"
-	global_mute
+    # An owned bind can contain a restored byte after an unmount failure.
+    # The record-aware path verifies/reacquires mute instead of assuming it.
+    global_mute
 }
 
 function only_unmute_if_needed() {
-	local real="${configpath%/}/Volume.dat"
-
-	if mount | grep -q "${real}"; then
-		samdebug "Volume.dat bind-mounted -> unmuting"
-		global_unmute
-		return 0
-	else
-		samdebug "Volume.dat not bind-mounted -> already unmuted, skipping"
-		return 1
-	fi
-}
-
-function unmute_with_retry() {
-    local max_wait=15
-    local real="${configpath%/}/Volume.dat"
-    local counter=0
-
-    samdebug "Attempting to unmute volume..."
-
-    # First ensure the bind mount is gone
-    only_unmute_if_needed
-
-    # Then confirm MiSTer's live audio state is unmuted
-    while [ $counter -lt $max_wait ]; do
-        if ! mount | grep -q "${real}"; then
-            samdebug "SUCCESS: Volume.dat bind mount gone, volume restored."
-            return 0
-        fi
-        samdebug "Attempt $(($counter + 1))/$max_wait: bind mount still present, retrying umount..."
-        umount -l "${real}" 2>/dev/null
-        timeout 1s sh -c "echo 'volume unmute' > /dev/MiSTer_cmd"
-        sleep 1
-        counter=$(($counter + 1))
-    done
-
-    samdebug "FAILED: Timed out trying to unmute volume."
+    if [[ -e "$mrsamtmp/volume-restore" ]] || sam_volume_owned_mount "${configpath%/}/Volume.dat"; then
+        global_unmute
+    else return 1; fi
 }

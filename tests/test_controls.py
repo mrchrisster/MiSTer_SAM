@@ -30,7 +30,7 @@ def function(name):
     root=PACKAGE/'.MiSTer_SAM'
     if name.startswith('sam_display_'): path=root/'control/state.sh'
     elif name in {'sam_apply_exclusions','sam_is_excluded','ignoregame'}: path=root/'lib/filter.sh'
-    elif name=='exit_sam': path=root/'lib/lifecycle.sh'
+    elif name in {'exit_sam', 'sam_exit_finalize', 'sam_finish_audio_stop', 'sam_menu_audio_complete'}: path=root/'lib/lifecycle.sh'
     else: path=root/'lib/engine.sh'
     text=path.read_text()
     import re
@@ -72,9 +72,17 @@ class Integration(unittest.TestCase):
         self.state['game_path']=str(ROOT/'Game = Pokémon.sfc')
         Path(self.state['game_path']).touch()
         (ROOT/'returned').unlink(missing_ok=True)
-        script='\n'.join(function(n) for n in ['sam_display_read','sam_display_write','sam_display_publish','sam_display_off','sam_apply_exclusions','sam_is_excluded','ignoregame','exit_sam','run_countdown_timer'])
+        script='\n'.join(function(n) for n in ['sam_display_read','sam_display_write','sam_display_publish','sam_display_off','sam_apply_exclusions','sam_is_excluded','ignoregame','sam_menu_audio_complete','sam_finish_audio_stop','sam_exit_finalize','exit_sam','run_countdown_timer'])
         script+='''
 sam_cleanup() { :; }; tty_exit() { :; }
+# This control fixture has no hardware audio provider.
+sam_restore_audio() { :; }
+sam_exit_trace() { :; }
+sam_cancel_preparation() { :; }; sam_cancel_launch_job() { :; }
+source "$TEST_PACKAGE/.MiSTer_SAM/lib/state.sh"
+source "$TEST_PACKAGE/.MiSTer_SAM/lib/session.sh"
+mrsamtmp="$TEST_ROOT/runtime"
+sam_session_begin || exit 1
 monitorenable=yes; sam_status_enabled=yes; sam_generation=1; m82=no; samvideo=no; mute=no; gametimer=4
 sam_display_state_file="$SAM_CONTROL_STATE"
 sam_display_owner_start=""

@@ -64,6 +64,8 @@ rc=0; sam_normal_choose_core || rc=$?
     def test_explicit_target_cannot_bypass_rule_or_stop_existing_session(self):
         self.check('''sam_load_module bgm; corelist=(snes); stopped=no
 there_can_be_only_one(){ stopped=yes; }; mcp_start(){ exit 99; }
+tmux(){ [[ "$1" != has-session ]] || return 1; return 99; }
+timeout(){ shift; "$@"; }
 ! sam_start ' N64 '
 [[ "$stopped" == no && "$sam_core_reason" == *BGM* ]]
 ''')
@@ -77,6 +79,9 @@ sam_normal_choose_core; [[ "$nextcore" == nes ]]
     def test_single_core_artwork_rejection_is_visible_before_stopping(self):
         output=self.check('''sam_load_module artwork; corelist=(snes); stopped=no
 there_can_be_only_one(){ stopped=yes; }; env_check(){ exit 99; }
+# The isolated owner file has no pane. Never inspect the live device's SAM pane.
+tmux(){ [[ "$1" != has-session ]] || return 1; return 99; }
+timeout(){ shift; "$@"; } # Execute the mocked tmux function, never the real binary.
 rc=0; sam_start amiga 2> "$SAM_TMP_ROOT/start-error" || rc=$?
 [[ "$rc" == 1 && "$stopped" == no && $(<"$SAM_TMP_ROOT/start-error") == *'no supported artwork catalog for amiga'* ]]
 ''')
@@ -131,6 +136,8 @@ SAM_ENTRY="$SAM_ROOT/../MiSTer_SAM_on.sh"
 export SAM_MODULES_OVERRIDE=auto
 env_check(){ :; }
 checked=no; there_can_be_only_one(){ checked=yes; return 1; }
+tmux(){ [[ "$1" != has-session ]] || return 1; return 99; }
+timeout(){ shift; "$@"; }
 ! sam_start n64
 [[ "$checked" == yes ]]
 printf 'corelist="n64"\\ncorelistall="n64"\\nbgm="Yes"\\nrating="no"\\n' > "$samini_file"

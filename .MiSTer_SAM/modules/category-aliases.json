@@ -1,0 +1,553 @@
+{
+  "arcade_horizontal": {
+    "arcade": ["Out Run", "Street Fighter II - The World Warrior", "Street Fighter II - The Warrior", "Street Fighter II' - Champion Edition", "Super Street Fighter II Turbo", "Darkstalkers - The Night Warriors", "Darkstalkers- The Night Warriors", "Final Fight", "Ghouls'n Ghosts", "Ghosts'n Goblins", "Golden Axe", "Shinobi", "Bubble Bobble", "Snow Bros. - Nick & Tom", "Metal Slug", "Metal Slug 2", "Metal Slug X", "Gradius", "R-Type"]
+  },
+  "arcade_vertical": {
+    "arcade": ["Galaga", "Galaga '88", "Galaxian", "Pac-Man", "Ms. Pac-Man", "Donkey Kong", "Donkey Kong Junior", "Frogger", "1942", "1943 - The Battle of Midway", "DoDonPachi", "DonPachi", "Raiden", "Raiden II", "Xevious", "Dig Dug", "Bomb Jack", "Truxton", "Flying Shark"]
+  },
+  "pinball": {
+    "arcade": [
+      "Pinball Action",
+      "pbaction",
+      "Pinball Action (set 1)",
+      "Time Scanner",
+      "timescan",
+      "Speed Ball",
+      "speedbal"
+    ],
+    "nes": [
+      "Pinball",
+      "Pin Bot",
+      "Pin-Bot",
+      "Pinball Quest",
+      "Rock 'n' Ball",
+      "Family Pinball",
+      "High Speed",
+      "Rollerball"
+    ],
+    "fds": [
+      "Pinball"
+    ],
+    "snes": [
+      "Super Pinball - Behind the Mask",
+      "Super Pinball II - The Amazing Odyssey",
+      "Pinball Dreams",
+      "Pinball Fantasies",
+      "Battle Pinball"
+    ],
+    "genesis": [
+      "Sonic Spinball",
+      "Sonic the Hedgehog Spinball",
+      "Crue Ball",
+      "Dino Land",
+      "Dragon's Revenge",
+      "Dragon's Fury",
+      "Virtual Pinball"
+    ],
+    "tgfx16": [
+      "Alien Crush",
+      "Devil's Crush",
+      "Devil Crash"
+    ],
+    "gb": [
+      "Kirby's Pinball Land",
+      "Pokemon Pinball",
+      "Pinball Dreams",
+      "Pinball Fantasies",
+      "Pinball Mania",
+      "Revenge of the 'Gator"
+    ],
+    "gbc": [
+      "Pokemon Pinball",
+      "3-D Ultra Pinball - Thrillride",
+      "Little Mermaid II, The - Pinball Frenzy"
+    ],
+    "gba": [
+      "Pokemon Pinball - Ruby & Sapphire",
+      "Sonic Pinball Party",
+      "Mario Pinball Land",
+      "Super Mario Ball",
+      "Pinball of the Dead, The",
+      "Pinball Tycoon",
+      "Hardcore Pinball"
+    ],
+    "gg": [
+      "Sonic Spinball",
+      "Pinball Dreams"
+    ],
+    "sms": [
+      "Sonic Spinball"
+    ],
+    "atari2600": [
+      "Video Pinball",
+      "Midnight Magic"
+    ],
+    "amiga": [
+      "Pinball Dreams",
+      "Pinball Fantasies",
+      "Pinball Illusions",
+      "Pinball Mania"
+    ],
+    "ao486": [
+      "Pinball Dreams",
+      "Pinball Dreams II",
+      "Pinball Fantasies",
+      "Pinball Illusions",
+      "Pinball Mania",
+      "Extreme Pinball",
+      "Epic Pinball"
+    ],
+    "psx": [
+      "Pro Pinball",
+      "Pro-Pinball",
+      "Pro Pinball - The Web",
+      "Pro-Pinball - The Web",
+      "Pro Pinball - Timeshock!",
+      "Pro Pinball - Big Race USA",
+      "Pro Pinball - Fantastic Journey",
+      "True Pinball",
+      "Extreme Pinball",
+      "Austin Powers Pinball",
+      "KISS Pinball",
+      "Patriotic Pinball",
+      "Power Rangers Zeo - Full Tilt Battle Pinball",
+      "Saban's Power Rangers Zeo - Full Tilt Battle Pinball"
+    ],
+    "saturn": [
+      "Digital Pinball - Last Gladiators",
+      "Digital Pinball - Necronomicon",
+      "Last Gladiators - Digital Pinball",
+      "Last Gladiators Digital Pinball",
+      "True Pinball",
+      "Hyper 3D Pinball",
+      "Pro-Pinball - The Web",
+      "Pro Pinball - The Web"
+    ],
+    "megacd": []
+  },
+  "shmups": {
+    "megacd": ["Silpheed", "Robo Aleste", "Keio Flying Squadron", "Android Assault - The Revenge of Bari-Arm", "Bari-Arm"],
+    "arcade": [
+      "Gradius",
+      "Nemesis",
+      "R-Type",
+      "rtype",
+      "Galaga",
+      "galaga",
+      "DoDonPachi",
+      "ddonpach",
+      "Dodonpachi Dai-Ou-Jou",
+      "1942",
+      "1943 - The Battle of Midway"
+    ],
+    "nes": [
+      "Gradius",
+      "Gradius II",
+      "Life Force",
+      "Salamander",
+      "1942",
+      "1943 - The Battle of Midway"
+    ],
+    "snes": [
+      "Gradius III",
+      "Super R-Type",
+      "R-Type III - The Third Lightning",
+      "Axelay",
+      "UN Squadron",
+      "U.N. Squadron",
+      "Space Megaforce",
+      "Super Aleste"
+    ],
+    "genesis": [
+      "Thunder Force III",
+      "Thunder Force IV",
+      "Lightening Force - Quest for the Darkstar",
+      "MUSHA",
+      "M.U.S.H.A.",
+      "Gaiares",
+      "Gley Lancer",
+      "Gleylancer"
+    ],
+    "tgfx16": [
+      "Blazing Lazers",
+      "Gunhed",
+      "Super Star Soldier",
+      "Soldier Blade",
+      "R-Type"
+    ],
+    "tgfx16cd": [
+      "Gate of Thunder",
+      "Lords of Thunder",
+      "Winds of Thunder"
+    ],
+    "psx": [
+      "Einhander",
+      "RayStorm",
+      "R-Type Delta",
+      "G-Darius",
+      "DoDonPachi"
+    ],
+    "saturn": [
+      "Radiant Silvergun",
+      "Dodonpachi",
+      "DoDonPachi",
+      "Battle Garegga",
+      "Soukyugurentai",
+      "Layer Section",
+      "Galactic Attack"
+    ]
+  },
+  "fighting": {
+    "arcade": [
+      "Street Fighter II - The World Warrior",
+      "sf2",
+      "Street Fighter II' - Champion Edition",
+      "sf2ce",
+      "Super Street Fighter II Turbo",
+      "ssf2t",
+      "Mortal Kombat",
+      "mk",
+      "The King of Fighters '98",
+      "kof98"
+    ],
+    "snes": [
+      "Street Fighter II",
+      "Street Fighter II Turbo",
+      "Super Street Fighter II",
+      "Mortal Kombat",
+      "Mortal Kombat II",
+      "Killer Instinct"
+    ],
+    "genesis": [
+      "Street Fighter II' - Special Champion Edition",
+      "Super Street Fighter II",
+      "Mortal Kombat",
+      "Mortal Kombat II",
+      "Eternal Champions"
+    ],
+    "psx": [
+      "Tekken",
+      "Tekken 2",
+      "Tekken 3",
+      "Soul Blade",
+      "Soul Edge",
+      "Street Fighter Alpha 3",
+      "Bloody Roar",
+      "Bloody Roar II"
+    ],
+    "saturn": [
+      "Virtua Fighter",
+      "Virtua Fighter 2",
+      "Fighting Vipers",
+      "Fighters Megamix",
+      "Street Fighter Alpha 2",
+      "Street Fighter Zero 2",
+      "X-Men vs. Street Fighter"
+    ],
+    "n64": [
+      "Super Smash Bros.",
+      "Killer Instinct Gold",
+      "Mortal Kombat Trilogy",
+      "Mortal Kombat 4"
+    ],
+    "neogeo": [
+      "The King of Fighters 94",
+      "The King of Fighters 95",
+      "The King of Fighters 96",
+      "The King of Fighters 97",
+      "The King of Fighters 98",
+      "The King of Fighters 99",
+      "The King of Fighters 2000",
+      "The King of Fighters 2001",
+      "The King of Fighters 2002",
+      "The King of Fighters 2003",
+      "The King of Fighters '94",
+      "The King of Fighters '95",
+      "The King of Fighters '96",
+      "The King of Fighters '97",
+      "The King of Fighters '98",
+      "The King of Fighters '99",
+      "kof94",
+      "kof95",
+      "kof96",
+      "kof97",
+      "kof98",
+      "kof99",
+      "kof2000",
+      "kof2001",
+      "kof2002",
+      "kof2003",
+      "Samurai Shodown",
+      "Samurai Shodown II",
+      "Samurai Shodown III",
+      "Samurai Shodown IV",
+      "Samurai Shodown V",
+      "Samurai Shodown V Special",
+      "Samurai Shodown III - Blades of Blood",
+      "Samurai Shodown IV - Amakusa's Revenge",
+      "samsho",
+      "samsho2",
+      "samsho3",
+      "samsho4",
+      "samsho5",
+      "samsh5sp",
+      "Fatal Fury",
+      "Fatal Fury 2",
+      "Fatal Fury Special",
+      "Fatal Fury 3 - Road to the Final Victory",
+      "Garou - Mark of the Wolves",
+      "garou",
+      "fatfury1",
+      "fatfury2",
+      "fatfursp",
+      "fatfury3",
+      "Art of Fighting",
+      "Art of Fighting 2",
+      "Art of Fighting 3 - The Path of the Warrior",
+      "aof",
+      "aof2",
+      "aof3",
+      "The Last Blade",
+      "The Last Blade 2",
+      "lastblad",
+      "lastbld2"
+    ]
+  },
+  "puzzle": {
+    "arcade": [
+      "Tetris",
+      "tetris",
+      "Puzzle Bobble",
+      "pbobble",
+      "Puzzle Bobble 2",
+      "pbobbl2n",
+      "Puzzle Uo Poko",
+      "uopoko",
+      "Puyo Puyo",
+      "puyopuyo"
+    ],
+    "nes": [
+      "Tetris",
+      "Tetris 2",
+      "Dr. Mario",
+      "Yoshi",
+      "Yoshi's Cookie",
+      "Wario's Woods"
+    ],
+    "gb": [
+      "Tetris",
+      "Tetris 2",
+      "Dr. Mario",
+      "Kirby's Star Stacker",
+      "Yoshi's Cookie"
+    ],
+    "gbc": [
+      "Tetris DX",
+      "Pokemon Puzzle Challenge"
+    ],
+    "gba": [
+      "Dr. Mario & Puzzle League",
+      "Super Puzzle Fighter II",
+      "ChuChu Rocket!",
+      "Puyo Pop"
+    ],
+    "snes": [
+      "Tetris & Dr. Mario",
+      "Tetris Attack",
+      "Panel de Pon",
+      "Kirby's Avalanche",
+      "Kirby's Ghost Trap",
+      "Super Puyo Puyo",
+      "Wario's Woods",
+      "Puzzle Bobble",
+      "Bust-A-Move"
+    ],
+    "genesis": [
+      "Dr. Robotnik's Mean Bean Machine",
+      "Puyo Puyo",
+      "Columns",
+      "Columns III",
+      "Columns III - Revenge of Columns"
+    ],
+    "n64": [
+      "Pokemon Puzzle League",
+      "Tetrisphere",
+      "Dr. Mario 64",
+      "Wetrix"
+    ],
+    "psx": [
+      "Super Puzzle Fighter II Turbo",
+      "Bust-A-Move 2 - Arcade Edition",
+      "Puzzle Bobble 2",
+      "Intelligent Qube",
+      "Kurushi",
+      "Mr. Driller"
+    ],
+    "saturn": [
+      "Super Puzzle Fighter II Turbo",
+      "Baku Baku Animal",
+      "Puzzle Bobble 2",
+      "Bust-A-Move 2 - Arcade Edition"
+    ],
+    "neogeo": [
+      "Puzzle Bobble",
+      "Bust-A-Move",
+      "pbobblen",
+      "Puzzle Bobble 2",
+      "Bust-A-Move Again",
+      "pbobbl2n",
+      "Magical Drop II",
+      "Magical Drop 2",
+      "magdrop2",
+      "Magical Drop III",
+      "Magical Drop 3",
+      "magdrop3",
+      "Money Puzzle Exchanger",
+      "Money Idol Exchanger",
+      "miexchng",
+      "Puzzle de Pon!",
+      "puzzledp",
+      "Puzzle de Pon! R",
+      "puzzldpr",
+      "Puzzled",
+      "Joy Joy Kid",
+      "joyjoy",
+      "Gururin",
+      "gururin"
+    ],
+    "amiga": [
+      "Lemmings",
+      "Oh No! More Lemmings",
+      "Lemmings 2 - The Tribes",
+      "Pushover",
+      "Push-Over",
+      "Atomix",
+      "Tetris"
+    ],
+    "ao486": [
+      "Lemmings",
+      "Oh No! More Lemmings",
+      "Lemmings 2 - The Tribes",
+      "Pushover",
+      "Push-Over",
+      "Atomix",
+      "Tetris",
+      "The Incredible Machine",
+      "The Incredible Machine 2",
+      "The Incredible Toon Machine",
+      "Sokoban"
+    ]
+  },
+  "racing": {
+    "fds": ["Famicom Grand Prix - F1 Race", "Famicom Grand Prix II - 3D Hot Rally", "Vs. Excitebike"],
+    "arcade": [
+      "Out Run",
+      "outrun",
+      "OutRun",
+      "Hang-On",
+      "hangon",
+      "Super Hang-On",
+      "shangon",
+      "Pole Position",
+      "polepos",
+      "Chase H.Q.",
+      "chasehq"
+    ],
+    "nes": [
+      "Excitebike",
+      "R.C. Pro-Am",
+      "R.C. Pro-Am II",
+      "Rad Racer",
+      "Rad Racer II"
+    ],
+    "snes": [
+      "Super Mario Kart",
+      "F-Zero",
+      "Top Gear",
+      "Top Gear 2",
+      "Rock n' Roll Racing",
+      "Rock N' Roll Racing"
+    ],
+    "genesis": [
+      "OutRun",
+      "Out Run",
+      "Super Hang-On",
+      "Road Rash",
+      "Road Rash II",
+      "Road Rash 3",
+      "Virtua Racing",
+      "Rock n' Roll Racing"
+    ],
+    "n64": [
+      "Mario Kart 64",
+      "Diddy Kong Racing",
+      "F-Zero X",
+      "Wave Race 64",
+      "Beetle Adventure Racing!",
+      "Excitebike 64"
+    ],
+    "psx": [
+      "Gran Turismo",
+      "Gran Turismo 2",
+      "Ridge Racer",
+      "Ridge Racer Type 4",
+      "R4 - Ridge Racer Type 4",
+      "Crash Team Racing",
+      "Wipeout",
+      "Wipeout XL",
+      "Wipeout 2097"
+    ],
+    "saturn": [
+      "Sega Rally Championship",
+      "Daytona USA",
+      "Daytona USA - Championship Circuit Edition",
+      "Virtua Racing",
+      "Sega Touring Car Championship"
+    ],
+    "gba": [
+      "Mario Kart - Super Circuit",
+      "F-Zero - Maximum Velocity",
+      "F-Zero - GP Legend"
+    ],
+    "neogeo": [
+      "Neo Drift Out - New Technology",
+      "Neo Drift Out",
+      "neodrift",
+      "Over Top",
+      "overtop",
+      "Thrash Rally",
+      "trally"
+    ],
+    "amiga": [
+      "Lotus Esprit Turbo Challenge",
+      "Lotus Turbo Challenge 2",
+      "Lotus Turbo Challenge II",
+      "Lotus III - The Ultimate Challenge",
+      "Lotus 3 - The Ultimate Challenge",
+      "Super Cars",
+      "Super Cars II",
+      "Super Cars 2",
+      "Formula One Grand Prix",
+      "World Circuit",
+      "Stunt Car Racer",
+      "Test Drive",
+      "Test Drive II - The Duel"
+    ],
+    "ao486": [
+      "Stunts",
+      "4D Sports Driving",
+      "The Need for Speed",
+      "Need for Speed",
+      "Grand Prix 2",
+      "Formula One Grand Prix",
+      "World Circuit",
+      "Screamer",
+      "Screamer 2",
+      "NASCAR Racing",
+      "Lotus III - The Ultimate Challenge",
+      "Lotus - The Ultimate Challenge",
+      "Test Drive",
+      "Test Drive II - The Duel"
+    ]
+  }
+}

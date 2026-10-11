@@ -254,7 +254,29 @@ function samdebug() {
 
 
 function write_to_TTY_cmd_pipe() {
-	[[ -p ${TTY_cmd_pipe} ]] && echo "${@}" >${TTY_cmd_pipe}
+    if ((BASH_SUBSHELL > 0)); then
+        # Existing callers background this optional notification. Do not keep
+        # the SAM owner's EXIT cleanup or admission-lock descriptor alive,
+        # including when the FIFO has already disappeared.
+        trap - EXIT TERM INT
+        if [[ "${sam_session_lock_fd:-}" =~ ^[0-9]+$ ]]; then
+            exec {sam_session_lock_fd}>&-
+        fi
+    fi
+    [[ -p "${TTY_cmd_pipe}" ]] || return 0
+    local payload
+    printf -v payload '%s ' "$@"
+    payload="${payload% }"
+    if ((BASH_SUBSHELL > 0)); then
+        # Replace this helper shell, so a receiver-less FIFO cannot leave an
+        # orphan SAM shell. A hard deadline also covers a full receiver buffer.
+        exec timeout -k 1s 1s bash -c '
+            [[ -p "$1" ]] && printf "%s\n" "$2" > "$1"
+        ' sam-tty-write "$TTY_cmd_pipe" "$payload" >/dev/null 2>&1
+    fi
+    timeout -k 1s 1s bash -c '
+        [[ -p "$1" ]] && printf "%s\n" "$2" > "$1"
+    ' sam-tty-write "$TTY_cmd_pipe" "$payload" >/dev/null 2>&1 || true
 }
 
 

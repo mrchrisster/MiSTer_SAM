@@ -6,13 +6,13 @@ function load_samvideo() {
 	#Load the actual rom (or play a video)
 
 	if [ "${samvideo_freq}" == "only" ]; then
-		sam_publish_phase video
+		sam_publish_phase video || return 2
 		samvideo_play &
 		return 1
 	elif [ "${samvideo_freq}" == "core" ]; then
 		samdebug "samvideo load core counter is now $sv_loadcounter"
 		if ((sv_loadcounter % ${#corelist[@]} == 0)); then
-			sam_publish_phase video
+			sam_publish_phase video || return 2
 		samvideo_play &
 			sv_loadcounter=0
 			return 1
@@ -22,7 +22,7 @@ function load_samvideo() {
 
 	elif [ "${samvideo_freq}" == "alternate" ]; then
 		if ((sv_loadcounter % 2 == 1)); then
-			sam_publish_phase video
+			sam_publish_phase video || return 2
 		samvideo_play &
 			return 1
 		else
