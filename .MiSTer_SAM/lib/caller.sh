@@ -13,44 +13,12 @@ sam_caller_require_runtime() {
 }
 
 sam_caller_premenu() {
-    local line key value fallback=0
-    samini_file=${SAM_INI:-/media/fat/Scripts/MiSTer_SAM.ini}
-    userstartup="$misterpath/linux/user-startup.sh"
-    samtimeout=60 gametimer=120 menuonly=Yes MENU_LOADED=0
-    # These are display preferences, not an alternate session configuration.
-    # The actual session always sources/validates the complete trusted INI.
-    if [[ -r "$samini_file" ]]; then
-        while IFS= read -r line || [[ -n "$line" ]]; do
-            # Trusted include files or shell setup need the existing INI loader.
-            case "$line" in source\ *|.\ *) fallback=1; break ;; esac
-            key=${line%%=*} key=${key//[[:space:]]/}
-            case "$key" in samtimeout|gametimer|menuonly) ;; *) continue ;; esac
-            value=${line#*=} value=${value%%#*}
-            value=${value#"${value%%[![:space:]]*}"}
-            value=${value%"${value##*[![:space:]]}"}
-            if [[ "$value" == \"*\" || "$value" == \'*\' ]]; then value=${value:1:${#value}-2}; fi
-            case "$key:$value" in
-                samtimeout:*|gametimer:*)
-                    [[ "$value" =~ ^[0-9]+$ ]] || { fallback=1; break; } ;;
-                menuonly:*)
-                    [[ "${value,,}" == yes || "${value,,}" == no ]] || { fallback=1; break; } ;;
-            esac
-            printf -v "$key" '%s' "$value"
-        done < "$samini_file"
-    else fallback=1; fi
-    (( fallback == 0 )) || sam_caller_ui || return 1
-    source "$sam_root/lib/menu.sh" || return 1
+    # Bash parses the trusted INI faster than a per-line shell display parser,
+    # and preserves includes, exports and expressions without a second load
+    # when UP opens the full menu. Runtime/core tables remain lazy.
+    sam_caller_ui || return 1
     sam_premenu_shown=0
     sam_menu_run sam_premenu
-}
-
-sam_caller_premenu_action() {
-    if [[ "${1,,}" == start ]]; then
-        python3 "$sam_root/samctl.py" start
-    else
-        sam_caller_ui || return 1
-        sam_dispatch "$@"
-    fi
 }
 
 sam_caller_ui() {

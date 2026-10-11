@@ -106,13 +106,40 @@ attach-session) echo ATTACHED;;
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout.strip(), 'GATEWAY:start nes')
 
-    def test_premenu_and_down_need_no_full_configuration(self):
-        (self.library / 'config.sh').write_text('echo UNEXPECTED_CONFIG >&2; exit 97\n')
+    def test_premenu_and_down_load_configuration_once_without_runtime(self):
+        with self.ini.open('a') as config:
+            config.write('echo CONFIG_LOADED >&2\n')
         result = self.run_entry(input='B')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('Show each game for 75 sec.', result.stdout)
         self.assertIn('GATEWAY:start', result.stdout)
-        self.assertNotIn('ui_ready', (self.root / 'trace').read_text())
+        self.assertEqual(result.stderr.count('CONFIG_LOADED'), 1)
+        self.assertIn('ui_ready', (self.root / 'trace').read_text())
+
+    def test_premenu_preserves_trusted_includes_exports_and_conditions(self):
+        included = self.root / 'included.ini'
+        included.write_text('gametimer=93\n')
+        self.ini.write_text('export samtimeout=08\n  source "' + str(included) + '"\n'
+                            'if true; then menuonly=No; fi\ncorelist="nes,snes"\n')
+        result = self.run_entry(input='A')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Start after 08 sec.', result.stdout)
+        self.assertIn('Show each game for 93 sec.', result.stdout)
+        self.assertIn('Start only on the menu: No', result.stdout)
+
+    def test_arrow_prefixes_do_not_decrement_countdown(self):
+        result = self.run_entry(input='\x1b[A')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Starting SAM in 10 secs.', result.stdout)
+        self.assertNotIn('Starting SAM in 9 secs.', result.stdout)
+        trace = (self.root / 'trace').read_text()
+        self.assertIn('premenu_input_ready', trace)
+        self.assertIn('premenu_action_menu', trace)
+
+    def test_closed_input_does_not_start(self):
+        result = self.run_entry(input='')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn('GATEWAY:start', result.stdout)
 
     def test_complex_preference_uses_trusted_ini_fallback(self):
         self.ini.write_text('gametimer=$((30+45))\nsamtimeout=15\ncorelist="nes,snes"\n')

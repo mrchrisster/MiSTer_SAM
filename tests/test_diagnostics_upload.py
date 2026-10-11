@@ -17,10 +17,11 @@ from sam import diagnostics
 
 
 class Reply(io.BytesIO):
-    def __init__(self, value, url='https://logs.example.test/result'):
+    def __init__(self, value, url='https://logs.example.test/result', status=200):
         super().__init__(value)
         self.url = url
         self.read_sizes = []
+        self.status = status
 
     def geturl(self):
         return self.url
@@ -138,7 +139,9 @@ class UploadTests(unittest.TestCase):
         output = io.StringIO()
         with patch.dict('os.environ', {}, clear=True), patch.object(diagnostics, 'upload_log', return_value='https://0x0.st/example') as upload, contextlib.redirect_stdout(output):
             self.assertEqual(diagnostics.main(['--runtime', self.runtime, '--upload']), 0)
-        upload.assert_called_once_with(self.runtime, 'https://0x0.st/')
+        upload.assert_called_once()
+        self.assertEqual(upload.call_args.args, (self.runtime, 'https://0x0.st/'))
+        self.assertIn(b'MiSTer SAM diagnostics', upload.call_args.kwargs['data'])
         self.assertIn('Log URL: https://0x0.st/example', output.getvalue())
         response = Reply(b'https://0x0.st/example', 'https://0x0.st/')
         with patch('urllib.request.urlopen', return_value=response) as opened:
@@ -190,3 +193,59 @@ class UploadTests(unittest.TestCase):
             result = diagnostics.main(['--runtime', self.runtime, '--upload'])
         self.assertEqual(result, 1)
         self.assertIn('Unable to upload log: HTTP 403', output.getvalue())
+
+    def test_service_outage_uses_one_backup_with_identical_filtered_payload(self):
+        output = io.StringIO()
+        unavailable = diagnostics.UploadFailure('HTTP 503', unavailable=True)
+        with patch.dict('os.environ', {}, clear=True), patch.object(diagnostics, 'upload_log', side_effect=[unavailable, 'https://paste.rs/example']) as upload, contextlib.redirect_stdout(output):
+            self.assertEqual(diagnostics.main(['--runtime', self.runtime, '--upload']), 0)
+        self.assertEqual([call.args[1] for call in upload.call_args_list], [diagnostics.DEFAULT_UPLOAD_URL, diagnostics.FALLBACK_UPLOAD_URL])
+        self.assertEqual(upload.call_args_list[0].kwargs['data'], upload.call_args_list[1].kwargs['data'])
+        self.assertIn('no requested automatic expiry', output.getvalue())
+        self.assertIn('Log URL: https://paste.rs/example', output.getvalue())
+
+    def test_http_503_cli_fallback_switches_wire_protocol(self):
+        failure = HTTPError('https://0x0.st/', 503, 'unavailable', {}, io.BytesIO(b'unavailable'))
+        reply = Reply(b'https://paste.rs/example\n', 'https://paste.rs/', status=201)
+        with patch.dict('os.environ', {}, clear=True), patch('urllib.request.urlopen', side_effect=[failure, reply]) as opened, contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(diagnostics.main(['--runtime', self.runtime, '--upload']), 0)
+        primary, backup = [call.args[0] for call in opened.call_args_list]
+        self.assertIn('multipart/form-data', primary.get_header('Content-type'))
+        self.assertEqual(backup.get_header('Content-type'), 'text/plain; charset=utf-8')
+        self.assertIn(backup.data, primary.data)
+        self.assertTrue(failure.fp.closed)
+
+    def test_custom_endpoint_never_falls_back(self):
+        for argv, environment in ((['--upload', 'https://logs.example.test/'], {}),
+                                  (['--upload'], {'SAM_LOG_UPLOAD_URL': 'https://0x0.st/'})):
+            with self.subTest(argv=argv), patch.dict('os.environ', environment, clear=True), patch.object(diagnostics, 'upload_log', side_effect=diagnostics.UploadFailure('HTTP 503', unavailable=True)) as upload, contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(diagnostics.main(['--runtime', self.runtime] + argv), 1)
+                upload.assert_called_once()
+
+    def test_rejected_upload_and_certificate_failure_never_fall_back(self):
+        for error in (HTTPError('https://0x0.st/', 429, 'rate limited', {}, io.BytesIO()),
+                      HTTPError('https://0x0.st/', 403, 'forbidden', {}, io.BytesIO()),
+                      URLError(ssl.SSLError('certificate verify failed'))):
+            with self.subTest(error=error), patch.dict('os.environ', {}, clear=True), patch('urllib.request.urlopen', side_effect=error) as opened, contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(diagnostics.main(['--runtime', self.runtime, '--upload']), 1)
+                opened.assert_called_once()
+
+    def test_both_services_unavailable_stop_and_retain_history(self):
+        before = (self.directory / 'events.jsonl').read_bytes()
+        error = diagnostics.UploadFailure('HTTP 503', unavailable=True)
+        with patch.dict('os.environ', {}, clear=True), patch.object(diagnostics, 'upload_log', side_effect=error) as upload, contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(diagnostics.main(['--runtime', self.runtime, '--upload']), 1)
+        self.assertEqual(upload.call_count, 2)
+        self.assertEqual((self.directory / 'events.jsonl').read_bytes(), before)
+
+    def test_paste_rs_receives_raw_text_and_requires_complete_created_response(self):
+        data = diagnostics.build_upload_log(self.runtime)
+        with patch('urllib.request.urlopen', return_value=Reply(b'https://paste.rs/example\n', 'https://paste.rs/', status=201)) as opened:
+            self.assertEqual(diagnostics.upload_log(self.runtime, diagnostics.FALLBACK_UPLOAD_URL, data=data), 'https://paste.rs/example')
+        request = opened.call_args.args[0]
+        self.assertEqual(request.data, data)
+        self.assertEqual(request.get_header('Content-type'), 'text/plain; charset=utf-8')
+        for status in (200, 206):
+            with self.subTest(status=status), patch('urllib.request.urlopen', return_value=Reply(b'https://paste.rs/partial', 'https://paste.rs/', status=status)):
+                with self.assertRaisesRegex(diagnostics.UploadFailure, 'complete log'):
+                    diagnostics.upload_log(self.runtime, diagnostics.FALLBACK_UPLOAD_URL)

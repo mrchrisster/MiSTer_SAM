@@ -43,6 +43,16 @@ class Install(unittest.TestCase):
         self.assertNotIn('sam.engine', imports)
         self.assertNotIn('sam.game', imports)
 
+    def test_missing_scripts_handoff_rejects_release_before_install(self):
+        original = Path.is_file
+        for relative in ('MiSTer_SAM_start.sh', '.MiSTer_SAM/sam/ui_start.py'):
+            missing = PACKAGE / relative
+            with self.subTest(relative=relative), patch.object(Path, 'is_file', autospec=True,
+                    side_effect=lambda path: path != missing and original(path)), patch.object(installer.subprocess, 'run') as run:
+                with self.assertRaisesRegex(RuntimeError, 'Release is incomplete'):
+                    installer.checked_source(PACKAGE)
+                run.assert_not_called()
+
     def test_failed_payload_copy_preserves_installed_file_and_removes_stage(self):
         source, target = self.mister / 'source', self.mister / 'target'
         source.write_bytes(b'new payload')

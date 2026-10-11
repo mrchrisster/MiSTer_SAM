@@ -14,6 +14,7 @@ function init_vars() {
 	declare -g samprocess
 	samprocess="${0##*/}"
 	declare -g menuonly="Yes"
+	declare -g samtimeout=60
 	declare -g key_activity_file="/tmp/.SAM_tmp/SAM_Keyboard_Activity"
 	declare -g joy_activity_file="/tmp/.SAM_tmp/SAM_Joy_Activity"
 	declare -g mouse_activity_file="/tmp/.SAM_tmp/SAM_Mouse_Activity"

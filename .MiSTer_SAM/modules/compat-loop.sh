@@ -222,6 +222,7 @@ function run_countdown_timer() {
                     rm "$sv_gametimer_file" 2>/dev/null
                     samdebug "Timer synced to video: $countdown seconds"
                     video_synced="yes"
+                    sam_session_ui_handoff_ready 1 || return 1
                     sam_emit display_publish "$countdown" "$((EPOCHSECONDS + end_time - SECONDS))"
                 fi
             fi

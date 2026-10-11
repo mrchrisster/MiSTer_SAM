@@ -18,6 +18,7 @@ MAX_FILE_BYTES = 128 * 1024
 MAX_LINE_BYTES = 4096
 MAX_UPLOAD_BYTES = 512 * 1024
 DEFAULT_UPLOAD_URL = 'https://0x0.st/'
+FALLBACK_UPLOAD_URL = 'https://paste.rs/'
 
 
 def _safe_value(value, depth=0):
@@ -202,8 +203,15 @@ def build_upload_log(runtime):
     return data[:MAX_UPLOAD_BYTES].decode('utf-8', 'ignore').encode('utf-8')
 
 
-def upload_log(runtime, endpoint):
-    """0x0/Rustypaste multipart upload; explicit action, bounded HTTPS reply."""
+class UploadFailure(RuntimeError):
+    """Only availability failures allow trying the default backup service."""
+    def __init__(self, message, unavailable=False):
+        super().__init__(message)
+        self.unavailable = unavailable
+
+
+def upload_log(runtime, endpoint, data=None):
+    """Verified HTTPS upload, using each provider's actual wire protocol."""
     import re
     import secrets
     import ssl
@@ -216,22 +224,27 @@ def upload_log(runtime, endpoint):
         raise ValueError('Use an HTTPS log-upload URL.')
     if parsed.username or parsed.password or parsed.fragment or parsed.query:
         raise ValueError('Upload URL must not contain credentials, query parameters or fragments.')
-    data = build_upload_log(runtime)
+    if data is None:
+        data = build_upload_log(runtime)
     ca = os.environ.get('CURL_CA_BUNDLE')
     if not ca:
         for path in ('/media/fat/Scripts/.config/downloader/cacert.pem', '/etc/ssl/cert.pem', '/etc/ssl/certs/cacert.pem'):
             if os.path.isfile(path) and os.access(path, os.R_OK):
                 ca = path; break
-    boundary = 'sam-' + secrets.token_hex(16)
-    prefix = '--' + boundary + '\r\n'
-    parts = [(prefix + 'Content-Disposition: form-data; name="file"; filename="sam-diagnostics.log"\r\n'
-              'Content-Type: text/plain\r\n\r\n').encode('ascii') + data + b'\r\n']
-    if parsed.hostname == '0x0.st':
-        for name, value in (('secret', ''), ('expires', '168')):
-            parts.append((prefix + 'Content-Disposition: form-data; name="' + name + '"\r\n\r\n' + value + '\r\n').encode('ascii'))
-    body = b''.join(parts) + ('--' + boundary + '--\r\n').encode('ascii')
+    raw_paste = parsed.hostname == 'paste.rs' and parsed.path in ('', '/')
+    body, content_type = data, 'text/plain; charset=utf-8'
+    if not raw_paste:
+        boundary = 'sam-' + secrets.token_hex(16)
+        prefix = '--' + boundary + '\r\n'
+        parts = [(prefix + 'Content-Disposition: form-data; name="file"; filename="sam-diagnostics.log"\r\n'
+                  'Content-Type: text/plain\r\n\r\n').encode('ascii') + data + b'\r\n']
+        if parsed.hostname == '0x0.st':
+            for name, value in (('secret', ''), ('expires', '168')):
+                parts.append((prefix + 'Content-Disposition: form-data; name="' + name + '"\r\n\r\n' + value + '\r\n').encode('ascii'))
+        body = b''.join(parts) + ('--' + boundary + '--\r\n').encode('ascii')
+        content_type = 'multipart/form-data; boundary=' + boundary
     request = Request(endpoint, data=body, headers={
-        'Content-Type': 'multipart/form-data; boundary=' + boundary,
+        'Content-Type': content_type,
         'User-Agent': 'MiSTer-SAM-diagnostics (+https://github.com/mrchrisster/MiSTer_SAM)'}, method='POST')
     try:
         # No insecure SSL context and no temporary upload file. Only the response
@@ -240,13 +253,18 @@ def upload_log(runtime, endpoint):
             final = urlsplit(response.geturl())
             if final.scheme != 'https' and not (loopback and final.hostname in ('127.0.0.1', 'localhost', '::1')):
                 raise RuntimeError('Upload service redirected outside secure transport.')
+            if raw_paste and response.status != 201:
+                raise UploadFailure('Upload service did not store the complete log (HTTP %s); local history was retained.' % response.status)
             reply = response.read(8193)
     except HTTPError as error:
-        raise RuntimeError('Upload service returned HTTP %s; local history was retained.' % error.code) from None
+        error.close()
+        raise UploadFailure('Upload service returned HTTP %s; local history was retained.' % error.code,
+                            unavailable=500 <= error.code <= 599) from None
     except (ssl.SSLError, URLError, TimeoutError) as error:
         if 'certificate' in str(error).lower():
-            raise RuntimeError('HTTPS certificate check failed. Check date -u and the CA bundle; local history was retained.') from None
-        raise RuntimeError('Could not reach the upload service; local history was retained.') from None
+            raise UploadFailure('HTTPS certificate check failed. Check date -u and the CA bundle; local history was retained.') from None
+        tls_error = isinstance(error, ssl.SSLError) or isinstance(getattr(error, 'reason', None), ssl.SSLError)
+        raise UploadFailure('Could not reach the upload service; local history was retained.', unavailable=not tls_error) from None
     if len(reply) > 8192:
         raise RuntimeError('Upload service returned an oversized response.')
     url = reply.decode('utf-8').strip()
@@ -266,17 +284,28 @@ def main(argv=None):
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--preview', action='store_true', help='Show the exact filtered upload content without sending it.')
     parser.add_argument('--upload', nargs='?', const='', metavar='URL',
-                        help='Upload filtered logs to 0x0.st (or a custom multipart upload URL).')
+                        help='Upload filtered logs to 0x0.st, with paste.rs as an outage fallback (or use a custom URL).')
     args = parser.parse_args(argv)
     if args.preview:
         print(build_upload_log(args.runtime).decode('utf-8'))
         return 0
     if args.upload is not None:
         endpoint = args.upload or os.environ.get('SAM_LOG_UPLOAD_URL', DEFAULT_UPLOAD_URL)
+        use_fallback = not args.upload and 'SAM_LOG_UPLOAD_URL' not in os.environ
         try:
             print('Uploading filtered diagnostics. Anyone with the returned link can read them.', flush=True)
             print('INI contents omitted; storage paths filtered. Use --preview to review without uploading.', flush=True)
-            print('Log URL: ' + upload_log(args.runtime, endpoint))
+            # Snapshot once so a failed attempt and its fallback share exactly
+            # the same filtered contents; everything stays in RAM.
+            data = build_upload_log(args.runtime)
+            try:
+                url = upload_log(args.runtime, endpoint, data=data)
+            except UploadFailure as error:
+                if not use_fallback or not error.unavailable:
+                    raise
+                print('0x0.st is unavailable. Trying paste.rs once; this service has no requested automatic expiry.', flush=True)
+                url = upload_log(args.runtime, FALLBACK_UPLOAD_URL, data=data)
+            print('Log URL: ' + url)
         except (OSError, RuntimeError, ValueError, UnicodeError) as error:
             print('Unable to upload log: ' + str(error))
             return 1

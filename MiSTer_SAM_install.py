@@ -168,7 +168,7 @@ def curl_ca_options():
 
 
 def checked_source(root):
-    required = ['MiSTer_SAM_on.sh', 'MiSTer_SAM.ini', 'MiSTer_SAM_install.py',
+    required = ['MiSTer_SAM_on.sh', 'MiSTer_SAM_start.sh', 'MiSTer_SAM.ini', 'MiSTer_SAM_install.py',
                 '.MiSTer_SAM/lib/modules.sh', '.MiSTer_SAM/lib/engine.sh', '.MiSTer_SAM/lib/cores.sh',
                 '.MiSTer_SAM/MiSTer_SAM_MCP.py', '.MiSTer_SAM/samindex', '.MiSTer_SAM/mbc',
                 '.MiSTer_SAM/samindex.py', '.MiSTer_SAM/sam_catalog.py', '.MiSTer_SAM/sam_zip.py',
@@ -179,7 +179,7 @@ def checked_source(root):
                 '.MiSTer_SAM/sam_mcp_process.py', '.MiSTer_SAM/sam_bgm_client.py', '.MiSTer_SAM/lib/session.sh', '.MiSTer_SAM/samctl.py',
                 '.MiSTer_SAM/sam/__init__.py', '.MiSTer_SAM/sam/session.py',
                 '.MiSTer_SAM/sam/coordinator.py', '.MiSTer_SAM/sam/commands.py',
-                '.MiSTer_SAM/sam/menu_session.py',
+                '.MiSTer_SAM/sam/menu_session.py', '.MiSTer_SAM/sam/ui_start.py',
                 '.MiSTer_SAM/lib/caller.sh', '.MiSTer_SAM/lib/runtime.sh',
                 '.MiSTer_SAM/lib/monitor.sh', '.MiSTer_SAM/lib/core-names.sh',
                 '.MiSTer_SAM/lib/data.sh',
@@ -200,6 +200,7 @@ def checked_source(root):
                     'from sam_catalog import Catalog; Catalog(); '
                     'from sam.session import SessionSnapshot; '
                     'from sam.coordinator import LifecycleCoordinator; '
+                    'from sam.ui_start import blocked; '
                     'from sam.commands import CommandGateway',
                     str(root / '.MiSTer_SAM')], check=True, capture_output=True, text=True)
     for path in (root / '.MiSTer_SAM').rglob('*'):

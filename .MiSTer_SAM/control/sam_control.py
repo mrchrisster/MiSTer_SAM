@@ -5,16 +5,12 @@ No commands are executed by the HTTP handler. The durable request journal
 reserves an ID before dispatch, preventing retries from repeating an action even
 if SAM or Monitor exits between acceptance and the HTTP response.
 """
-import argparse
 import fcntl
-import ipaddress
 import json
 import os
 from pathlib import Path
 import threading
 import time
-import uuid
-from urllib.request import urlopen
 
 from sam_status import parse_sam_state, read_sam_status
 
@@ -28,6 +24,26 @@ COMMAND_COMPLETION_TIMEOUT = 5
 # Play acknowledges after owned jobs and audio finish, rather than immediately
 # after claim. Give that teardown the same bounded window as Menu completion.
 PLAY_COMPLETION_TIMEOUT = 20
+
+
+def canonical_request_id(value):
+    # The common wire form needs no uuid/platform/subprocess imports. Preserve
+    # the public CLI's accepted alternate forms through the standard fallback.
+    if (len(value) == 36 and all(value[index] == '-' for index in (8, 13, 18, 23))
+            and all(char in '0123456789abcdefABCDEF' for char in value.replace('-', ''))
+            and len(value.replace('-', '')) == 32):
+        return value.lower()
+    import uuid
+    return str(uuid.UUID(value))
+
+
+def new_request_id():
+    # RFC 4122 UUID4, using the same OS entropy source as uuid.uuid4().
+    raw = bytearray(os.urandom(16))
+    raw[6] = (raw[6] & 0x0f) | 0x40
+    raw[8] = (raw[8] & 0x3f) | 0x80
+    value = raw.hex()
+    return '-'.join((value[:8], value[8:12], value[12:16], value[16:20], value[20:]))
 
 
 def read_json(path, default=None):
@@ -117,7 +133,7 @@ def validate(request):
     if not isinstance(request['request_id'], str) or len(request['request_id']) != 36:
         raise ValueError('request_id must be a UUID')
     request = dict(request)
-    request['request_id'] = str(uuid.UUID(request['request_id']))
+    request['request_id'] = canonical_request_id(request['request_id'])
     return request
 
 
@@ -153,6 +169,7 @@ def journal(request, code=None, body=None):
 
 
 def trusted(address):
+    import ipaddress
     networks = read_json(Path(os.environ.get('SAM_CONTROL_NETWORKS', str(Path(__file__).with_name('sam_control_networks.json')))), {})
     try:
         ip = ipaddress.ip_address(address)
@@ -174,6 +191,10 @@ def check_current(request, expected=None):
     if request.get('expected_seq') is None:
         return 200, current
     try:
+        # Native menu/CLI commands and the engine's claim process have no HTTP
+        # dependency. Importing urllib pulls email/SSL machinery into every
+        # handshake and costs seconds on MiSTer's ARM Python installation.
+        from urllib.request import urlopen
         with urlopen(MONITOR, timeout=2) as response:
             snap = json.load(response)
         if snap['seq'] != request['expected_seq'] or snap['game_path'] != request['game_path']:
@@ -186,18 +207,27 @@ def check_current(request, expected=None):
 _command_lock = threading.Lock()
 
 
-def submit(request, expected=None):
+def submit(request, expected=None, *, journaled=True):
     # Existing Monitor threads serialize requests. A file lock also protects a
     # brief overlap during Monitor restart. No broker or additional daemon.
+    # Only a short-lived menu pause lease may omit durable replay. It still uses
+    # the same serialized mailbox, exact selection check, expiry and ack; public
+    # CLI/HTTP commands retain their existing journal and retry semantics.
+    if not journaled and (request.get('action') not in {'pause', 'resume'}
+                          or request.get('expected_seq') is not None
+                          or not expected or not expected.get('generation')
+                          or not expected.get('identity')):
+        raise ValueError('Transient menu controls require a bound pause/resume selection')
     ROOT.mkdir(parents=True, exist_ok=True)
     os.chmod(ROOT, 0o700)
     with _command_lock, open(ROOT / 'submit.lock', 'a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        cached = journal_lookup(request)
+        cached = journal_lookup(request) if journaled else None
         if cached is not None: return cached
         code, result = check_current(request, expected)
         if code != 200: return code, {'ok': False, 'error': result}
-        journal(request)  # Reserve before SAM can consume it.
+        if journaled:
+            journal(request)  # Reserve before SAM can consume it.
         ack = ROOT / ('ack-' + request['request_id'] + '.json')
         ack.unlink(missing_ok=True)
         atomic(ROOT / 'pending.json', dict(request=request, generation=result['generation'],
@@ -211,7 +241,8 @@ def submit(request, expected=None):
             time.sleep(.05)
         if reply: code, body = reply['code'], reply['body']
         else: code, body = 503, {'ok': False, 'error': 'SAM command did not finish before the timeout'}
-        journal(request, code, body)
+        if journaled:
+            journal(request, code, body)
         (ROOT / 'pending.json').unlink(missing_ok=True)
         ack.unlink(missing_ok=True)
         return code, body
@@ -246,17 +277,31 @@ def claim(pid):
 
 
 def acknowledge(request_id, code, error=''):
-    request_id = str(uuid.UUID(request_id))
+    request_id = canonical_request_id(request_id)
     atomic(ROOT / ('ack-' + request_id + '.json'), dict(code=code, body={'ok': True} if code == 200 else {'ok': False, 'error': error}))
 
 
-if __name__ == '__main__':
+def main(argv=None):
+    import sys
+    argv = list(sys.argv[1:] if argv is None else argv)
+    # The engine emits this one fixed argument shape. Keep its per-command
+    # startup free of argparse/gettext/terminal-width setup; other forms retain
+    # the existing CLI parser and diagnostics.
+    if (len(argv) == 3 and argv[:2] == ['claim', '--owner']
+            and argv[2].isascii() and argv[2].isdigit()):
+        claim(int(argv[2]))
+        return
+    import argparse
     p = argparse.ArgumentParser()
     p.add_argument('operation', choices=['claim', 'ack'])
     p.add_argument('--owner', type=int)
     p.add_argument('--request-id')
     p.add_argument('--code', type=int, default=200)
     p.add_argument('--error', default='')
-    args = p.parse_args()
+    args = p.parse_args(argv)
     if args.operation == 'claim': claim(args.owner)
     else: acknowledge(args.request_id, args.code, args.error)
+
+
+if __name__ == '__main__':
+    main()

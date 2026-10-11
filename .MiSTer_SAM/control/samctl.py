@@ -3,7 +3,6 @@
 import argparse
 import json
 import sys
-import uuid
 import sam_control as transport
 
 
@@ -17,7 +16,7 @@ def main(argv=None):
     parser.add_argument('--generation')
     args = parser.parse_args(argv)
     if args.request_id:
-        try: request_id=str(uuid.UUID(args.request_id))
+        try: request_id=transport.canonical_request_id(args.request_id)
         except ValueError: parser.error('request-id must be a UUID')
         # Consult accepted native IDs before checking a now-changed/dead owner.
         entry=None
@@ -48,7 +47,7 @@ def main(argv=None):
         print(json.dumps(dict(ok=False, error='SAM selection changed', code=409)))
         return 1
     try:
-        request_id = str(uuid.UUID(args.request_id)) if args.request_id else str(uuid.uuid4())
+        request_id = transport.canonical_request_id(args.request_id) if args.request_id else transport.new_request_id()
     except ValueError:
         parser.error('request-id must be a UUID')
     request = dict(action=args.action, expected_seq=None, game_path=owner['rom_path'], request_id=request_id)

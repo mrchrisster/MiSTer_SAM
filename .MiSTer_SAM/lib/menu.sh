@@ -48,24 +48,25 @@ sam_menu_run() {
         trap 'exit 130' INT
         trap 'exit 143' TERM
         trap 'exit 129' HUP
-        if [[ "$1" == sam_premenu && "${sam_premenu_shown:-0}" != 1 ]]; then
-            # Render only after acquiring the UI lock, but before waiting for
-            # session admission/pause. No engine or full UI preferences needed.
-            sam_premenu_show
-            sam_premenu_shown=1
-            if declare -F sam_exit_trace >/dev/null; then sam_exit_trace premenu_ready; fi
-        fi
         # An already admitted launch finishes publishing its owner first. New
         # starts see the UI lock and refuse before changing any running core.
         mkdir -p "$mrsamtmp" || exit 1
         exec {admission_fd}> "$mrsamtmp/session-start.lock" || exit 1
-        if ! flock -x -w 5 "$admission_fd"; then
-            exec {admission_fd}>&-
-            printf 'SAM is starting. Retry the menu when the game is ready.\n' >&2
-            exit 1
+        if declare -F sam_exit_trace >/dev/null; then sam_exit_trace menu_admission_wait; fi
+        if ! flock -x -n "$admission_fd"; then
+            printf 'Waiting for SAM startup; Ctrl-C cancels...\n' >&2
+            if ! flock -x -w 5 "$admission_fd"; then
+                exec {admission_fd}>&-
+                printf 'SAM is starting. Retry the menu when the game is ready.\n' >&2
+                exit 1
+            fi
         fi
+        if declare -F sam_exit_trace >/dev/null; then sam_exit_trace menu_admission_ready; fi
         if [[ -e "$mrsamtmp/session-owner" || -L "$mrsamtmp/session-owner" ]]; then
+            if declare -F sam_exit_trace >/dev/null; then sam_exit_trace menu_pause_wait; fi
+            printf 'Pausing the current SAM countdown...\n' >&2
             sam_ui_resume_token=$(python3 "$mrsampath/sam/menu_session.py" hold) || rc=$?
+            if declare -F sam_exit_trace >/dev/null; then sam_exit_trace menu_pause_done; fi
         else
             # Admission and menu locks exclude new owners. No owner record means
             # there is no countdown to pause, so avoid starting Python at all.
@@ -74,6 +75,13 @@ sam_menu_run() {
         flock -u "$admission_fd"
         exec {admission_fd}>&-
         ((rc == 0)) || exit "$rc"
+        if [[ "$1" == sam_premenu && "${sam_premenu_shown:-0}" != 1 ]]; then
+            # The prompt means input is ready. Startup/pause waits above display
+            # their own progress, and do not consume the ten-second countdown.
+            sam_premenu_show
+            sam_premenu_shown=1
+            if declare -F sam_exit_trace >/dev/null; then sam_exit_trace premenu_ready; fi
+        fi
         "$@" || rc=$?
         if [[ -e "$sam_dialog_error.failed" ]]; then
             printf 'SAM dialog failed:\n' >&2
@@ -135,12 +143,21 @@ sam_premenu_show() {
 function sam_premenu() {
     [[ "${sam_premenu_shown:-0}" == 1 ]] || sam_premenu_show
 
-    # default action to Start
-    premenu="Start"
-
-    for i in {10..1}; do
-        echo -ne " Starting SAM in ${i} secs...\033[0K\r"
-        read -r -s -N 1 -t 1 key
+    local premenu=Start key remaining last_remaining= deadline=$((SECONDS + 10))
+    if declare -F sam_exit_trace >/dev/null; then sam_exit_trace premenu_input_ready; fi
+    # Count elapsed time, not bytes. An arrow is ESC, '[', then A/B/C: prefix
+    # bytes and unrelated keys must not consume seconds or trigger early Start.
+    while (( SECONDS < deadline )); do
+        remaining=$((deadline - SECONDS))
+        if [[ "$remaining" != "$last_remaining" ]]; then
+            printf ' Starting SAM in %s secs...\033[0K\r' "$remaining"
+            last_remaining=$remaining
+        fi
+        key=
+        read -r -s -N 1 -t 1 key || {
+            # Closed stdin is not a request to start SAM (or to spin for 10s).
+            [[ $? != 1 || -n "$key" ]] || return 0
+        }
         case "$key" in
             A)  # UP arrow
                 premenu="Menu"
@@ -156,11 +173,10 @@ function sam_premenu() {
                 ;;
         esac
     done
+    if declare -F sam_exit_trace >/dev/null; then sam_exit_trace "premenu_action_${premenu,,}"; fi
     echo # clear the countdown line
     [[ "${premenu,,}" == menu ]] || sam_menu_release_for_exec || return
-    if declare -F sam_caller_premenu_action >/dev/null && [[ "${sam_ui_initialized:-0}" != 1 ]]; then
-        sam_caller_premenu_action "$premenu"
-    else parse_cmd "${premenu}"; fi
+    parse_cmd "$premenu"
 }
 
 function sam_menu() {

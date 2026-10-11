@@ -90,6 +90,7 @@ class CoordinatorTests(unittest.IsolatedAsyncioTestCase):
     def dependencies(self, **overrides):
         callbacks = {name: Mock() for name in CoordinatorDependencies.__annotations__}
         callbacks.update(read_sam_owner=Mock(return_value=dict(pid="321", start="77", phase="playing", launch="1")), is_in_menu=Mock(return_value=False), session_is_m82=Mock(return_value=False), stop_sam=AsyncMock(), is_sam_running=Mock(return_value=False), menu_active=Mock(return_value=False), empty_selection_blocked=Mock(return_value=False),monitor_active=Mock(return_value=False))
+        callbacks['ui_start_blocked'] = Mock(return_value=False)
         callbacks.update(overrides)
         return CoordinatorDependencies(**callbacks)
 
@@ -106,6 +107,25 @@ class CoordinatorTests(unittest.IsolatedAsyncioTestCase):
         state.update_activity.assert_called_once()
         deps.stop_sam.assert_not_awaited()
         self.assertFalse(state.stopping)
+
+    async def test_scripts_dismissal_suppressed_until_first_launch_ready(self):
+        state = State()
+        deps = self.dependencies(ui_start_blocked=Mock(return_value=True))
+        LifecycleCoordinator(deps).handle_action('default', state, asyncio.get_running_loop(), source='joystick', event_time=123.5)
+        await self.drain(state)
+        deps.stop_sam.assert_not_awaited()
+        self.assertEqual(deps.ui_start_blocked.call_args.args[1], 123.5)
+        deps.ui_start_blocked.return_value = False
+        LifecycleCoordinator(deps).handle_action('default', state, asyncio.get_running_loop(), source='joystick')
+        await self.drain(state)
+        deps.stop_sam.assert_awaited_once()
+
+    async def test_scripts_gate_does_not_block_explicit_remote_control(self):
+        state = State()
+        deps = self.dependencies(ui_start_blocked=Mock(return_value=True))
+        LifecycleCoordinator(deps).handle_action('default', state, asyncio.get_running_loop(), source='remote_keyboard')
+        await self.drain(state)
+        deps.stop_sam.assert_awaited_once()
 
     async def test_monitor_suppression_diagnostic_explains_gate(self):
         diagnostic = Mock()

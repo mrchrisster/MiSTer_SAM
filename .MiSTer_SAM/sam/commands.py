@@ -150,8 +150,7 @@ class CommandGateway:
             return self.control(control_args) == 0
         raise ValueError('Unknown SAM command: ' + action)
 
-    def control(self, args):
-        # Preserve the existing journal and CLI selection binding exactly.
+    def _load_control_client(self):
         control_path = str(self.root / 'control')
         if control_path not in sys.path:
             sys.path.insert(0, control_path)
@@ -160,4 +159,33 @@ class CommandGateway:
             client = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(client)
             self._control_client = client
-        return self._control_client.main(list(args))
+        return self._control_client
+
+    def control(self, args):
+        # Preserve the existing journal and CLI selection binding exactly.
+        return self._load_control_client().main(list(args))
+
+    def menu_status(self):
+        """The lease needs one control/state pair, not CLI JSON/advertising."""
+        transport = self._load_control_client().transport
+        current, owner = transport.status(), transport.owner()
+        return dict(active=bool(owner), state=owner, control=current)
+
+    def menu_countdown(self, action, selection):
+        """An internal, acknowledged pause lease needs no durable replay log."""
+        if action not in {'pause', 'resume'}:
+            raise ValueError('Unsupported menu countdown action')
+        expected_owner = dict(pid=selection['owner_pid'], start=selection['owner_start'])
+        if self.current(expected_owner) is None:
+            return False
+        transport = self._load_control_client().transport
+        current = transport.status()
+        identity = {key: selection[key] for key in ('owner_pid', 'owner_start', 'start_time', 'rom_path')}
+        if (current.get('generation') != selection['generation']
+                or current.get('identity') != identity):
+            return False
+        request = dict(action=action, expected_seq=None, game_path=selection['rom_path'],
+                       request_id=transport.new_request_id())
+        transport.validate(dict(request, expected_seq=0))
+        code, _ = transport.submit(request, expected=current, journaled=False)
+        return code == 200

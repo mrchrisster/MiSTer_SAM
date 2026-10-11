@@ -7,6 +7,8 @@ for event in read start launch publish off exit; do
 done
 sam_register countdown_tick sam_control_tick
 sam_register controls_ready sam_control_publish
+sam_register controls_ready sam_session_ui_handoff_ready
+sam_register countdown_start sam_session_ui_handoff_ready
 
 sam_monitor_timer_begin() {
     sam_control_generation=$sam_generation

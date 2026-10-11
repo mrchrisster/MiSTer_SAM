@@ -117,9 +117,25 @@ class MCPConsoleTests(unittest.IsolatedAsyncioTestCase):
     async def test_bounded_read_yields_and_preserves_nonblocking_flags(self):
         os.set_blocking(self.slave, False)
         flags = fcntl.fcntl(self.slave, fcntl.F_GETFL)
+        complete = asyncio.Event()
+        checkpoints = []
+        loop = asyncio.get_running_loop()
+        def command(key):
+            self.commands.append(key)
+            if len(self.commands) == 1:
+                # Another loop callback must run before the entire burst is
+                # consumed. This checks fairness without a fixed CPU speed.
+                loop.call_soon(lambda: checkpoints.append(len(self.commands)))
+            if len(self.commands) == 600:
+                complete.set()
+        self.console.on_command = command
         self.assertTrue(self.console.start())
-        await self.send(b'k' * 600)
+        os.write(self.master, b'k' * 600)
+        await asyncio.wait_for(complete.wait(), 2)
         self.assertEqual(self.commands, ['k'] * 600)
+        self.assertEqual(len(checkpoints), 1)
+        self.assertGreater(checkpoints[0], 0)
+        self.assertLess(checkpoints[0], 600)
         self.console.close()
         self.assertEqual(fcntl.fcntl(self.slave, fcntl.F_GETFL), flags)
 

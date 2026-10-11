@@ -55,15 +55,7 @@ class MenuSession:
         self.read_status = read_status or self._status
 
     def _status(self):
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            success = self.gateway.execute('control', 'status')
-        if not success:
-            return {}
-        try:
-            return json.loads(output.getvalue())
-        except (ValueError, TypeError):
-            return {}
+        return self.gateway.menu_status()
 
     @staticmethod
     def selection(owner, status):
@@ -82,12 +74,10 @@ class MenuSession:
         return dict(identity, generation=control['generation'])
 
     def _command(self, action, selection):
-        # samctl prints its acknowledgement; the shell must see only the lease.
+        # Keep owner/generation validation and acknowledged RAM handoff. Menu
+        # leases are transient and must not fsync the SD command replay journal.
         with contextlib.redirect_stdout(io.StringIO()):
-            return self.gateway.execute('control', action,
-                                        '--generation', selection['generation'],
-                                        '--game-path', selection['rom_path'],
-                                        owner={'pid': selection['owner_pid'], 'start': selection['owner_start']})
+            return self.gateway.menu_countdown(action, selection)
 
     def hold(self):
         owner = self.read_owner()

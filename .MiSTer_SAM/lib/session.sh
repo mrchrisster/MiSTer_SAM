@@ -78,11 +78,11 @@ sam_session_begin() {
     trap 'sam_session_exit "$?"' EXIT
     trap sam_session_term TERM
     sam_catalog_cache="$mrsamtmp/catalog-cache"
-    sam_last_phase= sam_launch_serial=0 sam_generation=0
+    sam_last_phase= sam_launch_serial=0 sam_generation=0 sam_ui_start_ready=0
     sam_exit_reason= sam_exit_reported=0 sam_exit_snapshot_taken=0 sam_diagnostic_cleanup_status=0
     sam_session_cleaned=0 sam_cleanup_done=0 sam_session_stop_done=0 sam_audio_stop_done=0
     if mkdir -p "$sam_session/ready" "$sam_session/jobs" "$sam_session/consumed" "$sam_catalog_cache" &&
-        : > "$sam_session/alive" && sam_session_write_phase preparing 0; then
+        : > "$sam_session/alive" && sam_session_ui_handoff_begin && sam_session_write_phase preparing 0; then
         printf '%s\n' "${sam_config_ini_snapshot:-}" > "$sam_session/config.ini"
         printf '%s\n' "${sam_config_category_snapshot:-}" > "$sam_session/config-category"
         printf '%s\n' "${sam_config_roulette_snapshot:-}" > "$sam_session/config-roulette"
@@ -94,6 +94,23 @@ sam_session_begin() {
     else rc=1; fi
     sam_session_unlock
     return "$rc"
+}
+
+sam_session_ui_handoff_begin() {
+    [[ "${SAM_START_FROM_UI:-0}" == 1 ]] || return 0
+    # Publish before session-owner: no physical dismissal can race admission.
+    printf 'owner_pid=%s\nowner_start=%s\nstate=pending\n' "$$" "${sam_owner#*:}" > "$sam_session/ui-start"
+}
+
+sam_session_ui_handoff_ready() {
+    [[ "${SAM_START_FROM_UI:-0}" == 1 && "${sam_ui_start_ready:-0}" == 0 && "${1:-1}" == 1 ]] || return 0
+    [[ "${video_synced:-yes}" == yes ]] || return 0
+    [[ "$BASHPID" == "$$" && "${sam_session_started:-0}" == 1 ]] || return 1
+    local temp="$sam_session/ui-start.tmp.$$"
+    # Keep the completion timestamp so already queued UI input stays rejected.
+    printf 'owner_pid=%s\nowner_start=%s\nstate=ready\nready_at=%s\n' \
+        "$$" "${sam_owner#*:}" "$EPOCHREALTIME" > "$temp" && mv -f -- "$temp" "$sam_session/ui-start" || return 1
+    sam_ui_start_ready=1
 }
 
 # Only foreground owner transitions are legal; loading is a new launch attempt.

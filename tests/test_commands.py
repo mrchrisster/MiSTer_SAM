@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import unittest
 import sys
 import tempfile
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from paths import PACKAGE
 sys.path.insert(0, str(PACKAGE / '.MiSTer_SAM'))
@@ -32,6 +32,31 @@ class Commands(unittest.TestCase):
         for action, key in [('next', 'n'), ('previous', 'p'), ('mute', 'm'), ('m82_play', 'y')]:
             self.assertTrue(self.gateway.execute(action, owner=dict(self.owner)))
             self.assertEqual(self.calls[-1], ['tmux', 'send-keys', '-t', '%8', key])
+
+    def test_menu_countdown_is_transient_and_binds_complete_selection(self):
+        selection = dict(owner_pid='123', owner_start='45', start_time='10',
+                         rom_path='/games/a.sfc', generation='123:45:1')
+        identity = {key: value for key, value in selection.items() if key != 'generation'}
+        transport = Mock()
+        current = dict(identity=identity, generation=selection['generation'], ready=True)
+        transport.status.return_value = current
+        transport.submit.return_value = (200, {'ok': True})
+        self.gateway._control_client = SimpleNamespace(transport=transport)
+        self.assertTrue(self.gateway.menu_countdown('pause', selection))
+        request = transport.submit.call_args.args[0]
+        self.assertEqual(request['action'], 'pause')
+        self.assertEqual(request['game_path'], selection['rom_path'])
+        self.assertIsNone(request['expected_seq'])
+        self.assertEqual(transport.submit.call_args.kwargs, dict(expected=current, journaled=False))
+        transport.submit.reset_mock()
+        for key in selection:
+            changed = dict(selection, **{key: selection[key] + 'changed'})
+            self.assertFalse(self.gateway.menu_countdown('pause', changed))
+        transport.submit.assert_not_called()
+        transport.submit.return_value = (503, {'ok': False})
+        self.assertFalse(self.gateway.menu_countdown('resume', selection))
+        with self.assertRaises(ValueError):
+            self.gateway.menu_countdown('next', selection)
 
     def test_stale_owner_never_targets_replacement(self):
         expected = dict(self.owner)

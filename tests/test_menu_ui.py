@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import subprocess
+import select
 import sys
 import tempfile
 import time
@@ -123,6 +124,29 @@ sam_menu_run body
 ''')
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(result.stdout.strip(),'OPENED')
+
+    def test_busy_startup_reports_wait_before_the_interactive_prompt(self):
+        import fcntl
+        runtime = self.root / 'runtime'
+        runtime.mkdir()
+        with (runtime/'session-start.lock').open('w') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            child = subprocess.Popen(['bash', '-c', self.prelude + r'''
+sam_premenu_show(){ echo PROMPT_READY; }
+sam_premenu(){ read -r -N 1 key; echo "INPUT:$key"; }
+sam_menu_run sam_premenu
+'''], env=self.env, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, text=True)
+            try:
+                self.assertTrue(select.select([child.stderr], [], [], 2)[0])
+                self.assertIn('Waiting for SAM startup', child.stderr.readline())
+                self.assertFalse(select.select([child.stdout], [], [], 0)[0])
+                fcntl.flock(lock, fcntl.LOCK_UN)
+                output, error = child.communicate('A', timeout=3)
+                self.assertEqual(child.returncode, 0, error)
+                self.assertEqual(output.splitlines(), ['PROMPT_READY', 'INPUT:A'])
+            finally:
+                if child.poll() is None: child.kill(); child.communicate(timeout=3)
 
     def test_manual_start_refused_without_stopping_current_session(self):
         result=self.run_code(r'''

@@ -1,5 +1,50 @@
 # MCP input detection and ghost-session fixes
 
+## Scripts UI first-launch handoff: 2026-10-11
+
+Scripts UI starts publish a marker bound to the new owner's PID/start identity.
+Physical keyboard/joystick/mouse actions observed before its first controls-ready
+boundary are suppressed, including events queued before readiness and delivered
+afterward. This prevents Main's "Press any key to continue" dismissal from
+canceling SAM's first preparation. Readers capture epoch observation time only
+when routing an actual physical action; unchanged snapshots add no clock or
+marker reads. The gate runs at the action boundary and uses the owner-specific
+RAM marker, with no fixed grace timeout. Later core changes retain normal input
+cancellation, and ordinary CLI/automatic starts do not enable this handoff gate.
+The byte readers retain raw activity semantics and their existing debounce;
+they do not decode keyboard release/neutral reports.
+
+## Bluetooth reconnect and repeated monitor attachment: 2026-10-11
+
+Discovery compares physical reader generations, including the device-node
+identity and proc/sysfs record, rather than only `jsN`/hidraw/mouse paths. A
+disconnect/reconnect coalesced by the existing two-second hotplug debounce can
+reuse a node number; the replaced reader is now canceled and awaited before
+fresh bindings are built from the new event node. Disconnected joystick readers
+exit on missing/removed nodes. Fresh readers seed held startup state, so reconnect
+does not manufacture a press. Unchanged readers retain their cached bindings.
+Generation and mapping reads occur only during discovery; the physical-only
+filter, menu-only resource gate and 20 ms snapshot loop remain in place.
+
+Reopening `m mcp_monitor` preserves the latest input option and configures its
+footer normally. tmux 3.1c returns failure for `set-option -o` when an option
+already exists, so initialization first checks presence and tolerates a worker
+creating the option concurrently.
+Optional footer/key-table setup failures fall back to ordinary tmux attachment
+with a clear Ctrl-b then d detach hint; they do not abort or restart MCP.
+An unavailable MCP session, failed console reservation or failed attachment still
+returns an error. No input monitor is stopped merely because formatting fails.
+
+Regression fixtures cover reused and changed
+joystick numbers, refreshed event/sysfs/node identities, canceled-reader input,
+and first/repeated monitor attachments. Physical Bluetooth gameplay still needs
+the standalone input diagnostic on actual hardware.
+
+Validation: 128 MCP/input regressions passed in isolated Linux/Python 3.10
+fixtures. A separate real tmux 3.2a server confirmed first footer initialization
+and repeated setup preserving the latest input; this did not attach to or
+restart SAM. These fixtures do not establish physical Bluetooth gameplay.
+
 ## M82 gameplay, latest-input footer and menu-only resource gate: 2026-10-11
 
 M82 consumes physical game mappings in every owner phase. Default/Next/Start/Exit
@@ -38,15 +83,17 @@ retain their own behavior. H status reports whether physical polling is paused.
 
 The public entry routes local control requests directly to the shared gateway.
 `lib/caller.sh` opens pre-menu/UI/monitor views without initializing selection,
-launch/audio services or optional session modules. The pre-menu reads only three
-display preferences; complex expressions and trusted includes use the full INI
-loader. A real session always reads its complete configuration.
+launch/audio services or optional session modules. The UI reads its trusted INI
+once using the existing loader, preserving exports, includes and conditional
+shell configuration. Runtime services and core tables load only when required;
+a real session reads its complete configuration.
 
-The pre-menu renders after acquiring the UI lock, before session admission and
-the owner-bound pause handshake. Admission and the retained menu lock still
-protect concurrent dialogs and starts. When no owner record exists under the
-admission lock, no pause/resume Python helper is needed. Normal/roulette active
-sessions retain acknowledged leases; M82/video continue behind the menu.
+The pre-menu renders once its INI and admission/pause state are ready. Admission
+and the retained menu lock protect concurrent dialogs and starts. When no owner
+record exists under the admission lock, no pause/resume Python helper is needed.
+Normal/roulette active sessions retain acknowledged leases; M82/video continue
+behind the menu. Menu-only pause/resume uses its RAM path without SD command
+journal writes; public control commands retain their existing journal.
 
 `lib/runtime.sh` initializes session services on demand. Registries and owned
 mount arrays explicitly use global declarations so they survive function-based
@@ -96,12 +143,19 @@ physical keyboard activity being observed but suppressed during SSH monitoring.
 
 `m diagnostics --preview` renders the exact filtered upload content locally.
 `m diagnostics --upload` explicitly sends it to 0x0.st and prints a share link.
+If the default service is unreachable or returns HTTP 5xx, it tries paste.rs
+once using that same filtered RAM payload. A successful paste.rs upload prints
+a warning that the link has no automatic expiry; its raw-paste adapter requires
+HTTP 201 and rejects partial HTTP 206 replies. An explicit paste.rs URL selects
+that adapter directly.
 This is not automatic crash telemetry. Full INI data is excluded; storage paths
 and obvious credential values are filtered, with a 512 KiB payload cap. The
-client identifies SAM, requests a longer random link and seven-day expiry, uses
-verified HTTPS and bounded replies. Local logs remain after upload failures.
+client identifies SAM, requests a longer random link and seven-day expiry on
+0x0.st, and uses verified HTTPS and bounded replies. Local logs remain after
+upload failures.
 Custom multipart endpoints can be supplied with `--upload URL` or the optional
-`SAM_LOG_UPLOAD_URL` environment variable; no new INI option is introduced.
+`SAM_LOG_UPLOAD_URL` environment variable. Custom URLs never switch services
+automatically; no new INI option is introduced.
 
 Zaparoo uses the same multipart-file/URL pattern on its own Rustypaste service:
 [announcement](https://zaparoo.org/blog/core-v2.9.1/),

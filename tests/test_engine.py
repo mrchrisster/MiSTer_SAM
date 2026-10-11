@@ -69,6 +69,22 @@ loop_core snes
         rc,reply=self.control('play',request_id=play_id);self.assertEqual(rc,0,reply)
         self.proc.wait(timeout=4)
         state=(self.root/'state').read_text();self.assertIn('active=no',state);self.assertIn('game_kept=yes',state)
+
+    def test_menu_lease_pauses_and_resumes_real_timer_without_journal(self):
+        self.wait(self.ready)
+        journal = self.root / 'journal/requests.jsonl'
+        helper = PACKAGE / '.MiSTer_SAM/sam/menu_session.py'
+        hold = subprocess.run(['python3', str(helper), 'hold'], env=self.env,
+                              text=True, capture_output=True, timeout=8)
+        self.assertEqual(hold.returncode, 0, hold.stderr)
+        self.assertNotEqual(hold.stdout.strip(), '-')
+        self.assertIn('paused=1', (self.root/'controls/status').read_text())
+        self.assertFalse(journal.exists())
+        release = subprocess.run(['python3', str(helper), 'release', hold.stdout.strip()], env=self.env,
+                                 text=True, capture_output=True, timeout=8)
+        self.assertEqual(release.returncode, 0, release.stderr)
+        self.assertIn('paused=0', (self.root/'controls/status').read_text())
+        self.assertFalse(journal.exists())
     def test_failed_startup_hook_stops_before_display_or_launch_and_cleans_module(self):
         self.stop()
         self.log.unlink(missing_ok=True)

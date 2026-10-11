@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import asyncio
+import errno
 import math
 import fcntl
 import glob
@@ -20,6 +21,7 @@ SCRIPT_IMPORT_DIR = os.path.dirname(os.path.realpath(__file__))
 if SCRIPT_IMPORT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_IMPORT_DIR)
 from sam import session as session_records
+from sam import ui_start
 from sam.coordinator import CoordinatorDependencies, LifecycleCoordinator
 from sam.commands import CommandGateway
 from sam.config_reload import IniWatcher, bounded_bytes, parse_ini
@@ -717,6 +719,7 @@ def lifecycle_coordinator(input_device=None):
         menu_active=menu_session_active,
         empty_selection_blocked=empty_selection_blocked,
         monitor_active=mcp_monitor_active,
+        ui_start_blocked=lambda owner, event_time: ui_start.blocked(owner, event_time, runtime=SAM_RUNTIME_ROOT),
         diagnostic=report,
     ))
 
@@ -883,8 +886,8 @@ def kill_sam_processes(owner=None):
     return command_gateway().execute("stop_owner", owner=owner)
 
 
-def handle_action(action, state, loop, source="keyboard", input_device=None):
-    return lifecycle_coordinator(input_device).handle_action(action, state, loop, source)
+def handle_action(action, state, loop, source="keyboard", input_device=None, event_time=None):
+    return lifecycle_coordinator(input_device).handle_action(action, state, loop, source, event_time=event_time)
 
 
 def physical_polling_enabled(state):
@@ -932,6 +935,8 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
             with open(dev_path, "rb", buffering=0) as f:
                 os.set_blocking(f.fileno(), False)
                 data = f.read(bindings.snapshot_bytes)
+            if stop_event.is_set():
+                break  # A replaced reader must not publish its last snapshot.
             if not physical_polling_enabled(state):
                 previous_events = []
                 continue
@@ -947,7 +952,7 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
                     if action and state.listenjoy and physical_polling_enabled(state):
                         if state.is_sam_running() or state.is_sam_starting():
                             # SAM is active — log and route through full action handler.
-                            loop.call_soon_threadsafe(handle_action, action, state, loop, "joystick", dev_path)
+                            loop.call_soon_threadsafe(handle_action, action, state, loop, "joystick", dev_path, time.time())
                         else:
                             # User is playing normally — just reset the idle timer
                             # so SAM doesn't launch on an active player.
@@ -959,8 +964,16 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
                 if state.samdebug and previous_events:
                     bindings.report(previous_events, current_events, input_changes)
                 previous_events = current_events
-        except (BlockingIOError, FileNotFoundError):
+        except FileNotFoundError:
+            break  # Discovery creates fresh bindings and seeds the replacement.
+        except BlockingIOError:
             pass # This is expected on a non-blocking read with no data.
+        except OSError as e:
+            if e.errno in (errno.ENODEV, errno.ENXIO):
+                break
+            print(f"MCP-JS: Transient error in poller for {dev_path}: {e}")
+            stop_event.wait(1)
+            continue
         except Exception as e:
             print(f"MCP-JS: Transient error in poller for {dev_path}: {e}")
             stop_event.wait(1)
@@ -1007,7 +1020,7 @@ def byte_activity_poller_thread(device_path, state, loop, stop_event, label):
                     enabled = getattr(state, gate, True)
                     if enabled and physical_polling_enabled(state):
                         loop.call_soon_threadsafe(handle_action, "default", state, loop,
-                                                 'keyboard' if label=='Keyboard' else 'mouse', device_path)
+                                                 'keyboard' if label=='Keyboard' else 'mouse', device_path, time.time())
                     if state.samdebug:
                         input_debug(state, 'MCP-INPUT: %s device=%s report=%s source=generic action=default detection=%s (raw activity; key/button names unavailable)' %
                                     (label, device_path, report[:64].hex(), 'enabled' if enabled else 'disabled'))
@@ -1557,6 +1570,28 @@ def get_input_devices():
 
     return {'joysticks': joysticks, 'keyboards': keyboards, 'mice':mice,'has_mouse': has_mouse}
 
+def input_device_inventory():
+    """Capture reader generations during discovery, never in 20 ms sampling.
+
+    Node numbers can be reused before the debounced rescan observes removal.
+    Proc identity and the device-node generation distinguish that replacement
+    from an unchanged device whose cached bindings should remain intact.
+    """
+    inventory = get_input_devices()
+    identities = {}
+    for group, key in (('joysticks', 'js_path'), ('keyboards', 'hidraw_path'), ('mice', 'mouse_path')):
+        for device in inventory.get(group, ()):
+            path = device[key]
+            try:
+                node = os.stat(path)
+                generation = (node.st_dev, node.st_ino, node.st_rdev, node.st_ctime_ns)
+            except OSError:
+                generation = None
+            identities[path] = (generation, tuple(device.get(field) for field in
+                ('sysfs', 'event_path', 'proc_phys', 'id', 'name')))
+    return inventory, identities
+
+
 async def rescan_devices(state, controller_config, listen_config, loop, rebuild_joysticks=False):
     """Scans all devices and starts/stops monitors as needed."""
     # Use a lock to ensure only one rescan happens at a time.
@@ -1577,7 +1612,7 @@ async def rescan_devices(state, controller_config, listen_config, loop, rebuild_
 async def _rescan_devices_impl(state, controller_config, listen_config, loop):
     print("MCP: Rescanning all input devices...")
     try:
-        all_current_devices = await asyncio.to_thread(get_input_devices)
+        all_current_devices, current_identities = await asyncio.to_thread(input_device_inventory)
 
         # --- Build sets of current and monitored devices ---
         current_js = set()
@@ -1601,8 +1636,13 @@ async def _rescan_devices_impl(state, controller_config, listen_config, loop):
         # --- Determine which devices to add or remove ---
         added_devices = all_current_devs - all_monitored_devs
         removed_devices = all_monitored_devs - all_current_devs
+        replaced_devices = {path for path in all_current_devs & all_monitored_devs
+                            if getattr(tasks[path][0], 'input_identity', None) != current_identities[path]}
+        removed_devices |= replaced_devices
+        added_devices |= replaced_devices
 
         # --- Handle removed devices ---
+        cancelled = []
         for dev_path in removed_devices:
             print(f"MCP: Hot-plug REMOVED: {dev_path}")
             if dev_path in tasks:
@@ -1610,6 +1650,10 @@ async def _rescan_devices_impl(state, controller_config, listen_config, loop):
                 if stop_event:
                     stop_event.set()
                 task.cancel()
+                cancelled.append(task)
+        # Finish the old dedicated reader before registering a replacement.
+        if cancelled:
+            await asyncio.gather(*cancelled, return_exceptions=True)
 
         # --- Handle added devices ---
         for dev_path in added_devices:
@@ -1624,6 +1668,8 @@ async def _rescan_devices_impl(state, controller_config, listen_config, loop):
             elif dev_path in current_mouse:
                 print(f"MCP-Mouse: Hot-plug ADDED: {dev_path}")
                 await watch_mouse_device(dev_path, state, loop)
+            if dev_path in tasks:
+                tasks[dev_path][0].input_identity = current_identities[dev_path]
     except Exception as e:
         print(f"MCP: Error during device rescan: {e}")
 

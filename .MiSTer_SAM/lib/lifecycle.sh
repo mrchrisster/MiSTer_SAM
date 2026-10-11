@@ -93,8 +93,8 @@ sam_start_admitted() { # caller holds session-start.lock; outputs caller-local p
     if ((if_idle == 0)); then rm -f -- "$mrsamtmp/autostart-empty.json" || return 1; fi
     # Daemons must not retain admission if this launcher is cancelled before
     # its explicit unlock. Close only the inherited copy in spawned children.
-    (exec {start_lock_fd}>&-; mcp_start)
-    printf -v command 'exec %q loop_core %q' "${SAM_ENTRY:-$misterpath/Scripts/MiSTer_SAM_on.sh}" "$core"
+    (exec {start_lock_fd}>&-; unset SAM_START_FROM_UI; mcp_start)
+    printf -v command 'SAM_START_FROM_UI=%q exec %q loop_core %q' "${SAM_START_FROM_UI:-0}" "${SAM_ENTRY:-$misterpath/Scripts/MiSTer_SAM_on.sh}" "$core"
     pane_pid=$(exec {start_lock_fd}>&-; tmux new-session -P -F '#{pane_pid}' -d -x 180 -y 40 -n 'SAM: next / previous / mute' -s SAM "$command") || {
         echo 'SAM ERROR: Could not create the SAM session.' >&2; return 1;
     }

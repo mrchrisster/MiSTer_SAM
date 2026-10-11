@@ -26,6 +26,7 @@ class CoordinatorDependencies:
     empty_selection_blocked: Callable = lambda: False
     monitor_active: Callable = lambda: False
     diagnostic: Callable = None
+    ui_start_blocked: Callable = lambda owner, event_time: False
 
 
 class LifecycleCoordinator:
@@ -48,7 +49,8 @@ class LifecycleCoordinator:
         # Capture identity and phase once; never retain a mutable reader record.
         return SessionSnapshot.from_record(record) if record else None
 
-    def handle_action(self, action, state, loop, source="keyboard"):
+    def handle_action(self, action, state, loop, source="keyboard", event_time=None):
+        event_time = time.time() if event_time is None else event_time
         if not action or (source == "joystick" and not state.listenjoy):
             return
         if source in {'keyboard','remote_keyboard'} and not getattr(state,'listenkeyboard',True):
@@ -96,6 +98,10 @@ class LifecycleCoordinator:
                     state.set_sam_running(False)
                     return
                 state.set_sam_running(True)
+                if (source in {'keyboard', 'joystick', 'mouse'} and action != 'zaparoo'
+                        and await asyncio.to_thread(self.dependencies.ui_start_blocked, owner, event_time)):
+                    self._diagnostic('input_suppressed', owner, source=source, action=action, reason='scripts_ui_handoff')
+                    return
                 in_menu = await asyncio.to_thread(self.dependencies.is_in_menu, state)
                 m82_session = self.dependencies.session_is_m82(owner, state.m82)
                 if m82_session and action != 'zaparoo':

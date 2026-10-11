@@ -26,11 +26,11 @@ class MenuLeaseTests(unittest.TestCase):
         self.status = dict(active=True, state=dict(identity, mode='normal'),
                            control=dict(identity, generation='321:77:1', ready=True, paused=False))
         self.gateway = Mock()
-        def execute(action, command, *args, **kwargs):
+        def execute(command, selection):
             print('{"ok":true,"code":200}')
             self.status['control']['paused'] = command == 'pause'
             return True
-        self.gateway.execute.side_effect = execute
+        self.gateway.menu_countdown.side_effect = execute
         self.session = menu.MenuSession(self.gateway, lambda: self.owner, lambda: copy.deepcopy(self.status))
 
     def test_acknowledged_pause_has_clean_token_and_exact_resume(self):
@@ -42,11 +42,9 @@ class MenuLeaseTests(unittest.TestCase):
         decoded = json.loads(base64.urlsafe_b64decode(token + '=' * (-len(token) % 4)))
         self.assertEqual(decoded['rom_path'], self.status['state']['rom_path'])
         self.assertEqual(decoded['generation'], '321:77:1')
-        self.assertEqual(self.gateway.execute.call_count, 2)
-        for call, command in zip(self.gateway.execute.call_args_list, ('pause', 'resume')):
-            self.assertEqual(call.args, ('control', command, '--generation', '321:77:1',
-                                         '--game-path', self.status['state']['rom_path']))
-            self.assertEqual(call.kwargs['owner'], dict(pid='321', start='77'))
+        self.assertEqual(self.gateway.menu_countdown.call_count, 2)
+        for call, command in zip(self.gateway.menu_countdown.call_args_list, ('pause', 'resume')):
+            self.assertEqual(call.args, (command, decoded))
         self.assertFalse(self.status['control']['paused'])
 
     def test_inactive_and_already_paused_leave_no_resume_lease(self):
@@ -56,7 +54,7 @@ class MenuLeaseTests(unittest.TestCase):
         self.status['control']['paused'] = True
         self.assertEqual(self.session.hold(), '-')
         self.session.release('-')
-        self.gateway.execute.assert_not_called()
+        self.gateway.menu_countdown.assert_not_called()
 
     def test_loading_preparing_or_nonready_pause_protocol_refuses_menu(self):
         for field, value in [('phase', 'loading'), ('phase', 'preparing'),
@@ -68,7 +66,7 @@ class MenuLeaseTests(unittest.TestCase):
                 session = menu.MenuSession(self.gateway, lambda: owner, lambda: status)
                 with self.assertRaisesRegex(menu.MenuSessionError, 'Retry'):
                     session.hold()
-        self.gateway.execute.assert_not_called()
+        self.gateway.menu_countdown.assert_not_called()
 
     def test_special_modes_open_menu_without_pause_or_resume(self):
         for mode in ('m82', 'samvideo', 'video'):
@@ -79,7 +77,7 @@ class MenuLeaseTests(unittest.TestCase):
                     self.status['control'] = {}
                     self.assertEqual(self.session.hold(), '-')
                     self.session.release('-')
-        self.gateway.execute.assert_not_called()
+        self.gateway.menu_countdown.assert_not_called()
 
     def test_special_mode_rejects_stale_or_inactive_display_state(self):
         self.status['state']['mode'] = 'samvideo'
@@ -93,7 +91,7 @@ class MenuLeaseTests(unittest.TestCase):
         self.status['active'] = False
         with self.assertRaisesRegex(menu.MenuSessionError, 'changed'):
             self.session.hold()
-        self.gateway.execute.assert_not_called()
+        self.gateway.menu_countdown.assert_not_called()
 
     def test_special_mode_owner_replacement_never_creates_resume_lease(self):
         self.status['state']['mode'] = 'samvideo'
@@ -103,14 +101,14 @@ class MenuLeaseTests(unittest.TestCase):
                 session = menu.MenuSession(self.gateway, lambda: next(owners), lambda: self.status)
                 with self.assertRaisesRegex(menu.MenuSessionError, 'changed'):
                     session.hold()
-        self.gateway.execute.assert_not_called()
+        self.gateway.menu_countdown.assert_not_called()
 
     def test_failed_or_uncertain_pause_never_returns_token(self):
-        self.gateway.execute.side_effect = None
-        self.gateway.execute.return_value = False
+        self.gateway.menu_countdown.side_effect = None
+        self.gateway.menu_countdown.return_value = False
         with self.assertRaisesRegex(menu.MenuSessionError, 'acknowledge'):
             self.session.hold()
-        self.gateway.execute.return_value = True
+        self.gateway.menu_countdown.return_value = True
         with self.assertRaisesRegex(menu.MenuSessionError, 'uncertain'):
             self.session.hold()
 
@@ -118,7 +116,7 @@ class MenuLeaseTests(unittest.TestCase):
         def changed(*args, **kwargs):
             self.status['control'].update(paused=True, generation='321:77:2')
             return True
-        self.gateway.execute.side_effect = changed
+        self.gateway.menu_countdown.side_effect = changed
         with self.assertRaisesRegex(menu.MenuSessionError, 'uncertain'):
             self.session.hold()
 
@@ -126,7 +124,7 @@ class MenuLeaseTests(unittest.TestCase):
         for change in ('replacement', 'stop', 'next', 'resumed', 'nonready', 'rom'):
             self.setUp()
             token = self.session.hold()
-            self.gateway.execute.reset_mock()
+            self.gateway.menu_countdown.reset_mock()
             if change == 'replacement': self.owner['start'] = '78'
             elif change == 'stop': self.owner = None
             elif change == 'next': self.status['control']['generation'] = '321:77:2'
@@ -134,24 +132,24 @@ class MenuLeaseTests(unittest.TestCase):
             elif change == 'nonready': self.status['control']['ready'] = False
             else: self.status['state']['rom_path'] = '/games/b.zip'
             self.session.release(token)
-            self.gateway.execute.assert_not_called()
+            self.gateway.menu_countdown.assert_not_called()
 
     def test_failed_resume_reports_only_if_same_selection_still_paused(self):
         token = self.session.hold()
-        self.gateway.execute.side_effect = None
-        self.gateway.execute.return_value = False
+        self.gateway.menu_countdown.side_effect = None
+        self.gateway.menu_countdown.return_value = False
         with self.assertRaisesRegex(menu.MenuSessionError, 'Resume'):
             self.session.release(token)
         def replaced(*args, **kwargs):
             self.owner = None
             return False
-        self.gateway.execute.side_effect = replaced
+        self.gateway.menu_countdown.side_effect = replaced
         self.session.release(token)
 
     def test_token_is_literal_and_bounded(self):
         for token in ('$(touch /tmp/bad)', '{}', 'a' * 8193, base64.urlsafe_b64encode(b'{}').decode()):
             with self.assertRaises(menu.MenuSessionError): self.session.release(token)
-        self.gateway.execute.assert_not_called()
+        self.gateway.menu_countdown.assert_not_called()
 
 
 @unittest.skipUnless(sys.platform.startswith('linux'), 'Linux kernel flock required')
