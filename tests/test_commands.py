@@ -41,6 +41,22 @@ class Commands(unittest.TestCase):
         self.assertFalse(self.gateway.execute('exit_to_game', owner=expected))
         self.assertEqual(self.calls, [])
 
+    def test_m82_play_rejects_loading_and_changed_selection(self):
+        self.owner.update(phase='playing', launch='1')
+        expected = dict(self.owner)
+        self.owner['phase'] = 'loading'
+        self.assertFalse(self.gateway.execute('m82_play', owner=expected))
+        self.owner.update(phase='playing', launch='2')
+        self.assertFalse(self.gateway.execute('m82_play', owner=expected))
+        self.assertEqual(self.calls, [])
+        self.owner['launch'] = '1'
+        def change():
+            self.owner['launch'] = '2'
+            return self.panes
+        self.gateway.pane_reader = change
+        self.assertFalse(self.gateway.execute('m82_play', owner=expected))
+        self.assertEqual(self.calls, [])
+
     def test_historical_positional_binding_rejects_stale_owner(self):
         self.assertFalse(self.gateway.execute('exit_to_game', '999', '45'))
         self.assertFalse(self.gateway.execute('stop', '999', '45'))

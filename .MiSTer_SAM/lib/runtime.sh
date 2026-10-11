@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Foreground engines and explicit maintenance actions own this initialization.
+# Loading this file defines functions; it does not initialize or dispatch SAM.
+sam_load_runtime() {
+    [[ "${sam_runtime_loaded:-0}" != 1 ]] || return 0
+    source "$sam_root/lib/modules.sh" || return 1
+    source "$sam_root/lib/config.sh" || return 1
+    source "$sam_root/lib/common.sh" || return 1
+    source "$sam_root/lib/diagnostics.sh" || return 1
+    source "$sam_root/lib/cores.sh" || return 1
+    source "$sam_root/lib/state.sh" || return 1
+    source "$sam_root/lib/session.sh" || return 1
+    source "$sam_root/lib/config-reload.sh" || return 1
+    source "$sam_root/lib/audio.sh" || return 1
+    source "$sam_root/lib/catalog.sh" || return 1
+    source "$sam_root/lib/filter.sh" || return 1
+    source "$sam_root/lib/launch.sh" || return 1
+    source "$sam_root/lib/lifecycle.sh" || return 1
+    source "$sam_root/lib/catalog-runtime.sh" || return 1
+    source "$sam_root/lib/policy.sh" || return 1
+    source "$sam_root/lib/engine.sh" || return 1
+    source "$sam_root/lib/dispatch.sh" || return 1
+    sam_exit_trace libs_loaded
+    if [[ "${sam_ui_initialized:-0}" == 1 ]]; then
+        sam_config_paths
+    else
+        init_vars
+        sam_exit_trace vars_initialized
+        read_samini || return 1
+        sam_exit_trace config_loaded
+    fi
+    init_data
+    sam_exit_trace data_initialized
+    init_paths
+    sam_exit_trace paths_initialized
+    sam_load_modules || return 1
+    sam_exit_trace modules_loaded
+    sam_runtime_loaded=1
+}
+
+sam_runtime_dispatch() {
+    sam_exit_trace backend_entry
+    # MCP can retry the Menu acknowledgement frequently. This command uses only
+    # ownership and audio state; it never invokes optional module hooks or gameplay.
+    if [[ "$sam_gateway_backend" == 1 && "${1,,}" == menu_audio_restore ]]; then
+        source "$sam_root/lib/config.sh" || return 1
+        source "$sam_root/lib/state.sh" || return 1
+        source "$sam_root/lib/session.sh" || return 1
+        source "$sam_root/lib/audio.sh" || return 1
+        source "$sam_root/lib/lifecycle.sh" || return 1
+        sam_exit_trace libs_loaded
+        init_vars
+        sam_exit_trace vars_initialized
+        read_samini || exit 1
+        sam_exit_trace config_loaded
+        mkdir -p "$mrsamtmp" || exit 1
+        sam_exit_trace paths_initialized
+        shift
+        sam_exit_trace dispatch
+        sam_menu_audio_restore "$@"
+        exit $?
+    fi
+    sam_load_runtime || return $?
+    sam_exit_trace dispatch
+    [[ "${1:-}" == --source-only ]] || parse_cmd "$@"
+}

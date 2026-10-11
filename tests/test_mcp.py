@@ -104,23 +104,22 @@ class Lifecycle(unittest.IsolatedAsyncioTestCase):
         state=m.SamState()
         with patch.object(m,'read_sam_owner',side_effect=[OWNER,dict(OWNER,start='78')]),patch.object(m,'is_in_menu',return_value=False),patch.object(m,'stop_sam') as stop:
             m.handle_action('start',state,asyncio.get_running_loop(),'joystick');await self.drain(state);stop.assert_not_called()
-    async def test_m82_bios_ignores_play_and_next_still_works(self):
+    async def test_m82_bios_ignores_all_gameplay_mappings(self):
         state=m.SamState();state.m82=True
         with patch.object(m,'read_sam_owner',return_value=OWNER),patch.object(m,'is_in_menu',return_value=False),patch.object(m,'read_m82_phase',return_value='bios'),patch.object(m,'play_m82_game') as play,patch.object(m,'skip_game') as skip:
             m.handle_action('default',state,asyncio.get_running_loop(),'joystick');await self.drain(state);play.assert_not_called()
-            m.handle_action('next',state,asyncio.get_running_loop(),'joystick');await self.drain(state);skip.assert_called_once()
-    async def test_m82_input_cancels_preparation_instead_of_sending_play(self):
+            m.handle_action('next',state,asyncio.get_running_loop(),'joystick');await self.drain(state);skip.assert_not_called()
+    async def test_m82_input_during_preparation_never_cancels_it(self):
         for phase in ('preparing','loading'):
             state=m.SamState();state.m82=True;owner=dict(OWNER,phase=phase)
             with patch.object(m,'read_sam_owner',return_value=owner),patch.object(m,'is_in_menu',return_value=False),patch.object(m,'session_is_m82',return_value=True),patch.object(m,'read_m82_phase',return_value='game'),patch.object(m,'play_m82_game') as play,patch.object(m,'stop_sam') as stop:
                 m.handle_action('default',state,asyncio.get_running_loop(),'joystick');await self.drain(state)
-                play.assert_not_called();stop.assert_called_once()
-                self.assertEqual(stop.call_args.kwargs['owner'],owner)
-    async def test_m82_next_during_preparation_keeps_the_skip_path(self):
+                play.assert_not_called();stop.assert_not_called()
+    async def test_m82_next_during_preparation_is_ignored(self):
         state=m.SamState();state.m82=True;owner=dict(OWNER,phase='preparing')
         with patch.object(m,'read_sam_owner',return_value=owner),patch.object(m,'is_in_menu',return_value=False),patch.object(m,'session_is_m82',return_value=True),patch.object(m,'skip_game') as skip,patch.object(m,'stop_sam') as stop:
             m.handle_action('next',state,asyncio.get_running_loop(),'joystick');await self.drain(state)
-            skip.assert_called_once();stop.assert_not_called()
+            skip.assert_not_called();stop.assert_not_called()
     async def test_failed_start_returns_without_timeout_or_stopping_another_owner(self):
         with tempfile.TemporaryDirectory() as tmp:
             script=Path(tmp)/'refused';script.write_text('#!/bin/sh\nexit 1\n');script.chmod(0o755)

@@ -1,5 +1,58 @@
 # MCP input detection and ghost-session fixes
 
+## M82 gameplay, latest-input footer and menu-only resource gate: 2026-10-11
+
+M82 consumes physical game mappings in every owner phase. Default/Next/Start/Exit
+buttons cannot cancel startup, skip a ROM or quit to Menu; once a game is ready,
+they request M82 play. The owner restores SAM-owned audio before extending the
+timer and atomically publishing a per-owner/per-launch `play` acknowledgement.
+Repeated gameplay input does not issue repeated commands. Unacknowledged delivery
+can retry at most once per second; BIOS/loading input is ignored. CLI controls and
+explicit Zaparoo replacement retain their separate paths. Saved user mute choices
+remain respected; `m82_muted` still controls sound during demonstrations.
+
+After this owner has shown a game core, confirmed Menu during M82's playing phase
+stops that owner without reloading Menu. Startup/loading Menu is ignored. The
+normal fresh inactivity interval is retained, and M82 automatic restart requires
+Menu even when generic `menuonly` is disabled.
+
+Physical debug activity updates MCP's last footer line instead of appending each
+press to the pane. The MiSTer button label is bold, DB information is secondary,
+and the Linux code is used when both labels are unavailable. The complete cached
+mapping/action detail goes to bounded diagnostics. Rendering occurs in the
+existing debug-output worker, coalesces to the latest input and runs at most five
+times per second. Sampling performs no tmux, display, DB or logging I/O. An idle
+unchanged footer starts no tmux process or lock probe. Setup/lifecycle/errors still
+appear in history. Raw HID activity does not invent decoded keyboard names.
+
+With `menuonly=Yes`, the existing one-second core/owner checker pauses physical
+snapshots and HID/mouse readers during ordinary manual gameplay. Debug/monitor
+attachment does not override this resource gate. Waiting threads use cancellable
+250 ms waits, without opening or reading devices. SAM startup/running and Menu
+resume polling; unavailable core state keeps the conservative active behavior.
+Joystick snapshots reseed held state on resume, and byte readers close when paused
+to discard queued reports. No INI listener flags are rewritten. NFC/network paths
+retain their own behavior. H status reports whether physical polling is paused.
+
+## Command caller and lazy runtime: 2026-10-11
+
+The public entry routes local control requests directly to the shared gateway.
+`lib/caller.sh` opens pre-menu/UI/monitor views without initializing selection,
+launch/audio services or optional session modules. The pre-menu reads only three
+display preferences; complex expressions and trusted includes use the full INI
+loader. A real session always reads its complete configuration.
+
+The pre-menu renders after acquiring the UI lock, before session admission and
+the owner-bound pause handshake. Admission and the retained menu lock still
+protect concurrent dialogs and starts. When no owner record exists under the
+admission lock, no pause/resume Python helper is needed. Normal/roulette active
+sessions retain acknowledged leases; M82/video continue behind the menu.
+
+`lib/runtime.sh` initializes session services on demand. Registries and owned
+mount arrays explicitly use global declarations so they survive function-based
+loading. MCP lifetime, physical readers, owner validation and audio/cleanup
+ordering are unchanged. Existing source-only users retain full initialization.
+
 ## Special-mode menu access: 2026-10-11
 
 Commercial/video and M82 sessions can open the menu without a pause lease;
@@ -104,14 +157,16 @@ The console uses the existing event loop and restores terminal settings on close
 escape sequences cannot accidentally toggle options. No new input daemon, INI
 option, persistent override file or diagnostic SD writes are introduced.
 
-Both monitor views have a persistent three-line bottom tmux help bar. SAM shows
+Both monitor views have a persistent three-line bottom tmux footer. SAM shows
 N/P next/previous, M mute, Q detach, and tmux history/detach
 shortcuts. MCP explains its detector/debug toggles, R restore, H/? help, Q detach
-and temporary scope. Session-local key tables intercept Q/q for both views,
+and temporary scope in two help rows; its last row is the latest physical input.
+Session-local key tables intercept Q/q for both views,
 including during preparation or a core load; these keys do not enter the game
 loop or send a stop command. Other tmux sessions retain their own options and
-bindings. The footer is static and configured only on monitor attachment, adding
-no input polling, timer work, helper process, INI change or SD write.
+bindings. Help rows are configured only on attachment. MCP's input row is updated
+by its existing debug worker with bounded tmux calls; no display I/O is added to
+input sampling, countdowns or SD storage.
 
 The monitor help describes Q only as detach; it omits the history-mode Q hint.
 SAM monitor swallows Y/y with a process-free tmux format condition, so M82 play

@@ -181,6 +181,10 @@ function run_countdown_timer() {
     local end_time=$((start_time + countdown))
     local m82_play_triggered=0
     local m82_is_infinite=0
+    if [[ "${m82:-no}" == yes ]]; then
+        if [[ "${rompath:-}" == "${m82_bios_path:-}" ]]; then sam_m82_publish_phase bios || return 1
+        else sam_m82_publish_phase game || return 1; fi
+    fi
 
     # Set a local trap to handle Ctrl+C.
     # Inherit global trap (detach)
@@ -260,6 +264,11 @@ function run_countdown_timer() {
                     # Extend the countdown to m82_game_timer and restore audio ONCE per game.
                     if [[ "$m82" == "yes" ]] || [[ "$m82" == *"yes"* ]]; then
                         if [[ "$m82_play_triggered" == "0" ]]; then
+                            if ! sam_m82_restore_audio; then
+                                printf 'M82: Could not restore SAM audio; play activation will retry.\n' >&2
+                                sam_diagnostic m82_play_failed 'audio_restore_failed' "${sam_owner:-}" || true
+                                continue
+                            fi
                             local mg_timer="${m82_game_timer:-180}"
                             mg_timer="${mg_timer//$'\r'/}"
 
@@ -276,7 +285,8 @@ function run_countdown_timer() {
                                 sam_emit display_publish "$mg_timer" "$((EPOCHSECONDS + end_time - SECONDS))"
                             fi
                             samdebug "M82 play mode triggered. Extended timer by $mg_timer seconds."
-                            only_unmute_if_needed
+                            sam_m82_publish_phase play || return 1
+                            sam_diagnostic m82_play_started "timer=$mg_timer infinite=$m82_is_infinite" "${sam_owner:-}" || true
                         fi
                     fi
                     ;;

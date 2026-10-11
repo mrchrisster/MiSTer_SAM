@@ -28,6 +28,7 @@ from sam.autostart import EmptySelectionGuard
 from sam.input_options import InputOptions
 from sam.mcp_console import MCPConsole, HELP_TEXT as MCP_HELP_TEXT
 from sam.diagnostics import DiagnosticLog
+from sam.input_display import LatestInputLine
 
 # --- Configuration (from Script 1) ---
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -222,6 +223,7 @@ class InputDebugOutput:
         self.dropped = 0
         self.closed = threading.Event()
         self.drop_lock = threading.Lock()
+        self.latest_input = LatestInputLine(lambda: menu_session_active(os.path.join(SAM_RUNTIME_ROOT, 'mcp-monitor.lock')))
         self.thread = threading.Thread(target=self.run, name='sam-input-debug', daemon=True)
         self.thread.start()
 
@@ -240,8 +242,9 @@ class InputDebugOutput:
     def run(self):
         while not self.closed.is_set():
             try:
-                message = self.messages.get(timeout=.25)
+                message = self.messages.get(timeout=.2)
             except queue.Empty:
+                self.latest_input.flush()
                 continue
             if message is None:
                 return
@@ -250,7 +253,13 @@ class InputDebugOutput:
                     count, self.dropped = self.dropped, 0
                 if count:
                     print('MCP-INPUT: debug output overflow; dropped=%d' % count, flush=True)
-                print(message, flush=True)
+                if message == 'MCP: Activity detected, idle timer reset.':
+                    diagnostic_event('mcp', 'idle_activity', detail=message)
+                elif self.latest_input.update(message):
+                    diagnostic_event('mcp', 'physical_input', detail=message)
+                else:
+                    print(message, flush=True)
+                self.latest_input.flush()
             except (OSError, ValueError):
                 self.closed.set()
                 return  # Terminal closure must not affect input/action handling.
@@ -559,6 +568,8 @@ class SamState:
         self.menu_owner = None
         self.menu_armed = False
         self.menu_since = None
+        self.m82_play_pending = None
+        self.physical_polling = True
 
     def update_activity(self, log_event=True):
         """Call this to reset the idle timer. Thread-safe."""
@@ -786,8 +797,17 @@ def unmute_sam(owner=None):
     print("MCP: Unmuting...")
     return command_gateway().execute("unmute", owner=owner)
 
-def read_m82_phase() -> str:
-    """Returns 'bios', 'game', or 'unknown' based on the phase file written by pick_rom()."""
+def read_m82_phase(owner=None) -> str:
+    """Read an owner/launch-bound BIOS/demo/play acknowledgement, or legacy phase."""
+    if owner is not None:
+        key = owner_key(owner)
+        if key:
+            path = os.path.join(SAM_RUNTIME_ROOT, 'session-' + ':'.join(key), 'm82-phase')
+            if os.path.exists(path):
+                record = read_literal_file(path)
+                if record.get('launch') != owner.get('launch', '0'):
+                    return 'unknown'
+                return record.get('phase') if record.get('phase') in {'bios', 'game', 'play'} else 'unknown'
     try:
         with open(M82_PHASE_FILE, 'r') as f:
             return f.read().strip()
@@ -867,6 +887,19 @@ def handle_action(action, state, loop, source="keyboard", input_device=None):
     return lifecycle_coordinator(input_device).handle_action(action, state, loop, source)
 
 
+def physical_polling_enabled(state):
+    # Cached core/owner policy; no /proc, device, metadata or state-file reads.
+    return bool(getattr(state, 'physical_polling', True) or state.is_sam_running() or state.is_sam_starting() or not state.menu_only)
+
+
+def update_physical_polling(state, owner, in_menu):
+    enabled = bool(not state.menu_only or owner is not None or state.is_sam_starting() or in_menu is not False)
+    if enabled != state.physical_polling:
+        state.physical_polling = enabled
+        diagnostic_event('mcp', 'input_polling', enabled=enabled, reason='menuonly_manual_game' if not enabled else 'menu_or_sam')
+    return enabled
+
+
 def joystick_poller_thread(device_info, state, controller_config, loop, stop_event):
     """
     This function runs in a separate thread and uses a non-blocking polling
@@ -881,6 +914,12 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
     sam_was_running = state.is_sam_running()
 
     while not stop_event.is_set():
+        if not physical_polling_enabled(state):
+            previous_events = []
+            bindings.last_events = None
+            bindings.last_snapshot = {}
+            stop_event.wait(.25)
+            continue
         # When SAM transitions from running → stopped, reset joystick state.
         # This prevents a button held across the stop boundary from re-firing.
         sam_is_running = state.is_sam_running()
@@ -893,6 +932,9 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
             with open(dev_path, "rb", buffering=0) as f:
                 os.set_blocking(f.fileno(), False)
                 data = f.read(bindings.snapshot_bytes)
+            if not physical_polling_enabled(state):
+                previous_events = []
+                continue
             if data:
                 current_events = [dict(zip(("timestamp", "value", "type", "number"), struct.unpack(JS_EVENT_FORMAT, data[i:i+JS_EVENT_SIZE]))) for i in range(0, len(data), JS_EVENT_SIZE) if len(data[i:i+JS_EVENT_SIZE]) == JS_EVENT_SIZE]
 
@@ -902,7 +944,7 @@ def joystick_poller_thread(device_info, state, controller_config, loop, stop_eve
                     print(f"MCP-JS: Initial state captured for {dev_path}. Listening for changes...")
                 else:
                     action = bindings.action(previous_events, current_events, input_changes)
-                    if action and state.listenjoy:
+                    if action and state.listenjoy and physical_polling_enabled(state):
                         if state.is_sam_running() or state.is_sam_starting():
                             # SAM is active — log and route through full action handler.
                             loop.call_soon_threadsafe(handle_action, action, state, loop, "joystick", dev_path)
@@ -935,10 +977,15 @@ def byte_activity_poller_thread(device_path, state, loop, stop_event, label):
     """
     print(f"MCP-{label}: Starting poller for {device_path}")
     while not stop_event.is_set():
+        if not physical_polling_enabled(state):
+            stop_event.wait(.25)
+            continue
         try:
             with open(device_path, "rb", buffering=0) as f:
                 os.set_blocking(f.fileno(), False)
                 while not stop_event.is_set():
+                    if not physical_polling_enabled(state):
+                        break  # Close the HID/mouse reader; discard its queued reports.
                     ready, _, _ = select.select([f], [], [], .25)
                     if not ready:
                         continue
@@ -954,9 +1001,11 @@ def byte_activity_poller_thread(device_path, state, loop, stop_event, label):
                         continue
                     if not report:
                         return  # disconnected/EOF, not a busy retry loop
+                    if not physical_polling_enabled(state):
+                        break
                     gate = 'listenkeyboard' if label == 'Keyboard' else 'listenmouse'
                     enabled = getattr(state, gate, True)
-                    if enabled:
+                    if enabled and physical_polling_enabled(state):
                         loop.call_soon_threadsafe(handle_action, "default", state, loop,
                                                  'keyboard' if label=='Keyboard' else 'mouse', device_path)
                     if state.samdebug:
@@ -1190,6 +1239,9 @@ def console_status(state):
            ','.join({'listenkeyboard':'keyboard','listenjoy':'joystick','listenmouse':'mouse','samdebug':'debug'}[key]
                     for key in sorted(state.input_options.overrides)) or 'none'),flush=True)
     readers=[path for path,(task,_) in tasks.items() if path.startswith('/dev/') and not task.done()]
+    print('Physical input polling: %s (Menu-only: %s).' %
+          ('active' if physical_polling_enabled(state) else 'paused during manual gameplay',
+           'YES' if state.menu_only else 'NO'), flush=True)
     print('Physical MCP readers: joystick=%d keyboard=%d mouse=%d. Debug can observe devices whose detection is OFF.' %
           (sum(path.startswith('/dev/input/js') for path in readers),
            sum(path.startswith('/dev/hidraw') for path in readers),
@@ -1308,6 +1360,8 @@ async def idle_and_status_checker(state):
             owner = await asyncio.to_thread(read_sam_owner)
             mcp_monitor_active()  # RAM focus probe, never inside the input poller.
             await reload_live_config(state, owner)
+            in_menu = await asyncio.to_thread(is_in_menu, state)
+            update_physical_polling(state, owner, in_menu)
             if state.is_stopping():
                 countdown.update()
                 await asyncio.sleep(1)
@@ -1331,7 +1385,6 @@ async def idle_and_status_checker(state):
             state.set_sam_running(observed_running)
             if owner:
                 countdown.update()
-            in_menu = await asyncio.to_thread(is_in_menu, state)
             if menu_requires_stop(state, owner, in_menu):
                 state.set_stopping(True)
                 try:
@@ -1348,7 +1401,7 @@ async def idle_and_status_checker(state):
                     await asyncio.sleep(1)
                     continue
                 idle_time = state.get_idle_time()
-                can_start = not state.menu_only or in_menu
+                can_start = lifecycle_coordinator().can_autostart(state, in_menu)
                 if can_start and idle_time > state.idle_timeout:
                     countdown.update()
                     await launch_and_confirm(state)

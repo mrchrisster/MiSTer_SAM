@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Modules are trusted installed shell programs, loaded once, only when enabled.
 # State/command files are always data and must never be sourced or evaluated.
-declare -A SAM_HOOKS=() SAM_SERVICES=() SAM_MODULES=()
+declare -gA SAM_HOOKS=() SAM_SERVICES=() SAM_MODULES=()
 sam_modules_loaded=0 sam_module_config_dirty=0
 
 sam_register() { # event function

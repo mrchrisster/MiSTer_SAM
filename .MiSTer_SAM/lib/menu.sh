@@ -7,7 +7,7 @@ sam_menu_release_for_exec() {
     [[ "${sam_ui_menu_depth:-0}" == 1 && "${sam_ui_released:-0}" == 0 ]] || return 0
     sam_ui_released=1
     local rc=0
-    if [[ -n "${sam_ui_resume_token:-}" ]]; then
+    if [[ -n "${sam_ui_resume_token:-}" && "$sam_ui_resume_token" != - ]]; then
         python3 "$mrsampath/sam/menu_session.py" release "$sam_ui_resume_token" || rc=$?
     fi
     rm -f -- "${sam_menu_file:-}" "${sam_dialog_error:-}" "${sam_dialog_error:-}.failed"
@@ -48,6 +48,13 @@ sam_menu_run() {
         trap 'exit 130' INT
         trap 'exit 143' TERM
         trap 'exit 129' HUP
+        if [[ "$1" == sam_premenu && "${sam_premenu_shown:-0}" != 1 ]]; then
+            # Render only after acquiring the UI lock, but before waiting for
+            # session admission/pause. No engine or full UI preferences needed.
+            sam_premenu_show
+            sam_premenu_shown=1
+            if declare -F sam_exit_trace >/dev/null; then sam_exit_trace premenu_ready; fi
+        fi
         # An already admitted launch finishes publishing its owner first. New
         # starts see the UI lock and refuse before changing any running core.
         mkdir -p "$mrsamtmp" || exit 1
@@ -57,7 +64,13 @@ sam_menu_run() {
             printf 'SAM is starting. Retry the menu when the game is ready.\n' >&2
             exit 1
         fi
-        sam_ui_resume_token=$(python3 "$mrsampath/sam/menu_session.py" hold) || rc=$?
+        if [[ -e "$mrsamtmp/session-owner" || -L "$mrsamtmp/session-owner" ]]; then
+            sam_ui_resume_token=$(python3 "$mrsampath/sam/menu_session.py" hold) || rc=$?
+        else
+            # Admission and menu locks exclude new owners. No owner record means
+            # there is no countdown to pause, so avoid starting Python at all.
+            sam_ui_resume_token=-
+        fi
         flock -u "$admission_fd"
         exec {admission_fd}>&-
         ((rc == 0)) || exit "$rc"
@@ -95,12 +108,12 @@ sam_dialog() {
     return "$rc"
 }
 
-function sam_premenu() {
+sam_premenu_show() {
     echo "+---------------------------+"
     echo "| MiSTer Super Attract Mode |"
     echo "+---------------------------+"
     echo " SAM Configuration:"
-    if grep -iq "mister_sam" "${userstartup}"; then
+    if [[ -r "$userstartup" ]] && grep -iq "mister_sam" "$userstartup"; then
         echo " -SAM autoplay ENABLED"
     else
         echo " -SAM autoplay DISABLED"
@@ -109,12 +122,18 @@ function sam_premenu() {
     echo " -Start only on the menu: ${menuonly^}"
     echo " -Show each game for ${gametimer} sec."
     echo ""
+
     echo " Press UP to open menu"
     echo " Press DOWN to start SAM"
     echo ""
     echo " Or wait for"
     echo " auto-start"
     echo ""
+
+}
+
+function sam_premenu() {
+    [[ "${sam_premenu_shown:-0}" == 1 ]] || sam_premenu_show
 
     # default action to Start
     premenu="Start"
@@ -139,7 +158,9 @@ function sam_premenu() {
     done
     echo # clear the countdown line
     [[ "${premenu,,}" == menu ]] || sam_menu_release_for_exec || return
-    parse_cmd "${premenu}"
+    if declare -F sam_caller_premenu_action >/dev/null && [[ "${sam_ui_initialized:-0}" != 1 ]]; then
+        sam_caller_premenu_action "$premenu"
+    else parse_cmd "${premenu}"; fi
 }
 
 function sam_menu() {

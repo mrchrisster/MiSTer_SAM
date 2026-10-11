@@ -34,9 +34,21 @@ function build_m82_list() {
 		mute="global"
 	else
 		mute="no"
-		only_unmute_if_needed
+		sam_m82_restore_audio || return 1
 	fi
 	gametimer="21"
+}
+
+sam_m82_restore_audio() {
+    # Restore SAM-owned mute state only; never change a saved user mute.
+    sam_restore_audio
+}
+
+sam_m82_publish_phase() { # current owner/session directory supplies identity
+    [[ -n "${sam_session:-}" ]] || return 1
+    local temporary="$sam_session/m82-phase.tmp.$BASHPID"
+    printf 'launch=%s\nphase=%s\n' "${sam_launch_serial:-0}" "$1" > "$temporary" &&
+        mv -f -- "$temporary" "$sam_session/m82-phase"
 }
 
 sam_m82_cleanup_index() {

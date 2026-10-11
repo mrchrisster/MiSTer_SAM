@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Requested cores are session configuration; allowed cores are derived policy.
 # __sam_* names are private so namerefs cannot shadow caller arrays.
-declare -a sam_requested_cores=() sam_allowed_cores=()
-declare -A sam_session_core_excluded=()
+declare -ga sam_requested_cores=() sam_allowed_cores=()
+declare -gA sam_session_core_excluded=()
 sam_core_policy_ready=0 sam_core_policy_version=0 sam_core_reason= sam_core_id_result=
 
 sam_core_id() { # normalize one ID; 1=blank, 2=invalid

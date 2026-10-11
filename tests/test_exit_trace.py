@@ -14,6 +14,7 @@ class ExitTrace(unittest.TestCase):
             root = Path(directory)
             library = root / 'lib'
             library.mkdir()
+            (library / 'runtime.sh').write_text((ROOT / '.MiSTer_SAM/lib/runtime.sh').read_text())
             for name in ('modules', 'config', 'common', 'diagnostics', 'cores', 'state', 'session', 'config-reload',
                          'audio', 'catalog', 'filter', 'launch', 'lifecycle',
                          'catalog-runtime', 'policy', 'engine', 'dispatch'):

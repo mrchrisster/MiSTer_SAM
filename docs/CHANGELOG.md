@@ -1,5 +1,28 @@
 # Recent changes
 
+## 2026-10-11 — M82 gameplay and MCP input display
+
+- Stop M82 gameplay mappings from skipping/quitting during startup, loading or
+  play. Restore SAM-owned audio before extending the play timer, acknowledge the
+  active owner/launch, and suppress repeated play commands.
+- Detect external Menu after an M82 game, stop that session, and wait for Menu's
+  fresh idle interval before automatic restart.
+- Replace repeated physical-input pane lines with one updating footer: bold
+  MiSTer button, controller DB information, Linux fallback. Retain detailed
+  mapping/action evidence in bounded diagnostics.
+- Pause physical device sampling during manual games when Menu-only is enabled;
+  resume safely in Menu/SAM without manufactured held-button presses.
+
+## 2026-10-11 — Lightweight command caller
+
+- Separate pre-menu/UI/monitor callers from engine initialization. Defer runtime
+  tables, MiSTer.ini volume-path reads and optional session modules until needed.
+- Replace the combined command switch with explicit gateway/UI/runtime routing;
+  retain `parse_cmd` as a compatibility shim. Remove Start Monitor's fixed sleep.
+- Preserve menu/admission locks and active-session pause leases. A menu with no
+  owner avoids starting pause/resume helpers. Registry/mount arrays remain global
+  under lazy loading. Source-only callers still receive the complete runtime.
+
 ## 2026-10-11 — Menu access, monitor controls and start instructions
 
 - After installation or update, show `MiSTer_SAM_on.sh start` rather than

@@ -70,6 +70,9 @@ class LifecycleCoordinator:
                     state.config_restart_cancelled = True
         # Input during launch must reach cancellation even before an owner exists.
         if state.is_sam_starting():
+            if state.m82 and action != 'zaparoo':
+                self._diagnostic("input_suppressed", source=source, action=action, reason="m82_startup")
+                return
             self._diagnostic("action_received", source=source, action=action, routing="startup_pending")
             state.set_pending_action(action)
             return
@@ -95,16 +98,29 @@ class LifecycleCoordinator:
                 state.set_sam_running(True)
                 in_menu = await asyncio.to_thread(self.dependencies.is_in_menu, state)
                 m82_session = self.dependencies.session_is_m82(owner, state.m82)
-                if m82_session and not in_menu and owner.get("phase") not in {"preparing", "loading", "stopping"}:
-                    if action == "next":
-                        self._diagnostic("command_requested", owner, command="next")
-                        result = await asyncio.to_thread(self.dependencies.skip_game, owner)
-                        self._diagnostic("command_result", owner, command="next", result=result)
-                    elif await asyncio.to_thread(self.dependencies.read_m82_phase) != "bios":
-                        self._diagnostic("command_requested", owner, command="play")
-                        result = await asyncio.to_thread(self.dependencies.play_m82_game, owner)
-                        self._diagnostic("command_result", owner, command="play", result=result)
-                elif action == "next":
+                if m82_session and action != 'zaparoo':
+                    # Every controller/keyboard/mouse mapping belongs to M82
+                    # gameplay, including buttons normally mapped to Next/Exit.
+                    # Never fall through to ordinary SAM Stop during a reload.
+                    if in_menu is not False or owner.get('phase') != 'playing':
+                        self._diagnostic('input_suppressed', owner, source=source, action=action, reason='m82_transition')
+                        return
+                    phase = await asyncio.to_thread(self.dependencies.read_m82_phase, owner)
+                    if phase != 'game':
+                        self._diagnostic('input_suppressed', owner, source=source, action=action, reason='m82_' + phase)
+                        return
+                    selection = (owner_key(owner), owner.get('launch', '0'))
+                    pending = getattr(state, 'm82_play_pending', None)
+                    if pending and pending[0] == selection and time.monotonic() - pending[1] < 1:
+                        return
+                    self._diagnostic('command_requested', owner, command='play')
+                    result = await asyncio.to_thread(self.dependencies.play_m82_game, owner)
+                    self._diagnostic('command_result', owner, command='play', result=result)
+                    # Delivery is not acceptance: the owner publishes play only
+                    # after audio/timer activation. Throttle failed delivery too.
+                    state.m82_play_pending = (selection, time.monotonic())
+                    return
+                if action == "next":
                     if not m82_session:
                         state.set_busy_next_owner(owner_key(owner))
                     if state.ignore_when_skip and owner.get("phase") == "playing":
@@ -156,6 +172,15 @@ class LifecycleCoordinator:
     def menu_requires_stop(self, state, owner, in_menu, now=None):
         """Arm only after seeing a game for this launch; debounce external Menu."""
         now = time.monotonic() if now is None else now
+        if owner and self.dependencies.session_is_m82(owner, state.m82):
+            identity = (owner_key(owner), 'm82')
+            if state.menu_owner != identity:
+                state.menu_owner, state.menu_armed, state.menu_since = identity, False, None
+            if in_menu is False and owner.get('phase') == 'playing':
+                state.menu_armed = True
+            # Menu remains authoritative after this M82 owner has played a core.
+            # Ignore startup/loading Menu; do not re-arm for each NES/BIOs cycle.
+            return bool(in_menu is True and state.menu_armed and owner.get('phase') == 'playing')
         launch = (owner_key(owner), owner.get("launch", "0")) if owner else None
         if launch != state.menu_owner or not owner or owner.get("phase") != "playing":
             state.menu_owner, state.menu_armed, state.menu_since = launch, False, None
@@ -171,6 +196,10 @@ class LifecycleCoordinator:
                 state.menu_since = now
             return now - state.menu_since >= 2
         return False
+
+    def can_autostart(self, state, in_menu):
+        # M82 kiosks restart only from Menu after its ordinary idle interval.
+        return bool(in_menu is True or (not state.menu_only and not state.m82))
 
     async def launch_and_confirm(self, state, target=None):
         state.set_sam_starting(True)

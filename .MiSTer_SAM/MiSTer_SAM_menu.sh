@@ -833,6 +833,9 @@ menu_diagnostics_upload() { sam_diagnostics_view --upload; }
 
 
 function menu_artwork() {
+    # Load only the artwork setup helpers, even when artwork filtering is off.
+    sam_artwork_root="$mrsampath/artwork"
+    source "$sam_artwork_root/sam_artwork.sh" || return 1
     source "${mrsampath}/artwork/sam_artwork_menu.sh" || return 1
     sam_artwork_menu
 }
@@ -1164,6 +1167,9 @@ function menu_reset_gamelists() {
 
 
 function menu_resetini() {
+  if declare -F sam_caller_require_runtime >/dev/null; then
+    sam_caller_require_runtime || return 1
+  fi
   local mcp_was_running=0 result=0
   if tmux has-session -t MCP 2>/dev/null ||
      python3 "$mrsampath/sam_mcp_process.py" --running "$mrsampath/MiSTer_SAM_MCP.py"; then

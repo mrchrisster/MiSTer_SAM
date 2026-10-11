@@ -98,9 +98,16 @@ class CommandGateway:
             current = self.current(owner)
             if current is None:
                 return False
+            if action == 'm82_play' and (current.get('phase') != 'playing'
+                    or (owner is not None and 'launch' in owner and current.get('launch', '0') != owner.get('launch', '0'))):
+                return False
             key = owner_key(current)
+            launch = current.get('launch', '0')
             panes = [pane for pane, pid in self.pane_reader() if pid == key[0] and pane.startswith('%') and pane[1:].isdigit()]
-            if len(panes) != 1 or self.current(current) is None:
+            latest = self.current({'pid': key[0], 'start': key[1]})
+            if len(panes) != 1 or latest is None:
+                return False
+            if action == 'm82_play' and (latest.get('phase') != 'playing' or latest.get('launch', '0') != launch):
                 return False
             # Pane IDs are stable for this server: a replacement pane cannot
             # inherit the named SAM target between validation and send-keys.

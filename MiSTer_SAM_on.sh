@@ -56,54 +56,10 @@ case "${1,,}" in
             exec python3 "$sam_root/samctl.py" "$@"
         fi ;;
 esac
-sam_exit_trace backend_entry
-# MCP can retry the Menu acknowledgement frequently. This command uses only
-# ownership and audio state; it never invokes optional module hooks or gameplay.
-if [[ "$sam_gateway_backend" == 1 && "${1,,}" == menu_audio_restore ]]; then
-    source "$sam_root/lib/config.sh"
-    source "$sam_root/lib/state.sh"
-    source "$sam_root/lib/session.sh"
-    source "$sam_root/lib/audio.sh"
-    source "$sam_root/lib/lifecycle.sh"
-    sam_exit_trace libs_loaded
-    init_vars
-    sam_exit_trace vars_initialized
-    read_samini || exit 1
-    sam_exit_trace config_loaded
-    mkdir -p "$mrsamtmp" || exit 1
-    sam_exit_trace paths_initialized
-    shift
-    sam_exit_trace dispatch
-    sam_menu_audio_restore "$@"
-    exit $?
+if [[ "$sam_gateway_backend" == 1 || "${1:-}" == --source-only || "${1,,}" == loop_core || "${1,,}" == validate_start ]]; then
+    source "$sam_root/lib/runtime.sh" || exit 1
+    sam_runtime_dispatch "$@"
+else
+    source "$sam_root/lib/caller.sh" || exit 1
+    sam_caller_dispatch "$@"
 fi
-source "$sam_root/lib/modules.sh"
-source "$sam_root/lib/config.sh"
-source "$sam_root/lib/common.sh"
-source "$sam_root/lib/diagnostics.sh"
-source "$sam_root/lib/cores.sh"
-source "$sam_root/lib/state.sh"
-source "$sam_root/lib/session.sh"
-source "$sam_root/lib/config-reload.sh"
-source "$sam_root/lib/audio.sh"
-source "$sam_root/lib/catalog.sh"
-source "$sam_root/lib/filter.sh"
-source "$sam_root/lib/launch.sh"
-source "$sam_root/lib/lifecycle.sh"
-source "$sam_root/lib/catalog-runtime.sh"
-source "$sam_root/lib/policy.sh"
-source "$sam_root/lib/engine.sh"
-source "$sam_root/lib/dispatch.sh"
-sam_exit_trace libs_loaded
-init_vars
-sam_exit_trace vars_initialized
-read_samini || exit 1
-sam_exit_trace config_loaded
-init_data
-sam_exit_trace data_initialized
-init_paths
-sam_exit_trace paths_initialized
-sam_load_modules || exit 1
-sam_exit_trace modules_loaded
-sam_exit_trace dispatch
-[[ "${1:-}" == --source-only ]] || parse_cmd "$@"

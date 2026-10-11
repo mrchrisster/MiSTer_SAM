@@ -107,12 +107,22 @@ sam_menu_run body
 
     def test_explicit_action_unlocks_without_resuming_until_completion(self):
         result=self.run_code(r'''
+mkdir -p "$mrsamtmp"; printf owner > "$mrsamtmp/session-owner"
 python3(){ case "$2" in hold) echo lease;; release) echo RELEASED;; esac; }
 body(){ sam_menu_detach_for_action || return; sam_menu_lock_active && return 7; echo ACTION; }
 sam_menu_run body
 ''')
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(result.stdout.splitlines(),['ACTION','RELEASED'])
+
+    def test_no_owner_needs_no_pause_or_resume_process(self):
+        result=self.run_code(r'''
+python3(){ echo FORBIDDEN_PYTHON; return 99; }
+body(){ echo OPENED; }
+sam_menu_run body
+''')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(result.stdout.strip(),'OPENED')
 
     def test_manual_start_refused_without_stopping_current_session(self):
         result=self.run_code(r'''

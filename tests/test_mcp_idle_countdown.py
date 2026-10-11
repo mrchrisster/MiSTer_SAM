@@ -31,7 +31,8 @@ class CountdownTests(unittest.TestCase):
 
     def exercise_checker(self, menu=True, menu_only=True, idle=5, owner=None, stopping=False, menu_open=False, empty=False):
         async def run():
-            state=Mock(menu_only=menu_only,idle_timeout=60)
+            state=Mock(menu_only=menu_only,idle_timeout=60,m82=False,physical_polling=True)
+            state.is_sam_starting.return_value=False
             state.is_stopping.return_value=stopping
             state.get_idle_time.return_value=idle
             display=Mock();launch=AsyncMock();cancel=AsyncMock()

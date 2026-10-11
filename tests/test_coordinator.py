@@ -198,14 +198,14 @@ class CoordinatorTests(unittest.IsolatedAsyncioTestCase):
         coordinator.handle_action('next', state, asyncio.get_running_loop(), 'joystick')
         dependencies.menu_active.assert_not_called()
 
-    async def test_loading_m82_input_uses_stop_interface(self):
+    async def test_loading_m82_input_cannot_stop_the_session(self):
         dependencies = self.dependencies(read_sam_owner=Mock(return_value=dict(pid="321", start="77", phase="loading")), session_is_m82=Mock(return_value=True))
         state = State()
         LifecycleCoordinator(dependencies).handle_action("default", state, asyncio.get_running_loop())
         await self.drain(state)
         dependencies.play_m82_game.assert_not_called()
-        dependencies.stop_sam.assert_awaited_once()
-        self.assertIsInstance(dependencies.stop_sam.call_args.kwargs["owner"], SessionSnapshot)
+        dependencies.stop_sam.assert_not_awaited()
+        dependencies.skip_game.assert_not_called()
 
     async def test_startup_input_buffers_before_owner_or_commands(self):
         dependencies = self.dependencies()
@@ -307,12 +307,16 @@ class PendingMenuStopTests(unittest.IsolatedAsyncioTestCase):
         dependencies = await self.run_busy_next(["default"], replaced=True)
         dependencies.stop_sam.assert_not_called()
 
-    async def test_m82_next_keeps_existing_no_stop_queue(self):
+    async def test_m82_next_is_gameplay_not_a_skip_or_stop(self):
         for phase in ("playing", "loading", "preparing"):
-            dependencies = await self.run_busy_next(["default", "exit"], m82=True, phase=phase)
-            dependencies.skip_game.assert_called_once()
+            state = State()
+            dependencies = self.dependencies(read_sam_owner=Mock(return_value=dict(pid='321', start='77', phase=phase, launch='1')),
+                session_is_m82=Mock(return_value=True), read_m82_phase=Mock(return_value='game'), play_m82_game=Mock(return_value=True))
+            LifecycleCoordinator(dependencies).handle_action('next', state, asyncio.get_running_loop(), 'joystick')
+            await self.drain(state)
+            dependencies.skip_game.assert_not_called()
             dependencies.stop_sam.assert_not_called()
-            dependencies.play_m82_game.assert_not_called()
+            self.assertEqual(dependencies.play_m82_game.call_count, int(phase == 'playing'))
 
     async def test_failed_next_does_not_lose_already_requested_stop(self):
         for failure in (False, RuntimeError("simulated delivery failure")):

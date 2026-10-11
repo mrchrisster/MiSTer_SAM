@@ -373,7 +373,7 @@ function core_error_checklist() { # core_error core /path/to/ROM
 
 }
 
-declare -a SAM_OWNED_MOUNTS=()
+declare -ga SAM_OWNED_MOUNTS=()
 sam_mount_bind() {
     mountpoint -q "$2" && return 0
     mount --bind "$1" "$2" || return 1
