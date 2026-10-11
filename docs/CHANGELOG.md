@@ -2,7 +2,7 @@
 
 ## 2026-10-11 — Menu access, monitor controls and start instructions
 
-- After installation or update, show the full SAM start command rather than
+- After installation or update, show `MiSTer_SAM_on.sh start` rather than
   assuming the optional `m` shortcut is installed.
 - Remove the SAM monitor's Y/M82 play shortcut while preserving physical M82
   actions. Simplify both monitor footers to mention Q only as detach.

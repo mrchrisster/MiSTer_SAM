@@ -394,7 +394,7 @@ def install(source, mister, branch, progress=None):
         subprocess.run(['tmux', 'new-session', '-s', 'MCP', '-d', 'exec ' + str(payload / 'MiSTer_SAM_MCP.py')], check=True)
     progress.done()
     if live:
-        progress.note('Start SAM: bash /media/fat/Scripts/MiSTer_SAM_on.sh start')
+        progress.note('Start SAM: MiSTer_SAM_on.sh start')
 
 
 def main(progress=None):
