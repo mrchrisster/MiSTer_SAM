@@ -1,5 +1,10 @@
 # Recent changes
 
+## 2026-10-11 — Start instructions without an SSH shortcut
+
+- After installation or update, show the full SAM start command rather than
+  assuming the optional `m` shortcut is installed.
+
 ## 2026-10-10 — Diagnostics, optional free log upload and clearer updates
 
 - Retain timestamped lifecycle/input decisions in bounded RAM history. Preserve
