@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Local command gateway; the existing Bash engine remains the session backend.
+"""Local command gateway for the verified foreground session owner.
 
 Create once in long-lived callers. No polling, daemon or countdown work occurs
 here. Owner-bound inputs target a verified pane ID, never the session name.
@@ -10,6 +10,7 @@ from pathlib import Path
 import subprocess
 import sys
 from sam.session import read_session
+from sam import owner_commands
 
 
 def owner_key(owner):
@@ -103,6 +104,11 @@ class CommandGateway:
                 return False
             key = owner_key(current)
             launch = current.get('launch', '0')
+            runtime = os.environ.get('SAM_TMP_ROOT', '/tmp/.SAM_tmp')
+            if owner_commands.enabled(runtime, current):
+                return owner_commands.submit(runtime, current,
+                                             'next' if action == 'skip' else action,
+                                             self.current)
             panes = [pane for pane, pid in self.pane_reader() if pid == key[0] and pane.startswith('%') and pane[1:].isdigit()]
             latest = self.current({'pid': key[0], 'start': key[1]})
             if len(panes) != 1 or latest is None:
@@ -127,6 +133,10 @@ class CommandGateway:
                     owner = current
                 else:
                     args = ('0', '0')
+                if current is not None and action in owner_commands.URGENT:
+                    runtime = os.environ.get('SAM_TMP_ROOT', '/tmp/.SAM_tmp')
+                    if owner_commands.enabled(runtime, current):
+                        return owner_commands.submit(runtime, current, action, self.current)
             if action in self.TARGETED and action not in {'menu_audio_restore', 'stop', 'kill', 'exit_to_menu', 'unmute'}:
                 current = self.current(owner)
                 if current is None:

@@ -1,5 +1,31 @@
 # MCP input detection and ghost-session fixes
 
+## Resident Python session owner: 2026-10-11
+
+The test branch now starts the Python session owner directly in SAM's tmux pane.
+It retains that PID/start identity through one persistent Bash adapter, which
+loads configuration, selection, launch and cleanup services once. MCP readers,
+snapshot polling, physical-device filtering and mapping precedence are unchanged.
+The adapter publishes SAM_state, phase and Scripts UI handoff records for the
+verified Python parent identity; it is not a second session owner.
+
+Next/Previous/Mute/M82-play use an authenticated RAM mailbox when the owner
+advertises it. Existing sessions keep the prior tmux command path. Stop uses a
+separate urgent path even during a blocked launch; the owner signals only its
+verified adapter, and the adapter preserves launch quiescence, early Menu dispatch
+and separate audio completion. Applied receipts survive session scratch cleanup
+in bounded RAM storage. Public Monitor commands retain the existing request journal
+and selection binding, but claim requests in the warm owner process.
+
+Owner death signals the adapter through Linux parent-death notification. Start
+admission refuses a live old adapter until its cleanup completes. Signals during
+job registration are deferred until PID/start/group/session fields are captured.
+This does not replace physical Bluetooth/hotplug validation or prove Main accepts
+every command; hardware Menu/audio convergence retains its existing guards.
+
+For a temporary comparison/rollback session, use
+`SAM_ENGINE=legacy MiSTer_SAM_on.sh start`. No new INI option is required.
+
 ## Scripts UI first-launch handoff: 2026-10-11
 
 Scripts UI starts publish a marker bound to the new owner's PID/start identity.

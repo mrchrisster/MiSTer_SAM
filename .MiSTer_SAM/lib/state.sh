@@ -39,7 +39,7 @@ sam_record_write() { # file core path name setname revision
 }
 
 sam_pid_start() { # PID; returns fields via variables, including zombie state
-    local line fields
+    local line fields IFS=$' \t\n'
     [[ "$1" =~ ^[1-9][0-9]*$ ]] || return 1
     [[ -r "/proc/$1/stat" ]] || return 1
     { read -r line < "/proc/$1/stat"; } 2>/dev/null || return 1
@@ -52,14 +52,22 @@ sam_pid_start() { # PID; returns fields via variables, including zombie state
 # Private groups belong only to preparation/delayed-launch work, never the SAM
 # owner, OLED or MCP. Children wait stopped until their identity is registered.
 sam_job_spawn() { # sam_worker|sam_launch command [args...]
-    local prefix=$1 saved_term had_monitor=0 parent=$BASHPID parent_sid pid ticks= group= sid= registered=0 attempt
+    local prefix=$1 saved_term saved_usr1 had_monitor=0 parent=$BASHPID parent_sid pid ticks= group= sid= registered=0 attempt
     shift
     [[ "$prefix" == sam_worker || "$prefix" == sam_launch ]] || return 1
     saved_term=$(trap -p TERM)
     local sam_job_stop_pending=0
+    local sam_job_menu_stop_pending=0
+    if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+        saved_usr1=$(trap -p USR1)
+        trap 'sam_job_menu_stop_pending=1' USR1
+    fi
     trap 'sam_job_stop_pending=1' TERM
     if ! sam_pid_start "$parent"; then
         [[ -z "$saved_term" ]] && trap - TERM || eval "$saved_term"
+        if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+            [[ -z "$saved_usr1" ]] && trap - USR1 || eval "$saved_usr1"
+        fi
         return 1
     fi
     parent_sid=$sam_proc_session
@@ -102,6 +110,10 @@ sam_job_spawn() { # sam_worker|sam_launch command [args...]
     fi
     # saved_term comes only from Bash's own trap table, never a file/user record.
     [[ -z "$saved_term" ]] && trap - TERM || eval "$saved_term"
+    if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+        [[ -z "$saved_usr1" ]] && trap - USR1 || eval "$saved_usr1"
+        ((sam_job_menu_stop_pending == 0)) || kill -USR1 "$parent"
+    fi
     if ((sam_job_stop_pending)); then kill -TERM "$parent"; fi
     ((registered)) || { echo 'SAM: owned job registration failed.' >&2; return 1; }
 }

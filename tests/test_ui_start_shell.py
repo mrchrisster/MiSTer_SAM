@@ -23,7 +23,7 @@ sam_session_read_owner(){
 sam_pid_start(){ sam_proc_start=123; }
 sam_core_session_begin(){ :; }; env_check(){ :; }; there_can_be_only_one(){ :; }
 timeout(){ shift; "$@"; }
-mcp_start(){ printf '%s' "${SAM_START_FROM_UI-unset}" > "$mrsamtmp/mcp-origin"; }
+mcp_start(){ printf '%s:%s' "${SAM_START_FROM_UI-unset}" "${SAM_ENGINE-unset}" > "$mrsamtmp/mcp-origin"; }
 tmux(){
     case "$1" in
         has-session) return 1 ;;
@@ -31,10 +31,11 @@ tmux(){
     esac
 }
 export SAM_START_FROM_UI=1
+export SAM_ENGINE=legacy
 exec {start_lock_fd}> "$mrsamtmp/test-start.lock"
 sam_start_admitted '' 0 || exit 1
-[[ $(<"$mrsamtmp/mcp-origin") == unset ]] || exit 2
-[[ $(<"$mrsamtmp/spawn-command") == 'SAM_START_FROM_UI=1 exec '* ]] || exit 3
+[[ $(<"$mrsamtmp/mcp-origin") == unset:unset ]] || exit 2
+[[ $(<"$mrsamtmp/spawn-command") == 'SAM_START_FROM_UI=1 SAM_ENGINE=legacy exec '* ]] || exit 3
 [[ $SAM_START_FROM_UI == 1 ]] || exit 4
 ''')
 

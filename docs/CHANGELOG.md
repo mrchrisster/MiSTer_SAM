@@ -1,5 +1,33 @@
 # Recent changes
 
+## 2026-10-11 — Resident session owner on test
+
+- Make the Python session coordinator the default owner for normal, roulette,
+  M82 and video. Keep one persistent Bash adapter for existing platform functions
+  and one preparation job, with shared programme/timer service bindings.
+- Route warm controls through authenticated RAM records; prioritize Stop during
+  loading and retain applied receipts after scratch cleanup. Keep Menu writer
+  quiescence, audio completion and fresh Main/FIFO checks.
+- Add parent-death cleanup, old-adapter admission fencing and deferred signals
+  during job registration. Preserve Scripts UI owner identity and temporary
+  `SAM_ENGINE=legacy` comparison sessions without changing the INI.
+- Fix Bash's queued registration STOP notification being mistaken for command
+  termination: use `wait -f` on owned setup commands. Before the fix, stress
+  reproduced launch status 147; afterward all 100 stressed Stop cases passed.
+- Validation: 946 Linux tests ran, 928 passed and 18 host-specific cases skipped.
+  Focused ARM owner, mode, control, ownership and Menu/audio suites passed.
+  Actual normal SAM selected SMS and N64 games; Monitor's path matched SAM and
+  its artwork endpoint served a JPEG. Pause/Resume/Next and Menu Stop succeeded.
+  Saved INIs and original Volume.dat were unchanged after cleanup.
+- One live Menu timing probe observed the Menu marker after 1.073 s and full
+  completion after 4.231 s. This is not a physical button/CRT measurement. Initial
+  live Start still took 17.804 s to controls-ready, including selection/artwork/
+  setup; research's mock timings must not be presented as actual startup speed.
+  Physical reconnect, Echo Show/CRT visual boot and new M82/video hardware runs
+  were not revalidated in this switch.
+
+Current boundaries and rollback: [SESSION_ENGINE.md](SESSION_ENGINE.md).
+
 ## 2026-10-11 — M82 gameplay and MCP input display
 
 - Stop M82 gameplay mappings from skipping/quitting during startup, loading or

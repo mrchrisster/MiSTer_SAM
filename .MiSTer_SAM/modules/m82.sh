@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 m82=yes
 sam_mode=m82
+if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+    sam_bind engine_take sam_engine_program_take || return 1
+    sam_bind engine_launch sam_engine_program_launch || return 1
+fi
 source "$mrsampath/modules/m82-functions.sh"
 source "$mrsampath/modules/compat-selection.sh"
 source "$mrsampath/modules/compat-catalog.sh"

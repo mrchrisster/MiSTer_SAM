@@ -33,6 +33,14 @@ sam_load_runtime() {
     sam_exit_trace data_initialized
     init_paths
     sam_exit_trace paths_initialized
+    if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+        source "$sam_root/lib/engine-modes.sh" || return 1
+        sam_bind engine_take sam_engine_normal_take || return 1
+        sam_bind engine_launch sam_engine_normal_launch || return 1
+        sam_bind engine_timer_begin sam_engine_mode_timer_begin || return 1
+        sam_bind engine_timer_tick sam_engine_mode_timer_tick || return 1
+        sam_bind engine_key sam_engine_mode_timer_key || return 1
+    fi
     sam_load_modules || return 1
     sam_exit_trace modules_loaded
     sam_runtime_loaded=1

@@ -13,6 +13,23 @@ sam_exit_trace() {
 }
 sam_exit_trace entry
 sam_root="${SAM_ROOT:-/media/fat/Scripts/.MiSTer_SAM}"
+if [[ "${1:-}" == --engine-adapter ]]; then
+    source "$sam_root/lib/engine-adapter.sh" || exit 1
+    sam_engine_parent_valid || { echo 'SAM: invalid session adapter owner.' >&2; exit 64; }
+    exec 3>&1
+    exec 1>&2
+    trap 'sam_engine_stop_pending=1' USR1
+    shift
+    source "$sam_root/lib/runtime.sh" || exit 1
+    sam_load_runtime || exit 1
+    sam_engine_adapter_main "${1:-}"
+    exit $?
+fi
+if [[ "${1,,}" == loop_core && "${SAM_ENGINE:-python}" != legacy ]]; then
+    shift
+    exec python3 -S "$sam_root/sam/session_engine.py" --root "$sam_root" \
+        --entry "${SAM_ENTRY:-${BASH_SOURCE[0]}}" --target "${1:-}"
+fi
 if [[ "${1,,}" == diagnostics ]]; then
     [[ -r "$sam_root/sam/diagnostics.py" ]] || { echo 'Diagnostics tool is missing; reinstall SAM.' >&2; exit 1; }
     shift

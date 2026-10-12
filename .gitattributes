@@ -14,3 +14,6 @@
 .MiSTer_SAM/mplayer export-ignore
 .MiSTer_SAM/mplayer.zip export-ignore
 .MiSTer_SAM/partun export-ignore
+research export-ignore
+tests/test_engine_research_contracts.py export-ignore
+tests/test_session_engine_research.py export-ignore

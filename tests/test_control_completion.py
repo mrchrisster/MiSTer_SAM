@@ -87,6 +87,32 @@ class ControlCompletion(unittest.TestCase):
             self.assertEqual(control.submit(self.request)[0], 200)
         self.assertEqual(envelopes[0]['expires'], 104)
 
+    def test_warm_claim_returns_request_without_printing_and_checks_start_ticks(self):
+        state = dict(owner_pid='321', owner_start='77')
+        envelope = dict(request=self.request, generation='1', identity=state, expires=104)
+        pending = control.ROOT / 'pending.json'
+        control.atomic(pending, envelope)
+        with patch.object(control, 'owner', return_value=state), patch('builtins.print') as printed:
+            self.assertEqual(control.claim_request(321, '77'), self.request)
+        printed.assert_not_called()
+        self.assertFalse(pending.exists())
+        control.atomic(pending, envelope)
+        with patch.object(control, 'owner', return_value=state):
+            self.assertIsNone(control.claim_request(321, '78'))
+        ack = control.read_json(control.ROOT / ('ack-' + self.request['request_id'] + '.json'))
+        self.assertEqual(ack['code'], 409)
+        self.assertFalse(pending.exists())
+
+    def test_warm_claim_expiry_does_not_apply_or_accept_request(self):
+        pending = control.ROOT / 'pending.json'
+        control.atomic(pending, dict(request=self.request, generation='1',
+                                    identity={'owner_pid': '321', 'owner_start': '77'}, expires=99))
+        with patch.object(control, 'owner', return_value=dict(owner_pid='321', owner_start='77')):
+            self.assertIsNone(control.claim_request(321, '77'))
+        ack = control.read_json(control.ROOT / ('ack-' + self.request['request_id'] + '.json'))
+        self.assertEqual(ack['code'], 503)
+        self.current.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

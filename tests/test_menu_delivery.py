@@ -39,6 +39,36 @@ current_marker=marker-game
 [[ ! -e "$mrsamtmp/restored" ]]
 ''')
 
+    def test_verified_adapter_restores_only_after_own_cleanup_and_audio_receipt(self):
+        self.assertShell(self.context() + '''
+sam_pid_start(){ sam_proc_start=77; return 0; }
+sam_engine_adapter_verified=1
+SAM_ENGINE_OWNER_PID=321 SAM_ENGINE_OWNER_START=77
+sam_owner=321:77 sam_session="$mrsamtmp/session-321:77"
+mkdir -p "$sam_session"; : > "$sam_session/alive"
+sam_session_cleaned=0
+! sam_menu_exit_guard
+! sam_menu_audio_restore 321 77
+rm "$sam_session/alive"; sam_session_cleaned=1
+rm "$mrsamtmp/menu-audio-complete"
+! sam_menu_audio_restore 321 77
+[[ ! -e "$mrsamtmp/restored" ]]
+printf '321:77\\n' > "$mrsamtmp/menu-audio-complete"
+sam_menu_exit_guard
+sam_menu_audio_restore 321 77
+[[ $(<"$mrsamtmp/restored") == restored && ! -e "$mrsamtmp/menu-audio-owner" ]]
+''')
+
+    def test_live_owner_cannot_use_another_adapters_completion(self):
+        self.assertShell(self.context() + '''
+sam_pid_start(){ sam_proc_start=77; return 0; }
+sam_engine_adapter_verified=1 sam_session_cleaned=1
+SAM_ENGINE_OWNER_PID=322 SAM_ENGINE_OWNER_START=78
+sam_owner=322:78 sam_session="$mrsamtmp/session-322:78"
+! sam_menu_audio_restore 321 77
+[[ ! -e "$mrsamtmp/restored" && -e "$mrsamtmp/menu-audio-owner" ]]
+''')
+
     def test_fresh_menu_marker_before_fifo_replacement_waits(self):
         self.assertShell(self.context() + '''
 current_fifo=fifo-old

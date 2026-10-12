@@ -1,10 +1,11 @@
 # SAM architecture and migration
 
-Normal and roulette sessions use one foreground Bash loop for decisions, timing
-and hardware ownership. The experimental Python timer/pipe bridge was removed
-after native measurements showed additional CPU and memory cost. MCP retains
-its existing Python input service and shared command/ownership components.
-M82 and video retain their specialized compatibility loops.
+The test branch uses one Python session owner for normal, roulette, M82 and video
+sessions. A persistent Bash adapter loads the existing picker, launch and resource
+services once. MCP retains its physical input readers and idle coordinator.
+The earlier bridge was removed after native measurements; this replacement uses
+authenticated warm commands, one fixed adapter protocol and explicit cleanup
+completion. See [SESSION_ENGINE.md](SESSION_ENGINE.md) for the current boundaries.
 
 ## Runtime responsibilities
 
@@ -12,10 +13,14 @@ M82 and video retain their specialized compatibility loops.
 | --- | --- | --- |
 | `sam/coordinator.py` | Input action policy, startup cancellation, current-session decisions | Read devices, scan ROMs, write hardware commands |
 | `sam/session.py` | Immutable verified PID/start/phase/launch snapshot | Infer liveness from a tmux name or stale display state |
+| `sam/session_engine.py` | Published session owner, command queue, progression and scheduling | Scan ROMs, execute shell payloads or bypass platform cleanup |
+| `sam/owner_commands.py` | Bounded RAM request/completion records for the current owner | Treat acceptance as applied, or retarget a stale selection |
+| `lib/engine-adapter.sh` | Persistent picker/launch/control/cleanup adapter for a verified Python parent | Publish for an arbitrary parent or admit replacement during cleanup |
+| `lib/engine-modes.sh` | One-step normal/M82/video timer and programme operations | Own a competing infinite loop or abandon video workers |
 | `sam/commands.py` | Shared local command routing and owner-bound dispatch | Rebind a stale input to a replacement session |
 | `MiSTer_SAM_MCP.py` | Existing resident input/idle service and platform wiring | Implement a separate Menu/audio exit sequence |
 | `lib/session.sh` | Foreground admission, phase transitions, launch serial, cleanup | Admit two live owners or let a worker publish lifecycle state |
-| `lib/engine.sh` | Normal/roulette progression, countdown, at most two prepared candidates, launch validation | Let speculative preparation consume history or load a core |
+| `lib/engine.sh` | Prepared queue/worker and legacy comparison loop | Let speculative preparation consume history or load a core |
 | `lib/lifecycle.sh` | Existing start/stop, Menu confirmation, audio restoration | Tear down an unverified tmux session by name |
 | `lib/catalog*.sh`, `lib/policy.sh`, `lib/filter.sh` | Discovery, candidate restrictions and selection | Change the running core during preparation |
 | `lib/launch.sh` | MiSTer launch adapters and owned BIOS-skip jobs | Dispatch after session ownership has been lost |

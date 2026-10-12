@@ -1,0 +1,11 @@
+policy	cores	NES
+policy	demo_timer	21
+policy	play_timer	300
+policy	input_transition	ignore
+policy	input_demo	play
+policy	input_play	ignore
+policy	ui	continue
+item	bios	NES	Fixture_M82_BIOS
+item	game	NES	Fixture_M82_Game_1
+item	bios	NES	Fixture_M82_BIOS
+item	game	NES	Fixture_M82_Game_2

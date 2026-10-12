@@ -1,0 +1,11 @@
+policy	cores	NES,SNES
+policy	demo_timer	30
+policy	play_timer	300
+policy	input_transition	stop
+policy	input_demo	stop
+policy	input_play	stop
+policy	ui	continue
+item	clip	NES	Fixture_NES_Commercial
+item	game	NES	Fixture_NES_Game
+item	clip	SNES	Fixture_SNES_Commercial
+item	game	SNES	Fixture_SNES_Game

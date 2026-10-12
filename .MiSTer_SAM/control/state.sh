@@ -4,7 +4,7 @@
 function sam_display_read() {
     sam_display_game="" sam_display_rom_path="" sam_display_core="" sam_display_setname=""
     sam_display_mode=normal sam_display_timer=0 sam_display_start_time=0
-    sam_display_active=no sam_display_game_kept=no sam_display_owner_pid=""
+    sam_display_active=no sam_display_game_kept=no sam_display_owner_pid="" sam_display_owner_start=""
     local line key value
     [[ -r "$sam_display_state_file" ]] || return 0
     # Data only: never source/eval a state file or interpret quotes/backslashes.
@@ -12,7 +12,7 @@ function sam_display_read() {
         [[ "$line" == *=* ]] || continue
         key="${line%%=*}" value="${line#*=}"
         case "$key" in
-            game|rom_path|core|setname|mode|timer|start_time|active|game_kept|owner_pid)
+            game|rom_path|core|setname|mode|timer|start_time|active|game_kept|owner_pid|owner_start)
                 printf -v "sam_display_$key" '%s' "$value" ;;
         esac
     done < "$sam_display_state_file"
@@ -21,9 +21,14 @@ function sam_display_read() {
 function sam_display_write() {
     [[ "${sam_status_enabled,,}" == yes ]] || return 0
     local active="$1" mode="$2" duration="$3" started="$4" kept="${5:-no}"
+    # The persistent adapter validates this immediate-parent identity before
+    # loading runtime services. Public records describe the Python owner.
+    local owner_pid="${SAM_ENGINE_OWNER_PID:-$$}"
     local proc_line proc_fields key value temp="${sam_display_state_file}.tmp.${BASHPID}"
-    if [[ -z "$sam_display_owner_start" ]]; then
-        read -r proc_line < "/proc/$$/stat" || return 0
+    if [[ -n "${SAM_ENGINE_OWNER_START:-}" ]]; then
+        sam_display_owner_start=$SAM_ENGINE_OWNER_START
+    elif [[ -z "$sam_display_owner_start" || "$sam_display_owner_pid" != "$owner_pid" ]]; then
+        read -r proc_line < "/proc/$owner_pid/stat" || return 0
         read -ra proc_fields <<< "${proc_line##*) }"
         sam_display_owner_start="${proc_fields[19]}"
     fi
@@ -39,7 +44,7 @@ function sam_display_write() {
             printf '%s=%s\n' "$key" "$value"
         done
         printf 'start_time=%s\ntimer=%s\ngame_kept=%s\nowner_pid=%s\nowner_start=%s\n' \
-            "$started" "$duration" "$kept" "$$" "$sam_display_owner_start"
+            "$started" "$duration" "$kept" "$owner_pid" "$sam_display_owner_start"
     } > "$temp" && mv -f "$temp" "$sam_display_state_file"
     [[ ! -f "$temp" ]] || rm -f "$temp"
     return 0
@@ -78,7 +83,7 @@ function sam_display_launch() { # game, ROM path, core, arcade setname, [mode], 
     [[ "${sam_status_enabled,,}" == yes ]] || return 0
     sam_display_read
     # Stop/another session may have taken ownership while this game was loading.
-    [[ "$sam_display_owner_pid" == "$$" && "$sam_display_active" == yes ]] || return 0
+    [[ "$sam_display_owner_pid" == "${SAM_ENGINE_OWNER_PID:-$$}" && "$sam_display_active" == yes ]] || return 0
     sam_display_game="$1" sam_display_core="$3" sam_display_setname="$4"
     sam_display_set_path "$2"
     local mode="${5:-normal}"
@@ -91,7 +96,7 @@ function sam_display_launch() { # game, ROM path, core, arcade setname, [mode], 
 function sam_display_publish() { # timer, deadline; omitted means no countdown
     [[ "${sam_status_enabled,,}" == yes ]] || return 0
     sam_display_read
-    [[ "$sam_display_owner_pid" == "$$" && "$sam_display_active" == yes ]] || return 0
+    [[ "$sam_display_owner_pid" == "${SAM_ENGINE_OWNER_PID:-$$}" && "$sam_display_active" == yes ]] || return 0
     local duration="${1:-0}" deadline="${2:-0}" started="$sam_display_start_time"
     [[ "$started" =~ ^[0-9]+$ ]] || started=0
     if [[ "$duration" =~ ^[0-9]+$ && "$deadline" =~ ^[0-9]+$ ]] && (( duration > 0 && deadline >= duration )); then
@@ -117,7 +122,7 @@ function sam_display_exit() {
     [[ "${sam_status_enabled,,}" == yes ]] || return 0
     sam_display_read
     # An older session exiting must not erase a newer session's status.
-    if [[ "$sam_display_owner_pid" == "$$" && "$sam_display_active" == yes ]]; then
+    if [[ "$sam_display_owner_pid" == "${SAM_ENGINE_OWNER_PID:-$$}" && "$sam_display_active" == yes ]]; then
         sam_display_off
     fi
 }

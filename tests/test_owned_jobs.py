@@ -6,6 +6,50 @@ import test_shell
 
 @unittest.skipUnless(Path('/proc/self/stat').exists(), 'Linux procfs required')
 class OwnedJobs(test_shell.Shell):
+    def test_owned_command_waits_for_termination_after_registration_stop(self):
+        self.assertShell(r'''
+job(){ sleep .1; printf complete > "$mrsamtmp/command-complete"; }
+wait(){
+    if [[ "${wait_stop_reported:-0}" == 0 && "${1:-}" != -f ]]; then
+        wait_stop_reported=1
+        sam_pid_start "$sam_launch_pid"
+        [[ "$sam_proc_start" == "$sam_launch_start" ]]
+        return 147
+    fi
+    builtin wait "$@"
+}
+sam_run_owned_command job
+[[ $(<"$mrsamtmp/command-complete") == complete ]]
+''')
+
+    def test_proc_identity_ignores_protocol_ifs(self):
+        self.assertShell(r'''
+sam_pid_start "$BASHPID"; expected=$sam_proc_start
+IFS=$'\t'
+sam_pid_start "$BASHPID"
+[[ "$sam_proc_start" == "$expected" && "$sam_proc_group" =~ ^[1-9][0-9]*$ ]]
+''')
+
+    def test_menu_stop_signal_defers_until_child_identity_registered(self):
+        self.assertShell(r'''
+sam_engine_adapter_verified=1
+job(){ sleep 60; }
+sam_pid_start "$BASHPID"; owner=$BASHPID owner_start=$sam_proc_start
+original_pid_start=$(declare -f sam_pid_start)
+injected=0
+sam_pid_start(){
+    if [[ "$1" == "$BASHPID" && "$injected" == 0 ]]; then
+        injected=1
+        kill -USR1 "$BASHPID"
+    fi
+    eval "$original_pid_start"
+    sam_pid_start "$1"
+}
+trap '[[ -n "$sam_launch_pid" && "$sam_launch_start" =~ ^[0-9]+$ ]]; sam_cancel_launch_job; printf done > "$mrsamtmp/menu-signal"' USR1
+sam_job_spawn sam_launch job
+[[ -f "$mrsamtmp/menu-signal" && -z "$sam_launch_pid" ]]
+''')
+
     # Run only this class's tests; inherited Shell tests are tested separately.
     def test_group_registration_restores_monitor_and_traps_and_excludes_other_jobs(self):
         self.assertShell(r'''

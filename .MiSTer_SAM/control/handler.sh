@@ -7,12 +7,12 @@ sam_control_generation=0
 sam_control_publish() {
     [[ "${sam_status_enabled,,}" == yes && -r "$sam_control_helper" ]] || return 0
     sam_display_read
-    [[ "$sam_display_owner_pid" == "$$" && "$sam_display_active" == yes ]] || return 0
+    [[ "$sam_display_owner_pid" == "${SAM_ENGINE_OWNER_PID:-$$}" && "$sam_display_active" == yes ]] || return 0
     mkdir -p "$sam_control_root"
     local temp="$sam_control_root/status.tmp.$$"
     {
         printf 'owner_pid=%s\nowner_start=%s\nstart_time=%s\nrom_path=%s\n' \
-            "$$" "$sam_display_owner_start" "$sam_display_start_time" "$sam_display_rom_path"
+            "${SAM_ENGINE_OWNER_PID:-$$}" "$sam_display_owner_start" "$sam_display_start_time" "$sam_display_rom_path"
         printf 'generation=%s\nready=%s\npaused=%s\nremaining_seconds=%s\n' \
             "$sam_control_generation" "$1" "${sam_paused:-0}" "${sam_frozen:-0}"
     } > "$temp" && mv -f "$temp" "$sam_control_root/status"
@@ -27,7 +27,7 @@ sam_request_next() {
 sam_control_tick() {
     [[ -s "$sam_control_root/pending.json" && -r "$sam_control_helper" ]] || return 0
     local request action
-    read -r request action <<< "$(python3 "$sam_control_helper" claim --owner "$$")"
+    read -r request action <<< "$(python3 "$sam_control_helper" claim --owner "${SAM_ENGINE_OWNER_PID:-$$}")"
     [[ -n "$request" ]] || return 0
     case "$action" in
         pause)

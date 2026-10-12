@@ -248,7 +248,8 @@ def submit(request, expected=None, *, journaled=True):
         return code, body
 
 
-def claim(pid):
+def claim_request(pid, start=None):
+    """Claim in the warm owner without starting another Python interpreter."""
     pending = read_json(ROOT / 'pending.json')
     if not pending: return
     try:
@@ -263,7 +264,8 @@ def claim(pid):
     state = owner()
     if time.monotonic() > pending['expires']:
         code, result = 503, 'Command expired before SAM accepted it'
-    elif not state or int(state['owner_pid']) != pid:
+    elif (not state or int(state['owner_pid']) != pid
+          or (start is not None and state['owner_start'] != str(start))):
         code, result = 409, 'SAM owner changed'
     else:
         code, result = check_current(request, pending)
@@ -273,6 +275,13 @@ def claim(pid):
         return
     # No path or arbitrary command crosses into the shell: two allowlisted tokens.
     (ROOT / 'pending.json').unlink(missing_ok=True)
+    return request
+
+
+def claim(pid):
+    request = claim_request(pid)
+    if not request:
+        return
     print(request['request_id'], request['action'])
 
 

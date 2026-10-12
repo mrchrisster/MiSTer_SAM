@@ -4,8 +4,16 @@ SAM selects and launches games while MiSTer is idle. This `test` branch contains
 
 The [coordinator architecture](docs/ARCHITECTURE.md) now separates input lifecycle
 decisions, local command routing and foreground session ownership. CLI, menu and
-MCP commands share a gateway; the existing Bash selection/launch engine remains
-the backend during the staged migration.
+MCP commands share a gateway. The test branch now uses a Python session owner
+with one persistent Bash adapter for existing selection, launch and cleanup.
+Normal, roulette, M82 and commercial modes share that owner. See
+[the session engine](docs/SESSION_ENGINE.md) for its protocol and rollback.
+
+For the baseline core/ROM/input/filter audit and proposed module
+contracts, see the [SAM functionality overview](docs/SAM_FUNCTIONAL_OVERVIEW.md).
+It distinguishes current behavior from the proposed shared-engine design.
+The [session-engine research](docs/SESSION_ENGINE_RESEARCH_2026-10-11.md) records
+the isolated prototype, native measurements and implementation gates.
 
 The HID keyboard and mouse readers and repeated joystick startup snapshots are retained. MCP resolves supported saved MiSTer controller definitions automatically, then controllerdb, then generic activity. Owner validation, startup cancellation and cleanup prevent stopped sessions from surviving or starting late. There is no Unix socket or additional control daemon. `partun` has been removed; archive discovery uses the bundled Python `samindex` and pinned catalog in one scan.
 

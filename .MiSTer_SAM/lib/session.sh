@@ -48,6 +48,18 @@ sam_session_is_current() {
     [[ "$sam_session_owner_pid:$sam_session_owner_start" == "$sam_owner" ]]
 }
 
+sam_engine_orphan_pending() {
+    sam_session_read_owner || return 1
+    local line pid= ticks= owner= marker="$mrsamtmp/session-$sam_session_owner_pid:$sam_session_owner_start/adapter-owner"
+    [[ -f "$marker" && ! -L "$marker" ]] || return 1
+    while IFS= read -r line; do
+        case "$line" in pid=*) pid=${line#*=} ;; start=*) ticks=${line#*=} ;; owner=*) owner=${line#*=} ;; esac
+    done < "$marker"
+    [[ "$owner" == "$sam_session_owner_pid:$sam_session_owner_start" &&
+       "$pid" =~ ^[1-9][0-9]*$ && "$ticks" =~ ^[0-9]+$ ]] || return 1
+    sam_pid_start "$pid" && [[ "$sam_proc_start" == "$ticks" ]]
+}
+
 sam_session_write_phase() { # caller holds the transition lock
     local temp="$mrsamtmp/session-owner.tmp.$BASHPID"
     if ! printf 'pid=%s\nstart=%s\nphase=%s\nlaunch=%s\n' \
@@ -63,8 +75,17 @@ sam_session_begin() {
     [[ "$BASHPID" == "$$" ]] || return 1
     sam_pid_start "$$" || return 1
     local owner="$$:$sam_proc_start" rc=0
+    if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+        [[ "${SAM_ENGINE_OWNER_PID:-}" == "$PPID" ]] || return 1
+        sam_pid_start "$SAM_ENGINE_OWNER_PID" && [[ "$sam_proc_start" == "${SAM_ENGINE_OWNER_START:-}" ]] || return 1
+        owner="$SAM_ENGINE_OWNER_PID:$SAM_ENGINE_OWNER_START"
+    fi
     mkdir -p "$mrsamtmp" || return 1
     sam_session_lock || return 1
+    if sam_engine_orphan_pending; then
+        echo 'SAM: prior session adapter is still cleaning up; start refused.' >&2
+        sam_session_unlock; return 1
+    fi
     if sam_cleanup_failure_pending; then
         echo 'SAM: prior owned-job cleanup is incomplete; start refused.' >&2
         sam_session_unlock; return 1
@@ -88,6 +109,10 @@ sam_session_begin() {
         printf '%s\n' "${sam_config_roulette_snapshot:-}" > "$sam_session/config-roulette"
         [[ ! -f "$gamelistpath/.excludetags" ]] || cp -- "$gamelistpath/.excludetags" "$sam_session/config-tags"
         sam_session_started=1
+        if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+            sam_pid_start "$$" || { sam_session_unlock; return 1; }
+            printf 'pid=%s\nstart=%s\nowner=%s\n' "$$" "$sam_proc_start" "$sam_owner" > "$sam_session/adapter-owner"
+        fi
         if declare -F sam_diagnostic >/dev/null; then
             sam_diagnostic session_start "mode=${sam_mode:-${SAM_MODE:-}} target=${SAM_TARGET_CORE:-}" "$sam_owner" || true
         fi
@@ -99,7 +124,7 @@ sam_session_begin() {
 sam_session_ui_handoff_begin() {
     [[ "${SAM_START_FROM_UI:-0}" == 1 ]] || return 0
     # Publish before session-owner: no physical dismissal can race admission.
-    printf 'owner_pid=%s\nowner_start=%s\nstate=pending\n' "$$" "${sam_owner#*:}" > "$sam_session/ui-start"
+    printf 'owner_pid=%s\nowner_start=%s\nstate=pending\n' "${sam_owner%%:*}" "${sam_owner#*:}" > "$sam_session/ui-start"
 }
 
 sam_session_ui_handoff_ready() {
@@ -109,7 +134,7 @@ sam_session_ui_handoff_ready() {
     local temp="$sam_session/ui-start.tmp.$$"
     # Keep the completion timestamp so already queued UI input stays rejected.
     printf 'owner_pid=%s\nowner_start=%s\nstate=ready\nready_at=%s\n' \
-        "$$" "${sam_owner#*:}" "$EPOCHREALTIME" > "$temp" && mv -f -- "$temp" "$sam_session/ui-start" || return 1
+        "${sam_owner%%:*}" "${sam_owner#*:}" "$EPOCHREALTIME" > "$temp" && mv -f -- "$temp" "$sam_session/ui-start" || return 1
     sam_ui_start_ready=1
 }
 
@@ -202,6 +227,9 @@ sam_session_exit() {
         sam_diagnostic_exit "$status" "$reason" "$cleanup_status" "$sam_exit_phase" \
             "$sam_exit_core" "$sam_exit_game" "$sam_exit_rom" || true
     fi
+    if [[ "${sam_engine_adapter_verified:-0}" == 1 ]] && ((cleanup_status != 0)); then
+        exit 1
+    fi
     return "$status"
 }
 
@@ -287,6 +315,9 @@ sam_session_cleanup_impl() {
                         sam_exit_trace launch_barrier_published
                     fi
                     sam_session_unlock
+                    if [[ "${sam_engine_menu_exit:-0}" == 1 ]]; then
+                        sam_menu_dispatch_quiesced_owner "${sam_owner%%:*}" "${sam_owner#*:}"
+                    fi
                 fi
             else
                 sam_diagnostic_cleanup_status=$critical_rc

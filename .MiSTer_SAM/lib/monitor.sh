@@ -69,6 +69,7 @@ sam_monitor_help() { # Static session-local footer; never runs in input/timer lo
         set-option -t "$target" 'status-format[1]' "$line1" \; \
         set-option -t "$target" 'status-format[2]' "$line2" || return 1
     if [[ "$session" == SAM ]]; then
+        tmux bind-key -T "$table" C-c detach-client || return 1
         # Swallow terminal Y without a helper process. The internal M82 command
         # uses send-keys directly and still reaches the owner's verified pane.
         tmux bind-key -T "$table" y if-shell -F 0 '' \; \

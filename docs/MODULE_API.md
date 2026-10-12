@@ -46,8 +46,14 @@ Runtime state, commands and selection records are literal data and never sourced
 | audio_stop, update_assets | Stop audio or update enabled module assets |
 
 Services are `choose_core`, `pick_candidate`, `commit`, `mode_key`, `timer_begin`,
-`timer_tick`, and `session_loop`. Normal mode uses the prepared queue. M82 and video
-retain their ordered/timed transition implementations inside compatibility modules.
+`timer_tick`, and `session_loop` for the legacy comparison backend. The resident
+engine additionally exposes `engine_take`, `engine_launch`, `engine_timer_begin`,
+`engine_timer_tick` and `engine_key`. Defaults are registered before modules load,
+so an enabled module can replace them without editing the owner or normal picker.
+M82/video bind their programme providers; normal mode keeps the prepared queue.
+The fixed protocol and return conventions are described in [SESSION_ENGINE.md](SESSION_ENGINE.md).
+`session_loop` replacements apply only to `SAM_ENGINE=legacy`; new programme
+modules must provide operations on the shared engine instead of another loop.
 
 Preparation has one owned, low-priority process and private temporary files. It
 must not launch cores, publish active-game status, change live configuration, or

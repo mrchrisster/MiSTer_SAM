@@ -1,0 +1,10 @@
+policy	cores	NES,SNES,Genesis
+policy	demo_timer	120
+policy	play_timer	0
+policy	input_transition	stop
+policy	input_demo	stop
+policy	input_play	stop
+policy	ui	pause
+item	game	NES	Fixture_NES_Game
+item	game	SNES	Fixture_SNES_Game
+item	game	Genesis	Fixture_Genesis_Game

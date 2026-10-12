@@ -78,7 +78,9 @@ sam_run_owned_command() { # cancellable foreground setup work for a mode
     sam_cancel_launch_job || return 1
     sam_job_spawn sam_launch "$@" || return 1
     local command_rc=0
-    wait "$sam_launch_pid" || command_rc=$?
+    # Registration deliberately STOPs/CONTinues the child. A queued stop-state
+    # notification is not the command's exit status; wait for termination.
+    wait -f "$sam_launch_pid" || command_rc=$?
     sam_cancel_launch_job || return 1
     return "$command_rc"
 }

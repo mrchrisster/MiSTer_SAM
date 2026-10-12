@@ -49,6 +49,9 @@ function sam_start() {
 
 sam_start_admitted() { # caller holds session-start.lock; outputs caller-local pane_pid/core
     local requested_core=$1 if_idle=$2
+    if sam_engine_orphan_pending; then
+        echo 'SAM ERROR: Previous session adapter is still cleaning up.' >&2; return 1
+    fi
     local have_owner=0 occupied_rc=0
     if sam_session_read_owner && sam_pid_start "$sam_session_owner_pid" &&
         [[ "$sam_proc_start" == "$sam_session_owner_start" ]]; then have_owner=1; fi
@@ -93,8 +96,9 @@ sam_start_admitted() { # caller holds session-start.lock; outputs caller-local p
     if ((if_idle == 0)); then rm -f -- "$mrsamtmp/autostart-empty.json" || return 1; fi
     # Daemons must not retain admission if this launcher is cancelled before
     # its explicit unlock. Close only the inherited copy in spawned children.
-    (exec {start_lock_fd}>&-; unset SAM_START_FROM_UI; mcp_start)
-    printf -v command 'SAM_START_FROM_UI=%q exec %q loop_core %q' "${SAM_START_FROM_UI:-0}" "${SAM_ENTRY:-$misterpath/Scripts/MiSTer_SAM_on.sh}" "$core"
+    (exec {start_lock_fd}>&-; unset SAM_START_FROM_UI SAM_ENGINE; mcp_start)
+    printf -v command 'SAM_START_FROM_UI=%q SAM_ENGINE=%q exec %q loop_core %q' \
+        "${SAM_START_FROM_UI:-0}" "${SAM_ENGINE:-python}" "${SAM_ENTRY:-$misterpath/Scripts/MiSTer_SAM_on.sh}" "$core"
     pane_pid=$(exec {start_lock_fd}>&-; tmux new-session -P -F '#{pane_pid}' -d -x 180 -y 40 -n 'SAM: next / previous / mute' -s SAM "$command") || {
         echo 'SAM ERROR: Could not create the SAM session.' >&2; return 1;
     }
@@ -312,7 +316,7 @@ function kill_all_sams() {
 function exit_sam() { # exit_sam [menu|game]
     local exit_mode=${1:-menu} # Default to menu if no argument
     local own_exit=0 line owner_pid= owner_start=
-    if [[ "$exit_mode" == game && "${sam_owner:-}" == "$$:"* &&
+    if [[ "$exit_mode" == game && "${sam_owner:-}" == "${SAM_ENGINE_OWNER_PID:-$$}:"* &&
           "${sam_session:-}" == "$mrsamtmp/session-${sam_owner:-}" ]]; then
         # Monitor Play runs inside the owner, rather than through the external
         # stop command. Validate/capture first, then cancel jobs before reload.
@@ -321,7 +325,7 @@ function exit_sam() { # exit_sam [menu|game]
             case "$line" in pid=*) owner_pid=${line#*=} ;; start=*) owner_start=${line#*=} ;; esac
         done < "$mrsamtmp/session-owner"
         [[ "$owner_pid:$owner_start" == "$sam_owner" ]] || return 1
-        sam_pid_start "$$" && [[ "$sam_proc_start" == "$owner_start" ]] || return 1
+        sam_pid_start "${SAM_ENGINE_OWNER_PID:-$$}" && [[ "$sam_proc_start" == "$owner_start" ]] || return 1
         sam_exit_reload_path=
         if [[ -r "$sam_session/launch-path" ]]; then
             IFS= read -r sam_exit_reload_path < "$sam_session/launch-path" || true
@@ -501,6 +505,13 @@ function exit_sam_fast() {
     sam_finish_audio_stop menu "${sam_exit_expected_owner:-}"
 }
 
+sam_menu_owned_adapter_completed() {
+    [[ "${sam_engine_adapter_verified:-0}" == 1 && "${sam_session_cleaned:-0}" == 1 &&
+       "$1:$2" == "${sam_owner:-}" && "$1" == "${SAM_ENGINE_OWNER_PID:-}" &&
+       "$2" == "${SAM_ENGINE_OWNER_START:-}" &&
+       "${sam_session:-}" == "$mrsamtmp/session-${sam_owner:-}" && ! -e "$sam_session/alive" ]]
+}
+
 sam_menu_exit_guard() {
     local line pid= ticks= pending=
     if [[ -r "$mrsamtmp/session-owner" ]]; then
@@ -512,7 +523,11 @@ sam_menu_exit_guard() {
         IFS= read -r pending < "$mrsamtmp/menu-audio-owner" || return 1
         [[ -z "$pid" || "$pid:$ticks" == "$pending" ]] || return 1
     fi
-    if sam_pid_start "$pid" && [[ "$sam_proc_start" == "$ticks" ]]; then return 1; fi
+    if sam_pid_start "$pid" && [[ "$sam_proc_start" == "$ticks" ]]; then
+        # Only the verified child completing its own Python owner's cleanup
+        # may converge Menu while that owner keeps replacement admission closed.
+        sam_menu_owned_adapter_completed "$pid" "$ticks" || return 1
+    fi
     [[ -z "$pending" ]] || sam_menu_audio_complete "$pending" || return 1
     return 0
 }
@@ -603,7 +618,9 @@ sam_menu_audio_restore() { # [expected PID start]; never restore a replacement's
     [[ -z "$pending" || "$pid:$ticks" == "$pending" ||
        ( "$expected" == : && -z "$pid" && -z "$ticks" ) ]] || return 1
     # An alive owner may still launch. Never unmute it even if CORENAME is stale.
-    if sam_pid_start "$pid" && [[ "$sam_proc_start" == "$ticks" ]]; then return 1; fi
+    if sam_pid_start "$pid" && [[ "$sam_proc_start" == "$ticks" ]]; then
+        sam_menu_owned_adapter_completed "$pid" "$ticks" || return 1
+    fi
     [[ -z "$pending" ]] || sam_menu_audio_complete "$pending" || return 1
     [[ -r "${SAM_CORENAME_FILE:-/tmp/CORENAME}" ]] || return 1
     IFS= read -r core < "${SAM_CORENAME_FILE:-/tmp/CORENAME}" || true
