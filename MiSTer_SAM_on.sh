@@ -13,6 +13,24 @@ sam_exit_trace() {
 }
 sam_exit_trace entry
 sam_root="${SAM_ROOT:-/media/fat/Scripts/.MiSTer_SAM}"
+if [[ "${1:-}" == --engine-hosted-adapter ]]; then
+    source "$sam_root/lib/engine-adapter.sh" || exit 1
+    source "$sam_root/lib/engine-hosted.sh" || exit 1
+    sam_engine_hosted_parent_valid || { echo 'SAM: invalid hosted adapter controller.' >&2; exit 64; }
+    exec 3>&1
+    exec 1>&2
+    trap 'sam_engine_stop_pending=1' USR1
+    # Cover blocking configuration helpers too. The same guardian switches to
+    # guarded session cleanup once the unique adapter owner is published.
+    source "$sam_root/lib/state.sh" || exit 1
+    sam_engine_guardian_preflight_begin || exit 1
+    trap 'sam_engine_guardian_preflight_exit "$?"' EXIT
+    shift
+    source "$sam_root/lib/runtime.sh" || exit 1
+    sam_load_runtime || exit 1
+    sam_engine_adapter_main "${1:-}"
+    exit $?
+fi
 if [[ "${1:-}" == --engine-adapter ]]; then
     source "$sam_root/lib/engine-adapter.sh" || exit 1
     sam_engine_parent_valid || { echo 'SAM: invalid session adapter owner.' >&2; exit 64; }
@@ -62,6 +80,20 @@ if [[ "${1:-}" == --gateway-backend ]]; then
     sam_gateway_backend=1
     shift
 fi
+case "${1,,}" in
+    start|restart|next|previous|mute|m82_play|pause|resume|play|ignore|stop|kill|exit_to_menu|exit_to_game)
+        # The tracked MCP Start launcher uses --gateway-backend too. Other
+        # backend actions deliberately keep their existing implementation so
+        # the resident controller's legacy gateway cannot recurse into itself.
+        if [[ "$sam_gateway_backend" != 1 || "${1,,}" == start || "${1,,}" == restart ]]; then
+            if [[ -r "$sam_root/lib/controller-client.sh" ]]; then
+                source "$sam_root/lib/controller-client.sh" || exit 1
+                sam_controller_result=0
+                sam_controller_try "$@" || sam_controller_result=$?
+                ((sam_controller_result == 125)) || exit "$sam_controller_result"
+            fi
+        fi ;;
+esac
 case "${1,,}" in
     update)
         sam_release_branch=${SAM_INSTALL_BRANCH:-test}

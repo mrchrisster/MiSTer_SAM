@@ -21,7 +21,13 @@ sam_emit() { # policy fails fast; teardown must attempt every resource owner
     shift
     for handler in ${SAM_HOOKS[$event]-}; do
         rc=0
+        case "$event" in session_setup|session_start|display_startup|launch_validate|launch_info|launch_observe|display_launch|display_publish|controls_ready|countdown_start)
+            if [[ -n "${SAM_EXIT_TRACE:-}" ]] && declare -F sam_exit_trace >/dev/null; then sam_exit_trace "hook_begin:$event:$handler"; fi ;;
+        esac
         "$handler" "$@" || rc=$?
+        case "$event" in session_setup|session_start|display_startup|launch_validate|launch_info|launch_observe|display_launch|display_publish|controls_ready|countdown_start)
+            if [[ -n "${SAM_EXIT_TRACE:-}" ]] && declare -F sam_exit_trace >/dev/null; then sam_exit_trace "hook_end:$event:$handler:$rc"; fi ;;
+        esac
         if ((rc != 0)); then
             case "$event" in
                 session_stop|audio_stop|display_shutdown|display_exit)

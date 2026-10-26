@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Install/update a complete SAM release; preserve user configuration and lists."""
 import argparse
+from contextlib import contextmanager
 import importlib.util
 import ast
 import os
@@ -170,6 +171,11 @@ def curl_ca_options():
 def checked_source(root):
     required = ['MiSTer_SAM_on.sh', 'MiSTer_SAM_start.sh', 'MiSTer_SAM.ini', 'MiSTer_SAM_install.py',
                 '.MiSTer_SAM/lib/modules.sh', '.MiSTer_SAM/lib/engine.sh', '.MiSTer_SAM/lib/cores.sh',
+                '.MiSTer_SAM/lib/core-registry.sh', '.MiSTer_SAM/lib/bootstrap.sh',
+                '.MiSTer_SAM/lib/controller-client.sh', '.MiSTer_SAM/lib/engine-hosted.sh',
+                '.MiSTer_SAM/lib/engine-adapter.sh', '.MiSTer_SAM/lib/session-view.sh',
+                '.MiSTer_SAM/sam/controller.py', '.MiSTer_SAM/sam/controller_guardian.py',
+                '.MiSTer_SAM/sam/session_engine.py',
                 '.MiSTer_SAM/MiSTer_SAM_MCP.py', '.MiSTer_SAM/samindex', '.MiSTer_SAM/mbc',
                 '.MiSTer_SAM/samindex.py', '.MiSTer_SAM/sam_catalog.py', '.MiSTer_SAM/sam_zip.py',
                 '.MiSTer_SAM/sam_mgl.py', '.MiSTer_SAM/sam_compat.json',
@@ -305,6 +311,52 @@ def write_changed(target, contents):
     target.write_text(contents, encoding='utf-8')
 
 
+def live_session(runtime=Path('/tmp/.SAM_tmp'), proc=Path('/proc')):
+    owner = runtime / 'session-owner'
+    if owner.is_symlink():
+        raise UpdateFailure('Cannot verify the SAM owner for update.')
+    if not owner.exists():
+        return False
+    if owner.is_symlink() or not owner.is_file() or owner.stat().st_size > 4096:
+        raise UpdateFailure('Cannot verify the SAM owner for update.')
+    try:
+        fields = dict(line.split('=', 1) for line in owner.read_text().splitlines())
+        pid, start = fields['pid'], fields['start']
+        if not re.fullmatch(r'[1-9][0-9]*', pid) or not start.isascii() or not start.isdigit():
+            raise ValueError('Invalid owner identity')
+        current = (proc / pid / 'stat').read_text().rsplit(') ', 1)[1].split()
+        return current[0] not in ('Z', 'X', 'x') and current[19] == start
+    except FileNotFoundError:
+        return False
+    except (OSError, ValueError, KeyError, IndexError):
+        raise UpdateFailure('Cannot verify the SAM owner for update.')
+
+
+@contextmanager
+def update_admission(live, runtime=None):
+    if not live:
+        yield
+        return
+    import fcntl
+    runtime = Path(runtime or os.environ.get('SAM_TMP_ROOT', '/tmp/.SAM_tmp'))
+    runtime.mkdir(parents=True, exist_ok=True)
+    descriptor = os.open(runtime / 'session-start.lock', os.O_CREAT | os.O_RDWR |
+                         getattr(os, 'O_NOFOLLOW', 0), 0o600)
+    deadline = time.monotonic() + 15
+    try:
+        while True:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    raise UpdateFailure('SAM startup is still busy; retry the update when it finishes.')
+                time.sleep(.05)
+        yield
+    finally:
+        os.close(descriptor)
+
+
 def install(source, mister, branch, progress=None):
     progress = progress or UpdateUI()
     progress.stage(3, 'Protecting your settings and installing the update...')
@@ -324,16 +376,21 @@ def install(source, mister, branch, progress=None):
         copy_file(ini, saved / 'MiSTer_SAM.ini')
         progress.note('INI backup: ' + str(saved / 'MiSTer_SAM.ini'))
     live = mister.resolve() == Path('/media/fat')
-    restart_mcp = live and (tmux_exists('MCP') or bool(_mcp_process.processes(payload / 'MiSTer_SAM_MCP.py')))
-    if restart_mcp:
-        progress.note('Stopping the input/idle monitor safely...')
-        progress.sessions_stopped = True
-        stop_mcp()
-    if live and tmux_exists('SAM'):
-        progress.note('Stopping SAM and returning to Menu before replacing files...')
-        progress.sessions_stopped = True
-        subprocess.run(['bash', str(scripts / 'MiSTer_SAM_on.sh'), 'stop'], check=True,
-                       capture_output=True, text=True)
+    # Stop cannot race MCP's next automatic admission. Menu updates already
+    # own menu.lock; this separate short transition lock works for both callers.
+    with update_admission(live):
+        restart_mcp = live and (tmux_exists('MCP') or bool(_mcp_process.processes(payload / 'MiSTer_SAM_MCP.py')))
+        if live and (live_session() or tmux_exists('SAM')):
+            progress.note('Stopping SAM and returning to Menu before replacing files...')
+            progress.sessions_stopped = True
+            subprocess.run(['bash', str(scripts / 'MiSTer_SAM_on.sh'), 'stop'], check=True,
+                           capture_output=True, text=True, timeout=45)
+        if restart_mcp:
+            progress.note('Stopping the input/idle monitor safely...')
+            progress.sessions_stopped = True
+            stop_mcp()
+        if live and (live_session() or Path('/tmp/.SAM_tmp/cleanup-failure').exists()):
+            raise UpdateFailure('SAM cleanup is still pending; retry when it finishes.')
 
     progress.writes_started = True
     progress.note('Updating scripts and shipped lists; keeping custom files...')
@@ -451,6 +508,9 @@ def cli():
         detail = (error.stderr or '').strip().splitlines()
         summary = detail[-1] if detail else 'command exited with status %s' % error.returncode
         progress.error(UpdateFailure('%s: %s' % (progress.phase or 'Installer command failed', summary)))
+    except subprocess.TimeoutExpired:
+        progress.error(UpdateFailure('Timed out waiting for SAM cleanup.',
+                                     ('Run MiSTer_SAM_on.sh diagnostics, then retry the update.',)))
     except (OSError, RuntimeError, tarfile.TarError, SyntaxError, UnicodeError, ValueError) as error:
         progress.error(error)
     return 1

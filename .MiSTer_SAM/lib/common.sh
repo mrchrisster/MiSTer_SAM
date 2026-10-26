@@ -27,6 +27,10 @@ function init_paths() {
 
 function delete_from_corelist() {
     local target="$1" kind="${2:-}" index
+    # Empty discovery changes readiness, not configured session eligibility.
+    # Keep real module/launch exclusions outside the staged builder effective.
+    if [[ "$kind" != tmp && "${sam_core_registry_active:-0}" == 1 &&
+          "${sam_catalog_runtime_sort:-0}" == 1 ]]; then return 0; fi
     if [[ "$kind" == tmp ]]; then
         for index in "${!corelisttmp[@]}"; do
             [[ "${corelisttmp[$index]}" != "$target" ]] || unset 'corelisttmp[index]'

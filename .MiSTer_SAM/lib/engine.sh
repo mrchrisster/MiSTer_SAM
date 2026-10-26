@@ -20,7 +20,10 @@ sam_cancel_preparation() {
         sam_job_error='Preparation process did not exit'; return 1
     fi
     wait "$sam_worker_pid" 2>/dev/null || true
+    if [[ "${sam_worker_request_fd:-}" =~ ^[0-9]+$ ]]; then exec {sam_worker_request_fd}>&-; fi
+    sam_worker_request_fd=
     sam_worker_pid= sam_worker_start= sam_worker_group= sam_worker_sid=
+    sam_worker_persistent=0 sam_worker_revision=
 }
 
 sam_queue_files() {
@@ -35,42 +38,109 @@ sam_preparation_error() {
     mv -f "$sam_session/error.tmp.$BASHPID" "$sam_session/error"
 }
 
-sam_prepare_worker() {
-    trap - EXIT INT
-    trap 'exit 0' TERM
+sam_preparation_discovery_error() {
+    local context=
+    if [[ -n "${sam_catalog_failure_core:-}" ]]; then
+        context=" core=$sam_catalog_failure_core stage=${sam_catalog_failure_stage:-unknown}"
+    fi
+    [[ -z "${sam_artwork_error_context:-}" ]] || context+=" artwork=[$sam_artwork_error_context]"
+    sam_preparation_error "Background catalog discovery failed (status $1)$context"
+}
+
+sam_preparation_background_priority() {
+    renice 10 -p "$BASHPID" >/dev/null 2>&1 || true
+    ionice -c 3 -p "$BASHPID" >/dev/null 2>&1 || true
+    if [[ -n "${sam_artwork_service_pid:-}" && "${sam_artwork_service_background:-0}" != 1 ]] &&
+        sam_pid_start "$sam_artwork_service_pid" && [[ "$sam_proc_start" == "$sam_artwork_service_start" && "$sam_proc_group" == "$BASHPID" ]]; then
+        renice 10 -p "$sam_artwork_service_pid" >/dev/null 2>&1 || true
+        ionice -c 3 -p "$sam_artwork_service_pid" >/dev/null 2>&1 || true
+        sam_artwork_service_background=1
+    fi
+}
+
+sam_prepare_batch() {
     sam_preparing=1
     sam_job="$sam_session/jobs/$sam_job_serial"
     mkdir -p "$sam_job/lists" "$sam_job/lists/.checked"
-    trap 'printf done > "$sam_job/done"' EXIT
     sam_core_policy_refresh || { sam_preparation_error "$sam_core_reason"; return 0; }
-    renice 10 -p "$BASHPID" >/dev/null 2>&1 || true
-    ionice -c 3 -p "$BASHPID" >/dev/null 2>&1 || true
+    sam_exit_trace worker_policy_ready
     gamelistpathtmp="$sam_job/lists"
     tmpfile="$sam_job/filter" tmpfilefilter="$sam_job/rating"
     corelistfile="$sam_job/corelist"
     # Candidate records use policy revision; control generation advances only
     # on a real launch and must not invalidate an already prepared successor.
     sam_generation=$sam_revision
-    local c record path i attempts rc existing reset number
+    local c record path i attempts rc existing reset number priority_deferred=0 discovery_done=0 defer_arcade=0 seed_status=
     local enabled_count=${#corelist[@]} prepared=0 bootstrap_core=
     local bootstrap_active=${sam_bootstrap:-0}
     sam_queue_files
     existing=${#sam_queue[@]}
+    if [[ "${sam_core_registry_active:-0}" == 1 && "$bootstrap_active" == 1 &&
+          "${SAM_MODE:-ALL}" != SINGLE && "${sam_launch_serial:-0}" == 0 ]] && ((existing == 0)); then
+        for c in "${sam_allowed_cores[@]}"; do
+            [[ "$c" == arcade ]] || continue
+            if [[ ! -e "$sam_session/bootstrap-attempted-arcade" ]] &&
+                { ! sam_core_registry_read arcade || [[ "$sam_registry_state" == pending ]]; }; then
+                : > "$sam_session/bootstrap-attempted-arcade" || return 1
+                rc=0; sam_bootstrap_catalog arcade || rc=$?
+                printf '%s\n' "$rc" > "$sam_session/bootstrap-attempted-arcade" || return 1
+                if ((rc > 1)); then sam_preparation_error 'Arcade startup catalog failed'; return 0; fi
+            fi
+            if [[ -r "$sam_session/bootstrap-attempted-arcade" ]]; then
+                IFS= read -r seed_status < "$sam_session/bootstrap-attempted-arcade" || true
+                [[ "$seed_status" != 1 ]] || defer_arcade=1
+            fi
+            break
+        done
+    fi
+    # The first playable record is startup work. Inherit the owner's ordinary
+    # priorities until it is published; queue refill and discovery remain idle.
+    if [[ "${sam_launch_serial:-0}" == 0 ]] && ((existing == 0)); then
+        priority_deferred=1
+    else
+        sam_preparation_background_priority
+    fi
+    # Ready successors take priority over discovery. A slow catalogue scan must
+    # not start before a depleted queue has been refilled from available cores.
+    if { [[ "${sam_engine_adapter_verified:-0}" != 1 ]] || ((existing >= 2)); } &&
+        [[ "${sam_core_registry_active:-0}" == 1 && "${sam_launch_serial:-0}" != 0 ]] &&
+        sam_core_registry_read arcade && [[ "$sam_registry_state:$sam_registry_complete" == ready:0 ]]; then
+        for c in "${corelist[@]}"; do
+            [[ "$c" != arcade ]] || continue
+            if sam_core_registry_read "$c" && [[ "$sam_registry_complete" == 1 ]]; then continue; fi
+            discovery_done=1
+            rc=0; sam_catalog_background_step 1 || rc=$?
+            if ((rc > 1)); then sam_preparation_discovery_error "$rc"; return 0; fi
+            break
+        done
+    fi
     for record in "${sam_queue[@]}"; do
         sam_record_read "$record" || continue
         printf '%s\n' "$sam_record_path" >> "$sam_job/reserved-$sam_record_core"
         delete_from_corelist "$sam_record_core" tmp
     done
     (( ${#corelisttmp[@]} )) || corelisttmp=("${sam_allowed_cores[@]}")
-    for ((i=existing; i<2; i++)); do
+    local queue_target=2
+    # Publish the first seed immediately, then retain two successors while the
+    # worker builds full catalogues. This does not delay first-game consumption.
+    if [[ "${sam_engine_adapter_verified:-0}" == 1 && "$bootstrap_active" == 1 ]]; then queue_target=3; fi
+    for ((i=existing; i<queue_target; i++)); do
         attempts=0
         while (( attempts < enabled_count + 3 )); do
             [[ -e "$sam_session/alive" ]] || return 0
-            if [[ "$bootstrap_active" == 1 && -n "$bootstrap_core" ]]; then nextcore=$bootstrap_core
+            if [[ "${sam_core_registry_active:-0}" != 1 && "$bootstrap_active" == 1 && -n "$bootstrap_core" ]]; then nextcore=$bootstrap_core
             else
                 rc=0; sam_service choose_core || rc=$?
                 if (( rc > 1 )); then sam_preparation_error "${sam_core_reason:-Core selection failed (status $rc)}"; return 0; fi
-                (( rc == 0 )) || break
+                if ((rc != 0)); then
+                    if [[ "${sam_core_registry_active:-0}" == 1 ]] && ((discovery_done == 0)) && sam_catalog_pending; then
+                        discovery_done=1
+                        rc=0; sam_catalog_background_step "$defer_arcade" || rc=$?
+                        if ((rc > 1)); then sam_preparation_discovery_error "$rc"; return 0; fi
+                        continue
+                    fi
+                    break
+                fi
             fi
             c=$nextcore
             rc=0; sam_core_require "$c" || rc=$?
@@ -78,18 +148,34 @@ sam_prepare_worker() {
             if (( rc == 1 )); then
                 sam_preparation_error "Selector proposed a rejected core: $sam_core_reason"; return 0
             fi
+            if [[ "${sam_core_registry_active:-0}" == 1 ]]; then
+                if ! sam_core_registry_read "$c" || [[ "$sam_registry_state" != ready ]]; then
+                    attempts=$((attempts+1))
+                    delete_from_corelist "$c" tmp
+                    continue
+                fi
+            fi
             : >> "$sam_session/consumed/$c"
             : >> "$sam_job/reserved-$c"
-            sam_candidate_cover= sam_candidate_reset=no sam_candidate_policy=
+            sam_candidate_cover= sam_candidate_reset=no sam_candidate_policy= sam_candidate_mgl= sam_candidate_setname=
             rc=0
+            sam_exit_trace "candidate_pick_begin:$c"
             if sam_service pick_candidate "$c"; then
+                sam_exit_trace "candidate_pick_end:$c:0"
+                sam_exit_trace "candidate_validate_begin:$c"
                 if check_rom "$c" && sam_emit candidate_prepare "$c" "$rompath"; then
+                    sam_exit_trace "candidate_validate_end:$c:0"
                     number=$((sam_job_serial * 10 + i))
                     printf -v record '%s/ready/%08d.record' "$sam_session" "$number"
                     [[ -e "$sam_session/alive" ]] || return 0
-                    [[ "$bootstrap_active" != 1 ]] || bootstrap_core=$c
+                    [[ "$bootstrap_active" != 1 || "${sam_core_registry_active:-0}" == 1 ]] || bootstrap_core=$c
                     prepared=$((prepared+1))
-                    sam_record_write "$record" "$c" "$rompath" "${rompath##*/}" "" "$sam_revision" || return 1
+                    sam_record_write "$record" "$c" "$rompath" "${rompath##*/}" "${sam_candidate_setname:-}" "$sam_revision" || return 1
+                    sam_exit_trace "candidate_published:$c"
+                    if ((priority_deferred)); then
+                        sam_preparation_background_priority
+                        priority_deferred=0
+                    fi
                     printf '%s\n' "$rompath" >> "$sam_job/reserved-$c"
                     delete_from_corelist "$c" tmp
                     (( ${#corelisttmp[@]} )) || corelisttmp=("${sam_allowed_cores[@]}")
@@ -101,7 +187,7 @@ sam_prepare_worker() {
                         return 0
                     fi
                 fi
-            else rc=$?; fi
+            else rc=$?; sam_exit_trace "candidate_pick_end:$c:$rc"; fi
             if ((rc == 3)); then
                 sam_preparation_error "Artwork catalog or cover download failed for $c"
                 return 0
@@ -112,13 +198,16 @@ sam_prepare_worker() {
             delete_from_corelist "$c" tmp
             (( ${#corelisttmp[@]} )) || corelisttmp=("${sam_allowed_cores[@]}")
         done
+        # Legacy callers retain the one-seed handoff. Resident workers continue
+        # filling successors; each record is visible immediately on publication.
+        if [[ "${sam_engine_adapter_verified:-0}" != 1 && "${sam_core_registry_active:-0}" == 1 && "$bootstrap_active" == 1 ]] && ((prepared > 0)); then break; fi
     done
     # Extend discovery only after filling the small ready queue. This job exits
     # after one catalog; the next event schedules more work, never another daemon.
     rc=0
-    sam_catalog_background_step || rc=$?
+    if ((discovery_done == 0)); then sam_catalog_background_step "$defer_arcade" || rc=$?; fi
     if ((rc > 1)); then
-        sam_preparation_error "Background catalog discovery failed (status $rc)"; return 0
+        sam_preparation_discovery_error "$rc"; return 0
     fi
     sam_queue_files
     if (( prepared == 0 && existing == 0 && ${#sam_queue[@]} == 0 )) && ! sam_catalog_pending; then
@@ -133,14 +222,95 @@ sam_prepare_worker() {
     fi
 }
 
+# Legacy/source-only callers retain one-shot preparation and its completion
+# receipt. Warm adapters keep the same registered worker for a policy revision.
+sam_prepare_worker() {
+    trap - EXIT INT
+    trap 'exit 0' TERM
+    local rc=0
+    sam_prepare_batch || rc=$?
+    printf done > "$sam_job/done"
+    return "$rc"
+}
+
+sam_prepare_persistent() {
+    local request serial revision launch bootstrap rotation extra c allowed
+    local policy_revision=$sam_revision last_serial=0
+    trap 'exit 0' TERM
+    while IFS= read -r -n 4097 request; do
+        [[ ${#request} -le 4096 && -e "$sam_session/alive" ]] || return 1
+        IFS=$'\t' read -r serial revision launch bootstrap rotation extra <<< "$request"
+        [[ "$serial" =~ ^[1-9][0-9]{0,11}$ && "$revision" == "$policy_revision" &&
+           "$launch" =~ ^[0-9]{1,12}$ && "$bootstrap" == [01] && -z "$extra" &&
+           "$rotation" =~ ^[a-z0-9_,]*$ ]] || return 1
+        ((serial > last_serial)) || return 1
+        corelisttmp=()
+        IFS=, read -ra corelisttmp <<< "$rotation"
+        for c in "${corelisttmp[@]}"; do
+            allowed=0
+            for nextcore in "${sam_allowed_cores[@]}"; do [[ "$nextcore" != "$c" ]] || allowed=1; done
+            ((allowed)) || return 1
+        done
+        last_serial=$serial sam_job_serial=$serial sam_launch_serial=$launch sam_bootstrap=$bootstrap
+        sam_prepare_batch || { sam_preparation_error 'Persistent preparation failed'; return 1; }
+        printf done > "$sam_job/done"
+    done
+}
+
+sam_prepare_persistent_begin() {
+    local saved_term saved_usr1 parent=$BASHPID parent_sid had_monitor=0 registered=0
+    local sam_job_stop_pending=0 sam_job_menu_stop_pending=0
+    saved_term=$(trap -p TERM); saved_usr1=$(trap -p USR1)
+    trap 'sam_job_stop_pending=1' TERM
+    trap 'sam_job_menu_stop_pending=1' USR1
+    if ! sam_pid_start "$parent"; then
+        [[ -z "$saved_term" ]] && trap - TERM || eval "$saved_term"
+        [[ -z "$saved_usr1" ]] && trap - USR1 || eval "$saved_usr1"
+        return 1
+    fi
+    parent_sid=$sam_proc_session
+    [[ "$-" != *m* ]] || had_monitor=1
+    set -m
+    coproc SAM_PREPARER {
+        set +m
+        trap - EXIT INT
+        trap 'exit 0' TERM
+        trap '' PIPE
+        exec 3>&-
+        if [[ "${sam_session_lock_fd:-}" =~ ^[0-9]+$ ]]; then exec {sam_session_lock_fd}>&-; fi
+        sam_session_lock_holder= sam_session_lock_depth=0
+        kill -STOP "$BASHPID"
+        sam_worker_persistent=1
+        sam_prepare_persistent >&2
+    }
+    local pid=$SAM_PREPARER_PID pipe_read=${SAM_PREPARER[0]} pipe_write=${SAM_PREPARER[1]}
+    ((had_monitor)) || set +m
+    local channel_ok=0
+    exec {sam_worker_request_fd}>&"$pipe_write" && channel_ok=1
+    exec {pipe_read}<&- {pipe_write}>&-
+    sam_job_register sam_worker "$pid" "$parent" "$parent_sid" && registered=1
+    if ((registered && !channel_ok)); then
+        sam_job_cancel "$sam_worker_pid" "$sam_worker_start" "$sam_worker_group" "$sam_worker_sid" || true
+        registered=0
+    fi
+    sam_worker_persistent=1 sam_worker_revision=$sam_revision
+    [[ -z "$saved_term" ]] && trap - TERM || eval "$saved_term"
+    [[ -z "$saved_usr1" ]] && trap - USR1 || eval "$saved_usr1"
+    ((sam_job_menu_stop_pending == 0)) || kill -USR1 "$parent"
+    ((sam_job_stop_pending == 0)) || kill -TERM "$parent"
+    ((registered))
+}
+
 sam_schedule_preparation() {
     if [[ -n "$sam_worker_pid" ]]; then
         if [[ ! -f "$sam_session/jobs/$sam_job_serial/done" ]]; then
             if sam_pid_start "$sam_worker_pid" && [[ "$sam_proc_start" == "$sam_worker_start" ]]; then return 0; fi
             sam_preparation_error 'Preparation worker exited unexpectedly'
         fi
-        sam_cancel_preparation || { sam_preparation_error "${sam_job_error:-Preparation cleanup failed}"; return 1; }
-        rm -rf -- "$sam_session/jobs/$sam_job_serial"
+        if [[ "${sam_worker_persistent:-0}" != 1 || "${sam_worker_revision:-}" != "$sam_revision" ]] ||
+            ! sam_pid_start "$sam_worker_pid" || [[ "$sam_proc_start" != "$sam_worker_start" ]]; then
+            sam_cancel_preparation || { sam_preparation_error "${sam_job_error:-Preparation cleanup failed}"; return 1; }
+        fi
     fi
     [[ ! -f "$sam_session/error" ]] || return 0
     sam_queue_files
@@ -149,7 +319,27 @@ sam_schedule_preparation() {
     if (( ${#sam_queue[@]} >= 2 )); then
         sam_catalog_pending || return 0
     fi
+    # Retain completion while the full queue needs no refill. Deleting it before
+    # this decision makes an idle persistent worker look permanently busy.
+    [[ "$sam_job_serial" == 0 ]] || rm -rf -- "$sam_session/jobs/$sam_job_serial"
     sam_job_serial=$((sam_job_serial+1))
+    if [[ "${sam_engine_adapter_verified:-0}" == 1 && "${sam_mode:-normal}" != m82 && "${sam_mode:-normal}" != samvideo ]]; then
+        [[ "${sam_worker_persistent:-0}" == 1 ]] || sam_prepare_persistent_begin > "$sam_session/preparation.log" 2>&1 || {
+            sam_preparation_error 'Persistent preparation registration failed'; return 1;
+        }
+        local rotation= rotation_core
+        for rotation_core in "${corelisttmp[@]}"; do rotation+="${rotation:+,}$rotation_core"; done
+        local saved_pipe write_rc=0
+        saved_pipe=$(trap -p PIPE)
+        trap '' PIPE
+        printf '%s\t%s\t%s\t%s\t%s\n' "$sam_job_serial" "$sam_revision" \
+            "${sam_launch_serial:-0}" "${sam_bootstrap:-0}" "$rotation" >&"$sam_worker_request_fd" || write_rc=1
+        [[ -z "$saved_pipe" ]] && trap - PIPE || eval "$saved_pipe"
+        if ((write_rc)); then
+            sam_preparation_error 'Persistent preparation request failed'; return 1;
+        fi
+        return 0
+    fi
     # Defer owner termination only across fork/identity registration. Cleanup
     # must never observe a live owned worker without its verified PID/start.
     sam_job_spawn sam_worker sam_prepare_worker > "$sam_session/preparation.log" 2>&1 || {
@@ -181,6 +371,9 @@ sam_take_prepared() {
             fi
         fi
         sam_candidate_cover=$sam_record_cover
+        sam_candidate_mgl=$sam_record_mgl
+        sam_candidate_setname=$sam_record_setname
+        sam_prepared_core=$c sam_prepared_path=$sam_record_path
         sam_emit launch_validate "$c" "$sam_record_path" || return $?
         sam_selected_record=$record
         nextcore=$c rompath=$sam_record_path romname=$sam_record_name gamename="${sam_record_name%.*}" core=$c
@@ -267,8 +460,13 @@ sam_normal_loop() {
     sam_emit display_startup
     corelisttmp=("${corelist[@]}")
     local c have_catalog=0 last_prepare=-1
-    for c in "${corelist[@]}"; do [[ ! -s "$gamelistpath/${c}_gamelist.txt" ]] || have_catalog=1; done
-    sam_bootstrap=$((1-have_catalog))
+    if [[ "${sam_core_registry_active:-0}" == 1 ]]; then
+        sam_bootstrap=0
+        [[ "${SAM_MODE:-ALL}" == SINGLE ]] || sam_bootstrap=1
+    else
+        for c in "${corelist[@]}"; do [[ ! -s "$gamelistpath/${c}_gamelist.txt" ]] || have_catalog=1; done
+        sam_bootstrap=$((1-have_catalog))
+    fi
     printf '\n' > "$sam_game_log"
     while :; do
         sam_config_game_boundary || return 1

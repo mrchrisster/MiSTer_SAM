@@ -87,25 +87,48 @@ sam_category_core_allowed() {
     return 0
 }
 
+sam_category_axis() { # derive an arcade orientation policy without changing INI
+    sam_category_axis_preset=
+    [[ "$1" == arcade ]] || return 0
+    case "$sam_category_preset" in
+        arcade_horizontal|arcade_vertical) sam_category_axis_preset=$sam_category_preset; return 0 ;;
+    esac
+    case "${sam_mode:-normal}" in normal|roulette) ;; *) return 0 ;; esac
+    case "${arcadeorient,,}" in
+        horizontal|vertical) sam_category_axis_preset="arcade_${arcadeorient,,}" ;;
+    esac
+}
+
 sam_category_filter() {
-    [[ "$sam_category_preset" != off || -n "$sam_category_exclusions" ]] || return 0
-    local list="$gamelistpathtmp/${1}_gamelist.txt" output="$gamelistpathtmp/${1}.category.$BASHPID" rc=0
-    python3 "$mrsampath/modules/category_filter.py" --core "$1" --preset "$sam_category_preset" \
-        --list "$list" --master "$gamelistpath/${1}_gamelist.txt" \
-        --aliases "$mrsampath/modules/category-aliases.json" --exclude-tags "$sam_category_exclusions" --output "$output" || rc=$?
-    ((rc <= 1)) || { rm -f "$output"; return 2; }
-    mv -f "$output" "$list" || return 2
-    return "$rc"
+    local sam_category_axis_preset= preset rc=0 options=()
+    local list="$gamelistpathtmp/${1}_gamelist.txt" output="$gamelistpathtmp/${1}.category.$BASHPID" passes=()
+    sam_category_axis "$1"
+    if [[ "$sam_category_preset" != off ]]; then passes+=("$sam_category_preset")
+    elif [[ -n "$sam_category_exclusions" && -z "$sam_category_axis_preset" ]]; then passes+=(off); fi
+    [[ -z "$sam_category_axis_preset" || "$sam_category_axis_preset" == "$sam_category_preset" ]] || passes+=("$sam_category_axis_preset")
+    for preset in "${passes[@]}"; do
+        options=()
+        case "$preset" in arcade_horizontal|arcade_vertical) options+=(--mra-orientation) ;; esac
+        python3 "$mrsampath/modules/category_filter.py" --core "$1" --preset "$preset" \
+            --list "$list" --master "$gamelistpath/${1}_gamelist.txt" \
+            --aliases "$mrsampath/modules/category-aliases.json" --exclude-tags "$sam_category_exclusions" --output "$output" "${options[@]}" || rc=$?
+        ((rc <= 1)) || { rm -f "$output"; return 2; }
+        mv -f "$output" "$list" || return 2
+        ((rc == 0)) || return "$rc"
+    done
+    return 0
 }
 
 sam_category_stamp() {
-    printf 'category=%s:exclude=%s\n' "$sam_category_preset" "$sam_category_exclusions"
+    local sam_category_axis_preset=
+    sam_category_axis "${1:-}"
+    printf 'category=%s:exclude=%s:axis=%s\n' "$sam_category_preset" "$sam_category_exclusions" "$sam_category_axis_preset"
     stat -c '%n:%s:%y' "$gamelistpath/.excludetags" 2>/dev/null || true
-    if [[ "$sam_category_preset" != off || -n "$sam_category_exclusions" ]]; then
+    if [[ "$sam_category_preset" != off || -n "$sam_category_exclusions" || -n "$sam_category_axis_preset" ]]; then
         stat -c '%n:%s:%y' "$mrsampath/modules/category-aliases.json" \
-            "$mrsampath/modules/category_filter.py" "$mrsampath/sam_titles.py"
+            "$mrsampath/modules/category_filter.py" "$mrsampath/sam_titles.py" "$mrsampath/modules/category.sh"
     fi
-    if [[ "$sam_category_preset" == arcade_* ]]; then
+    if [[ -n "$sam_category_axis_preset" ]]; then
         if [[ -n "${SAM_ARCADE_ORGANIZER_DATA:-}" ]]; then
             printf 'organizer=%s\n' "$SAM_ARCADE_ORGANIZER_DATA"
             stat -c '%n:%s:%y' "$SAM_ARCADE_ORGANIZER_DATA" 2>/dev/null || true
@@ -118,18 +141,21 @@ sam_category_stamp() {
 }
 
 sam_category_prepare_candidate() {
-    [[ "$sam_category_preset" == arcade_* ]] || return 0
-    [[ "$1" == arcade ]] || return 1
+    local sam_category_axis_preset=
+    sam_category_axis "$1"
+    [[ -n "$sam_category_axis_preset" ]] || return 0
     # Index/folder/seed eligibility never authorizes the wrong actual core.
     # Read exactly the proposed MRA's bounded header before artwork preparation.
-    python3 "$mrsampath/modules/category_filter.py" --core "$1" --preset "$sam_category_preset" --check-orientation "$2"
+    python3 "$mrsampath/modules/category_filter.py" --core "$1" --preset "$sam_category_axis_preset" --check-orientation "$2"
 }
 
 sam_category_filter_policy() {
+    local sam_category_axis_preset=
+    sam_category_axis "$1"
     # Static pinball tables are useful attract content. This does not bypass
     # Kids, Ignore, category exclusions or artwork eligibility.
     [[ "$sam_category_preset" != pinball ]] || sam_filter_static_blacklist=no
-    if [[ "$1" == arcade && "$sam_category_preset" == arcade_* ]]; then
+    if [[ -n "$sam_category_axis_preset" ]]; then
         sam_filter_legacy_orientation=no
         case "${PATHFILTER[arcade],,}" in _horizontal|_vertical) sam_filter_path=no;; esac
     fi

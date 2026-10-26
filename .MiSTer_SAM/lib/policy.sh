@@ -19,9 +19,14 @@ sam_normal_choose_core() {
     sam_core_policy_refresh || return $?
     if [[ "$SAM_MODE" == SINGLE ]]; then
         sam_core_require "$SAM_TARGET_CORE" || return $?
+        if [[ "${sam_core_registry_active:-0}" == 1 ]]; then
+            sam_core_registry_read "$SAM_TARGET_CORE" && [[ "$sam_registry_state" == ready ]] || return 1
+        fi
         nextcore=$SAM_TARGET_CORE; return 0
     fi
-    candidates=("${corelisttmp[@]}")
+    if [[ "${sam_core_registry_active:-0}" == 1 ]]; then
+        sam_core_registry_candidates candidates || return $?
+    else candidates=("${corelisttmp[@]}"); fi
     (( ${#candidates[@]} )) || return 1
     if [[ "${sam_bootstrap:-0}" == 1 ]]; then
         for c in "${candidates[@]}"; do
@@ -35,9 +40,14 @@ sam_normal_choose_core() {
         local -A weights=()
         for c in "${candidates[@]}"; do
             local rc=0
-            sam_catalog_ready "$c" || rc=$?
-            if (( rc > 1 )); then return "$rc"; elif (( rc == 1 )); then continue; fi
-            read -r count < "$sam_catalog_cache/$c.count" || count=0
+            if [[ "${sam_core_registry_active:-0}" == 1 ]]; then
+                sam_core_registry_read "$c" && [[ "$sam_registry_state" == ready ]] || continue
+                count=$sam_registry_count
+            else
+                sam_catalog_ready "$c" || rc=$?
+                if (( rc > 1 )); then return "$rc"; elif (( rc == 1 )); then continue; fi
+                read -r count < "$sam_catalog_cache/$c.count" || count=0
+            fi
             [[ "$count" =~ ^[0-9]+$ ]] || count=0
             weights[$c]=$count; total=$((total + count))
         done
@@ -56,7 +66,15 @@ sam_normal_choose_core() {
 
 sam_normal_pick() {
     local c="$1" source="$sam_catalog_cache/$1.eligible" candidate_file="$sam_job/candidates" path
-    sam_catalog_ready "$c" || return $?
+    if [[ "${sam_core_registry_active:-0}" == 1 ]]; then
+        sam_core_registry_read "$c" && [[ "$sam_registry_state" == ready ]] || return 1
+        if [[ "$c" == arcade && "$sam_registry_complete" == 0 ]]; then
+            source="$sam_session/bootstrap/arcade.eligible"
+            [[ -s "$source" ]] || return 1
+        else sam_catalog_ready "$c" || return $?; fi
+    else
+        sam_catalog_ready "$c" || return $?
+    fi
     if [[ "${norepeat,,}" != yes ]]; then
         sam_candidate_reset=no
         IFS= read -r rompath < <(shuf -n 1 "$source")

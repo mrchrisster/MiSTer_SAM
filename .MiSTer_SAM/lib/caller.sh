@@ -82,6 +82,12 @@ sam_caller_dispatch() {
             if [[ "${1,,}" =~ ^[a-z0-9_]+$ && -n "${CORE_PRETTY[${1,,}]-}" ]]; then
                 local core=${1,,}
                 shift
+                if [[ -r "$sam_root/lib/controller-client.sh" ]]; then
+                    source "$sam_root/lib/controller-client.sh" || return 1
+                    local rc=0
+                    sam_controller_try start "$core" "$@" || rc=$?
+                    ((rc == 125)) || return "$rc"
+                fi
                 exec python3 "$sam_root/samctl.py" start "$core" "$@"
             fi
             printf 'Unknown SAM command: %s\n' "$1" >&2

@@ -507,9 +507,16 @@ function exit_sam_fast() {
 
 sam_menu_owned_adapter_completed() {
     [[ "${sam_engine_adapter_verified:-0}" == 1 && "${sam_session_cleaned:-0}" == 1 &&
-       "$1:$2" == "${sam_owner:-}" && "$1" == "${SAM_ENGINE_OWNER_PID:-}" &&
-       "$2" == "${SAM_ENGINE_OWNER_START:-}" &&
-       "${sam_session:-}" == "$mrsamtmp/session-${sam_owner:-}" && ! -e "$sam_session/alive" ]]
+       "$1:$2" == "${sam_owner:-}" &&
+       "${sam_session:-}" == "$mrsamtmp/session-${sam_owner:-}" && ! -e "$sam_session/alive" ]] || return 1
+    if [[ "${sam_engine_hosted:-0}" == 1 ]]; then
+        # Hosted ownership belongs to this Bash adapter, never permanent MCP.
+        # Only its foreground process may finish its own revoked session.
+        [[ "$BASHPID" == "$$" && "$1" == "$$" ]] || return 1
+        sam_pid_start "$$" && [[ "$sam_proc_start" == "$2" ]]
+    else
+        [[ "$1" == "${SAM_ENGINE_OWNER_PID:-}" && "$2" == "${SAM_ENGINE_OWNER_START:-}" ]]
+    fi
 }
 
 sam_menu_exit_guard() {

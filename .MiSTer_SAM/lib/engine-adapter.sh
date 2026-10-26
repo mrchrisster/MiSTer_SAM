@@ -27,6 +27,14 @@ sam_engine_reply() {
         "${sam_mode:-normal}" "${sam_last_phase:-preparing}" "$timer" "${sam_paused:-0}" "$remaining" "$action" >&3
 }
 
+sam_engine_protocol_broken() {
+    if [[ "${sam_engine_hosted:-0}" == 1 && "${sam_session_started:-0}" == 1 ]] &&
+        sam_session_is_current && ! sam_engine_controller_alive; then
+        sam_engine_stop_menu
+    fi
+    exit 1
+}
+
 sam_engine_stop_menu() {
     # Called through a verified parent's signal, even during a blocking launch.
     [[ "${sam_engine_menu_exit:-0}" != 1 ]] || return 0
@@ -61,6 +69,9 @@ sam_engine_normal_take() {
     fi
     local rc=0
     sam_take_prepared || rc=$?
+    # Keep the current game playable during a ready handoff. Publish preparing
+    # only when we actually need to wait for a successor from the worker.
+    ((rc != 1)) || sam_publish_phase preparing || return 2
     if ((rc > 1)); then sam_preparation_error 'Prepared selection is unavailable'; fi
     [[ ! -r "$sam_session/error" ]] || { sam_engine_error; return $?; }
     return "$rc"
@@ -111,6 +122,8 @@ sam_engine_control() {
 }
 
 sam_engine_adapter_main() {
+    source "$sam_root/lib/engine-hosted.sh" || return 1
+    if [[ "${sam_engine_hosted:-0}" == 1 ]]; then trap sam_engine_protocol_broken PIPE; fi
     # The engine claims Monitor requests in-process; other countdown hooks stay.
     sam_control_tick() { :; }
     source "$sam_root/lib/engine-modes.sh" || return 1
@@ -125,20 +138,38 @@ sam_engine_adapter_main() {
         load_samvideo() { sam_engine_mode_video_load; }
     fi
     sam_core_session_begin "${1:-}" || { printf 'SAM ERROR: %s\n' "$sam_core_reason" >&2; return 1; }
+    if [[ "${sam_engine_hosted:-0}" == 1 ]]; then
+        # This first reply authorizes no hardware or replacement. EOF and every
+        # token except the single fixed activation token exit before ownership.
+        sam_engine_reply validated 0 || return 1
+        local activation
+        IFS= read -r activation || return 0
+        [[ "$activation" == activate ]] || return 64
+        sam_engine_controller_alive || return 1
+        init_paths || return 1
+    fi
+    sam_exit_trace core_policy_ready
     sam_session_begin || return 1
     trap sam_engine_stop_menu USR1
     [[ "${sam_engine_stop_pending:-0}" != 1 ]] || sam_engine_stop_menu
     trap ':' INT
+    if [[ "${sam_engine_hosted:-0}" == 1 ]]; then
+        sam_engine_guardian_begin || return 1
+    fi
     sam_emit display_start || return 1
     echo 'SAM Session: Initializing the session adapter...'
+    sam_exit_trace session_setup_begin
     sam_prep || return 1
+    sam_exit_trace session_setup_end
     disable_bootrom
     sam_emit session_start || { sam_preparation_error 'Session startup module failed'; sam_engine_error; return 1; }
     sam_emit display_startup || return 1
+    sam_exit_trace display_startup_ready
     corelisttmp=("${corelist[@]}")
-    local c have_catalog=0
-    for c in "${corelist[@]}"; do [[ ! -s "$gamelistpath/${c}_gamelist.txt" ]] || have_catalog=1; done
-    sam_bootstrap=$((1-have_catalog))
+    # First automatic game gets an arcade seed even when other lists exist.
+    # Explicit core and program modes retain their own selectors.
+    sam_bootstrap=0
+    if [[ "$SAM_MODE" != SINGLE && "${sam_core_registry_active:-0}" == 1 ]]; then sam_bootstrap=1; fi
     printf '\n' > "$sam_game_log"
     sam_engine_reply ready 0
     local id action argument extra rc last_preparation=-1
@@ -148,11 +179,19 @@ sam_engine_adapter_main() {
         [[ "$id" =~ ^[0-9]{1,12}$ && ${#id} -le 12 && -z "$extra" && ${#argument} -le 32 ]] || return 64
         sam_session_is_current || return 1
         rc=0
+        case "$action" in boundary|prepare|take|launch|timer_begin|key|control) sam_exit_trace "operation_begin:$action" ;; esac
         case "$action" in
             boundary)
                 sam_engine_timer_active=0
                 sam_config_game_boundary || rc=2
-                ((rc != 0)) || sam_publish_phase preparing || rc=2 ;;
+                if ((rc == 0)); then
+                    sam_queue_files
+                    case "${sam_mode:-normal}" in
+                        normal|roulette)
+                            if ((${#sam_queue[@]} == 0)); then sam_publish_phase preparing || rc=2; fi ;;
+                        *) sam_publish_phase preparing || rc=2 ;;
+                    esac
+                fi ;;
             prepare)
                 if [[ "${sam_mode:-normal}" != m82 && "${sam_mode:-normal}" != samvideo && "$SECONDS" != "$last_preparation" ]]; then
                     sam_schedule_preparation || rc=2
@@ -169,7 +208,11 @@ sam_engine_adapter_main() {
             cleanup) sam_session_cleanup || rc=$?; sam_engine_quit=1 ;;
             *) return 64 ;;
         esac
+        case "$action" in boundary|prepare|take|launch|timer_begin|key|control) sam_exit_trace "operation_end:$action:$rc" ;; esac
         sam_engine_reply "$id" "$rc" || return 1
         [[ "${sam_engine_quit:-0}" != 1 ]] || return "$rc"
     done
+    if [[ "${sam_engine_hosted:-0}" == 1 ]] && ! sam_engine_controller_alive && sam_session_is_current; then
+        sam_engine_stop_menu
+    fi
 }

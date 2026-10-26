@@ -50,6 +50,11 @@ sam_session_is_current() {
 
 sam_engine_orphan_pending() {
     sam_session_read_owner || return 1
+    # A live owner still coordinates its adapter and can be replaced through
+    # the normal validated Stop path. Fence only an adapter whose exact parent
+    # identity has disappeared; a reused parent PID cannot authorize replacement.
+    if sam_pid_start "$sam_session_owner_pid" &&
+        [[ "$sam_proc_start" == "$sam_session_owner_start" ]]; then return 1; fi
     local line pid= ticks= owner= marker="$mrsamtmp/session-$sam_session_owner_pid:$sam_session_owner_start/adapter-owner"
     [[ -f "$marker" && ! -L "$marker" ]] || return 1
     while IFS= read -r line; do
@@ -75,7 +80,7 @@ sam_session_begin() {
     [[ "$BASHPID" == "$$" ]] || return 1
     sam_pid_start "$$" || return 1
     local owner="$$:$sam_proc_start" rc=0
-    if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+    if [[ "${sam_engine_adapter_verified:-0}" == 1 && "${sam_engine_hosted:-0}" != 1 ]]; then
         [[ "${SAM_ENGINE_OWNER_PID:-}" == "$PPID" ]] || return 1
         sam_pid_start "$SAM_ENGINE_OWNER_PID" && [[ "$sam_proc_start" == "${SAM_ENGINE_OWNER_START:-}" ]] || return 1
         owner="$SAM_ENGINE_OWNER_PID:$SAM_ENGINE_OWNER_START"
@@ -109,6 +114,11 @@ sam_session_begin() {
         printf '%s\n' "${sam_config_roulette_snapshot:-}" > "$sam_session/config-roulette"
         [[ ! -f "$gamelistpath/.excludetags" ]] || cp -- "$gamelistpath/.excludetags" "$sam_session/config-tags"
         sam_session_started=1
+        # Source-only integrations may load just the ownership/status library.
+        # Production runtime requires and loads the registry before this point.
+        if declare -F sam_core_registry_begin >/dev/null; then
+            sam_core_registry_begin || { sam_session_unlock; return 1; }
+        fi
         if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
             sam_pid_start "$$" || { sam_session_unlock; return 1; }
             printf 'pid=%s\nstart=%s\nowner=%s\n' "$$" "$sam_proc_start" "$sam_owner" > "$sam_session/adapter-owner"
@@ -251,6 +261,12 @@ sam_session_cleanup_impl() {
     # global audio or stop replacement services without owning the record.
     [[ -z "${sam_session:-}" ]] || rm -f "$sam_session/alive"
     local cleanup_failed=0 reason= pending= critical_rc=0 defer_preparation=0
+    if declare -F sam_engine_guardian_cancel >/dev/null && ! sam_engine_guardian_cancel; then
+        reason="${sam_job_error:-Controller guardian cleanup failed}"
+        sam_cleanup_failure_record sam_guardian "$reason" || true
+        printf '%s\n' "$reason" >> "$sam_session/cleanup-error"
+        cleanup_failed=1
+    fi
     if [[ -r "$mrsamtmp/menu-audio-owner" ]]; then
         IFS= read -r pending < "$mrsamtmp/menu-audio-owner" || true
     fi

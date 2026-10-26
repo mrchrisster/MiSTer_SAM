@@ -4,12 +4,13 @@ sam_record_read() {
     local file="$1" line key value
     sam_record_core= sam_record_path= sam_record_name= sam_record_setname=
     sam_record_generation= sam_record_owner= sam_record_revision= sam_record_amigapath= sam_record_amigacore= sam_record_cover= sam_record_reset= sam_record_policy=
+    sam_record_mgl=
     [[ -r "$file" ]] || return 1
     while IFS= read -r line || [[ -n "$line" ]]; do
         [[ "$line" == *=* ]] || continue
         key="${line%%=*}" value="${line#*=}"
         case "$key" in
-            core|path|name|setname|generation|owner|revision|amigapath|amigacore|cover|reset|policy)
+            core|path|name|setname|generation|owner|revision|amigapath|amigacore|cover|reset|policy|mgl)
                 printf -v "sam_record_$key" '%s' "$value" ;;
         esac
     done < "$file"
@@ -32,6 +33,7 @@ sam_record_write() { # file core path name setname revision
             "$sam_generation" "$sam_owner" "$6" "${amigapath:-}" "${sam_candidate_cover:-}"
         printf 'amigacore=%s\n' "${amigacore:-}"
         printf 'reset=%s\npolicy=%s\n' "${sam_candidate_reset:-no}" "${sam_candidate_policy:-}"
+        printf 'mgl=%s\n' "${sam_candidate_mgl:-}"
     } > "$temp" && mv -f -- "$temp" "$file" || rc=1
     ((locked == 0)) || sam_session_unlock
     ((rc == 0)) || rm -f -- "$temp"
@@ -51,10 +53,32 @@ sam_pid_start() { # PID; returns fields via variables, including zombie state
 
 # Private groups belong only to preparation/delayed-launch work, never the SAM
 # owner, OLED or MCP. Children wait stopped until their identity is registered.
+sam_job_register() { # prefix PID parent SID; child is still behind STOP barrier
+    local prefix=$1 pid=$2 parent=$3 parent_sid=$4 ticks= group= sid= registered=0 attempt
+    printf -v "${prefix}_pid" '%s' "$pid"
+    for ((attempt=0;attempt<20;attempt++)); do
+        if sam_pid_start "$pid"; then
+            ticks=$sam_proc_start group=$sam_proc_group sid=$sam_proc_session
+            if [[ "$sam_proc_ppid" == "$parent" && "$group" == "$pid" && "$sid" == "$parent_sid" &&
+                  ( "$sam_proc_state" == T || "$sam_proc_state" == t ) ]]; then registered=1; break; fi
+        else break; fi
+        sleep 0.01
+    done
+    printf -v "${prefix}_start" '%s' "$ticks"
+    printf -v "${prefix}_group" '%s' "$group"
+    printf -v "${prefix}_sid" '%s' "$sid"
+    if ((registered)); then
+        kill -CONT "$pid" || registered=0
+    elif [[ -n "$ticks" ]] && sam_pid_start "$pid" && [[ "$sam_proc_start" == "$ticks" && "$sam_proc_ppid" == "$parent" ]]; then
+        kill -KILL "$pid" 2>/dev/null || true
+    fi
+    ((registered)) || { echo 'SAM: owned job registration failed.' >&2; return 1; }
+}
+
 sam_job_spawn() { # sam_worker|sam_launch command [args...]
     local prefix=$1 saved_term saved_usr1 had_monitor=0 parent=$BASHPID parent_sid pid ticks= group= sid= registered=0 attempt
     shift
-    [[ "$prefix" == sam_worker || "$prefix" == sam_launch ]] || return 1
+    [[ "$prefix" == sam_worker || "$prefix" == sam_launch || "$prefix" == sam_guardian ]] || return 1
     saved_term=$(trap -p TERM)
     local sam_job_stop_pending=0
     local sam_job_menu_stop_pending=0
@@ -77,6 +101,10 @@ sam_job_spawn() { # sam_worker|sam_launch command [args...]
         set +m
         trap - EXIT INT
         trap 'exit 0' TERM
+        if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
+            exec 3>&-
+            if [[ "${sam_worker_request_fd:-}" =~ ^[0-9]+$ ]]; then exec {sam_worker_request_fd}>&-; fi
+        fi
         # A fork can occur inside an owner's transition. Close, never unlock,
         # the inherited description so this job cannot retain the owner's flock.
         if [[ "${sam_session_lock_fd:-}" =~ ^[0-9]+$ ]]; then exec {sam_session_lock_fd}>&-; fi
@@ -90,24 +118,7 @@ sam_job_spawn() { # sam_worker|sam_launch command [args...]
     ) < /dev/null &
     pid=$!
     ((had_monitor)) || set +m
-    printf -v "${prefix}_pid" '%s' "$pid"
-    for ((attempt=0;attempt<20;attempt++)); do
-        if sam_pid_start "$pid"; then
-            ticks=$sam_proc_start group=$sam_proc_group sid=$sam_proc_session
-            if [[ "$sam_proc_ppid" == "$parent" && "$group" == "$pid" && "$sid" == "$parent_sid" &&
-                  ( "$sam_proc_state" == T || "$sam_proc_state" == t ) ]]; then registered=1; break; fi
-        else break; fi
-        sleep 0.01
-    done
-    printf -v "${prefix}_start" '%s' "$ticks"
-    printf -v "${prefix}_group" '%s' "$group"
-    printf -v "${prefix}_sid" '%s' "$sid"
-    if ((registered)); then
-        kill -CONT "$pid" || registered=0
-    elif [[ -n "$ticks" ]] && sam_pid_start "$pid" && [[ "$sam_proc_start" == "$ticks" && "$sam_proc_ppid" == "$parent" ]]; then
-        # The callback has not passed its STOP barrier; no descendants exist.
-        kill -KILL "$pid" 2>/dev/null || true
-    fi
+    sam_job_register "$prefix" "$pid" "$parent" "$parent_sid" && registered=1
     # saved_term comes only from Bash's own trap table, never a file/user record.
     [[ -z "$saved_term" ]] && trap - TERM || eval "$saved_term"
     if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
@@ -223,24 +234,35 @@ sam_job_cancel() { # PID start private-group SID; zero only when nothing remains
     fi
     # Group KILL includes the frozen leader and late forks/TERM-handler forks.
     # D-state leaders get a pending KILL; Linux cannot reclaim them before I/O.
-    if sam_job_anchor_valid; then
-        kill -KILL -- "-$sam_job_group" 2>/dev/null || true
-    else
-        sam_job_error='Job anchor disappeared during cancellation'; return 1
-    fi
-    for ((attempt=0;attempt<20;attempt++)); do
-        remaining=0
-        for pid in "${!sam_job_members[@]}"; do
-            if sam_job_member_valid "$pid"; then remaining=1; break; fi
+    # Bash can announce a signalled background job at any command boundary,
+    # printing its entire subshell/coproc definition. Suppress only this owned
+    # cancellation window; failures still return sam_job_error to the caller.
+    # The job's own stderr was inherited at spawn and remains visible.
+    {
+        if sam_job_anchor_valid; then
+            kill -KILL -- "-$sam_job_group" 2>/dev/null || true
+        else
+            sam_job_error='Job anchor disappeared during cancellation'; return 1
+        fi
+        for ((attempt=0;attempt<20;attempt++)); do
+            remaining=0
+            for pid in "${!sam_job_members[@]}"; do
+                if sam_job_member_valid "$pid"; then remaining=1; break; fi
+            done
+            ((remaining)) || break
+            sleep 0.01
         done
-        ((remaining)) || break
-        sleep 0.01
-    done
-    # One final bounded scan includes children forked after initial discovery.
-    sam_job_group_members "$sam_job_group" "$sam_job_sid"
-    ((${#sam_job_members[@]} == 0)) && return 0
-    sam_job_error='Owned job remains after KILL (possibly uninterruptible I/O)'
-    return 1
+        # One final bounded scan includes children forked after initial discovery.
+        sam_job_group_members "$sam_job_group" "$sam_job_sid"
+        if ((${#sam_job_members[@]} == 0)); then
+            # Reap only after proving the complete group is gone. Waiting earlier
+            # would release the leader identity while descendants still exist.
+            builtin wait "$sam_job_anchor" 2>/dev/null || true
+            return 0
+        fi
+        sam_job_error='Owned job remains after KILL (possibly uninterruptible I/O)'
+        return 1
+    } 2>/dev/null
 }
 
 sam_cleanup_failure_record() { # retain RAM evidence across owner EXIT

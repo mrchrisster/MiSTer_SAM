@@ -8,6 +8,7 @@ sam_load_runtime() {
     source "$sam_root/lib/common.sh" || return 1
     source "$sam_root/lib/diagnostics.sh" || return 1
     source "$sam_root/lib/cores.sh" || return 1
+    source "$sam_root/lib/core-registry.sh" || return 1
     source "$sam_root/lib/state.sh" || return 1
     source "$sam_root/lib/session.sh" || return 1
     source "$sam_root/lib/config-reload.sh" || return 1
@@ -17,9 +18,11 @@ sam_load_runtime() {
     source "$sam_root/lib/launch.sh" || return 1
     source "$sam_root/lib/lifecycle.sh" || return 1
     source "$sam_root/lib/catalog-runtime.sh" || return 1
+    source "$sam_root/lib/bootstrap.sh" || return 1
     source "$sam_root/lib/policy.sh" || return 1
     source "$sam_root/lib/engine.sh" || return 1
     source "$sam_root/lib/dispatch.sh" || return 1
+    sam_register candidate_prepare sam_launch_prepare_candidate || return 1
     sam_exit_trace libs_loaded
     if [[ "${sam_ui_initialized:-0}" == 1 ]]; then
         sam_config_paths
@@ -31,8 +34,12 @@ sam_load_runtime() {
     fi
     init_data
     sam_exit_trace data_initialized
-    init_paths
-    sam_exit_trace paths_initialized
+    # A hosted adapter validates configuration while an old game may still be
+    # running. Create scratch/catalogue directories only after activation.
+    if [[ "${sam_engine_hosted:-0}" != 1 ]]; then
+        init_paths
+        sam_exit_trace paths_initialized
+    fi
     if [[ "${sam_engine_adapter_verified:-0}" == 1 ]]; then
         source "$sam_root/lib/engine-modes.sh" || return 1
         sam_bind engine_take sam_engine_normal_take || return 1

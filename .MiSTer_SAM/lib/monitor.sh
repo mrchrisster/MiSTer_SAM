@@ -111,6 +111,33 @@ function mcp_monitor() {
 }
 
 function sam_monitor() {
+    local root=${sam_root:-${mrsampath:-/media/fat/Scripts/.MiSTer_SAM}}
+    local runtime=${SAM_TMP_ROOT:-/tmp/.SAM_tmp} owner_pid= owner_start= existing= command pane_id
+    if [[ -r "$runtime/hosted-controller" && -r "$root/lib/controller-client.sh" && -r "$root/lib/session-view.sh" ]]; then
+        source "$root/lib/controller-client.sh" || return 1
+        source "$root/lib/session-view.sh" || return 1
+        if sam_controller_read "$runtime/session-owner"; then
+            owner_pid=${sam_controller_record[pid]-} owner_start=${sam_controller_record[start]-}
+        fi
+        if sam_view_owner_valid "$root" "$runtime" "$owner_pid" "$owner_start"; then
+            if tmux has-session -t '=SAM' 2>/dev/null; then
+                existing=$(tmux show-option -v -t SAM @sam-view-owner 2>/dev/null) || existing=
+                if [[ "$existing" != "$owner_pid:$owner_start" ]]; then
+                    echo 'SAM monitor: another SAM pane is still open; wait for it to close.' >&2
+                    return 1
+                fi
+            else
+                printf -v command 'exec bash %q %q %q %q %q' "$root/lib/session-view.sh" "$root" "$runtime" "$owner_pid" "$owner_start"
+                tmux new-session -d -x 180 -y 40 -s SAM -n 'SAM monitor' "$command" || return 1
+                tmux set-option -t SAM @sam-view-owner "$owner_pid:$owner_start" || return 1
+            fi
+        fi
+    fi
+    if ! tmux has-session -t '=SAM' 2>/dev/null; then
+        echo 'SAM monitor: SAM is not running or is still initializing.' >&2
+        echo 'Use MiSTer_SAM_on.sh diagnostics for the last exit, or start SAM first.' >&2
+        return 1
+    fi
     sam_monitor_help SAM || echo 'Monitor controls could not be configured. Attaching with standard tmux controls; Ctrl-b then d detaches.' >&2
     exec tmux attach-session -t '=SAM'
 }

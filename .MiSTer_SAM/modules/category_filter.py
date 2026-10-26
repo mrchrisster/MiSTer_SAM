@@ -265,8 +265,12 @@ def main():
     parser.add_argument('--output', type=Path)
     parser.add_argument('--organizer-data', action='append', type=Path)
     parser.add_argument('--check-orientation', type=Path)
+    parser.add_argument('--mra-orientation', action='store_true',
+                        help='Filter this candidate batch using bounded real MRA headers')
     parser.add_argument('--exclude-tags', default='')
     args = parser.parse_args()
+    if args.mra_orientation and (args.core != 'arcade' or args.preset not in ('arcade_horizontal', 'arcade_vertical')):
+        parser.error('MRA orientation filtering requires an arcade orientation preset')
     if args.check_orientation is not None:
         if args.core != 'arcade' or not args.preset.startswith('arcade_'):
             parser.error('Orientation validation requires an arcade orientation preset')
@@ -280,8 +284,13 @@ def main():
         tags = {tag.strip().casefold() for tag in args.exclude_tags.split(',') if tag.strip()}
         if not tags <= EXCLUSION_TAGS:
             raise ValueError('Unknown category exclusion tag')
-        index = load_orientation_index(args.organizer_data) if args.preset.startswith('arcade_') else None
-        selected = filter_paths(args.core, args.preset, candidates, master, aliases, index)
+        if args.mra_orientation:
+            # Inspect only the prepared batch, never discover new files or parse
+            # embedded ROM payloads. Unknown metadata stays excluded.
+            selected = [path for path in candidates if orientation_matches(path, args.preset)]
+        else:
+            index = load_orientation_index(args.organizer_data) if args.preset.startswith('arcade_') else None
+            selected = filter_paths(args.core, args.preset, candidates, master, aliases, index)
         selected = [path for path in selected if not excluded_by_tags(path, tags)]
         args.output.write_text(''.join(path + '\n' for path in selected), encoding='utf-8', errors='surrogateescape')
     except (OSError, UnicodeError, ValueError, TypeError) as error:

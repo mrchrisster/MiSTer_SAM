@@ -31,7 +31,9 @@ def processes(script, proc=Path('/proc')):
             if (found := identity(item.name, script, proc)) is not None]
 
 
-def stop(script, grace=3, proc=Path('/proc')):
+def stop(script, grace=25, proc=Path('/proc')):
+    # A warm MCP owns session coordination. Let guarded Menu/audio cleanup
+    # complete before escalation; an idle MCP still exits immediately.
     owned = processes(script, proc)
     def remaining():
         return [item for item in owned if identity(item[0], script, proc) == item]

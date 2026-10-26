@@ -20,14 +20,20 @@ sam_artwork_mode_check() {
 }
 
 sam_artwork_prepare_candidate() { # core path; background only
-    python3 "$sam_artwork_root/sam_artwork.py" \
+    local rc=0
+    if [[ "${sam_worker_persistent:-0}" == 1 ]]; then
+        sam_artwork_service_request check "$1" "$2" '' '' "$sam_job/cover" "$sam_session/ready" || rc=$?
+    else
+        python3 "$sam_artwork_root/sam_artwork.py" \
         --source "${Artwork_source:-database}" --style "${Artwork_style:-box3d}" \
         --database "$sam_artwork_root/database" --downloads "$sam_artwork_root/downloads" \
         --cache "$sam_artwork_root/${1}_cache.json" --check "$1" "$2" \
-        --cover-output "$sam_job/cover" --protected-root "$sam_session/ready" || {
+        --cover-output "$sam_job/cover" --protected-root "$sam_session/ready" || rc=$?
+    fi
+    if ((rc)); then
         printf 'SAM artwork ERROR: cover preparation failed for %s: %s\n' "$1" "$2" >&2
         return 3
-    }
+    fi
     read -r sam_candidate_cover < "$sam_job/cover"
     [[ -s "$sam_candidate_cover" ]] || return 3
 }

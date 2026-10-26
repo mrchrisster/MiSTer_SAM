@@ -68,6 +68,19 @@ sam_config_timer_update() { # uses the countdown's dynamically scoped locals
 }
 
 sam_config_game_boundary() {
+    # The watcher atomically publishes owner/start/revision as the first three
+    # lines. An already-applied revision needs no repeat parsing of all options.
+    # Other layouts fall through to the full literal-record validator.
+    if [[ -n "${sam_reload_applied_revision:-}" && -r "$sam_session/config-update" ]]; then
+        local header_pid header_start header_revision
+        {
+            IFS= read -r header_pid
+            IFS= read -r header_start
+            IFS= read -r header_revision
+        } < "$sam_session/config-update" || true
+        if [[ "$header_pid" == "pid=${sam_owner%%:*}" && "$header_start" == "start=${sam_owner#*:}" &&
+              "$header_revision" == "revision=$sam_reload_applied_revision" ]]; then return 0; fi
+    fi
     sam_config_read_update || return 0
     [[ "$sam_reload_revision" != "${sam_reload_applied_revision:-}" ]] || return 0
     # Commercial clips own their current deadline. Update the generic game
@@ -111,6 +124,7 @@ sam_config_game_boundary() {
         sam_revision=$((sam_revision+1))
         sam_emit config_refresh || return 1
         sam_core_session_begin "${SAM_TARGET_CORE:-}" || return 1
+        sam_core_registry_begin || return 1
         corelisttmp=("${sam_allowed_cores[@]}")
     fi
     local suffix destination

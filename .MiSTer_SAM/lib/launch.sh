@@ -1,6 +1,45 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Extracted compatibility implementation; see reference and attribution.
 
+sam_launch_prepare_candidate() { # worker only; literal XML travels with its ROM
+    sam_candidate_mgl= sam_candidate_setname=
+    [[ "${sam_engine_adapter_verified:-0}" == 1 ]] || return 0
+    case "${sam_mode:-normal}" in normal|roulette) ;; *) return 0 ;; esac
+    case "$1" in
+        arcade|stv)
+            local line pattern='<setname[^>]*>([^<]+)</setname>'
+            while IFS= read -r line || [[ -n "$line" ]]; do
+                if [[ "$line" =~ $pattern ]]; then sam_candidate_setname=${BASH_REMATCH[1]}; break; fi
+            done < "$2"
+            return 0 ;;
+        amiga|amigacd32|ao486|x68k|mgls) return 0 ;;
+    esac
+    local xml rc=0
+    xml=$(python3 "$mrsampath/sam_mgl.py" "$1" "$2" \
+        --sd-root "$misterpath" --rbf-folder "${CORE_PATH_RBF[$1]}") || rc=$?
+    ((rc == 0)) || return "$rc"
+    [[ -n "$xml" && "$xml" != *$'\n'* && "$xml" != *$'\r'* ]] || return 2
+    sam_candidate_mgl=$xml
+}
+
+sam_arcade_rbf_exists() { # tag and installed RBF search root
+    local tag="$1" directory="$2" item had_case=0 had_fail=0 matches=()
+    if [[ "$tag" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
+        # Standard arcade RBFs live in cores/; flat installations work too.
+        # Probe these verified paths before traversing thousands of MRA folders.
+        shopt -q nocaseglob && had_case=1
+        shopt -q failglob && had_fail=1
+        shopt -s nocaseglob
+        shopt -u failglob
+        matches=("$directory/cores/$tag"*.rbf "$directory/$tag"*.rbf)
+        ((had_case)) || shopt -u nocaseglob
+        ((had_fail == 0)) || shopt -s failglob
+        for item in "${matches[@]}"; do [[ ! -f "$item" ]] || return 0; done
+    fi
+    # Retain nonstandard layouts and the previous wildcard semantics.
+    [[ -n "$(find "$directory" -iname "${tag}*.rbf" -print -quit 2>/dev/null)" ]]
+}
+
 function check_rom() { # background candidate validation, no nested indexing job
     local core="$1" path="${rompath:-}" ext
     [[ -n "$path" && "$path" != *$'\n'* && "$path" != *$'\r'* ]] || return 1
@@ -25,9 +64,10 @@ function check_rom() { # background candidate validation, no nested indexing job
     fi
     if [[ "$core" == arcade || "$core" == stv ]]; then
         local tag checks="$misterpath/${CORE_PATH_RBF[$core]}"
-        tag=$(sed -n 's/.*<[rR][bB][fF]>\([^<]*\)<\/[rR][bB][fF]>.*/\1/p' "$rompath" | head -n 1)
+        # Stop at the tag instead of reading an MRA's embedded ROM payload.
+        tag=$(sed -n 's/.*<[rR][bB][fF]>\([^<]*\)<\/[rR][bB][fF]>.*/\1/p; /<[rR][bB][fF]>/q' "$rompath")
         tag="${tag//[[:space:]]/}"
-        [[ -z "$tag" ]] || [[ -n "$(find "$checks" -iname "${tag}*.rbf" -print -quit 2>/dev/null)" ]] || return 1
+        [[ -z "$tag" ]] || sam_arcade_rbf_exists "$tag" "$checks" || return 1
     fi
     romname="${rompath##*/}"
 }
@@ -136,7 +176,11 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             fi
 
             gamename="${rompath##*/}"; gamename="${gamename%.*}"
-            tty_corename=$(grep "<setname>" "${rompath}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
+            if [[ "${sam_prepared_core:-}:${sam_prepared_path:-}" == "$core:$rompath" && -n "${sam_candidate_setname:-}" ]]; then
+                tty_corename=${sam_candidate_setname//[^[:alnum:]]/}
+            else
+                tty_corename=$(grep "<setname>" "${rompath}" | sed -e 's/<setname>//' -e 's/<\/setname>//' | tr -cd '[:alnum:]')
+            fi
             mute_target="${tty_corename:-$gamename}"
             launch_cmd="load_core ${rompath}"
             ;;
@@ -253,11 +297,19 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
             tty_corename="${TTY2OLED_PIC_NAME[${core}]}"
             mute_target="${CORE_LAUNCH[${core}]}"
 
-            if [ -s /tmp/SAM_Game.mgl ]; then cp /tmp/SAM_Game.mgl /tmp/SAM_game.previous.mgl || return 1; fi
-            sam_run_owned_command python3 "$mrsampath/sam_mgl.py" "$core" "$rompath" \
-                --sd-root "$misterpath" --rbf-folder "${CORE_PATH_RBF[$core]}" -o /tmp/SAM_Game.mgl || return $?
+            local mgl_file=${sam_launch_mgl_path:-/tmp/SAM_Game.mgl}
+            local previous_mgl=${sam_launch_previous_mgl_path:-/tmp/SAM_game.previous.mgl}
+            if [ -s "$mgl_file" ]; then cp "$mgl_file" "$previous_mgl" || return 1; fi
+            if [[ "${sam_engine_adapter_verified:-0}" == 1 &&
+                  "${sam_prepared_core:-}" == "$core" && "${sam_prepared_path:-}" == "$rompath" &&
+                  -n "${sam_candidate_mgl:-}" ]]; then
+                printf '%s\n' "$sam_candidate_mgl" > "$mgl_file" || return 1
+            else
+                sam_run_owned_command python3 "$mrsampath/sam_mgl.py" "$core" "$rompath" \
+                    --sd-root "$misterpath" --rbf-folder "${CORE_PATH_RBF[$core]}" -o "$mgl_file" || return $?
+            fi
 
-            launch_cmd="load_core /tmp/SAM_Game.mgl"
+            launch_cmd="load_core $mgl_file"
 
             post_launch_hook=sam_start_bios_skip
             ;;
@@ -265,29 +317,39 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
 
     # --- Common Execution Block ---
 
+    sam_exit_trace launch_audio_begin
     if [[ -n "${mute_target}" ]] && ! mute "${mute_target}"; then
         sam_core_reason="Audio protection failed for ${mute_target}; refusing core launch"
         printf 'SAM: %s\n' "$sam_core_reason" >&2
         return 2
     fi
+    sam_exit_trace launch_audio_end
     sam_emit launch_info
 
     echo -n "Starting now on the "; echo -ne "\e[4m${CORE_PRETTY[${core}]}\e[0m: "; echo -e "\e[1m${gamename}\e[0m"
     [[ -n "$streamtitle" ]] && echo -e "BGM playing: \e[1m${streamtitle}\e[0m"
 
-    echo "$(date +%H:%M:%S) - ${core} - ${rompath:-$gamename}" >>"$sam_game_log"
     echo "${gamename} (${core})" >/tmp/SAM_Game.txt
     echo "${gamename}" >/tmp/ACTIVEGAME
 
-    sam_emit launch_observe
-
-		# Time to launch this puppy
+    sam_exit_trace launch_dispatch_begin
     timeout 1s bash -c 'printf "%s\n" "$1" > /dev/MiSTer_cmd' _ "$launch_cmd" || return 1
+    sam_exit_trace launch_dispatch_end
+    # Reporting observes a delivered launch. Keep optional display work and log
+    # formatting out of the path before Main receives the prepared command.
+    local log_stamp
+    printf -v log_stamp '%(%H:%M:%S)T' -1
+    printf '%s - %s - %s\n' "$log_stamp" "$core" "${rompath:-$gamename}" >> "$sam_game_log"
+    sam_emit launch_observe
     if [[ "${mute}" == core && -n "${sam_session:-}" && -d "$sam_session" ]]; then
         printf '%s\n' "${launch_cmd#load_core }" > "$sam_session/launch-path"
     fi
     if [[ "$display_core" == arcade || "$display_core" == stv ]]; then
-        display_setname=$(sed -n 's/.*<setname[^>]*>\([^<]*\)<\/setname>.*/\1/p' "$display_rompath" | head -n 1)
+        if [[ "${sam_prepared_core:-}:${sam_prepared_path:-}" == "$display_core:$display_rompath" && -n "${sam_candidate_setname:-}" ]]; then
+            display_setname=$sam_candidate_setname
+        else
+            display_setname=$(sed -n 's/.*<setname[^>]*>\([^<]*\)<\/setname>.*/\1/p' "$display_rompath" | head -n 1)
+        fi
     fi
     sam_emit display_launch "$gamename" "$display_rompath" "$display_core" "$display_setname"
 
@@ -295,7 +357,11 @@ function load_core() { # load_core core [/path/to/rom] [name_of_rom]
         "$post_launch_hook" "$core"
     fi
 
-    sleep 1
+    # The resident engine sequences launch and countdown through acknowledged
+    # adapter operations. A fixed sleep adds latency without proving that Main
+    # finished loading; BIOS skips already have their own owned delayed job.
+    # Keep the compatibility loop's historical settling delay.
+    [[ "${sam_engine_adapter_verified:-0}" == 1 ]] || sleep 1
     return 0
 }
 

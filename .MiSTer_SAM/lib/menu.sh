@@ -3,12 +3,26 @@
 
 # One interactive SAM UI at a time. Keep the lock outside session scratch:
 # Reset and owner cleanup must not replace the inode while a menu holds it.
+sam_menu_countdown() { # hold | release token
+    local action=$1 rc=125
+    shift
+    if [[ -r "$mrsampath/lib/controller-client.sh" ]]; then
+        source "$mrsampath/lib/controller-client.sh" || return 1
+        rc=0
+        sam_controller_try "menu_$action" "$@" || rc=$?
+    fi
+    # Published requests own their outcome. Compatibility is safe only when
+    # the warm host was unavailable before publication.
+    ((rc == 125)) || return "$rc"
+    python3 "$mrsampath/sam/menu_session.py" "$action" "$@"
+}
+
 sam_menu_release_for_exec() {
     [[ "${sam_ui_menu_depth:-0}" == 1 && "${sam_ui_released:-0}" == 0 ]] || return 0
     sam_ui_released=1
     local rc=0
     if [[ -n "${sam_ui_resume_token:-}" && "$sam_ui_resume_token" != - ]]; then
-        python3 "$mrsampath/sam/menu_session.py" release "$sam_ui_resume_token" || rc=$?
+        sam_menu_countdown release "$sam_ui_resume_token" || rc=$?
     fi
     rm -f -- "${sam_menu_file:-}" "${sam_dialog_error:-}" "${sam_dialog_error:-}.failed"
     # Explicit unlock also releases any short-lived inherited descriptions.
@@ -65,7 +79,7 @@ sam_menu_run() {
         if [[ -e "$mrsamtmp/session-owner" || -L "$mrsamtmp/session-owner" ]]; then
             if declare -F sam_exit_trace >/dev/null; then sam_exit_trace menu_pause_wait; fi
             printf 'Pausing the current SAM countdown...\n' >&2
-            sam_ui_resume_token=$(python3 "$mrsampath/sam/menu_session.py" hold) || rc=$?
+            sam_ui_resume_token=$(sam_menu_countdown hold) || rc=$?
             if declare -F sam_exit_trace >/dev/null; then sam_exit_trace menu_pause_done; fi
         else
             # Admission and menu locks exclude new owners. No owner record means

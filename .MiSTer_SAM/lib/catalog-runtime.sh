@@ -60,17 +60,32 @@ sam_catalog_stamp() { # runs only in preparation, not in the countdown
     sam_emit filter_stamp "$1"
 }
 
+sam_catalog_publish_readiness() {
+    [[ "${sam_core_registry_active:-0}" == 1 ]] || return 0
+    local c=$1 count=0 complete=1
+    read -r count 2>/dev/null < "$sam_catalog_cache/$c.count" || count=
+    if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+        count=$(wc -l < "$sam_catalog_cache/$c.eligible") || return 2
+    fi
+    [[ ! -f "$gamelistpath/$c.partial" ]] || complete=0
+    if ((count > 0)); then sam_core_registry_publish "$c" ready "$count" "$complete"
+    elif ((complete)); then sam_core_registry_publish "$c" empty 0 1
+    else sam_core_registry_publish "$c" pending 0 0; fi
+}
+
 sam_catalog_ready() {
     local c="$1" list="$gamelistpath/${1}_gamelist.txt" stamp old
     [[ -f "$list" ]] || sam_build_catalog "$c" || return $?
     stamp="$(sam_catalog_stamp "$c")" || return 2
     [[ ! -r "$sam_catalog_cache/$c.stamp" ]] || IFS= read -r -d '' old < "$sam_catalog_cache/$c.stamp" || true
     if [[ "$old" == "$stamp" && -f "$sam_catalog_cache/$c.eligible" ]]; then
+        sam_catalog_publish_readiness "$c" || return 2
         [[ -s "$sam_catalog_cache/$c.eligible" ]]; return $?
     fi
     [[ -s "$list" ]] || {
         : > "$sam_catalog_cache/$c.eligible" && printf '0\n' > "$sam_catalog_cache/$c.count" &&
             printf '%s' "$stamp" > "$sam_catalog_cache/$c.stamp" || return 2
+        sam_catalog_publish_readiness "$c" || return 2
         return 1
     }
     mkdir -p "$gamelistpathtmp/.checked" || return 2
@@ -87,6 +102,7 @@ sam_catalog_ready() {
         mv -f "$sam_catalog_cache/$c.eligible.tmp.$BASHPID" "$sam_catalog_cache/$c.eligible" || return 2
     wc -l < "$sam_catalog_cache/$c.eligible" > "$sam_catalog_cache/$c.count" || return 2
     printf '%s' "$stamp" > "$sam_catalog_cache/$c.stamp" || return 2
+    sam_catalog_publish_readiness "$c" || return 2
     [[ -s "$sam_catalog_cache/$c.eligible" ]]
 }
 
@@ -102,17 +118,68 @@ sam_catalog_background_scan() {
 }
 
 sam_catalog_background_step() {
-    local c
+    local c rc=0 pass have_record defer_arcade="${1:-0}"
+    sam_catalog_failure_core= sam_catalog_failure_stage= sam_artwork_error_context=
+    if [[ "${sam_core_registry_active:-0}" == 1 ]]; then
+        # A playable seed already covers Arcade. Make other systems available
+        # before the potentially much longer full Arcade metadata/artwork pass.
+        if sam_core_registry_read arcade && [[ "$sam_registry_state:$sam_registry_complete" == ready:0 ]]; then
+            defer_arcade=1
+        fi
+        # Unknown/warm masters are adopted one core at a time. A partial Arcade
+        # seed becomes a full eligible catalog here, after its first publication.
+        # Complete Arcade after other pending systems when its seed is playable.
+        for pass in 0 1 2 3; do
+            for c in "${corelist[@]}"; do
+                have_record=0; sam_core_registry_read "$c" && have_record=1
+                if ((have_record)) && [[ "$sam_registry_complete" == 1 ]]; then continue; fi
+                case "$pass" in
+                    0) [[ "$c" == arcade && "$defer_arcade" != 1 ]] || continue ;;
+                    1)
+                        [[ "$c" != arcade ]] || continue
+                        if [[ "$defer_arcade" == 1 ]]; then
+                            [[ -f "$gamelistpath/${c}_gamelist.txt" && ! -f "$gamelistpath/$c.partial" ]] || continue
+                        fi ;;
+                    2)
+                        [[ "$c" != arcade && "$defer_arcade" == 1 ]] || continue
+                        [[ ! -f "$gamelistpath/${c}_gamelist.txt" || -f "$gamelistpath/$c.partial" ]] || continue ;;
+                    3) [[ "$c" == arcade && "$defer_arcade" == 1 ]] || continue ;;
+                esac
+                if [[ ! -f "$gamelistpath/${c}_gamelist.txt" || -f "$gamelistpath/$c.partial" ]]; then
+                    sam_catalog_failure_core=$c sam_catalog_failure_stage=scan
+                    sam_catalog_background_scan "$c" || return $?
+                fi
+                sam_catalog_failure_core=$c sam_catalog_failure_stage=eligibility
+                rc=0; sam_catalog_ready "$c" || rc=$?
+                ((rc <= 1)) || return "$rc"
+                return 0
+            done
+        done
+        if [[ "${check_for_new_games,,}" == yes ]]; then
+            for c in "${corelist[@]}"; do
+                [[ ! -f "$sam_session/scanned-$c" ]] || continue
+                sam_catalog_failure_core=$c sam_catalog_failure_stage=refresh_scan
+                sam_catalog_background_scan "$c" || return $?
+                sam_catalog_failure_stage=refresh_eligibility
+                rc=0; sam_catalog_ready "$c" || rc=$?
+                ((rc <= 1)) || return "$rc"
+                return 0
+            done
+        fi
+        return 0
+    fi
     # Finish missing/partial lists before optional collection refreshes.
     for c in "${corelist[@]}"; do
         [[ ! -f "$sam_session/scanned-$c" ]] || continue
         if [[ ! -f "$gamelistpath/${c}_gamelist.txt" || -f "$gamelistpath/$c.partial" ]]; then
+            sam_catalog_failure_core=$c sam_catalog_failure_stage=scan
             sam_catalog_background_scan "$c"; return $?
         fi
     done
     if [[ "${check_for_new_games,,}" == yes ]]; then
         for c in "${corelist[@]}"; do
             [[ ! -f "$sam_session/scanned-$c" ]] || continue
+            sam_catalog_failure_core=$c sam_catalog_failure_stage=refresh_scan
             sam_catalog_background_scan "$c"; return $?
         done
     fi
@@ -121,6 +188,27 @@ sam_catalog_background_step() {
 
 sam_catalog_pending() {
     local c
+    if [[ "${sam_core_registry_active:-0}" == 1 ]]; then
+        if ! sam_core_registry_binding; then
+            sam_registry_state= sam_registry_count= sam_registry_complete=
+            return 0
+        fi
+        local registry_pending=0
+        for c in "${corelist[@]}"; do
+            if ! sam_core_registry_read_record "$c" || [[ "$sam_registry_complete" != 1 ]]; then
+                registry_pending=1; break
+            fi
+            if [[ "${check_for_new_games,,}" == yes && ! -f "$sam_session/scanned-$c" ]]; then
+                registry_pending=1; break
+            fi
+        done
+        if ! sam_core_registry_binding; then
+            sam_registry_state= sam_registry_count= sam_registry_complete=
+            return 0
+        fi
+        ((registry_pending == 0)) || return 0
+        return 1
+    fi
     for c in "${corelist[@]}"; do
         [[ -f "$gamelistpath/${c}_gamelist.txt" && ! -f "$gamelistpath/$c.partial" ]] || return 0
         if [[ "${check_for_new_games,,}" == yes && ! -f "$sam_session/scanned-$c" ]]; then return 0; fi

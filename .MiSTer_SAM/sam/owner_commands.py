@@ -136,24 +136,41 @@ def submit(runtime, owner, action, current, timeout=2):
     prefix = 'req-urgent-' if action in URGENT else 'req-'
     path = directory / (prefix + token + '.json')
     ack = acknowledgements / acknowledgement_name(request)
-    def completion(reply):
-        if (isinstance(reply, dict) and reply.get('request_id') == token
+    def bound(reply):
+        return (isinstance(reply, dict) and reply.get('request_id') == token
                 and (reply.get('owner_pid'), reply.get('owner_start')) == (pid, start)
-                and reply.get('launch') == request['launch']
+                and reply.get('launch') == request['launch'])
+    def completion(reply):
+        if (bound(reply)
                 and reply.get('state') in {'applied', 'failed'}):
             return reply.get('state') == 'applied' and reply.get('ok') is True
         return None
     try:
         atomic(path, request)
         deadline = time.monotonic() + (20 if action in URGENT else timeout)
+        accepted = False
         while time.monotonic() < deadline:
-            result = completion(read(ack))
+            reply = read(ack)
+            if action in URGENT and bound(reply) and reply.get('state') == 'accepted' and type(reply.get('ok')) is bool:
+                accepted = True
+            result = completion(reply)
             if result is not None:
                 return result
             if current(owner) is None:
                 # Completion can be published between the first read and the
                 # liveness check. A retained, identity-bound ack wins that race.
-                return completion(read(ack)) is True
+                reply = read(ack)
+                result = completion(reply)
+                if result is not None:
+                    return result
+                if not accepted:
+                    accepted = (action in URGENT and bound(reply)
+                                and reply.get('state') == 'accepted' and type(reply.get('ok')) is bool)
+                if not accepted:
+                    return False
+                # Hosted ownership belongs to the platform child. It can exit
+                # before its still-live controller writes the terminal receipt.
+                # Only a previously accepted, bound urgent request may wait.
             time.sleep(.02)
         return False
     except OSError:

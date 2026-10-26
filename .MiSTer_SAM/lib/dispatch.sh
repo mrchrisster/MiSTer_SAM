@@ -23,6 +23,18 @@ sam_update_assets() {
 # Compatibility name for existing menus and third-party sourced callers.
 parse_cmd() { sam_dispatch "$@"; }
 
+sam_dispatch_gateway() {
+    # Menu actions use the same small transport as the command entry point.
+    local rc=125
+    if [[ -r "$mrsampath/lib/controller-client.sh" ]]; then
+        source "$mrsampath/lib/controller-client.sh" || return 1
+        rc=0
+        sam_controller_try "$@" || rc=$?
+    fi
+    ((rc == 125)) || return "$rc"
+    python3 "$mrsampath/samctl.py" "$@"
+}
+
 sam_command_family() { # Explicit loading policy; no runtime function guessing.
     case "$1" in
         control|status|pause|resume|play|next|skip|previous|mute|m82_play|start|restart|stop|kill|stop_owner|exit_to_game|exit_to_menu|exit_to_menu_fast|menu_audio_restore|unmute|ignore)
@@ -41,13 +53,13 @@ sam_dispatch() {
     shift
     sam_command_family "$first"
     if [[ "$sam_command_kind" == gateway && "${sam_gateway_backend:-0}" != 1 ]]; then
-        python3 "$mrsampath/samctl.py" "$first" "$@"
+        sam_dispatch_gateway "$first" "$@"
         return $?
     fi
     if [[ "$sam_command_kind" == unknown ]]; then
         if [[ "$first" =~ ^[a-z0-9_]+$ && -n "${CORE_PRETTY[$first]-}" ]]; then
             if [[ "${sam_gateway_backend:-0}" == 1 ]]; then sam_start "$first" "$@"
-            else python3 "$mrsampath/samctl.py" start "$first" "$@"; fi
+            else sam_dispatch_gateway start "$first" "$@"; fi
             return $?
         fi
         printf 'Unknown SAM command: %s\n' "$first" >&2
@@ -69,7 +81,7 @@ sam_dispatch_ui() {
     case "$first" in
         monitor) sam_monitor ;;
         mcp_monitor) mcp_monitor ;;
-        startmonitor|sm) python3 "$mrsampath/samctl.py" start "$@" && sam_monitor ;;
+        startmonitor|sm) sam_dispatch_gateway start "$@" && sam_monitor ;;
         update) sam_update "$@" ;;
         menu|back|help|sshconfig|menu_*)
             source "$mrsampath/lib/menu.sh" || return 1

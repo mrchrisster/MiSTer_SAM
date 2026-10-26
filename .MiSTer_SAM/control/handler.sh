@@ -8,14 +8,17 @@ sam_control_publish() {
     [[ "${sam_status_enabled,,}" == yes && -r "$sam_control_helper" ]] || return 0
     sam_display_read
     [[ "$sam_display_owner_pid" == "${SAM_ENGINE_OWNER_PID:-$$}" && "$sam_display_active" == yes ]] || return 0
-    mkdir -p "$sam_control_root"
+    local record
+    printf -v record 'owner_pid=%s\nowner_start=%s\nstart_time=%s\nrom_path=%s\ngeneration=%s\nready=%s\npaused=%s\nremaining_seconds=%s\n' \
+        "${SAM_ENGINE_OWNER_PID:-$$}" "$sam_display_owner_start" "$sam_display_start_time" "$sam_display_rom_path" \
+        "$sam_control_generation" "$1" "${sam_paused:-0}" "${sam_frozen:-0}"
+    # Next and launch both revoke controls. Avoid rewriting the same owned
+    # status twice, but recreate it if a reader/maintenance action removed it.
+    if [[ "$record" == "${sam_control_last_record:-}" && -f "$sam_control_root/status" ]]; then return 0; fi
+    [[ -d "$sam_control_root" ]] || mkdir -p "$sam_control_root" || return 1
     local temp="$sam_control_root/status.tmp.$$"
-    {
-        printf 'owner_pid=%s\nowner_start=%s\nstart_time=%s\nrom_path=%s\n' \
-            "${SAM_ENGINE_OWNER_PID:-$$}" "$sam_display_owner_start" "$sam_display_start_time" "$sam_display_rom_path"
-        printf 'generation=%s\nready=%s\npaused=%s\nremaining_seconds=%s\n' \
-            "$sam_control_generation" "$1" "${sam_paused:-0}" "${sam_frozen:-0}"
-    } > "$temp" && mv -f "$temp" "$sam_control_root/status"
+    printf '%s' "$record" > "$temp" && mv -f "$temp" "$sam_control_root/status" || return 1
+    sam_control_last_record=$record
 }
 
 sam_request_next() {

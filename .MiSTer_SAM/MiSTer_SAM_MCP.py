@@ -49,6 +49,7 @@ _empty_selection_announced = None
 _monitor_was_attached = False
 _monitor_keyboard_until = 0
 _diagnostic_log = None
+_session_controller = None
 
 
 def empty_selection_blocked():
@@ -690,7 +691,14 @@ def owner_key(owner):
 
 
 def session_is_m82(owner, configured):
-    return session_records.session_is_m82(owner, configured, read_literal_file(SAM_STATE_FILE))
+    path = SAM_STATE_FILE
+    controller = _session_controller
+    if controller is not None:
+        with controller.engine_lock:
+            engine = controller.engine
+            if engine is not None and owner_key(owner) == (str(engine.pid), str(engine.start)):
+                path = engine.environment.get('SAM_STATE_FILE', path)
+    return session_records.session_is_m82(owner, configured, read_literal_file(path))
 
 
 def lifecycle_coordinator(input_device=None):
@@ -779,7 +787,25 @@ async def stop_sam(state, play_current=False, owner=None):
         return False
 
 
+class HostedCommandGateway:
+    """MCP decisions use the warm host; public HTTP journals retain their API."""
+    def __init__(self, controller):
+        self.controller = controller
+
+    def execute(self, action, *args, owner=None):
+        if action == 'control' and args == ('ignore',):
+            return self.controller.execute_local('ignore', owner=owner)
+        return self.controller.execute_local(action, *args, owner=owner)
+
+    def launch_start(self, *args, **options):
+        # Retain the tracked thin launcher for the existing startup cancellation
+        # barrier. The server also binds activation to that client's lifetime.
+        return self.controller.gateway.launch_start(*args, **options)
+
+
 def command_gateway():
+    if _session_controller is not None and _session_controller.running:
+        return HostedCommandGateway(_session_controller)
     return CommandGateway(owner_reader=read_sam_owner, entrypoint=SAM_ON_SCRIPT, root=SAM_BASE_PATH)
 
 
@@ -1192,6 +1218,22 @@ async def reload_live_config(state, owner):
     watcher = getattr(state, 'config_watcher', None)
     if watcher is None:
         return
+    # A trusted local caller may use a session-specific INI/list root. Follow
+    # that exact hosted owner's source instead of overwriting it with the
+    # daemon's boot configuration at its first game boundary.
+    controller = _session_controller
+    if controller is not None:
+        environment = {}
+        with controller.engine_lock:
+            engine = controller.engine
+            if engine is not None and owner_key(owner) == (str(engine.pid), str(engine.start)):
+                environment = engine.environment
+        ini_path = environment.get('SAM_INI', INI_FILE)
+        list_path = os.path.join(environment.get('SAM_LIST_ROOT', os.environ.get('SAM_LIST_ROOT', '/media/fat/SAM')), 'Gamelists')
+        context = (ini_path, list_path)
+        if getattr(state, 'hosted_config_context', None) != context:
+            state.config_watcher = watcher = IniWatcher(ini_path, SAM_RUNTIME_ROOT, list_path)
+            state.hosted_config_context = context
     try:
         values = await asyncio.to_thread(watcher.poll, owner)
         state.config_reload_error = None
@@ -1828,7 +1870,7 @@ def read_initial_settings(ini_path=None, runtime_root=None):
 
 
 async def main():
-    global _diagnostic_log
+    global _diagnostic_log, _session_controller
     _diagnostic_log = DiagnosticLog(SAM_RUNTIME_ROOT)
     try:
         import hashlib
@@ -1864,6 +1906,21 @@ async def main():
     state.console_lock=asyncio.Lock()
     print(f"MCP started. Idle timeout: {state.idle_timeout}s, Menu-only: {state.menu_only}")
     print(f"MCP Listen Config: Joy={listen_config['listenjoy']}, Kbd={listen_config['listenkeyboard']}, Mouse={listen_config['listenmouse']}")
+
+    # Host the session coordinator in this already-running interpreter. Its
+    # dedicated threads perform admission/protocol work, never device sampling.
+    # The platform child retains a unique PID/start session lease.
+    from sam.controller import Controller
+    controller = Controller(root=SAM_BASE_PATH, entry=SAM_ON_SCRIPT, runtime=SAM_RUNTIME_ROOT)
+    try:
+        controller.start()
+        _session_controller = controller
+        diagnostic_event('mcp', 'controller_ready', pid=os.getpid())
+    except (OSError, ValueError, RuntimeError) as error:
+        controller.close()
+        controller = None
+        print('MCP: Warm controller unavailable: ' + str(error), flush=True)
+        diagnostic_event('mcp', 'controller_unavailable', reason=str(error))
 
     # 3. Setup asyncio tasks
     tasks['checker'] = (asyncio.create_task(idle_and_status_checker(state)), None)
@@ -1908,6 +1965,11 @@ async def main():
         if console_tasks:await asyncio.gather(*console_tasks,return_exceptions=True)
         if state.input_debug_output is not None:
             state.input_debug_output.close()
+        if controller is not None:
+            try:
+                await asyncio.to_thread(controller.close)
+            finally:
+                _session_controller = None
 
 if __name__ == "__main__":
     try:
@@ -1922,4 +1984,12 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"MCP: A critical error occurred: {e}")
     finally:
+        # Initialization errors before the main gather still own an advertised
+        # host. Revoke it and complete any platform cleanup before process exit.
+        if _session_controller is not None:
+            try:
+                _session_controller.close()
+            except (OSError, RuntimeError) as error:
+                print('MCP: Controller cleanup failed: ' + str(error), flush=True)
+            _session_controller = None
         print("MCP: Shutting down.")
