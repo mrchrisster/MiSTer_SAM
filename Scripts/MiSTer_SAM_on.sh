@@ -2278,6 +2278,8 @@ function check_list() {
     # 3. Handle special session lists (GOAT, M82, etc.)
     if [ "${sam_goat_list}" == "yes" ] && [ ! -s "${gamelistpathtmp}/${1}_gamelist.txt" ]; then
         build_goat_lists
+        # build_goat_lists only runs once per session; refill a core that ran out of GOAT games
+        [ -s "${session_list}" ] || build_goat_core_list "${core_type}"
         return
     fi
 
@@ -2425,6 +2427,21 @@ function check_list_update() {
 
 
 
+# Rebuild one core's session list from the GOAT list
+function build_goat_core_list() { # args: core
+	local core="${1,,}" current_core="" line
+	local session_list="${gamelistpathtmp}/${core}_gamelist.txt"
+	: > "${session_list}"
+	while IFS= read -r line; do
+	if [[ "$line" =~ ^\[(.+)\]$ ]]; then
+	  current_core="${BASH_REMATCH[1],,}"
+	elif [[ "$current_core" == "$core" && "$line" =~ [^[:space:]] ]]; then
+	  fgrep -i -m1 -- "$line" "${gamelistpath}/${core}_gamelist.txt" >> "${session_list}"
+	fi
+	done < "${gamelistpath}/sam_goat_list.txt"
+	samdebug "GOAT list for '${core}' refilled with $(wc -l < "${session_list}") games"
+}
+
 function build_goat_lists() {
 	local goat_flag="/tmp/.SAM_tmp/goatmode.ready"
 	local goat_list_path="${gamelistpath}/sam_goat_list.txt"
@@ -2449,7 +2466,8 @@ function build_goat_lists() {
 	if [[ "$line" =~ ^\[(.+)\]$ ]]; then
 	  current_core="${BASH_REMATCH[1],,}"
 	  [[ ! -f "${gamelistpath}/${current_core}_gamelist.txt" ]] && build_gamelist "$current_core"
-	elif [[ -n "$current_core" ]]; then
+	elif [[ -n "$current_core" && "$line" =~ [^[:space:]] ]]; then
+	  # Skip blank lines: an empty pattern would match the first game in the list
 	  fgrep -i -m1 "$line" "${gamelistpath}/${current_core}_gamelist.txt" \
 		>> "${gamelistpathtmp}/${current_core}_gamelist.txt"
 	fi
@@ -2522,7 +2540,13 @@ function pick_random_game() {
 
     # 3. Apply filter
     if [ ! -s "${session_list}" ]; then
-        cp -f "${master_list}" "${session_list}"
+        # In GOAT mode, refill from the GOAT list instead of the master list
+        if [ "${sam_goat_list}" == "yes" ]; then
+            build_goat_core_list "${core_type}"
+            [ -s "${session_list}" ] || return 1
+        else
+            cp -f "${master_list}" "${session_list}"
+        fi
 
         filter_list "${core_type}"
         # Remove any blank or whitespace-only lines
@@ -3586,7 +3610,12 @@ function filter_list() { # args: core
         return 0
     fi
     # Always start with a fresh copy of the master list in our working file.
-    cp -f "${master_list}" "${tmpfile}"
+    # In GOAT mode, filter the GOAT session list instead of replacing it with the master list.
+    if [ "${sam_goat_list}" == "yes" ] && [ -s "${session_list}" ]; then
+        cp -f "${session_list}" "${tmpfile}"
+    else
+        cp -f "${master_list}" "${tmpfile}"
+    fi
 
     # --- Each filter now reads from $tmpfile and writes its output back to $tmpfile ---
     # --- ALL informational 'echo' commands are redirected to stderr (>&2) ---
